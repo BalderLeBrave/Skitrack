@@ -678,11 +678,13 @@ function FicheBody({ s }: { s: Station }) {
             {/* ── Pistes ───────────────────────────────────────────── */}
             <PistesStation key={`pistes-${s.id}`} s={s} />
 
-            {/* ── Webcams ──────────────────────────────────────────── */}
-            <Webcams key={s.id} cams={cams} />
+            {/* ── Webcams ──────────────────────────────────────────────
+                Chaque section a sa propre clé : deux sœurs sous la même
+                clé, React dupliquait la section webcam à chaque rendu. */}
+            <Webcams key={`webcams-${s.id}`} cams={cams} />
 
             {/* ── Bulletin d'avalanche ─────────────────────────────── */}
-            <BulletinAvalanche key={s.id} bra={bra} />
+            <BulletinAvalanche key={`bra-${s.id}`} bra={bra} />
           </div>
 
           <aside className="aside7">

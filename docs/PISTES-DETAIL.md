@@ -8,8 +8,8 @@ Skiinfo (fiche de la station ou de la vallée), remontées d'OpenSkiMap
 (`docs/PISTES.md`).
 
 « Plus de détails » ouvre le tableau piste par piste : nom, couleur,
-longueur, dénivelé, altitudes de départ et d'arrivée, damage, éclairage,
-secteur. Quand un domaine relie plusieurs stations, le tableau a deux parties :
+longueur, dénivelé, altitudes de départ et d'arrivée. Quand un domaine relie
+plusieurs stations, le tableau a deux parties :
 les pistes de la station, puis celles du domaine entier, qu'on ouvre à part.
 
 ## Source
@@ -22,9 +22,10 @@ les pistes de la station, puis celles du domaine entier, qu'on ouvre à part.
   l'altitude de chaque point. Longueur à plat (haversine) ; départ et arrivée
   au premier et au dernier point ; plus haut et plus bas point, avec la
   position de ce dernier. Une piste publiée comme surface n'a pas de longueur.
-- **Damage et éclairage** : `grooming` et `lit`, souvent absents (62 849 et
-  110 938 pistes sur 145 911 en Europe) ; absents, ils s'affichent « non
-  publié ».
+- **Damage et éclairage** : `grooming` et `lit` restent dans les fichiers,
+  mais le tableau ne les montre pas : souvent absents (62 849 et 110 938
+  pistes sur 145 911 en Europe), ils remplissaient surtout la colonne de
+  « non publié ».
 
 ## Station et domaine
 
@@ -44,8 +45,9 @@ pistes et en a au moins une fois et demie plus.
   d'Huez Grand Domaine), chaque piste va à la station la plus proche de son
   point bas ; la fiche le dit, avec le nombre de tronçons rattachés ainsi.
 - **Secteur** : le plus petit domaine publié qui porte la piste, sous celui du
-  tableau. Dans le tableau des Trois Vallées, une piste de Val Thorens dit
-  « Val Thorens » ; dans celui de Val Thorens, le secteur n'est pas relevé.
+  tableau (« Val Thorens » dans le tableau des Trois Vallées). Il n'est pas
+  affiché ; il sert à ne pas réunir deux pistes de même nom et de même
+  couleur qui sont dans deux secteurs différents.
 
 Au relevé du 22 septembre 2026, sur 231 stations : 133 seules dans leur
 domaine, 17 publiées comme secteur d'un domaine plus grand (Val Thorens dans

@@ -2043,6 +2043,15 @@
 .stc7--liste .stc7__sub {
   font-size: 13px;
 }
+.stc7__parts {
+  display: grid;
+  gap: 6px;
+}
+.stc7__parts > span {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
 .stc7__faits {
   display: grid;
   grid-template-columns: auto auto auto;
@@ -3412,11 +3421,6 @@
   font-weight: 600;
   white-space: normal;
   min-width: 7rem;
-}
-/* Le secteur passe à la ligne plutôt que de pousser le tableau hors de la
-   carte. */
-.pistes7__table td:last-child {
-  white-space: normal;
 }
 .pistes7__table tbody th small {
   display: block;

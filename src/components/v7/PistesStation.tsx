@@ -55,7 +55,6 @@ const INSEC = String.fromCharCode(0xa0);
 const m = (v: number | null | undefined) => (v != null ? `${fmt(v)}${INSEC}m` : null);
 const km = (v: number) => `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}${INSEC}km`;
 const longueur = (v: number | null) => (v == null ? null : v >= 1000 ? km(v / 1000) : m(v));
-const ouiNon = (v: boolean | null) => (v == null ? "non publié" : v ? "Oui" : "Non");
 const pluriel = (n: number, mot: string) => `${fmt(n)} ${mot}${n > 1 ? "s" : ""}`;
 
 const RELEVE_LE = new Date(`${INDEX.le}T12:00:00`).toLocaleDateString("fr-FR", {
@@ -460,9 +459,6 @@ function Tableau({
             ))}
             <th scope="col">Départ</th>
             <th scope="col">Arrivée</th>
-            <th scope="col">Damée</th>
-            <th scope="col">Éclairée</th>
-            <th scope="col">Secteur</th>
           </tr>
         </thead>
         <tbody>
@@ -482,9 +478,6 @@ function Tableau({
               <td data-label="Dénivelé">{m(x.denivelleM) ?? "non relevé"}</td>
               <td data-label="Départ">{m(x.departM) ?? "non relevé"}</td>
               <td data-label="Arrivée">{m(x.arriveeM) ?? "non relevé"}</td>
-              <td data-label="Damée">{ouiNon(x.damee)}</td>
-              <td data-label="Éclairée">{ouiNon(x.eclairee)}</td>
-              <td data-label="Secteur">{x.secteur ?? "non relevé"}</td>
             </tr>
           ))}
         </tbody>

@@ -5,6 +5,7 @@ import {
   ecartKm,
   echelle,
   estDamee,
+  lignePistes,
   parts,
   portionStation,
   regrouper,
@@ -178,5 +179,15 @@ describe("détail des pistes : station et domaine", () => {
   it("un domaine absent du fichier ne donne rien", () => {
     const r = portionStation(detail([t({ nom: "A" })]), "x", { fichier: "3v", aire: "inconnu", voisines: ["x"] }, {}, []);
     assert.equal(r.troncons.length, 0);
+  });
+});
+
+describe("détail des pistes : ligne du comparateur", () => {
+  it("dit le nombre de pistes et les km de Skiinfo, avec l'échelle", () => {
+    assert.equal(lignePistes({ n: 86, km: 150, grain: "station" }), "86\u00a0pistes · 150\u00a0km (Skiinfo, station)");
+    assert.equal(lignePistes({ n: 1, km: 2.5, grain: "valley" }), "1\u00a0piste · 2,5\u00a0km (Skiinfo, vallée)");
+    assert.equal(lignePistes({ n: null, km: 40, grain: "station" }), "40\u00a0km (Skiinfo, station)");
+    assert.equal(lignePistes({ n: null, km: null, grain: "station" }), null);
+    assert.equal(lignePistes(undefined), null);
   });
 });

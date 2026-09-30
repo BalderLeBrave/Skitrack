@@ -354,3 +354,20 @@ export function portionStation(
   }
   return { troncons, proximite, nonRattaches };
 }
+
+/**
+ * La ligne compacte « nombre de pistes · km » du comparateur, avec sa source :
+ * les totaux de Skiinfo, à l'échelle de la fiche (station ou vallée). `null`
+ * quand Skiinfo ne publie ni l'un ni l'autre.
+ */
+export function lignePistes(
+  row: { n: number | null; km: number | null; grain: "station" | "valley" } | null | undefined,
+): string | null {
+  if (!row || (row.n == null && row.km == null)) return null;
+  const nb = (v: number, d = 0) => v.toLocaleString("fr-FR", { maximumFractionDigits: d });
+  const morceaux = [
+    row.n != null ? `${nb(row.n)}\u00a0piste${row.n > 1 ? "s" : ""}` : null,
+    row.km != null ? `${nb(row.km, 1)}\u00a0km` : null,
+  ].filter(Boolean);
+  return `${morceaux.join(" · ")} (Skiinfo, ${row.grain === "valley" ? "vallée" : "station"})`;
+}

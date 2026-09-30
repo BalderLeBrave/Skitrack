@@ -18,7 +18,7 @@ import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
-import { BRA_LABELS } from "@/lib/bra/parse";
+import { BRA_LABELS, lieuLisible } from "@/lib/bra/parse";
 import { getForecastPair, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
 import {
   COLS,
@@ -46,6 +46,7 @@ import {
   villageM,
 } from "@/lib/v7";
 import { webcamsForStation } from "@/lib/webcams";
+import { Webcams } from "@/components/v7/Webcams";
 
 export const Route = createFileRoute("/stations/$id")({ component: Fiche });
 
@@ -318,6 +319,15 @@ function heureLisible(iso: string | null | undefined): string | null {
   });
 }
 
+/** Vrai quand la fin de validité du bulletin est passée. Les dates du
+ *  bulletin sont à l'heure de Paris, sans fuseau : lues ici à l'heure locale,
+ *  ce qui revient au même pour l'application, lancée en France. */
+function echu(validUntil: string | null | undefined): boolean {
+  if (!validUntil) return false;
+  const t = new Date(validUntil).getTime();
+  return !Number.isNaN(t) && t < Date.now();
+}
+
 /* ---------- Écran ---------- */
 
 function FicheInconnue({ id }: { id: string }) {
@@ -358,19 +368,6 @@ function FicheBody({ s }: { s: Station }) {
   const { wx, lo, hi, loMesure, hiMesure } = useForecast(s);
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
-  const [camId, setCamId] = useState<string | null>(null);
-  /* Un `iframe` d'un autre domaine ne signale pas son échec : `onerror` ne se
-     déclenche pas, et son contenu est illisible. On l'attend donc, et faute de
-     `onload` au bout de huit secondes on tient le flux pour muet. */
-  const [camEtat, setCamEtat] = useState<"attente" | "ok" | "echec">("attente");
-  const cam = cams.find((c) => c.id === camId) ?? cams[0] ?? null;
-  const camUrl = cam?.url ?? null;
-  useEffect(() => {
-    if (!camUrl) return;
-    setCamEtat("attente");
-    const t = setTimeout(() => setCamEtat((e) => (e === "attente" ? "echec" : e)), 8000);
-    return () => clearTimeout(t);
-  }, [camUrl]);
 
   const retained = stationId === s.id;
   const inCmp = cmp.includes(s.id);
@@ -591,76 +588,7 @@ function FicheBody({ s }: { s: Station }) {
             </section>
 
             {/* ── Webcams ──────────────────────────────────────────── */}
-            <section className="carte7-sect carte7-sect--serre">
-              <div className="carte7-sect__tete">
-                <h2>Webcams</h2>
-                {cams.length > 1 ? (
-                  <span className="carte7-sect__texte carte7-sect__texte--petit">
-                    {cams.length} caméras
-                  </span>
-                ) : null}
-              </div>
-              {cam ? (
-                <>
-                  {/* Le menu reste affiché même pour une seule caméra : il dit
-                      laquelle on regarde, au même endroit sur toutes les
-                      fiches. */}
-                  <select
-                    className="select7 select7--champ"
-                    value={cam.id}
-                    onChange={(e) => setCamId(e.target.value)}
-                    disabled={cams.length < 2}
-                    aria-label="Choisir une webcam"
-                  >
-                    {cams.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                  {/* Une caméra du domaine posée dans un autre village le dit.
-                      La fiche de Brides-les-Bains montrait celle de Val
-                      Thorens sans le préciser. */}
-                  {cam.duDomaine && cam.station ? (
-                    <span className="carte7-sect__texte carte7-sect__texte--petit">
-                      Caméra du domaine, située {aStation(cam.station)}.
-                    </span>
-                  ) : null}
-                  <div className="webcam7">
-                    <iframe
-                      key={cam.url}
-                      src={cam.url}
-                      title={cam.label}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      sandbox="allow-scripts allow-same-origin"
-                      allowFullScreen
-                      onLoad={() => setCamEtat("ok")}
-                    />
-                    {/* Un flux qui ne se charge pas laissait un rectangle gris
-                        et rien d'autre. Un `iframe` d'un autre domaine ne dit
-                        pas s'il a échoué : on l'attend, et au-delà du délai on
-                        propose de l'ouvrir chez l'exploitant. */}
-                    {camEtat === "echec" ? (
-                      <div className="webcam7__echec">
-                        <span>Le flux ne s’affiche pas ici.</span>
-                        <a href={cam.url} target="_blank" rel="noopener" className="btn7 btn7--fantome">
-                          Ouvrir chez l’exploitant
-                          <Icon name="externe" taille={12} />
-                        </a>
-                      </div>
-                    ) : null}
-                  </div>
-                  <p className="carte7-sect__texte carte7-sect__texte--petit">
-                    Flux diffusé par l’exploitant, affiché tel quel.
-                  </p>
-                </>
-              ) : (
-                <p className="carte7-sect__texte carte7-sect__texte--petit">
-                  Aucune webcam connue pour cette station.
-                </p>
-              )}
-            </section>
+            <Webcams key={s.id} cams={cams} />
 
             {/* ── Bulletin d'avalanche ───────────────────────────────
                 Trois états distincts : chargement, données avec heure de
@@ -684,17 +612,29 @@ function FicheBody({ s }: { s: Station }) {
                     </strong>
                     <span>
                       Bulletin officiel Météo-France
+                      {official?.acces === "donnees-ouvertes" ? " (archive publique, data.gouv.fr)" : ""}
                       {heureLisible(official?.issuedAt) ? (
                         <>
                           , publié le <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
                         </>
                       ) : null}
                       {braData?.voie ? VOIE_LBL[braData.voie] : ""}.
+                      {/* Un bulletin échu reste lisible, mais il le dit :
+                          l'archive publique peut ne rien avoir de plus
+                          récent. */}
+                      {echu(official?.validUntil) ? (
+                        <>
+                          {" "}
+                          Échu depuis le{" "}
+                          <time dateTime={official?.validUntil ?? undefined}>{heureLisible(official?.validUntil)}</time>,
+                          aucun bulletin plus récent n’est disponible.
+                        </>
+                      ) : null}
                       {official?.loc1 && official.risk1 != null
-                        ? ` ${BRA_LABELS[official.risk1]?.fr ?? official.risk1} ${official.loc1}`
+                        ? ` ${BRA_LABELS[official.risk1]?.fr ?? official.risk1} ${lieuLisible(official.loc1)}`
                         : ""}
                       {official?.loc2 && official.risk2 != null
-                        ? ` · ${BRA_LABELS[official.risk2]?.fr ?? official.risk2} ${official.loc2}`
+                        ? ` · ${BRA_LABELS[official.risk2]?.fr ?? official.risk2} ${lieuLisible(official.loc2)}`
                         : ""}
                       {official?.altitude != null ? ` · bascule à ${fmt(official.altitude)} m` : ""}
                     </span>

@@ -55,9 +55,12 @@ export const essayerCle = createServerFn({ method: "POST" })
     if (data.id !== "meteofrance") return { ok: false, message: "Cette clé ne peut pas être essayée." };
     const { valeurCle } = await import("./store.server");
     if (!valeurCle("meteofrance")) return { ok: false, message: "Aucune clé enregistrée." };
-    const { fetchBra } = await import("../bra/fetch.server");
-    // Massif 10 (Vanoise), sans le cache : c'est la clé qu'on teste.
-    const bra = await fetchBra(10, true);
+    const { fetchBraApi, loadMeteofranceKey } = await import("../bra/fetch.server");
+    const cle = loadMeteofranceKey();
+    if (!cle) return { ok: false, message: "Aucune clé enregistrée." };
+    // Massif 10 (Vanoise), par l'API seule : `fetchBra` se replie sur
+    // l'archive publique, et une clé refusée y aurait paru bonne.
+    const bra = await fetchBraApi(10, cle);
     if (bra.ok) {
       return {
         ok: true,

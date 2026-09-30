@@ -10,9 +10,16 @@ export type BraBulletin = {
   loc2: string | null;
   altitude: number | null;
   issuedAt: string | null;
+  /** Fin de validité du bulletin (`DATEVALIDITE`), heure de Paris. */
+  validUntil?: string | null;
   message: string | null;
   error: string | null;
   source?: "meteofrance" | "interne";
+  /**
+   * Par où le bulletin est arrivé : l'API de Météo-France, qui demande une clé,
+   * ou l'archive publique de data.gouv.fr, qui n'en demande pas.
+   */
+  acces?: "api" | "donnees-ouvertes";
 };
 
 export function emptyBulletin(massifCode: number, patch: Partial<BraBulletin> = {}): BraBulletin {
@@ -32,9 +39,27 @@ export function emptyBulletin(massifCode: number, patch: Partial<BraBulletin> = 
   };
 }
 
+/** Les entités XML d'un attribut : `LOC1="&lt;1800"` arrivait tel quel à
+ *  l'écran. */
+function decoder(v: string): string {
+  return v
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
 function attr(xml: string, name: string): string | null {
   const m = new RegExp(`[\\s<]${name}\\s*=\\s*"([^"]*)"`, "i").exec(xml);
-  return m && m[1] !== "" ? m[1] : null;
+  return m && m[1] !== "" ? decoder(m[1]) : null;
+}
+
+/** Le code du massif que le fichier dit porter (attribut `ID`), s'il le dit. */
+export function idMassif(xml: string): number | null {
+  const v = attr(xml, "ID");
+  const n = v == null ? Number.NaN : Number.parseInt(v, 10);
+  return Number.isInteger(n) && n > 0 ? n : null;
 }
 
 function level(value: string | null): number | null {
@@ -75,10 +100,23 @@ export function parseBulletin(massifCode: number, xml: string): BraBulletin {
     loc2: attr(xml, "LOC2"),
     altitude,
     issuedAt: attr(xml, "DATEBULLETIN") ?? attr(xml, "DATEVALIDITE"),
+    validUntil: attr(xml, "DATEVALIDITE"),
     message: null,
     error: null,
     source: "meteofrance",
   };
+}
+
+/**
+ * La zone d'un niveau de risque, dite en mots : le bulletin écrit `<1800` et
+ * `>1800`. Tout autre libellé passe tel quel.
+ */
+export function lieuLisible(loc: string | null): string | null {
+  if (!loc) return null;
+  const m = /^\s*([<>])\s*(\d{3,4})\s*(?:m)?\s*$/.exec(loc);
+  if (!m) return loc;
+  const alt = Number(m[2]).toLocaleString("fr-FR");
+  return m[1] === "<" ? `sous ${alt} m` : `au-dessus de ${alt} m`;
 }
 
 export const BRA_LABELS: Record<number, { fr: string; en: string }> = {

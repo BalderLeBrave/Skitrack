@@ -86,7 +86,9 @@ function ClesPage() {
   }
 
   const etat = (id: string) => etats?.find((e) => e.id === id) ?? null;
-  const manquantes = etats ? CLES.filter((c) => !etat(c.id)?.posee).length : 0;
+  // Une clé facultative absente ne manque pas : l'application fait sans.
+  const attendues = CLES.filter((c) => !c.facultative);
+  const manquantes = etats ? attendues.filter((c) => !etat(c.id)?.posee).length : 0;
 
   return (
     <Coquille>
@@ -100,9 +102,11 @@ function ClesPage() {
           </p>
           {etats ? (
             <p className="cles__compte" aria-live="polite">
-              {manquantes === 0
-                ? `Les ${CLES.length} clés sont renseignées.`
-                : `${manquantes} clé${manquantes > 1 ? "s" : ""} sur ${CLES.length} reste${manquantes > 1 ? "nt" : ""} à renseigner.`}
+              {manquantes > 0
+                ? `${manquantes} clé${manquantes > 1 ? "s" : ""} sur ${attendues.length} reste${manquantes > 1 ? "nt" : ""} à renseigner.`
+                : CLES.every((c) => etat(c.id)?.posee)
+                  ? `Les ${CLES.length} clés sont renseignées.`
+                  : "Rien ne reste à renseigner."}
             </p>
           ) : null}
         </header>
@@ -127,19 +131,23 @@ function ClesPage() {
                     <h2>{c.label}</h2>
                     <p className="cle__sert">{c.sert}</p>
                   </div>
-                  <span className={`cle__etat cle__etat--${e?.posee ? "posee" : "absente"}`}>
+                  <span
+                    className={`cle__etat cle__etat--${e?.posee ? "posee" : c.facultative ? "facultative" : "absente"}`}
+                  >
                     {!etats
                       ? "…"
                       : e?.posee
                         ? e.origine === "environnement"
                           ? "définie par une variable d’environnement"
                           : "enregistrée sur cette machine"
-                        : "absente"}
+                        : c.facultative
+                          ? "facultative"
+                          : "absente"}
                   </span>
                 </div>
 
-                <p className={`cle__sans${e?.posee ? " cle__sans--tenue" : ""}`}>
-                  {e?.posee ? "Sans elle : " : "Ce qui ne marche pas sans elle : "}
+                <p className={`cle__sans${e?.posee || c.facultative ? " cle__sans--tenue" : ""}`}>
+                  {e?.posee || c.facultative ? "Sans elle : " : "Ce qui ne marche pas sans elle : "}
                   {c.sans}
                 </p>
 

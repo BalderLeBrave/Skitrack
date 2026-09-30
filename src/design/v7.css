@@ -3228,16 +3228,40 @@
   font-size: var(--text-note);
   color: var(--color-texte-3);
 }
-/* `max-height` : en 16/9 sur une colonne de 780 px, le cadre montait à 440 px
-   de gris quand le flux ne se chargeait pas. Il garde son format tant qu'il
-   reste sous ce plafond. */
+/* Toute la largeur de la carte, en 16/9. Le plafond de 280 px de hauteur
+   rétrécissait aussi la largeur : un élément de grille à `aspect-ratio` ne
+   s'étire pas, il prenait 500 px sur 780. `width: 100%` le rend à la carte ;
+   un flux qui ne se charge pas n'y laisse plus un grand rectangle muet, il
+   dit pourquoi (`webcam7__echec`). */
 .webcam7 {
   position: relative;
+  width: 100%;
   aspect-ratio: 16 / 9;
-  max-height: 280px;
   overflow: hidden;
   border-radius: var(--radius-champ);
   background: var(--color-media);
+}
+/* La place de la caméra quand elle est ouverte en grand. */
+.webcam7--reserve {
+  background: color-mix(in srgb, var(--color-media) 60%, transparent);
+}
+.webcam7 img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.webcam7__barre {
+  display: flex;
+  gap: calc(var(--spacing) * 2.5);
+  align-items: center;
+}
+.webcam7__barre .select7 {
+  flex: 1;
+  min-width: 0;
+}
+.webcam7__barre .btn7 svg {
+  flex: none;
 }
 /* Ce qui se dit à la place d'un flux qui ne vient pas. */
 .webcam7__echec {
@@ -3254,9 +3278,97 @@
   color: var(--color-muted);
 }
 .webcam7 iframe {
+  display: block;
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* La webcam en grand, par-dessus la page. Le cadre garde le 16/9 et prend
+   la plus grande taille que la fenêtre permet, bandeau compris. */
+.webcam7-grand {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--spacing) * 6);
+  background: color-mix(in srgb, var(--color-photo-voile) 88%, transparent);
+  font-family: var(--font-sans);
+  color: var(--color-photo-texte);
+}
+.webcam7-grand__boite {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  width: min(100%, calc((100vh - var(--spacing) * 12 - 64px) * 16 / 9));
+}
+.webcam7-grand__tete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(var(--spacing) * 4);
+  min-height: 40px;
+}
+.webcam7-grand__titre {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--spacing) * 3);
+  min-width: 0;
+}
+.webcam7-grand__titre strong {
+  overflow: hidden;
+  font-size: var(--text-section);
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.webcam7-grand__titre span,
+.webcam7-grand__note {
+  margin: 0;
+  font-size: var(--text-detail);
+  opacity: 0.75;
+}
+.webcam7-grand__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}
+.webcam7-grand__bouton {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-photo-texte) 14%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+.webcam7-grand__bouton:hover {
+  background: color-mix(in srgb, var(--color-photo-texte) 24%, transparent);
+}
+.webcam7-grand__bouton:focus-visible,
+.webcam7-grand__lien:focus-visible {
+  outline: 2px solid var(--color-photo-texte);
+  outline-offset: 2px;
+}
+.webcam7-grand__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  margin: 0 calc(var(--spacing) * 2);
+  color: inherit;
+  font-size: var(--text-detail);
+  font-weight: 700;
+  text-decoration: none;
+}
+.webcam7-grand__lien:hover {
+  text-decoration: underline;
+}
+.webcam7--grand {
+  border-radius: var(--radius-surface);
+  background: var(--color-photo-voile);
 }
 .bra7 {
   display: grid;
@@ -5079,6 +5191,11 @@
 .cle__etat--absente {
   background: var(--color-alerte);
   color: var(--color-alerte-texte);
+}
+/* Absente sans que rien ne manque : ni vert, ni alerte. */
+.cle__etat--facultative {
+  background: var(--color-media);
+  color: var(--color-muted);
 }
 .cle__sans {
   font-size: var(--text-detail);

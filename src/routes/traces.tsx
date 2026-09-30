@@ -5,6 +5,7 @@ import { Coquille } from "@/components/Coquille";
 import { ElevationProfile } from "@/components/ElevationProfile";
 import { GpxDrop } from "@/components/GpxDrop";
 import { LodgeSheet } from "@/components/LodgeSheet";
+import { SensTri } from "@/components/v7/SensTri";
 import { Carte } from "@/components/Carte";
 import { distToGpxM, formatPerPerson } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, sectorOf, skiAccessLabel } from "@/lib/access";
@@ -15,6 +16,7 @@ import { stationById } from "@/lib/stations";
 import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
+import { parMesure, type Sens } from "@/lib/tri";
 
 export const Route = createFileRoute("/traces")({ component: Traces });
 
@@ -34,6 +36,8 @@ function Traces() {
   const clear = useTrack((s) => s.clear);
   const [tab, setTab] = useState<Tab>("trace");
   const [sort, setSort] = useState<SortKey>("gpx");
+  // Le plus près et le moins cher d'abord ; le bouton de sens inverse.
+  const [sens, setSens] = useState<Sens>(1);
   const [ficheId, setFicheId] = useState<string | null>(null);
 
   const frozen = useMemo(
@@ -43,27 +47,22 @@ function Traces() {
   const raw = live ?? frozen;
   const rows = useMemo(() => {
     const scored = raw.map((l) => ({ listing: l, gpxM: distToGpxM(l, points) }));
-    scored.sort((a, b) => {
-      if (sort === "total") return a.listing.total - b.listing.total;
+    // Un prix non publié (`total` à zéro) ou une distance inconnue reste en
+    // queue, dans les deux sens.
+    const prix = (l: Listing) => (l.total > 0 ? l.total : null);
+    const valeur = (x: (typeof scored)[number]): number | null => {
+      if (sort === "total") return prix(x.listing);
       if (sort === "pp") {
-        return a.listing.total / Math.max(1, guests) - b.listing.total / Math.max(1, guests);
+        const t = prix(x.listing);
+        return t == null ? null : t / Math.max(1, guests);
       }
-      if (sort === "pistes") {
-        const am = a.listing.distToSlopesM ?? Number.POSITIVE_INFINITY;
-        const bm = b.listing.distToSlopesM ?? Number.POSITIVE_INFINITY;
-        return am - bm;
-      }
-      if (sort === "lift") {
-        const am = a.listing.distToLiftM ?? Number.POSITIVE_INFINITY;
-        const bm = b.listing.distToLiftM ?? Number.POSITIVE_INFINITY;
-        return am - bm;
-      }
-      const am = a.gpxM ?? Number.POSITIVE_INFINITY;
-      const bm = b.gpxM ?? Number.POSITIVE_INFINITY;
-      return am - bm;
-    });
+      if (sort === "pistes") return x.listing.distToSlopesM ?? null;
+      if (sort === "lift") return x.listing.distToLiftM ?? null;
+      return x.gpxM ?? null;
+    };
+    scored.sort((a, b) => parMesure(valeur(a), valeur(b), sens));
     return scored;
-  }, [raw, sort, guests, points]);
+  }, [raw, sort, sens, guests, points]);
 
   const fiche = ficheId ? raw.find((l) => l.id === ficheId) : undefined;
   const mapCenter = stats?.start ?? (station ? { lat: station.lat, lon: station.lon } : null);
@@ -222,6 +221,7 @@ function Traces() {
                   {label}
                 </button>
               ))}
+              <SensTri className="sens7--petit" sens={sens} onChange={setSens} />
             </div>
             {rows.length === 0 ? (
               <p className="mt-4 text-corps text-muted">

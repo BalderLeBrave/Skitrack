@@ -1,12 +1,15 @@
 /** Carte des stations : recherche, massif, filtres, tri.
  *
- *  Tous les seuils portent sur des valeurs mesurées. Une station dont le champ
- *  filtré n'est pas mesuré ne « passe » pas un seuil actif : elle en sort, elle
- *  n'est pas comptée comme zéro. */
+ *  Chaque filtre chiffré est une fourchette, et toutes portent sur des valeurs
+ *  mesurées. Une station dont le champ filtré n'est pas mesuré ne « passe »
+ *  pas une fourchette active : elle en sort, elle n'est pas comptée comme
+ *  zéro. Le tri va dans les deux sens, le non mesuré toujours en queue. */
 
 import { domaineNomme, sansDomaineAlpin, type ColorShare } from "./classeur.ts";
 import { domainForStation } from "./forfaits/catalog.ts";
+import { dansPlage, type Echelle, type Plage } from "./plage.ts";
 import type { Station } from "./stations.ts";
+import { parMesure, parTexte, type Sens } from "./tri.ts";
 
 export type CarteOrder = "km" | "v" | "lo" | "hi" | "np" | "lifts" | "n";
 
@@ -23,6 +26,17 @@ export const CARTE_ORDERS: readonly [CarteOrder, string][] = [
 export const CARTE_SORT_LABELS: Record<CarteOrder, string> = Object.fromEntries(
   CARTE_ORDERS,
 ) as Record<CarteOrder, string>;
+
+/** Le sens de départ de chaque critère : le plus grand d'abord, le nom de A à Z. */
+export const CARTE_SENS: Record<CarteOrder, Sens> = {
+  km: -1,
+  v: -1,
+  lo: -1,
+  hi: -1,
+  np: -1,
+  lifts: -1,
+  n: 1,
+};
 
 export type ColorKey = keyof ColorShare;
 export const COLOR_KEYS: readonly ColorKey[] = ["green", "blue", "red", "black"];
@@ -43,28 +57,48 @@ export const COLOR_HEX: Record<ColorKey, string> = {
  *  dont le domaine compte ses tronçons. */
 export type ColorUnit = "pct" | "n" | "km";
 
+/** L'échelle des fourchettes par couleur, selon l'unité. */
+export const COLOR_RANGE: Record<ColorUnit, { b: Echelle; pas: number; suffix: string; unite: string }> = {
+  pct: { b: [0, 60], pas: 5, suffix: " %", unite: "%" },
+  n: { b: [0, 200], pas: 5, suffix: " tronçons", unite: "tronç." },
+  km: { b: [0, 200], pas: 10, suffix: " km", unite: "km" },
+};
+
+/** Les critères chiffrés de la carte : chacun est une fourchette. */
+export type CarteFourchette = "villageM" | "loM" | "hiM" | "km" | "lifts";
+
 export type CarteFilters = {
-  villageM: number;
-  loM: number;
-  hiM: number;
-  km: number;
-  lifts: number;
+  villageM: Plage;
+  loM: Plage;
+  hiM: Plage;
+  km: Plage;
+  lifts: Plage;
   /** "" = tous. */
   kind: "" | "station" | "village-station";
   /** "" = tous, "__none" = sans domaine renseigné. */
   domain: string;
-  colors: Record<ColorKey, number>;
+  colors: Record<ColorKey, Plage>;
 };
 
 export const NO_FILTERS: CarteFilters = {
-  villageM: 0,
-  loM: 0,
-  hiM: 0,
-  km: 0,
-  lifts: 0,
+  villageM: null,
+  loM: null,
+  hiM: null,
+  km: null,
+  lifts: null,
   kind: "",
   domain: "",
-  colors: { green: 0, blue: 0, red: 0, black: 0 },
+  colors: { green: null, blue: null, red: null, black: null },
+};
+
+/** L'échelle et le pas de chaque fourchette. La borne haute au bout de
+ *  l'échelle veut dire « et plus ». */
+export const CARTE_ECHELLES: Record<CarteFourchette, { b: Echelle; pas: number }> = {
+  villageM: { b: [0, 2400], pas: 100 },
+  loM: { b: [0, 2200], pas: 100 },
+  hiM: { b: [0, 3400], pas: 100 },
+  km: { b: [0, 300], pas: 10 },
+  lifts: { b: [0, 150], pas: 5 },
 };
 
 /** Valeur d'une couleur dans l'unité demandée, ou `null` si non mesurée. Les
@@ -78,38 +112,41 @@ export function colorValue(station: Station, color: ColorKey, unit: ColorUnit): 
   return Math.round((station.pistesKm * share) / 100);
 }
 
-/** Un seuil actif sur un champ non mesuré écarte la station.
- *
- *  Exportée : `filtres.ts` s'en sert pour l'écran Comparer et pour l'accueil,
- *  qui écrivaient chacun leur propre `(valeur ?? 0) >= seuil` — même effet
- *  aujourd'hui, règle différente demain. */
-export function atLeast(value: number | null | undefined, min: number): boolean {
-  if (!min) return true;
-  return value != null && value >= min;
+/** Une altitude ou un kilométrage à zéro n'est pas une mesure : La Bourboule,
+ *  détachée de Super Besse, porte 0 m en bas et en haut des pistes. */
+function mesuree(v: number | null | undefined): number | null {
+  return v != null && v > 0 ? v : null;
 }
 
+/** Ce que chaque fourchette lit sur la station. */
+const LECTURE_CARTE: Record<CarteFourchette, (s: Station) => number | null> = {
+  villageM: (s) => mesuree(s.villageM),
+  loM: (s) => mesuree(s.minM),
+  hiM: (s) => mesuree(s.maxM),
+  km: (s) => mesuree(s.pistesKm),
+  lifts: (s) => s.lifts,
+};
+
 export function passesFilters(station: Station, f: CarteFilters, unit: ColorUnit): boolean {
-  if (!atLeast(station.villageM, f.villageM)) return false;
-  if (!atLeast(station.minM, f.loM)) return false;
-  if (!atLeast(station.maxM, f.hiM)) return false;
-  if (!atLeast(station.pistesKm, f.km)) return false;
-  if (!atLeast(station.lifts, f.lifts)) return false;
+  for (const k of Object.keys(CARTE_ECHELLES) as CarteFourchette[]) {
+    if (!dansPlage(LECTURE_CARTE[k](station), f[k], CARTE_ECHELLES[k].b)) return false;
+  }
   if (f.kind && station.kind !== f.kind) return false;
   if (f.domain === "__none" ? station.domain != null : f.domain && station.domain !== f.domain) {
     return false;
   }
   for (const c of COLOR_KEYS) {
-    if (!atLeast(colorValue(station, c, unit), f.colors[c])) return false;
+    if (!dansPlage(colorValue(station, c, unit), f.colors[c], COLOR_RANGE[unit].b)) return false;
   }
   return true;
 }
 
 export function activeFilterCount(f: CarteFilters): number {
   let n = 0;
-  for (const k of ["villageM", "loM", "hiM", "km", "lifts"] as const) if (f[k]) n += 1;
+  for (const k of Object.keys(CARTE_ECHELLES) as CarteFourchette[]) if (f[k] != null) n += 1;
   if (f.kind) n += 1;
   if (f.domain) n += 1;
-  for (const c of COLOR_KEYS) if (f.colors[c]) n += 1;
+  for (const c of COLOR_KEYS) if (f.colors[c] != null) n += 1;
   return n;
 }
 
@@ -225,22 +262,28 @@ export function searchStations(rows: readonly Station[], query: string): Station
 
 const SORT_VALUE: Record<Exclude<CarteOrder, "n">, (s: Station) => number | null> = {
   km: (s) => s.pistesKm,
-  v: (s) => s.villageM,
-  lo: (s) => s.minM,
-  hi: (s) => s.maxM,
+  v: (s) => mesuree(s.villageM),
+  lo: (s) => mesuree(s.minM),
+  hi: (s) => mesuree(s.maxM),
   np: (s) => s.segments,
   lifts: (s) => s.lifts,
 };
 
-/** Tri décroissant, sauf le nom. Les valeurs non mesurées finissent en queue. */
-export function orderStations(rows: readonly Station[], order: CarteOrder): Station[] {
+/** Dans le sens demandé, par défaut celui du critère (`CARTE_SENS`) : le plus
+ *  grand d'abord, le nom de A à Z. Les valeurs non mesurées finissent en
+ *  queue, dans les deux sens. */
+export function orderStations(
+  rows: readonly Station[],
+  order: CarteOrder,
+  sens: Sens = CARTE_SENS[order],
+): Station[] {
   const out = [...rows];
   if (order === "n") {
-    out.sort((a, b) => a.name.localeCompare(b.name, "fr"));
+    out.sort((a, b) => parTexte(a.name, b.name, sens));
     return out;
   }
   const value = SORT_VALUE[order];
-  out.sort((a, b) => (value(b) ?? -1) - (value(a) ?? -1));
+  out.sort((a, b) => parMesure(value(a), value(b), sens));
   return out;
 }
 

@@ -16,6 +16,9 @@ import { epingleStation, ETAGE } from "@/components/v7/epingle";
 import { useEchap, useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
+import { FourchetteCouleur, FourchetteRecherche } from "@/components/v7/FourchettesRecherche";
+import { SensTri } from "@/components/v7/SensTri";
+import { parMesure, parTexte } from "@/lib/tri";
 import { CarteStation } from "@/components/v7/CarteStation";
 import { mixLbl } from "@/components/v7/mixLbl";
 import { PartPistes } from "@/components/v7/PartPistes";
@@ -63,12 +66,14 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "n", label: "Tri : nom" },
 ];
 
-function sortVal(s: Station, k: SortKey): number {
-  if (k === "km") return s.pistesKm ?? -1;
-  if (k === "hi") return maxM(s) ?? -1;
-  if (k === "lo") return minM(s) ?? -1;
-  if (k === "v") return villageM(s) ?? -1;
-  return 0;
+/** La valeur que le tri compare ; `null` quand elle n'est pas relevée, et la
+ *  station finit alors en queue, dans les deux sens. */
+function sortVal(s: Station, k: Exclude<SortKey, "n">): number | null {
+  if (k === "km") return s.pistesKm;
+  if (k === "hi") return maxM(s);
+  if (k === "lo") return minM(s);
+  if (k === "v") return villageM(s);
+  return forfaitOf(s)?.j6 ?? null;
 }
 
 /** `crit` de la maquette : libellé, texte, valeur comparable, note d'échelle. */
@@ -199,17 +204,12 @@ function Comparer() {
   const preds = usePredicats();
 
   const visible = useMemo(() => appliquer(all, preds), [all, preds]);
-  const sorted = useMemo(
-    () =>
-      [...visible].sort((a, b) =>
-        P.sortKey === "n"
-          ? a.name.localeCompare(b.name, "fr")
-          : P.sortKey === "pass"
-            ? (forfaitOf(a)?.j6 ?? 9e9) - (forfaitOf(b)?.j6 ?? 9e9)
-            : sortVal(b, P.sortKey) - sortVal(a, P.sortKey),
-      ),
-    [visible, P.sortKey],
-  );
+  const sorted = useMemo(() => {
+    const k = P.sortKey;
+    return [...visible].sort((a, b) =>
+      k === "n" ? parTexte(a.name, b.name, P.sortDir) : parMesure(sortVal(a, k), sortVal(b, k), P.sortDir),
+    );
+  }, [visible, P.sortKey, P.sortDir]);
 
   /* ---------- Le cadre visible : une seule source pour les trois ----------
      Le compteur, la liste et les marqueurs dérivent tous de `dansCadre`. La
@@ -604,28 +604,11 @@ function Comparer() {
                     ))}
                   </div>
                 </div>
-                {SEUILS.map((r) => (
-                  <label key={r.k} className="curseur">
-                    <span className="curseur__lab">
-                      <span>{r.label}</span>
-                      <span className="curseur__val">
-                        {F[r.k]
-                          ? r.k === "pass"
-                            ? `≤ ${fmt(F[r.k])} €`
-                            : `≥ ${fmt(F[r.k])} ${r.unit}`
-                          : "Indifférent"}
-                      </span>
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={r.max}
-                      step={r.step}
-                      value={F[r.k]}
-                      onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
-                    />
-                  </label>
-                ))}
+                <div className="fourchettes7">
+                  {SEUILS.map((r) => (
+                    <FourchetteRecherche key={r.k} r={r} />
+                  ))}
+                </div>
                 <label className="champ7">
                   <span>Massif</span>
                   <select
@@ -662,7 +645,7 @@ function Comparer() {
                 </label>
                 <div className="pop7__bloc">
                   <div className="pop7__ligne">
-                    <span className="pop7__stitre">Répartition par couleur, au minimum</span>
+                    <span className="pop7__stitre">Répartition par couleur</span>
                     <span className="segments">
                       {(Object.keys(UNITES) as ColorUnit[]).map((u) => (
                         <button
@@ -676,27 +659,9 @@ function Comparer() {
                       ))}
                     </span>
                   </div>
-                  <div className="pop7__deux">
+                  <div className="pop7__deux pop7__deux--fourchettes">
                     {COLS.map((c) => (
-                      <label key={c.key} className="curseur">
-                        <span className="curseur__lab curseur__lab--petit">
-                          <span className="curseur__couleur">
-                            <i style={{ background: c.token }} />
-                            {c.label}
-                          </span>
-                          <span className="curseur__val">
-                            {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNITES[P.unit].suf}` : "Indifférent"}
-                          </span>
-                        </span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={UNITES[P.unit].max}
-                          step={UNITES[P.unit].step}
-                          value={F.col[c.key]}
-                          onChange={(e) => P.setColFilter(c.key, +e.target.value)}
-                        />
-                      </label>
+                      <FourchetteCouleur key={c.key} c={c.key} />
                     ))}
                   </div>
                 </div>
@@ -728,6 +693,7 @@ function Comparer() {
                   </option>
                 ))}
               </select>
+              <SensTri sens={P.sortDir} alpha={P.sortKey === "n"} onChange={P.setSortDir} />
             </div>
           </div>
 

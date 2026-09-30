@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { appliquer, critereBloquant, predicats, SEUILS } from "./filtres.ts";
+import { forfaitOf } from "./v7.ts";
 import { FILTERS_INITIAL, type Filters } from "./parcours.ts";
 import { STATIONS } from "./stations.ts";
 
@@ -10,7 +11,7 @@ function filtres(patch: Partial<Filters> = {}): Filters {
 
 describe("prédicats de recherche", () => {
   it("l'altitude minimale porte sur le village, pas sur le sommet du domaine", () => {
-    const preds = predicats({ q: "", massif: null, unit: "pct", filters: filtres({ v: 1800 }) });
+    const preds = predicats({ q: "", massif: null, unit: "pct", filters: filtres({ v: [1800, 2400] }) });
     const retenues = appliquer(STATIONS, preds);
     assert.ok(retenues.length > 0, "le référentiel compte des villages à 1 800 m");
     for (const s of retenues) {
@@ -25,11 +26,67 @@ describe("prédicats de recherche", () => {
     );
   });
 
-  it("un seuil actif écarte une station dont le champ n'est pas mesuré", () => {
-    const preds = predicats({ q: "", massif: null, unit: "pct", filters: filtres({ km: 300 }) });
+  it("une fourchette active écarte une station dont le champ n'est pas mesuré", () => {
+    const preds = predicats({ q: "", massif: null, unit: "pct", filters: filtres({ km: [300, 600] }) });
     for (const s of appliquer(STATIONS, preds)) {
       assert.notEqual(s.pistesKm, null);
     }
+    // Même une borne basse au bout de l'échelle : « jusqu'à 50 km » n'est pas
+    // une invitation à compter comme zéro ce qui n'est pas relevé.
+    const auPlus = predicats({ q: "", massif: null, unit: "pct", filters: filtres({ km: [0, 50] }) });
+    for (const s of appliquer(STATIONS, auPlus)) {
+      assert.notEqual(s.pistesKm, null);
+    }
+  });
+
+  it("les deux bornes comptent, et la borne haute au maximum veut dire « et plus »", () => {
+    const entre = appliquer(
+      STATIONS,
+      predicats({ q: "", massif: null, unit: "pct", filters: filtres({ hi: [2000, 2500] }) }),
+    );
+    assert.ok(entre.length > 0);
+    for (const s of entre) assert.ok(s.maxM >= 2000 && s.maxM <= 2500, `${s.name} : ${s.maxM} m`);
+    // 3 500 m est le haut de l'échelle : les sommets au-delà passent.
+    const haut = appliquer(
+      STATIONS,
+      predicats({ q: "", massif: null, unit: "pct", filters: filtres({ hi: [3000, 3500] }) }),
+    );
+    assert.ok(haut.some((s) => s.maxM > 3500), "un sommet au-delà de 3 500 m doit passer");
+  });
+
+  it("le forfait se filtre dans une fourchette, en euros", () => {
+    const preds = predicats({ q: "", massif: null, unit: "pct", filters: filtres({ pass: [250, 300] }) });
+    const retenues = appliquer(STATIONS, preds);
+    assert.ok(retenues.length > 0);
+    for (const s of retenues) {
+      const j6 = forfaitOf(s)?.j6 as number;
+      assert.ok(j6 >= 250 && j6 <= 300, `${s.name} : ${j6} €`);
+    }
+    assert.deepEqual(
+      preds.map((p) => p.label),
+      ["Forfait : 250 € à 300 €"],
+    );
+  });
+
+  it("les jetons disent la fourchette en toutes lettres", () => {
+    const lbls = predicats({
+      q: "",
+      massif: null,
+      unit: "pct",
+      filters: filtres({
+        v: [1800, 2400],
+        lo: [0, 1200],
+        hi: [2000, 2500],
+        col: { green: [20, 60], blue: null, red: null, black: [0, 10] },
+      }),
+    }).map((p) => p.label);
+    assert.deepEqual(lbls, [
+      "Altitude du village : 1 800 m et plus",
+      "Bas des pistes : jusqu’à 1 200 m",
+      "Sommet : 2 000 m à 2 500 m",
+      "Vertes : 20 % et plus",
+      "Noires : jusqu’à 10 %",
+    ]);
   });
 
   it("la recherche par nom ignore les accents", () => {
@@ -50,7 +107,7 @@ describe("prédicats de recherche", () => {
       q: "",
       massif: null,
       unit: "pct",
-      filters: filtres({ v: 1800, pass: 10 }),
+      filters: filtres({ v: [1800, 2400], pass: [0, 10] }),
     });
     assert.equal(appliquer(STATIONS, preds).length, 0);
     const bloquant = critereBloquant(STATIONS, preds);
@@ -66,7 +123,7 @@ describe("prédicats de recherche", () => {
       q: "",
       massif: null,
       unit: "pct",
-      filters: filtres({ v: 2400, pass: 10 }),
+      filters: filtres({ v: [2400, 2400], pass: [0, 10] }),
     });
     assert.equal(appliquer(STATIONS, preds).length, 0);
     assert.equal(critereBloquant(STATIONS, preds), null);

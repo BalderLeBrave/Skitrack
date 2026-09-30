@@ -24,7 +24,6 @@ import { estFicheGitesIntrouvable } from "../stay/ficheGites.ts";
 import { ficheDementieParLeTitre } from "../stay/occupancy.ts";
 import { motifHorsSujet } from "./horsSujet.ts";
 import {
-  DIST_PALIERS_M,
   distFiltrableM,
   geoReasonFor,
   gpsPrecis,
@@ -44,6 +43,14 @@ import { recopierSoeurs } from "../stay/recopie.ts";
 import { parPrix as parPrixOffre, regrouper, type Logement } from "../stay/regroupement.ts";
 import { estOffreGitesVerifiee } from "../stay/tarif.ts";
 import { maxM, prixLbl, villageM } from "../v7.ts";
+import { dansPlage, type Plage } from "../plage.ts";
+import { parMesure, type Sens } from "../tri.ts";
+
+// Les fourchettes sont communes à tous les écrans : elles vivent dans
+// `plage.ts`, et s'exportent encore d'ici pour l'écran Prix et ses tests.
+export { lireSaisie, poigneeProche, poserBorne } from "../plage.ts";
+export type { Plage } from "../plage.ts";
+export type { Sens } from "../tri.ts";
 
 export const MIN_ANNONCES = 5;
 /** `STAY_BOUNDS.nights` de `parcours.ts`, recopié pour garder le module pur. */
@@ -738,16 +745,14 @@ export function recopieDuReleve(listings: readonly Listing[]): Correctifs {
 
 /* ---------- Filtres ---------- */
 
-/** `null` : toute l'échelle, la plage ne filtre pas. */
-export type Plage = readonly [number, number] | null;
 /** Ce qui se lit sur la station elle-même. */
 export type PlageStationK = "km" | "sommet" | "village";
 /** Ce qui se lit sur l'annonce, hors prix. */
-export type PlageLogementK = "capacite" | "chambres";
+export type PlageLogementK = "capacite" | "chambres" | "distance";
 export type PlageK = "prix" | PlageStationK | "budget" | PlageLogementK;
 /** Les deux onglets partagent massif, département et plages de station ;
  *  `prix` et `avecPrix` ne servent qu'à « Par station ». `budget`, `domaine`,
- *  `station`, `capacite`, `chambres` et `distMax` ne servent qu'à « Par
+ *  `station`, `capacite`, `chambres` et `distance` ne servent qu'à « Par
  *  budget » : le tableau des médianes ne les lit pas. */
 export type Filtres = {
   massif: string;
@@ -766,8 +771,8 @@ export type Filtres = {
   capacite: Plage;
   /** Chambres, ou pièces moins une (`normalizedBedrooms`). */
   chambres: Plage;
-  /** Distance aux remontées, en mètres : un palier de `DIST_PALIERS_M`. */
-  distMax: number;
+  /** Distance aux remontées, en mètres, dans les 2 km de la station. */
+  distance: Plage;
 };
 
 export const FL0: Filtres = {
@@ -783,7 +788,7 @@ export const FL0: Filtres = {
   station: "",
   capacite: null,
   chambres: null,
-  distMax: DISTANCE_STATION_M,
+  distance: null,
 };
 
 export type DefPlage = {
@@ -819,10 +824,20 @@ export const PLAGE_BUDGET: DefPlage = {
 
 /** Les plages de l'annonce, onglet « Par budget » seulement. Échelles fixes :
  *  le haut dit « et plus » (20 personnes, 8 chambres) ; zéro chambre, c'est
- *  un studio. */
+ *  un studio. La distance aux remontées s'arrête aux 2 km de la station
+ *  (`DISTANCE_STATION_M`) : au-delà, le logement n'est pas relevé. Elle était
+ *  un choix de quatre paliers ; elle est une fourchette comme les autres, et
+ *  ses deux bornes se tapent. */
 export const PLAGES_LOGEMENT: readonly DefPlage[] = [
   { k: "capacite", lbl: "Personnes", pas: 1, unite: "pers.", fixe: [1, 20] },
   { k: "chambres", lbl: "Chambres", pas: 1, unite: "ch.", fixe: [0, 8] },
+  {
+    k: "distance",
+    lbl: "Distance aux remontées",
+    pas: 100,
+    unite: "m",
+    fixe: [0, DISTANCE_STATION_M],
+  },
 ];
 
 /** Une altitude à zéro n'est pas mesurée : `maxM` et `villageM` la rendent nulle. */
@@ -857,39 +872,6 @@ export function bornesPlages(stations: readonly Station[]): Bornes {
   return b;
 }
 
-/** Pose une poignée, arrondie au pas et bornée à l'échelle ; les deux ne se
- *  croisent pas. Toute l'échelle couverte, la plage redevient `null`. */
-export function poserBorne(
-  pl: Plage,
-  b: readonly [number, number],
-  pas: number,
-  which: 0 | 1,
-  v: number,
-): Plage {
-  if (!Number.isFinite(v)) return pl;
-  const cur = pl ?? b;
-  const x = Math.min(b[1], Math.max(b[0], Math.round(v / pas) * pas));
-  const next: readonly [number, number] =
-    which === 0 ? [Math.min(x, cur[1]), cur[1]] : [cur[0], Math.max(x, cur[0])];
-  if (next[0] <= b[0] && next[1] >= b[1]) return null;
-  return next;
-}
-
-/** La poignée qu'un clic sur la piste déplace. Poignées confondues : celle
- *  du côté du clic, sinon aucune ne pourrait plus s'écarter de l'autre. */
-export function poigneeProche(v: number, cur: readonly [number, number]): 0 | 1 {
-  if (cur[0] === cur[1]) return v < cur[0] ? 0 : 1;
-  return Math.abs(v - cur[0]) <= Math.abs(v - cur[1]) ? 0 : 1;
-}
-
-/** « 1 200 € » → 1200, « 1,5 » → 1.5 ; ce qui n'est pas un nombre → `null`. */
-export function lireSaisie(texte: string): number | null {
-  const c = texte.replace(/[^\d.,-]/g, "").replace(",", ".");
-  if (c === "") return null;
-  const n = Number(c);
-  return Number.isFinite(n) ? n : null;
-}
-
 export function fmtPlage(k: PlageK, v: number): string {
   if (k === "prix" || k === "budget") return eur(v);
   if (k === "km") return `${fmt(v)} km`;
@@ -900,34 +882,15 @@ export function fmtPlage(k: PlageK, v: number): string {
 
 /** La borne haute au maximum de l'échelle ne plafonne pas : « et plus ».
  *  Personnes et chambres se comptent à l'unité : deux poignées confondues
- *  disent un nombre, « 2 ch. », et non « 2 ch. à 2 ch. ». */
+ *  disent un nombre, « 2 ch. », et non « 2 ch. à 2 ch. ». La distance, elle,
+ *  s'arrête aux 2 km de la station : « 500 m à 2 000 m », pas « et plus ». */
 export function plageLbl(k: PlageK, pl: Plage, b: readonly [number, number]): string {
   if (pl == null) return "Indifférent";
   const [lo, hi] = pl;
-  if (hi >= b[1]) return `${fmtPlage(k, lo)} et plus`;
+  if (hi >= b[1] && k !== "distance") return `${fmtPlage(k, lo)} et plus`;
   if (lo === hi && (k === "capacite" || k === "chambres")) return fmtPlage(k, lo);
   if (lo <= b[0]) return `jusqu’à ${fmtPlage(k, hi)}`;
   return `${fmtPlage(k, lo)} à ${fmtPlage(k, hi)}`;
-}
-
-/* ---------- Distance aux remontées ---------- */
-
-/** Les paliers du filtre, ceux de Logements, jusqu'à la limite de la station. */
-export const PALIERS_DIST_M: readonly number[] = DIST_PALIERS_M.filter(
-  (m) => m <= DISTANCE_STATION_M,
-);
-
-/** Un palier inconnu (état abîmé, ancien réglage) revient aux 2 km de la
- *  station : le filtre ne s'élargit jamais au-delà. */
-export function distMaxLue(m: number): number {
-  return PALIERS_DIST_M.includes(m) ? m : DISTANCE_STATION_M;
-}
-
-/** « Au pied des pistes », « 500 m au plus », « 1 km au plus ». */
-export function distLbl(m: number): string {
-  if (m <= DIST_PALIERS_M[0]) return "Au pied des pistes";
-  if (m >= 1000 && m % 1000 === 0) return `${fmt(m / 1000)} km au plus`;
-  return `${fmt(m)} m au plus`;
 }
 
 /* ---------- Critères actifs ---------- */
@@ -938,7 +901,7 @@ export function filtresActifs(fl: Filtres): boolean {
 }
 
 /** Les filtres de l'onglet « Par budget » : ni la médiane ni « avec un prix ».
- *  La distance ne compte qu'écartée de ses 2 km, qui sont le repos. */
+ *  La distance ne compte que resserrée : ses 2 km sont le repos. */
 export function filtresActifsBudget(fl: Filtres): boolean {
   return (
     fl.budget != null ||
@@ -946,7 +909,6 @@ export function filtresActifsBudget(fl: Filtres): boolean {
     fl.dept !== "" ||
     fl.domaine !== "" ||
     fl.station !== "" ||
-    distMaxLue(fl.distMax) !== DISTANCE_STATION_M ||
     PLAGES_LOGEMENT.some((p) => fl[p.k] != null) ||
     PLAGES_STATION.some((p) => fl[p.k] != null)
   );
@@ -963,7 +925,7 @@ export function effacerBudget(fl: Filtres): Filtres {
     station: "",
     capacite: null,
     chambres: null,
-    distMax: DISTANCE_STATION_M,
+    distance: null,
     km: null,
     sommet: null,
     village: null,
@@ -1101,15 +1063,6 @@ export function ligne(
   };
 }
 
-/** Une plage active écarte une valeur absente : une absence n'est pas un
- *  zéro. La borne haute au maximum de l'échelle ne plafonne pas : « et plus ». */
-function dansPlage(v: number | null, pl: Plage, b: readonly [number, number]): boolean {
-  if (pl == null) return true;
-  if (v == null) return false;
-  if (v < pl[0]) return false;
-  return !(pl[1] < b[1] && v > pl[1]);
-}
-
 /** Massif, département et plages de station : ce que les deux onglets
  *  partagent. */
 function passeLieuCommun(s: Station, fl: Filtres, b: Bornes): boolean {
@@ -1152,7 +1105,8 @@ export function passeBudget(total: number, pl: Plage, b: readonly [number, numbe
  */
 export function passeAnnonce(a: AnnonceRetenue, fl: Filtres, b: Bornes): boolean {
   if (!passeBudget(a.total, fl.budget, b.budget)) return false;
-  if (!dansLaStation(a, distMaxLue(fl.distMax))) return false;
+  if (!dansLaStation(a)) return false;
+  if (!dansPlage(distFiltrableM(a), fl.distance, b.distance)) return false;
   if (!dansPlage(a.guests ?? null, fl.capacite, b.capacite)) return false;
   if (!dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres)) return false;
   return !horsSujetRelu(a);
@@ -1171,37 +1125,34 @@ function horsSujetRelu(a: AnnonceRetenue): boolean {
   return v;
 }
 
-export type Tri = { k: "med" | "nom" | "massif" | "n"; dir: 1 | -1 };
+/** Le critère, et son sens : chaque critère se trie dans les deux sens, par
+ *  le bouton de sens posé à côté du choix, ou par un second clic d'en-tête. */
+export type Tri = { k: "med" | "nom" | "massif" | "n"; dir: Sens };
 export const TRI0: Tri = { k: "med", dir: 1 };
 
-export const TRIS: readonly { v: string; label: string }[] = [
-  { v: "med:1", label: "Prix croissant" },
-  { v: "med:-1", label: "Prix décroissant" },
-  { v: "nom:1", label: "Nom, de A à Z" },
-  { v: "massif:1", label: "Massif, puis prix" },
-  { v: "n:-1", label: "Nombre de logements" },
+/** Les critères du choix « Trier ». Le sens se choisit à côté. */
+export const TRIS: readonly { k: Tri["k"]; label: string }[] = [
+  { k: "med", label: "Prix" },
+  { k: "nom", label: "Nom" },
+  { k: "massif", label: "Massif, puis prix" },
+  { k: "n", label: "Nombre de logements" },
 ];
 
-/** Le tri par massif ignore le sens : il n'a qu'une valeur. */
-export function triVal(t: Tri): string {
-  return t.k === "massif" ? "massif:1" : `${t.k}:${t.dir}`;
-}
+/** Le sens qu'un critère prend quand on le choisit : le moins cher, A à Z et
+ *  le premier massif d'abord ; le plus de logements d'abord. */
+export const SENS_TRI: Record<Tri["k"], Sens> = { med: 1, nom: 1, massif: 1, n: -1 };
 
-const CLES_TRI: readonly Tri["k"][] = ["med", "nom", "massif", "n"];
-
+/** Le critère choisi dans la liste, dans son sens de départ. Un critère
+ *  inconnu rend le tri par défaut. */
 export function lireTri(v: string): Tri {
-  const [k, d] = v.split(":");
-  const cle = CLES_TRI.find((c) => c === k);
-  if (!cle || (d !== "1" && d !== "-1")) return TRI0;
-  return { k: cle, dir: cle === "massif" || d === "1" ? 1 : -1 };
+  const cle = TRIS.find((t) => t.k === v)?.k;
+  return cle ? { k: cle, dir: SENS_TRI[cle] } : TRI0;
 }
 
-/** Un clic d'en-tête peut poser un sens que la liste ne propose pas : le
- *  libellé le nomme quand même, plutôt que d'afficher le premier choix. */
-export function triLbl(t: Tri): string {
-  if (t.k === "nom" && t.dir === -1) return "Nom, de Z à A";
-  if (t.k === "n" && t.dir === 1) return "Nombre de logements, croissant";
-  return TRIS.find((x) => x.v === triVal(t))?.label ?? TRIS[0].label;
+/** Un clic d'en-tête : un autre critère part dans son sens de départ, le même
+ *  critère change de sens. */
+export function triParEnTete(t: Tri, k: Tri["k"]): Tri {
+  return t.k === k ? { k, dir: t.dir === 1 ? -1 : 1 } : { k, dir: SENS_TRI[k] };
 }
 
 /** Nombre de stations décroissant, égalité départagée par le nom. */
@@ -1238,8 +1189,10 @@ export function comparateur(
 ): (a: Ligne, b: Ligne) => number {
   if (t.k === "nom") return (a, b) => t.dir * a.nom.localeCompare(b.nom, "fr") || parId(a, b);
   if (t.k === "massif") {
+    // Les massifs dans l'ordre du référentiel, ou à rebours ; dans chacun, le
+    // prix croissant.
     const rang = (m: string) => rangMassif.get(m) ?? Number.MAX_SAFE_INTEGER;
-    return (a, b) => rang(a.massif) - rang(b.massif) || parPrix(a, b);
+    return (a, b) => t.dir * (rang(a.massif) - rang(b.massif)) || parPrix(a, b);
   }
   const k = t.k;
   return (a, b) => {
@@ -1304,8 +1257,8 @@ export function jetons(fl: Filtres, b: Bornes): Jeton[] {
 }
 
 /** Les jetons de l'onglet « Par budget », dans l'ordre des critères à
- *  l'écran : budget, massif, département, domaine, station, distance, puis
- *  les plages de logement et de station. `noms` nomme la station choisie. */
+ *  l'écran : budget, massif, département, domaine, station, puis les plages
+ *  de logement (distance comprise) et de station. `noms` nomme la station choisie. */
 export function jetonsBudget(
   fl: Filtres,
   b: Bornes,
@@ -1319,27 +1272,17 @@ export function jetonsBudget(
   if (fl.dept) out.push({ k: "dept", lbl: fl.dept });
   if (fl.domaine) out.push({ k: "domaine", lbl: `Domaine : ${fl.domaine}` });
   if (fl.station) out.push({ k: "station", lbl: noms.get(fl.station) ?? fl.station });
-  const dist = distMaxLue(fl.distMax);
-  if (dist !== DISTANCE_STATION_M) {
-    // « Au pied des pistes » se suffit : « Remontées : au pied des pistes »
-    // dirait que les remontées sont au pied des pistes.
-    const d = distLbl(dist);
-    const lbl =
-      dist <= DIST_PALIERS_M[0] ? d : `Remontées : ${d.charAt(0).toLowerCase()}${d.slice(1)}`;
-    out.push({ k: "distMax", lbl });
-  }
   return [...out, ...jetonsPlages(PLAGES_LOGEMENT, fl, b), ...jetonsPlages(PLAGES_STATION, fl, b)];
 }
 
-/** Retirer un lieu retire ceux qui en dépendaient (voir `choisirMassif`) ; la
- *  distance revient à ses 2 km. */
+/** Retirer un lieu retire ceux qui en dépendaient (voir `choisirMassif`) ; une
+ *  plage revient à toute son échelle (la distance, à ses 2 km). */
 export function retirerJeton(fl: Filtres, k: keyof Filtres): Filtres {
   if (k === "massif") return choisirMassif(fl, "");
   if (k === "dept") return choisirDept(fl, "");
   if (k === "domaine") return choisirDomaine(fl, "");
   if (k === "station") return choisirStation(fl, "");
   if (k === "avecPrix") return { ...fl, avecPrix: false };
-  if (k === "distMax") return { ...fl, distMax: DISTANCE_STATION_M };
   const next = { ...fl };
   next[k] = null;
   return next;
@@ -1403,17 +1346,22 @@ export function dureeLbl(ms: number): string {
 
 /* ---------- Onglet « Par budget » ---------- */
 
-export type TriB = "prix:1" | "prix:-1" | "cap:-1" | "dist:1";
-export const TRIB0: TriB = "prix:1";
-export const TRIS_B: readonly { v: TriB; label: string }[] = [
-  { v: "prix:1", label: "Prix croissant" },
-  { v: "prix:-1", label: "Prix décroissant" },
-  { v: "cap:-1", label: "Capacité" },
-  { v: "dist:1", label: "Plus près des remontées" },
+/** Le tri de l'onglet budget : prix, capacité ou distance aux remontées,
+ *  chacun dans les deux sens. */
+export type TriB = { k: "prix" | "cap" | "dist"; dir: Sens };
+export const TRIB0: TriB = { k: "prix", dir: 1 };
+export const TRIS_B: readonly { k: TriB["k"]; label: string }[] = [
+  { k: "prix", label: "Prix" },
+  { k: "cap", label: "Capacité" },
+  { k: "dist", label: "Distance aux remontées" },
 ];
 
+/** Le sens de départ : le moins cher, le plus grand, le plus près d'abord. */
+export const SENS_TRI_B: Record<TriB["k"], Sens> = { prix: 1, cap: -1, dist: 1 };
+
 export function lireTriB(v: string): TriB {
-  return TRIS_B.find((t) => t.v === v)?.v ?? TRIB0;
+  const cle = TRIS_B.find((t) => t.k === v)?.k;
+  return cle ? { k: cle, dir: SENS_TRI_B[cle] } : TRIB0;
 }
 
 /** Une annonce de l'onglet budget, avec la station dont le relevé l'a retenue. */
@@ -1429,24 +1377,22 @@ function parCarte(p: CarteAnnonce, q: CarteAnnonce): number {
   return ordreTexte(p.a.id, q.a.id) || ordreTexte(p.stationId, q.stationId);
 }
 
-/** Une distance inconnue passe après toutes les autres. */
-function parDistance(p: CarteAnnonce, q: CarteAnnonce): number {
-  const dp = distFiltrableM(p.a);
-  const dq = distFiltrableM(q.a);
-  if (dp == null || dq == null) return dp == null ? (dq == null ? 0 : 1) : -1;
-  return dp - dq;
-}
-
-/** Capacité : la plus grande d'abord, puis la moins chère. Remontées : la
- *  plus proche d'abord, puis la moins chère. */
+/** Capacité et distance, dans le sens demandé, puis la moins chère. Une
+ *  capacité ou une distance inconnue passe après toutes les autres, dans les
+ *  deux sens : un tri décroissant ne doit pas ouvrir sur ce qui n'est pas
+ *  annoncé. */
 export function comparateurBudget(t: TriB): (p: CarteAnnonce, q: CarteAnnonce) => number {
-  if (t === "cap:-1") {
+  if (t.k === "cap") {
     return (p, q) =>
-      (q.a.guests ?? 0) - (p.a.guests ?? 0) || p.a.total - q.a.total || parCarte(p, q);
+      parMesure(p.a.guests, q.a.guests, t.dir) || p.a.total - q.a.total || parCarte(p, q);
   }
-  if (t === "dist:1") return (p, q) => parDistance(p, q) || p.a.total - q.a.total || parCarte(p, q);
-  const dir = t === "prix:-1" ? -1 : 1;
-  return (p, q) => dir * (p.a.total - q.a.total) || parCarte(p, q);
+  if (t.k === "dist") {
+    return (p, q) =>
+      parMesure(distFiltrableM(p.a), distFiltrableM(q.a), t.dir) ||
+      p.a.total - q.a.total ||
+      parCarte(p, q);
+  }
+  return (p, q) => t.dir * (p.a.total - q.a.total) || parCarte(p, q);
 }
 
 /** Les cartes qui passent les critères d'annonce, une par logement : deux

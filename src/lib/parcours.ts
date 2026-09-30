@@ -23,6 +23,8 @@ import { adults, clampChildren, PARTY_LIMITS, partyLabel } from "./stay/party.ts
 import { stationById, type Station } from "./stations.ts";
 import { useStay } from "./stay.ts";
 import { entier, montant, montantCents, montantN } from "./devises.ts";
+import { plageDepuisSeuil, poserBorne, type Echelle, type Plage } from "./plage.ts";
+import { sensLu, type Sens } from "./tri.ts";
 
 /** Photo de la station : **la copie locale, ou rien**.
  *
@@ -49,6 +51,11 @@ export type PisteColor = "green" | "blue" | "red" | "black";
 export type ColorUnit = "pct" | "n" | "km";
 /** Clés de tri de la maquette v7 (`<select value="{{ sort }}">`). */
 export type SortKey = "km" | "hi" | "lo" | "v" | "pass" | "n";
+
+/** Le sens qu'un critère de tri prend quand on le choisit : les plus grands
+ *  domaines et les plus hautes altitudes d'abord, le forfait le moins cher
+ *  d'abord, les noms de A à Z. Le bouton de sens l'inverse ensuite. */
+export const SENS_TRI: Record<SortKey, Sens> = { km: -1, hi: -1, lo: -1, v: -1, pass: 1, n: 1 };
 /** Raccourcis de la maquette (`CH`) : chacun est un prédicat sur la station. */
 export type ChipKey = "big" | "high" | "glacier" | "linked" | "family" | "steep";
 
@@ -61,36 +68,66 @@ export const COLS: { key: PisteColor; label: string; token: string }[] = [
   { key: "black", label: "Noires", token: "var(--color-piste-noire)" },
 ];
 
-/** `f`, `col`, `dom`, `chipsOn` de la maquette, réunis. Zéro ou chaîne vide
- *  vaut « indifférent » : un filtre au repos n'écarte rien. */
+/** Les critères chiffrés de la recherche : chacun est une fourchette. */
+export type CleFourchette = "v" | "lo" | "hi" | "km" | "pass" | "budget";
+
+/**
+ * L'échelle et le pas de chaque fourchette de recherche. **Seule table** : les
+ * curseurs de l'accueil, de Comparer et de Logements la lisent, la migration de
+ * l'état enregistré et l'adresse aussi.
+ *
+ * Chacun était un seuil à une poignée — « au moins » pour les altitudes et les
+ * kilomètres, « au plus » pour le forfait et le budget —, et le maximum de
+ * chaque échelle est celui de ce curseur. La borne haute posée au maximum veut
+ * dire « et plus » : le sommet de Val Thorens passe « 3 500 m et plus ».
+ */
+export const ECHELLES: Record<CleFourchette, { b: Echelle; pas: number }> = {
+  v: { b: [0, 2400], pas: 100 },
+  lo: { b: [0, 2200], pas: 100 },
+  hi: { b: [0, 3500], pas: 100 },
+  km: { b: [0, 600], pas: 10 },
+  pass: { b: [0, 400], pas: 10 },
+  budget: { b: [0, 6000], pas: 250 },
+};
+
+/** L'échelle des fourchettes par couleur de piste, selon l'unité. */
+export const ECHELLES_COULEUR: Record<ColorUnit, { b: Echelle; pas: number }> = {
+  pct: { b: [0, 60], pas: 5 },
+  n: { b: [0, 200], pas: 5 },
+  km: { b: [0, 200], pas: 10 },
+};
+
+/** `f`, `col`, `dom`, `chipsOn` de la maquette, réunis. Une fourchette `null`
+ *  ou une chaîne vide vaut « indifférent » : un filtre au repos n'écarte rien. */
 export type Filters = {
-  /** Altitude du village, au moins (m). */
-  v: number;
-  /** Bas des pistes, au moins (m). */
-  lo: number;
-  /** Sommet, au moins (m). */
-  hi: number;
-  /** Km de pistes du domaine, au moins. */
-  km: number;
-  /** Forfait 6 jours adulte, au plus (€). */
-  pass: number;
-  /** Total du séjour, au plus (€). Critère de l'accueil, lu par Logements. */
-  budget: number;
+  /** Altitude du village (m). */
+  v: Plage;
+  /** Bas des pistes (m). */
+  lo: Plage;
+  /** Sommet (m). */
+  hi: Plage;
+  /** Km de pistes du domaine. */
+  km: Plage;
+  /** Forfait 6 jours adulte (€). */
+  pass: Plage;
+  /** Total du séjour (€). Critère de l'accueil, lu par Logements. */
+  budget: Plage;
   /** Domaine skiable : nom exact, `__none` pour « non renseigné », vide = tous. */
   dom: string;
-  col: Record<PisteColor, number>;
+  /** Part, tronçons ou km de chaque couleur, dans l'unité choisie. */
+  col: Record<PisteColor, Plage>;
   chips: Partial<Record<ChipKey, boolean>>;
 };
 
 export const FILTERS_INITIAL: Filters = {
-  v: 0,
-  lo: 0,
-  hi: 0,
-  km: 0,
-  pass: 0,
-  budget: 0,
+  v: null,
+  lo: null,
+  hi: null,
+  km: null,
+  pass: null,
+  budget: null,
   dom: "",
-  col: { green: 0, blue: 0, red: 0, black: 0 },
+  col: { green: null, blue: null, red: null, black: null },
   chips: {},
 };
 
@@ -130,6 +167,8 @@ type Parcours = {
   massif: string | null;
   q: string;
   sortKey: SortKey;
+  /** Le sens du tri de Comparer. */
+  sortDir: Sens;
   unit: ColorUnit;
   filters: Filters;
   toast: { text: string; nonce: number } | null;
@@ -158,10 +197,17 @@ type Parcours = {
    *  la station est retenue. Aucune navigation — la loupe seule y mène.
    *  `null` relâche la station et vide le champ. */
   setDestination: (s: { id: string; name: string } | null) => void;
+  /** Un autre critère de tri part dans son sens de départ (`SENS_TRI`). */
   setSort: (k: SortKey) => void;
+  setSortDir: (d: Sens) => void;
   setUnit: (u: ColorUnit) => void;
   setFilters: (patch: Partial<Filters>) => void;
-  setColFilter: (c: PisteColor, v: number) => void;
+  setColFilter: (c: PisteColor, v: Plage) => void;
+  /** Pose une borne d'une fourchette, depuis l'état courant : arrondie au pas
+   *  au curseur, telle quelle quand elle est tapée (`exact`). */
+  poserFourchette: (k: CleFourchette, which: 0 | 1, v: number, exact: boolean) => void;
+  /** La même chose pour une couleur de piste, dans l'unité choisie. */
+  poserCouleur: (c: PisteColor, which: 0 | 1, v: number, exact: boolean) => void;
   setChip: (k: ChipKey, on: boolean) => void;
   /** `resetAll` de la maquette : recherche, massif, domaine, seuils, raccourcis. */
   resetFilters: () => void;
@@ -173,7 +219,7 @@ type Parcours = {
 };
 
 /** Version de l'état persisté. Voir `migrerParcours`. */
-export const PARCOURS_VERSION = 3;
+export const PARCOURS_VERSION = 4;
 
 /** L'identifiant courant d'une station : un identifiant retiré du référentiel
  *  (`IDS_RETIRES`) rend celui de la station qui le remplace ; tout autre reste
@@ -203,6 +249,12 @@ function idCourant(id: string): string {
  * destination prend le nom de la station qui remplace, pour dire encore ce que
  * la loupe ouvrira. `seen` et `lodgeId` ne bougent pas : ils portent des
  * identifiants d'annonce, pas de station.
+ *
+ * **Version 4** : chaque seuil devient une fourchette. « Au moins n » (les
+ * altitudes, les kilomètres, les couleurs) se relit `[n, max]`, « au plus n »
+ * (le forfait, le budget) `[0, n]`, et zéro reste « indifférent ». La recherche
+ * enregistrée retient donc les mêmes stations qu'avant. Le tri garde son
+ * critère et prend le sens qu'il avait (`SENS_TRI`).
  */
 export function migrerParcours(persisted: unknown, version: number): Record<string, unknown> {
   let p = { ...((persisted ?? {}) as Record<string, unknown>) };
@@ -217,6 +269,31 @@ export function migrerParcours(persisted: unknown, version: number): Record<stri
       p = { ...p, cmp: [...new Set(ids)] };
     }
     if (typeof p.pick === "string") p = { ...p, pick: idCourant(p.pick) };
+  }
+  if (version < 4) {
+    const f = (p.filters ?? null) as Record<string, unknown> | null;
+    if (f && typeof f === "object") {
+      const unit = (typeof p.unit === "string" && p.unit in ECHELLES_COULEUR ? p.unit : "pct") as ColorUnit;
+      const col = (f.col ?? {}) as Record<string, unknown>;
+      const auMoins = (k: CleFourchette) => plageDepuisSeuil(f[k], ECHELLES[k].b);
+      const auPlus = (k: CleFourchette) => plageDepuisSeuil(f[k], ECHELLES[k].b, true);
+      const couleur = (c: PisteColor) => plageDepuisSeuil(col[c], ECHELLES_COULEUR[unit].b);
+      p = {
+        ...p,
+        filters: {
+          ...f,
+          v: auMoins("v"),
+          lo: auMoins("lo"),
+          hi: auMoins("hi"),
+          km: auMoins("km"),
+          pass: auPlus("pass"),
+          budget: auPlus("budget"),
+          col: { green: couleur("green"), blue: couleur("blue"), red: couleur("red"), black: couleur("black") },
+        },
+      };
+    }
+    const k = p.sortKey as SortKey;
+    p = { ...p, sortDir: k in SENS_TRI ? SENS_TRI[k] : SENS_TRI.km };
   }
   return p;
 }
@@ -233,6 +310,7 @@ export const useParcours = create<Parcours>()(
       massif: null,
       q: "",
       sortKey: "km",
+      sortDir: SENS_TRI.km,
       unit: "pct",
       filters: filtersVierges(),
       toast: null,
@@ -273,13 +351,25 @@ export const useParcours = create<Parcours>()(
             ? { q: dest.name, stationId: dest.id, lodgeId: null, booked: false }
             : { q: "", stationId: null, lodgeId: null, booked: false },
         ),
-      setSort: (sortKey) => set({ sortKey }),
+      setSort: (sortKey) => set({ sortKey, sortDir: SENS_TRI[sortKey] }),
+      setSortDir: (d) => set({ sortDir: sensLu(d, SENS_TRI.km) }),
       /** Changer d'unité remet les quatre seuils de couleur à zéro. */
       setUnit: (unit) =>
         set((s) => ({ unit, filters: { ...s.filters, col: { ...FILTERS_INITIAL.col } } })),
       setFilters: (patch) => set((s) => ({ filters: { ...s.filters, ...patch } })),
       setColFilter: (c, v) =>
         set((s) => ({ filters: { ...s.filters, col: { ...s.filters.col, [c]: v } } })),
+      poserFourchette: (k, which, v, exact) =>
+        set((s) => {
+          const { b, pas } = ECHELLES[k];
+          return { filters: { ...s.filters, [k]: poserBorne(s.filters[k], b, pas, which, v, exact) } };
+        }),
+      poserCouleur: (c, which, v, exact) =>
+        set((s) => {
+          const { b, pas } = ECHELLES_COULEUR[s.unit];
+          const pl = poserBorne(s.filters.col[c], b, pas, which, v, exact);
+          return { filters: { ...s.filters, col: { ...s.filters.col, [c]: pl } } };
+        }),
       setChip: (k, on) =>
         set((s) => ({ filters: { ...s.filters, chips: { ...s.filters.chips, [k]: on } } })),
       /**
@@ -315,7 +405,8 @@ export const useParcours = create<Parcours>()(
     {
       name: "skitrack-parcours",
       /** Voir `migrerParcours` : version 2, les critères de recherche ;
-       *  version 3, les identifiants de station retirés. */
+       *  version 3, les identifiants de station retirés ; version 4, les
+       *  seuils devenus fourchettes et le sens du tri. */
       version: PARCOURS_VERSION,
       migrate: migrerParcours,
       /** Ce qui survit à un rechargement.
@@ -335,6 +426,7 @@ export const useParcours = create<Parcours>()(
         q: s.q,
         massif: s.massif,
         sortKey: s.sortKey,
+        sortDir: s.sortDir,
         unit: s.unit,
         filters: s.filters,
       }),

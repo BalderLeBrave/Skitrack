@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Coquille } from "@/components/Coquille";
+import { SensTri } from "@/components/v7/SensTri";
 import { ignSkiinfoAll, ignSkiinfoSummary, VERDICT_FR, type IgnSkiVerdict } from "@/lib/ignSkiinfo";
 import { formatAlt } from "@/lib/stations";
+import { parMesure, type Sens } from "@/lib/tri";
 
 export const Route = createFileRoute("/altitudes")({ component: Altitudes });
 
@@ -18,11 +20,15 @@ function Altitudes() {
   const rows = useMemo(() => ignSkiinfoAll(), []);
   const sum = useMemo(() => ignSkiinfoSummary(rows), [rows]);
   const [filter, setFilter] = useState<Filter>("all");
+  // Le plus grand écart d'abord ; le bouton de sens inverse. Un écart non
+  // mesuré reste en queue dans les deux sens.
+  const [sens, setSens] = useState<Sens>(-1);
   const shown = useMemo(() => {
     const list = filter === "all" ? [...rows] : rows.filter((r) => r.verdict === filter);
-    list.sort((a, b) => Math.abs(b.dBase ?? 0) - Math.abs(a.dBase ?? 0));
+    const ecart = (d: number | null) => (d == null ? null : Math.abs(d));
+    list.sort((a, b) => parMesure(ecart(a.dBase), ecart(b.dBase), sens));
     return list;
-  }, [rows, filter]);
+  }, [rows, filter, sens]);
 
   const chips: [Filter, string][] = [
     ["all", `France · ${sum.n}`],
@@ -46,6 +52,8 @@ function Altitudes() {
               {label}
             </button>
           ))}
+          <span className="shrink-0 pl-2 text-note text-muted">Tri : écart à la base</span>
+          <SensTri className="sens7--petit shrink-0" sens={sens} onChange={setSens} />
         </>
       }
     >

@@ -31,8 +31,10 @@ import { Calendrier } from "@/components/v7/Calendrier";
 import { usePlage } from "@/components/v7/plage";
 import { CarteStation } from "@/components/v7/CarteStation";
 import { Compteur } from "@/components/v7/Compteur";
+import { FourchetteRecherche } from "@/components/v7/FourchettesRecherche";
 import { foldName } from "@/lib/carte";
 import { appliquer, SEUILS, usePredicats } from "@/lib/filtres";
+import { plageCourte } from "@/lib/plage";
 import {
   arrivalLbl,
   datesLbl,
@@ -84,16 +86,18 @@ function noterVue(): void {
 
 type Panneau = null | "q" | "alt" | "dates" | "guests";
 
-/** Les trois repères d'altitude du panneau « Altitude, au minimum ».
+/** Les trois fourchettes d'altitude du panneau « Altitude ».
  *
- *  Ils sortent de `SEUILS` (`filtres.ts`) : les bornes des curseurs étaient
+ *  Elles sortent de `SEUILS` (`filtres.ts`) : les bornes des curseurs étaient
  *  écrites ici, dans Comparer et dans `/carte`, et elles avaient déjà divergé.
  *  « Altitude du village » lit l'altitude du village — le point de départ —,
- *  jamais le sommet du domaine. */
+ *  jamais le sommet du domaine. Chacune a deux bornes, et chaque borne se
+ *  tape. */
 const ALT_RANGES = SEUILS.filter((r): r is (typeof SEUILS)[number] & { k: "v" | "lo" | "hi" } =>
   r.k === "v" || r.k === "lo" || r.k === "hi",
 );
 
+/** Un repère pose « au moins » : la borne basse, la haute au bout de l'échelle. */
 const ALT_PRESETS: { label: string; p: Partial<Record<"v" | "lo" | "hi", number>> }[] = [
   { label: "Village 1 800 m", p: { v: 1800 } },
   { label: "Sommet 3 000 m", p: { hi: 3000 } },
@@ -381,7 +385,8 @@ function Home() {
       void go("compare");
       return;
     }
-    // c. Aucun critère : Comparer, liste complète, tri par défaut.
+    // c. Aucun critère : Comparer, liste complète, tri par défaut (les plus
+    //    grands domaines d'abord : `setSort` rend au critère son sens de départ).
     P.setSort("km");
     void go("compare");
   };
@@ -426,10 +431,13 @@ function Home() {
     P.setChip(k, !F.chips[k]);
   };
 
-  const altActive = ALT_RANGES.filter((r) => F[r.k]);
+  const altActive = ALT_RANGES.filter((r) => F[r.k] != null);
   const altSegLbl = altActive.length
-    ? altActive.map((r) => `${r.court} ≥ ${fmt(F[r.k])}`).join(" · ") + " m"
+    ? altActive.map((r) => `${r.court} ${plageCourte(F[r.k], r.b)}`).join(" · ") + " m"
     : "Indifférent";
+  /** La fourchette qu'un repère pose : de sa valeur au haut de l'échelle. */
+  const repere = (k: "v" | "lo" | "hi", v: number) =>
+    [v, ALT_RANGES.find((r) => r.k === k)!.b[1]] as const;
 
   const seg = (on: boolean) => `sbar7__seg${on ? " sbar7__seg--on" : ""}`;
 
@@ -576,32 +584,25 @@ function Home() {
               {hp === "alt" ? (
                 <div className="pop7 pop7--alt">
                   <div className="pop7__tete">
-                    <strong>Altitude, au minimum</strong>
+                    <strong>Altitude</strong>
                     <span>
-                      Trois repères indépendants ; laissez sur « Indifférent » ce qui ne compte pas.
+                      Trois fourchettes indépendantes ; faites glisser les poignées ou tapez les
+                      bornes, et laissez sur « Indifférent » ce qui ne compte pas.
                     </span>
                   </div>
-                  {ALT_RANGES.map((r) => (
-                    <label key={r.k} className="curseur">
-                      <span className="curseur__lab">
-                        <span>{r.label}</span>
-                        <span className="curseur__val">
-                          {F[r.k] ? `≥ ${fmt(F[r.k])} m` : "Indifférent"}
-                        </span>
-                      </span>
-                      <input
-                        type="range"
-                        min={0}
-                        max={r.max}
-                        step={100}
-                        value={F[r.k]}
-                        onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
-                      />
-                    </label>
-                  ))}
+                  <div className="fourchettes7">
+                    {ALT_RANGES.map((r) => (
+                      <FourchetteRecherche key={r.k} r={r} />
+                    ))}
+                  </div>
                   <div className="pop7__presets">
                     {ALT_PRESETS.map((ap) => {
-                      const on = Object.entries(ap.p).every(([k, v]) => F[k as "v" | "lo" | "hi"] === v);
+                      const entrees = Object.entries(ap.p) as ["v" | "lo" | "hi", number][];
+                      const on = entrees.every(([k, v]) => {
+                        const pl = F[k];
+                        const [lo, hi] = repere(k, v);
+                        return pl != null && pl[0] === lo && pl[1] === hi;
+                      });
                       return (
                         <button
                           key={ap.label}
@@ -610,7 +611,7 @@ function Home() {
                           onClick={() =>
                             P.setFilters(
                               Object.fromEntries(
-                                Object.entries(ap.p).map(([k, v]) => [k, on ? 0 : v]),
+                                entrees.map(([k, v]) => [k, on ? null : repere(k, v)]),
                               ) as Partial<typeof F>,
                             )
                           }
@@ -626,7 +627,7 @@ function Home() {
                       className="lien-doux"
                       onClick={(e) => {
                         e.preventDefault();
-                        P.setFilters({ v: 0, lo: 0, hi: 0 });
+                        P.setFilters({ v: null, lo: null, hi: null });
                       }}
                     >
                       Réinitialiser

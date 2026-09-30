@@ -9,25 +9,30 @@
  *
  * Deux règles tenues d'un bout à l'autre :
  *
- * 1. **Un seuil actif porte sur une valeur mesurée.** Une station dont le champ
- *    filtré n'est pas relevé sort du résultat ; elle n'est pas comptée comme un
- *    zéro qui passerait un seuil bas. C'est `atLeast` de `carte.ts`, la même
- *    fonction, pas une seconde écriture de la même règle.
+ * 1. **Une fourchette active porte sur une valeur mesurée.** Une station dont le
+ *    champ filtré n'est pas relevé sort du résultat ; elle n'est pas comptée
+ *    comme un zéro qui passerait une borne basse. C'est `dansPlage` de
+ *    `plage.ts`, la même fonction sur tous les écrans, pas une seconde
+ *    écriture de la même règle.
  * 2. **Le nom se compare sans accents ni casse** (`foldName`), pour que
  *    « megeve » trouve Megève — ce que `/carte` faisait déjà et que l'accueil
  *    et Comparer ne faisaient pas.
  */
 
-import { atLeast, foldName } from "./carte.ts";
+import { foldName } from "./carte.ts";
 import {
   COLS,
+  ECHELLES,
+  ECHELLES_COULEUR,
   fmt,
   useParcours,
   type ChipKey,
+  type CleFourchette,
   type ColorUnit,
   type Filters,
   type PisteColor,
 } from "./parcours.ts";
+import { dansPlage, plageTexte, type Echelle, type Plage } from "./plage.ts";
 import type { Station } from "./stations.ts";
 import { memeDevise, montant } from "./devises.ts";
 import { CHIPS, deviseForfaitOf, forfaitOf, maxM, minM, villageM } from "./v7.ts";
@@ -40,24 +45,31 @@ export type Pred = {
   retirer: () => void;
 };
 
-/** Les curseurs de seuil, bornes comprises. Seule table de ces bornes : elles
- *  divergeaient entre l'accueil, Comparer et `/carte`. */
-export const SEUILS: {
-  k: "v" | "lo" | "hi" | "km" | "pass";
+/** Une fourchette de recherche : sa clé, ses libellés, son échelle. */
+export type DefFourchette = {
+  k: Exclude<CleFourchette, "budget">;
   label: string;
   court: string;
-  max: number;
-  step: number;
+  b: Echelle;
+  pas: number;
   unit: string;
-  /** Au plus, et non au moins. */
-  auPlus?: true;
-}[] = [
-  { k: "v", label: "Altitude du village", court: "village", max: 2400, step: 100, unit: "m" },
-  { k: "lo", label: "Bas des pistes", court: "bas", max: 2200, step: 100, unit: "m" },
-  { k: "hi", label: "Sommet", court: "sommet", max: 3500, step: 100, unit: "m" },
-  { k: "km", label: "Kilomètres de pistes du domaine", court: "km", max: 600, step: 10, unit: "km" },
-  { k: "pass", label: "Forfait 6 j adulte, au plus", court: "forfait", max: 400, step: 10, unit: "€", auPlus: true },
+};
+
+/** Les fourchettes de station, dans l'ordre des panneaux. Les échelles
+ *  viennent de `ECHELLES` (`parcours.ts`) : elles divergeaient entre
+ *  l'accueil, Comparer et `/carte`. */
+export const SEUILS: DefFourchette[] = [
+  { k: "v", label: "Altitude du village", court: "village", ...ECHELLES.v, unit: "m" },
+  { k: "lo", label: "Bas des pistes", court: "bas", ...ECHELLES.lo, unit: "m" },
+  { k: "hi", label: "Sommet", court: "sommet", ...ECHELLES.hi, unit: "m" },
+  { k: "km", label: "Kilomètres de pistes du domaine", court: "km", ...ECHELLES.km, unit: "km" },
+  { k: "pass", label: "Forfait 6 j adulte", court: "forfait", ...ECHELLES.pass, unit: "€" },
 ];
+
+/** Ce que la fourchette dit, avec son unité : « 1 800 m et plus ». */
+export function fourchetteLbl(r: Pick<DefFourchette, "b" | "unit">, pl: Plage): string {
+  return plageTexte(pl, r.b, (v) => (r.unit === "€" ? montant(v, DEVISE_SEUIL) : `${fmt(v)} ${r.unit}`));
+}
 
 /**
  * La devise dans laquelle le seuil « forfait » est exprimé.
@@ -82,11 +94,16 @@ export const LECTURE: Record<"v" | "lo" | "hi" | "km", (s: Station) => number | 
   km: (s) => s.pistesKm,
 };
 
-export const UNITES: Record<ColorUnit, { max: number; step: number; suf: string; lbl: string }> = {
-  pct: { max: 60, step: 5, suf: " %", lbl: "%" },
-  n: { max: 200, step: 5, suf: " tronçons", lbl: "tronçons" },
-  km: { max: 200, step: 10, suf: " km", lbl: "km" },
+export const UNITES: Record<ColorUnit, { b: Echelle; pas: number; suf: string; lbl: string; unite: string }> = {
+  pct: { ...ECHELLES_COULEUR.pct, suf: " %", lbl: "%", unite: "%" },
+  n: { ...ECHELLES_COULEUR.n, suf: " tronçons", lbl: "tronçons", unite: "tronç." },
+  km: { ...ECHELLES_COULEUR.km, suf: " km", lbl: "km", unite: "km" },
 };
+
+/** Ce que la fourchette d'une couleur dit, dans l'unité choisie. */
+export function couleurLbl(u: ColorUnit, pl: Plage): string {
+  return plageTexte(pl, UNITES[u].b, (v) => `${fmt(v)}${UNITES[u].suf}`);
+}
 
 /** Part, tronçons, ou km estimés (part × km du domaine). */
 export function colVal(s: Station, c: PisteColor, u: ColorUnit): number | null {
@@ -135,38 +152,39 @@ export function predicats(e: EtatRecherche): Pred[] {
         : () => P.setMassif(null),
     });
   for (const r of SEUILS) {
-    const v = e.filters[r.k];
-    if (!v) continue;
+    const pl = e.filters[r.k];
+    if (pl == null) continue;
     if (r.k === "pass") {
       out.push({
         id: r.k,
-        label: `Forfait ≤ ${montant(v, DEVISE_SEUIL)}`,
+        label: `Forfait : ${fourchetteLbl(r, pl)}`,
         fn: (s) => {
           const j6 = forfaitOf(s)?.j6;
           if (j6 == null) return false;
           if (!memeDevise(deviseForfaitOf(s), DEVISE_SEUIL)) return false;
-          return j6 <= v;
+          return dansPlage(j6, pl, r.b);
         },
-        retirer: () => P.setFilters({ pass: 0 }),
+        retirer: () => P.setFilters({ pass: null }),
       });
       continue;
     }
     const lire = LECTURE[r.k];
     out.push({
       id: r.k,
-      label: `${r.label} ≥ ${fmt(v)} ${r.unit}`,
-      fn: (s) => atLeast(lire(s), v),
-      retirer: () => P.setFilters({ [r.k]: 0 }),
+      label: `${r.label} : ${fourchetteLbl(r, pl)}`,
+      fn: (s) => dansPlage(lire(s), pl, r.b),
+      retirer: () => P.setFilters({ [r.k]: null }),
     });
   }
   for (const c of COLS) {
-    const v = e.filters.col[c.key];
-    if (!v) continue;
+    const pl = e.filters.col[c.key];
+    if (pl == null) continue;
+    const b = UNITES[e.unit].b;
     out.push({
       id: "col-" + c.key,
-      label: `${c.label} ≥ ${fmt(v)}${UNITES[e.unit].suf}`,
-      fn: (s) => atLeast(colVal(s, c.key, e.unit), v),
-      retirer: () => P.setColFilter(c.key, 0),
+      label: `${c.label} : ${couleurLbl(e.unit, pl)}`,
+      fn: (s) => dansPlage(colVal(s, c.key, e.unit), pl, b),
+      retirer: () => P.setColFilter(c.key, null),
     });
   }
   if (e.filters.dom)

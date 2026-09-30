@@ -17,9 +17,9 @@
  * ## Ce que l'écran ne fait pas
  *
  * Il ne comble rien. Un domaine sans kilomètres relevés écrit « non relevé »,
- * un domaine sans répartition le dit, et les seuils écartent le non mesuré au
- * lieu de le compter à zéro — c'est `atLeast`, la même règle que pour la
- * France. Les deux pays du référentiel qu'aucun continent n'accueille sont
+ * un domaine sans répartition le dit, et les fourchettes écartent le non
+ * mesuré au lieu de le compter à zéro — c'est `dansPlage`, la même règle que
+ * pour la France. Les deux pays du référentiel qu'aucun continent n'accueille sont
  * nommés en pied d'écran plutôt que rangés d'office quelque part.
  *
  * Il ne mélange pas non plus la France du classeur et la France d'OpenSkiMap :
@@ -30,6 +30,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Coquille } from "@/components/Coquille";
+import { Fourchette } from "@/components/v7/Fourchette";
+import { SensTri } from "@/components/v7/SensTri";
 import { COLOR_HEX } from "@/lib/carte";
 import {
   getForecastPair,
@@ -72,12 +74,16 @@ import {
   denivele,
   filtresActifs,
   passeFiltres,
+  SENS_MONDE,
   SEUILS_MONDE,
   TRIS_MONDE,
   trier,
+  type CleMonde,
   type FiltresMonde,
   type TriMonde,
 } from "@/lib/monde/filtres";
+import { plageTexte, poserBorne } from "@/lib/plage";
+import type { Sens } from "@/lib/tri";
 import {
   demDuDomaine,
   DOMAINES_MONDE,
@@ -585,40 +591,6 @@ function LigneDomaine({
   );
 }
 
-/** Le curseur d'un seuil, avec sa valeur en clair. */
-function Curseur({
-  label,
-  valeur,
-  max,
-  step,
-  unite,
-  onChange,
-}: {
-  label: string;
-  valeur: number;
-  max: number;
-  step: number;
-  unite: string;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <label className="monde-curseur">
-      <span className="monde-curseur__label">
-        {label}
-        <b>{valeur ? `≥ ${entier(valeur)}${unite ? ` ${unite}` : ""}` : "tous"}</b>
-      </span>
-      <input
-        type="range"
-        min={0}
-        max={max}
-        step={step}
-        value={valeur}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
-    </label>
-  );
-}
-
 function PageMonde() {
   const [continent, setContinent] = useState<ContinentId | null>(null);
   const [pays, setPays] = useState<string | null>(null);
@@ -633,7 +605,15 @@ function PageMonde() {
 
   const [q, setQ] = useState("");
   const [tri, setTri] = useState<TriMonde>("km");
+  const [sens, setSens] = useState<Sens>(SENS_MONDE.km);
   const [filtres, setFiltres] = useState<FiltresMonde>(AUCUN_FILTRE);
+  /** Pose une borne, depuis l'état courant : arrondie au pas au curseur,
+   *  telle quelle quand elle est tapée. */
+  const poser = (k: CleMonde, which: 0 | 1, v: number, exact: boolean) =>
+    setFiltres((f) => {
+      const def = SEUILS_MONDE.find((x) => x.k === k)!;
+      return { ...f, [k]: poserBorne(f[k], def.b, def.pas, which, v, exact) };
+    });
   const [ouvert, setOuvert] = useState(false);
   // Un seul domaine ouvert à la fois : deux requêtes Open-Meteo par ouverture,
   // et un écran qui en listerait cinq cents en ferait mille.
@@ -682,8 +662,8 @@ function PageMonde() {
   const retenus = useMemo(() => {
     if (!domaines) return [];
     const gardes = chercher(domaines, q).filter((d) => passeFiltres(d, filtres, repartitions));
-    return trier(gardes, tri);
-  }, [domaines, q, filtres, repartitions, tri]);
+    return trier(gardes, tri, sens);
+  }, [domaines, q, filtres, repartitions, tri, sens]);
 
   const nFiltres = filtresActifs(filtres);
   const fiche = pays ? paysByCode(pays) : undefined;
@@ -859,7 +839,11 @@ function PageMonde() {
                 <select
                   className="monde__tri"
                   value={tri}
-                  onChange={(e) => setTri(e.target.value as TriMonde)}
+                  onChange={(e) => {
+                    const t = e.target.value as TriMonde;
+                    setTri(t);
+                    setSens(SENS_MONDE[t]);
+                  }}
                 >
                   {TRIS_MONDE.map(([id, label]) => (
                     <option key={id} value={id}>
@@ -868,19 +852,21 @@ function PageMonde() {
                   ))}
                 </select>
               </label>
+              <SensTri className="sens7--petit" sens={sens} alpha={tri === "nom"} onChange={setSens} />
             </div>
 
             {ouvert ? (
               <div className="monde__filtres">
                 {SEUILS_MONDE.map((s) => (
-                  <Curseur
+                  <Fourchette
                     key={s.k}
-                    label={s.label}
+                    lbl={s.label}
+                    bornes={s.b}
                     valeur={filtres[s.k]}
-                    max={s.max}
-                    step={s.step}
+                    pas={s.pas}
                     unite={s.unite}
-                    onChange={(v) => setFiltres({ ...filtres, [s.k]: v })}
+                    resume={plageTexte(filtres[s.k], s.b, (v) => `${entier(v)}${s.unite ? ` ${s.unite}` : ""}`)}
+                    onPoser={(which, v, exact) => poser(s.k, which, v, exact)}
                   />
                 ))}
                 <label className="monde-bascule">
@@ -922,8 +908,9 @@ function PageMonde() {
 
             {!chargement && !panne && retenus.length === 0 ? (
               <p className="monde__vide">
-                Aucun domaine ne remplit tous les critères. Un seuil actif écarte aussi les domaines
-                dont la valeur n’est pas relevée : baissez un seuil ou modifiez la recherche.
+                Aucun domaine ne remplit tous les critères. Une fourchette active écarte aussi les
+                domaines dont la valeur n’est pas relevée : élargissez une fourchette ou modifiez la
+                recherche.
               </p>
             ) : null}
 

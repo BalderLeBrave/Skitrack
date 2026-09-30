@@ -1,0 +1,4472 @@
+{
+ "choix": {
+  "alpe-d-huez": [
+   {
+    "url": "https://www.skaping.com/alpedhuez/3060m",
+    "label": "Vue à 3 060 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/lesignal",
+    "label": "Le Signal",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/pic-blanc",
+    "label": "Pic Blanc",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/2100m",
+    "label": "Vue à 2 100 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/auris-station",
+    "label": "Station",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/herpie",
+    "label": "Herpie",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/vaujany/montfrais",
+    "label": "Montfrais",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/vaujany/alpette",
+    "label": "Alpette",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/alpedhuez/auris",
+    "label": "Auris",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "cauterets": [
+   {
+    "url": "https://www.skaping.com/cauterets/cirque-du-lys/panorama",
+    "label": "Terrasse du Lys à 1850 m.",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/cauterets/les-cretes/panoramique",
+    "label": "Les Crêtes",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/cauterets/village/casino",
+    "label": "Village",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/cauterets/puntas/video",
+    "label": "Puntas vidéo",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/cauterets/village",
+    "label": "Place de la mairie",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/cauterets/pontdespagne",
+    "label": "Cascade du Pont d'Espagne",
+    "fournisseur": "Skaping",
+    "r": 4.5,
+    "age": 7,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/cauterets/pontdespagne/video0",
+    "label": "Cascade Pont d'Espagne",
+    "fournisseur": "Skaping",
+    "r": 4.5,
+    "age": 7,
+    "deconnectee": true
+   }
+  ],
+  "la-mongie-bareges": [
+   {
+    "url": "https://www.skaping.com/grandtourmalet/liaison",
+    "label": "LA MONGIE, 2 100 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/baregestournaboup",
+    "label": "Barèges Tournaboup, 1 450 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/baregestourmalet",
+    "label": "Tourmalet 1750m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/coldutourmalet",
+    "label": "La Mongie Col Du Tourmalet 2115m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/lamongievillage",
+    "label": "Village, 1 750 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/laquette",
+    "label": "Barèges Laquette 1700M",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/lamongietourmalet",
+    "label": "La Mongie Tourmalet 1800m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/lamongiepourteilh",
+    "label": "Grand Tourmalet",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/baregeslienz",
+    "label": "Barèges Lienz",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandtourmalet/lamongie4termes",
+    "label": "La Mongie 4 Termes",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-estables": [
+   {
+    "url": "https://www.skaping.com/les-estables/ski-alpin/panoramique",
+    "label": "Ski Alpin",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-estables/ski-nordique",
+    "label": "Domaine nordique",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-estables-video",
+    "label": "Les Estables- Domaine nordique",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "valfrejus": [
+   {
+    "url": "https://www.skaping.com/valfrejus/arrondaz",
+    "label": "Arrondaz 2222m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valfrejus/tc-arrondaz",
+    "label": "Front de neige Valfrejus",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valfrejus/puntabagna",
+    "label": "Punta Bagna",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "campan-payolle": [
+   {
+    "url": "https://www.skaping.com/campan/payolle/pic-du-midi",
+    "label": "Virgule",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/campan/payolle/carriere",
+    "label": "Payolle",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/campan/lac-de-payolle",
+    "label": "Restaurant",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "vars": [
+   {
+    "url": "https://www.skaping.com/vars/col-de-crevoux",
+    "label": "Col de Crevoux",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/vars/chabrieres",
+    "label": "Pic de Chabrières",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 49,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/vars/les-claux",
+    "label": "Front de Neige",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/vars/chabrieres",
+    "label": "Chabrières",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/vars/peynier",
+    "label": "Peynier",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/vars/speed-master",
+    "label": "Speed Master",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/vars/mayt",
+    "label": "Mayt",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/vars/crevoux",
+    "label": "Crevoux",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/vars/les-claux/video",
+    "label": "Video",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/vars/snowpark",
+    "label": "Snowpark",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 177,
+    "deconnectee": true
+   },
+   {
+    "url": "https://app.webcam-hd.com/vars/snowpark",
+    "label": "Snowpark de l'Eyssina",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 177,
+    "deconnectee": false
+   }
+  ],
+  "vars-sainte-marie": [
+   {
+    "url": "https://app.webcam-hd.com/vars/sainte-marie",
+    "label": "Sainte Marie",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 2,
+    "deconnectee": false
+   }
+  ],
+  "les-aillons-margeriaz": [
+   {
+    "url": "https://www.skaping.com/aillons-margeriaz/roc-de-margeriaz",
+    "label": "Roc de Margériaz",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/aillons-margeriaz/les-biolles",
+    "label": "Sommet Margériaz",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 15,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/aillons-margeriaz/1000",
+    "label": "Val d'Aillon (Aillons Margériaz 1000)",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-aillons/margeriaz",
+    "label": "Aillons Margériaz Front de neige",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 58,
+    "deconnectee": true
+   }
+  ],
+  "la-daille": [
+   {
+    "url": "https://www.skaping.com/valdisere/la-daille",
+    "label": "La daille",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "val-disere": [
+   {
+    "url": "https://www.skaping.com/valdisere/borsat",
+    "label": "Borsat",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valdisere/pisaillas",
+    "label": "Pisaillais",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valdisere/solaise",
+    "label": "Solaise",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valdisere/leissieres",
+    "label": "Leissières",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valdisere/village",
+    "label": "Village",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valdisere/refuge-du-prariond",
+    "label": "Refuge du Prariond",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/val-d-isere/club-des-sports-2",
+    "label": "Live 2",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/val-d-isere/club-des-sports-1",
+    "label": "Live 1",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "le-fornet": [
+   {
+    "url": "https://www.skaping.com/valdisere/fornet",
+    "label": "Fornet",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-menuires": [
+   {
+    "url": "https://www.skaping.com/les-menuires/depart-croisette",
+    "label": "Départ Croisette",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-menuires/depart-masse",
+    "label": "Départ Masse",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-menuires/les-enverses",
+    "label": "Les Enverses",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-menuires/bruyeres/photo",
+    "label": "Bruyères",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-menuires/jardin-enfant",
+    "label": "Jardin d'enfant",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-menuires/la-masse",
+    "label": "La Masse",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-menuires/clocher",
+    "label": "Clocher",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/lesmenuires/croisette",
+    "label": "La Croisette",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-menuires/lac-du-lou",
+    "label": "Lac du Lou",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "val-thorens": [
+   {
+    "url": "https://www.skaping.com/val-thorens/cime-caron",
+    "label": "Cime Caron",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valthorens/station",
+    "label": "Station",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valthorens/3vallees",
+    "label": "3 Vallées",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 190,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/valthorens/funitelthorens",
+    "label": "Funitel Thorens",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 152,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/valthorens/lamaison",
+    "label": "Restaurant La Maison",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/val-thorens/tyrolienne-la-bee",
+    "label": "Tyrolienne",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valthorens/boismint",
+    "label": "Boismint",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 152,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/valthorens/prosneige",
+    "label": "École Prosneige",
+    "fournisseur": "Skaping",
+    "r": 4.5,
+    "age": 36,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/valthorens/stade",
+    "label": "Lac Blanc",
+    "fournisseur": "Skaping",
+    "r": 4.5,
+    "age": 152,
+    "deconnectee": true
+   }
+  ],
+  "saint-lary-soulan": [
+   {
+    "url": "https://www.skaping.com/saint-lary/pic-d-aret",
+    "label": "Au cœur du village de Saint-Lary",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/saint-lary/bouleaux/panoramique",
+    "label": "Bouleaux",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/saint-lary/les-merlans/live",
+    "label": "Les Merlans",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/saint-lary/fontaine",
+    "label": "De Saint-Lary-Soulan",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/saint-lary/village",
+    "label": "Au coeur du village de Saint-Lary",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/saint-lary/tourette",
+    "label": "Tourette",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "saint-lary-pla-d-adet": [
+   {
+    "url": "https://www.skaping.com/saint-lary/pla-d-adet",
+    "label": "Pla d'Adet",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "serre-chevalier-le-monetier": [
+   {
+    "url": "https://www.skaping.com/serrechevalier/monetier",
+    "label": "Monetier",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/monetier-les-bains/refuge-clot-vaches",
+    "label": "Refuge du clôt des vaches",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "serre-chevalier": [
+   {
+    "url": "https://www.skaping.com/serrechevalier/coldulautaret",
+    "label": "Col du Lautaret",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/serre-chevalier/saint-chaffrey",
+    "label": "Place du téléphérique",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/serre-chevalier/prorel",
+    "label": "Prorel",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 49,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/serre-chevalier/mea",
+    "label": "Méa",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 229,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/serre-chevalier/cucumelle",
+    "label": "Cucumelle",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 287,
+    "deconnectee": true
+   }
+  ],
+  "serre-chevalier-briancon": [
+   {
+    "url": "https://www.skaping.com/serre-chevalier/briancon",
+    "label": "Briançon",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "avoriaz": [
+   {
+    "url": "https://www.skaping.com/avoriaz/pistes",
+    "label": "Vue Station",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/avoriaz/station",
+    "label": "Station",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/avoriaz/station/meteo",
+    "label": "Centre station",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/avoriaz/zore",
+    "label": "Zore",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 15,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/avoriaz/fornet",
+    "label": "Fornet",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 197,
+    "deconnectee": true
+   },
+   {
+    "url": "https://app.webcam-hd.com/avoriaz/tour",
+    "label": "Tour",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 163,
+    "deconnectee": false
+   }
+  ],
+  "la-toussuire": [
+   {
+    "url": "https://www.skaping.com/la-toussuire/front-de-neige",
+    "label": "Front de Neige",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/latoussuire/les-lutins",
+    "label": "Les Lutins",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/latoussuire/chaput",
+    "label": "Chaput",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 191,
+    "deconnectee": true
+   }
+  ],
+  "le-corbier": [
+   {
+    "url": "https://www.skaping.com/les-sybelles/charvin-express/panoramique",
+    "label": "Charvin Express",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-sybelles/pointe-du-corbier",
+    "label": "Pointe du Corbier",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/le-corbier/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-sybelles/ouillon",
+    "label": "L'Ouillon",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-grand-bornand": [
+   {
+    "url": "https://www.skaping.com/le-grand-bornand/taverne",
+    "label": "La Taverne, 1 550 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/le-grand-bornand/terresrouges",
+    "label": "Le Maroly, 1 750 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/le-grand-bornand/village",
+    "label": "Village, 1 000 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/le-grand-bornand/chinaillon",
+    "label": "Chinaillon, 1 300 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/le-grand-bornand/mont-lachat",
+    "label": "Mont Lachat, 2 100 m",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 38,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/le-grand-bornand/auberge-nordique",
+    "label": "Auberge Nordique, 1 200 m",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/grand-bornand/maroly",
+    "label": "1650",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 170,
+    "deconnectee": false
+   }
+  ],
+  "la-grave-la-meije": [
+   {
+    "url": "https://www.skaping.com/lagrave/3200m",
+    "label": "La Grave, 3 200 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/lagrave/1500m",
+    "label": "La Grave Village",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/lagrave/2400m",
+    "label": "La Grave, 2 400 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/la-grave/hotel-castillan",
+    "label": "Hôtel Castillan",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "courchevel": [
+   {
+    "url": "https://www.skaping.com/courchevel/le-signal",
+    "label": "Le Signal",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/courchevel/chenus",
+    "label": "Chenus",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/courchevel/la-croisette",
+    "label": "La Croisette",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/courchevel/saulire",
+    "label": "Saulire",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 202,
+    "deconnectee": true
+   }
+  ],
+  "la-tania": [
+   {
+    "url": "https://app.webcam-hd.com/la-tania/chalet-esf",
+    "label": "Coeur de Station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/courchevel/bouc-blanc",
+    "label": "Bouc Blanc",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 2,
+    "deconnectee": false
+   }
+  ],
+  "peyragudes": [
+   {
+    "url": "https://www.skaping.com/peyragudes/peyresourde",
+    "label": "Peyresourde",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/peyragudes/les-agudes",
+    "label": "Les Agudes",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/peyragudes/belvedere",
+    "label": "Belvédère",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 190,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/peyragudes/cap-de-pales",
+    "label": "Cap De Pales",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 260,
+    "deconnectee": true
+   }
+  ],
+  "chatel": [
+   {
+    "url": "https://app.webcam-hd.com/chatel/morclan",
+    "label": "Panoramique Morclan",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/ts-echo-alpin",
+    "label": "TS L'Echo Alpin",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chatel/pierre-longue",
+    "label": "Pierre longue",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/portes-du-soleil/chatel/torgon/plan-de-croix",
+    "label": "Portes du soleil",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/super-chatel",
+    "label": "Super Chatel",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/rochassons",
+    "label": "Rochassons",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 7,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/village",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chatel/lac-de-vonnes",
+    "label": "Chatel Lac de Vonnes",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/chantier-conche",
+    "label": "Place Eglise Châtel",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/lac-de-la-mouille",
+    "label": "Lac de la Mouille",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/lac-de-la-mouille-2",
+    "label": "Lac de la Mouille 2",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chatel/torgon",
+    "label": "Tronchey",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 78,
+    "deconnectee": false
+   }
+  ],
+  "chamonix": [
+   {
+    "url": "https://www.skaping.com/chamonix/aiguille-du-midi",
+    "label": "Aiguille du Midi",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamonix-mont-blanc",
+    "label": "Mont Blanc Le Brévent L'aiguille Verte et les Drus Aiguille du Midi La Flégère Planpraz Glacier des Bossons Les Houches Argentière Les Praz Départ Montenvers Mer de Glace Départ Aiguille du Midi Départ Planpraz Brévent Les Planards Le Savoy Télésiège du Glacier des Bossons Téléphérique de Bellevue T",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamonix/flegere",
+    "label": "Chamonix Index",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamonix/brevent",
+    "label": "Brévent",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamonix/plan-praz",
+    "label": "Plan Praz",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamonix/montenvers",
+    "label": "Montenvers",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamonix-flegere-G1",
+    "label": "De la Flégère",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "argentiere": [
+   {
+    "url": "https://www.skaping.com/chamonix/plateau-de-lognan",
+    "label": "Plateau de Lognan",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-tour": [
+   {
+    "url": "https://www.skaping.com/chamonix/tete-de-balme",
+    "label": "Tête de Balme",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamonix/balme/charamillon",
+    "label": "Charamillon",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-houches": [
+   {
+    "url": "https://www.skaping.com/chamonix/les-houches",
+    "label": "Les Houches Vallée de Chamonix-Mont-Blanc",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les-houches/tramway-du-mont-blanc",
+    "label": "Tramway du Mont-Blanc",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 140,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/les-houches/prarion",
+    "label": "Prarion",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "pra-loup-1500": [
+   {
+    "url": "https://www.skaping.com/pra-loup/station",
+    "label": "Station",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/pra-loup/peguieou",
+    "label": "Sommet de Peguieou Station de Pra Loup",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 259,
+    "deconnectee": true
+   },
+   {
+    "url": "https://app.webcam-hd.com/pra-loup/costebelle",
+    "label": "Costebelle",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 23,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/pra-loup/molanes",
+    "label": "Clos du serre",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 119,
+    "deconnectee": true
+   }
+  ],
+  "les-2-alpes": [
+   {
+    "url": "https://www.skaping.com/les2alpes/grande-aiguille",
+    "label": "Grande Aiguille",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les2alpes/3200m",
+    "label": "Vue à 3 200 m",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 38,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/les2alpes/3400m",
+    "label": "Vue à 3 400 m",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 43,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/les2alpes/super-diable",
+    "label": "Super Diable",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les2alpes/vallee-blanche",
+    "label": "Vallée Blanche",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les2alpes/bellecombe",
+    "label": "Bellecombe",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les2alpes/la-fee",
+    "label": "La Fée",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 2,
+    "deconnectee": false
+   }
+  ],
+  "col-de-porte": [
+   {
+    "url": "https://www.skaping.com/col-de-porte/biathlon",
+    "label": "Biathlon",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/col-de-porte/ski-alpin",
+    "label": "Chartreuse",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-clusaz": [
+   {
+    "url": "https://app.webcam-hd.com/la-clusaz/snow-park",
+    "label": "Snowpark",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-clusaz/beauregard",
+    "label": "Beauregard",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-clusaz/bossonnet",
+    "label": "Le Bossonnet",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-clusaz/cret-du-loup",
+    "label": "Crêt du Loup",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-clusaz/etale",
+    "label": "Etale",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-clusaz/massif-etale",
+    "label": "Massif de l'Etale",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-clusaz/place-du-village",
+    "label": "Place du village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/la-clusaz/espace-nordique",
+    "label": "Espace Nordique",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "greolieres-audibergue": [
+   {
+    "url": "https://www.skaping.com/greolieres/front-de-neige/photo",
+    "label": "Front de neige",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/greolieres/huskies",
+    "label": "Les Huskies",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-norma": [
+   {
+    "url": "https://www.skaping.com/la-norma/carrelet",
+    "label": "Carrelet",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/la-norma/fontaine-aux-oiseaux",
+    "label": "Fontaine aux oiseaux",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "morzine": [
+   {
+    "url": "https://www.skaping.com/morzine/chamossiere",
+    "label": "Chamossière 2002m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/portes-du-soleil/morzine",
+    "label": "Plateau de Nyon 1421 m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/morzine/pleney",
+    "label": "Pleney 1505 m",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": null,
+    "deconnectee": true
+   },
+   {
+    "url": "https://app.webcam-hd.com/morzine/sommet-du-pleney",
+    "label": "Sommet de la Télécabine du Pleney",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 335,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/morzine/office-de-tourisme",
+    "label": "Office de tourisme 1000 m",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/morzine/chamossiere",
+    "label": "Morzine Chamossière",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 329,
+    "deconnectee": false
+   }
+  ],
+  "megeve": [
+   {
+    "url": "https://www.skaping.com/megeve/rochebrune/panoramique",
+    "label": "Rochebrune",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/megeve/mont-d-arbois",
+    "label": "Mont d'Arbois",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/jaillet/sommet",
+    "label": "Croix de sur les Prés",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/megeve/la-livraz",
+    "label": "La livraz",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/megeve/alpette",
+    "label": "Alpette",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/megeve/cote-2000",
+    "label": "Cote 2000",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/megeve/village",
+    "label": "Village",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/megeve/fontaine",
+    "label": "Fontaine",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/megeve/altiport",
+    "label": "Altiport",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/megeve/lac-d-arbois",
+    "label": "Lac d'Arbois",
+    "fournisseur": "Skaping",
+    "r": 4.5,
+    "age": 5,
+    "deconnectee": true
+   }
+  ],
+  "valmorel": [
+   {
+    "url": "https://www.skaping.com/valmorel/col-du-mottet",
+    "label": "Col du Mottet",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valmorel/lanchettes",
+    "label": "Sommet Lanchettes",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valmorel/sommet-combelouviere",
+    "label": "Sommet Combelouvière",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 169,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valmorel/planchamp",
+    "label": "Planchamp",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valmorel/village",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valmorel/biollene",
+    "label": "Biollene",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 100,
+    "deconnectee": false
+   }
+  ],
+  "doucy": [
+   {
+    "url": "https://app.webcam-hd.com/valmorel/doucy-combelouviere",
+    "label": "Doucy",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 90,
+    "deconnectee": false
+   }
+  ],
+  "val-dazun": [
+   {
+    "url": "https://www.skaping.com/val-d-azun/col-de-couraduque",
+    "label": "Col de Couraduque",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/arbeost/col-du-soulor",
+    "label": "Col du Soulor",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "saint-gervais-mont-blanc": [
+   {
+    "url": "https://www.skaping.com/saint-gervais-mont-blanc/mont-joux",
+    "label": "Mont Joux",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/saint-gervais/espace-mont-blanc",
+    "label": "Espace Mont Blanc",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "meribel": [
+   {
+    "url": "https://www.skaping.com/meribel/roc-de-fer",
+    "label": "Roc de fer",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/courchevel-meribel_col-de-la-loze",
+    "label": "Col de la Loze",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/meribel-mottaret_front-de-neige",
+    "label": "Mottaret Centre",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 6,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/meribel/mont-vallon",
+    "label": "Mont Vallon",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 166,
+    "deconnectee": true
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/bouquetin",
+    "label": "Bouquetin",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/meribel_chaudanne",
+    "label": "Chaudanne",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/meribel_tougnete",
+    "label": "Tougnète",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/meribel_versant-saulire",
+    "label": "Versant Saulire",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/lac-de-tueda",
+    "label": "Lac de Tueda",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/meribel/meribel_rhodos",
+    "label": "TC Rhodos",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 296,
+    "deconnectee": false
+   }
+  ],
+  "passy": [
+   {
+    "url": "https://www.skaping.com/passy-plaine-joux/station",
+    "label": "Station",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/passy-plaine-joux/barmus",
+    "label": "Barmus",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/passy/base-de-loisirs-de-passy",
+    "label": "Base de loisirs",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-7-laux": [
+   {
+    "url": "https://www.skaping.com/les7laux/prapoutel/sommetdesbouquetins",
+    "label": "Bouquetins",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 177,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les7laux/pipay/grand-cerf",
+    "label": "Grand Cerf",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les7laux/pleynet/oursiere",
+    "label": "Oursière",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 177,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/les7laux/pleynet/les-loups",
+    "label": "Les Loups",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 186,
+    "deconnectee": false
+   }
+  ],
+  "valmeinier": [
+   {
+    "url": "https://www.skaping.com/valmeinier/front-de-neige/photo",
+    "label": "Front de neige",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/Valmeinier/sandoniere",
+    "label": "La Sandonière",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 307,
+    "deconnectee": true
+   }
+  ],
+  "aussois": [
+   {
+    "url": "https://www.skaping.com/aussois/sommet-armoise",
+    "label": "Sommet de l'Armoise",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/aussois/sommet-grand-jeu",
+    "label": "Sommet Grand Jeu",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/aussois/le-village",
+    "label": "Le Village",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/aussois/village-aussois",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 300,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/aussois/grand-jeu",
+    "label": "Grand Jeu",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 310,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/aussois/domaine-nordique-du-monolithe",
+    "label": "Domaine nordique du Monolithe",
+    "fournisseur": "Skaping",
+    "r": 4.5,
+    "age": 89,
+    "deconnectee": true
+   },
+   {
+    "url": "https://app.webcam-hd.com/aussois/domaine-nordique-monolithe",
+    "label": "Domaine Nordique Monolithe",
+    "fournisseur": "Webcam-HD",
+    "r": 4.5,
+    "age": 309,
+    "deconnectee": false
+   }
+  ],
+  "luz-ardiden": [
+   {
+    "url": "https://www.skaping.com/luz-ardiden/sommet-aulian",
+    "label": "Sommet de l'Aulian",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/luz-ardiden/aulian",
+    "label": "Aulian",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/luz-ardiden/caperette",
+    "label": "Caperette",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/luz-ardiden/pourtere",
+    "label": "Pourtere",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/luz-ardiden/snowpark",
+    "label": "Snowpark",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 170,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/luz-ardiden/bederet/video",
+    "label": "Bédéret",
+    "fournisseur": "Skaping",
+    "r": 4,
+    "age": 77,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/luz-ardiden/freestyle/video",
+    "label": "Freestyle",
+    "fournisseur": "Skaping",
+    "r": 4,
+    "age": 168,
+    "deconnectee": true
+   }
+  ],
+  "le-schnepfenried": [
+   {
+    "url": "https://www.skaping.com/le-schnepfenried/panoramique",
+    "label": "Schnepfenriedkopf Schnepfenriedkopf LE SCHNEPFENRIED",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-bresse-brabant": [
+   {
+    "url": "https://www.skaping.com/la-bresse/sommet-petit-artimont",
+    "label": "Sommet Petit Artimont",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/labresse/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/la-bresse/haut-de-vologne",
+    "label": "Haut de Vologne",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-bresse-lispach": [
+   {
+    "url": "https://www.skaping.com/la-bresse/lispach",
+    "label": "Lispach",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-bresse-hohneck": [
+   {
+    "url": "https://www.skaping.com/la-bresse/hohneck",
+    "label": "La Bresse Hohneck Chitelet",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 13,
+    "deconnectee": true
+   }
+  ],
+  "valloire": [
+   {
+    "url": "https://www.skaping.com/valloire/galibier",
+    "label": "Du Galibier",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valloire/crey-du-quart",
+    "label": "Crey du quart",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/valloire/poingt_ravier",
+    "label": "Poingt Ravier",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "crest-voland-cohennoz": [
+   {
+    "url": "https://www.skaping.com/crest-voland/lalogere",
+    "label": "La Logère",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/crest-voland/le-cernix",
+    "label": "Le Cernix",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 349,
+    "deconnectee": true
+   }
+  ],
+  "montriond": [
+   {
+    "url": "https://www.skaping.com/montriond/ardent",
+    "label": "Domaine Avoriaz 1800",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/montriond/lac",
+    "label": "Lac",
+    "fournisseur": "Skaping",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/montriond/village-des-lindarets",
+    "label": "Lindarets",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 202,
+    "deconnectee": true
+   }
+  ],
+  "les-orres": [
+   {
+    "url": "https://www.skaping.com/les-orres/pousterle",
+    "label": "Sommet Pousterle 2530m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "manigod": [
+   {
+    "url": "https://app.webcam-hd.com/manigod/merdassier-centre-station",
+    "label": "Merdassier Centre Station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/manigod/croix-fry",
+    "label": "Croix Fry",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/manigod/merdassier",
+    "label": "Merdassier",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/manigod/webcam-village",
+    "label": "Manigod Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/manigod/manigod_la-croix-fry",
+    "label": "Manigod La Croix Fry",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/manigod/cabeau",
+    "label": "Cabeau",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 204,
+    "deconnectee": true
+   }
+  ],
+  "val-louron": [
+   {
+    "url": "https://www.skaping.com/loudenvielle/tour-de-genos",
+    "label": "Loudenvielle",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "combloux": [
+   {
+    "url": "https://www.skaping.com/combloux/sommet",
+    "label": "Pertuis",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "la-giettaz": [
+   {
+    "url": "https://www.skaping.com/la-giettaz/sommet",
+    "label": "Sommet Tête du Torraz 1930m",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "eyne-cambre-daze": [
+   {
+    "url": "https://www.skaping.com/cambredaze/pla",
+    "label": "Pla",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "orcieres": [
+   {
+    "url": "https://www.skaping.com/orcieres/la-favue/panorama",
+    "label": "Orcières La Favue",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/orcieres/plateau-de-rocherousse",
+    "label": "Plateau de Rocherousse",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/orcieres/base-de-loisirs",
+    "label": "Base de loisirs",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "chamrousse": [
+   {
+    "url": "https://www.skaping.com/chamrousse/panorama-casserousse",
+    "label": "Casserousse",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamrousse/les-cretes",
+    "label": "Les crêtes",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamrousse/la-croix",
+    "label": "La Croix",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 2,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/chamrousse/recoin/archives",
+    "label": "Front de neige",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 71,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/chamrousse/roche-beranger",
+    "label": "Roche Béranger",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 27,
+    "deconnectee": true
+   }
+  ],
+  "les-saisies": [
+   {
+    "url": "https://www.skaping.com/les-saisies/le-manant",
+    "label": "6k 24/24 Les Saisies Savoie Mont-Blanc",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/bisanne-panoramique-2000",
+    "label": "Mont Bisanne",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 2,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/boetet",
+    "label": "Centre station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/hauteluce-chozal",
+    "label": "Hauteluce Chozal",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/hauteluce-mtblanc",
+    "label": "Hauteluce Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/espace-erwineckl",
+    "label": "Espace Erwin Eckl",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/bellasta",
+    "label": "Bellasta",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 171,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/nordique",
+    "label": "Domaine nordique",
+    "fournisseur": "Webcam-HD",
+    "r": 4.5,
+    "age": 156,
+    "deconnectee": false
+   }
+  ],
+  "bisanne-1500": [
+   {
+    "url": "https://app.webcam-hd.com/les-saisies/bisanne-1500",
+    "label": "Bisanne 1500",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-schlucht": [
+   {
+    "url": "https://www.skaping.com/la-schlucht/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-champ-du-feu": [
+   {
+    "url": "https://www.skaping.com/le-champ-du-feu/pistes",
+    "label": "Vue piste",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/le-champ-du-feu/chalet",
+    "label": "Vue chalet",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "saint-jean-daulps": [
+   {
+    "url": "https://www.skaping.com/rocdenfer",
+    "label": "Vallée d'Aulps",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": null,
+    "deconnectee": true
+   }
+  ],
+  "oz-en-oisans": [
+   {
+    "url": "https://www.skaping.com/oz-en-oisans/station",
+    "label": "Station",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 34,
+    "deconnectee": true
+   }
+  ],
+  "flaine": [
+   {
+    "url": "https://www.skaping.com/flaine/veret",
+    "label": "Véret",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 41,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/flaine/desert-blanc",
+    "label": "Grand Massif Flaine",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 160,
+    "deconnectee": true
+   }
+  ],
+  "samoens": [
+   {
+    "url": "https://www.skaping.com/samoens/col-de-joux-plane",
+    "label": "Col de Joux Plane",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 51,
+    "deconnectee": true
+   }
+  ],
+  "saint-francois-longchamp": [
+   {
+    "url": "https://www.skaping.com/saint-francois-longchamp/le-frene",
+    "label": "Le Frêne",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 171,
+    "deconnectee": true
+   }
+  ],
+  "praz-sur-arly": [
+   {
+    "url": "https://www.skaping.com/val-d-arly/mont-rond/panoramique",
+    "label": "Mont Rond",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "savoie-grand-revard": [
+   {
+    "url": "https://www.skaping.com/la-feclaz/stade-de-biathlon",
+    "label": "Stade de biathlon",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/la-feclaz/orionde",
+    "label": "Télésiège de l'Orionde",
+    "fournisseur": "Skaping",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/revard/tesson",
+    "label": "Col des Ébats",
+    "fournisseur": "Skaping",
+    "r": 1.5,
+    "age": 121,
+    "deconnectee": true
+   },
+   {
+    "url": "https://www.skaping.com/grandlac/revard",
+    "label": "Revard",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/grandlac/revardinfoneige",
+    "label": "Revard Info Neige",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "saint-martin-de-belleville": [
+   {
+    "url": "https://www.skaping.com/saintmartindebelleville/village",
+    "label": "De Saint-Martin-de-Belleville",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-ballon-dalsace": [
+   {
+    "url": "https://www.skaping.com/ballon-d-alsace/sommet-teleski",
+    "label": "Sommet téléski",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/ballon-d-alsace/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Skaping",
+    "r": 2.5,
+    "age": 235,
+    "deconnectee": false
+   }
+  ],
+  "le-collet-dallevard": [
+   {
+    "url": "https://www.skaping.com/collet-d-allevard/sommet",
+    "label": "Les plagnes",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-rousses": [
+   {
+    "url": "https://www.skaping.com/jura-sur-leman/la-dole/vue-mont-blanc",
+    "label": "Mont Blanc",
+    "fournisseur": "Skaping",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/les-tuffes",
+    "label": "Sommet des Tuffes",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/porte-balancier",
+    "label": "Le Balancier, pied des pistes",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/jouvencelles-ts",
+    "label": "Les Jouvencelles, pied des pistes",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/la-serra",
+    "label": "La Serra, pied des pistes",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/massif-de-dole",
+    "label": "Sommet de la Dôle, vue Mont-Blanc",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 329,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/jura-sur-leman/la-dole/vue-les-rousses",
+    "label": "Dappes",
+    "fournisseur": "Skaping",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/omnibus",
+    "label": "Village des Rousses, Omnibus",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/base-nautique",
+    "label": "Base Nautique, Lac des Rousses",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-rousses/darbella",
+    "label": "Darbella nordique, départ pistes nordiques",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-gets": [
+   {
+    "url": "https://app.webcam-hd.com/lesgets/front-de-neige-panoramique",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesgets/les_gets_sommet-chery",
+    "label": "Sommet Chéry",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesgets/depart-perrieres",
+    "label": "Départ Perrières",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesgets/depart-ranfoilly",
+    "label": "Départ Ranfoilly",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesgets/lesgets_chavannes",
+    "label": "Chavannes",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 17,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesgets/plateau-des-chavannes",
+    "label": "Plateau des Chavannes",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesgets/route-des-metrallins",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesgets/lac",
+    "label": "Lac",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/portes-du-soleil/les-gets",
+    "label": "Portes du soleil",
+    "fournisseur": "Skaping",
+    "r": 3.5,
+    "age": 51,
+    "deconnectee": true
+   }
+  ],
+  "reallon": [
+   {
+    "url": "https://app.webcam-hd.com/reallon/reallon-front-de-neige",
+    "label": "Front de Neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/reallon/reallon_chabrieres",
+    "label": "Chabrières",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 7,
+    "deconnectee": false
+   }
+  ],
+  "crevoux": [
+   {
+    "url": "https://app.webcam-hd.com/crevoux/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 296,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.skaping.com/lac-serre-poncon/crevoux/station",
+    "label": "Station",
+    "fournisseur": "Skaping",
+    "r": 4.5,
+    "age": 244,
+    "deconnectee": true
+   }
+  ],
+  "alpe-du-grand-serre": [
+   {
+    "url": "https://app.webcam-hd.com/alpe-du-grand-serre/serriou",
+    "label": "Sommet Serriou",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 200,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/alpe-du-grand-serre/les-cochettes",
+    "label": "Les Cochettes",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 46,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/alpe-du-grand-serre/la-flambee",
+    "label": "Les bergeries",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/alpe-du-grand-serre/la-blache",
+    "label": "La Blache",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "areches-beaufort": [
+   {
+    "url": "https://app.webcam-hd.com/areches-beaufort/sommet-combettes",
+    "label": "Sommet Combettes",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 85,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/areches-beaufort/cuvy",
+    "label": "Cuvy",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/areches-beaufort/planay",
+    "label": "Planay",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/areches-beaufort/bonnets-rouges",
+    "label": "Bonnets Rouges",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "autrans": [
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/tsf-la-quoi",
+    "label": "Sommet domaine alpin",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/chatelard",
+    "label": "Front de Neige ski alpin",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 22,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/autrans_tremplin",
+    "label": "Tremplins du Claret",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/la-poya",
+    "label": "La Sure",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/centre-nordique-meaudre",
+    "label": "Piscine de Méaudre",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/geve",
+    "label": "Domaine nordique Géve",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 3,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/depart-zipline-tyro-alt.1300m",
+    "label": "Départ tyrolienne géante Méaudre",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 23,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/autrans-meaudre/autran-village",
+    "label": "Centre nordique Autrans",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "bernex": [
+   {
+    "url": "https://app.webcam-hd.com/bernex/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/bernex/pre-richard",
+    "label": "TSD Pré-Richard",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 22,
+    "deconnectee": false
+   }
+  ],
+  "bessans": [
+   {
+    "url": "https://app.webcam-hd.com/bessans/relais",
+    "label": "Panoramique",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/bessans/bessannaise",
+    "label": "La Bessannaise",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/bessans/carreley",
+    "label": "Carreley",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "brides-les-bains": [
+   {
+    "url": "https://app.webcam-hd.com/brides-les-bains/centre-village",
+    "label": "Centre Village",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "gresse-en-vercors": [
+   {
+    "url": "https://app.webcam-hd.com/gresse-en-vercors/grand-veymont",
+    "label": "La station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-haberes": [
+   {
+    "url": "https://app.webcam-hd.com/les-haberes/centre-station",
+    "label": "Centre Station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "aime-2000": [
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/Aime-2000",
+    "label": "La Plagne Aime 2000",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-plagne": [
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/bergerie",
+    "label": "Bergerie",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/grande-rochette",
+    "label": "Grande Rochette",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/live-3000",
+    "label": "Live 3000",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/montchavin",
+    "label": "Montchavin",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 29,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/roche-de-mio",
+    "label": "Roche de Mio",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/montchavin-telebuffette",
+    "label": "Télébuffette",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/montchavin-bijolin",
+    "label": "Sommet Bijolin",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 165,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/becoin",
+    "label": "Becoin",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 156,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/webcam-montalbert-fornelet",
+    "label": "Fornelet",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 159,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/champagny-la-rossa",
+    "label": "La Rossa",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 160,
+    "deconnectee": false
+   }
+  ],
+  "plagne-centre": [
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/colorado",
+    "label": "Plagne Centre",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "la-plagne-montalbert": [
+   {
+    "url": "https://app.webcam-hd.com/webcam-station-la-plagne/montalbert",
+    "label": "Montalbert",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "val-cenis": [
+   {
+    "url": "https://app.webcam-hd.com/valcenis/sommet-solert",
+    "label": "Sommet du Solert",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valcenis/plateau-du-mont-cenis",
+    "label": "Plateau du Mont-Cenis",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 8,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valcenis/tk-pont-noir",
+    "label": "Téléski de Pont Noir",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valcenis/la-met",
+    "label": "La Met",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valcenis/replat-des-canons",
+    "label": "Replat des Canons",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 199,
+    "deconnectee": false
+   }
+  ],
+  "le-reposoir": [
+   {
+    "url": "https://app.webcam-hd.com/le-reposoir/village",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-arcs-bourg-st-maurice": [
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/mont-blanc",
+    "label": "TSD Mont Blanc",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/aiguille-rouge",
+    "label": "Aiguille Rouge",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 23,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/varet",
+    "label": "Varet",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/arpette",
+    "label": "Arpette",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/arcabulle",
+    "label": "Arcabulle",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/vanoise-express",
+    "label": "Vanoise Express",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/snowpark",
+    "label": "Snowpark",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 159,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lesarcs/grizzly",
+    "label": "Grizzly",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 149,
+    "deconnectee": false
+   }
+  ],
+  "les-brasses": [
+   {
+    "url": "https://app.webcam-hd.com/les-brasses/restaurant",
+    "label": "Chaîne d'or",
+    "fournisseur": "Webcam-HD",
+    "r": 4.5,
+    "age": 113,
+    "deconnectee": false
+   }
+  ],
+  "les-carroz": [
+   {
+    "url": "https://app.webcam-hd.com/lescarroz/pointe-de-cupoire",
+    "label": "Pointe de Cupoire",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lescarroz/oasis",
+    "label": "Oasis snowpark",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 2,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lescarroz/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lescarroz/arrivee-telecabine",
+    "label": "Arrivée de la télécabine",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lescarroz/les-molliets-1500",
+    "label": "Les Molliets 1500",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lescarroz/vue-village",
+    "label": "Vue village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lescarroz/carroz-2100",
+    "label": "Les Carroz 2100",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-karellis": [
+   {
+    "url": "https://app.webcam-hd.com/les-karellis/front-de-neige",
+    "label": "Station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 18,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-karellis/vinouve",
+    "label": "LES KARELLIS 2130M, 2 130 m",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 169,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/les-karellis/tsd-des-chaudannes",
+    "label": "TSD des Chaudannes",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 172,
+    "deconnectee": false
+   }
+  ],
+  "orelle": [
+   {
+    "url": "https://app.webcam-hd.com/orelle/sommet-orelle",
+    "label": "Plan Bouchet",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/orelle/tyrolienne",
+    "label": "Sommet des 3 Vallées",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 31,
+    "deconnectee": false
+   }
+  ],
+  "thollon-les-memises": [
+   {
+    "url": "https://app.webcam-hd.com/thollon-les-memises/sommet-parchet",
+    "label": "Parchet",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/thollon-les-memises/front-de-neige",
+    "label": "Front",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "vaujany": [
+   {
+    "url": "https://app.webcam-hd.com/vaujany/sommet-2800",
+    "label": "Dôme des Rousses",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 62,
+    "deconnectee": false
+   }
+  ],
+  "villard-de-lans": [
+   {
+    "url": "https://app.webcam-hd.com/villard-de-lans/colline-des-bains",
+    "label": "Colline des Bains",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/villard-de-lans/Bois_barbu",
+    "label": "Bois Barbu",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 40,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/villard-de-lans/village",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "ancelle": [
+   {
+    "url": "https://app.webcam-hd.com/ancelle/zenith",
+    "label": "Piste Zénith",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/ancelle/station",
+    "label": "Station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/ancelle/nordique",
+    "label": "Nordique",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "auron": [
+   {
+    "url": "https://app.webcam-hd.com/auron/cime-chavalet",
+    "label": "Dome",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 163,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/auron/village",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/auron/las-donnas",
+    "label": "Chastellares",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/auron/blainon",
+    "label": "Blainon",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/auron/berchia",
+    "label": "Berchia",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 56,
+    "deconnectee": false
+   }
+  ],
+  "chabanon": [
+   {
+    "url": "https://app.webcam-hd.com/chabanon/sommet-des-monges",
+    "label": "Sommet Les Monges",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 102,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chabanon/chabanon",
+    "label": "Chabanon",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chabanon/les-ganiayes",
+    "label": "Les Ganiayes",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 76,
+    "deconnectee": false
+   }
+  ],
+  "isola-2000": [
+   {
+    "url": "https://app.webcam-hd.com/isola/isola-2000_snowpark",
+    "label": "Pélevos",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 21,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/isola/isola-2000_centre-station",
+    "label": "Centre Station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://www.stationsnicecotedazur.com/fr/webcam/isola-2000/",
+    "label": "Stations du Mercantour",
+    "fournisseur": "autre",
+    "r": 1,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/isola/isola-2000_tete-cabane",
+    "label": "Tête Cabane",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 164,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/isola/isola-2000_chastillon",
+    "label": "Chastillon",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/isola/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 100,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/isola/sistron",
+    "label": "Sistron",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 165,
+    "deconnectee": false
+   }
+  ],
+  "montgenevre": [
+   {
+    "url": "https://app.webcam-hd.com/montgenevre/eglise",
+    "label": "Col de Montgenèvre",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/montgenevre/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/montgenevre/mur-d-escalade",
+    "label": "Luge Monty Express",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/montgenevre/espace-ski-nordique",
+    "label": "Espace ski nordique",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "risoul": [
+   {
+    "url": "https://app.webcam-hd.com/risoul/sommet-razis",
+    "label": "Sommet Razis",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/risoul/risoul_front",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/risoul/pre-du-bois",
+    "label": "Pré du Bois",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/risoul/homme-de-pierre",
+    "label": "Homme de Pierre",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "chaillol": [
+   {
+    "url": "https://app.webcam-hd.com/chaillol/sommet-clot-chenu",
+    "label": "Sommet Clot Chenu",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chaillol/piste-clot-chenu",
+    "label": "Piste Clot Chenu",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "val-dallos-la-foux-le-seignus": [
+   {
+    "url": "https://app.webcam-hd.com/valdallos/seignus-bas",
+    "label": "Depart TSD Clos Bertrand 1530 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valdallos/seignus-haut",
+    "label": "Sommet TSD Clos bertrand 1915 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valdallos/centre-station",
+    "label": "Centre Station",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valdallos/observatoire",
+    "label": "DEPART TS Observatoire 2140 m",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 176,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valdallos/sommet-marin-pascal",
+    "label": "Sommet TSD Marin Pascal 2360 m",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 171,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valdallos/front-de-neige",
+    "label": "DEPART TSD MARIN PASCAL 1840 m",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 171,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valdallos/village",
+    "label": "Le Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "valberg": [
+   {
+    "url": "https://app.webcam-hd.com/valberg/sommet-tete-des-eguilles",
+    "label": "Sommet Tête des Eguilles",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 268,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valberg/leysin",
+    "label": "Leysin",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valberg/ancolie",
+    "label": "Ancolies",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valberg/valberg_village",
+    "label": "Place du village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valberg/nordique_des_launes",
+    "label": "Beuil-Les Launes",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/valberg/chantier1",
+    "label": "Chantier 1",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "hauteville-lompnes": [
+   {
+    "url": "https://app.webcam-hd.com/hauteville-lompnes/terre-ronde",
+    "label": "Terre Ronde",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/hauteville-lompnes/cormaranche-bike-park",
+    "label": "Cormaranche Bikepark",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/hauteville-lompnes/la-praille",
+    "label": "La Praille",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 76,
+    "deconnectee": false
+   }
+  ],
+  "le-larmont": [
+   {
+    "url": "https://app.webcam-hd.com/pontarlier/chapelle-esperance",
+    "label": "Chapelle",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "val-de-morteau": [
+   {
+    "url": "https://app.webcam-hd.com/val-de-morteau/gardot",
+    "label": "Gardot",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/val-de-morteau/val-de-morteau_meix-musy",
+    "label": "Val de Morteau Meix-Musy",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "chastreix-sancy": [
+   {
+    "url": "https://app.webcam-hd.com/chastreix-sancy/chastreix",
+    "label": "Chastreix Sancy",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "laguiole": [
+   {
+    "url": "https://app.webcam-hd.com/laguiole/front-de-neige-le-bouyssou",
+    "label": "Le Bouyssou",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "praboure": [
+   {
+    "url": "https://app.webcam-hd.com/praboure/front-de-neige",
+    "label": "Front de Neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "gerardmer": [
+   {
+    "url": "https://app.webcam-hd.com/gerardmer/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/gerardmer/xettes",
+    "label": "Xettes",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/gerardmer/tetras",
+    "label": "Tetras",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/gerardmer/lac-de-gerardmer",
+    "label": "Lac de Gérardmer",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "correncon-en-vercors": [
+   {
+    "url": "https://app.webcam-hd.com/correncon-en-vercors/stand-de-tir",
+    "label": "Stade de Biathlon",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 2,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/correncon-en-vercors/rambins",
+    "label": "Hameau des Rambins-Domaine débutant et Jardin des neiges",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 176,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/correncon-en-vercors/plateau",
+    "label": "Site nordique-Porte des Hauts Plateaux",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/correncon-en-vercors/jardin-des-neiges-esf-correncon",
+    "label": "ESF Corrençon",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 176,
+    "deconnectee": false
+   }
+  ],
+  "saint-jean-de-sixt": [
+   {
+    "url": "https://app.webcam-hd.com/saint-jean-de-sixt/stade-de-neige",
+    "label": "Forgeassoud Dessus",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/saint-jean-de-sixt/village",
+    "label": "Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 34,
+    "deconnectee": false
+   }
+  ],
+  "chalmazel": [
+   {
+    "url": "https://app.webcam-hd.com/chalmazel/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chalmazel/espace-apprentissage",
+    "label": "Espace apprentissage",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/chalmazel/jasseries",
+    "label": "Jasseries",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 95,
+    "deconnectee": false
+   }
+  ],
+  "albiez-montrond": [
+   {
+    "url": "https://app.webcam-hd.com/albiez/front-de-neige-grand-loup",
+    "label": "Front de Neige Grand Loup",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/albiez/haut-echaux",
+    "label": "Haut Echaux, Albiez",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "champagny-en-vanoise": [
+   {
+    "url": "https://app.webcam-hd.com/champagny/webcam-champagny-village",
+    "label": "Le Village",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/champagny/champagny-le-haut",
+    "label": "Le Haut-Site nordique",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/champagny/tour-de-glace",
+    "label": "Tour de Glace",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 94,
+    "deconnectee": false
+   }
+  ],
+  "la-chapelle-dabondance": [
+   {
+    "url": "https://app.webcam-hd.com/la-chapelle/braitaz",
+    "label": "Braitaz",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "bellevaux-hirmentaz": [
+   {
+    "url": "https://app.webcam-hd.com/hirmentaz/coeur-de-station",
+    "label": "Secteur Rhodos",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/hirmentaz/glisse-tranquille",
+    "label": "Glisse Tranquille",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/hirmentaz/espace-nordique",
+    "label": "Espace Nordique",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 9,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/hirmentaz/grand-site",
+    "label": "Grand Site",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 127,
+    "deconnectee": false
+   }
+  ],
+  "la-rosiere-1850": [
+   {
+    "url": "https://app.webcam-hd.com/la-rosiere/mont-valaisan",
+    "label": "Mont Valaisan 2800 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-rosiere/traversette",
+    "label": "Le Fort, 2 400 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-rosiere/plan-du-repos",
+    "label": "Plan du Repos, 2 330 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-rosiere/maison-du-ski",
+    "label": "Front de neige, 1 850 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-rosiere/golf",
+    "label": "Golf",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/la-rosiere/plan-de-l-arc",
+    "label": "Plan de l'arc",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 168,
+    "deconnectee": false
+   }
+  ],
+  "le-semnoz": [
+   {
+    "url": "https://app.webcam-hd.com/semnoz/sommet_tmx",
+    "label": "Arrivée Télémix",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 6,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/semnoz/sud_bauges",
+    "label": "Parking versant Bauges",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 3,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/semnoz/versant-annecy",
+    "label": "Versant Annecy",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 77,
+    "deconnectee": false
+   }
+  ],
+  "les-contamines-montjoie": [
+   {
+    "url": "https://app.webcam-hd.com/lescontamines/Centre-Village",
+    "label": "Centre du village",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "pralognan-la-vanoise": [
+   {
+    "url": "https://app.webcam-hd.com/pralognan/mont-bochor",
+    "label": "Mont Bochor",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/pralognan/village",
+    "label": "Front de Neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "superdevoluy-la-joue-du-loup": [
+   {
+    "url": "https://app.webcam-hd.com/superdevoluy/snowpark",
+    "label": "Coeur du Domaine",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 3,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/superdevoluy/sommet-domaine-skiable",
+    "label": "Arrivée télésiège Génépy",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 101,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/superdevoluy/fontettes",
+    "label": "Télémix des fontettes",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 2,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/superdevoluy/village",
+    "label": "Superdévoluy",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/superdevoluy/la-joue-du-loup",
+    "label": "La Joue du Loup",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 41,
+    "deconnectee": false
+   }
+  ],
+  "la-combe-saint-pierre": [
+   {
+    "url": "https://app.webcam-hd.com/combe-saint-pierre/front-de-neige",
+    "label": "La Combe Saint Pierre",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "les-plans-dhotonnes-plateau-de-retord": [
+   {
+    "url": "https://app.webcam-hd.com/plateau-de-retord/plans-hotonnes",
+    "label": "Plans d'Hotonnes",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/plateau-de-retord/cuvery",
+    "label": "Cuvéry",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/plateau-de-retord/biathlon",
+    "label": "Biathlon",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "besse-super-besse": [
+   {
+    "url": "https://app.webcam-hd.com/superbesse/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-lioran": [
+   {
+    "url": "https://app.webcam-hd.com/lioran/lioran_combe",
+    "label": "Sommet Combe, 1 760 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lioran/lioran_font-d-alagnon",
+    "label": "Font d'Alagnon, 1 195 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lioran/lioran_station",
+    "label": "Centre Station, 1 250 m",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lioran/lioran_versant-plomb",
+    "label": "Versant Plomb",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 192,
+    "deconnectee": false
+   }
+  ],
+  "font-romeu-pyrenees-2000": [
+   {
+    "url": "https://app.webcam-hd.com/font-romeu/col-del-pam",
+    "label": "Col del Pam",
+    "fournisseur": "Webcam-HD",
+    "r": 0,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/font-romeu/pied-de-piste",
+    "label": "Les Airelles",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/font-romeu/pyrenees-2000-front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 1,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/font-romeu/roc-de-la-calme",
+    "label": "Roc de la Calme",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 170,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/font-romeu/calme-sud",
+    "label": "Calme Sud",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-lac-blanc": [
+   {
+    "url": "https://app.webcam-hd.com/lac-blanc/900",
+    "label": "Au pied du télésiège Montjoie",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/lac-blanc/lac-blanc-1200",
+    "label": "Batiment d'accueil",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-markstein": [
+   {
+    "url": "https://app.webcam-hd.com/markstein/maison-accueil",
+    "label": "Steinlebach",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/markstein/la-federale",
+    "label": "La Fédérale",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/markstein/grenouillere",
+    "label": "La Grenouillère",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/markstein/grand-ballon",
+    "label": "Grand Ballon",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": 1,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/markstein/luge",
+    "label": "Luge sur rail",
+    "fournisseur": "Webcam-HD",
+    "r": 3,
+    "age": 1,
+    "deconnectee": false
+   }
+  ],
+  "le-grand-puy": [
+   {
+    "url": "https://app.webcam-hd.com/grand-puy/planes",
+    "label": "Les Planes",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/grand-puy/espace-debutant",
+    "label": "Espace débutant",
+    "fournisseur": "Webcam-HD",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   },
+   {
+    "url": "https://app.webcam-hd.com/grand-puy/front-de-neige",
+    "label": "Front de neige",
+    "fournisseur": "Webcam-HD",
+    "r": 2.5,
+    "age": 304,
+    "deconnectee": false
+   }
+  ],
+  "source-du-doubs-mouthe": [
+   {
+    "url": "https://app.webcam-hd.com/mouthe/source-du-doubs",
+    "label": "Source du Doubs",
+    "fournisseur": "Webcam-HD",
+    "r": 3.5,
+    "age": 192,
+    "deconnectee": false
+   }
+  ],
+  "bonneval-sur-arc": [
+   {
+    "url": "https://pv.viewsurf.com/1496/Bonneval-Andagne?i=NTk3ODp1bmRlZmluZWQ",
+    "label": "Andagne",
+    "fournisseur": "Viewsurf",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "sainte-foy-tarentaise": [
+   {
+    "url": "https://app.webcam-hd.com/ste-foy-tarentaise/sommet-aiguille",
+    "label": "Sommet Aiguille",
+    "fournisseur": "Webcam-HD",
+    "r": 1.5,
+    "age": 171,
+    "deconnectee": false
+   }
+  ],
+  "tignes": [
+   {
+    "url": "https://tignes.roundshot.com/grande-motte/",
+    "label": "Grande Motte",
+    "fournisseur": "Roundshot",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   }
+  ],
+  "puy-saint-vincent": [
+   {
+    "url": "https://www.vision-environnement.com/live/player/pelvoux30.php",
+    "label": "Live Pelvoux-Vallouise · Vision-Environnement",
+    "fournisseur": "Vision Environnement",
+    "r": 2,
+    "age": null,
+    "deconnectee": false
+   }
+  ]
+ },
+ "refus": {
+  "alpe-d-huez": [
+   "https://www.skaping.com/alpedhuez/2700m : dernière image vieille de 937 jours"
+  ],
+  "valfrejus": [
+   "https://www.skaping.com/valfrejus/puntabagna-location-valfrejus : dernière image vieille de 1150 jours"
+  ],
+  "les-claux": [
+   "https://app.webcam-hd.com/vars/luge-du-caribou : dernière image vieille de 932 jours"
+  ],
+  "vars": [
+   "https://app.webcam-hd.com/vars/luge-du-caribou : dernière image vieille de 932 jours"
+  ],
+  "vars-sainte-marie": [
+   "https://app.webcam-hd.com/vars/luge-du-caribou : dernière image vieille de 932 jours"
+  ],
+  "la-daille": [
+   "https://www.skaping.com/valdisere/vallee-du-manchet : dernière image vieille de 419 jours"
+  ],
+  "le-fornet": [
+   "https://www.skaping.com/valdisere/vallee-du-manchet : dernière image vieille de 419 jours"
+  ],
+  "val-disere": [
+   "https://www.skaping.com/valdisere/vallee-du-manchet : dernière image vieille de 419 jours"
+  ],
+  "les-menuires": [
+   "https://www.skaping.com/menuires/plan : dernière image vieille de 1723 jours",
+   "https://app.webcam-hd.com/les-menuires/depart-tc-la-masse : dernière image vieille de 1000 jours",
+   "https://app.webcam-hd.com/les-menuires/les-menuires_clocher : dernière image vieille de 1926 jours"
+  ],
+  "serre-chevalier": [
+   "https://app.webcam-hd.com/serrechevalier/col-du-prorel : dernière image vieille de 824 jours"
+  ],
+  "avoriaz": [
+   "https://www.skaping.com/portes-du-soleil/avoriaz/arare : dernière image vieille de 1007 jours",
+   "https://app.webcam-hd.com/avoriaz/snow-park-d-arare : dernière image vieille de 527 jours"
+  ],
+  "la-toussuire": [
+   "https://www.skaping.com/latoussuire/pierre-du-turc : dernière image vieille de 649 jours",
+   "https://www.skaping.com/les-sybelles/saint-sorlin-d-arves/le-rouet : dernière image vieille de 1090 jours"
+  ],
+  "le-corbier": [
+   "https://www.skaping.com/les-sybelles/saint-sorlin-d-arves/le-rouet : dernière image vieille de 1090 jours"
+  ],
+  "saint-sorlin-darves": [
+   "https://www.skaping.com/les-sybelles/saint-sorlin-d-arves/le-rouet : dernière image vieille de 1090 jours"
+  ],
+  "st-jean-darves": [
+   "https://www.skaping.com/les-sybelles/saint-sorlin-d-arves/le-rouet : dernière image vieille de 1090 jours"
+  ],
+  "saint-colomban-villards": [
+   "https://www.skaping.com/les-sybelles/saint-sorlin-d-arves/le-rouet : dernière image vieille de 1090 jours"
+  ],
+  "les-bottieres": [
+   "https://www.skaping.com/les-sybelles/saint-sorlin-d-arves/le-rouet : dernière image vieille de 1090 jours"
+  ],
+  "argentiere": [
+   "https://www.skaping.com/argentiere/grandsmontets : dernière image vieille de 3218 jours"
+  ],
+  "les-2-alpes": [
+   "https://www.skaping.com/les2alpes/2600m : dernière image vieille de 524 jours"
+  ],
+  "megeve": [
+   "https://app.webcam-hd.com/megeve/palais-des-sports : dernière image vieille de 1136 jours",
+   "https://app.webcam-hd.com/megeve/place-du-village : dernière image vieille de 822 jours"
+  ],
+  "valmorel": [
+   "https://app.webcam-hd.com/valmorel/altispace : dernière image vieille de 1549 jours"
+  ],
+  "meribel": [
+   "https://app.webcam-hd.com/meribel/meribel_roc-de-fer : dernière image vieille de 904 jours"
+  ],
+  "crest-voland-cohennoz": [
+   "https://www.skaping.com/crest-voland/lachat : dernière image vieille de 1084 jours"
+  ],
+  "eyne-cambre-daze": [
+   "https://www.skaping.com/cambredaze/eyne : dernière image vieille de 555 jours"
+  ],
+  "monts-jura": [
+   "https://www.skaping.com/montsjura/monthoisey : dernière image vieille de 841 jours"
+  ],
+  "alpe-du-grand-serre": [
+   "https://app.webcam-hd.com/alpe-du-grand-serre/le-lac : dernière image vieille de 1081 jours"
+  ],
+  "superdevoluy-la-joue-du-loup": [
+   "https://app.webcam-hd.com/superdevoluy/sommet-genepy : dernière image vieille de 488 jours"
+  ]
+ }
+}

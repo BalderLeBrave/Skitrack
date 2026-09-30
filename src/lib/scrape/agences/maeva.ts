@@ -345,9 +345,10 @@ function euros(n: number): string {
  * Hébergement seul : `mae-<produit>`, total exact publié. Formule
  * « Hébergement + forfait » (logement vendu seulement ainsi, ou formule
  * proposée en plus au catalogue SKI, `forfaits`) : `mae-<produit>-forfait`,
- * `skiPassIncluded: true`. Le site n'en publie qu'un prix par personne :
- * `total: 0`, `priceIndicative: true`, et le prix dans `priceLabel`, avec les
- * mots du site.
+ * `skiPassIncluded: true`. Le site en publie un prix par personne, calculé
+ * pour le nombre d'adultes demandé, qui est celui du groupe : le total du
+ * séjour est ce prix fois les adultes (la fiche le confirme : sa remise de
+ * dossier vaut 988 = 2 × 494 pour 2 personnes). Il était laissé à 0.
  */
 export function maevaListings(
   r: ResidenceMaeva,
@@ -405,9 +406,9 @@ export function maevaListings(
       out.push({
         ...commun,
         id: `mae-${p.produitCle}-forfait`,
-        total: 0,
-        priceLabel: `${f2.nom} : dès ${euros(f2.prixParPersonne)} € / pers.${p.nuits ? ` / ${p.nuits} nuits` : ""} (${pax} adulte${pax > 1 ? "s" : ""})`,
-        priceIndicative: true,
+        total: Math.round(f2.prixParPersonne * pax),
+        priceLabel: `${f2.nom} : ${euros(f2.prixParPersonne)} € / pers.${p.nuits ? ` / ${p.nuits} nuits` : ""} × ${pax} adulte${pax > 1 ? "s" : ""}`,
+        priceIndicative: false,
         skiPassIncluded: true,
       });
     }

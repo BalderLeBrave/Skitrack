@@ -207,7 +207,7 @@ export async function releverSkiPlanet(input: LiveSearchInput, opts: OptionsRele
     // Du calendrier forfaits compris, seules les offres qui le sont.
     const lot = [
       ...(s ? skiPlanetListings(r, s, input) : []),
-      ...(f ? skiPlanetListings(r, f, input).filter((l) => l.skiPassIncluded === true) : []),
+      ...(f ? skiPlanetListings(r, f, input, s).filter((l) => l.skiPassIncluded === true) : []),
     ];
     for (const l of lot) {
       if (vus.has(l.id)) continue;

@@ -4,16 +4,22 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { agencesDe, lieuxDe } from "./couverture.ts";
+import { createHash } from "node:crypto";
 import {
+  cleGroupe,
   corpsRecherche,
+  groupesWiyp,
   lieuTravelski,
   lienOffre,
   lireFiche,
   lireNomLogement,
   lirePosition,
   lireRecherche,
+  lireWiyp,
   offresRetenues,
   prixOffre,
+  reponseWiyp,
+  requeteWiyp,
   travelskiListings,
   typeGarde,
   urlFiche,
@@ -185,5 +191,61 @@ describe("Travelski : couverture", () => {
     assert.deepEqual(lieuxDe("Travelski", "la-plagne"), ["parentStation:4"]);
     assert.deepEqual(lieuxDe("Travelski", "les-arcs-bourg-st-maurice"), ["station:96,27,336,97,350"]);
     assert.ok(agencesDe("avoriaz").includes("Travelski"));
+  });
+});
+
+describe("Travelski, prix du groupe (/wiyp/price)", () => {
+  const md5 = (s: string) => createHash("md5").update(s).digest("hex");
+  const atria = RECHERCHE.residences.find((r) => r.liheId === "8493")!;
+  const deux = { ...AVORIAZ, guests: 2 };
+
+  it("lit le paquet de chaque formule", () => {
+    const pf = atria.offres.find((o) => o.id === "80136" && o.formule === "PF")!;
+    assert.equal(pf.paquet, "83307");
+  });
+
+  it("groupe les forfaits à demander : une requête par formule et par paquet, sauf si le groupe remplit le logement", () => {
+    const g2 = groupesWiyp(atria, deux);
+    assert.equal(g2.length, 1);
+    assert.deepEqual(g2[0]!.map((o) => o.id).sort(), ["229982", "229983", "80136", "80143"]);
+    // À 4, les logements de 4 places sont au prix de la recherche : seuls ceux de 6 restent à demander.
+    const g4 = groupesWiyp(atria, { ...AVORIAZ, guests: 4 });
+    assert.deepEqual(g4[0]!.map((o) => o.id).sort(), ["229983", "80143"]);
+  });
+
+  it("construit la requête du site : paramètres triés, chemin = MD5 de leur JSON", () => {
+    const offres = groupesWiyp(atria, deux)[0]!;
+    const url = requeteWiyp(atria, offres, deux, md5)!;
+    const u = new URL(url);
+    assert.equal(u.origin + u.pathname.replace(/[0-9a-f]{32}$/, ""), "https://api.travelski.com/wiyp/price/");
+    assert.equal(u.searchParams.get("packageId"), "83307");
+    assert.equal(u.searchParams.get("prestIds"), "80136-80143-229982-229983");
+    assert.equal(u.searchParams.get("familyComposition"), "18-18");
+    const params = Object.fromEntries(u.searchParams);
+    assert.deepEqual(Object.keys(params), [...Object.keys(params)].sort());
+    assert.equal(u.pathname.split("/").pop(), md5(JSON.stringify(params)));
+  });
+
+  it("lit la réponse, et pose le prix du groupe sur l'offre forfait compris", () => {
+    const prix = lireWiyp(JSON.parse(fx("travelski-wiyp-8493-pf-2ad.json")));
+    assert.equal(prix.get("80136")?.vente, 3639);
+    assert.equal(prix.get("80136")?.logement, 3087);
+    const pf = atria.offres.find((o) => o.id === "80136" && o.formule === "PF")!;
+    const groupe = new Map([[cleGroupe(pf), reponseWiyp([pf], JSON.parse(fx("travelski-wiyp-8493-pf-2ad.json")))]]);
+    const avant = prixOffre(pf, deux);
+    assert.equal(avant.total, 0);
+    const apres = prixOffre(pf, deux, groupe);
+    assert.equal(apres.total, 3639);
+    assert.match(apres.priceLabel ?? "", /pour 2 personnes, frais de service inclus/);
+  });
+
+  it("un logement demandé et absent de la réponse n'est plus vendable au groupe", () => {
+    const offres = groupesWiyp(atria, deux)[0]!;
+    const groupe = new Map([[cleGroupe(offres[0]!), reponseWiyp(offres, JSON.parse(fx("travelski-wiyp-8493-pf-2ad.json")))]]);
+    const retenues = offresRetenues(atria, deux, groupe);
+    const avecForfait = retenues.filter((x) => x.forfait).map((x) => x.id);
+    assert.deepEqual(avecForfait, ["80136"]);
+    // L'hébergement seul des autres reste en vente.
+    assert.ok(retenues.some((x) => x.id === "80143" && x.seule));
   });
 });

@@ -1,283 +1,82 @@
 /**
- * Webcams des domaines.
+ * Webcams des stations.
  *
- * Table vérifiée à la main : une webcam morte est pire qu'une webcam absente,
- * et aucun annuaire ouvert ne les recense de façon fiable. Les flux restent
- * chez l'exploitant : l'application les affiche dans une `iframe`, sans copie
- * ni réencodage, ce qui est ce que leurs conditions autorisent.
+ * Table vérifiée : chaque adresse de `webcams.data.ts` a été affichée dans le
+ * même cadre que l'application (`iframe` aux mêmes attributs, ou `img`), depuis
+ * une page locale, et sa capture regardée. Une webcam morte est pire qu'une
+ * webcam absente. Les flux restent chez l'exploitant : l'application les
+ * affiche sans copie ni réencodage.
  *
- * Le rapprochement domaine vers webcam se fait sur le nom, puis sur le nom du
- * domaine relié : « Val Thorens » a sa propre caméra, mais un domaine dont le
- * forfait est « Les 3 Vallées » hérite de celles des quatre stations du
- * groupe. Le rapprochement est textuel et tolérant aux accents, aux tirets et
- * aux parenthèses, parce que les noms du référentiel OpenSkiMap ne suivent
- * aucune convention stable.
+ * La table est rangée par identifiant de station. Elle l'était par nom, avec un
+ * rapprochement textuel tolérant qui ne couvrait qu'une trentaine de stations ;
+ * l'identifiant ne se trompe pas de village.
  *
- * Repris de `src/renderer/src/data/webcams.ts` (commit 2d960d5). La seule
- * addition est l'entrée par identifiant de station, `webcamsForStation`, qui
- * remplace l'objet `Domain` de l'ancienne arborescence.
+ * Une station montre d'abord ses caméras, puis celles des autres stations du
+ * même domaine skiable (`Station.domain`) : La Tania montre celles de
+ * Courchevel, Méribel, Val Thorens et des Menuires. Toutes les stations d'un
+ * domaine proposent donc les mêmes caméras, dans un ordre qui commence chez
+ * elles.
  */
 
 import { stationsVoisines } from "./domaineStations.ts";
-import { domainForStation } from "./forfaits/catalog.ts";
 import { stationById } from "./stations.ts";
+import { CAMERAS, type Camera } from "./webcams.data.ts";
 
 export type Webcam = {
   /** L'URL sert d'identifiant : elle est unique et stable. */
   id: string;
   label: string;
   url: string;
+  /** `iframe` pour le lecteur d'un fournisseur, `image` pour une image fixe que
+   *  l'exploitant rafraîchit. */
+  kind: "iframe" | "image";
   /** La station où la caméra est posée. Elle n'est pas toujours celle qu'on
    *  regarde : un domaine partage ses caméras entre ses villages, et la fiche
    *  de Brides-les-Bains montrait celle de Val Thorens sans le dire. */
   station: string | null;
-  /** Vrai quand la caméra vient du domaine et non de la station elle-même. */
+  /** Vrai quand la caméra vient d'une autre station du domaine. */
   duDomaine: boolean;
+  /** Le fournisseur du lecteur, pour l'audit. */
+  fournisseur: string;
 };
 
-/** Caméras par station, sous une clé déjà normalisée. */
-const WEBCAMS: Record<string, [string, string][]> = {
-  "les 2 alpes": [["Sommet 3 400 m", "https://www.skaping.com/les2alpes/3400m"]],
-  "alpe d'huez": [["Pic Blanc", "https://www.skaping.com/alpedhuez/pic-blanc"]],
-  chamonix: [["Aiguille du Midi", "https://www.skaping.com/chamonix/aiguille-du-midi"]],
-  "val thorens": [["Panorama 3 Vallées", "https://www.skaping.com/valthorens/3vallees"]],
-  tignes: [["Grande Motte", "https://tignes.roundshot.com/grande-motte/"]],
-  "serre chevalier": [["Cucumelle", "https://www.skaping.com/serre-chevalier/cucumelle"]],
-  "la plagne": [["Live 3000", "https://app.webcam-hd.com/webcam-station-la-plagne/live-3000"]],
-  "les arcs": [["Arcabulle", "https://app.webcam-hd.com/lesarcs/arcabulle"]],
-  "val d'isere": [["Le Fornet", "https://www.skaping.com/valdisere/fornet"]],
-  avoriaz: [["Pistes", "https://www.skaping.com/avoriaz/pistes"]],
-  flaine: [["Désert Blanc", "https://www.skaping.com/flaine/desert-blanc"]],
-  montgenevre: [["Église", "https://app.webcam-hd.com/montgenevre/eglise"]],
-  valmorel: [["Planchamp", "https://www.skaping.com/valmorel/planchamp"]],
-  "sainte-foy-tarentaise": [
-    ["Sommet Aiguille", "https://app.webcam-hd.com/ste-foy-tarentaise/sommet-aiguille"],
-  ],
-  "la norma": [["Le Carrelet", "https://www.skaping.com/la-norma/carrelet"]],
-  "val cenis": [["La Met", "https://app.webcam-hd.com/valcenis/la-met"]],
-  aussois: [["Sommet Armoise", "https://www.skaping.com/aussois/sommet-armoise"]],
-  "bonneval-sur-arc": [
-    ["Andagne", "https://pv.viewsurf.com/1496/Bonneval-Andagne?i=NTk3ODp1bmRlZmluZWQ"],
-  ],
-  valloire: [["Col du Galibier", "https://www.skaping.com/valloire/galibier"]],
-  "les karellis": [
-    ["Télésiège des Chaudannes", "https://app.webcam-hd.com/les-karellis/tsd-des-chaudannes"],
-  ],
-  vars: [["Chabrières", "https://www.skaping.com/vars/chabrieres"]],
-  risoul: [["Chabrières (Vars)", "https://www.skaping.com/vars/chabrieres"]],
-  "puy-saint-vincent": [
-    ["Pelvoux", "https://www.vision-environnement.com/live/player/pelvoux30.php"],
-  ],
-  "orcieres-merlette": [
-    ["Plateau de Rocherousse", "https://www.skaping.com/orcieres/plateau-de-rocherousse"],
-  ],
-  "isola 2000": [["Vue de la station", "https://www.stationsnicecotedazur.com/fr/webcam/isola-2000/"]],
-  "la rosiere": [
-    ["Mont Valaisan", "https://app.webcam-hd.com/la-rosiere/mont-valaisan"],
-    ["Maison du ski", "https://app.webcam-hd.com/la-rosiere/maison-du-ski"],
-  ],
-  courchevel: [["Saulire", "https://www.skaping.com/courchevel/saulire"]],
-  meribel: [["Roc de Fer", "https://www.skaping.com/meribel/roc-de-fer"]],
-  "les menuires": [["Le Plan", "https://www.skaping.com/menuires/plan"]],
-  valfrejus: [["Punta Bagna", "https://www.skaping.com/valfrejus/puntabagna"]],
-  "la clusaz": [["Espace nordique", "https://www.skaping.com/la-clusaz/espace-nordique"]],
-  "la giettaz": [["Sommet", "https://www.skaping.com/la-giettaz/sommet"]],
-};
-
-/** Domaines reliés : le domaine hérite des caméras de ses stations membres. */
-const WEBCAM_GROUPS: Record<string, string[]> = {
-  "les 3 vallees": ["val thorens", "courchevel", "meribel", "les menuires"],
-  "3 vallees": ["val thorens", "courchevel", "meribel", "les menuires"],
-  paradiski: ["la plagne", "les arcs"],
-  "espace killy": ["val d'isere", "tignes"],
-  "tignes val d’isere": ["val d'isere", "tignes"],
-  "portes du soleil": ["avoriaz"],
-  "grand massif": ["flaine"],
-  "la voie lactee": ["montgenevre"],
-  "vars risoul": ["vars"],
-  "la foret blanche": ["vars"],
-};
-
-/** Nom d'affichage d'une station, pour préfixer les caméras d'un groupe. */
-const CAM_NAMES: Record<string, string> = {
-  "les 2 alpes": "Les 2 Alpes",
-  "alpe d'huez": "Alpe d'Huez",
-  chamonix: "Chamonix",
-  "val thorens": "Val Thorens",
-  tignes: "Tignes",
-  "serre chevalier": "Serre Chevalier",
-  "la plagne": "La Plagne",
-  "les arcs": "Les Arcs",
-  "val d'isere": "Val d'Isère",
-  avoriaz: "Avoriaz",
-  flaine: "Flaine",
-  montgenevre: "Montgenèvre",
-  valmorel: "Valmorel",
-  "sainte-foy-tarentaise": "Sainte-Foy-Tarentaise",
-  "la norma": "La Norma",
-  "val cenis": "Val Cenis",
-  aussois: "Aussois",
-  "bonneval-sur-arc": "Bonneval-sur-Arc",
-  valloire: "Valloire",
-  "les karellis": "Les Karellis",
-  vars: "Vars",
-  risoul: "Risoul",
-  "puy-saint-vincent": "Puy-Saint-Vincent",
-  "orcieres-merlette": "Orcières-Merlette",
-  "isola 2000": "Isola 2000",
-  "la rosiere": "La Rosière",
-  courchevel: "Courchevel",
-  meribel: "Méribel",
-  "les menuires": "Les Menuires",
-  valfrejus: "Valfréjus",
-  "la clusaz": "La Clusaz",
-  "la giettaz": "La Giettaz",
-};
-
-/** Minuscules, sans accents, séparateurs réduits à une espace simple. */
-export function camKey(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9']+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/** « Tignes – Val d'Isère », « Vars / Risoul », « Chabrières (Vars) »... */
-export function segments(value: string): string[] {
-  return value
-    .split(/[–—/(]|\s-\s/)
-    .map((part) => camKey(part))
-    .filter(Boolean);
-}
-
-const GROUP_INDEX = new Map(Object.entries(WEBCAM_GROUPS).map(([k, v]) => [camKey(k), v]));
-const CAM_INDEX = new Map(Object.entries(WEBCAMS).map(([k, v]) => [camKey(k), v]));
-const NAME_INDEX = new Map(Object.entries(CAM_NAMES).map(([k, v]) => [camKey(k), v]));
-
-/** Clés candidates les plus longues d'abord : « les 2 alpes » avant « alpes ». */
-const GROUP_KEYS = [...GROUP_INDEX.keys()].sort((a, b) => b.length - a.length);
-const CAM_KEYS = [...CAM_INDEX.keys()].sort((a, b) => b.length - a.length);
-
-export type WebcamSubject = {
-  name: string;
-  pass: string | null;
-};
-
-/** Clés de la table à essayer pour un nom et un forfait, du plus précis au plus large. */
-function candidateKeys(subject: WebcamSubject): string[] {
-  const tries: string[] = [];
-  for (const source of [subject.name, subject.pass].filter((v): v is string => Boolean(v))) {
-    tries.push(camKey(source));
-    tries.push(...segments(source));
-  }
-
-  const haystack = tries.join(" ");
-  for (const key of GROUP_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
-  for (const key of CAM_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
-  return tries;
-}
-
-/** Clé de la table qui porte les caméras propres d'une station, s'il y en a. */
-function ownCamKey(name: string, tries = candidateKeys({ name, pass: null })): string | null {
-  return tries.find((key) => CAM_INDEX.has(key)) ?? null;
-}
-
-/**
- * Webcams d'un domaine, groupe de forfait compris.
- *
- * Les correspondances sont essayées de la plus spécifique à la plus large :
- * nom exact, segments du nom, puis clés reconnues dans le texte concaténé.
- * Les caméras propres à la station passent en tête, suivies de celles du
- * groupe de forfait : Val Thorens montre d'abord la sienne, puis celles de
- * Courchevel, Méribel et des Menuires, au choix dans le menu de la fiche. Un
- * domaine « Les 3 Vallées » sans caméra propre montre les quatre.
- */
-export function webcamsFor(domain: WebcamSubject): Webcam[] {
-  const tries = candidateKeys(domain);
-
-  const ownKey = ownCamKey(domain.name, tries);
-  const group = tries.map((key) => GROUP_INDEX.get(key)).find((g) => g !== undefined) ?? [];
-
-  const out: Webcam[] = [];
-  const seen = new Set<string>();
-  const push = (cam: Webcam) => {
-    if (seen.has(cam.url)) return;
-    seen.add(cam.url);
-    out.push(cam);
+function versWebcam(c: Camera, station: string | null, duDomaine: boolean): Webcam {
+  return {
+    id: c.url,
+    label: duDomaine && station ? `${station}, ${c.label}` : c.label,
+    url: c.url,
+    kind: c.kind ?? "iframe",
+    station,
+    duDomaine,
+    fournisseur: c.fournisseur,
   };
-
-  for (const [label, url] of ownKey ? (CAM_INDEX.get(ownKey) ?? []) : []) {
-    push({ id: url, label, url, station: null, duDomaine: false });
-  }
-  for (const station of group) {
-    const sk = camKey(station);
-    if (sk === ownKey) continue;
-    const label = NAME_INDEX.get(sk) ?? station;
-    for (const [name, url] of CAM_INDEX.get(sk) ?? []) {
-      push({
-        id: url,
-        label: `${label}, ${name}`,
-        url,
-        station: label,
-        duDomaine: camKey(label) !== camKey(domain.name),
-      });
-    }
-  }
-  return out;
 }
 
 /**
- * Webcams d'une station du référentiel actuel.
- *
- * Le forfait est cherché d'abord dans le nom de passe du catalogue, puis dans
- * la zone du relevé d'origine : les deux portent le nom du groupe, et l'un des
- * deux manque souvent.
- *
- * S'y ajoutent les caméras de toutes les stations du même domaine skiable
- * (`Station.domain`) : La Tania montre celles de Courchevel, Méribel, Val
- * Thorens et des Menuires, Arc 1600 celles des Arcs et de La Plagne. Les
- * caméras propres restent en tête ; celles du domaine suivent, par ordre
- * alphabétique, sans doublon d'URL.
+ * Webcams d'une station : les siennes en tête, dans l'ordre de la table, puis
+ * celles des autres stations de son domaine, par ordre alphabétique, sans
+ * doublon d'adresse.
  */
 export function webcamsForStation(stationId: string): Webcam[] {
   const station = stationById(stationId);
   if (!station) return [];
-  const domain = domainForStation(stationId);
-  const base = webcamsFor({
-    name: station.name,
-    pass: domain?.pass ?? domain?.seed?.zone ?? null,
-  });
-
-  const own = base.filter((c) => !c.duDomaine);
-  const seen = new Set(own.map((c) => c.url));
-  const shared: Webcam[] = [];
-  const add = (cam: Webcam) => {
-    if (seen.has(cam.url)) return;
-    seen.add(cam.url);
-    shared.push(cam);
-  };
-
-  for (const cam of base) if (cam.duDomaine) add(cam);
+  const vues = new Set<string>();
+  const propres: Webcam[] = [];
+  for (const c of CAMERAS[stationId] ?? []) {
+    if (vues.has(c.url)) continue;
+    vues.add(c.url);
+    propres.push(versWebcam(c, null, false));
+  }
+  const partagees: Webcam[] = [];
   for (const voisine of stationsVoisines(stationId, station.domain)) {
-    const key = ownCamKey(voisine.name);
-    if (!key) continue;
-    const label = NAME_INDEX.get(key) ?? voisine.name;
-    for (const [name, url] of CAM_INDEX.get(key) ?? []) {
-      add({
-        id: url,
-        label: `${label}, ${name}`,
-        url,
-        station: label,
-        duDomaine: camKey(label) !== camKey(station.name),
-      });
+    for (const c of CAMERAS[voisine.id] ?? []) {
+      if (vues.has(c.url)) continue;
+      vues.add(c.url);
+      partagees.push(versWebcam(c, voisine.name, true));
     }
   }
-
-  shared.sort((a, b) => a.label.localeCompare(b.label, "fr"));
-  return [...own, ...shared];
+  partagees.sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  return [...propres, ...partagees];
 }
 
 /** Couverture de la table, pour l'audit : qui a une caméra, qui n'en a pas. */

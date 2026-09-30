@@ -130,12 +130,13 @@ describe("Maeva : annonces", () => {
     assert.equal(ls[0].bedrooms, 0, "le studio");
   });
 
-  it("formule ski : une seconde annonce, forfait compris, prix par personne indicatif", () => {
+  it("formule ski : une seconde annonce, forfait compris, au prix par personne du groupe fois ses adultes", () => {
     const ls = maevaListings(SKI.residences[0], AVORIAZ, { ...CLES, forfaits: true });
     assert.deepEqual(ls.map((l) => l.id), ["mae-121312", "mae-121312-forfait"]);
     const f = ls[1];
-    assert.deepEqual([f.total, f.priceIndicative, f.skiPassIncluded], [0, true, true]);
-    assert.equal(f.priceLabel, "Hébergement + forfait : dès 1 143 € / pers. / 7 nuits (2 adultes)");
+    // 1 143 € par personne pour 2 adultes, le nombre demandé : 2 286 € le séjour.
+    assert.deepEqual([f.total, f.priceIndicative, f.skiPassIncluded], [2286, false, true]);
+    assert.equal(f.priceLabel, "Hébergement + forfait : 1 143 € / pers. / 7 nuits × 2 adultes");
     assert.equal(maevaListings(SKI.residences[0], AVORIAZ, CLES).length, 1, "sans `forfaits`, l'hébergement seul");
   });
 

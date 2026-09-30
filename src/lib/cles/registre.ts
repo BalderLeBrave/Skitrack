@@ -36,6 +36,11 @@ export type Cle = {
   exemple?: string;
   /** L'écran propose un essai réel quand la clé peut être vérifiée. */
   essayable: boolean;
+  /**
+   * Vrai quand l'application fonctionne entièrement sans elle : l'écran ne la
+   * compte pas parmi celles qui restent à renseigner.
+   */
+  facultative?: boolean;
 };
 
 export const CLES: readonly Cle[] = [
@@ -43,8 +48,8 @@ export const CLES: readonly Cle[] = [
     id: "meteofrance",
     env: ["METEOFRANCE_API_KEY", "SKITRACK_METEOFRANCE_API_KEY"],
     label: "Clé API Météo-France",
-    sert: "Bulletins d’avalanche officiels (API « Données Publiques BRA »).",
-    sans: "Les fiches station affichent « Bulletin non obtenu » avec la cause. Le reste de l’application fonctionne : les prévisions viennent d’Open-Meteo, qui ne demande pas de clé.",
+    sert: "Bulletins d’avalanche lus directement par l’API « Données Publiques BRA » de Météo-France.",
+    sans: "Les bulletins d’avalanche viennent de l’archive publique de Météo-France sur data.gouv.fr, en accès libre, sans compte ni clé. La clé n’est utile que pour les lire par l’API.",
     obtenir: {
       texte: "Portail API Météo-France : souscrire à « Données Publiques BRA », puis copier la clé API de l’application",
       url: "https://portail-api.meteofrance.fr/",
@@ -52,6 +57,7 @@ export const CLES: readonly Cle[] = [
     secret: true,
     exemple: "un jeton JWT, trois blocs séparés par des points",
     essayable: true,
+    facultative: true,
   },
   {
     id: "pyairbnb",

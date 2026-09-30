@@ -106,6 +106,13 @@ function arrondi(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** « 3 897 », « 233,96 » : milliers séparés par une espace, centimes s'il y en a. */
+function euros(n: number): string {
+  const [e, c] = arrondi(n).toFixed(2).split(".");
+  const entier = e!.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return c === "00" ? entier : `${entier},${c}`;
+}
+
 /* ---------- Dates ---------- */
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -438,12 +445,22 @@ function positionPlausible(r: ResidenceSkiPlanet, input: Pick<LiveSearchInput, "
 /**
  * Les annonces d'une résidence, depuis un calendrier. Hébergement seul : le
  * total publié (« prix par logement »). Forfaits compris : le prix est par
- * personne, « sur la base de N adultes » ; le total n'est donné (prix × N)
- * que lorsque N est le nombre de voyageurs demandé, sinon `total: 0` (non
- * publié pour ce groupe), le prix restant dans `priceLabel`. Un logement trop
- * petit pour le groupe, épuisé, ou vendu à d'autres dates n'est pas rendu.
+ * personne, « sur la base de N adultes » ; le total publié est prix × N,
+ * exact lorsque N est le nombre de voyageurs. Pour un autre groupe, le site ne
+ * publie le prix qu'à l'étape de réservation, protégée par un défi
+ * anti-robot : il est calculé depuis les deux prix publiés du même logement,
+ * le logement seul (`seul`) plus, par voyageur, l'écart par personne entre la
+ * formule et le logement seul (le forfait). C'est la composition que
+ * Travelski publie à l'euro près ; le libellé dit que c'est un calcul. Sans le
+ * logement seul, le total reste à 0. Un logement trop petit pour le groupe,
+ * épuisé, ou vendu à d'autres dates n'est pas rendu.
  */
-export function skiPlanetListings(residence: ResidenceSkiPlanet, calendrier: CalendrierSkiPlanet, input: LiveSearchInput): Listing[] {
+export function skiPlanetListings(
+  residence: ResidenceSkiPlanet,
+  calendrier: CalendrierSkiPlanet,
+  input: LiveSearchInput,
+  seul?: CalendrierSkiPlanet | null,
+): Listing[] {
   if (!calendrier.disponible) return [];
   const nuits = nuitsEntre(input.checkIn, input.checkOut);
   const voyageurs = Math.max(1, Math.trunc(input.guests));
@@ -460,9 +477,19 @@ export function skiPlanetListings(residence: ResidenceSkiPlanet, calendrier: Cal
     let total: number;
     let priceLabel: string;
     if (forfait === true) {
-      total = l.baseAdultes != null && l.baseAdultes === voyageurs ? arrondi(l.prix * l.baseAdultes) : 0;
       const base = l.baseAdultes != null ? `, sur la base de ${l.baseAdultes} adultes` : "";
-      priceLabel = `${l.texteSejour ?? `${l.prix}€`} /pers.${base} — Hébergement + Forfait de ski`;
+      priceLabel = `${l.texteSejour ?? `${l.prix}€`} /pers.${base}, Hébergement + Forfait de ski`;
+      if (l.baseAdultes != null && l.baseAdultes === voyageurs) total = arrondi(l.prix * l.baseAdultes);
+      else {
+        const logement = seul?.logements.find(
+          (x) => x.id === l.id && !x.parPersonne && x.prix != null && x.dateDebut === input.checkIn && x.nuits === nuits,
+        )?.prix;
+        const parForfait = logement != null && l.baseAdultes != null ? (l.prix * l.baseAdultes - logement) / l.baseAdultes : null;
+        if (logement != null && parForfait != null && parForfait > 0) {
+          total = arrondi(logement + voyageurs * parForfait);
+          priceLabel = `${euros(total)} € calculé pour ${voyageurs} adulte${voyageurs > 1 ? "s" : ""} : logement ${euros(logement)} € et ${voyageurs} forfait${voyageurs > 1 ? "s" : ""} à ${euros(parForfait)} € (prix publié ${l.texteSejour ?? `${l.prix}€`} /pers.${base})`;
+        } else total = 0;
+      }
     } else if (l.parPersonne) {
       total = 0;
       priceLabel = `${l.texteSejour ?? `${l.prix}€`} /pers.`;

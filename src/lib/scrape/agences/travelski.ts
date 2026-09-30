@@ -19,11 +19,13 @@
  *   place ;
  * - forfait compris, `pricePerLogement` vaut `pricePerPerson` × `capacity` :
  *   un forfait par place du logement, quel que soit le nombre de voyageurs.
- *   Le prix exact d'un groupe plus petit n'est publié que par un second appel
- *   (`/wiyp/price`), une requête par résidence et par formule, que le
- *   robots.txt de l'API exclut : il n'est pas fait. Le total n'est donc
- *   exact que si le groupe remplit le logement ; `skipass` est le nombre de
- *   jours de forfait, « du plus petit domaine » selon le site ;
+ *   Le prix exact d'un groupe plus petit vient d'un second appel, celui que la
+ *   page de résultats fait elle-même (`/wiyp/price`, une requête par résidence
+ *   et par formule) : pour 2 adultes à Atria-Crozats, 3 087 + 2 × 264 + 24 =
+ *   3 639 €, contre 4 167 € pour 4. Le robots.txt de l'API l'exclut ; le
+ *   propriétaire a étendu la politique du dépôt à ces appels le 30 septembre
+ *   2026. `skipass` est le nombre de jours de forfait, « du plus petit
+ *   domaine » selon le site ;
  * - la position, les chambres et les pièces ne sont que sur la fiche de la
  *   résidence (340 à 435 Ko), dans la ligne `window.lihe = {…};`. Elles ne
  *   changent pas avec les dates : le relevé les garde (mémoire des fiches).
@@ -149,6 +151,8 @@ export type OffreTravelski = {
   nuits: number | null;
   /** `skipass` : jours de forfait (0 en HS). */
   joursForfait: number | null;
+  /** `packageId` : le paquet de la formule, que `/wiyp/price` demande. */
+  paquet: string | null;
 };
 
 export type ResidenceTravelski = {
@@ -180,6 +184,7 @@ function lireOffre(v: unknown): OffreTravelski | null {
     fin: date(o.endDate),
     nuits: entier(o.duration, 60),
     joursForfait: entier(o.skipass, 30),
+    paquet: texte(o.packageId),
   };
 }
 
@@ -320,23 +325,128 @@ function offreValable(o: OffreTravelski, r: ResidenceTravelski, input: LiveSearc
   return typeGarde(o.typeCode ?? r.typeCode);
 }
 
-/** Pour chaque logement gardé : son offre d'hébergement seul, et son offre forfait compris (`PF`, sinon `PFP`). */
+/* ---------- Prix du groupe (`/wiyp/price`) ---------- */
+
+/** L'âge que la page de résultats donne à un adulte dans `familyComposition`. */
+const AGE_ADULTE = 18;
+
+/** Une fonction MD5 (hexadécimal) : `node:crypto` côté serveur, fournie par l'appelant. */
+export type Md5 = (texte: string) => string;
+
+/**
+ * Le prix d'un groupe, comme la page de résultats le demande : une requête par
+ * résidence et par formule, tous ses logements joints par « - », triés. Les
+ * paramètres sont triés par clé, et le chemin est le MD5 de leur
+ * `JSON.stringify`. Les voyageurs partent comme adultes.
+ */
+export function requeteWiyp(
+  r: Pick<ResidenceTravelski, "liheId">,
+  offres: readonly Pick<OffreTravelski, "id" | "formule" | "paquet">[],
+  input: LiveSearchInput,
+  md5: Md5,
+): string | null {
+  if (!DATE.test(input.checkIn) || !DATE.test(input.checkOut)) throw new Error("dates illisibles");
+  if (offres.length === 0) return null;
+  const formule = offres[0]!.formule;
+  if (offres.some((o) => o.formule !== formule)) throw new Error("une requête par formule");
+  const paquet = formule === "HS" ? `${r.liheId}HS` : offres[0]!.paquet;
+  if (!paquet || (formule !== "HS" && offres.some((o) => o.paquet !== paquet))) return null;
+  const ids = [...new Set(offres.map((o) => o.id))].sort((a, b) => Number(a) - Number(b)).join("-");
+  const p: Record<string, string> = {
+    endDate: input.checkOut,
+    familyComposition: Array.from({ length: voyageurs(input) }, () => AGE_ADULTE).join("-"),
+    language: "fr",
+    liheId: r.liheId,
+    packCode: formule,
+    packageId: paquet,
+    prestIds: ids,
+    site: "www.travelski.com",
+    startDate: input.checkIn,
+  };
+  const tri = Object.fromEntries(Object.keys(p).sort().map((k) => [k, p[k]!]));
+  const q = Object.entries(tri)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+  return `${TRAVELSKI_API}/wiyp/price/${md5(JSON.stringify(tri))}?${q}`;
+}
+
+export type PrixWiyp = {
+  /** `sellingPriceWiyp` : ce que le site affiche, frais de service compris. */
+  vente: number;
+  /** `accomPriceWiyp` : la part du logement. */
+  logement: number | null;
+};
+
+/** Les prix d'une réponse `/wiyp/price`, par logement. */
+export function lireWiyp(json: unknown): Map<string, PrixWiyp> {
+  const out = new Map<string, PrixWiyp>();
+  const liste = obj(json)?.wiypPrices;
+  for (const v of Array.isArray(liste) ? liste : []) {
+    const p = obj(v);
+    const id = texte(p?.prestId);
+    const vente = prix(p?.sellingPriceWiyp);
+    if (id && vente != null) out.set(id, { vente, logement: prix(p?.accomPriceWiyp) });
+  }
+  return out;
+}
+
+/** Une réponse `/wiyp/price` et les logements demandés : un logement demandé et absent n'est pas vendable au groupe. */
+export type ReponseWiyp = { demandes: ReadonlySet<string>; prix: ReadonlyMap<string, PrixWiyp> };
+
+export function reponseWiyp(offres: readonly Pick<OffreTravelski, "id">[], json: unknown): ReponseWiyp {
+  return { demandes: new Set(offres.map((o) => o.id)), prix: lireWiyp(json) };
+}
+
+/** Prix de groupe lus, par formule et paquet (`PF:450774`), pour une résidence. */
+export type PrixGroupe = ReadonlyMap<string, ReponseWiyp>;
+
+export function cleGroupe(o: Pick<OffreTravelski, "formule" | "paquet">): string {
+  return `${o.formule}:${o.paquet ?? ""}`;
+}
+
+/**
+ * Pour chaque logement gardé : son offre d'hébergement seul, et son offre
+ * forfait compris (`PF`, sinon `PFP`). Une formule consultée par
+ * `/wiyp/price` dont la réponse omet le logement n'est plus vendable au
+ * groupe : l'offre tombe, comme sur le site.
+ */
 export function offresRetenues(
   r: ResidenceTravelski,
   input: LiveSearchInput,
+  groupe?: PrixGroupe,
 ): Array<{ id: string; seule: OffreTravelski | null; forfait: OffreTravelski | null }> {
   const parLogement = new Map<string, OffreTravelski[]>();
   for (const o of r.offres) {
     if (!offreValable(o, r, input)) continue;
     parLogement.set(o.id, [...(parLogement.get(o.id) ?? []), o]);
   }
+  const vendable = (o: OffreTravelski | null): OffreTravelski | null => {
+    const rep = o ? groupe?.get(cleGroupe(o)) : undefined;
+    return o && rep && rep.demandes.has(o.id) && !rep.prix.has(o.id) ? null : o;
+  };
   const out: Array<{ id: string; seule: OffreTravelski | null; forfait: OffreTravelski | null }> = [];
   for (const [id, offres] of parLogement) {
-    const seule = offres.find((o) => o.formule === "HS") ?? null;
-    const forfait = FORFAITS.map((f) => offres.find((o) => o.formule === f)).find((o) => o != null) ?? null;
+    const seule = vendable(offres.find((o) => o.formule === "HS") ?? null);
+    const forfait = vendable(FORFAITS.map((f) => offres.find((o) => o.formule === f)).find((o) => o != null) ?? null);
     if (seule || forfait) out.push({ id, seule, forfait });
   }
   return out;
+}
+
+/**
+ * Les offres forfait compris dont le prix du groupe n'est pas publié par la
+ * recherche (le groupe ne remplit pas le logement), groupées comme le site le
+ * fait : une requête `/wiyp/price` par formule et par paquet.
+ */
+export function groupesWiyp(r: ResidenceTravelski, input: LiveSearchInput): OffreTravelski[][] {
+  const n = voyageurs(input);
+  const groupes = new Map<string, OffreTravelski[]>();
+  for (const { forfait } of offresRetenues(r, input)) {
+    if (!forfait?.paquet || forfait.capacite === n) continue;
+    const k = cleGroupe(forfait);
+    groupes.set(k, [...(groupes.get(k) ?? []), forfait]);
+  }
+  return [...groupes.values()];
 }
 
 /* ---------- Annonces ---------- */
@@ -368,11 +478,24 @@ export function lienOffre(r: Pick<ResidenceTravelski, "lien">, o: OffreTravelski
 /**
  * Le total et son libellé. Hébergement seul : `pricePerLogement` + 24 € de
  * frais de service. Forfait compris : le prix de la recherche ne vaut que pour
- * la capacité pleine du logement : exact si le groupe la remplit, sinon non
- * publié pour ce groupe (`total: 0`), et le libellé dit ce que le site publie.
+ * la capacité pleine du logement ; pour un groupe plus petit, c'est le prix de
+ * `/wiyp/price` quand il a été lu. Faute de lui, le total reste à 0 (prix du
+ * groupe pas encore lu) et le libellé dit ce que le site a publié.
  */
-export function prixOffre(o: OffreTravelski, input: LiveSearchInput): { total: number; priceLabel: string | null } {
+export function prixOffre(
+  o: OffreTravelski,
+  input: LiveSearchInput,
+  groupe?: PrixGroupe,
+): { total: number; priceLabel: string | null } {
   const n = voyageurs(input);
+  const lu = groupe?.get(cleGroupe(o))?.prix.get(o.id) ?? null;
+  if (o.formule !== "HS" && lu) {
+    const forfaitLu = o.joursForfait ? `forfait ${o.joursForfait} jours du plus petit domaine` : "forfait du plus petit domaine";
+    return {
+      total: Math.round(lu.vente),
+      priceLabel: `${LIBELLES_FORMULE[o.formule] ?? o.formule} : ${forfaitLu} pour ${n} personne${n > 1 ? "s" : ""}, frais de service inclus`,
+    };
+  }
   if (o.formule === "HS") {
     const total = o.prixLogement != null ? Math.round(o.prixLogement) + FRAIS_DE_SERVICE : 0;
     const nuits = o.nuits ? `, ${o.nuits} nuits` : "";
@@ -400,17 +523,22 @@ export function prixOffre(o: OffreTravelski, input: LiveSearchInput): { total: n
  * avec transport, dates ou capacité qui ne conviennent pas : rien. La position
  * vient de la fiche, quand elle a été lue.
  */
-export function travelskiListings(r: ResidenceTravelski, fiche: FicheTravelski | null, input: LiveSearchInput): Listing[] {
+export function travelskiListings(
+  r: ResidenceTravelski,
+  fiche: FicheTravelski | null,
+  input: LiveSearchInput,
+  groupe?: PrixGroupe,
+): Listing[] {
   const f = fiche && fiche.liheId === r.liheId ? fiche : null;
   const out: Listing[] = [];
-  for (const { id, seule, forfait } of offresRetenues(r, input)) {
+  for (const { id, seule, forfait } of offresRetenues(r, input, groupe)) {
     const offres: Array<[OffreTravelski, string]> = [];
     if (seule) offres.push([seule, `tsk-${id}`]);
     if (forfait) offres.push([forfait, seule ? `tsk-${id}-forfait` : `tsk-${id}`]);
     for (const [o, idAnnonce] of offres) {
       const logement = f?.logements.get(o.id) ?? null;
       const nom = lireNomLogement(o.nom);
-      const { total, priceLabel } = prixOffre(o, input);
+      const { total, priceLabel } = prixOffre(o, input, groupe);
       const code = o.typeCode ?? r.typeCode;
       out.push({
         id: idAnnonce,

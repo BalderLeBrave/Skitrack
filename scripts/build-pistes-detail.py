@@ -122,7 +122,230 @@ def troncon(p: dict, geometrie: dict) -> dict:
         "eclairee": p.get("lit"),
         "surface": surface,
         "bas": [round(bas[0], 5), round(bas[1], 5)] if bas else None,
+        # Le temps du calcul seulement (`rattacher`) : bouts amont et aval du
+        # tracé, ses points, contours des surfaces. L'aval est le bout le plus
+        # bas ; faute d'altitude, le dernier point, sens du tracé d'OSM.
+        "_bouts": [] if surface or not points else bouts(points),
+        "_points": [] if surface else points,
+        "_anneaux": traces if surface else [],
     }
+
+
+RACCORD_M = 10
+REMONTEE_M = 30
+FRAGMENT_M = 100
+TYPE_REMONTEE = {
+    "chair_lift": "télésiège",
+    "gondola": "télécabine",
+    "mixed_lift": "télémix",
+    "cable_car": "téléphérique",
+    "funicular": "funiculaire",
+    "magic_carpet": "tapis",
+    "t-bar": "téléski",
+    "j-bar": "téléski",
+    "platter": "téléski",
+    "drag_lift": "téléski",
+    "rope_tow": "téléski",
+}
+CASE = 0.0002  # côté d'une case de l'index des points, en degrés (≈ 20 m)
+
+
+def bouts(points: list[list[float]]) -> list[list[float]]:
+    """[amont, aval] : le bout le plus haut, puis le plus bas."""
+    a, b = points[0], points[-1]
+    za, zb = altitude(a), altitude(b)
+    return [b, a] if za is not None and zb is not None and zb > za else [a, b]
+
+
+def proche(a: list[float], b: list[float], m: float) -> bool:
+    """Deux points à moins de `m` mètres, en approximation plane."""
+    dy = (a[1] - b[1]) * 111_320
+    dx = (a[0] - b[0]) * 111_320 * math.cos(math.radians(a[1]))
+    return dx * dx + dy * dy < m * m
+
+
+def dedans(pt: list[float], anneau: list[list[float]]) -> bool:
+    x, y, c, j = pt[0], pt[1], False, len(anneau) - 1
+    for i in range(len(anneau)):
+        xi, yi, xj, yj = anneau[i][0], anneau[i][1], anneau[j][0], anneau[j][1]
+        if (yi > y) != (yj > y) and x < (xj - xi) * (y - yi) / ((yj - yi) or 1e-15) + xi:
+            c = not c
+        j = i
+    return c
+
+
+def vecteur(a: list[float], b: list[float]) -> tuple[float, float]:
+    return ((b[0] - a[0]) * math.cos(math.radians(a[1])), b[1] - a[1])
+
+
+def ecart_angle(u: tuple[float, float], v: tuple[float, float]) -> float:
+    """L'angle entre deux directions, de 0 (même sens) à π."""
+    nu, nv = math.hypot(*u), math.hypot(*v)
+    if not nu or not nv:
+        return math.pi
+    return math.acos(max(-1.0, min(1.0, (u[0] * v[0] + u[1] * v[1]) / (nu * nv))))
+
+
+def descendante(points: list[list[float]]) -> list[list[float]]:
+    """Les points dans le sens de la descente, du plus haut bout au plus bas."""
+    za, zb = altitude(points[0]), altitude(points[-1])
+    return points[::-1] if za is not None and zb is not None and zb > za else points
+
+
+class Remontees:
+    """Les gares des remontées : premier et dernier point de chaque tracé."""
+
+    def __init__(self, fichier: Path) -> None:
+        self.index: dict[tuple[int, int], list[tuple[str, list[float], bool]]] = {}
+        for objet in objets(fichier):
+            g, p = objet.get("geometry") or {}, objet.get("properties") or {}
+            if g.get("type") != "LineString" or len(g.get("coordinates") or []) < 2:
+                continue
+            genre = TYPE_REMONTEE.get(p.get("liftType") or "", "remontée")
+            nom = (p.get("name") or "").strip()
+            libelle = f"{genre} {nom}" if nom else genre
+            co = g["coordinates"]
+            for q, bas in ((co[0], True), (co[-1], False)):
+                self.index.setdefault((int(q[0] / 0.0005), int(q[1] / 0.0005)), []).append((libelle, q, bas))
+
+    def gare(self, pt: list[float]) -> tuple[str, bool] | None:
+        """La remontée dont une gare est à moins de 30 m, et si c'est son départ (en bas)."""
+        cx, cy = int(pt[0] / 0.0005), int(pt[1] / 0.0005)
+        for i in (-1, 0, 1):
+            for j in (-1, 0, 1):
+                for libelle, q, bas in self.index.get((cx + i, cy + j), ()):
+                    if proche(pt, q, REMONTEE_M):
+                        return libelle, bas
+        return None
+
+
+def article(libelle: str) -> str:
+    """« au télésiège X », « à la télécabine X »."""
+    return f"à la {libelle}" if libelle.startswith(("télécabine", "remontée")) else f"au {libelle}"
+
+
+def de_article(libelle: str) -> str:
+    return f"de la {libelle}" if libelle.startswith(("télécabine", "remontée")) else f"du {libelle}"
+
+
+def rattacher(ts: list[dict], remontees: Remontees | None = None) -> dict[str, int]:
+    """Les tronçons sans nom d'un fichier qu'on sait rendre à une piste nommée.
+
+    - Une liaison sans nom relie deux pistes : OSM partage le nœud de raccord,
+      n'importe où le long de la piste. Elle rejoint la piste nommée où elle
+      arrive, celle que touche son bout aval ; faute d'une seule piste nommée
+      en aval (une route, une remontée, un carrefour de deux pistes), celle
+      d'où elle part. Plusieurs pistes au même raccord : celle de même
+      couleur, sinon aucune. De proche en proche, une chaîne de liaisons suit
+      le même chemin (`nomDeduit`).
+    - Une surface sans nom qui contient le tracé d'une piste nommée en est le
+      contour dessiné, pas une piste de plus (`recouvre`).
+
+    Rend le nombre de tronçons rattachés et de surfaces recouvrantes.
+    """
+    nom = lambda t: t["nom"] or t.get("nomDeduit")
+    index: dict[tuple[int, int], list[tuple[str, str | None, list[float], tuple[float, float]]]] = {}
+
+    def indexer(u: dict) -> None:
+        pts = descendante(u["_points"])
+        for k, q in enumerate(pts):
+            sens = vecteur(q, pts[k + 1]) if k + 1 < len(pts) else vecteur(pts[k - 1], q) if k else (0.0, 0.0)
+            index.setdefault((int(q[0] / CASE), int(q[1] / CASE)), []).append((nom(u), u["difficulte"], q, sens))
+
+    def raccord(pt: list[float], couleur: str | None, sens: tuple[float, float]) -> str | None:
+        """La piste nommée qui passe au point.
+
+        Une seule : elle. Plusieurs : celle de même couleur ; plusieurs encore,
+        celle que la liaison prolonge le plus droit (direction de descente la
+        plus proche de la sienne au raccord).
+        """
+        cx, cy = int(pt[0] / CASE), int(pt[1] / CASE)
+        vus = [
+            (n, d, v)
+            for i in (-1, 0, 1)
+            for j in (-1, 0, 1)
+            for n, d, q, v in index.get((cx + i, cy + j), ())
+            if proche(pt, q, RACCORD_M)
+        ]
+        if not vus:
+            return None
+        if len({n for n, _, _ in vus}) == 1:
+            return vus[0][0]
+        memes = [x for x in vus if x[1] == couleur] or vus
+        if len({n for n, _, _ in memes}) == 1:
+            return memes[0][0]
+        return min(memes, key=lambda x: (ecart_angle(sens, x[2]), x[0]))[0]
+
+    for u in ts:
+        if nom(u) and not u["surface"]:
+            indexer(u)
+    rattaches = 0
+    # D'abord par l'aval seul, jusqu'à ce que rien ne bouge : une chaîne se
+    # remonte depuis la piste où elle finit. Puis par l'amont, pour ce qui
+    # finit hors des pistes nommées.
+    for par_amont in (False, True):
+        change = True
+        while change:
+            change = False
+            for t in ts:
+                if nom(t) or t["surface"] or len(t["_bouts"]) < 2:
+                    continue
+                amont, aval = t["_bouts"]
+                pts = descendante(t["_points"])
+                # Le sens de la liaison à chaque bout : elle arrive en aval,
+                # elle part de l'amont.
+                n = raccord(aval, t["difficulte"], vecteur(pts[-2], pts[-1]))
+                if not n and par_amont:
+                    n = raccord(amont, t["difficulte"], vecteur(pts[0], pts[1]))
+                if n:
+                    t["nomDeduit"] = n
+                    indexer(t)
+                    rattaches += 1
+                    change = True
+    recouvrantes = 0
+    nommes = [pt for u in ts if nom(u) and not u["surface"] for pt in u["_points"]]
+    for t in ts:
+        if nom(t) or not t["surface"]:
+            continue
+        for anneau in t["_anneaux"]:
+            xs, ys = [q[0] for q in anneau], [q[1] for q in anneau]
+            x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+            if any(x0 <= q[0] <= x1 and y0 <= q[1] <= y1 and dedans(q, anneau) for q in nommes):
+                t["recouvre"] = True
+                recouvrantes += 1
+                break
+    # Ce qui reste n'a de piste nommée à aucun bout.
+    acces = ecartes = 0
+    for t in ts:
+        if nom(t) or t.get("recouvre"):
+            continue
+        if t["surface"]:
+            # Une zone dessinée sans piste nommée dedans : pas une piste.
+            t["ecarte"] = "surface"
+            ecartes += 1
+            continue
+        gare = None
+        if remontees and len(t["_bouts"]) == 2:
+            amont, aval = t["_bouts"]
+            g = remontees.gare(aval)
+            if g:
+                gare = f"Accès {article(g[0])}"
+            else:
+                g = remontees.gare(amont)
+                if g:
+                    gare = f"Départ {de_article(g[0])}"
+        if gare:
+            # Une liaison vers ou depuis une remontée : un accès, pas une piste.
+            t["acces"] = gare
+            acces += 1
+        elif (t["longueurM"] or 0) < FRAGMENT_M:
+            # Un bout de moins de 100 m relié à rien : chemin, reste de dessin.
+            t["ecarte"] = "fragment"
+            ecartes += 1
+    for t in ts:
+        for k in ("_bouts", "_points", "_anneaux"):
+            t.pop(k, None)
+    return {"rattaches": rattaches, "recouvrantes": recouvrantes, "acces": acces, "ecartes": ecartes}
 
 
 def plier(nom: str | None) -> str:
@@ -152,6 +375,9 @@ def main() -> None:
     if len(sys.argv) < 3:
         sys.exit(__doc__)
     fichier, fichier_domaines = Path(sys.argv[1]), Path(sys.argv[2])
+    # Les remontées, à côté des pistes : `eu-lifts.geojson` du même filtrage.
+    fichier_remontees = fichier.with_name(fichier.name.replace("runs", "lifts"))
+    remontees = Remontees(fichier_remontees) if fichier_remontees.exists() else None
     le = sys.argv[3] if len(sys.argv) > 3 else date.fromtimestamp(fichier.stat().st_mtime).isoformat()
     temoin = json.loads(TEMOIN.read_text(encoding="utf-8"))["rows"]
     skiinfo = json.loads(SKIINFO.read_text(encoding="utf-8"))["rows"]
@@ -235,7 +461,11 @@ def main() -> None:
         ancien.unlink()
     domaines: dict[str, dict] = {}
     rangs: dict[str, dict[str, int]] = {}
+    totaux: Counter[str] = Counter()
+    total_sans_nom = 0
     for d, ts in sorted(par.items()):
+        total_sans_nom += sum(1 for t in ts if not t["nom"])
+        totaux.update(rattacher(ts, remontees))
         ts.sort(key=lambda t: ((t["nom"] or "~").lower(), t["difficulte"] or "", -(t["longueurM"] or 0)))
         aires = sorted({a for t in ts for a in t["aires"]}, key=lambda a: (-n[a], a))
         rang = rangs[d] = {a: i for i, a in enumerate(aires)}
@@ -280,6 +510,12 @@ def main() -> None:
     plus_gros = max(SORTIE.glob("*.json"), key=lambda p: p.stat().st_size)
     print(f"{len(domaines)} fichiers, {poids / 1024:.0f} Ko en tout, le plus gros {plus_gros.stat().st_size / 1024:.0f} Ko ({domaines[plus_gros.stem]['nom']}) ; {len(temoin)} stations au témoin")
     print(f"identifiants suivis par le nom : {len(suivis)}\n  " + "\n  ".join(suivis))
+    print(
+        f"tronçons sans nom : {total_sans_nom} ; rendus à la piste qu'ils relient : {totaux['rattaches']} ;"
+        f" surfaces qui dessinent une piste nommée : {totaux['recouvrantes']} ;"
+        f" accès aux remontées : {totaux['acces']} ; écartés (zones et bouts reliés à rien) : {totaux['ecartes']} ;"
+        f" pistes sans nom : {total_sans_nom - sum(totaux.values())}"
+    )
     print(f"station seule dans son domaine : {len(seules)}")
     print(f"station publiée comme secteur d'un domaine plus grand : {len(dessous)}\n  " + "\n  ".join(dessous))
     print(f"domaine partagé, rattachement par proximité : {len(partagees)}\n  " + "\n  ".join(partagees))

@@ -10,7 +10,7 @@
  * fichier du domaine n'est chargé qu'à la première ouverture.
  */
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { PartPistes } from "@/components/v7/PartPistes";
 import { OPENSKIMAP, osmFor } from "@/lib/openskimap";
@@ -31,6 +31,7 @@ import {
   type DetailDomaine,
   type IndexStation,
   type PisteDetail,
+  type Regroupement,
 } from "@/lib/pistesDetail";
 import indexBrut from "@/lib/pistesDetail.index.json";
 import { SKIINFO, countsFromSkiinfo } from "@/lib/skiinfo";
@@ -304,7 +305,7 @@ function Detail({
             {b}
           </p>
         ))}
-        <TablePistes pistes={station.pistes} sansNom={station.sansNom} />
+        <TablePistes r={station} />
       </div>
 
       {avecDomaine ? (
@@ -328,7 +329,7 @@ function Detail({
             <Icon name="chevron-bas" taille={16} />
           </button>
           <div id={idDomaine} className="pistes7__detail" hidden={!domaineOuvert}>
-            <TablePistes pistes={domaine.pistes} sansNom={domaine.sansNom} />
+            <TablePistes r={domaine} />
           </div>
         </div>
       ) : null}
@@ -343,30 +344,32 @@ const COLONNES_TRI: { cle: CleTri; t: string }[] = [
   { cle: "denivelle", t: "Dénivelé" },
 ];
 
-function TablePistes({ pistes, sansNom }: { pistes: PisteDetail[]; sansNom: PisteDetail[] }) {
+function TablePistes({ r }: { r: Regroupement }) {
+  const { pistes, acces, sansNom, surfaces, ecartes } = r;
   const [tri, setTri] = useState<{ cle: CleTri; sens: "asc" | "desc" }>({ cle: "nom", sens: "asc" });
   const [filtre, setFiltre] = useState<PisteColor[]>([]);
   const p = useMemo(() => parts(pistes), [pistes]);
-  const visibles = useMemo(
-    () => trier(pistes.filter((x) => filtre.length === 0 || filtre.includes(x.couleur)), tri.cle, tri.sens),
-    [pistes, filtre, tri],
-  );
+  const garder = useCallback((x: PisteDetail) => filtre.length === 0 || filtre.includes(x.couleur), [filtre]);
+  const visibles = useMemo(() => trier(pistes.filter(garder), tri.cle, tri.sens), [pistes, garder, tri]);
+  const accesVisibles = useMemo(() => trier(acces.filter(garder), tri.cle, tri.sens), [acces, garder, tri]);
   // Sans nom, le tri par nom n'a pas de sens : ils vont du plus long au plus court.
   const sansNomVisibles = useMemo(
     () =>
-      trier(
-        sansNom.filter((x) => filtre.length === 0 || filtre.includes(x.couleur)),
-        tri.cle === "nom" ? "longueur" : tri.cle,
-        tri.cle === "nom" ? "desc" : tri.sens,
-      ),
-    [sansNom, filtre, tri],
+      trier(sansNom.filter(garder), tri.cle === "nom" ? "longueur" : tri.cle, tri.cle === "nom" ? "desc" : tri.sens),
+    [sansNom, garder, tri],
   );
+  const nonRepris = [
+    surfaces ? `${pluriel(surfaces, "surface")} qui dessine${surfaces > 1 ? "nt" : ""} une piste listée` : null,
+    ecartes
+      ? `${pluriel(ecartes, "zone")} ou bout${ecartes > 1 ? "s" : ""} de moins de 100 m relié${ecartes > 1 ? "s" : ""} à aucune piste ni remontée`
+      : null,
+  ].filter(Boolean);
 
   const trierPar = (cle: CleTri) =>
     setTri((t) => (t.cle === cle ? { cle, sens: t.sens === "asc" ? "desc" : "asc" } : { cle, sens: cle === "nom" || cle === "couleur" ? "asc" : "desc" }));
   const basculer = (c: PisteColor) => setFiltre((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]));
 
-  if (pistes.length === 0 && sansNom.length === 0)
+  if (pistes.length === 0 && acces.length === 0 && sansNom.length === 0)
     return <p className="carte7-sect__texte carte7-sect__texte--petit">Aucune piste de descente relevée ici.</p>;
 
   return (
@@ -405,12 +408,25 @@ function TablePistes({ pistes, sansNom }: { pistes: PisteDetail[]; sansNom: Pist
           : `${fmt(visibles.length)} sur ${pluriel(pistes.length, "piste")} nommée${pistes.length > 1 ? "s" : ""}`}
       </p>
       <Tableau lignes={visibles} tri={tri} trierPar={trierPar} legende="Pistes nommées" />
-      {sansNomVisibles.length ? (
+      {accesVisibles.length ? (
         <>
-          <h4 className="pistes7__h4">Tronçons sans nom ({fmt(sansNomVisibles.length)})</h4>
-          <Tableau lignes={sansNomVisibles} tri={tri} trierPar={trierPar} legende="Tronçons sans nom" />
+          <h4 className="pistes7__h4">Accès aux remontées ({fmt(accesVisibles.length)})</h4>
+          <p className="pistes7__compte">
+            Liaisons sans nom qui mènent à une remontée ou en partent, sans rejoindre de piste nommée.
+          </p>
+          <Tableau lignes={accesVisibles} tri={tri} trierPar={trierPar} legende="Accès aux remontées" />
         </>
       ) : null}
+      {sansNomVisibles.length ? (
+        <>
+          <h4 className="pistes7__h4">Pistes sans nom ({fmt(sansNomVisibles.length)})</h4>
+          <p className="pistes7__compte">
+            OpenStreetMap ne leur donne aucun nom, et aucune piste nommée ni remontée ne les relie.
+          </p>
+          <Tableau lignes={sansNomVisibles} tri={tri} trierPar={trierPar} legende="Pistes sans nom" />
+        </>
+      ) : null}
+      {nonRepris.length ? <p className="pistes7__compte">Non repris : {nonRepris.join(" ; ")}.</p> : null}
     </div>
   );
 }
@@ -466,7 +482,14 @@ function Tableau({
             <tr key={x.cle}>
               <th scope="row" data-label="Nom">
                 {x.nom ?? "Sans nom"}
-                {x.troncons > 1 ? <small>{x.troncons} tronçons</small> : null}
+                {x.troncons > 1 ? (
+                  <small>
+                    {x.troncons} tronçons
+                    {x.rattaches
+                      ? `, dont ${x.rattaches} liaison${x.rattaches > 1 ? "s" : ""} sans nom`
+                      : ""}
+                  </small>
+                ) : null}
               </th>
               <td data-label="Couleur">
                 <span className="pistes7__couleur">

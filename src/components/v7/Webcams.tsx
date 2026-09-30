@@ -170,9 +170,6 @@ export function Webcams({ cams }: { cams: Webcam[] }) {
           {/* En grand, le cadre de la fiche se démonte : deux lecteurs du même
               flux ne tournent pas en même temps. */}
           {grand ? <div className="webcam7 webcam7--reserve" aria-hidden="true" /> : <Flux cam={cam} />}
-          <p className="carte7-sect__texte carte7-sect__texte--petit">
-            Flux diffusé par l’exploitant, affiché tel quel.
-          </p>
           {grand ? (
             <WebcamEnGrand cams={cams} index={index} onIndex={(i) => setCamId(cams[i]!.id)} onFermer={fermer} />
           ) : null}

@@ -25,8 +25,6 @@ import {
   departIso,
   departLbl,
   DISTANCE_STATION_M,
-  distLbl,
-  distMaxLue,
   dureeLbl,
   ecartLbl,
   ecritureDuReleve,
@@ -46,6 +44,7 @@ import {
   lireSaisie,
   lireTri,
   lireTriB,
+  SENS_TRI,
   ligne,
   logementsBudget,
   logementsReleves,
@@ -63,7 +62,6 @@ import {
   optionsStation,
   ordreMassifs,
   PAGE,
-  PALIERS_DIST_M,
   PARTS,
   PHOTOS_RETENUES,
   partielLbl,
@@ -99,8 +97,7 @@ import {
   TRIB0,
   TRIS,
   TRIS_B,
-  triLbl,
-  triVal,
+  triParEnTete,
   valeurStation,
   versListing,
   versLogement,
@@ -862,6 +859,7 @@ describe("plages — échelle et poignées", () => {
       budget: [0, 10000],
       capacite: [1, 20],
       chambres: [0, 8],
+      distance: [0, 2000],
     });
   });
 
@@ -882,6 +880,7 @@ describe("plages — échelle et poignées", () => {
       budget: [0, 10000],
       capacite: [1, 20],
       chambres: [0, 8],
+      distance: [0, 2000],
     });
     const muette = { ...S2A, pistesKm: null, maxM: 0, villageM: 0 };
     assert.deepEqual(bornesPlages([muette]).km, [0, 10]);
@@ -1057,29 +1056,26 @@ describe("lignes — état et filtres", () => {
 });
 
 describe("tri", () => {
-  it("chaque option de la liste se relit telle quelle", () => {
-    for (const t of TRIS) {
-      const lu = lireTri(t.v);
-      assert.equal(triVal(lu), t.v);
-      assert.equal(triLbl(lu), t.label);
-    }
+  it("chaque critère de la liste se relit, dans son sens de départ", () => {
+    for (const t of TRIS) assert.deepEqual(lireTri(t.k), { k: t.k, dir: SENS_TRI[t.k] });
+    // Le moins cher, A à Z, le premier massif d'abord ; le plus de logements d'abord.
+    assert.deepEqual(SENS_TRI, { med: 1, nom: 1, massif: 1, n: -1 });
   });
 
   it("une valeur inconnue revient au tri par défaut", () => {
     assert.deepEqual(TRI0, { k: "med", dir: 1 });
-    assert.deepEqual(lireTri("altitude:1"), TRI0);
-    assert.deepEqual(lireTri("med:2"), TRI0);
+    assert.deepEqual(lireTri("altitude"), TRI0);
+    assert.deepEqual(lireTri("med:1"), TRI0);
     assert.deepEqual(lireTri(""), TRI0);
   });
 
-  it("les sens que la liste ne propose pas ont quand même un libellé", () => {
-    assert.equal(triLbl({ k: "nom", dir: -1 }), "Nom, de Z à A");
-    assert.equal(triLbl({ k: "n", dir: 1 }), "Nombre de logements, croissant");
-    assert.equal(triLbl({ k: "n", dir: -1 }), "Nombre de logements");
-    assert.equal(triLbl({ k: "massif", dir: -1 }), "Massif, puis prix");
-    assert.deepEqual(lireTri("nom:-1"), { k: "nom", dir: -1 });
-    assert.equal(triVal({ k: "massif", dir: -1 }), "massif:1");
-    assert.deepEqual(lireTri("massif:-1"), { k: "massif", dir: 1 });
+  it("un clic d'en-tête change de sens sur le même critère, part du sens de départ sur un autre", () => {
+    assert.deepEqual(triParEnTete({ k: "med", dir: 1 }, "med"), { k: "med", dir: -1 });
+    assert.deepEqual(triParEnTete({ k: "med", dir: -1 }, "med"), { k: "med", dir: 1 });
+    assert.deepEqual(triParEnTete({ k: "med", dir: -1 }, "n"), { k: "n", dir: -1 });
+    assert.deepEqual(triParEnTete({ k: "n", dir: -1 }, "nom"), { k: "nom", dir: 1 });
+    // Le massif a deux sens lui aussi : l'ordre du référentiel, ou à rebours.
+    assert.deepEqual(triParEnTete({ k: "massif", dir: 1 }, "massif"), { k: "massif", dir: -1 });
   });
 
   it("les massifs du référentiel, du plus fourni au moins fourni", () => {
@@ -1156,7 +1152,7 @@ describe("tri", () => {
     ]);
   });
 
-  it("massif : rang du massif, puis prix croissant, sans prix en dernier ; le sens est ignoré", () => {
+  it("massif : rang du massif dans le sens demandé, puis prix croissant, sans prix en dernier", () => {
     const xs = [
       l("sud-cher", "Sud cher", { massif: "Alpes du Sud", med: 3000 }),
       l("nord-rien", "Nord rien", { massif: "Alpes du Nord" }),
@@ -1164,9 +1160,21 @@ describe("tri", () => {
       l("jura", "Jura", { massif: "Jura", med: 100 }),
       l("nord-bon", "Nord bon", { massif: "Alpes du Nord", med: 1500 }),
     ];
-    const attendu = ["nord-bon", "nord-cher", "nord-rien", "sud-cher", "jura"];
-    assert.deepEqual(trier({ k: "massif", dir: 1 }, xs), attendu);
-    assert.deepEqual(trier({ k: "massif", dir: -1 }, xs), attendu);
+    assert.deepEqual(trier({ k: "massif", dir: 1 }, xs), [
+      "nord-bon",
+      "nord-cher",
+      "nord-rien",
+      "sud-cher",
+      "jura",
+    ]);
+    // À rebours, les massifs s'inversent ; dans chacun, le prix reste croissant.
+    assert.deepEqual(trier({ k: "massif", dir: -1 }, xs), [
+      "jura",
+      "sud-cher",
+      "nord-bon",
+      "nord-cher",
+      "nord-rien",
+    ]);
   });
 });
 
@@ -1310,7 +1318,6 @@ describe("libellés", () => {
   it("aucun libellé neuf n'écrit d'apostrophe droite ni de tiret cadratin", () => {
     const textes = [
       ...TRIS.map((t) => t.label),
-      triLbl({ k: "n", dir: 1 }),
       plageLbl("prix", [0, 2000], [0, 6000]),
       relLbl(3, true),
       relLbl(3, false),
@@ -2183,19 +2190,24 @@ describe("tri des cartes", () => {
       .sort(comparateurBudget(t))
       .map((c) => (c.stationId === "les-2-alpes" ? c.a.id : `${c.a.id}@${c.stationId}`));
 
-  it("chaque option se relit, une valeur inconnue revient au prix croissant", () => {
-    assert.equal(TRIB0, "prix:1");
+  const PRIX_C: TriB = { k: "prix", dir: 1 };
+  const PRIX_D: TriB = { k: "prix", dir: -1 };
+  const CAP_D: TriB = { k: "cap", dir: -1 };
+  const CAP_C: TriB = { k: "cap", dir: 1 };
+
+  it("chaque critère se relit dans son sens de départ, une valeur inconnue revient au prix croissant", () => {
+    assert.deepEqual(TRIB0, PRIX_C);
     assert.deepEqual(TRIS_B, [
-      { v: "prix:1", label: "Prix croissant" },
-      { v: "prix:-1", label: "Prix décroissant" },
-      { v: "cap:-1", label: "Capacité" },
-      { v: "dist:1", label: "Plus près des remontées" },
+      { k: "prix", label: "Prix" },
+      { k: "cap", label: "Capacité" },
+      { k: "dist", label: "Distance aux remontées" },
     ]);
-    for (const t of TRIS_B) assert.equal(lireTriB(t.v), t.v);
-    assert.equal(lireTriB("dist:-1"), TRIB0);
-    assert.equal(lireTriB("cap:1"), TRIB0);
-    assert.equal(lireTriB("med:1"), TRIB0);
-    assert.equal(lireTriB(""), TRIB0);
+    assert.deepEqual(lireTriB("prix"), PRIX_C);
+    assert.deepEqual(lireTriB("cap"), CAP_D);
+    assert.deepEqual(lireTriB("dist"), { k: "dist", dir: 1 });
+    assert.deepEqual(lireTriB("prix:1"), TRIB0);
+    assert.deepEqual(lireTriB("med"), TRIB0);
+    assert.deepEqual(lireTriB(""), TRIB0);
   });
 
   it("prix : dans les deux sens, l'id départage toujours dans le même ordre", () => {
@@ -2205,8 +2217,8 @@ describe("tri des cartes", () => {
       carte("c", 1000, 10),
       carte("d", 3000, 6),
     ];
-    assert.deepEqual(ranger("prix:1", xs), ["c", "a", "b", "d"]);
-    assert.deepEqual(ranger("prix:-1", xs), ["d", "a", "b", "c"]);
+    assert.deepEqual(ranger(PRIX_C, xs), ["c", "a", "b", "d"]);
+    assert.deepEqual(ranger(PRIX_D, xs), ["d", "a", "b", "c"]);
   });
 
   it("capacité : la plus grande d'abord, une capacité tue en dernier, puis le prix, puis l'id", () => {
@@ -2218,14 +2230,17 @@ describe("tri des cartes", () => {
       carte("n", 1200, null),
       carte("q", 1000, 10),
     ];
-    assert.deepEqual(ranger("cap:-1", xs), ["q", "y", "x", "z", "n", "m"]);
+    assert.deepEqual(ranger(CAP_D, xs), ["q", "y", "x", "z", "n", "m"]);
+    // Dans l'autre sens, la plus petite d'abord ; la capacité tue reste en
+    // dernier : un tri croissant n'ouvre pas sur ce qui n'est pas annoncé.
+    assert.deepEqual(ranger(CAP_C, xs), ["z", "q", "y", "x", "n", "m"]);
   });
 
   it("la même annonce dans deux stations : la station départage", () => {
     const xs = [carte("a", 2000, 8, "tignes"), carte("a", 2000, 8, "les-2-alpes")];
-    assert.deepEqual(ranger("prix:1", xs), ["a", "a@tignes"]);
-    assert.deepEqual(ranger("prix:-1", xs), ["a", "a@tignes"]);
-    assert.deepEqual(ranger("cap:-1", xs), ["a", "a@tignes"]);
+    assert.deepEqual(ranger(PRIX_C, xs), ["a", "a@tignes"]);
+    assert.deepEqual(ranger(PRIX_D, xs), ["a", "a@tignes"]);
+    assert.deepEqual(ranger(CAP_D, xs), ["a", "a@tignes"]);
   });
 });
 
@@ -2426,7 +2441,7 @@ describe("libellés de l'onglet budget", () => {
       budget: [0, 3000],
       domaine: "Les Trois Vallées",
       station: "val-thorens",
-      distMax: 1000,
+      distance: [0, 1000],
       capacite: [4, 20],
       chambres: [0, 2],
     };
@@ -2434,7 +2449,7 @@ describe("libellés de l'onglet budget", () => {
       ...TRIS_B.map((t) => t.label),
       PLAGE_BUDGET.lbl,
       ...PLAGES_LOGEMENT.map((p) => p.lbl),
-      ...PALIERS_DIST_M.map(distLbl),
+      plageLbl("distance", [500, 2000], [0, 2000]),
       countBudget(12, 3),
       ...vides.flatMap((v) => [v.titre, v.hint]),
       sousTitreBudget(7, 8),
@@ -2587,16 +2602,18 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
   const f = (over: Partial<Filtres>): Filtres => ({ ...FL0, ...over });
   const a = (over: Partial<Listing> = {}) => compacter(annonce(over));
 
-  it("les plages de logement : personnes de 1 à 20, chambres de 0 à 8, au pas de un", () => {
+  it("les plages de logement : personnes de 1 à 20, chambres de 0 à 8, distance de 0 à 2 km", () => {
     assert.deepEqual(PLAGES_LOGEMENT, [
       { k: "capacite", lbl: "Personnes", pas: 1, unite: "pers.", fixe: [1, 20] },
       { k: "chambres", lbl: "Chambres", pas: 1, unite: "ch.", fixe: [0, 8] },
+      { k: "distance", lbl: "Distance aux remontées", pas: 100, unite: "m", fixe: [0, 2000] },
     ]);
     assert.deepEqual(
-      [B.capacite, B.chambres],
+      [B.capacite, B.chambres, B.distance],
       [
         [1, 20],
         [0, 8],
+        [0, 2000],
       ],
     );
     assert.equal(fmtPlage("capacite", 4), "4 pers.");
@@ -2610,8 +2627,8 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
 
   it("au repos, seule la règle des 2 km écarte", () => {
     assert.deepEqual(
-      [FL0.domaine, FL0.station, FL0.capacite, FL0.chambres, FL0.distMax],
-      ["", "", null, null, 2000],
+      [FL0.domaine, FL0.station, FL0.capacite, FL0.chambres, FL0.distance],
+      ["", "", null, null, null],
     );
     assert.equal(passeAnnonce(a(), FL0, B), true);
     assert.equal(passeAnnonce(a({ total: 50_000, guests: null, bedrooms: null }), FL0, B), true);
@@ -2656,28 +2673,33 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     assert.equal(passeAnnonce(muette, FL0, B), true);
   });
 
-  it("distance aux remontées : les paliers de Logements, jusqu'à 2 km", () => {
-    assert.deepEqual(PALIERS_DIST_M, [200, 500, 1000, 2000]);
-    assert.equal(passeAnnonce(a({ distToLiftM: 150 }), f({ distMax: 200 }), B), true);
-    assert.equal(passeAnnonce(a({ distToLiftM: 250 }), f({ distMax: 200 }), B), false);
-    assert.equal(passeAnnonce(a({ distToLiftM: 400 }), f({ distMax: 500 }), B), true);
-    assert.equal(passeAnnonce(a({ distToLiftM: 600 }), f({ distMax: 500 }), B), false);
-    assert.equal(passeAnnonce(a({ distToLiftM: 1900 }), f({ distMax: 1000 }), B), false);
+  it("distance aux remontées : une fourchette dans les 2 km de la station", () => {
+    assert.deepEqual(B.distance, [0, 2000]);
+    assert.equal(passeAnnonce(a({ distToLiftM: 150 }), f({ distance: [0, 200] }), B), true);
+    assert.equal(passeAnnonce(a({ distToLiftM: 250 }), f({ distance: [0, 200] }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 400 }), f({ distance: [0, 500] }), B), true);
+    assert.equal(passeAnnonce(a({ distToLiftM: 600 }), f({ distance: [0, 500] }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 1900 }), f({ distance: [0, 1000] }), B), false);
     assert.equal(passeAnnonce(a({ distToLiftM: 1900 }), FL0, B), true);
-    // Distance inconnue : écartée à tout palier.
+    // Une borne basse : ce qui est plus près sort, bornes comprises.
+    assert.equal(passeAnnonce(a({ distToLiftM: 300 }), f({ distance: [500, 2000] }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 500 }), f({ distance: [500, 2000] }), B), true);
+    assert.equal(passeAnnonce(a({ distToLiftM: 850 }), f({ distance: [500, 1000] }), B), true);
+    // Une borne tapée garde sa valeur : 350 m, sur un curseur qui avance de 100 m.
+    assert.equal(passeAnnonce(a({ distToLiftM: 360 }), f({ distance: [0, 350] }), B), false);
+    // Distance inconnue : écartée, fourchette posée ou non.
     const inconnue = a({ distToSlopesM: null, distToLiftM: null });
-    for (const m of PALIERS_DIST_M) {
-      assert.equal(passeAnnonce(inconnue, f({ distMax: m }), B), false);
-    }
+    assert.equal(passeAnnonce(inconnue, FL0, B), false);
+    assert.equal(passeAnnonce(inconnue, f({ distance: [0, 500] }), B), false);
   });
 
-  it("un palier inconnu revient aux 2 km : le filtre ne s'élargit jamais au-delà", () => {
-    assert.equal(distMaxLue(500), 500);
-    assert.equal(distMaxLue(5000), 2000);
-    assert.equal(distMaxLue(750), 2000);
-    assert.equal(distMaxLue(Number.NaN), 2000);
-    assert.equal(passeAnnonce(a({ distToLiftM: 2500 }), f({ distMax: 5000 }), B), false);
-    assert.equal(passeAnnonce(a({ distToLiftM: 1500 }), f({ distMax: 5000 }), B), true);
+  it("la fourchette de distance ne s'élargit jamais au-delà des 2 km", () => {
+    // La borne haute au bout de l'échelle ne veut pas dire « et plus » ici :
+    // au-delà de 2 km, le logement n'est pas en station.
+    assert.equal(passeAnnonce(a({ distToLiftM: 2500 }), f({ distance: [500, 2000] }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 1500 }), f({ distance: [500, 2000] }), B), true);
+    assert.equal(plageLbl("distance", [500, 2000], B.distance), "500 m à 2 000 m");
+    assert.equal(plageLbl("distance", [0, 500], B.distance), "jusqu’à 500 m");
   });
 
   it("une annonce enregistrée à l'ancien format se filtre par son repère", () => {
@@ -2688,16 +2710,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     };
     assert.equal(passeAnnonce(vieille(800), FL0, B), true);
     assert.equal(passeAnnonce(vieille(2500), FL0, B), false);
-    assert.equal(passeAnnonce(vieille(800), f({ distMax: 500 }), B), false);
-  });
-
-  it("distLbl nomme les paliers comme le choix de l'écran", () => {
-    assert.deepEqual(PALIERS_DIST_M.map(distLbl), [
-      "Au pied des pistes",
-      "500 m au plus",
-      "1 km au plus",
-      "2 km au plus",
-    ]);
+    assert.equal(passeAnnonce(vieille(800), f({ distance: [0, 500] }), B), false);
   });
 
   it("filtrerCartes garde les cartes qui passent, une par logement, la première à égalité", () => {
@@ -2738,11 +2751,11 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     ];
     const vues = (fl: Filtres) =>
       filtrerCartes(cartes, fl, B).map((c) => `${c.a.id}@${c.stationId}:${c.a.distToLiftM}`);
-    // Chaque logement garde la place de sa première carte, même écartée au
-    // palier de 200 m.
+    // Chaque logement garde la place de sa première carte, même écartée par
+    // une distance de 200 m au plus.
     const attendu = ["sm@meribel-village:27", "x@meribel:150"];
     assert.deepEqual(vues(f({ budget: [0, 3000] })), attendu);
-    assert.deepEqual(vues(f({ budget: [0, 3000], distMax: 200 })), attendu);
+    assert.deepEqual(vues(f({ budget: [0, 3000], distance: [0, 200] })), attendu);
     // Une copie qui ne passe pas n'est pas retenue, fût-elle la plus proche.
     assert.deepEqual(vues(FL0), ["sm@courchevel:5", "x@meribel:150"]);
   });
@@ -2843,7 +2856,7 @@ const TOUT_BUDGET: Filtres = {
   budget: [1500, 3000],
   capacite: [4, 20],
   chambres: [2, 3],
-  distMax: 500,
+  distance: [0, 500],
   km: [100, 780],
   avecPrix: true,
   prix: [0, 2000],
@@ -2897,7 +2910,7 @@ describe("cascade des choix de lieu", () => {
   });
 
   it("retirer la distance la ramène à 2 km, une plage de logement à rien", () => {
-    assert.deepEqual(retirerJeton(tout, "distMax"), { ...tout, distMax: 2000 });
+    assert.deepEqual(retirerJeton(tout, "distance"), { ...tout, distance: null });
     assert.deepEqual(retirerJeton(tout, "capacite"), { ...tout, capacite: null });
     assert.deepEqual(retirerJeton(tout, "chambres"), { ...tout, chambres: null });
     assert.equal(tout.station, "val-thorens", "le filtre reçu n'est pas modifié");
@@ -2916,20 +2929,19 @@ describe("jetons et « Tout effacer » des nouveaux critères", () => {
       { k: "dept", lbl: "Savoie" },
       { k: "domaine", lbl: "Domaine : Les Trois Vallées" },
       { k: "station", lbl: "Val Thorens" },
-      { k: "distMax", lbl: "Remontées : 500 m au plus" },
       { k: "capacite", lbl: "Personnes : 4 pers. et plus" },
       { k: "chambres", lbl: "Chambres : 2 ch. à 3 ch." },
+      { k: "distance", lbl: "Distance aux remontées : jusqu’à 500 m" },
       { k: "km", lbl: "Kilomètres de pistes : 100 km et plus" },
     ]);
   });
 
-  it("jetonsBudget : chaque palier de distance, et aucun jeton à 2 km", () => {
-    const dist = (m: number) => jetonsBudget(f({ distMax: m }), B).map((j) => j.lbl);
-    assert.deepEqual(dist(200), ["Au pied des pistes"]);
-    assert.deepEqual(dist(500), ["Remontées : 500 m au plus"]);
-    assert.deepEqual(dist(1000), ["Remontées : 1 km au plus"]);
-    assert.deepEqual(dist(2000), []);
-    assert.deepEqual(dist(5000), []);
+  it("jetonsBudget : la fourchette de distance, et aucun jeton sur toute l'échelle", () => {
+    const dist = (pl: Filtres["distance"]) => jetonsBudget(f({ distance: pl }), B).map((j) => j.lbl);
+    assert.deepEqual(dist([0, 200]), ["Distance aux remontées : jusqu’à 200 m"]);
+    assert.deepEqual(dist([300, 800]), ["Distance aux remontées : 300 m à 800 m"]);
+    assert.deepEqual(dist([500, 2000]), ["Distance aux remontées : 500 m à 2 000 m"]);
+    assert.deepEqual(dist(null), []);
   });
 
   it("jetonsBudget : plages de logement, et le nom de la station choisie", () => {
@@ -2948,15 +2960,15 @@ describe("jetons et « Tout effacer » des nouveaux critères", () => {
     assert.equal(filtresActifsBudget(f({ station: "val-thorens" })), true);
     assert.equal(filtresActifsBudget(f({ capacite: [4, 20] })), true);
     assert.equal(filtresActifsBudget(f({ chambres: [0, 1] })), true);
-    assert.equal(filtresActifsBudget(f({ distMax: 1000 })), true);
-    assert.equal(filtresActifsBudget(f({ distMax: 2000 })), false);
-    assert.equal(filtresActifsBudget(f({ distMax: 5000 })), false);
+    assert.equal(filtresActifsBudget(f({ distance: [0, 1000] })), true);
+    assert.equal(filtresActifsBudget(f({ distance: [500, 2000] })), true);
+    assert.equal(filtresActifsBudget(f({ distance: null })), false);
   });
 
   it("effacerBudget remet tous les critères de l'onglet, garde prix et avecPrix", () => {
     assert.deepEqual(effacerBudget(TOUT_BUDGET), { ...FL0, prix: [0, 2000], avecPrix: true });
     assert.equal(filtresActifsBudget(effacerBudget(TOUT_BUDGET)), false);
-    assert.equal(TOUT_BUDGET.distMax, 500, "le filtre reçu n'est pas modifié");
+    assert.deepEqual(TOUT_BUDGET.distance, [0, 500], "le filtre reçu n'est pas modifié");
   });
 
   it("l'onglet station ignore les nouveaux critères : passe, jetons, filtresActifs", () => {
@@ -2967,7 +2979,7 @@ describe("jetons et « Tout effacer » des nouveaux critères", () => {
       station: "val-thorens",
       capacite: [10, 20],
       chambres: [5, 8],
-      distMax: 200,
+      distance: [0, 200],
     });
     assert.equal(passe(l, s, budget, B), true);
     assert.deepEqual(jetons(budget, B), []);
@@ -2988,18 +3000,26 @@ describe("tri des cartes : plus près des remontées", () => {
     stationNom: "Les 2 Alpes",
   });
 
+  const xs = [
+    carte("c", 1500, 900),
+    carte("d", 900, null),
+    carte("a", 2000, 200),
+    carte("e", 1200, null, 300),
+    carte("b", 1000, 200),
+    carte("f", 800, null),
+  ];
+
   it("la plus proche d'abord, puis la moins chère, une distance inconnue en dernier", () => {
-    const xs = [
-      carte("c", 1500, 900),
-      carte("d", 900, null),
-      carte("a", 2000, 200),
-      carte("e", 1200, null, 300),
-      carte("b", 1000, 200),
-      carte("f", 800, null),
-    ];
     assert.deepEqual(
-      [...xs].sort(comparateurBudget("dist:1")).map((c) => c.a.id),
+      [...xs].sort(comparateurBudget({ k: "dist", dir: 1 })).map((c) => c.a.id),
       ["b", "a", "e", "c", "f", "d"],
+    );
+  });
+
+  it("dans l'autre sens, la plus lointaine d'abord, une distance inconnue toujours en dernier", () => {
+    assert.deepEqual(
+      [...xs].sort(comparateurBudget({ k: "dist", dir: -1 })).map((c) => c.a.id),
+      ["c", "e", "b", "a", "f", "d"],
     );
   });
 });

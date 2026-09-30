@@ -8,24 +8,27 @@
  * filtrables ne sont pas les mêmes, et un prédicat commun devrait tous les
  * rendre facultatifs — c'est-à-dire ne plus rien garantir.
  *
- * **Ce qui est commun l'est vraiment** : `atLeast` et `foldName` viennent de
- * `carte.ts`, comme pour la France. La règle du seuil sur une valeur mesurée
- * est donc la même règle, pas une seconde écriture.
+ * **Ce qui est commun l'est vraiment** : `foldName` vient de `carte.ts`,
+ * `dansPlage` de `plage.ts`, comme pour la France. La règle de la fourchette
+ * sur une valeur mesurée est donc la même règle, pas une seconde écriture, et
+ * le tri va dans les deux sens avec `parMesure`, comme ailleurs.
  */
 
-import { atLeast, foldName } from "../carte.ts";
+import { foldName } from "../carte.ts";
+import { dansPlage, type Echelle, type Plage } from "../plage.ts";
+import { parMesure, parTexte, type Sens } from "../tri.ts";
 import type { Repartition } from "./couleurs.ts";
 import type { DomaineMonde } from "./monde.ts";
 
 export type FiltresMonde = {
-  /** Km de pistes de descente, au minimum. */
-  km: number;
-  /** Sommet, au minimum, en mètres. */
-  sommetM: number;
-  /** Dénivelé du domaine, au minimum, en mètres. */
-  denivM: number;
-  /** Remontées, au minimum. */
-  remontees: number;
+  /** Km de pistes de descente. */
+  km: Plage;
+  /** Sommet, en mètres. */
+  sommetM: Plage;
+  /** Dénivelé du domaine, en mètres. */
+  denivM: Plage;
+  /** Remontées. */
+  remontees: Plage;
   /**
    * N'afficher que les domaines dont la répartition par couleur est connue.
    *
@@ -33,34 +36,39 @@ export type FiltresMonde = {
    * au lieu de la masquer derrière une valeur inventée.
    */
   avecCouleurs: boolean;
-  /** Part du noir, au minimum, en pourcentage de la répartition. */
-  noirPct: number;
+  /** Part du noir, en pourcentage de la répartition. */
+  noirPct: Plage;
 };
 
 export const AUCUN_FILTRE: FiltresMonde = {
-  km: 0,
-  sommetM: 0,
-  denivM: 0,
-  remontees: 0,
+  km: null,
+  sommetM: null,
+  denivM: null,
+  remontees: null,
   avecCouleurs: false,
-  noirPct: 0,
+  noirPct: null,
 };
 
-/** Les curseurs et leurs bornes. Seule table de ces bornes. */
+export type CleMonde = "km" | "sommetM" | "denivM" | "remontees" | "noirPct";
+
+/** Les fourchettes et leurs échelles. Seule table de ces échelles. La borne
+ *  haute au bout de l'échelle veut dire « et plus ». */
 export const SEUILS_MONDE: {
-  k: "km" | "sommetM" | "denivM" | "remontees" | "noirPct";
+  k: CleMonde;
   label: string;
   court: string;
-  max: number;
-  step: number;
+  b: Echelle;
+  pas: number;
   unite: string;
 }[] = [
-  { k: "km", label: "Kilomètres de pistes", court: "km", max: 300, step: 10, unite: "km" },
-  { k: "sommetM", label: "Sommet", court: "sommet", max: 4000, step: 100, unite: "m" },
-  { k: "denivM", label: "Dénivelé", court: "dénivelé", max: 2000, step: 100, unite: "m" },
-  { k: "remontees", label: "Remontées", court: "remontées", max: 60, step: 5, unite: "" },
-  { k: "noirPct", label: "Part de pistes noires", court: "noir", max: 50, step: 5, unite: "%" },
+  { k: "km", label: "Kilomètres de pistes", court: "km", b: [0, 300], pas: 10, unite: "km" },
+  { k: "sommetM", label: "Sommet", court: "sommet", b: [0, 4000], pas: 100, unite: "m" },
+  { k: "denivM", label: "Dénivelé", court: "dénivelé", b: [0, 2000], pas: 100, unite: "m" },
+  { k: "remontees", label: "Remontées", court: "remontées", b: [0, 60], pas: 5, unite: "" },
+  { k: "noirPct", label: "Part de pistes noires", court: "noir", b: [0, 50], pas: 5, unite: "%" },
 ];
+
+const ECHELLE_MONDE = Object.fromEntries(SEUILS_MONDE.map((s) => [s.k, s.b])) as Record<CleMonde, Echelle>;
 
 /**
  * Le dénivelé du domaine, ou `null`.
@@ -86,20 +94,20 @@ export function passeFiltres(
   f: FiltresMonde,
   repartitions?: ReadonlyMap<string, Repartition>,
 ): boolean {
-  if (!atLeast(d.km, f.km)) return false;
-  if (!atLeast(d.maxM, f.sommetM)) return false;
-  if (!atLeast(denivele(d), f.denivM)) return false;
-  if (!atLeast(d.lifts, f.remontees)) return false;
+  if (!dansPlage(d.km, f.km, ECHELLE_MONDE.km)) return false;
+  if (!dansPlage(d.maxM, f.sommetM, ECHELLE_MONDE.sommetM)) return false;
+  if (!dansPlage(denivele(d), f.denivM, ECHELLE_MONDE.denivM)) return false;
+  if (!dansPlage(d.lifts, f.remontees, ECHELLE_MONDE.remontees)) return false;
   const r = repartitions?.get(d.id);
   if (f.avecCouleurs && !r) return false;
-  if (f.noirPct && !atLeast(r?.pct.noir, f.noirPct)) return false;
+  if (!dansPlage(r?.pct.noir, f.noirPct, ECHELLE_MONDE.noirPct)) return false;
   return true;
 }
 
 /** Combien de critères sont actifs. Sert le compteur du bouton « Filtres ». */
 export function filtresActifs(f: FiltresMonde): number {
   let n = 0;
-  for (const s of SEUILS_MONDE) if (f[s.k]) n++;
+  for (const s of SEUILS_MONDE) if (f[s.k] != null) n++;
   if (f.avecCouleurs) n++;
   return n;
 }
@@ -130,28 +138,36 @@ export const TRIS_MONDE: [TriMonde, string][] = [
   ["nom", "nom"],
 ];
 
+/** Le sens de départ : le plus grand d'abord, le nom de A à Z. */
+export const SENS_MONDE: Record<TriMonde, Sens> = {
+  km: -1,
+  sommet: -1,
+  deniv: -1,
+  remontees: -1,
+  nom: 1,
+};
+
 /**
- * Le tri, mesuré d'abord.
+ * Le tri, mesuré d'abord, dans le sens demandé (par défaut, celui du critère).
  *
  * Un domaine dont le champ trié n'est pas relevé passe **après** tous ceux qui
  * le portent, quel que soit le sens du tri. Le traiter comme un zéro le
  * placerait en fin de liste croissante et en tête de liste décroissante, ce
  * qui laisserait croire à une mesure nulle ; le pousser au bout dans les deux
- * cas dit qu'il n'y a rien à comparer.
+ * cas dit qu'il n'y a rien à comparer. À égalité, le nom de A à Z.
  */
-export function trier(domaines: readonly DomaineMonde[], tri: TriMonde): DomaineMonde[] {
+export function trier(
+  domaines: readonly DomaineMonde[],
+  tri: TriMonde,
+  sens: Sens = SENS_MONDE[tri],
+): DomaineMonde[] {
   const out = [...domaines];
   if (tri === "nom") {
-    return out.sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+    return out.sort((a, b) => parTexte(a.nom, b.nom, sens));
   }
   const valeur = (d: DomaineMonde): number | null =>
     tri === "km" ? d.km : tri === "sommet" ? d.maxM : tri === "deniv" ? denivele(d) : d.lifts;
-  return out.sort((a, b) => {
-    const va = valeur(a);
-    const vb = valeur(b);
-    if (va == null && vb == null) return a.nom.localeCompare(b.nom, "fr");
-    if (va == null) return 1;
-    if (vb == null) return -1;
-    return vb - va || a.nom.localeCompare(b.nom, "fr");
-  });
+  return out.sort(
+    (a, b) => parMesure(valeur(a), valeur(b), sens) || a.nom.localeCompare(b.nom, "fr"),
+  );
 }

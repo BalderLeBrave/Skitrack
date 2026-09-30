@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Coquille } from "@/components/Coquille";
+import { SensTri } from "@/components/v7/SensTri";
 import {
   OSM_VERDICT_FR,
   osmSkiinfoAll,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/openskimap";
 import { formatKm } from "@/lib/pistes";
 import { formatAlt } from "@/lib/stations";
+import { parMesure, type Sens } from "@/lib/tri";
 
 export const Route = createFileRoute("/openskimap")({ component: OpenSkiMapPage });
 
@@ -18,13 +20,15 @@ function OpenSkiMapPage() {
   const rows = useMemo(() => osmSkiinfoAll(), []);
   const sum = useMemo(() => osmSkiinfoSummary(rows), [rows]);
   const [filter, setFilter] = useState<Filter>("all");
+  // Le plus grand rapport tronçons OSM / pistes Skiinfo d'abord ; le bouton de
+  // sens inverse.
+  const [sens, setSens] = useState<Sens>(-1);
   const shown = useMemo(() => {
     const list = filter === "all" ? [...rows] : rows.filter((r) => r.verdict === filter);
-    list.sort(
-      (a, b) => (b.nOsm ?? 0) / Math.max(1, b.nSki ?? 1) - (a.nOsm ?? 0) / Math.max(1, a.nSki ?? 1),
-    );
+    const rapport = (r: (typeof rows)[number]) => (r.nOsm ?? 0) / Math.max(1, r.nSki ?? 1);
+    list.sort((a, b) => parMesure(rapport(a), rapport(b), sens));
     return list;
-  }, [rows, filter]);
+  }, [rows, filter, sens]);
 
   const chips: [Filter, string][] = [
     ["all", `France · ${sum.n}`],
@@ -51,6 +55,8 @@ function OpenSkiMapPage() {
               {label}
             </button>
           ))}
+          <span className="shrink-0 pl-2 text-note text-muted">Tri : tronçons OSM par piste Skiinfo</span>
+          <SensTri className="sens7--petit shrink-0" sens={sens} onChange={setSens} />
         </>
       }
     >

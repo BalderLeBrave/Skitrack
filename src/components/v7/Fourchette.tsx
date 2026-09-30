@@ -12,11 +12,16 @@
  *
  * Il ne décide rien : il dit quelle poignée bouge et vers quelle valeur brute,
  * et le parent arrondit au pas, borne et empêche le croisement (`poserBorne`).
+ * Une valeur **tapée** arrive marquée `exact` : elle n'est pas arrondie au pas,
+ * seulement ramenée dans l'échelle.
+ *
+ * Il sert désormais sur tous les écrans : chaque filtre chiffré est une
+ * fourchette, et chaque borne se tape.
  */
 
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { fmt } from "@/lib/parcours";
-import { lireSaisie, poigneeProche } from "@/lib/prix/calcul";
+import { lireSaisie, poigneeProche } from "@/lib/plage";
 
 const COTES = [0, 1] as const;
 const NOMS = ["minimum", "maximum"] as const;
@@ -41,6 +46,7 @@ function ecartTouche(key: string): number | null {
 
 export function Fourchette({
   lbl,
+  pastille,
   bornes,
   valeur,
   pas,
@@ -49,6 +55,9 @@ export function Fourchette({
   onPoser,
 }: {
   lbl: string;
+  /** Une couleur (jeton du système) posée en pastille devant le libellé :
+   *  les fourchettes par couleur de piste. */
+  pastille?: string;
   bornes: readonly [number, number];
   /** Nulle : toute l'échelle, le filtre ne filtre pas et le rail passe au gris. */
   valeur: readonly [number, number] | null;
@@ -56,8 +65,9 @@ export function Fourchette({
   unite: string;
   /** En haut à droite : `plageLbl(...)`. */
   resume: string;
-  /** Valeur brute : le parent arrondit, borne et empêche le croisement. */
-  onPoser: (which: 0 | 1, v: number) => void;
+  /** Valeur brute : le parent arrondit, borne et empêche le croisement.
+   *  `exact` : la valeur a été tapée, elle ne s'arrondit pas au pas. */
+  onPoser: (which: 0 | 1, v: number, exact: boolean) => void;
 }) {
   const [b0, b1] = bornes;
   const cur = valeur ?? bornes;
@@ -85,7 +95,7 @@ export function Fourchette({
     // Le rail ne prend pas le focus : la poignée qui bouge le prend, pour que
     // les flèches reprennent là où le pointeur l'a laissée.
     (which === 0 ? bas : haut).current?.focus();
-    onPoser(which, v);
+    onPoser(which, v, false);
     glisse.current = { id: e.pointerId, which, cran: cranDe(v) };
     try {
       el.setPointerCapture(e.pointerId);
@@ -101,7 +111,7 @@ export function Fourchette({
     const cran = cranDe(v);
     if (cran === g.cran) return;
     g.cran = cran;
-    onPoser(g.which, v);
+    onPoser(g.which, v, false);
   };
   const lacher = (e: PointerEvent<HTMLDivElement>) => {
     if (glisse.current?.id === e.pointerId) glisse.current = null;
@@ -113,7 +123,7 @@ export function Fourchette({
       d != null ? cur[which] + d * pas : e.key === "Home" ? b0 : e.key === "End" ? b1 : null;
     if (v == null) return;
     e.preventDefault();
-    onPoser(which, v);
+    onPoser(which, v, false);
   };
 
   const brouiller = (which: 0 | 1, t: string | null) =>
@@ -124,7 +134,7 @@ export function Fourchette({
     brouiller(which, null);
     // Un texte qui n'est pas un nombre rend simplement la valeur d'avant.
     const n = lireSaisie(t);
-    if (n != null) onPoser(which, n);
+    if (n != null) onPoser(which, n, true);
   };
   const touche = (which: 0 | 1) => (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -137,7 +147,7 @@ export function Fourchette({
       // La maquette gardait le brouillon à l'écran : le pas part de la valeur
       // posée, le champ doit donc la montrer.
       brouiller(which, null);
-      onPoser(which, cur[which] + (e.key === "ArrowUp" ? pas : -pas));
+      onPoser(which, cur[which] + (e.key === "ArrowUp" ? pas : -pas), false);
     }
   };
 
@@ -160,7 +170,10 @@ export function Fourchette({
   return (
     <div className={`fourchette7${valeur != null ? " fourchette7--actif" : ""}`}>
       <div className="fourchette7__tete">
-        <span className="fourchette7__lbl">{lbl}</span>
+        <span className="fourchette7__lbl">
+          {pastille ? <i className="fourchette7__pastille" style={{ background: pastille }} /> : null}
+          {lbl}
+        </span>
         <span className="fourchette7__resume">{resume}</span>
       </div>
       <div

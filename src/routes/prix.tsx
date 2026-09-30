@@ -30,6 +30,7 @@ import { CarteLogement, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
 import { epinglePrix, ETAGE } from "@/components/v7/epingle";
 import { FicheEpingle } from "@/components/v7/FicheEpingle";
 import { Fourchette } from "@/components/v7/Fourchette";
+import { SensTri } from "@/components/v7/SensTri";
 import { Pages } from "@/components/v7/Pages";
 import { Vide } from "@/components/v7/Vide";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
@@ -55,8 +56,6 @@ import {
   decaler,
   departIso,
   departLbl,
-  distLbl,
-  distMaxLue,
   dureeLbl,
   ecartLbl,
   effacerBudget,
@@ -87,7 +86,6 @@ import {
   optionsStation,
   ordreMassifs,
   PAGE,
-  PALIERS_DIST_M,
   partielLbl,
   passe,
   passeStationSeule,
@@ -107,10 +105,9 @@ import {
   sourcesBudget,
   sousTitre,
   sousTitreBudget,
-  triLbl,
+  triParEnTete,
   TRIS,
   TRIS_B,
-  triVal,
   versLogement,
   videBudget,
   type CarteAnnonce,
@@ -472,16 +469,17 @@ function ChoixLieu() {
   );
 }
 
-/** Domaine skiable, station et distance aux remontées : les choix de lieu
- *  propres à l'onglet budget (demande du propriétaire, 25 sept. 2026). Les
- *  domaines sont ceux du référentiel dans le massif et le département choisis ;
- *  les stations, celles relevées pour ces dates et ce groupe. */
+/** Domaine skiable et station : les choix de lieu propres à l'onglet budget
+ *  (demande du propriétaire, 25 sept. 2026). Les domaines sont ceux du
+ *  référentiel dans le massif et le département choisis ; les stations, celles
+ *  relevées pour ces dates et ce groupe. La distance aux remontées, qui
+ *  s'y choisissait par paliers, est une fourchette avec les autres
+ *  (`PLAGES_LOGEMENT`). */
 function ChoixStation({ relevees }: { relevees: readonly Station[] }) {
   const massif = usePrix((s) => s.fl.massif);
   const dept = usePrix((s) => s.fl.dept);
   const domaine = usePrix((s) => s.fl.domaine);
   const station = usePrix((s) => s.fl.station);
-  const distMax = usePrix((s) => s.fl.distMax);
   const majFl = usePrix((s) => s.majFl);
   const domaines = useMemo(() => optionsDomaine(STATIONS, massif, dept), [massif, dept]);
   const stations = useMemo(
@@ -525,30 +523,13 @@ function ChoixStation({ relevees }: { relevees: readonly Station[] }) {
           ))}
         </select>
       </label>
-      <label className="prix7__champ">
-        <span>Distance aux remontées</span>
-        <select
-          className="prix7__select"
-          value={String(distMaxLue(distMax))}
-          onChange={(e) => {
-            const v = distMaxLue(Number(e.target.value));
-            majFl((f) => ({ ...f, distMax: v }));
-          }}
-        >
-          {PALIERS_DIST_M.map((m) => (
-            <option key={m} value={String(m)}>
-              {distLbl(m)}
-            </option>
-          ))}
-        </select>
-      </label>
     </>
   );
 }
 
 /** Une fourchette de critère. La mise à jour part de l'état courant du
  *  magasin : un même geste peut poser deux bornes (un brouillon validé à la
- *  sortie du champ, puis la poignée). */
+ *  sortie du champ, puis la poignée). Une borne tapée garde sa valeur. */
 function PlageFiltre({ p }: { p: DefPlage }) {
   const valeur = usePrix((s) => s.fl[p.k]);
   const majFl = usePrix((s) => s.majFl);
@@ -561,8 +542,8 @@ function PlageFiltre({ p }: { p: DefPlage }) {
       pas={p.pas}
       unite={p.unite}
       resume={plageLbl(p.k, valeur, b)}
-      onPoser={(which, v) =>
-        majFl((f) => ({ ...f, [p.k]: poserBorne(f[p.k], b, p.pas, which, v) }))
+      onPoser={(which, v, exact) =>
+        majFl((f) => ({ ...f, [p.k]: poserBorne(f[p.k], b, p.pas, which, v, exact) }))
       }
     />
   );
@@ -644,16 +625,10 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
   }, [aLancer, ids, course, per, kGrp]);
   const listeFaite = filtrees.every((l) => l.res?.etat === "fait");
 
-  const triV = triVal(tri);
-  // Un clic d'en-tête peut donner un tri absent de la liste (« Nom, de Z à
-  // A ») : il y entre, pour que le choix affiché dise le tri réel.
-  const optionsTri = TRIS.some((o) => o.v === triV)
-    ? TRIS
-    : [...TRIS, { v: triV, label: triLbl(tri) }];
   const js = jetons(fl, BORNES);
   const vues = triees.slice(0, limit);
 
-  const trier = (k: Tri["k"]) => setTri({ k, dir: tri.k === k && tri.dir === 1 ? -1 : 1 });
+  const trier = (k: Tri["k"]) => setTri(triParEnTete(tri, k));
   const surCompte = () => refCompte.current?.focus();
 
   return (
@@ -664,16 +639,22 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
             <span>Trier</span>
             <select
               className="prix7__select"
-              value={triV}
+              value={tri.k}
               onChange={(e) => setTri(lireTri(e.target.value))}
             >
-              {optionsTri.map((o) => (
-                <option key={o.v} value={o.v}>
+              {TRIS.map((o) => (
+                <option key={o.k} value={o.k}>
                   {o.label}
                 </option>
               ))}
             </select>
           </label>
+          <SensTri
+            className="sens7--petit"
+            sens={tri.dir}
+            alpha={tri.k === "nom"}
+            onChange={(dir) => setTri({ ...tri, dir })}
+          />
           <ChoixLieu />
           <label className="prix7__case">
             <input
@@ -1195,23 +1176,28 @@ function VueBudget({
               <span>Trier</span>
               <select
                 className="prix7__select"
-                value={triB}
+                value={triB.k}
                 onChange={(e) => setTriB(lireTriB(e.target.value))}
               >
                 {TRIS_B.map((o) => (
-                  <option key={o.v} value={o.v}>
+                  <option key={o.k} value={o.k}>
                     {o.label}
                   </option>
                 ))}
               </select>
             </label>
+            <SensTri
+              className="sens7--petit"
+              sens={triB.dir}
+              onChange={(dir) => setTriB({ ...triB, dir })}
+            />
             <ChoixLieu />
           </div>
         </div>
         <div className="prix7__choix prix7__choix--station">
           <ChoixStation relevees={relevees} />
         </div>
-        <div className="prix7__plages prix7__plages--cinq">
+        <div className="prix7__plages prix7__plages--six">
           {PLAGES_LOGEMENT.map((p) => (
             <PlageFiltre key={p.k} p={p} />
           ))}

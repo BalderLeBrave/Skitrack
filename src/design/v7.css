@@ -5711,6 +5711,68 @@
 .fourchette7__unite {
   margin-left: calc(var(--spacing) * 1);
 }
+.fourchette7__pastille {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: calc(var(--spacing) * 1.5);
+  border-radius: 50%;
+  vertical-align: baseline;
+}
+/* Plusieurs fourchettes à la suite, dans un panneau de filtres. */
+.fourchettes7 {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+/* Deux fourchettes côte à côte : les poignées débordent du rail d'une demi-
+   poignée, et un écart de 16 px les faisait se toucher d'une colonne à
+   l'autre. */
+.fourchettes7--deux {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: calc(var(--spacing) * 4) calc(var(--spacing) * 8);
+}
+.pop7__deux--fourchettes {
+  column-gap: calc(var(--spacing) * 8);
+}
+
+/* ── Sens du tri ── */
+/* `SensTri.tsx`. À côté de chaque critère de tri : il dit le sens courant et
+   l'inverse au clic. Même hauteur et même bord que `.select7`. */
+.sens7 {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  height: calc(var(--spacing) * 10);
+  padding: 0 calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-detail);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sens7:hover {
+  border-color: var(--color-ink);
+}
+.sens7 svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sens7__fleche--haut {
+  transform: rotate(180deg);
+}
+.sens7--petit {
+  height: calc(var(--spacing) * 8);
+  padding: 0 calc(var(--spacing) * 2.5);
+  font-size: var(--text-note);
+}
 
 /* ── Prix par station ───────────────────────────────────────────────────── */
 /* Écran hors parcours, maquette réexportée le 24 sept. 2026
@@ -5981,7 +6043,7 @@
   accent-color: var(--color-ink);
 }
 /* Les quatre fourchettes de « Par station », les cinq de « Par budget »
-   (`.prix7__plages--cinq`, plus bas ; Prix par station.dc.html:62, 145). */
+   (`.prix7__plages--six`, plus bas ; Prix par station.dc.html:62, 145). */
 .prix7__plages {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -6349,16 +6411,18 @@
 .prix7__choix--station .prix7__champ:first-child .prix7__select {
   max-width: calc(var(--spacing) * 85);
 }
-/* Personnes et chambres, puis les trois plages de station. Cinq colonnes
-   tiennent : 211 px à 1 440, 175 px à 1 100 (la largeur minimale de
-   l'application), et « 2000 » tient encore dans son champ. Le résumé passe
-   sous le libellé : sur une ligne, « Kilomètres de pistes » et « 100 km à
-   600 km » demandent 236 px, le libellé passait à la ligne dans une colonne
-   et pas dans sa voisine, et les rails ne s'alignaient plus. */
-.prix7__plages--cinq {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+/* Personnes, chambres et distance aux remontées, puis les trois plages de
+   station : deux rangées de trois. La distance était un choix de paliers ;
+   devenue fourchette, elle faisait une sixième colonne, et six colonnes à
+   1 100 px (la largeur minimale de l'application) ne laissaient plus à
+   « 2000 » la place de tenir dans son champ. Le résumé passe sous le
+   libellé : sur une ligne, « Kilomètres de pistes » et « 100 km à 600 km »
+   demandent 236 px, le libellé passait à la ligne dans une colonne et pas
+   dans sa voisine, et les rails ne s'alignaient plus. */
+.prix7__plages--six {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.prix7__plages--cinq .fourchette7__tete {
+.prix7__plages--six .fourchette7__tete {
   flex-direction: column;
   align-items: flex-start;
   gap: 0;

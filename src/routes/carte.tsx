@@ -3,13 +3,18 @@ import { Icon } from "@/components/Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Carte } from "@/components/Carte";
 import { Coquille } from "@/components/Coquille";
+import { Fourchette } from "@/components/v7/Fourchette";
+import { SensTri } from "@/components/v7/SensTri";
 import {
   activeFilterCount,
+  CARTE_ECHELLES,
   CARTE_ORDERS,
+  CARTE_SENS,
   CARTE_SORT_LABELS,
   COLOR_HEX,
   COLOR_KEYS,
   COLOR_LABELS,
+  COLOR_RANGE,
   filterMassif,
   formatKm,
   NO_FILTERS,
@@ -20,11 +25,14 @@ import {
   stationMassifs,
   stationTags,
   type CarteFilters,
+  type CarteFourchette,
   type CarteOrder,
   type ColorKey,
   type ColorUnit,
 } from "@/lib/carte";
+import { plageTexte, poserBorne } from "@/lib/plage";
 import { formatAlt, STATIONS, type Station } from "@/lib/stations";
+import { sensLbl, type Sens } from "@/lib/tri";
 import { maxM, minM, sansDomaineLbl } from "@/lib/v7";
 
 export const Route = createFileRoute("/carte")({ component: PageCarte });
@@ -32,12 +40,14 @@ export const Route = createFileRoute("/carte")({ component: PageCarte });
 const MASSIFS = stationMassifs(STATIONS);
 const DOMAINS = stationDomains(STATIONS);
 
-/** Bornes des curseurs, par unité de couleur. */
-const COLOR_RANGE: Record<ColorUnit, { max: number; step: number; suffix: string }> = {
-  pct: { max: 60, step: 5, suffix: " %" },
-  n: { max: 200, step: 5, suffix: " tronçons" },
-  km: { max: 200, step: 10, suffix: " km" },
-};
+/** Les fourchettes du panneau, dans l'ordre de lecture. */
+const FOURCHETTES: { k: CarteFourchette; label: string; unite: string; format: (v: number) => string }[] = [
+  { k: "villageM", label: "Village", unite: "m", format: formatAlt },
+  { k: "loM", label: "Bas des pistes", unite: "m", format: formatAlt },
+  { k: "hiM", label: "Sommet", unite: "m", format: formatAlt },
+  { k: "km", label: "Kilomètres de pistes", unite: "km", format: (v) => `${v.toLocaleString("fr-FR")} km` },
+  { k: "lifts", label: "Remontées", unite: "", format: (v) => v.toLocaleString("fr-FR") },
+];
 
 function PisteBar({ station }: { station: Station }) {
   const share = station.colorShare;
@@ -144,43 +154,12 @@ function StationRow({
   );
 }
 
-function RangeFilter({
-  label,
-  value,
-  max,
-  step,
-  format,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  max: number;
-  step: number;
-  format: (v: number) => string;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <label className="f">
-      <span className="f__lab">
-        <span>{label}</span>
-        <span className="num">{format(value)}</span>
-      </span>
-      <input
-        type="range"
-        min={0}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
-    </label>
-  );
-}
 
 function PageCarte() {
   const [massif, setMassif] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [order, setOrder] = useState<CarteOrder>("km");
+  const [sens, setSens] = useState<Sens>(CARTE_SENS.km);
   const [filters, setFilters] = useState<CarteFilters>(NO_FILTERS);
   const [unit, setUnit] = useState<ColorUnit>("pct");
   const [open, setOpen] = useState(false);
@@ -193,8 +172,8 @@ function PageCarte() {
     const kept = searchStations(filterMassif(STATIONS, massif), query).filter((s) =>
       passesFilters(s, filters, unit),
     );
-    return orderStations(kept, order);
-  }, [massif, query, filters, unit, order]);
+    return orderStations(kept, order, sens);
+  }, [massif, query, filters, unit, order, sens]);
   const visibleIds = useMemo(() => new Set(rows.map((s) => s.id)), [rows]);
   const nFilters = activeFilterCount(filters);
 
@@ -224,8 +203,18 @@ function PageCarte() {
     setCentreId(id);
   };
   const patch = (p: Partial<CarteFilters>) => setFilters((f) => ({ ...f, ...p }));
-  const setColor = (c: ColorKey, v: number) =>
-    setFilters((f) => ({ ...f, colors: { ...f.colors, [c]: v } }));
+  /** Pose une borne, depuis l'état courant : arrondie au pas au curseur,
+   *  telle quelle quand elle est tapée. */
+  const poser = (k: CarteFourchette, which: 0 | 1, v: number, exact: boolean) =>
+    setFilters((f) => {
+      const { b, pas } = CARTE_ECHELLES[k];
+      return { ...f, [k]: poserBorne(f[k], b, pas, which, v, exact) };
+    });
+  const poserCouleur = (c: ColorKey, which: 0 | 1, v: number, exact: boolean) =>
+    setFilters((f) => {
+      const { b, pas } = COLOR_RANGE[unit];
+      return { ...f, colors: { ...f.colors, [c]: poserBorne(f.colors[c], b, pas, which, v, exact) } };
+    });
   const range = COLOR_RANGE[unit];
 
   return (
@@ -292,7 +281,11 @@ function PageCarte() {
                 <select
                   className="carte__sort"
                   value={order}
-                  onChange={(e) => setOrder(e.target.value as CarteOrder)}
+                  onChange={(e) => {
+                    const o = e.target.value as CarteOrder;
+                    setOrder(o);
+                    setSens(CARTE_SENS[o]);
+                  }}
                 >
                   {CARTE_ORDERS.map(([id, label]) => (
                     <option key={id} value={id}>
@@ -301,54 +294,30 @@ function PageCarte() {
                   ))}
                 </select>
               </label>
+              <SensTri className="sens7--petit" sens={sens} alpha={order === "n"} onChange={setSens} />
             </div>
           </div>
 
           <div className="carte__body">
             {open ? (
-              <div className="filters">
+              /* `open` : sous la coquille hors parcours (`.v6`), la feuille v6
+                 cache `.filters` tant qu'il ne la porte pas, et le panneau ne
+                 s'affichait jamais. */
+              <div className="filters open">
                 <div className="filters__in">
-                  <div className="two">
-                    <RangeFilter
-                      label="Village, au minimum"
-                      value={filters.villageM}
-                      max={2400}
-                      step={100}
-                      format={(v) => (v ? `≥ ${formatAlt(v)}` : "Toutes")}
-                      onChange={(v) => patch({ villageM: v })}
-                    />
-                    <RangeFilter
-                      label="Bas des pistes, au minimum"
-                      value={filters.loM}
-                      max={2200}
-                      step={100}
-                      format={(v) => (v ? `≥ ${formatAlt(v)}` : "Toutes")}
-                      onChange={(v) => patch({ loM: v })}
-                    />
-                    <RangeFilter
-                      label="Sommet, au minimum"
-                      value={filters.hiM}
-                      max={3400}
-                      step={100}
-                      format={(v) => (v ? `≥ ${formatAlt(v)}` : "Toutes")}
-                      onChange={(v) => patch({ hiM: v })}
-                    />
-                    <RangeFilter
-                      label="Kilomètres de pistes, au minimum"
-                      value={filters.km}
-                      max={300}
-                      step={10}
-                      format={(v) => (v ? `≥ ${v} km` : "Toutes")}
-                      onChange={(v) => patch({ km: v })}
-                    />
-                    <RangeFilter
-                      label="Remontées, au minimum"
-                      value={filters.lifts}
-                      max={150}
-                      step={5}
-                      format={(v) => (v ? `≥ ${v}` : "Toutes")}
-                      onChange={(v) => patch({ lifts: v })}
-                    />
+                  <div className="two two--fourchettes">
+                    {FOURCHETTES.map((r) => (
+                      <Fourchette
+                        key={r.k}
+                        lbl={r.label}
+                        bornes={CARTE_ECHELLES[r.k].b}
+                        valeur={filters[r.k]}
+                        pas={CARTE_ECHELLES[r.k].pas}
+                        unite={r.unite}
+                        resume={plageTexte(filters[r.k], CARTE_ECHELLES[r.k].b, r.format)}
+                        onPoser={(which, v, exact) => poser(r.k, which, v, exact)}
+                      />
+                    ))}
                     <div className="f">
                       <span className="f__lab">
                         <span>Type</span>
@@ -377,7 +346,7 @@ function PageCarte() {
 
                   <div className="f">
                     <span className="f__lab">
-                      <span>Répartition par couleur, au minimum</span>
+                      <span>Répartition par couleur</span>
                       <span className="seg" role="group" aria-label="Unité">
                         {(
                           [
@@ -401,27 +370,19 @@ function PageCarte() {
                         ))}
                       </span>
                     </span>
-                    <div className="cols">
+                    <div className="two two--fourchettes">
                       {COLOR_KEYS.map((c) => (
-                        <label key={c} className="col">
-                          <span className="col__t">
-                            <i style={{ background: COLOR_HEX[c] }} />
-                            {COLOR_LABELS[c]}
-                          </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={range.max}
-                            step={range.step}
-                            value={filters.colors[c]}
-                            onChange={(e) => setColor(c, Number(e.target.value))}
-                          />
-                          <span className="col__v">
-                            {filters.colors[c]
-                              ? `≥ ${filters.colors[c]}${range.suffix}`
-                              : "Indifférent"}
-                          </span>
-                        </label>
+                        <Fourchette
+                          key={c}
+                          lbl={COLOR_LABELS[c]}
+                          pastille={COLOR_HEX[c]}
+                          bornes={range.b}
+                          valeur={filters.colors[c]}
+                          pas={range.pas}
+                          unite={range.unite}
+                          resume={plageTexte(filters.colors[c], range.b, (v) => `${v.toLocaleString("fr-FR")}${range.suffix}`)}
+                          onPoser={(which, v, exact) => poserCouleur(c, which, v, exact)}
+                        />
                       ))}
                     </div>
                     <p className="carte__note">
@@ -476,7 +437,10 @@ function PageCarte() {
               <span>
                 {rows.length} station{rows.length > 1 ? "s" : ""} sur {STATIONS.length}
               </span>
-              <span>Trié par {CARTE_SORT_LABELS[order]}</span>
+              <span>
+                Trié par {CARTE_SORT_LABELS[order]},{" "}
+                {order === "n" ? sensLbl(sens, true) : sensLbl(sens).toLowerCase()}
+              </span>
             </div>
             {rows.length === 0 ? (
               <p className="carte__empty">

@@ -29,8 +29,8 @@
  * La règle du référentiel français, tenue à l'identique : **une valeur absente
  * n'est pas un zéro.** Les fichiers omettent les clés non relevées plutôt que
  * de recopier 5 476 `null` ; la lecture ci-dessous les rétablit en `null`, pour
- * que les écrans voient une forme unique et que `atLeast` écarte un domaine non
- * mesuré au lieu de le compter comme nul.
+ * que les écrans voient une forme unique et que `dansPlage` écarte un domaine
+ * non mesuré au lieu de le compter comme nul.
  *
  * Un `0` écrit, lui, est un zéro relevé — un domaine dont aucune piste n'est
  * cartographiée en a un, et ce n'est pas la même chose qu'une absence.

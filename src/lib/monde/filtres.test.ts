@@ -20,6 +20,7 @@ import {
   passeFiltres,
   SEUILS_MONDE,
   trier,
+  type FiltresMonde,
 } from "./filtres.ts";
 import { domainesPays, type DomaineMonde } from "./monde.ts";
 
@@ -75,12 +76,23 @@ describe("le dénivelé se calcule, ou ne se calcule pas", () => {
   });
 });
 
-describe("un seuil porte sur une valeur mesurée", () => {
+describe("une fourchette porte sur une valeur mesurée", () => {
   it("le non relevé est écarté, pas compté pour zéro", () => {
     const sansKm = domaine({ id: "sans" });
     const avecKm = domaine({ id: "avec", km: 40 });
-    assert.equal(passeFiltres(sansKm, { ...AUCUN_FILTRE, km: 10 }), false);
-    assert.equal(passeFiltres(avecKm, { ...AUCUN_FILTRE, km: 10 }), true);
+    assert.equal(passeFiltres(sansKm, { ...AUCUN_FILTRE, km: [10, 300] }), false);
+    assert.equal(passeFiltres(avecKm, { ...AUCUN_FILTRE, km: [10, 300] }), true);
+    // Même une fourchette qui part de zéro : « jusqu'à 50 km » ne compte pas
+    // un domaine non relevé comme un domaine de zéro kilomètre.
+    assert.equal(passeFiltres(sansKm, { ...AUCUN_FILTRE, km: [0, 50] }), false);
+  });
+
+  it("les deux bornes comptent, la haute au bout de l'échelle veut dire « et plus »", () => {
+    const d = domaine({ id: "d", km: 120 });
+    assert.equal(passeFiltres(d, { ...AUCUN_FILTRE, km: [0, 100] }), false);
+    assert.equal(passeFiltres(d, { ...AUCUN_FILTRE, km: [100, 150] }), true);
+    assert.equal(passeFiltres(d, { ...AUCUN_FILTRE, km: [130, 300] }), false);
+    assert.equal(passeFiltres(domaine({ id: "g", km: 600 }), { ...AUCUN_FILTRE, km: [200, 300] }), true);
   });
 
   it("sans seuil, le non relevé reste dans la liste", () => {
@@ -90,12 +102,12 @@ describe("un seuil porte sur une valeur mesurée", () => {
   });
 
   it("un zéro relevé est un zéro, et il ne passe pas un seuil", () => {
-    assert.equal(passeFiltres(domaine({ id: "z", km: 0 }), { ...AUCUN_FILTRE, km: 10 }), false);
+    assert.equal(passeFiltres(domaine({ id: "z", km: 0 }), { ...AUCUN_FILTRE, km: [10, 300] }), false);
     assert.equal(passeFiltres(domaine({ id: "z", km: 0 }), AUCUN_FILTRE), true);
   });
 
   it("le dénivelé filtre sur le calcul, pas sur une moitié de couple", () => {
-    const f = { ...AUCUN_FILTRE, denivM: 1000 };
+    const f: FiltresMonde = { ...AUCUN_FILTRE, denivM: [1000, 2000] };
     assert.equal(passeFiltres(domaine({ id: "a", minM: 1000, maxM: 2500 }), f), true);
     assert.equal(passeFiltres(domaine({ id: "b", maxM: 2500 }), f), false);
   });
@@ -112,7 +124,7 @@ describe("les couleurs se filtrent sur ce qui est connu", () => {
 
   it("un seuil de noir écarte le domaine sans répartition", () => {
     // Et non : « il a 0 % de noir ». On ne sait pas ce qu'il a.
-    const f = { ...AUCUN_FILTRE, noirPct: 5 };
+    const f: FiltresMonde = { ...AUCUN_FILTRE, noirPct: [5, 50] };
     assert.equal(passeFiltres(domaine({ id: "connu" }), f, parts), true);
     assert.equal(passeFiltres(domaine({ id: "inconnu" }), f, parts), false);
   });
@@ -126,13 +138,13 @@ describe("les couleurs se filtrent sur ce qui est connu", () => {
 describe("le compteur de filtres actifs", () => {
   it("compte les seuils posés et la bascule", () => {
     assert.equal(filtresActifs(AUCUN_FILTRE), 0);
-    assert.equal(filtresActifs({ ...AUCUN_FILTRE, km: 20 }), 1);
-    assert.equal(filtresActifs({ ...AUCUN_FILTRE, km: 20, avecCouleurs: true }), 2);
+    assert.equal(filtresActifs({ ...AUCUN_FILTRE, km: [20, 300] }), 1);
+    assert.equal(filtresActifs({ ...AUCUN_FILTRE, km: [20, 300], avecCouleurs: true }), 2);
   });
 
   it("chaque seuil de la table est comptable", () => {
     for (const s of SEUILS_MONDE) {
-      assert.equal(filtresActifs({ ...AUCUN_FILTRE, [s.k]: s.step }), 1, s.k);
+      assert.equal(filtresActifs({ ...AUCUN_FILTRE, [s.k]: [s.pas, s.b[1]] }), 1, s.k);
     }
   });
 });
@@ -163,6 +175,22 @@ describe("le tri range le non mesuré en dernier, dans les deux sens", () => {
     assert.deepEqual(
       trier(lot, "nom").map((d) => d.nom),
       ["Élan", "Zermatt"],
+    );
+    assert.deepEqual(
+      trier(lot, "nom", -1).map((d) => d.nom),
+      ["Zermatt", "Élan"],
+    );
+  });
+
+  it("dans l'autre sens, le plus petit d'abord, le non mesuré toujours en dernier", () => {
+    const lot = [
+      domaine({ id: "sans", nom: "Sans" }),
+      domaine({ id: "petit", nom: "Petit", km: 5 }),
+      domaine({ id: "grand", nom: "Grand", km: 200 }),
+    ];
+    assert.deepEqual(
+      trier(lot, "km", 1).map((d) => d.id),
+      ["petit", "grand", "sans"],
     );
   });
 });
@@ -203,9 +231,16 @@ describe("sur le référentiel réel", () => {
       assert.equal(parKm[parKm.length - 1]?.km, null);
     }
 
-    // Un seuil ne garde que du mesuré, jamais un `null` requalifié en zéro.
-    const grands = at.filter((d) => passeFiltres(d, { ...AUCUN_FILTRE, km: 50 }));
+    // Une fourchette ne garde que du mesuré, jamais un `null` requalifié en zéro.
+    const grands = at.filter((d) => passeFiltres(d, { ...AUCUN_FILTRE, km: [50, 300] }));
     assert.ok(grands.length > 0);
     assert.ok(grands.every((d) => d.km != null && d.km >= 50));
+    const petits = at.filter((d) => passeFiltres(d, { ...AUCUN_FILTRE, km: [0, 20] }));
+    assert.ok(petits.length > 0);
+    assert.ok(petits.every((d) => d.km != null && d.km <= 20));
+    // Et le tri croissant garde le non mesuré en queue lui aussi.
+    const croissant = trier(at, "km", 1);
+    assert.notEqual(croissant[0]?.km, null);
+    if (sansKm.length) assert.equal(croissant[croissant.length - 1]?.km, null);
   });
 });

@@ -106,15 +106,33 @@ test("orderStations trie sans muter la source, non mesuré en queue", () => {
   assert.equal(ROWS[0].id, "megeve");
 });
 
-test("un seuil actif écarte la station dont le champ n’est pas mesuré", () => {
+test("orderStations trie dans les deux sens, non mesuré en queue dans les deux", () => {
+  const ids = (o: Parameters<typeof orderStations>[1], sens: 1 | -1) =>
+    orderStations(ROWS, o, sens).map((s) => s.id);
+  assert.deepEqual(ids("hi", 1), ["megeve", "alpe", "2alpes"]);
+  assert.deepEqual(ids("km", 1), ["2alpes", "alpe", "megeve"]);
+  assert.deepEqual(ids("n", -1), ["megeve", "2alpes", "alpe"]);
+  // Une altitude à zéro n'est pas mesurée : en queue, même en croissant.
+  const sansAlt = { ...ROWS[0], id: "zero", minM: 0, maxM: 0, villageM: 0 };
+  assert.deepEqual(
+    orderStations([sansAlt, ...ROWS], "hi", 1).map((s) => s.id),
+    ["megeve", "alpe", "2alpes", "zero"],
+  );
+});
+
+test("une fourchette active écarte la station dont le champ n’est pas mesuré", () => {
   const s = ROWS[0];
   assert.equal(s.lifts, null);
   assert.equal(passesFilters(s, NO_FILTERS, "pct"), true);
-  // Seuil sur un champ non mesuré : la station sort, elle n’est pas un zéro.
-  assert.equal(passesFilters(s, { ...NO_FILTERS, lifts: 5 }, "pct"), false);
-  // Seuil sur un champ mesuré.
-  assert.equal(passesFilters(s, { ...NO_FILTERS, hiM: 2000 }, "pct"), true);
-  assert.equal(passesFilters(s, { ...NO_FILTERS, hiM: 3000 }, "pct"), false);
+  // Fourchette sur un champ non mesuré : la station sort, elle n’est pas un
+  // zéro, même quand la fourchette part de zéro.
+  assert.equal(passesFilters(s, { ...NO_FILTERS, lifts: [5, 150] }, "pct"), false);
+  assert.equal(passesFilters(s, { ...NO_FILTERS, lifts: [0, 20] }, "pct"), false);
+  // Fourchette sur un champ mesuré : les deux bornes comptent.
+  assert.equal(passesFilters(s, { ...NO_FILTERS, hiM: [2000, 3400] }, "pct"), true);
+  assert.equal(passesFilters(s, { ...NO_FILTERS, hiM: [3000, 3400] }, "pct"), false);
+  assert.equal(passesFilters(s, { ...NO_FILTERS, hiM: [0, s.maxM - 100] }, "pct"), false);
+  assert.equal(passesFilters(s, { ...NO_FILTERS, hiM: [0, s.maxM] }, "pct"), true);
 });
 
 test("colorValue : trois unités, et null quand la couleur n’est pas relevée", () => {
@@ -134,9 +152,12 @@ test("colorValue : trois unités, et null quand la couleur n’est pas relevée"
 
 test("activeFilterCount compte chaque critère posé", () => {
   assert.equal(activeFilterCount(NO_FILTERS), 0);
-  assert.equal(activeFilterCount({ ...NO_FILTERS, hiM: 3000, kind: "station" }), 2);
+  assert.equal(activeFilterCount({ ...NO_FILTERS, hiM: [3000, 3400], kind: "station" }), 2);
   assert.equal(
-    activeFilterCount({ ...NO_FILTERS, colors: { green: 10, blue: 0, red: 5, black: 0 } }),
+    activeFilterCount({
+      ...NO_FILTERS,
+      colors: { green: [10, 60], blue: null, red: [0, 5], black: null },
+    }),
     2,
   );
 });

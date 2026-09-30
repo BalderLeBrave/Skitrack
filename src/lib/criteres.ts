@@ -14,10 +14,30 @@
  * Règle d'écriture : **un critère au repos ne s'écrit pas**. Une adresse ne
  * porte que ce qui a été demandé, si bien que `/comparer` sans paramètre veut
  * dire « la liste complète, tri par défaut », et le dit sans ambiguïté.
+ *
+ * Une fourchette s'écrit « 1800- » (au moins), « -300 » (au plus) ou
+ * « 1800-2400 » (`encoderPlage`). Un nombre seul, l'écriture des anciens
+ * seuils, se relit comme le seuil qu'il était : un ancien lien ouvre la même
+ * recherche.
  */
 
 import { useEffect, useRef } from "react";
-import { COLS, FILTERS_INITIAL, useParcours, type ChipKey, type ColorUnit, type Filters, type PisteColor, type SortKey } from "./parcours.ts";
+import {
+  COLS,
+  ECHELLES,
+  ECHELLES_COULEUR,
+  FILTERS_INITIAL,
+  SENS_TRI,
+  useParcours,
+  type ChipKey,
+  type CleFourchette,
+  type ColorUnit,
+  type Filters,
+  type PisteColor,
+  type SortKey,
+} from "./parcours.ts";
+import { decoderPlage, encoderPlage, type Plage } from "./plage.ts";
+import type { Sens } from "./tri.ts";
 import { CHIPS } from "./v7.ts";
 import { stationById } from "./stations.ts";
 import { useStay } from "./stay.ts";
@@ -28,16 +48,18 @@ export type Criteres = {
   q?: string;
   station?: string;
   massif?: string;
-  v?: number;
-  lo?: number;
-  hi?: number;
-  km?: number;
-  pass?: number;
-  budget?: number;
+  v?: Plage;
+  lo?: Plage;
+  hi?: Plage;
+  km?: Plage;
+  pass?: Plage;
+  budget?: Plage;
   dom?: string;
-  col?: Partial<Record<PisteColor, number>>;
+  col?: Partial<Record<PisteColor, Plage>>;
   chips?: ChipKey[];
   tri?: SortKey;
+  /** Le sens du tri ; absent, celui de départ du critère (`SENS_TRI`). */
+  sens?: Sens;
   unite?: ColorUnit;
   du?: string;
   au?: string;
@@ -45,7 +67,10 @@ export type Criteres = {
   ch?: number;
 };
 
-const SEUILS = ["v", "lo", "hi", "km", "pass", "budget"] as const;
+const FOURCHETTES: readonly CleFourchette[] = ["v", "lo", "hi", "km", "pass", "budget"];
+/** Les anciens seuils « au plus » : un nombre seul s'y relit `[0, n]`. */
+const AU_PLUS: ReadonlySet<CleFourchette> = new Set(["pass", "budget"]);
+const SENS_ECRITS: Record<Sens, string> = { 1: "croissant", [-1]: "decroissant" };
 const TRIS: SortKey[] = ["km", "hi", "lo", "v", "pass", "n"];
 const UNITES: ColorUnit[] = ["pct", "n", "km"];
 const JOUR = /^\d{4}-\d{2}-\d{2}$/;
@@ -65,15 +90,20 @@ export function encoderCriteres(c: Criteres): string {
   // fois la même chose dans une adresse, c'est une occasion de diverger.
   if (c.q && (!c.station || c.q !== stationById(c.station)?.name)) p.set("q", c.q);
   if (c.massif) p.set("massif", c.massif);
-  for (const k of SEUILS) {
-    const n = c[k];
-    if (n) p.set(k, String(n));
+  for (const k of FOURCHETTES) {
+    const t = encoderPlage(c[k] ?? null, ECHELLES[k].b);
+    if (t) p.set(k, t);
   }
   if (c.dom) p.set("dom", c.dom);
-  const col = Object.entries(c.col ?? {}).filter(([, v]) => v);
-  if (col.length) p.set("col", col.map(([k, v]) => `${k}:${v}`).join(","));
+  const bCol = ECHELLES_COULEUR[c.unite ?? "pct"].b;
+  const col = Object.entries(c.col ?? {})
+    .map(([k, pl]) => [k, encoderPlage(pl ?? null, bCol)] as const)
+    .filter(([, t]) => t);
+  if (col.length) p.set("col", col.map(([k, t]) => `${k}:${t}`).join(","));
   if (c.chips?.length) p.set("chips", c.chips.join(","));
-  if (c.tri && c.tri !== "km") p.set("tri", c.tri);
+  const tri = c.tri ?? "km";
+  if (tri !== "km") p.set("tri", tri);
+  if (c.sens && c.sens !== SENS_TRI[tri]) p.set("sens", SENS_ECRITS[c.sens]);
   if (c.unite && c.unite !== "pct") p.set("unite", c.unite);
   if (c.du) p.set("du", c.du);
   if (c.au) p.set("au", c.au);
@@ -96,20 +126,23 @@ export function decoderCriteres(search: string): Criteres {
   else if (out.station) out.q = stationById(out.station)?.name;
   const massif = p.get("massif");
   if (massif) out.massif = massif;
-  for (const k of SEUILS) {
-    const n = entier(p.get(k));
-    if (n) out[k] = n;
+  for (const k of FOURCHETTES) {
+    const pl = decoderPlage(p.get(k), ECHELLES[k].b, AU_PLUS.has(k));
+    if (pl) out[k] = pl;
   }
   const dom = p.get("dom");
   if (dom) out.dom = dom;
+  const unite = p.get("unite");
+  if (unite && UNITES.includes(unite as ColorUnit)) out.unite = unite as ColorUnit;
   const col = p.get("col");
   if (col) {
     const cle = new Set(COLS.map((c) => c.key as string));
-    const lu: Partial<Record<PisteColor, number>> = {};
+    const bCol = ECHELLES_COULEUR[out.unite ?? "pct"].b;
+    const lu: Partial<Record<PisteColor, Plage>> = {};
     for (const part of col.split(",")) {
       const [k, v] = part.split(":");
-      const n = entier(v ?? null, 1000);
-      if (k && cle.has(k) && n) lu[k as PisteColor] = n;
+      const pl = decoderPlage(v ?? null, bCol);
+      if (k && cle.has(k) && pl) lu[k as PisteColor] = pl;
     }
     if (Object.keys(lu).length) out.col = lu;
   }
@@ -121,8 +154,9 @@ export function decoderCriteres(search: string): Criteres {
   }
   const tri = p.get("tri");
   if (tri && TRIS.includes(tri as SortKey)) out.tri = tri as SortKey;
-  const unite = p.get("unite");
-  if (unite && UNITES.includes(unite as ColorUnit)) out.unite = unite as ColorUnit;
+  const sens = p.get("sens");
+  if (sens === "croissant") out.sens = 1;
+  else if (sens === "decroissant") out.sens = -1;
   const du = p.get("du");
   if (du && JOUR.test(du)) out.du = du;
   const au = p.get("au");
@@ -143,16 +177,17 @@ export function criteresCourants(): Criteres {
     q: p.q.trim() || undefined,
     station: p.stationId ?? undefined,
     massif: p.massif ?? undefined,
-    v: f.v || undefined,
-    lo: f.lo || undefined,
-    hi: f.hi || undefined,
-    km: f.km || undefined,
-    pass: f.pass || undefined,
-    budget: f.budget || undefined,
+    v: f.v ?? undefined,
+    lo: f.lo ?? undefined,
+    hi: f.hi ?? undefined,
+    km: f.km ?? undefined,
+    pass: f.pass ?? undefined,
+    budget: f.budget ?? undefined,
     dom: f.dom || undefined,
     col: f.col,
     chips: (Object.keys(f.chips) as ChipKey[]).filter((k) => f.chips[k]),
     tri: p.sortKey,
+    sens: p.sortDir,
     unite: p.unit,
     du: st.checkIn,
     au: st.checkOut,
@@ -166,12 +201,12 @@ export function criteresCourants(): Criteres {
 export function appliquerCriteres(c: Criteres): void {
   const filters: Filters = {
     ...FILTERS_INITIAL,
-    v: c.v ?? 0,
-    lo: c.lo ?? 0,
-    hi: c.hi ?? 0,
-    km: c.km ?? 0,
-    pass: c.pass ?? 0,
-    budget: c.budget ?? 0,
+    v: c.v ?? null,
+    lo: c.lo ?? null,
+    hi: c.hi ?? null,
+    km: c.km ?? null,
+    pass: c.pass ?? null,
+    budget: c.budget ?? null,
     dom: c.dom ?? "",
     col: { ...FILTERS_INITIAL.col, ...(c.col ?? {}) },
     chips: Object.fromEntries((c.chips ?? []).map((k) => [k, true])),
@@ -182,6 +217,7 @@ export function appliquerCriteres(c: Criteres): void {
     stationId: c.station ?? null,
     massif: c.massif ?? null,
     sortKey: c.tri ?? "km",
+    sortDir: c.sens ?? SENS_TRI[c.tri ?? "km"],
     unit: c.unite ?? "pct",
     filters,
     // Changer de station emporte le logement choisi et le drapeau « réservé »,

@@ -53,3 +53,6 @@ scrape/.venv/
 
 # Journal local, écrit à la main dans le dossier du dépôt.
 app.log
+
+# Dossiers de travail des relevés (docs/WEBCAMS.md, docs/PISTES-DETAIL.md).
+travail/

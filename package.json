@@ -33,6 +33,7 @@
     "manques:importer": "python scripts/importer-manques.py",
     "tuiles:filtrer": "python scripts/filtrer-openskidata-europe.py",
     "pistes:detail": "python scripts/build-pistes-detail.py",
+    "webcams:generer": "node scripts/webcams/generer.mjs",
     "tuiles:batir": "node --experimental-strip-types --max-old-space-size=12000 scripts/build-tuiles-openskimap.ts",
     "tuiles:style": "node --experimental-strip-types scripts/adapter-style-openskimap.ts",
     "tuiles:sprite": "python scripts/dessiner-sprite-ski.py",

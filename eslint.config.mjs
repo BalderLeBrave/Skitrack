@@ -15,6 +15,13 @@ export default tseslint.config(
       ".nitro/**",
       "node_modules/**",
       "src/routeTree.gen.ts",
+      // Sorties de build et dossiers locaux, ignorés par git : l'application
+      // empaquetée (release/), les worktrees des sessions (.claude/), les
+      // dossiers de travail des relevés.
+      "release/**",
+      ".claude/**",
+      "out/**",
+      "travail/**",
     ],
   },
   js.configs.recommended,

@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Listing } from "../listings.ts";
 import {
+  airbnbComplet,
   choisirFiches,
   clePage,
   cleUrl,
@@ -10,6 +11,7 @@ import {
   estPageDeSite,
   raisonDeLaisser,
   trousDe,
+  troisChampsAirbnb,
   urlPropre,
   urlsPartagees,
   VALEUR_DU_TEXTE,
@@ -68,10 +70,35 @@ describe("ouvrir une fiche seulement si elle peut combler", () => {
     assert.equal(raisonDeLaisser(annonce({ title: "photos_ab12_1234" }), ABRITEL), null);
   });
 
-  it("Airbnb : rooms/ seulement pour un GPS vide, comme avant", () => {
-    const sansCap = annonce({ source: "Airbnb", capacity: null, bedrooms: null });
-    assert.equal(raisonDeLaisser(sansCap, AIRBNB), "Airbnb avec GPS");
-    assert.equal(raisonDeLaisser({ ...sansCap, lat: null, lon: null }, AIRBNB), null);
+  it("Airbnb : laissée seulement avec GPS, capacité et chambres ; sinon la PDP est lue", () => {
+    const base = annonce({ source: "Airbnb", capacity: null, bedrooms: null });
+    // GPS sans capacité ni chambres : à lire.
+    assert.equal(raisonDeLaisser(base, AIRBNB), null);
+    // Capacité sans chambres, ou chambres sans capacité : à lire.
+    assert.equal(raisonDeLaisser({ ...base, capacity: 4 }, AIRBNB), null);
+    assert.equal(raisonDeLaisser({ ...base, bedrooms: 2 }, AIRBNB), null);
+    // GPS manquant, même avec capacité et chambres : à lire.
+    assert.equal(raisonDeLaisser({ ...base, capacity: 4, bedrooms: 2, lat: null, lon: null }, AIRBNB), null);
+    assert.equal(raisonDeLaisser({ ...base, capacity: 4, bedrooms: 2, lat: 0, lon: 0 }, AIRBNB), null);
+    // Les trois : laissée.
+    assert.equal(raisonDeLaisser({ ...base, capacity: 4, bedrooms: 2 }, AIRBNB), "Airbnb avec GPS");
+    // 0 chambre (studio) est une valeur, pas un trou.
+    assert.equal(raisonDeLaisser({ ...base, capacity: 2, bedrooms: 0 }, AIRBNB), "Airbnb avec GPS");
+    // 0 personne n'est pas une capacité.
+    assert.equal(raisonDeLaisser({ ...base, capacity: 0, bedrooms: 1 }, AIRBNB), null);
+  });
+
+  it("Airbnb : ce qui manque se nomme, GPS compris", () => {
+    const base = annonce({ source: "Airbnb" });
+    assert.equal(airbnbComplet(base), true);
+    assert.deepEqual(troisChampsAirbnb(base), []);
+    assert.deepEqual(troisChampsAirbnb({ ...base, lat: null, capacity: null, bedrooms: null }), [
+      "gps",
+      "capacity",
+      "bedrooms",
+    ]);
+    assert.deepEqual(troisChampsAirbnb({ ...base, capacity: 0 }), ["capacity"]);
+    assert.deepEqual(troisChampsAirbnb({ ...base, bedrooms: 0 }), []);
   });
 
   it("une page hôte GreenGo n'est jamais ouverte : seule l'API de détail est sûre", () => {
@@ -197,19 +224,25 @@ describe("une URL commune n'est jamais prise pour une fiche", () => {
 });
 
 describe("choisir avant de borner", () => {
-  it("les Airbnb à GPS ne prennent plus la place des fiches qu'on ouvre", () => {
-    const airbnbs = Array.from({ length: 170 }, (_, i) =>
-      annonce({ id: `a${i}`, source: "Airbnb", capacity: null, bedrooms: null, url: `${AIRBNB}${i}` }),
-    );
+  it("le seau « Airbnb avec GPS » ne compte que les annonces complètes, qui ne prennent pas la place des autres", () => {
+    // 100 complètes (GPS, capacité, chambres, dont 10 studios à 0 chambre),
+    // 40 sans capacité, 25 sans chambres, 5 sans GPS : seules les 100
+    // complètes restent dans le seau ; les 70 autres sont lues.
+    const n = { complets: 100, sansCapacite: 40, sansChambres: 25, sansGps: 5 };
+    const airbnb = (id: string, extra: Partial<Listing>) =>
+      annonce({ id, source: "Airbnb", capacity: 4, bedrooms: 2, url: `${AIRBNB}${id}`, ...extra });
+    const lot = [
+      ...Array.from({ length: n.complets }, (_, i) => airbnb(`a${i}`, i < 10 ? { bedrooms: 0 } : {})),
+      ...Array.from({ length: n.sansCapacite }, (_, i) => airbnb(`c${i}`, { capacity: null })),
+      ...Array.from({ length: n.sansChambres }, (_, i) => airbnb(`b${i}`, { bedrooms: null })),
+      ...Array.from({ length: n.sansGps }, (_, i) => airbnb(`n${i}`, { lat: null, lon: null })),
+    ];
     const gite = annonce({ id: "g", source: "Gîtes de France", capacity: null, url: GITES });
-    const airbnbSansGps = annonce({ id: "n", source: "Airbnb", capacity: null, lat: null, lon: null, url: AIRBNB });
-    const { aLire, laissees } = choisirFiches([...airbnbs, gite, airbnbSansGps], (l) => l.url);
-    assert.deepEqual(
-      aLire.map((l) => l.id),
-      ["g", "n"],
-    );
-    assert.equal(laissees.get("Airbnb avec GPS"), 170);
-    assert.equal(ecrireLaissees(laissees), " · laissées : Airbnb avec GPS 170");
+    const { aLire, laissees } = choisirFiches([...lot, gite], (l) => l.url);
+    assert.equal(laissees.get("Airbnb avec GPS"), n.complets);
+    assert.equal(aLire.length, n.sansCapacite + n.sansChambres + n.sansGps + 1);
+    assert.ok(aLire.every((l) => !l.id.startsWith("a")));
+    assert.equal(ecrireLaissees(laissees), " · laissées : Airbnb avec GPS 100");
   });
 
   it("une annonce sans URL de fiche n'est ni lue ni comptée", () => {

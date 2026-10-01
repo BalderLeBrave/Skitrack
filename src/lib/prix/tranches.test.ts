@@ -94,9 +94,17 @@ describe("complétion d'une station : l'état entre deux tranches", () => {
       proven: `CozyCozy Abritel live ${IN}→${OUT}`,
       url: "https://www.abritel.fr/location-vacances/p9",
     });
-    const sansRien = muet(9, { title: "Chalet des Cimes, vue glacier" });
+    const sansRien = annonce({
+      id: "bk-9",
+      source: "Booking",
+      title: "Chalet des Cimes, vue glacier",
+      proven: `CozyCozy Booking live ${IN}→${OUT}`,
+      url: "https://www.booking.com/hotel/fr/chalet-des-cimes.html",
+      capacity: null,
+      bedrooms: null,
+    });
     const c = debutCompletion([sansRien, soeur], S2A);
-    // La sœur est complète ; le muet ne l'est pas encore dans le relevé brut.
+    // La sœur est complète ; la muette ne l'est pas encore dans le relevé brut.
     assert.deepEqual(
       c.connues.map((x) => x.cle),
       ["Abritel:abr-9"],
@@ -104,6 +112,24 @@ describe("complétion d'une station : l'état entre deux tranches", () => {
     assert.equal(c.listings[0].capacity, 8);
     assert.match(c.listings[0].proven, /même logement/);
     assert.equal(aEnvoyer(c, CTX, "actives").length, 0);
+  });
+
+  it("un Airbnb muet ne reçoit rien de sa sœur : il part à sa page, et reste au relevé", () => {
+    const soeur = annonce({
+      id: "abr-9",
+      source: "Abritel",
+      title: "Chalet des Cimes, vue glacier",
+      proven: `CozyCozy Abritel live ${IN}→${OUT}`,
+      url: "https://www.abritel.fr/location-vacances/p9",
+    });
+    const sansRien = muet(9, { title: "Chalet des Cimes, vue glacier" });
+    const c = debutCompletion([sansRien, soeur], S2A);
+    assert.equal(c.listings.length, 2);
+    assert.deepEqual([c.listings[0].capacity, c.listings[0].bedrooms], [null, null]);
+    assert.deepEqual(
+      aEnvoyer(c, CTX, "actives").map((l) => l.id),
+      ["abnb-9"],
+    );
   });
 
   it("n'envoie ni l'essayée, ni la laissée, ni Airbnb quand ses fiches sont suspendues", () => {

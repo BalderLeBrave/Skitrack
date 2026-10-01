@@ -34,6 +34,7 @@ import { airbnbIdOf } from "../stay/enrichir.ts";
 import { comblerDepuisMemoire, type ValeursFiche } from "../stay/memoireFiches.server.ts";
 import { qualifierLogement, sourceCapacite, sourceChambres } from "../stay/logement.ts";
 import { cleListing } from "../stay/poserReleve.ts";
+import { gpsPrecis } from "../stay/lodgingFilter.ts";
 import { airbnbSuspendu, manqueFiche, type CandidateFiche, type FicheConnue } from "./calcul.ts";
 
 /** Ce qu'une tranche prend au plus, réponse comprise. */
@@ -176,6 +177,9 @@ const CHAMPS = [
   "locality",
   "title",
   "proven",
+  // Airbnb : d'où vient le point, et si la page a été lue (`repliGps.ts`).
+  "gpsSource",
+  "pdpLue",
 ] as const satisfies readonly (keyof Listing)[];
 
 function correctif(avant: Listing, apres: Listing): Partial<Listing> | null {
@@ -269,16 +273,27 @@ async function trancheAirbnb(
         bilan.retires.push(row.id);
         continue;
       }
+      // La page du logement a été lue : ce qui y manque y manque vraiment.
+      // Pas une page d'un lot jugé illisible : elle se relira.
+      if (lue) row.pdpLue = true;
+      const sansPoint = !gpsPrecis(row);
       if (comblerDepuisMemoire(row, f)) {
         Object.assign(row, qualifierLogement(row));
+        if (sansPoint && gpsPrecis(row)) row.gpsSource = "pdp";
         marquer(row, MARQUE_AIRBNB);
+      } else if (row.pdpLue && row.capacity == null) {
+        // Sans personCapacity : la capacité du titre (`capaciteIntrouvable`).
+        Object.assign(row, qualifierLogement(row));
       }
     }
   }
   for (const id of lu.vides) {
     for (const row of parId.get(id) ?? []) {
       bilan.essayees.push(row.id);
-      if (lue) bilan.lectures.push({ cle: cleDe(row), lue: true });
+      if (!lue) continue;
+      row.pdpLue = true;
+      if (row.capacity == null) Object.assign(row, qualifierLogement(row));
+      bilan.lectures.push({ cle: cleDe(row), lue: true });
     }
   }
 
@@ -350,6 +365,12 @@ export async function trancheProfonde(d: DemandeTranche, deps: Dependances): Pro
       if (comblerDepuisMemoire(row, m)) {
         Object.assign(row, qualifierLogement(row));
         marquer(row, MARQUE_MEMOIRE);
+      }
+      if (row.source === "Airbnb" && m.lue) {
+        // Sa page a été lue : ce qui y manque y manque vraiment, et une
+        // capacité absente devient celle du titre (`capaciteIntrouvable`).
+        row.pdpLue = true;
+        if (row.capacity == null) Object.assign(row, qualifierLogement(row));
       }
       // Sa fiche Airbnb a été lue il y a moins de trente jours, et ne publie
       // pas ce qui manque encore : la redemander coûterait une requête pour rien.

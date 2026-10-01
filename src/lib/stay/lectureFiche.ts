@@ -8,6 +8,7 @@
  */
 
 import { lireLogement, type SourceCapacite, type SourceValeur } from "./logement.ts";
+import type { SourceGps } from "./repliGps.ts";
 import type { Occupancy } from "./occupancy.ts";
 import { taxeSejourSomme } from "./tarif.ts";
 import { titrePublie } from "./titre.ts";
@@ -26,6 +27,12 @@ export type LectureFiche = OccupancyLue & {
   locality: string | null;
   /** Rue publiée (JSON-LD `streetAddress`), pour un GPS encore vide. */
   street: string | null;
+  /** Code postal publié (JSON-LD `postalCode`), avec la rue. */
+  postcode?: string | null;
+  /** D'où vient le point, quand c'est une page Airbnb (`repliGps.ts`). */
+  gpsSource?: SourceGps | null;
+  /** La page Airbnb a été lue : ce qui y manque y manque vraiment. */
+  pageLue?: boolean;
   /** Nom de l'annonce tel que la fiche le publie (`h1`, og:title). */
   title: string | null;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
@@ -134,6 +141,7 @@ function mergeLecture(a: LectureFiche, b: LectureFiche): LectureFiche {
     lon: gps.lon,
     locality: a.locality ?? b.locality,
     street: a.street ?? b.street,
+    postcode: a.postcode ?? b.postcode ?? null,
     // Chaque titre est déjà passé par `titrePublie` : le relire le décoderait une fois de plus.
     title: a.title ?? b.title,
     taxeSejour: a.taxeSejour ?? b.taxeSejour,
@@ -195,6 +203,15 @@ function fromRecord(o: Record<string, unknown>): LectureFiche {
         : ""
       : "");
   if (streetRaw) out = { ...out, street: streetRaw.replace(/,\s*$/, "").trim() };
+  const adresse =
+    o.address && typeof o.address === "object" && !Array.isArray(o.address)
+      ? (o.address as Record<string, unknown>)
+      : null;
+  const cp = adresse?.postalCode ?? o.postalCode;
+  if (typeof cp === "string" || typeof cp === "number") {
+    const code = String(cp).match(/\b\d{5}\b/)?.[0];
+    if (code) out = { ...out, postcode: code };
+  }
   const name = typeof o.name === "string" ? o.name : null;
   const kind = String(o["@type"] ?? "");
   const lodging = LOGEMENT.test(kind);
@@ -440,6 +457,38 @@ function fromGpsTexte(html: string, loueur: PointsLoueur): LectureFiche {
     }
   }
   return { ...VIDE };
+}
+
+/**
+ * Une vraie page de logement Airbnb : ses données (`data-deferred-state`,
+ * `pdpSections`) ou l'un des quatre champs. Une coquille, un mur de connexion
+ * ou une page d'erreur sans eux n'est pas une page lue : rien n'y manque
+ * « vraiment », et elle se relira.
+ */
+export function pageAirbnbLisible(html: string): boolean {
+  return /id=["']data-deferred-state-\d+["']|"pdpSections"|"personCapacity"|"bedroomCount"|"listingLat"/.test(html);
+}
+
+/**
+ * La page d'un logement Airbnb (PDP, `rooms/`) : les quatre champs qu'elle
+ * publie, et eux seuls. Règle du propriétaire (1er octobre 2026) : pour
+ * Airbnb, c'est la seule source de rattrapage. `personCapacity` et
+ * `bedroomCount` sont structurés ; `listingLat` et `listingLng` font le point,
+ * de provenance `pdp`. Ni titre, ni description, ni méta, ni texte : un champ
+ * absent reste un trou, que le journal nomme. 0 chambre est un studio ; 0
+ * personne n'est pas une capacité.
+ */
+export function lectureAirbnb(html: string): LectureFiche {
+  let out: LectureFiche = { ...VIDE };
+  if (!html) return out;
+  const capacite = takeGuests(html.match(/"personCapacity"\s*:\s*(\d+)/)?.[1]);
+  if (capacite != null) out = { ...out, capacity: capacite, capacitySource: "structured" };
+  const chambres = takeBeds(html.match(/"bedroomCount"\s*:\s*(\d+)/)?.[1]);
+  if (chambres != null) out = { ...out, bedrooms: chambres, bedroomsSource: "structured" };
+  const lat = Number(html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
+  const lon = Number(html.match(/"listingLng"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
+  if (plausible(lat, lon)) out = { ...out, lat, lon, gpsSource: "pdp" };
+  return out;
 }
 
 /**

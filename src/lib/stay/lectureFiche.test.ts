@@ -312,7 +312,7 @@ describe("decodeHtml : entités d'un attribut content", () => {
 });
 
 describe("poserReleve : même annonce, champs déjà lus", () => {
-  it("recopie capacité, chambres et GPS d'un relevé au même identifiant Airbnb", () => {
+  it("recopie chambres et GPS d'un relevé au même identifiant Airbnb, jamais une capacité tirée d'un titre", () => {
     const dump = [
       {
         id: "abnb-old",
@@ -346,7 +346,9 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
     ];
     assert.equal(cleListing(live[0]), "Airbnb:27623894");
     assert.equal(poserReleve(live, dump), 1);
-    assert.equal(live[0].capacity, 8);
+    // « 6-8 pers » dans le titre n'est pas une capacité Airbnb (règle du
+    // 1er octobre 2026) : seule la page du logement la donnera.
+    assert.equal(live[0].capacity, null);
     assert.equal(live[0].bedrooms, 3);
     assert.equal(live[0].lat, 45.022);
     assert.equal(live[0].lon, 6.1247);

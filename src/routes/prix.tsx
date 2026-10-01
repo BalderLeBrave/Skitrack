@@ -66,6 +66,7 @@ import {
   filtrerCartes,
   grpKey,
   idsALancer,
+  toutesALancer,
   jetons,
   jetonsBudget,
   lieuSansReleve,
@@ -100,6 +101,8 @@ import {
   plur,
   poserBorne,
   relLbl,
+  relToutesLbl,
+  dureeReleveLbl,
   releveLbl,
   retirerJeton,
   sourcesBudget,
@@ -971,6 +974,28 @@ function VueBudget({
     sansPosition.some((s) => course.ids.slice(course.i).includes(s.id));
   const passee = estPassee(per, todayIso());
 
+  // « Relever toutes les stations » (demande du 1er octobre 2026) : celles
+  // qui n'ont pas encore de relevé pour ces dates et ce groupe, puis, toutes
+  // faites, toutes à nouveau (`toutesALancer`). Leurs logements arrivent dans
+  // la liste et sur la carte au fil des stations terminées.
+  const toutes = useMemo(
+    () =>
+      toutesALancer(
+        STATIONS.map((s) => s.id),
+        (id) => res[cleResultat(per, groupe, id)]?.etat === "fait",
+        per,
+        groupe,
+        course,
+        file,
+      ),
+    [res, per, groupe, course, file],
+  );
+  // Rien à lancer : toutes sont déjà prévues par un relevé de ces dates.
+  const toutesPrevues =
+    course != null && memePeriode(course.per, per) && grpKey(course.groupe) === grpKey(groupe)
+      ? "Relevé de toutes les stations en cours."
+      : "Relevé de toutes les stations en attente.";
+
   // Annonce ouverte, cadre de la carte, fiche épinglée et annonce désignée
   // restent à l'écran : ils ne valent que tant qu'on le regarde.
   const [ouverte, setOuverte] = useState<string | null>(null);
@@ -1240,9 +1265,34 @@ function VueBudget({
         </div>
       </section>
 
-      {/* Le relevé en cours se suit aussi d'ici : relever les stations sans
-          position se lance depuis cet onglet, et leurs pastilles arrivent au
-          fil des stations terminées. */}
+      <div className="prix7__actions">
+        {passee ? (
+          <span className="prix7__indice" role="status">
+            Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.
+          </span>
+        ) : toutes.ids.length > 0 ? (
+          <button
+            type="button"
+            className="prix7__relever"
+            title={`Une station prend environ une minute : ${dureeReleveLbl(toutes.ids.length)} pour celles-ci. Le relevé continue quand on quitte l’écran.`}
+            onClick={() => {
+              lancer({ nom: "toutes les stations", ids: toutes.ids, per, groupe });
+              // Le bouton cède la place à l'indice : le focus va au compte.
+              refCompte.current?.focus();
+            }}
+          >
+            {relToutesLbl(toutes.ids.length, STATIONS.length, toutes.aNouveau)}
+          </button>
+        ) : (
+          <span className="prix7__indice" role="status">
+            {toutesPrevues}
+          </span>
+        )}
+      </div>
+
+      {/* Le relevé en cours se suit aussi d'ici : relever toutes les stations,
+          ou celles sans position, se lance depuis cet onglet, et leurs
+          pastilles arrivent au fil des stations terminées. */}
       {course ? (
         <BandeauCourse
           course={course}

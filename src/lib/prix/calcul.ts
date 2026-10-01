@@ -667,6 +667,9 @@ export function connuesDuReleve(listings: readonly Listing[]): FicheConnue[] {
     // d'une tuile se garde, et un champ structuré la remplacera.
     if (!gpsPrecis(l) || l.capacity == null || l.lat == null || l.lon == null) continue;
     if (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)) continue;
+    // Un point de repli Airbnb (page, BAN, jumelage) n'est pas celui de
+    // l'annonce : il ne se mémorise pas comme tel (`repliGps.ts`).
+    if (l.source === "Airbnb" && l.gpsSource != null && l.gpsSource !== "pdp") continue;
     const cle = cleListing(l);
     if (!cle || vues.has(cle)) continue;
     vues.add(cle);
@@ -712,10 +715,14 @@ const CHAMPS_CORRIGES = [
   "locality",
   "title",
   "proven",
+  "gpsSource",
+  "pdpLue",
 ] as const satisfies readonly (keyof Listing)[];
 
 /** Ce qui, corrigé, fait requalifier le logement (`qualifierLogement`). */
-const LOGEMENT_CORRIGE = ["capacity", "capacitySource", "bedrooms", "bedroomsSource", "rooms", "title"] as const;
+// `pdpLue` : une page Airbnb lue sans personCapacity rend la capacité du
+// titre recevable (`capaciteIntrouvable`).
+const LOGEMENT_CORRIGE = ["capacity", "capacitySource", "bedrooms", "bedroomsSource", "rooms", "title", "pdpLue"] as const;
 
 /**
  * Les annonces du relevé, correctifs posés. Une annonce retirée (Airbnb :
@@ -912,7 +919,8 @@ export function fmtPlage(k: PlageK, v: number): string {
   if (k === "prix" || k === "budget") return eur(v);
   if (k === "km") return `${fmt(v)} km`;
   if (k === "capacite") return `${fmt(v)} pers.`;
-  if (k === "chambres") return `${fmt(v)} ch.`;
+  // Zéro chambre se dit « Studio », jamais « 0 ch. », comme partout.
+  if (k === "chambres") return v === 0 ? "Studio" : `${fmt(v)} ch.`;
   return `${fmt(v)} m`;
 }
 
@@ -1265,6 +1273,44 @@ export function relLbl(n: number, listeFaite: boolean): string {
   if (listeFaite)
     return n === 1 ? "Relever à nouveau la station" : `Relever à nouveau les ${n} stations`;
   return n === 1 ? "Relever la station affichée" : `Relever les ${n} stations de la liste`;
+}
+
+/**
+ * « Par budget » : toutes les stations du référentiel, pour ces dates et ce
+ * groupe (demande du propriétaire, 1er octobre 2026).
+ *
+ * Celles qui n'ont pas encore de relevé, et elles seules : relever à nouveau
+ * des centaines de stations déjà faites, à une minute chacune, coûterait des
+ * heures pour rien. Quand toutes sont faites, toutes à nouveau. Ce qu'un
+ * relevé des mêmes dates et du même groupe prévoit déjà est retiré
+ * (`idsALancer`).
+ */
+export function toutesALancer(
+  ids: readonly string[],
+  faite: (id: string) => boolean,
+  per: Periode,
+  groupe: Groupe,
+  course: (Job & { i: number }) | null,
+  file: readonly Job[],
+): { ids: string[]; aNouveau: boolean } {
+  const manquent = ids.filter((id) => !faite(id));
+  const aNouveau = manquent.length === 0;
+  return { ids: idsALancer(aNouveau ? ids : manquent, per, groupe, course, file), aNouveau };
+}
+
+/** Le bouton de `toutesALancer` : ce qu'il relève, en toutes lettres. */
+export function relToutesLbl(n: number, total: number, aNouveau: boolean): string {
+  if (aNouveau) return n === 1 ? "Relever à nouveau la station" : `Relever à nouveau les ${n} stations`;
+  if (n === total) return `Relever les ${n} stations`;
+  return n === 1 ? "Relever la dernière station" : `Relever les ${n} stations restantes`;
+}
+
+/** Une minute par station, en clair : « environ 12 min », « environ 5 h 20 ». */
+export function dureeReleveLbl(stations: number): string {
+  if (stations < 60) return `environ ${stations} min`;
+  const h = Math.floor(stations / 60);
+  const m = stations % 60;
+  return m ? `environ ${h} h ${String(m).padStart(2, "0")}` : `environ ${h} h`;
 }
 
 /** Le nom d'une liste lancée : massif et département, les plages n'y entrent pas. */
@@ -1675,14 +1721,14 @@ export function videBudget(
   if (aucunReleve) {
     return {
       titre: "Aucune annonce relevée pour ces dates",
-      hint: "Les logements proposés viennent des relevés. Lancez un relevé dans l’onglet Par station, ou revenez à des dates déjà relevées.",
+      hint: "Les logements proposés viennent des relevés. Relevez toutes les stations, ou un lieu dans l’onglet Par station, ou revenez à des dates déjà relevées.",
       versStation: true,
     };
   }
   if (sansReleve) {
     return {
       titre: "Ce lieu n’a pas été relevé pour ces dates",
-      hint: "Lancez un relevé dans l’onglet Par station, ou choisissez d’autres dates.",
+      hint: "Relevez toutes les stations, ou ce lieu dans l’onglet Par station, ou choisissez d’autres dates.",
       versStation: true,
     };
   }

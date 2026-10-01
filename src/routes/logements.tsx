@@ -71,6 +71,8 @@ import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
+import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
+import { attachAccess } from "@/lib/access";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import {
   altLbl,
@@ -492,8 +494,17 @@ function LogementsStation({ s }: { s: Station }) {
       rows = [...dump.filter((l) => !reported.has(l.source)), ...liveListings];
       if (reported.has("Gîtes de France")) rows = conserverDevisGites(dump, rows);
     }
-    return rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
-  }, [liveListings, liveSources, frozen, dumpGps]);
+    const lignes = rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
+    // Airbnb dont la page a été lue sans point : celui du même logement relevé
+    // sur une autre source, repris tel quel (`jumelageGpsAirbnb`), et son
+    // accès aux pistes mesuré depuis ce point.
+    const jumeles = jumelageGpsAirbnb(lignes);
+    if (jumeles.size === 0) return lignes;
+    return lignes.map((l) => {
+      const p = jumeles.get(l.id);
+      return p ? attachAccess({ ...l, lat: p.lat, lon: p.lon, gpsSource: "jumelage" as const }, s) : l;
+    });
+  }, [liveListings, liveSources, frozen, dumpGps, s]);
 
   const [lf, setLf] = useState<LF>(LF0);
   const [lsort, setLsort] = useState<LodgeSort>("pp");

@@ -225,6 +225,96 @@ describe("type de logement", () => {
 
 /* ---------- Qualification : sources et priorité ---------- */
 
+describe("Airbnb : capacité et chambres de la page, le titre en dernier recours", () => {
+  /** Une annonce Airbnb dont la page existe (`rooms/`), pas encore lue. */
+  const airbnb = (title: string, extra: Partial<SujetLogement> = {}) =>
+    annonce(title, { source: "Airbnb", url: "https://www.airbnb.fr/rooms/31415926", ...extra });
+
+  it("page pas encore lue : ni le titre ni le type ne donnent capacité ou chambres", () => {
+    const q = qualifierLogement(airbnb("Chalet 4 chambres 10 personnes"));
+    assert.deepEqual(
+      [q.capacity, q.capacitySource, q.bedrooms, q.bedroomsSource],
+      [null, null, null, null],
+    );
+    const t = qualifierLogement(airbnb("Appartement 3 pièces 6 personnes"));
+    assert.deepEqual([t.capacity, t.bedrooms], [null, null]);
+  });
+
+  it("page pas encore lue : une valeur tirée du texte ne tient pas ; le structuré reste", () => {
+    const q = qualifierLogement(
+      airbnb("Chalet 8 personnes", {
+        capacity: 8,
+        capacitySource: "text_regex",
+        bedrooms: 3,
+        bedroomsSource: "structured",
+      }),
+    );
+    assert.deepEqual(
+      [q.capacity, q.capacitySource, q.bedrooms, q.bedroomsSource],
+      [null, null, 3, "structured"],
+    );
+  });
+
+  it("page lue sans personCapacity : la capacité du titre compte, les chambres non", () => {
+    const q = qualifierLogement(airbnb("Chalet 4 chambres 10 personnes", { pdpLue: true }));
+    assert.deepEqual(
+      [q.capacity, q.capacitySource, q.bedrooms, q.bedroomsSource],
+      [10, "text_regex", null, null],
+    );
+    const fourchette = qualifierLogement(airbnb("Appartement 6-8 pers, cosy", { pdpLue: true }));
+    assert.deepEqual([fourchette.capacity, fourchette.capacityStandard], [8, 6]);
+  });
+
+  it("aucune page à lire (ni identifiant, ni rooms/, ni photo Hosting-) : la capacité du titre compte", () => {
+    const sansPage = qualifierLogement(
+      annonce("Le Jardin Alpin, 6 personnes", { source: "Airbnb", url: null }),
+    );
+    assert.deepEqual([sansPage.capacity, sansPage.capacitySource], [6, "text_regex"]);
+    const parPhoto = qualifierLogement(
+      annonce("Le Jardin Alpin, 6 personnes", {
+        source: "Airbnb",
+        url: null,
+        photo: "https://a0.muscache.com/im/pictures/miso/Hosting-27623894/original/x.jpeg",
+      }),
+    );
+    assert.equal(parPhoto.capacity, null);
+  });
+
+  it("un champ structuré passe devant le titre, même page lue", () => {
+    const q = qualifierLogement(
+      airbnb("Chalet 10 personnes", { pdpLue: true, capacity: 8, capacitySource: "structured" }),
+    );
+    assert.deepEqual([q.capacity, q.capacitySource], [8, "structured"]);
+    const l = airbnb("Chalet 10 personnes", { pdpLue: true });
+    Object.assign(l, qualifierLogement(l));
+    assert.equal(l.capacity, 10);
+    assert.equal(poserValeur(l, "capacity", 8, "structured"), true);
+    assert.deepEqual(
+      [qualifierLogement(l).capacity, qualifierLogement(l).capacitySource],
+      [8, "structured"],
+    );
+  });
+
+  it("page lue, titre muet : le trou reste", () => {
+    const q = qualifierLogement(airbnb("Chalet à Abondance", { pdpLue: true }));
+    assert.deepEqual([q.capacity, q.capacitySource], [null, null]);
+  });
+
+  it("0 chambre est un studio ; 0 personne n'est pas une capacité", () => {
+    const q = qualifierLogement(airbnb("Studio", { capacity: 0, bedrooms: 0 }));
+    assert.deepEqual([q.capacity, q.bedrooms, q.isStudio], [null, 0, true]);
+  });
+
+  it("poserValeur : du texte venu d'ailleurs ne comble pas un trou Airbnb, une valeur de page oui", () => {
+    const l = airbnb("Chalet 6 personnes", { pdpLue: true });
+    assert.equal(poserValeur(l, "capacity", 6, "text_regex"), false);
+    assert.equal(poserValeur(l, "bedrooms", 2, "derived_from_type"), false);
+    assert.deepEqual([l.capacity, l.bedrooms], [null, null]);
+    assert.equal(poserValeur(l, "capacity", 6, "structured"), true);
+    assert.equal(l.capacity, 6);
+  });
+});
+
 describe("qualifier : structured, puis text_regex, puis derived_from_type", () => {
   it("le champ structuré reste, le texte comble ce qui manque, chaque valeur dit sa source", () => {
     const q = qualifierLogement(annonce("Appartement 3 pièces 6/8 personnes", { capacity: 8 }));
@@ -402,7 +492,12 @@ describe("résidu : les annonces restées à null, journalisées", () => {
     );
     assert.match(lignes[0], /les-2-alpes : 2 annonces à null/);
     assert.match(lignes[0], /Centrale 2 sans capacité, 1 sans chambres/);
+    assert.match(lignes[1], /Centrale b : capacité introuvable, /);
     assert.match(lignes[2], /Centrale c : capacité et chambres introuvables, https:\/\/c\.fr\/c/);
+    assert.match(
+      journalResidu(residuLogements([ligne("b", null, 2)]), "x")[0],
+      /x : 1 annonce à null/,
+    );
     assert.deepEqual(journalResidu([], "x"), []);
   });
 

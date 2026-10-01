@@ -288,6 +288,68 @@ export function verserCapacites(
   return out;
 }
 
+/** Ce qu'il faut à `lireDetailsFeratel` : le réseau et l'horloge, de dehors. */
+export type DetailsFeratel<F> = {
+  /** Lit le détail d'un hébergement et le range en mémoire ; lève sur un échec. */
+  lire: (f: F) => Promise<void>;
+  /** Lu entre-temps, par une autre recherche ou par la suite : on passe. */
+  dejaLu: (f: F) => boolean;
+  /** La centrale a refusé un détail (403, 429, 503) : on ne demande plus rien. */
+  refusee: () => boolean;
+  maintenant: () => number;
+  /**
+   * La suite en tâche de fond attend ici que les recherches en cours aient
+   * lu leurs détails : la passerelle n'a qu'une file pour toutes les
+   * centrales, et une recherche n'a que quinze secondes.
+   */
+  attendreSonTour?: (echeance: number) => Promise<void>;
+};
+
+/** Pourquoi une lecture de détails s'arrête avant la fin de sa liste. */
+export type ArretDetailsFeratel = "échéance" | "refus" | "panne";
+
+export type LectureDetailsFeratel<F> = {
+  /** Détails demandés, l'échec compris. */
+  demandes: number;
+  arret: ArretDetailsFeratel | null;
+  /** L'échec qui a tout arrêté, tel qu'il a été levé. */
+  erreur?: unknown;
+  /** Ce que l'échéance a laissé, à lire en tâche de fond ; vide sinon. */
+  restantes: F[];
+};
+
+/**
+ * Les détails d'une liste d'hébergements, un à la fois, jusqu'à `echeance`.
+ *
+ * Commune à la recherche, qui a quinze secondes, et à la suite en tâche de
+ * fond, qui reprend au même pas ce que la recherche n'a pas eu le temps de
+ * lire : La Clusaz publiait 196 hébergements et la recherche en lisait 11
+ * (relevé du 1er octobre 2026). Seule l'échéance laisse des hébergements à
+ * reprendre ; un refus ou une panne arrête tout, sans reprise.
+ */
+export async function lireDetailsFeratel<F>(
+  fiches: readonly F[],
+  echeance: number,
+  d: DetailsFeratel<F>,
+): Promise<LectureDetailsFeratel<F>> {
+  let demandes = 0;
+  for (let i = 0; i < fiches.length; i += 1) {
+    const f = fiches[i] as F;
+    if (d.refusee()) return { demandes, arret: "refus", restantes: [] };
+    if (d.attendreSonTour) await d.attendreSonTour(echeance);
+    if (d.maintenant() > echeance)
+      return { demandes, arret: "échéance", restantes: fiches.slice(i) };
+    if (d.dejaLu(f)) continue;
+    demandes += 1;
+    try {
+      await d.lire(f);
+    } catch (erreur) {
+      return { demandes, arret: d.refusee() ? "refus" : "panne", erreur, restantes: [] };
+    }
+  }
+  return { demandes, arret: null, restantes: [] };
+}
+
 /**
  * Le type publié par la centrale, tel qu'elle l'écrit : ses catégories, sans
  * « Location », qui dit qu'on loue et pas ce qu'on loue. Seule, elle reste.

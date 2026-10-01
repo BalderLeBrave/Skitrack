@@ -159,6 +159,34 @@ describe("capacité : synonymes, plage et capacité standard", () => {
     assert.equal(lireLogement("Chalet 6 personnes").capaciteStandard, null);
   });
 
+  it("une plage qui descend n'en est pas une : le nombre avant « personnes » (Ingénie, Les Saisies)", () => {
+    // Le titre et l'adresse de la fiche, joints comme `annoncer` les joint.
+    const cas: [string, number][] = [
+      ["Rond Point 7 ( 446717 ) · /rond-point-7-4-personnes-446717-les-saisies.html", 4],
+      ["Rond Point 9 ( 594503 ) · /rond-point-9-5-personnes-594503-les-saisies.html", 5],
+      ["Rond point 11 ( 789264 ) · /rond-point-11-4-personnes-789264-les-saisies.html", 4],
+      ["Cimes 12 ( 448586 ) · /cimes-12-8-personnes-448586-les-saisies.html", 8],
+      ["Altarena D101 ( 595001 ) · /altarena-d101-8-personnes-595001-hauteluce.html", 8],
+      [
+        "Chalet - CHALET 1941 ( CHALET1941 ) · /chalet-chalet-1941-10-personnes-chalet1941-les-saisies.html",
+        10,
+      ],
+      [
+        "3 pièces 4 pers - Myrna A01 - Bisanne 1500 ( 7600194 ) · /3-pieces-4-pers-myrna-a01-bisanne-1500-4-personnes-7600194.html",
+        4,
+      ],
+    ];
+    for (const [texte, capacite] of cas) {
+      const lu = lireLogement(texte);
+      assert.equal(lu.capacite, capacite, texte);
+      assert.equal(lu.capaciteStandard, null, texte);
+    }
+    // Une plage qui monte reste une plage, dans une adresse aussi.
+    const plage = lireLogement("Appartement · /appartement-4-6-personnes-123.html");
+    assert.equal(plage.capacite, 6);
+    assert.equal(plage.capaciteStandard, 4);
+  });
+
   it("une place de parking n'est pas une capacité", () => {
     assert.equal(lireLogement("Appartement 3 pièces, 2 places de parking").capacite, null);
     assert.equal(lireLogement("Chalet, garage 2 places").capacite, null);

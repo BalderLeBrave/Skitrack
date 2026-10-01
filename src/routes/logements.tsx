@@ -157,6 +157,12 @@ const RANGES: { k: "pp" | "cap" | "rooms" | "dist"; label: string; b: Echelle; p
 ];
 const RANGE = Object.fromEntries(RANGES.map((r) => [r.k, r])) as Record<(typeof RANGES)[number]["k"], (typeof RANGES)[number]>;
 
+/** Une borne de fourchette en toutes lettres : « 6 pers. », « 2 ch. ». Zéro
+ *  chambre se dit « Studio », jamais « 0 ch. », comme sur les cartes. */
+function borneLbl(k: (typeof RANGES)[number]["k"]): (v: number) => string {
+  return (v) => (k === "rooms" && v === 0 ? "Studio" : `${fmt(v)} ${RANGE[k].unit}`);
+}
+
 /** L'échelle du périmètre : du centre de la station à 50 km. */
 const ECHELLE_RAYON: Echelle = [0, RAYON_MAX_KM];
 
@@ -632,7 +638,7 @@ function LogementsStation({ s }: { s: Station }) {
       remove: () => P.setFilters({ budget: null }),
     });
   const lfLbl = (k: (typeof RANGES)[number]["k"], pl: Plage) =>
-    `${RANGE[k].label} : ${plageTexte(pl, RANGE[k].b, (v) => `${fmt(v)} ${RANGE[k].unit}`)}`;
+    `${RANGE[k].label} : ${plageTexte(pl, RANGE[k].b, borneLbl(k))}`;
   const { pp, cap: lcap, rooms: lrooms, dist } = lf;
   if (pp != null)
     lp.push({
@@ -1158,7 +1164,7 @@ function LogementsStation({ s }: { s: Station }) {
                           valeur={lf[r.k]}
                           pas={r.pas}
                           unite={r.unit}
-                          resume={plageTexte(lf[r.k], r.b, (v) => `${fmt(v)} ${r.unit}`)}
+                          resume={plageTexte(lf[r.k], r.b, borneLbl(r.k))}
                           onPoser={(which, v, exact) => poserLf(r.k, which, v, exact)}
                         />
                       ))}

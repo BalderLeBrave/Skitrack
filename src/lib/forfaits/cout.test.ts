@@ -22,7 +22,7 @@ describe("coût des forfaits d'un groupe", () => {
     const c = coutForfaits(359, null, 6, 2);
     assert.equal(c.total, 8 * 359);
     assert.equal(c.enfantsAuTarifAdulte, true);
-    assert.match(c.detail, /adulte, tarif enfant non relevé$/);
+    assert.match(c.detail, /adulte, tarif enfant non communiqué$/);
   });
 
   it("Portes du Soleil sans tarif enfant relevé : les enfants à part, au tarif adulte", () => {
@@ -31,8 +31,8 @@ describe("coût des forfaits d'un groupe", () => {
     const c = coutForfaits(292, null, 4, 2);
     assert.equal(c.total, 6 * 292);
     assert.equal((c.total ?? 0) - (4 * 292 + 2 * 234), 2 * 58);
-    assert.equal(c.detail, "4 × 292 € adulte + 2 × 292 € enfant au tarif adulte, tarif enfant non relevé");
-    assert.equal(coutForfaits(292, null, 0, 1).detail, "1 × 292 € enfant au tarif adulte, tarif enfant non relevé");
+    assert.equal(c.detail, "4 × 292 € adulte + 2 × 292 € enfant au tarif adulte, tarif enfant non communiqué");
+    assert.equal(coutForfaits(292, null, 0, 1).detail, "1 × 292 € enfant au tarif adulte, tarif enfant non communiqué");
   });
 
   it("aucun tarif relevé : pas de total, pas de chiffre inventé", () => {

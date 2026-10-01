@@ -1,9 +1,18 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { appliquer, critereBloquant, predicats, SEUILS } from "./filtres.ts";
-import { forfaitOf } from "./v7.ts";
+import { prixAdulteSejour, useGrillesForfaits } from "./forfaits/prixStations.ts";
 import { FILTERS_INITIAL, type Filters } from "./parcours.ts";
 import { STATIONS } from "./stations.ts";
+
+// Les grilles migrées, comme l'application les charge : le critère
+// « forfait » lit le prix résolu pour le séjour (par défaut, 6 au 13 février
+// 2027).
+useGrillesForfaits.setState({
+  grilles: JSON.parse(readFileSync(new URL("./forfaits/grillesMigrees.json", import.meta.url), "utf8"))
+    .grilles,
+});
 
 function filtres(patch: Partial<Filters> = {}): Filters {
   return { ...FILTERS_INITIAL, col: { ...FILTERS_INITIAL.col }, chips: {}, ...patch };
@@ -59,8 +68,8 @@ describe("prédicats de recherche", () => {
     const retenues = appliquer(STATIONS, preds);
     assert.ok(retenues.length > 0);
     for (const s of retenues) {
-      const j6 = forfaitOf(s)?.j6 as number;
-      assert.ok(j6 >= 250 && j6 <= 300, `${s.name} : ${j6} €`);
+      const prix = prixAdulteSejour(s.id)!.prix;
+      assert.ok(prix >= 250 && prix <= 300, `${s.name} : ${prix} €`);
     }
     assert.deepEqual(
       preds.map((p) => p.label),

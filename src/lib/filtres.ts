@@ -35,7 +35,9 @@ import {
 import { dansPlage, plageTexte, type Echelle, type Plage } from "./plage.ts";
 import type { Station } from "./stations.ts";
 import { memeDevise, montant } from "./devises.ts";
-import { CHIPS, deviseForfaitOf, forfaitOf, maxM, minM, villageM } from "./v7.ts";
+import { prixAdulteSejour, useGrillesForfaits, type ContexteSejour } from "./forfaits/prixStations.ts";
+import { useStay } from "./stay.ts";
+import { CHIPS, maxM, minM, villageM } from "./v7.ts";
 
 /** Un critère actif : son jeton, son prédicat, et la façon de le retirer. */
 export type Pred = {
@@ -63,7 +65,7 @@ export const SEUILS: DefFourchette[] = [
   { k: "lo", label: "Bas des pistes", court: "bas", ...ECHELLES.lo, unit: "m" },
   { k: "hi", label: "Sommet", court: "sommet", ...ECHELLES.hi, unit: "m" },
   { k: "km", label: "Kilomètres de pistes du domaine", court: "km", ...ECHELLES.km, unit: "km" },
-  { k: "pass", label: "Forfait 6 j adulte", court: "forfait", ...ECHELLES.pass, unit: "€" },
+  { k: "pass", label: "Forfait adulte du séjour", court: "forfait", ...ECHELLES.pass, unit: "€" },
 ];
 
 /** Ce que la fourchette dit, avec son unité : « 1 800 m et plus ». */
@@ -113,7 +115,15 @@ export function colVal(s: Station, c: PisteColor, u: ColorUnit): number | null {
   return s.pistesKm != null ? Math.round((s.pistesKm * s.colorShare[c]) / 100) : null;
 }
 
-export type EtatRecherche = { q: string; massif: string | null; filters: Filters; unit: ColorUnit };
+export type EtatRecherche = {
+  q: string;
+  massif: string | null;
+  filters: Filters;
+  unit: ColorUnit;
+  /** Les grilles et les dates dont dépend le forfait du séjour ; celles des
+   *  magasins quand il est omis. */
+  sejour?: ContexteSejour;
+};
 
 /** Les critères actifs, dans l'ordre où ils se lisent. Un critère au repos —
  *  zéro, chaîne vide, raccourci décoché — n'en fait pas partie. */
@@ -158,11 +168,13 @@ export function predicats(e: EtatRecherche): Pred[] {
       out.push({
         id: r.k,
         label: `Forfait : ${fourchetteLbl(r, pl)}`,
+        // Le forfait adulte résolu pour les dates du séjour, celui que la
+        // carte de la station affiche.
         fn: (s) => {
-          const j6 = forfaitOf(s)?.j6;
-          if (j6 == null) return false;
-          if (!memeDevise(deviseForfaitOf(s), DEVISE_SEUIL)) return false;
-          return dansPlage(j6, pl, r.b);
+          const f = prixAdulteSejour(s.id, e.sejour);
+          if (!f) return false;
+          if (!memeDevise(f.devise, DEVISE_SEUIL)) return false;
+          return dansPlage(f.prix, pl, r.b);
         },
         retirer: () => P.setFilters({ pass: null }),
       });
@@ -229,11 +241,15 @@ export function critereBloquant(
   return best && best.restantes > 0 ? best : null;
 }
 
-/** Les critères actifs, abonnés au magasin. */
+/** Les critères actifs, abonnés au magasin, aux grilles de forfaits et aux
+ *  dates du séjour (le critère « forfait » en dépend). */
 export function usePredicats(): Pred[] {
   const q = useParcours((p) => p.q);
   const massif = useParcours((p) => p.massif);
   const filters = useParcours((p) => p.filters);
   const unit = useParcours((p) => p.unit);
-  return predicats({ q, massif, filters, unit });
+  const grilles = useGrillesForfaits((e) => e.grilles);
+  const arrivee = useStay((s) => s.checkIn);
+  const depart = useStay((s) => s.checkOut);
+  return predicats({ q, massif, filters, unit, sejour: { grilles, arrivee, depart } });
 }

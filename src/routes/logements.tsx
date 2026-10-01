@@ -30,7 +30,7 @@ import { partagerParBornes, type Bornes } from "@/lib/carte";
 import { dire } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
-import { useForfait } from "@/components/v7/useForfait";
+import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
 import { getListingElevations } from "@/lib/snow/api";
@@ -53,7 +53,6 @@ import { parMesure, type Sens } from "@/lib/tri";
 import {
   datesCourtes,
   ECHELLES,
-  eur,
   eurCents,
   fmt,
   stationPhoto,
@@ -61,7 +60,8 @@ import {
   useParcours,
   useSejour,
 } from "@/lib/parcours";
-import { coutForfaits } from "@/lib/forfaits/cout";
+import { echecLbl, mentionForfait } from "@/lib/forfaits/prixSejour";
+import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { agencesDe } from "@/lib/scrape/agences/couverture";
 import { partyLabel } from "@/lib/stay/party";
@@ -80,7 +80,6 @@ import {
   firmOf,
   kmLbl,
   liftsLbl,
-  passLbl,
   prixLbl,
   prixPin,
 } from "@/lib/v7";
@@ -464,8 +463,8 @@ function SquelettesLogements() {
 function LogementsStation({ s }: { s: Station }) {
   const go = useGo();
   const P = useParcours();
-  const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
-  const forfait = useForfait(s);
+  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
+  const prix = usePrixForfait(s);
   const liveListings = useStay((x) => x.liveListings);
   const liveSources = useStay((x) => x.liveSources);
   const searching = useStay((x) => x.searching);
@@ -765,12 +764,13 @@ function LogementsStation({ s }: { s: Station }) {
   }, [page]);
   const lfree = lp.filter((p) => !p.fixed);
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
-  // Même calcul qu'ailleurs : les enfants à leur tarif quand le domaine le
-  // publie, et non tout le groupe au tarif adulte.
-  const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
+  // Même calcul qu'ailleurs : le forfait du séjour, résolu pour ses dates,
+  // les enfants à leur tarif quand le forfait le publie.
+  const pass = prix.budget;
+  const adulteForfait = prix.forfaits?.adulte ?? null;
   // Un séjour vendu forfaits compris les porte déjà dans son prix.
   const forfaitsCompris = kept ? forfaitInclus(kept) : false;
-  const passGroupN = forfaitsCompris ? 0 : (pass.total ?? 0);
+  const passGroupN = forfaitsCompris ? 0 : (pass?.total ?? 0);
   const totalN = (kept?.total ?? 0) + passGroupN;
 
   /**
@@ -1008,8 +1008,14 @@ function LogementsStation({ s }: { s: Station }) {
                   <b className={liftsLbl(s) ? undefined : "absent"}>{liftsLbl(s) ?? "non relevées"}</b>
                 </span>
                 <span>
-                  <span>Forfait 6 j</span>
-                  <b className={passLbl(s) ? undefined : "absent"}>{passLbl(s) ?? "non relevé"}</b>
+                  <span>Forfait {prix.jours ?? 6} j</span>
+                  {adulteForfait?.statut === "resolu" ? (
+                    <b title={mentionForfait(adulteForfait)}>
+                      {montantCents(adulteForfait.prix, adulteForfait.devise)}
+                    </b>
+                  ) : (
+                    <b className="absent">{adulteForfait ? echecLbl(adulteForfait) : "non relevé"}</b>
+                  )}
                 </span>
               </div>
             </div>
@@ -1392,19 +1398,35 @@ function LogementsStation({ s }: { s: Station }) {
               </dd>
             </div>
             <div>
-              <dt title={forfaitsCompris ? "compris dans le prix du logement" : pass.detail}>
-                {forfaitsCompris ? "Forfaits" : "Forfaits 6 j"}
+              <dt
+                title={
+                  forfaitsCompris
+                    ? "compris dans le prix du logement"
+                    : pass?.periode
+                      ? `${pass.detail} ; ${pass.periode}`
+                      : pass?.detail
+                }
+              >
+                {forfaitsCompris ? "Forfaits" : (pass?.libelle ?? "Forfaits")}
               </dt>
-              <dd className={forfaitsCompris || pass.total != null ? undefined : "absent"}>
-                {forfaitsCompris ? "compris" : pass.total != null ? eur(passGroupN) : "non relevés"}
+              <dd className={forfaitsCompris || pass?.total != null ? undefined : "absent"}>
+                {forfaitsCompris
+                  ? "compris"
+                  : pass?.total != null
+                    ? montantCents(passGroupN, pass.devise)
+                    : (pass?.manque ?? "non relevés")}
+                {/* La période du forfait compté : le total en dépend. */}
+                {!forfaitsCompris && pass?.periodeCourte ? (
+                  <span className="pied7__periode">{pass.periodeCourte}</span>
+                ) : null}
                 {/* Le total monte quand les enfants sont comptés au tarif
                     adulte, faute de tarif enfant relevé : la fiche et la
                     réservation le disent, le pied aussi, et pas seulement dans
                     l'infobulle du libellé. Deux lignes courtes, pour ne pas
                     élargir le pied au détriment du logement retenu. */}
-                {!forfaitsCompris && pass.enfantsAuTarifAdulte ? (
+                {!forfaitsCompris && pass?.enfantsAuTarifAdulte ? (
                   <span className="pied7__alerte">
-                    <span>enfants au tarif adulte,</span> <span>tarif enfant non relevé</span>
+                    <span>enfants au tarif adulte,</span> <span>tarif enfant non communiqué</span>
                   </span>
                 ) : null}
               </dd>

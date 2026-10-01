@@ -51,20 +51,30 @@ function dormir(ms: number, signal?: AbortSignal): Promise<void> {
 
 export type Reponse = { ok: boolean; status: number; text: string; url: string };
 
+export type ReponseOctets = { ok: boolean; status: number; octets: Uint8Array; type: string | null; url: string };
+
 /**
- * Une requête polie vers `url`.
+ * Une tâche réseau vers `url`, à son tour dans la file de l'hôte.
  *
  * Les appels au même hôte se suivent : jamais deux en parallèle, jamais moins
  * de `INTERVALLE_MS` entre deux. La file est par hôte, donc deux domaines
- * différents avancent en même temps.
+ * différents avancent en même temps. `faire` reçoit le signal à passer à sa
+ * requête : il porte à la fois le délai dépassé et l'interruption demandée.
  *
  * `delaiMs` est la cadence annoncée par le site — `verdictPoli().delaiMs`, qui
- * lit le `Crawl-delay` de son robots.txt. Elle était calculée puis jetée : la
- * file restait à deux secondes quoi qu'annonçât le domaine. Elle ne peut
- * qu'**allonger** l'attente, jamais la raccourcir, et l'hôte la retient pour
- * les requêtes suivantes.
+ * lit le `Crawl-delay` de son robots.txt. Elle ne peut qu'**allonger**
+ * l'attente, jamais la raccourcir, et l'hôte la retient pour les requêtes
+ * suivantes.
+ *
+ * Une page rendue par un navigateur passe par la même file que les requêtes
+ * simples : c'est le même hôte, et la même politesse.
  */
-export function demander(url: string, signal?: AbortSignal, delaiMs?: number): Promise<Reponse> {
+export function dansLaFile<T>(
+  url: string,
+  faire: (signal: AbortSignal) => Promise<T>,
+  options: { signal?: AbortSignal; delaiMs?: number; timeoutMs?: number } = {},
+): Promise<T> {
+  const { signal, delaiMs, timeoutMs = TIMEOUT_MS } = options;
   const h = hote(url);
   const file = files.get(h) ?? { dernier: 0, queue: Promise.resolve(), delaiMs: INTERVALLE_MS };
   if (delaiMs != null && Number.isFinite(delaiMs)) file.delaiMs = Math.max(file.delaiMs, delaiMs);
@@ -82,19 +92,13 @@ export function demander(url: string, signal?: AbortSignal, delaiMs?: number): P
     const timer = setTimeout(() => {
       expire = true;
       ctrl.abort();
-    }, TIMEOUT_MS);
+    }, timeoutMs);
     const relais = () => ctrl.abort();
     signal?.addEventListener("abort", relais, { once: true });
     try {
-      const res = await fetch(url, {
-        headers: { "user-agent": UA_RELEVE, accept: "text/html,application/xhtml+xml" },
-        redirect: "follow",
-        signal: ctrl.signal,
-      });
-      const text = await res.text();
-      return { ok: res.ok, status: res.status, text, url };
+      return await faire(ctrl.signal);
     } catch (err) {
-      if (expire && !signal?.aborted) throw new Error(`Délai dépassé (${TIMEOUT_MS / 1000} s).`);
+      if (expire && !signal?.aborted) throw new Error(`Délai dépassé (${timeoutMs / 1000} s).`);
       throw err;
     } finally {
       clearTimeout(timer);
@@ -105,6 +109,40 @@ export function demander(url: string, signal?: AbortSignal, delaiMs?: number): P
   // le domaine pour la suite de la session.
   file.queue = suite.catch(() => undefined);
   return suite;
+}
+
+/** Une requête polie vers `url` : une page, lue comme texte. */
+export function demander(url: string, signal?: AbortSignal, delaiMs?: number): Promise<Reponse> {
+  return dansLaFile(
+    url,
+    async (s) => {
+      const res = await fetch(url, {
+        headers: { "user-agent": UA_RELEVE, accept: "text/html,application/xhtml+xml" },
+        redirect: "follow",
+        signal: s,
+      });
+      const text = await res.text();
+      return { ok: res.ok, status: res.status, text, url };
+    },
+    { signal, delaiMs },
+  );
+}
+
+/** Une requête polie vers `url`, lue comme octets : un PDF de tarifs. */
+export function demanderOctets(url: string, signal?: AbortSignal, delaiMs?: number): Promise<ReponseOctets> {
+  return dansLaFile(
+    url,
+    async (s) => {
+      const res = await fetch(url, {
+        headers: { "user-agent": UA_RELEVE, accept: "application/pdf,*/*;q=0.8" },
+        redirect: "follow",
+        signal: s,
+      });
+      const octets = new Uint8Array(await res.arrayBuffer());
+      return { ok: res.ok, status: res.status, octets, type: res.headers.get("content-type"), url };
+    },
+    { signal, delaiMs, timeoutMs: 30_000 },
+  );
 }
 
 /** Pour les tests : remet les files à zéro. */

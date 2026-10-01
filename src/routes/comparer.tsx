@@ -20,13 +20,17 @@ import { FourchetteCouleur, FourchetteRecherche } from "@/components/v7/Fourchet
 import { SensTri } from "@/components/v7/SensTri";
 import { parMesure, parTexte } from "@/lib/tri";
 import { CarteStation } from "@/components/v7/CarteStation";
+import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
+import { usePrixStations } from "@/components/v7/usePrixForfait";
+import { montantCents } from "@/lib/devises";
+import { echecLbl, libellesForfait, mentionForfait } from "@/lib/forfaits/prixSejour";
+import { forfaitsStation, prixAdulteSejour, type ContexteSejour } from "@/lib/forfaits/prixStations";
 import { mixLbl } from "@/components/v7/mixLbl";
 import { PartPistes } from "@/components/v7/PartPistes";
 import { Vide } from "@/components/v7/Vide";
 import {
   CMP_MAX,
   COLS,
-  eurN,
   fmt,
   useParcours,
   type ChipKey,
@@ -41,8 +45,6 @@ import {
   altLbl,
   aStation,
   CHIPS,
-  forfaitOf,
-  passHeriteLbl,
   glacier,
   kmLbl,
   liftsLbl,
@@ -62,18 +64,18 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "hi", label: "Tri : sommet" },
   { key: "lo", label: "Tri : bas des pistes" },
   { key: "v", label: "Tri : altitude du village" },
-  { key: "pass", label: "Tri : forfait 6 j" },
+  { key: "pass", label: "Tri : forfait adulte" },
   { key: "n", label: "Tri : nom" },
 ];
 
 /** La valeur que le tri compare ; `null` quand elle n'est pas relevée, et la
  *  station finit alors en queue, dans les deux sens. */
-function sortVal(s: Station, k: Exclude<SortKey, "n">): number | null {
+function sortVal(s: Station, k: Exclude<SortKey, "n">, ctx: ContexteSejour): number | null {
   if (k === "km") return s.pistesKm;
   if (k === "hi") return maxM(s);
   if (k === "lo") return minM(s);
   if (k === "v") return villageM(s);
-  return forfaitOf(s)?.j6 ?? null;
+  return prixAdulteSejour(s.id, ctx)?.prix ?? null;
 }
 
 /** `crit` de la maquette : libellé, texte, valeur comparable, note d'échelle. */
@@ -82,12 +84,26 @@ type Crit = {
   txt: (s: Station) => string | null;
   num: ((s: Station) => number | null) | null;
   note: string | null;
-  /** Mention propre à une cellule, sous sa valeur : « prix du forfait Les
-   *  3 Vallées » quand le tarif est pris au domaine. */
+  /** Mention propre à une cellule, sous sa valeur : la période et le forfait
+   *  d'un prix, « Saison 2026-27, sans période publiée · Forfait du domaine
+   *  Les 3 Vallées ». */
   sous?: (s: Station) => string | null;
   /** Ce que la cellule écrit quand la valeur manque et que l'absence est
    *  connue ; « non relevé » sinon. */
   absent?: (s: Station) => string | null;
+  /** Les raisons d'une valeur peu fiable : la cellule porte alors
+   *  l'indicateur discret. */
+  faible?: (s: Station) => string | null;
+};
+
+/** Le forfait adulte du séjour d'une station, ce qui le remplace sinon. */
+const forfaitTxt = (s: Station) => {
+  const r = prixAdulteSejour(s.id);
+  return r ? montantCents(r.prix, r.devise) : null;
+};
+const forfaitAbsent = (s: Station) => {
+  const f = forfaitsStation(s.id)?.adulte;
+  return f && f.statut !== "resolu" ? echecLbl(f) : null;
 };
 
 const CRIT: Crit[] = [
@@ -124,11 +140,26 @@ const CRIT: Crit[] = [
     absent: sansDomaineLbl,
   },
   {
-    label: "Forfait 6 j adulte",
-    txt: (s) => eurN(forfaitOf(s)?.j6),
-    num: (s) => (forfaitOf(s)?.j6 != null ? -(forfaitOf(s)!.j6 as number) : null),
-    note: "relevé sur le site du domaine",
-    sous: (s) => passHeriteLbl(s),
+    // Le forfait du séjour : ses dates fixent la durée et la période. La
+    // source varie d'une station à l'autre (page officielle, catalogue,
+    // agrégateur) : elle se lit dans la fiche, la fiabilité ici.
+    label: "Forfait adulte",
+    txt: forfaitTxt,
+    num: (s) => {
+      const r = prixAdulteSejour(s.id);
+      return r ? -r.prix : null;
+    },
+    note: "pour les dates du séjour",
+    sous: (s) => {
+      const r = prixAdulteSejour(s.id);
+      return r ? mentionForfait(r) : null;
+    },
+    absent: forfaitAbsent,
+    faible: (s) => {
+      const r = prixAdulteSejour(s.id);
+      const l = r ? libellesForfait(r) : null;
+      return l?.faible ? l.raisons : null;
+    },
   },
   { label: "Glacier", txt: (s) => (glacier(s) ? "Oui" : "Non"), num: null, note: null },
   {
@@ -202,14 +233,19 @@ function Comparer() {
   /* ---------- Prédicats actifs ----------
      Les mêmes que l'accueil, écrits une seule fois (`filtres.ts`). */
   const preds = usePredicats();
+  // Les prix de forfait du séjour : la liste, le tri et le tableau se
+  // redessinent quand les grilles arrivent ou que les dates changent.
+  const prixStations = usePrixStations();
 
   const visible = useMemo(() => appliquer(all, preds), [all, preds]);
   const sorted = useMemo(() => {
     const k = P.sortKey;
     return [...visible].sort((a, b) =>
-      k === "n" ? parTexte(a.name, b.name, P.sortDir) : parMesure(sortVal(a, k), sortVal(b, k), P.sortDir),
+      k === "n"
+        ? parTexte(a.name, b.name, P.sortDir)
+        : parMesure(sortVal(a, k, prixStations.ctx), sortVal(b, k, prixStations.ctx), P.sortDir),
     );
-  }, [visible, P.sortKey, P.sortDir]);
+  }, [visible, P.sortKey, P.sortDir, prixStations.ctx]);
 
   /* ---------- Le cadre visible : une seule source pour les trois ----------
      Le compteur, la liste et les marqueurs dérivent tous de `dansCadre`. La
@@ -475,6 +511,12 @@ function Comparer() {
                               className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}${v == null ? " cmp7__cell--absent" : ""}${gagne ? " cmp7__cell--best" : ""}`}
                             >
                               {v ?? c.absent?.(s) ?? "non relevé"}
+                              {v != null && c.faible?.(s) ? (
+                                <>
+                                  {" "}
+                                  <FiabiliteFaible court raisons={c.faible(s)!} />
+                                </>
+                              ) : null}
                               {sous ? <span className="cmp7__sous">{sous}</span> : null}
                             </td>
                           );
@@ -826,12 +868,12 @@ function Comparer() {
                         </b>
                       </div>
                       <div>
-                        <span>Forfait 6 j</span>
+                        <span>Forfait {prixStations.jours ?? 6} j</span>
                         <b
-                          className={eurN(forfaitOf(st)?.j6) ? undefined : "absent"}
-                          title={passHeriteLbl(st) ?? undefined}
+                          className={forfaitTxt(st) ? undefined : "absent"}
+                          title={prixAdulteSejour(st.id) ? mentionForfait(prixAdulteSejour(st.id)!) : undefined}
                         >
-                          {eurN(forfaitOf(st)?.j6) ?? "non relevé"}
+                          {forfaitTxt(st) ?? forfaitAbsent(st) ?? "non relevé"}
                         </b>
                       </div>
                     </div>

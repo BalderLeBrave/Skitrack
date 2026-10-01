@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { crawlDelayMs, demander, INTERVALLE_MS, oublierFiles, UA_AGENT, UA_RELEVE } from "./politesse.ts";
+import { crawlDelayMs, dansLaFile, demander, INTERVALLE_MS, oublierFiles, UA_AGENT, UA_RELEVE } from "./politesse.ts";
 import { UA_NAVIGATEUR } from "./navigateur.ts";
 
 describe("politesse du relevé tarifaire", () => {
@@ -82,5 +82,27 @@ describe("politesse du relevé tarifaire", () => {
       globalThis.fetch = vrai;
       oublierFiles();
     }
+  });
+
+  it("une tâche dans la file rend sa valeur et reçoit un signal", async () => {
+    oublierFiles();
+    const v = await dansLaFile("https://file-a.test/page", async (signal) => {
+      assert.ok(signal instanceof AbortSignal);
+      return 42;
+    });
+    assert.equal(v, 42);
+  });
+
+  it("une tâche trop longue rend « Délai dépassé », pas une interruption", async () => {
+    oublierFiles();
+    await assert.rejects(
+      dansLaFile(
+        "https://file-b.test/page",
+        (signal) =>
+          new Promise((_, rejeter) => signal.addEventListener("abort", () => rejeter(new DOMException("x", "AbortError")))),
+        { timeoutMs: 30 },
+      ),
+      /^Error: Délai dépassé/,
+    );
   });
 });

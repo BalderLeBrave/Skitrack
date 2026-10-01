@@ -3069,6 +3069,29 @@
   color: var(--color-texte-3) !important;
   text-wrap: pretty;
 }
+/* La période, les bornes et le périmètre du forfait, sous ses prix. */
+.forfaits7__periode {
+  margin-top: calc(var(--spacing) * 3);
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+  text-wrap: pretty;
+}
+.forfaits7__periode b {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+/* L'indicateur discret d'un prix de fiabilité faible (`FiabiliteFaible`).
+   Les `!important` passent devant `.forfaits7 span` et `.stc7__faits span`,
+   comme `.forfaits7__herite`. */
+.fiab7 {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-note) !important;
+  font-weight: 500;
+  color: var(--color-texte-3) !important;
+  white-space: nowrap;
+}
 .wx7 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4194,6 +4217,12 @@
   .pied7__postes {
     gap: calc(var(--spacing) * 4);
   }
+}
+/* Sous le montant des forfaits : la période du forfait compté. */
+.pied7__periode {
+  font-size: var(--text-note);
+  font-weight: 500;
+  color: var(--color-texte-3);
 }
 .pied7__alerte {
   display: grid;

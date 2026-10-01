@@ -134,7 +134,8 @@ function mergeLecture(a: LectureFiche, b: LectureFiche): LectureFiche {
     lon: gps.lon,
     locality: a.locality ?? b.locality,
     street: a.street ?? b.street,
-    title: titrePublie(a.title) ?? titrePublie(b.title),
+    // Chaque titre est déjà passé par `titrePublie` : le relire le décoderait une fois de plus.
+    title: a.title ?? b.title,
     taxeSejour: a.taxeSejour ?? b.taxeSejour,
   };
 }
@@ -300,13 +301,18 @@ function fromRegex(html: string): LectureFiche {
   return out;
 }
 
-function decodeHtml(s: string): string {
-  return s
-    .replace(/&nbsp;|&#160;/gi, " ")
-    .replace(/&deg;|&#176;/gi, "°")
-    .replace(/&/gi, "&")
-    .replace(/"/gi, '"')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+const ENTITES: Record<string, string> = { nbsp: " ", deg: "°", quot: '"', apos: "'", amp: "&" };
+
+/**
+ * Les entités d'un attribut `content`, décodées en une seule passe : le `&`
+ * rendu par une entité n'en ouvre pas une autre (`&amp;quot;` reste `&quot;`).
+ */
+export function decodeHtml(s: string): string {
+  return s.replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (brut, dec?: string, hex?: string, nom?: string) => {
+    if (nom) return ENTITES[nom.toLowerCase()] ?? brut;
+    const code = dec != null ? Number(dec) : Number.parseInt(hex ?? "", 16);
+    return code === 160 ? " " : String.fromCharCode(code);
+  });
 }
 
 /** Meta description / Open Graph : la centrale y répète capacité et pièces. */
@@ -321,7 +327,7 @@ function fromMeta(html: string): LectureFiche {
     if (!content) continue;
     out = { ...out, ...fusion(out, duTexte(decodeHtml(content))) };
     if (/property=["']og:title["']/i.test(tag)) {
-      const titre = titrePublie(decodeHtml(content));
+      const titre = titrePublie(content);
       if (titre) out = { ...out, title: out.title ?? titre };
     }
   }

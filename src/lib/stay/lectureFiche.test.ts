@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { lectureFiche } from "./lectureFiche.ts";
+import { decodeHtml, lectureFiche } from "./lectureFiche.ts";
 import { cleListing, poserReleve } from "./poserReleve.ts";
 
 describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
@@ -259,11 +259,52 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(flaine.rooms, 2);
   });
 
+  it("décode &amp; et &quot; du titre og:title", () => {
+    const fiche = (titre: string) =>
+      `<html><head><meta property="og:title" content="${titre}" /></head><body></body></html>`;
+    assert.equal(lectureFiche(fiche("Ride &amp; Breakfast")).title, "Ride & Breakfast");
+    assert.equal(lectureFiche(fiche("Chalet &quot;Le Lys&quot;")).title, 'Chalet "Le Lys"');
+  });
+
+  it("décode le titre une seule fois : &amp;quot; reste &quot;", () => {
+    const og = `<html><head><meta property="og:title" content="Chalet &amp;quot;Le Lys&amp;quot;" /></head></html>`;
+    assert.equal(lectureFiche(og).title, "Chalet &quot;Le Lys&quot;");
+    // Sans GPS, la page repasse par les recours de point : le titre h1 n'y est pas relu.
+    const h1 = `<html><body><h1>Chalet &amp;quot;Neve&amp;quot;</h1></body></html>`;
+    assert.equal(lectureFiche(h1).title, "Chalet &quot;Neve&quot;");
+    const jsonLd = `<script type="application/ld+json">${JSON.stringify({
+      "@type": "VacationRental",
+      name: "Chalet &amp;quot;Neve&amp;quot;",
+      containsPlace: { "@type": "Accommodation", occupancy: { maxValue: 8 } },
+    })}</script>`;
+    assert.equal(lectureFiche(jsonLd).title, "Chalet &quot;Neve&quot;");
+  });
+
   it("lit un couple latitude/longitude hors bloc geo", () => {
     const html = `<html>{"name":"Les Violettes","latitude":"45.00565","longitude":"6.12365"}</html>`;
     const l = lectureFiche(html);
     assert.equal(l.lat, 45.00565);
     assert.equal(l.lon, 6.12365);
+  });
+});
+
+describe("decodeHtml : entités d'un attribut content", () => {
+  it("décode &amp;, &quot; et l'apostrophe sous ses trois formes", () => {
+    assert.equal(decodeHtml("Ride &amp; Breakfast"), "Ride & Breakfast");
+    assert.equal(decodeHtml("Chalet &quot;Le Lys&quot;"), 'Chalet "Le Lys"');
+    assert.equal(decodeHtml("L&#39;Ourson, L&apos;Isba, L&#x27;Igloo"), "L'Ourson, L'Isba, L'Igloo");
+  });
+
+  it("ne décode pas deux fois : &amp;quot; reste &quot;", () => {
+    assert.equal(decodeHtml("&amp;quot;"), "&quot;");
+    assert.equal(decodeHtml("&amp;#39;"), "&#39;");
+    assert.equal(decodeHtml("&#38;amp;"), "&amp;");
+  });
+
+  it("garde l'espace, le degré, et une entité inconnue telle quelle", () => {
+    assert.equal(decodeHtml("8&nbsp;personnes, 4&#160;pièces"), "8 personnes, 4 pièces");
+    assert.equal(decodeHtml("-5&deg;C, -7&#176;C"), "-5°C, -7°C");
+    assert.equal(decodeHtml("&inconnue;"), "&inconnue;");
   });
 });
 

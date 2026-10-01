@@ -12,8 +12,8 @@
  *
  * Sources : le plan du site de Skaping (`sitemap.players.xml`), les groupes de
  * Webcam-HD (`smr/json/webcam_display_group/<groupe>.json`, le fichier que
- * son lecteur lit), et les caméras de l'ancienne table. 148 stations,
- * 508 caméras.
+ * son lecteur lit), et les caméras de l'ancienne table. 147 stations,
+ * 505 caméras.
  */
 
 export type Camera = {
@@ -801,11 +801,6 @@ export const CAMERAS: Readonly<Record<string, readonly Camera[]>> = {
   "saint-jean-de-sixt": [
     { label: "Forgeassoud Dessus", url: "https://app.webcam-hd.com/saint-jean-de-sixt/stade-de-neige", fournisseur: "Webcam-HD" },
     { label: "Village", url: "https://app.webcam-hd.com/saint-jean-de-sixt/village", fournisseur: "Webcam-HD" },
-  ],
-  "le-grand-puy": [
-    { label: "Les Planes", url: "https://app.webcam-hd.com/grand-puy/planes", fournisseur: "Webcam-HD" },
-    { label: "Espace débutant", url: "https://app.webcam-hd.com/grand-puy/espace-debutant", fournisseur: "Webcam-HD" },
-    { label: "Front de neige", url: "https://app.webcam-hd.com/grand-puy/front-de-neige", fournisseur: "Webcam-HD" },
   ],
   "source-du-doubs-mouthe": [
     { label: "Source du Doubs", url: "https://app.webcam-hd.com/mouthe/source-du-doubs", fournisseur: "Webcam-HD" },

@@ -3110,20 +3110,6 @@
   "camsDuDomaine": []
  },
  {
-  "id": "seyne-les-alpes",
-  "nom": "Seyne les Alpes",
-  "dept": "Alpes-de-Haute-Provence",
-  "commune": "Seyne",
-  "massif": "Alpes du Sud",
-  "domaine": "Le Grand Puy",
-  "lat": 44.343634,
-  "lon": 6.367605,
-  "altMax": 1602,
-  "pistesKm": 0.2,
-  "camsPropres": [],
-  "camsDuDomaine": []
- },
- {
   "id": "super-sauze",
   "nom": "Super Sauze",
   "dept": "Alpes-de-Haute-Provence",
@@ -4467,20 +4453,6 @@
   "lat": 45.0537,
   "lon": 6.2855,
   "altMax": 2300,
-  "pistesKm": null,
-  "camsPropres": [],
-  "camsDuDomaine": []
- },
- {
-  "id": "le-grand-puy",
-  "nom": "Le Grand Puy",
-  "dept": null,
-  "commune": null,
-  "massif": "Alpes du Sud",
-  "domaine": null,
-  "lat": 44.3219,
-  "lon": 6.3933,
-  "altMax": 1800,
   "pistesKm": null,
   "camsPropres": [],
   "camsDuDomaine": []

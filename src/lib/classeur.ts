@@ -2,7 +2,8 @@
  *
  *  Le classeur (`franceMontagnes.data.ts`, généré par `npm run catalogue:import`
  *  depuis `docs/sources/stations-ski-france-montagnes.xlsx`) décrit 284 lignes,
- *  dont 4 en double d'une autre station (`LIGNES_EN_DOUBLE`) : 280 entrent.
+ *  dont 4 en double d'une autre station (`LIGNES_EN_DOUBLE`) et 1 d'une
+ *  station fermée (`STATIONS_FERMEES`) : 279 entrent.
  *  Le dépôt en décrit 231, avec des noms curés, des altitudes vérifiées, l'IGN
  *  RGE ALTI au pin, la photo et le mix Skiinfo.
  *
@@ -173,6 +174,42 @@ const LIGNES_EN_DOUBLE: { ligne: string; retire: string; garde: string }[] = [
   { ligne: "Praloup", retire: "praloup-04226", garde: "praloup" },
   { ligne: "Espace Aubrac", retire: "espace-aubrac", garde: "laguiole" },
 ];
+
+/**
+ * Stations fermées pour de bon, retirées du référentiel.
+ *
+ * - **Le Grand Puy** (Seyne, Alpes-de-Haute-Provence) : un référendum local
+ *   d'octobre 2024 (71 %) a mis fin aux remontées mécaniques au 1er novembre
+ *   2024 ; le matériel a été revendu et les remontées démontées (franceinfo,
+ *   mesinfos.fr, ski.fr ; vérifié le 30 septembre 2026). Le classeur la dit
+ *   encore « En activité » sous « Seyne les Alpes », le dépôt la décrit sous
+ *   « Le Grand Puy » : les deux sortent.
+ *
+ * Une station fermée n'a pas de remplaçante, contrairement à une ligne en
+ * double (`IDS_RETIRES`) : un séjour ou un lien enregistrés sous son
+ * identifiant ne résolvent plus rien (`stationById` rend `undefined`), plutôt
+ * que d'ouvrir une autre station.
+ */
+export const STATIONS_FERMEES: readonly {
+  id: string;
+  /** La ligne du classeur qui la décrit, s'il y en a une. */
+  ligne: string | null;
+  raison: string;
+}[] = [
+  {
+    id: "seyne-les-alpes",
+    ligne: "Seyne les Alpes",
+    raison: "Le Grand Puy : remontées arrêtées le 1er novembre 2024 et démontées",
+  },
+  {
+    id: "le-grand-puy",
+    ligne: null,
+    raison: "Le Grand Puy : remontées arrêtées le 1er novembre 2024 et démontées",
+  },
+];
+
+/** Les identifiants des stations fermées. */
+export const IDS_FERMES: ReadonlySet<string> = new Set(STATIONS_FERMEES.map((s) => s.id));
 
 /**
  * Identifiants retirés du référentiel, vers la station qui les remplace.
@@ -435,6 +472,7 @@ function buildEntries(): {
   entries: ClasseurEntry[];
   duplicates: string[];
   enDouble: string[];
+  fermees: string[];
   collisions: string[];
   realigned: string[];
 } {
@@ -446,6 +484,7 @@ function buildEntries(): {
   }
   const manual = new Map(MANUAL_PAIRS.map(([depotId, fmName]) => [fmName, depotId]));
   const enDoubleNoms = new Set(LIGNES_EN_DOUBLE.map((d) => d.ligne));
+  const fermeesNoms = new Set(STATIONS_FERMEES.map((f) => f.ligne).filter(Boolean));
 
   // 1. Deux lignes du classeur qui se réduisent au même identifiant décrivent
   //    la même station : « Chamonix Mont-Blanc » et « Chamonix-Mont-Blanc ».
@@ -455,9 +494,15 @@ function buildEntries(): {
   const enDouble: string[] = [];
   const unique: FmStation[] = [];
   const seenSlug = new Set<string>();
+  const fermees: string[] = [];
   for (const fm of FM_STATIONS) {
     if (enDoubleNoms.has(fm.fmName)) {
       enDouble.push(fm.fmName);
+      continue;
+    }
+    // Les stations fermées pour de bon (`STATIONS_FERMEES`) n'entrent pas.
+    if (fermeesNoms.has(fm.fmName)) {
+      fermees.push(fm.fmName);
       continue;
     }
     const key = slugify(fm.fmName);
@@ -587,7 +632,7 @@ function buildEntries(): {
       measure,
     };
   });
-  return { entries, duplicates, enDouble, collisions, realigned };
+  return { entries, duplicates, enDouble, fermees, collisions, realigned };
 }
 
 const built = buildEntries();
@@ -600,6 +645,10 @@ export const CLASSEUR_DUPLICATES: string[] = built.duplicates;
 /** Lignes du classeur écartées parce qu'elles doublent une station présente
  *  sous un autre nom (`LIGNES_EN_DOUBLE`). */
 export const CLASSEUR_EN_DOUBLE: string[] = built.enDouble;
+
+/** Lignes du classeur écartées parce que la station a fermé pour de bon
+ *  (`STATIONS_FERMEES`). */
+export const CLASSEUR_FERMEES: string[] = built.fermees;
 
 /** Lignes distinctes dont le nom se réduisait à un identifiant déjà pris, et
  *  qui ont reçu leur numéro de classeur en suffixe. */

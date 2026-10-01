@@ -24,6 +24,15 @@
  *  `stationById`), jamais vers rien. Aucun identifiant du dépôt n'est
  *  concerné.
  *
+ *  ## Stations fermées
+ *
+ *  Le 30 septembre 2026, Le Grand Puy (fermé pour de bon, remontées démontées)
+ *  est sorti du référentiel sous ses deux identifiants : `le-grand-puy`
+ *  (dépôt) et `seyne-les-alpes` (classeur). Voir `STATIONS_FERMEES`. Sans
+ *  station qui la remplace, un identifiant enregistré ne résout plus rien :
+ *  `stationFromStoredId` rend `null`, jamais une autre station. Les 230 autres
+ *  identifiants du dépôt résolvent comme avant.
+ *
  *  ## `le-granier-vallee-des-entremonts`
  *
  *  Le classeur nomme « Le Granier » une station de Saint-Pierre-de-Chartreuse,

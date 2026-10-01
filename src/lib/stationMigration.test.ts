@@ -5,10 +5,12 @@ import {
   CLASSEUR,
   CLASSEUR_DUPLICATES,
   CLASSEUR_EN_DOUBLE,
+  CLASSEUR_FERMEES,
   CLASSEUR_ID_COLLISIONS,
   DOMAIN_FIXES,
   DOMAINES_CORRIGES,
   GPS_FIXES,
+  IDS_FERMES,
   IDS_RETIRES,
 } from "./classeur.ts";
 import snapshot from "./openskimap.snapshot.json" with { type: "json" };
@@ -23,12 +25,15 @@ import {
 import { DEPOT_STATIONS, STATIONS, stationById } from "./stations.ts";
 
 describe("bascule vers le classeur", () => {
-  it("volumes : 280 lignes de classeur sur 284, 196 appariées, 35 hors classeur, 315 au total", () => {
+  it("volumes : 279 lignes de classeur sur 284, 196 appariées, 34 hors classeur, 313 au total", () => {
     // Jusqu'au 26 septembre 2026 : 284 lignes, 195 appariées, 36 hors
     // classeur, 320 stations. Quatre lignes doublaient une autre station, et
-    // Lus-la-Croix-Haute est désormais appariée à `lus-la-jarjatte`.
+    // Lus-la-Croix-Haute est désormais appariée à `lus-la-jarjatte`. Le
+    // 30 septembre, Le Grand Puy, fermé pour de bon, est sorti : sa ligne du
+    // classeur (« Seyne les Alpes ») et sa station du dépôt (`le-grand-puy`).
     assert.equal(FM_STATIONS.length, 284);
-    assert.equal(CLASSEUR.length, 280);
+    assert.equal(CLASSEUR.length, 279);
+    assert.deepEqual(CLASSEUR_FERMEES, ["Seyne les Alpes"]);
     // Le doublon « Chamonix-Mont-Blanc » a été retiré du classeur source : si
     // cette liste se remplit, une ligne en double est réapparue.
     assert.deepEqual(CLASSEUR_DUPLICATES, []);
@@ -42,10 +47,10 @@ describe("bascule vers le classeur", () => {
     // double de Praloup, elle ne collisionne plus avec personne.
     assert.deepEqual(CLASSEUR_ID_COLLISIONS, []);
     assert.equal(CLASSEUR.filter((e) => e.depotId).length, 196);
-    assert.equal(addedByClasseur().length, 84);
-    assert.equal(outsideClasseur().length, 35);
-    assert.equal(STATIONS.length, 315);
-    assert.equal(DEPOT_STATIONS.length, 231);
+    assert.equal(addedByClasseur().length, 83);
+    assert.equal(outsideClasseur().length, 34);
+    assert.equal(STATIONS.length, 313);
+    assert.equal(DEPOT_STATIONS.length, 230);
   });
 
   it("les identifiants retirés résolvent vers la station gardée, jamais vers rien", () => {
@@ -108,14 +113,19 @@ describe("bascule vers le classeur", () => {
       const entry = CLASSEUR.find((e) => e.id === s.id)!;
       assert.equal(s.distToPisteKm, entry.fm.slopeDistance, s.id);
     }
-    // 279 lignes mesurées ; 152 le sont depuis le repère que la station garde.
-    assert.equal(CLASSEUR.filter((e) => e.fm.slopeDistance != null).length, 279);
-    assert.equal(STATIONS.filter((s) => s.distToPisteKm != null).length, 152);
+    // 278 lignes mesurées ; 151 le sont depuis le repère que la station garde.
+    assert.equal(CLASSEUR.filter((e) => e.fm.slopeDistance != null).length, 278);
+    assert.equal(STATIONS.filter((s) => s.distToPisteKm != null).length, 151);
   });
 
-  it("aucun identifiant du dépôt ne bouge : les 231 résolvent encore", () => {
+  it("aucun identifiant du dépôt ne bouge : les 230 encore ouverts résolvent, le fermé ne résout plus rien", () => {
     assert.equal(DEPOT_IDS.length, 231);
     for (const id of DEPOT_IDS) {
+      if (IDS_FERMES.has(id)) {
+        // Une station fermée n'a pas de remplaçante : rien, jamais une autre.
+        assert.equal(stationFromStoredId(id), null, id);
+        continue;
+      }
       const s = stationFromStoredId(id);
       assert.ok(s, `${id} ne résout plus`);
       assert.equal(s.id, id);

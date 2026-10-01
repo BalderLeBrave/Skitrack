@@ -149,7 +149,7 @@ export function tarifRecap(html: string): TarifRecap | null {
 /** Identifiant de prestation Ingénie, forme `G-prestataire-prestation`. */
 export function prestationIngenie(raw: string): string | null {
   if (!raw) return null;
-  const deco = raw.replace(/&/g, "&");
+  const deco = raw.replace(/&amp;/g, "&");
   const a = deco.match(/PRESTATION-(G[-|][A-Za-z0-9|-]+)/i);
   if (a?.[1]) return a[1].replace(/\|/g, "-");
   const b = deco.match(/\bG\|(\d+)\|(\d+)\b/);

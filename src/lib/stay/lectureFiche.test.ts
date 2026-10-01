@@ -278,6 +278,9 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
       containsPlace: { "@type": "Accommodation", occupancy: { maxValue: 8 } },
     })}</script>`;
     assert.equal(lectureFiche(jsonLd).title, "Chalet &quot;Neve&quot;");
+    // Une entité numérique derrière un `&amp;` ne se décode pas non plus.
+    const apostrophe = `<html><head><meta property="og:title" content="Chalet L&amp;#39;Arolle" /></head></html>`;
+    assert.equal(lectureFiche(apostrophe).title, "Chalet L&#39;Arolle");
   });
 
   it("lit un couple latitude/longitude hors bloc geo", () => {

@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { applyParsed, isFranceCountry, parseSkiinfoPage, stationSkiinfoUrl } from "./skiinfoParse.ts";
-import { SKIINFO } from "./skiinfo.ts";
+import { SKIINFO, skiinfoPhotoAsset } from "./skiinfo.ts";
 import { formatSkiinfoAge, isStale, seedLive } from "./skiinfoStore.ts";
 
 const html = readFileSync(new URL("./fixtures/skiinfo-2alpes.html", import.meta.url), "utf8");
@@ -20,6 +20,14 @@ describe("mise à jour Skiinfo", () => {
     assert.equal(isFranceCountry(p.country), true);
     assert.ok(p.photoUrl?.includes("cdn.bfldr.com"));
     assert.ok(!p.photoUrl?.includes("resort_header"));
+  });
+
+  it("décode &amp; dans l'URL og:image, sans changer la photo visée", () => {
+    const brut = "https://cdn.bfldr.com/WIENNW6Q/as/4th55njvrk6m9gtr7rf8qr/Les_2_Alpes_HERO?auto=webp&amp;format=png";
+    const p = parseSkiinfoPage(`<html><head><meta property="og:image" content="${brut}" /></head></html>`);
+    assert.equal(p.photoUrl, "https://cdn.bfldr.com/WIENNW6Q/as/4th55njvrk6m9gtr7rf8qr/Les_2_Alpes_HERO?auto=webp&format=png");
+    // Seule la query change : la photo enregistrée n'est pas retéléchargée.
+    assert.equal(skiinfoPhotoAsset(p.photoUrl!), skiinfoPhotoAsset(brut));
   });
 
   it("page station-de-ski, pas d’invention si le bloc manque, hors FR refusé", () => {

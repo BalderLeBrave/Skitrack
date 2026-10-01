@@ -123,8 +123,28 @@ const UNITE_PERSONNES = String.raw`(?:personnes?|pers\.?|voyageurs?|guests?|pax|
 /** « 4/6 personnes », « 4-6 pers. », « 4 à 6 couchages ». */
 const GUESTS_RANGE = new RegExp(
   String.raw`(\d+)\s*(?:[/––-]|\s(?:à|a)\s)\s*(\d+)\s*-?\s*${UNITE_PERSONNES}\b`,
-  "i",
+  "gi",
 );
+
+/**
+ * La première fourchette qui monte, ses deux bornes plausibles.
+ *
+ * Une fourchette s'écrit de la plus petite à la plus grande : « 4 à 6 ».
+ * Dans une adresse, `rond-point-7-4-personnes` n'en est pas une : le 7 est
+ * le nom du logement, le 4 sa capacité (Ingénie, Les Saisies). La lire
+ * comme « 4 à 7 » donnait 7 couchages à un logement qui en a 4, et
+ * `altarena-d101-8-personnes` perdait ses 8 couchages avec la borne 101.
+ * Une fourchette qui descend est laissée : le nombre écrit juste avant
+ * « personnes » reste la capacité.
+ */
+function fourchetteEcrite(text: string): [number, number] | null {
+  for (const m of text.matchAll(GUESTS_RANGE)) {
+    const a = takeGuests(Number(m[1]));
+    const b = takeGuests(Number(m[2]));
+    if (a != null && b != null && a <= b) return [a, b];
+  }
+  return null;
+}
 
 const GUESTS_ONE = new RegExp(String.raw`(\d+)\s*-?\s*${UNITE_PERSONNES}\b`, "gi");
 
@@ -240,7 +260,7 @@ export function lireLogement(...parts: Array<string | null | undefined>): Lectur
   const cabine = CABINE.test(text);
 
   // « 2P » : pièces s'il ne peut pas être une capacité.
-  const range = GUESTS_RANGE.exec(text);
+  const range = fourchetteEcrite(text);
   const ecrite = capaciteEcrite(text);
   const nps = [...text.matchAll(N_P)].filter(
     (m) => !/^\s*pi[eè]ces?\b/i.test(text.slice(m.index + m[0].length)),
@@ -262,11 +282,9 @@ export function lireLogement(...parts: Array<string | null | undefined>): Lectur
   let capaciteStandard: number | null = null;
   if (!multi) {
     if (range) {
-      const a = Number(range[1]);
-      const b = Number(range[2]);
-      capacite = takeGuests(Math.max(a, b));
-      const base = takeGuests(Math.min(a, b));
-      capaciteStandard = base != null && capacite != null && base < capacite ? base : null;
+      const [base, haut] = range;
+      capacite = haut;
+      capaciteStandard = base < haut ? base : null;
     } else {
       capacite = ecrite ?? personnesNP;
       if (capacite == null) {

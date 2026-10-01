@@ -26,16 +26,18 @@
  * hébergement, chaque produit à sa date. Chaque recherche lui donne quinze
  * secondes au plus, un détail à la fois, chacun une seconde au moins après la
  * requête précédente vers la passerelle, dernière page de résultats comprise
- * (`cadence.ts`) ; ce qui n'a pas été lu attend la recherche suivante. Un
- * refus (403, 429, 503) arrête ces détails vers la centrale jusqu'au
- * redémarrage du serveur, sans reprise ; une autre panne, ceux de la
- * recherche. Les annonces partent quand même, sans capacité.
+ * (`cadence.ts`). Ce qu'elle n'a pas eu le temps de lire se lit ensuite en
+ * tâche de fond, au même pas, en cédant la file aux recherches en cours ; la
+ * recherche suivante le trouve en mémoire. Un refus (403, 429, 503) arrête
+ * ces détails vers la centrale jusqu'au redémarrage du serveur, sans reprise ;
+ * une autre panne, ceux de la recherche ou de la suite. Les annonces partent
+ * quand même, sans capacité.
  */
 
 import type { Listing } from "@/lib/listings";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { aTourDeRole, noterFin } from "../cadence";
+import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
 import { compter, phrasesRegle } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -47,6 +49,7 @@ import {
   corpsRechercheFeratel,
   FERATEL_PAR_PAGE,
   horsRegleFeratel,
+  lireDetailsFeratel,
   lireFeratel,
   sessionFeratel,
   typeFeratel,
@@ -56,7 +59,9 @@ import {
   verserCapacites,
   type CapaciteDatee,
   type CapaciteFeratel,
+  type DetailsFeratel,
   type FicheFeratel,
+  type LectureDetailsFeratel,
   type ReponseFeratel,
   type ReponseServicesFeratel,
 } from "./feratel";
@@ -221,51 +226,145 @@ async function lireCapacites(
     else enMemoire += 1;
   }
   const debut = Date.now();
-  let demandes = 0;
-  let arret: string | null = null;
-  for (const f of [...jamaisLues, ...produitAbsent]) {
-    if (!f.base) continue;
-    if (capacitesRefusees.has(r.organisation)) {
-      arret = "la centrale a refusé un détail plus tôt, aucun n'est redemandé";
-      break;
-    }
-    if (Date.now() - debut > CAPACITE_BUDGET_MS) {
-      arret = `budget de ${CAPACITE_BUDGET_MS / 1000} s atteint`;
-      break;
-    }
-    demandes += 1;
-    const cle = `${r.organisation}|${f.id}`;
-    const url = urlServicesFeratel(FERATEL_API, r.organisation, f.base, f.id, recherche);
-    try {
-      const res = await aTourDeRole(url, async () => {
-        // Une autre recherche a pu essuyer un refus pendant l'attente.
-        if (capacitesRefusees.has(r.organisation)) {
-          throw new Error("la centrale a refusé un détail plus tôt, aucun n'est redemandé");
-        }
-        return json(url, session, undefined, CAPACITE_TIMEOUT_MS);
-      });
-      // Ce qui était déjà su des autres produits reste, avec sa date ; le neuf
-      // s'y ajoute à la date du jour.
-      const maintenant = Date.now();
-      const produits = verserCapacites(
-        capacitesLues.get(cle)?.produits,
-        capacitesFeratel(res.valeur as ReponseServicesFeratel),
-        maintenant,
-        CAPACITE_TTL_MS,
-      );
-      capacitesLues.set(cle, { lueA: maintenant, produits });
-      lues.set(f.id, produits);
-    } catch (e) {
-      if (e instanceof ErreurStatut && (e.statut === 403 || e.statut === 429 || e.statut === 503)) {
-        capacitesRefusees.add(r.organisation);
-        arret = `refus ${e.statut}, plus aucun détail demandé à cette centrale`;
-      } else {
-        arret = e instanceof Error ? e.message : String(e);
-      }
-      break;
-    }
+  const aLire = [...jamaisLues, ...produitAbsent].filter((f) => f.base);
+  lecturesAuPremierPlan += 1;
+  let lecture: LectureDetailsFeratel<FicheFeratel>;
+  try {
+    lecture = await lireDetailsFeratel(aLire, debut + CAPACITE_BUDGET_MS, detailsFeratel(r, recherche, session, debut));
+  } finally {
+    lecturesAuPremierPlan -= 1;
   }
-  return { lues, demandes, enMemoire, arret };
+  // Ce que la mémoire sait maintenant de ces hébergements : lu par cette
+  // recherche, ou par une suite en tâche de fond pendant qu'elle lisait.
+  for (const f of aLire) {
+    const garde = capacitesLues.get(`${r.organisation}|${f.id}`);
+    if (garde) lues.set(f.id, capacitesFraiches(garde.produits, Date.now(), CAPACITE_TTL_MS));
+  }
+  let arret = motifArret(lecture);
+  if (lecture.arret === "échéance" && lecture.restantes.length > 0) {
+    const suite = lancerSuiteCapacites(r, recherche, session, lecture.restantes)
+      ? `${lecture.restantes.length} hébergement(s) à lire en tâche de fond`
+      : "une lecture en tâche de fond est déjà en cours";
+    arret = `${arret ?? ""}, ${suite}`;
+  }
+  return { lues, demandes: lecture.demandes, enMemoire, arret };
+}
+
+/**
+ * Le réseau de `lireDetailsFeratel` : un détail à son tour (`aTourDeRole`),
+ * versé dans la mémoire. Un refus (403, 429, 503) marque la centrale.
+ *
+ * `depuis` : l'heure où la liste à lire a été dressée. Un hébergement lu
+ * après, par une autre recherche ou par une suite, est passé ; un produit
+ * introuvable relu à l'instant ne se redemande donc pas.
+ */
+function detailsFeratel(
+  r: ReglageFeratel,
+  recherche: string,
+  session: string,
+  depuis: number,
+): DetailsFeratel<FicheFeratel> {
+  return {
+    lire: async (f) => {
+      const cle = `${r.organisation}|${f.id}`;
+      const url = urlServicesFeratel(FERATEL_API, r.organisation, f.base ?? "", f.id, recherche);
+      try {
+        const res = await aTourDeRole(url, async () => {
+          // Une autre recherche a pu essuyer un refus pendant l'attente.
+          if (capacitesRefusees.has(r.organisation)) {
+            throw new Error("la centrale a refusé un détail plus tôt, aucun n'est redemandé");
+          }
+          return json(url, session, undefined, CAPACITE_TIMEOUT_MS);
+        });
+        // Ce qui était déjà su des autres produits reste, avec sa date ; le neuf
+        // s'y ajoute à la date du jour.
+        const maintenant = Date.now();
+        const produits = verserCapacites(
+          capacitesLues.get(cle)?.produits,
+          capacitesFeratel(res.valeur as ReponseServicesFeratel),
+          maintenant,
+          CAPACITE_TTL_MS,
+        );
+        capacitesLues.set(cle, { lueA: maintenant, produits });
+      } catch (e) {
+        if (e instanceof ErreurStatut && (e.statut === 403 || e.statut === 429 || e.statut === 503)) {
+          capacitesRefusees.add(r.organisation);
+        }
+        throw e;
+      }
+    },
+    dejaLu: (f) => {
+      const garde = capacitesLues.get(`${r.organisation}|${f.id}`);
+      return garde != null && garde.lueA >= depuis;
+    },
+    refusee: () => capacitesRefusees.has(r.organisation),
+    maintenant: () => Date.now(),
+  };
+}
+
+/** Ce que le journal dit d'un arrêt, dans les mots d'avant. */
+function motifArret(l: LectureDetailsFeratel<FicheFeratel>): string | null {
+  switch (l.arret) {
+    case null:
+      return null;
+    case "échéance":
+      return `budget de ${CAPACITE_BUDGET_MS / 1000} s atteint`;
+    case "refus":
+      return l.erreur instanceof ErreurStatut
+        ? `refus ${l.erreur.statut}, plus aucun détail demandé à cette centrale`
+        : "la centrale a refusé un détail plus tôt, aucun n'est redemandé";
+    case "panne":
+      return l.erreur instanceof Error ? l.erreur.message : String(l.erreur);
+  }
+}
+
+/* ---------- Suite des capacités en tâche de fond ---------- */
+
+/** Une suite ne dure pas plus ; ce qui reste attend la recherche suivante. */
+const SUITE_CAPACITES_MAX_MS = 10 * 60 * 1000;
+/** Recherches qui lisent leurs détails en ce moment : la suite leur cède le pas. */
+let lecturesAuPremierPlan = 0;
+/** Centrales dont une suite est en cours : une seule à la fois par centrale. */
+const suitesEnCours = new Set<string>();
+
+/**
+ * Lit, après la recherche, les détails qu'elle n'a pas eu le temps de lire.
+ *
+ * Au même pas qu'elle : un détail à la fois, une seconde au moins après la
+ * requête précédente vers la passerelle (`aTourDeRole`), et rien tant qu'une
+ * recherche lit les siens. Un refus arrête tout, comme pendant la recherche.
+ * Ce qui est lu entre en mémoire : la recherche suivante le trouve, sans le
+ * redemander. Rend `false` quand une suite court déjà pour cette centrale.
+ */
+function lancerSuiteCapacites(
+  r: ReglageFeratel,
+  recherche: string,
+  session: string,
+  restantes: FicheFeratel[],
+): boolean {
+  if (suitesEnCours.has(r.organisation)) return false;
+  suitesEnCours.add(r.organisation);
+  const depuis = Date.now();
+  const details: DetailsFeratel<FicheFeratel> = {
+    ...detailsFeratel(r, recherche, session, depuis),
+    attendreSonTour: async (echeance) => {
+      while (lecturesAuPremierPlan > 0 && Date.now() < echeance) await pause(ECART_HOTE_MS);
+    },
+  };
+  void lireDetailsFeratel(restantes, depuis + SUITE_CAPACITES_MAX_MS, details)
+    .then((l) => {
+      const lues = restantes.filter((f) => (capacitesLues.get(`${r.organisation}|${f.id}`)?.lueA ?? 0) >= depuis);
+      const motif = l.arret === "échéance" ? `échéance de ${SUITE_CAPACITES_MAX_MS / 60_000} min` : motifArret(l);
+      console.info(
+        `[centrale] ${r.host} : capacités en tâche de fond, ${lues.length}/${restantes.length} hébergements lus` +
+          ` (${l.demandes} détail(s) demandé(s))${motif ? `, arrêté : ${motif}` : ""}`,
+      );
+    })
+    .catch(() => {
+      /* `lireDetailsFeratel` ne lève pas : un échec arrête la suite, il est rendu. */
+    })
+    .finally(() => suitesEnCours.delete(r.organisation));
+  return true;
 }
 
 function enListing(

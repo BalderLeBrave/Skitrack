@@ -8,6 +8,7 @@ import {
   corpsRechercheFeratel,
   FERATEL_PAR_PAGE,
   horsRegleFeratel,
+  lireDetailsFeratel,
   lireFeratel,
   sessionFeratel,
   typeEcarteFeratel,
@@ -16,6 +17,7 @@ import {
   urlResultatsFeratel,
   urlServicesFeratel,
   verserCapacites,
+  type DetailsFeratel,
 } from "./feratel.ts";
 
 /**
@@ -719,5 +721,105 @@ describe("Deskline / Feratel : la mémoire des capacités, produit par produit",
     const apres = verserCapacites(avant, new Map([["p", { adultes: 4, lits: 4 }]]), t0 + JOUR, TTL);
     assert.deepEqual(apres.get("p"), { adultes: 4, lits: 4, lueA: t0 + JOUR });
     assert.equal(capacitesFraiches(undefined, t0, TTL).size, 0);
+  });
+});
+
+describe("Deskline / Feratel : les détails, un à la fois, puis en tâche de fond", () => {
+  /** Une horloge qui avance d'une seconde et demie par détail lu. */
+  const banc = (deja: ReadonlySet<string> = new Set()) => {
+    let t = 0;
+    const lus: string[] = [];
+    let refus = false;
+    const d: DetailsFeratel<string> = {
+      lire: async (id) => {
+        lus.push(id);
+        t += 1_500;
+      },
+      dejaLu: (id) => deja.has(id),
+      refusee: () => refus,
+      maintenant: () => t,
+    };
+    return { d, lus, refuser: () => (refus = true) };
+  };
+  const SIX = ["a", "b", "c", "d", "e", "f"];
+
+  it("l'échéance arrête la lecture et rend ce qui reste, pour la tâche de fond", async () => {
+    const { d, lus } = banc();
+    const l = await lireDetailsFeratel(SIX, 4_000, d);
+    assert.deepEqual(lus, ["a", "b", "c"]);
+    assert.equal(l.arret, "échéance");
+    assert.equal(l.demandes, 3);
+    assert.deepEqual(l.restantes, ["d", "e", "f"]);
+  });
+
+  it("toute la liste lue : ni arrêt ni reste", async () => {
+    const { d, lus } = banc();
+    const l = await lireDetailsFeratel(SIX, 60_000, d);
+    assert.deepEqual(lus, SIX);
+    assert.equal(l.arret, null);
+    assert.deepEqual(l.restantes, []);
+  });
+
+  it("ce qu'une autre recherche a lu entre-temps n'est pas redemandé", async () => {
+    const { d, lus } = banc(new Set(["b", "d"]));
+    const l = await lireDetailsFeratel(SIX, 60_000, d);
+    assert.deepEqual(lus, ["a", "c", "e", "f"]);
+    assert.equal(l.demandes, 4);
+  });
+
+  it("un refus arrête tout, sans rien laisser à la tâche de fond", async () => {
+    const { d, lus, refuser } = banc();
+    const l = await lireDetailsFeratel(SIX, 60_000, {
+      ...d,
+      lire: async (id) => {
+        if (id === "c") {
+          refuser();
+          throw new Error("la centrale a répondu 429");
+        }
+        await d.lire(id);
+      },
+    });
+    assert.deepEqual(lus, ["a", "b"]);
+    assert.equal(l.arret, "refus");
+    assert.equal(l.demandes, 3);
+    assert.deepEqual(l.restantes, []);
+    assert.equal((l.erreur as Error).message, "la centrale a répondu 429");
+  });
+
+  it("une centrale déjà refusée : aucun détail demandé", async () => {
+    const { d, lus, refuser } = banc();
+    refuser();
+    const l = await lireDetailsFeratel(SIX, 60_000, d);
+    assert.deepEqual(lus, []);
+    assert.equal(l.arret, "refus");
+    assert.equal(l.erreur, undefined);
+  });
+
+  it("une panne arrête la lecture, sans reprise", async () => {
+    const { d } = banc();
+    const l = await lireDetailsFeratel(SIX, 60_000, {
+      ...d,
+      lire: async () => {
+        throw new Error("This operation was aborted");
+      },
+    });
+    assert.equal(l.arret, "panne");
+    assert.equal(l.demandes, 1);
+    assert.deepEqual(l.restantes, []);
+  });
+
+  it("la tâche de fond attend son tour, et l'échéance se relit après l'attente", async () => {
+    const { d, lus } = banc();
+    let attentes = 0;
+    const l = await lireDetailsFeratel(SIX, 4_000, {
+      ...d,
+      attendreSonTour: async () => {
+        attentes += 1;
+      },
+    });
+    // Une attente avant chaque détail, et avant de constater l'échéance.
+    assert.equal(attentes, 4);
+    assert.deepEqual(lus, ["a", "b", "c"]);
+    assert.equal(l.arret, "échéance");
   });
 });

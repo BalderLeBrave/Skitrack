@@ -329,6 +329,20 @@ function fromMeta(html: string): LectureFiche {
 }
 
 /**
+ * Les chambres écrites dans le descriptif d'une fiche Ingénie : les blocs
+ * `contenu_descriptif`, débarrassés de leurs balises. `null` sans descriptif,
+ * ou sans « N chambres » dedans.
+ */
+function chambresDuDescriptif(html: string): number | null {
+  const textes: string[] = [];
+  const re = /class=["']contenu_descriptif["'][^>]*>([\s\S]*?)<\/span>\s*<\/div>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) textes.push(decodeHtml((m[1] ?? "").replace(/<[^>]*>/g, " ")));
+  if (textes.length === 0) return null;
+  return lireLogement(textes.join(" · ").replace(/\s+/g, " ")).chambresEcrites;
+}
+
+/**
  * Fiche Ingénie : critères GCAPAC / pièces / Chambre 1-N, GPS écrit en clair.
  *
  * Le JSON-LD de la centrale est souvent celui du loueur, pas du logement ;
@@ -337,23 +351,42 @@ function fromMeta(html: string): LectureFiche {
  */
 function fromIngenie(html: string): LectureFiche {
   let out: LectureFiche = { ...VIDE };
-  // Le critère `GCAPAC` est un attribut ; la ligne « Capacité … N personnes », un texte.
-  const capCritere = html.match(/GCAPAC-GCAP0?(\d+)/i)?.[1];
-  const capTexte = html.match(/Capacit[eé][^<]{0,80}<\/span>[\s\S]{0,280}?(\d+)\s*personnes/i)?.[1];
+  // Les critères sont des attributs : `GCAPAC-GCAP08`, `OPERSONNES-8PERS`
+  // (« Capacité maximale », Les Saisies), `capaciteMaximumPossible` suivi de
+  // sa quantité (« 4 personnes maximum », Arêches). La ligne « Capacité … N
+  // personnes » est un texte ; son libellé peut porter un `<span>:</span>`.
+  const capCritere =
+    html.match(/GCAPAC-GCAP0?(\d+)/i)?.[1] ??
+    html.match(/\bOPERSONNES-(\d+)PERS\b/i)?.[1] ??
+    html.match(/capaciteMaximumPossible[^>]*>\s*<span[^>]*\bquantite\b[^>]*>\s*(\d+)/i)?.[1];
+  const capTexte = html.match(
+    /Capacit[eé][^<]{0,80}(?:<span>[^<]{0,4}<\/span>\s*)?<\/span>[\s\S]{0,280}?(\d+)\s*personnes/i,
+  )?.[1];
   const cap = capCritere ?? capTexte;
   if (cap) out = { ...out, capacity: takeGuests(cap), capacitySource: capCritere ? "structured" : "text_regex" };
   const pieces =
     html.match(/GTYPAP-G(\d+)PIEC/i)?.[1] ??
     html.match(/Nombre de pi[eè]ces[\s\S]{0,280}?(\d+)\s*pi[eè]ces/i)?.[1];
   if (pieces) out = { ...out, rooms: takeBeds(pieces) };
+  // Le nombre publié (`NBDECHAMBRE-CHAMBRE1`, « 1 chambre »), sinon le
+  // décompte des titres `Chambre 1`, `Chambre 2` (`crit_GCHAM1`, `crit_CHAMBRE1`).
+  const chPubliees = html.match(/\bNBDECHAMBRE-CHAMBRE(\d+)\b/i)?.[1];
   let maxCh = 0;
-  const reCh = /crit_GCHAM(\d+)/g;
+  const reCh = /crit_G?CHAM(?:BRE)?(\d+)\b/g;
   let m: RegExpExecArray | null;
   while ((m = reCh.exec(html))) {
     const n = Number(m[1]);
     if (Number.isInteger(n) && n > maxCh && n <= MAX) maxCh = n;
   }
-  if (maxCh > 0) out = { ...out, bedrooms: takeBeds(maxCh), bedroomsSource: "structured" };
+  const ch = chPubliees != null ? takeBeds(chPubliees) : maxCh > 0 ? takeBeds(maxCh) : null;
+  if (ch != null) out = { ...out, bedrooms: ch, bedroomsSource: "structured" };
+  // Sans critère, les chambres écrites dans le descriptif (« 3 chambres (1 lit
+  // 1 personne / 1 lit 2 personnes…) », gîtes distribués par la centrale). La
+  // capacité ne s'y lit pas : « 2 lits gigognes 1 personne » décrit un lit.
+  if (out.bedrooms == null) {
+    const chambres = chambresDuDescriptif(html);
+    if (chambres != null) out = { ...out, bedrooms: chambres, bedroomsSource: "text_regex" };
+  }
   const itemLat = html.match(/itemprop=["']latitude["'][^>]*content=["']([^"']+)["']/i)?.[1];
   const itemLon = html.match(/itemprop=["']longitude["'][^>]*content=["']([^"']+)["']/i)?.[1];
   const lat = asCoord(itemLat) ?? asCoord(html.match(/Latitude\s*:\s*(-?\d+(?:[.,]\d+)?)/i)?.[1] ?? null);

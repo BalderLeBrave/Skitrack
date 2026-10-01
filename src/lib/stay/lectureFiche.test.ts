@@ -87,6 +87,51 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.lon, 6.11673);
   });
 
+  it("lit une fiche Ingénie d'Arêches : « personnes maximum » et « Nombre de chambre(s) » (Tervetuloa)", () => {
+    // Extrait de reservation.areches-beaufort.com/tervetuloa-1.html, 1er octobre 2026.
+    const html = `<div class="presentation"><div class="description"><div class="pave1 pave-containText"><span class="contenu_descriptif">Gîte dans la maison du propriétaire. Rez-de-chaussée : séjour-cuisine coin salon (1 canapé gigogne 2 lits 1 personne avec remise à niveau), 1 chambre (1 lit 2 personnes 140x190 cm), salle d'eau (douche), WC séparé.</span></div></div></div>
+      <div class="zone_criteres" id="criteres"><div class="cadre critere3"><div class="titre-div">En Bref</div><ul class="type-critere">
+      <li class="capacite-G"><span class="type-titre crit_capacite">Capacité <span>:</span> </span><ul class="valeur-critere"><li class="capacite-capaciteMaximumPossible-G"><span class="quantite">4</span> <span class="libelle">personnes maximum</span></li><li class="capacite-surface-G"><span class="quantite">37</span> <span class="libelle">m²</span></li></ul></li>
+      <li class="NBDECHAMBRE-G"><span class="type-titre crit_NBDECHAMBRE">Nombre de chambre(s) <span>:</span> </span><ul class="valeur-critere"><li class="NBDECHAMBRE-CHAMBRE1-G">1 chambre</li></ul></li></ul></div>
+      <div class="cadre critere4"><ul class="type-critere"><li class="CHAMBRE1-G"><span class="type-titre crit_CHAMBRE1">Chambre 1 <span>:</span> </span><ul class="valeur-critere"><li class="CHAMBRE1-LITDOUBLE-G"><span class="quantite">1</span> <span class="libelle">lit(s) double 140cm</span></li></ul></li></ul></div></div>
+      <h1>Tervetuloa</h1>`;
+    const l = lectureFiche(html);
+    assert.equal(l.capacity, 4);
+    assert.equal(l.capacitySource, "structured");
+    assert.equal(l.bedrooms, 1);
+    assert.equal(l.bedroomsSource, "structured");
+  });
+
+  it("lit une fiche Ingénie des Saisies : « Capacité maximale », et les chambres du descriptif (Chalet D'elise)", () => {
+    // Extrait de reservation.lessaisies.com/chalet-d-elise-8-personnes-73g211126.html, 1er octobre 2026 :
+    // un gîte sans critère de chambres, qui les écrit dans sa présentation.
+    const html = `<h2 class="titre_bloc_fiche" id="description"><span>Présentation</span></h2><div class="presentation"><div class="description">
+      <div class="pave2 pave-containText"><span class="contenu_descriptif"><table><tr><td><h2><span><strong>BONS PLANS AVEC LES SAISIES RÉSERVATION</strong></span></h2></td></tr></table>
+</span></div><div class="pave1 pave-containText"><span class="contenu_descriptif">Maison indépendante. Rez-de-chaussée : séjour-cuisine, salon (2 lits gigognes 1 personne.), 3 chambres (1 lit 1 personne / 1 lit 2 personnes., 1 lit 1 personne / 1 lit 2 personnes), 2 salle d'eau (douche / douche + wc).</span></div></div></div>
+      <div class="zone_criteres critere3" id="critere_3"><div class="cadre critere3"><ul class="type-critere">
+      <li class="OPERSONNES-G"><span class="type-titre crit_OPERSONNES">Capacité maximale <span>:</span> </span><ul class="valeur-critere"><li class="OPERSONNES-8PERS-G">8 personnes</li></ul></li></ul></div></div>
+      <h1>Chalet D'elise <span class="code_prest"><span>(</span>73G211126<span>)</span></span> </h1>`;
+    const l = lectureFiche(html);
+    assert.equal(l.capacity, 8);
+    assert.equal(l.capacitySource, "structured");
+    assert.equal(l.bedrooms, 3);
+    assert.equal(l.bedroomsSource, "text_regex");
+  });
+
+  it("le descriptif ne donne jamais la capacité : « 1 lit 1 personne » décrit un lit", () => {
+    const html = `<div class="pave1 pave-containText"><span class="contenu_descriptif">Salon (2 lits gigognes 1 personne.), 2 chambres (1 lit 2 personnes).</span></div>`;
+    const l = lectureFiche(html);
+    assert.equal(l.capacity, null);
+    assert.equal(l.bedrooms, 2);
+  });
+
+  it("la ligne « Capacité <span>:</span> … N personnes » se lit aussi", () => {
+    const html = `<li><span class="type-titre">Capacité <span>:</span> </span><ul class="valeur-critere"><li>6 personnes</li></ul></li>`;
+    const l = lectureFiche(html);
+    assert.equal(l.capacity, 6);
+    assert.equal(l.capacitySource, "text_regex");
+  });
+
   it("lit le nom véritable sur le h1 d'une fiche Ingénie, pas l'alt photo", () => {
     const html = `<html><head>
       <meta property="og:title" content="CHALET NEVE Chalet 8 personnes - Les 2 Alpes : location" />

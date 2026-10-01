@@ -1,6 +1,22 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { altLbl, aStation, CHIPS, linked, maxM, minM, sansDomaineLbl, sub } from "./v7.ts";
+import {
+  altLbl,
+  aStation,
+  bedLbl,
+  bedNomme,
+  capLbl,
+  capNomme,
+  CHIPS,
+  linked,
+  maxM,
+  minM,
+  NON_RENSEIGNE,
+  sansDomaineLbl,
+  sub,
+} from "./v7.ts";
+import type { Listing } from "./listings.ts";
+import { qualifierLogement } from "./stay/logement.ts";
 import { GPS_FIXES, sansDomaineAlpin, UNNAMED_DOMAIN } from "./classeur.ts";
 import { STATIONS } from "./stations.ts";
 
@@ -119,5 +135,82 @@ describe("sans domaine alpin : une donnée, pas un relevé manquant", () => {
       STATIONS.filter((s) => sansDomaineAlpin(s.id)).map((s) => s.id),
       ["la-bourboule"],
     );
+  });
+});
+
+describe("chambres et capacité affichées", () => {
+  const logement = (title: string, over: Partial<Listing> = {}): Listing =>
+    qualifierLogement({
+      id: "l",
+      stationId: "les-2-alpes",
+      title,
+      source: "Centrale",
+      total: 1000,
+      currency: "EUR",
+      capacity: null,
+      bedrooms: null,
+      available: true,
+      photo: null,
+      url: null,
+      lat: null,
+      lon: null,
+      proven: "",
+      ...over,
+    });
+
+  it("un studio se dit « Studio », jamais « 0 ch. », cabine à part", () => {
+    assert.equal(bedLbl(logement("Studio 2 personnes")), "Studio");
+    assert.equal(bedLbl(logement("Studio cabine 4 personnes")), "Studio + cabine");
+    assert.equal(bedLbl(logement("Appartement", { bedrooms: 0 })), "Studio");
+  });
+
+  it("des chambres tirées des pièces s'affichent en pièces", () => {
+    assert.equal(bedLbl(logement("T2 4 personnes")), "2 pièces");
+    assert.equal(bedLbl(logement("2 pièces cabine 6 personnes")), "2 pièces + cabine");
+    assert.equal(bedLbl(logement("Appartement 3 pièces 2 chambres")), "2 ch.");
+  });
+
+  it("des chambres écrites ou publiées s'affichent en chambres", () => {
+    assert.equal(bedLbl(logement("Chalet 3 chambres 8 personnes")), "3 ch.");
+    assert.equal(bedLbl(logement("Appartement 3 pièces", { bedrooms: 2, rooms: 3 })), "2 ch.");
+    assert.equal(bedLbl(logement("T2", { bedrooms: 1, bedroomsSource: "structured" })), "1 ch.");
+  });
+
+  it("une fourchette de capacité garde sa base", () => {
+    assert.equal(capLbl(logement("Appartement 4/6 personnes")), "4/6 pers.");
+    assert.equal(capLbl(logement("Appartement 6 personnes")), "6 pers.");
+    assert.equal(capLbl(logement("Appartement")), "Non renseigné");
+  });
+});
+
+describe("ce qui n'est pas renseigné se dit, l'annonce reste", () => {
+  const muette = {
+    id: "m",
+    stationId: "les-2-alpes",
+    title: "Les Balcons de Val Cenis le Haut",
+    source: "Centrale",
+    total: 1000,
+    currency: "EUR",
+    capacity: null,
+    bedrooms: null,
+    available: true,
+    photo: null,
+    url: null,
+    lat: null,
+    lon: null,
+    proven: "",
+  } as const satisfies Listing;
+
+  it("« Non renseigné » dans une case titrée, nommé ailleurs", () => {
+    assert.equal(capLbl(muette), NON_RENSEIGNE);
+    assert.equal(bedLbl(muette), NON_RENSEIGNE);
+    assert.equal(capNomme(muette), "Capacité : Non renseigné");
+    assert.equal(bedNomme(muette), "Chambres : Non renseigné");
+  });
+
+  it("une valeur connue garde son libellé", () => {
+    const studio = { ...muette, capacity: 2, bedrooms: 0 };
+    assert.equal(capNomme(studio), "2 pers.");
+    assert.equal(bedNomme(studio), "Studio");
   });
 });

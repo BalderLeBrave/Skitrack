@@ -57,7 +57,7 @@ describe("remontées OSM", () => {
         source: "Airbnb",
         total: 1800,
         currency: "EUR",
-        guests: 8,
+        capacity: 8,
         bedrooms: 3,
         available: true,
         photo: null,

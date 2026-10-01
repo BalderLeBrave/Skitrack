@@ -43,7 +43,7 @@ function cand(over: Partial<CandidateFiche> & Pick<CandidateFiche, "id">): Candi
     platformId: null,
     lat: 45.0,
     lon: 6.12,
-    guests: null,
+    capacity: null,
     bedrooms: null,
     rooms: null,
     beds: 3,
@@ -111,20 +111,21 @@ const silence = <T>(f: () => Promise<T>): Promise<T> => {
 describe("tranche « mémoire » : aucune requête", () => {
   it("note les annonces complètes, comble les trous par la mémoire, sans rien remplacer", async () => {
     const { deps: dp, appels } = deps();
-    dp.memoire.noter([{ cle: "Airbnb:20000", guests: 6, bedrooms: 2, lat: 45.9, lon: 6.9 }], T0);
+    dp.memoire.noter([{ cle: "Airbnb:20000", capacity: 6, bedrooms: 2, lat: 45.9, lon: 6.9 }], T0);
     const r = await trancheProfonde(
       demande({
         mode: "memoire",
-        candidates: [cand({ id: "abnb-2", guests: 4 })],
-        connues: [{ cle: "Airbnb:30000", guests: 5, bedrooms: 1, rooms: null, lat: 45.1, lon: 6.1 }],
+        candidates: [cand({ id: "abnb-2", capacity: 4 })],
+        connues: [{ cle: "Airbnb:30000", capacity: 5, bedrooms: 1, rooms: null, lat: 45.1, lon: 6.1 }],
       }),
       dp,
     );
     assert.deepEqual(r.correctifs["abnb-2"], {
       bedrooms: 2,
+      bedroomsSource: "structured",
       proven: `pyairbnb live · ${MARQUE_MEMOIRE}`,
     });
-    assert.equal(dp.memoire.lire("Airbnb:30000", T0)?.guests, 5);
+    assert.equal(dp.memoire.lire("Airbnb:30000", T0)?.capacity, 5);
     assert.equal(r.restantes, 0);
     assert.equal(appels.airbnb.length + appels.pages.length, 0);
   });
@@ -132,18 +133,18 @@ describe("tranche « mémoire » : aucune requête", () => {
   it("lit la mémoire par la clé que le navigateur a calculée sur l'annonce entière", async () => {
     // L'identifiant Airbnb venait des photos, que la candidate ne porte pas.
     const { deps: dp } = deps();
-    dp.memoire.noter([{ cle: "Airbnb:55555", guests: 6, bedrooms: 2 }], T0);
+    dp.memoire.noter([{ cle: "Airbnb:55555", capacity: 6, bedrooms: 2 }], T0);
     const r = await trancheProfonde(
       demande({ mode: "memoire", candidates: [cand({ id: "abnb-x", url: null, cle: "Airbnb:55555" })] }),
       dp,
     );
-    assert.equal(r.correctifs["abnb-x"]?.guests, 6);
+    assert.equal(r.correctifs["abnb-x"]?.capacity, 6);
     assert.equal(r.correctifs["abnb-x"]?.bedrooms, 2);
   });
 
   it("un Airbnb que la mémoire sait écarté (hôtel, chambre) sort du relevé", async () => {
     const { deps: dp } = deps();
-    dp.memoire.noter([{ cle: "Airbnb:70000", guests: 2, ecartee: true }], T0);
+    dp.memoire.noter([{ cle: "Airbnb:70000", capacity: 2, ecartee: true }], T0);
     const r = await trancheProfonde(demande({ mode: "memoire", candidates: [cand({ id: "abnb-7" })] }), dp);
     assert.deepEqual(r.retires, ["abnb-7"]);
     assert.equal(r.restantes, 0);
@@ -187,7 +188,7 @@ describe("tranche : fiches Airbnb", () => {
       fiches: (d) => ({
         fiches: {
           [d.ids[0]]: {
-            guests: 6,
+            capacity: 6,
             bedrooms: 2,
             rooms: null,
             lat: 45.5,
@@ -205,20 +206,59 @@ describe("tranche : fiches Airbnb", () => {
     });
     const r = await silence(() =>
       trancheProfonde(
-        demande({ candidates: [cand({ id: "abnb-1", guests: 4 }), cand({ id: "abnb-2" }), cand({ id: "abnb-3" })] }),
+        demande({ candidates: [cand({ id: "abnb-1", capacity: 4 }), cand({ id: "abnb-2" }), cand({ id: "abnb-3" })] }),
         dp,
       ),
     );
     assert.deepEqual(r.correctifs["abnb-1"], {
       bedrooms: 2,
+      bedroomsSource: "structured",
       proven: `pyairbnb live · ${MARQUE_AIRBNB}`,
     });
     assert.deepEqual(r.essayees.sort(), ["abnb-1", "abnb-2"]);
     assert.equal(r.restantes, 1);
     assert.equal(r.arretAirbnb, "echeance");
     assert.equal(airbnbSuspendu(r.arretAirbnb), false);
-    assert.equal(dp.memoire.lire("Airbnb:10000", T0)?.guests, 6);
+    assert.equal(dp.memoire.lire("Airbnb:10000", T0)?.capacity, 6);
     assert.equal(r.lues, 2);
+  });
+
+  it("une fiche remplace une capacité inférée du titre, et le dit", async () => {
+    const { deps: dp } = deps({
+      fiches: (d) => ({
+        fiches: {
+          [d.ids[0]]: {
+            capacity: 6,
+            bedrooms: 2,
+            rooms: null,
+            lat: 45.5,
+            lon: 6.5,
+            roomType: "Entire home/apt",
+            typeLogement: "Logement entier : appartement",
+            ecartee: false,
+          },
+        },
+        vides: [],
+        restants: [],
+        lues: 1,
+        arret: null,
+      }),
+    });
+    const r = await silence(() =>
+      trancheProfonde(
+        demande({
+          candidates: [cand({ id: "abnb-1", title: "Appartement 4 personnes", capacity: 4, capacitySource: "text_regex" })],
+        }),
+        dp,
+      ),
+    );
+    assert.deepEqual(r.correctifs["abnb-1"], {
+      capacity: 6,
+      bedrooms: 2,
+      proven: `pyairbnb live · ${MARQUE_AIRBNB}`,
+      capacitySource: "structured",
+      bedroomsSource: "structured",
+    });
   });
 
   it("une fiche écartée (chambre privée) retire l'annonce", async () => {
@@ -226,7 +266,7 @@ describe("tranche : fiches Airbnb", () => {
       fiches: (d) => ({
         fiches: {
           [d.ids[0]]: {
-            guests: 2,
+            capacity: 2,
             bedrooms: 1,
             rooms: null,
             lat: 45.5,
@@ -292,11 +332,11 @@ describe("tranche : fiches Airbnb", () => {
       fiches: (d) => ({ fiches: {}, vides: [], restants: [...d.ids], lues: 0, arret: "hash" }),
       async lirePagesAirbnb(rows: Listing[]): Promise<PagesAirbnbProfond> {
         appels.rooms.push(rows);
-        rows[0].guests = 4;
+        rows[0].capacity = 4;
         return {
           essayees: [rows[0].id],
           arret: "refus",
-          lectures: { [rows[0].id]: { guests: 4, bedrooms: null, rooms: null, lat: null, lon: null } },
+          lectures: { [rows[0].id]: { capacity: 4, bedrooms: null, rooms: null, lat: null, lon: null } },
           lues: 1,
         };
       },
@@ -308,7 +348,7 @@ describe("tranche : fiches Airbnb", () => {
       appels.rooms[0].map((l) => l.id),
       ["abnb-1", "abnb-2"],
     );
-    assert.equal(r.correctifs["abnb-1"]?.guests, 4);
+    assert.equal(r.correctifs["abnb-1"]?.capacity, 4);
     assert.equal(r.arretAirbnb, "refus");
     assert.equal(r.restantes, 0);
   });
@@ -332,7 +372,7 @@ describe("tranche : fiches Airbnb", () => {
       fiches: (d) => ({
         fiches: {
           "10000": {
-            guests: 4,
+            capacity: 4,
             bedrooms: null,
             rooms: null,
             lat: 45.5,
@@ -354,7 +394,7 @@ describe("tranche : fiches Airbnb", () => {
     // Une autre station, ou la course du lendemain : la tranche « mémoire ».
     const r = await trancheProfonde(demande({ mode: "memoire", candidates }), { ...dp, maintenant: () => T0 + 86_400_000 });
     assert.deepEqual(r.laissees.sort(), ["abnb-1", "abnb-2"]);
-    assert.equal(r.correctifs["abnb-1"]?.guests, 4);
+    assert.equal(r.correctifs["abnb-1"]?.capacity, 4);
     assert.equal(r.restantes, 0);
   });
 
@@ -383,7 +423,7 @@ describe("tranche : pages hors Airbnb", () => {
           essayees: [rows[0].id],
           laissees: [rows[1].id],
           hotesRefus: ["reservation.exemple.fr"],
-          lectures: { [rows[0].id]: { guests: null, bedrooms: null, rooms: null, lat: 45.01672, lon: 6.12515 } },
+          lectures: { [rows[0].id]: { capacity: null, bedrooms: null, rooms: null, lat: 45.01672, lon: 6.12515 } },
           lues: 1,
         };
       },
@@ -394,7 +434,7 @@ describe("tranche : pages hors Airbnb", () => {
           hotesExclus: ["autre.fr"],
           urlsCommunes: ["exemple.fr/accueil"],
           candidates: [
-            cand({ id: "c-1", source: "Centrale", guests: 6, rooms: 3, lat: null, lon: null, url: "https://reservation.exemple.fr/fiche/1" }),
+            cand({ id: "c-1", source: "Centrale", capacity: 6, rooms: 3, lat: null, lon: null, url: "https://reservation.exemple.fr/fiche/1" }),
             cand({ id: "c-2", source: "Centrale", lat: null, lon: null, url: "https://reservation.exemple.fr/fiche/2" }),
           ],
         }),
@@ -418,7 +458,7 @@ describe("tranche : pages hors Airbnb", () => {
   it("une tranche ne change jamais le prix publié", async () => {
     const { deps: dp } = deps({
       async lirePages(rows: Listing[]): Promise<PagesProfond> {
-        rows[0].guests = 6;
+        rows[0].capacity = 6;
         rows[0].total = 1045;
         rows[0].proven = `${rows[0].proven} · taxe de séjour 45,00 € · fiche`;
         return { essayees: [rows[0].id], laissees: [], hotesRefus: [], lectures: {}, lues: 1 };
@@ -432,7 +472,7 @@ describe("tranche : pages hors Airbnb", () => {
         dp,
       ),
     );
-    assert.equal(r.correctifs["c-1"]?.guests, 6);
+    assert.equal(r.correctifs["c-1"]?.capacity, 6);
     assert.equal("total" in (r.correctifs["c-1"] ?? {}), false);
   });
 });

@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from map import is_dropped_listing, occupancy_from_text
+from map import is_dropped_listing, occupancy_from_text, source_de
 
 # Hébergements « insolites », ni maison ni appartement (consigne du
 # propriétaire, 25 sept. 2026). Même liste que le filtre GreenGo de la
@@ -160,6 +160,7 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         bedrooms = _take_int(share.get("bedroomCount"), zero_ok=True)
     if bedrooms is None:
         bedrooms = _take_int(share.get("bedrooms"), zero_ok=True)
+    s_guests, s_bedrooms = guests, bedrooms
     lat = _take_coord(log.get("listingLat")) or _take_coord(share.get("listingLat"))
     lon = (
         _take_coord(log.get("listingLng"))
@@ -187,9 +188,12 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
     insolite = bool(type_logement and INSOLITE_RE.search(type_logement))
     dropped = hotel or insolite or is_dropped_listing(room_type) or is_dropped_listing(type_logement)
     return {
-        "guests": guests,
+        "capacity": guests,
+        "capacitySource": source_de(guests, s_guests),
         "bedrooms": bedrooms,
+        "bedroomsSource": source_de(bedrooms, s_bedrooms),
         "rooms": rooms,
+        "textes": textes,
         "lat": lat,
         "lon": lon,
         "room_type": room_type,
@@ -204,10 +208,12 @@ def merge_occupancy(listing: dict[str, Any], occ: dict[str, Any]) -> dict[str, A
     if occ.get("dropped"):
         return None
     out = dict(listing)
-    if out.get("guests") is None and occ.get("guests"):
-        out["guests"] = occ["guests"]
+    if out.get("capacity") is None and occ.get("capacity"):
+        out["capacity"] = occ["capacity"]
+        out["capacitySource"] = occ.get("capacitySource")
     if out.get("bedrooms") is None and occ.get("bedrooms") is not None:
         out["bedrooms"] = occ["bedrooms"]
+        out["bedroomsSource"] = occ.get("bedroomsSource")
     if out.get("rooms") is None and occ.get("rooms") is not None:
         out["rooms"] = occ["rooms"]
     if out.get("lat") is None and _plausible(occ.get("lat"), occ.get("lon")):
@@ -215,4 +221,7 @@ def merge_occupancy(listing: dict[str, Any], occ: dict[str, Any]) -> dict[str, A
         out["lon"] = occ["lon"]
     if occ.get("room_type"):
         out["room_type"] = occ["room_type"]
+    # Ce que la fiche écrit se relit aussi côté Node, avec les textes de la tuile.
+    if occ.get("textes"):
+        out["textes"] = [*(out.get("textes") or []), *occ["textes"]]
     return out

@@ -303,7 +303,7 @@ function enListing(
   // « Capacité 7/8 personnes », et le nettoyage lui coupe sa fin.
   const occ = annoncer(
     {
-      guests: f.capacite ?? d?.capacite ?? null,
+      capacity: f.capacite ?? d?.capacite ?? null,
       bedrooms: d?.chambres ?? null,
       rooms: f.pieces ?? d?.pieces ?? null,
     },
@@ -324,9 +324,13 @@ function enListing(
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     available: true,
     photo: f.photo,
     // Le type commercial publié : « 3 pièces », « Studio », « Chalet ».

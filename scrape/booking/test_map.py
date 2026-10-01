@@ -72,7 +72,7 @@ def test_listings_from_html_total_seulement():
     rows = listings_from_html(HTML, check_in="2027-02-06", check_out="2027-02-13", adults=8)
     chalet = next(r for r in rows if r["title"].startswith("Chalet"))
     assert chalet["totalPrice"] == 2215
-    assert chalet["guests"] == 8
+    assert chalet["capacity"] == 8
     assert chalet["bedrooms"] == 3
     assert "checkin=2027-02-06" in chalet["url"]
     assert chalet["priceConfidence"] == "total_confirmed"
@@ -124,7 +124,7 @@ def test_capacite_d_une_chambre_n_est_pas_celle_du_logement():
     faire disparaître d'une recherche à huit."""
     rows = listings_from_html(CHAMBRE, check_in="2027-02-06", check_out="2027-02-13", adults=8)
     assert len(rows) == 1
-    assert rows[0]["guests"] is None
+    assert rows[0]["capacity"] is None
     assert rows[0]["totalPrice"] == 2480
 
 
@@ -153,3 +153,12 @@ if __name__ == "__main__":
                 failed += 1
                 print("FAIL", name, err)
     raise SystemExit(failed)
+
+
+def test_la_source_dit_d_ou_vient_la_valeur():
+    apollo = listings_from_html(APOLLO, check_in="2027-02-06", check_out="2027-02-13", adults=2)[0]
+    assert (apollo["capacitySource"], apollo["bedroomsSource"]) == ("structured", "structured")
+    rows = listings_from_html(HTML, check_in="2027-02-06", check_out="2027-02-13", adults=8)
+    chalet = next(r for r in rows if r["title"].startswith("Chalet"))
+    assert (chalet["capacitySource"], chalet["bedroomsSource"]) == ("text_regex", "text_regex")
+    assert chalet["title"] in chalet["textes"], "Node relit le nom de la tuile"

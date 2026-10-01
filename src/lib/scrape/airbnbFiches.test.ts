@@ -38,16 +38,27 @@ describe("airbnbFiches", () => {
         ok: true,
         fiches: {
           [IDS[0]]: {
-            guests: 4,
+            capacity: 4,
+            capacitySource: "structured",
             bedrooms: 0,
+            bedroomsSource: "structured",
             rooms: 1,
             lat: 46.18,
             lon: 6.83,
             roomType: "Entire home/apt",
             ecartee: false,
           },
-          [IDS[1]]: { guests: 0, bedrooms: 99, lat: 0, lon: 0, roomType: "", ecartee: "oui" },
-          "99999999": { guests: 4 },
+          [IDS[1]]: {
+            capacity: 0,
+            capacitySource: "structured",
+            bedrooms: 99,
+            bedroomsSource: "structured",
+            lat: 0,
+            lon: 0,
+            roomType: "",
+            ecartee: "oui",
+          },
+          "99999999": { capacity: 4, capacitySource: "structured" },
         },
         vides: [],
         restants: [],
@@ -56,8 +67,10 @@ describe("airbnbFiches", () => {
       IDS,
     );
     assert.deepEqual(out.fiches[IDS[0]], {
-      guests: 4,
+      capacity: 4,
+      capacitySource: "structured",
       bedrooms: 0,
+      bedroomsSource: "structured",
       rooms: 1,
       lat: 46.18,
       lon: 6.83,
@@ -66,8 +79,10 @@ describe("airbnbFiches", () => {
       ecartee: false,
     });
     assert.deepEqual(out.fiches[IDS[1]], {
-      guests: null,
+      capacity: null,
+      capacitySource: null,
       bedrooms: null,
+      bedroomsSource: null,
       rooms: null,
       lat: null,
       lon: null,
@@ -84,11 +99,57 @@ describe("airbnbFiches", () => {
     assert.equal(out.arret, null);
   });
 
+  it("ce que le worker a lu dans un texte se relit ici, avec sa source", () => {
+    const out = lireSortieFiches(
+      {
+        ok: true,
+        fiches: {
+          [IDS[0]]: {
+            capacity: 4,
+            capacitySource: "structured",
+            bedrooms: 2,
+            bedroomsSource: "text_regex",
+            textes: ["Appartement", "2 chambres", "3 lits"],
+            ecartee: false,
+          },
+          [IDS[1]]: {
+            capacity: null,
+            bedrooms: null,
+            textes: ["Studio", "2 voyageurs"],
+            ecartee: false,
+          },
+        },
+        vides: [],
+        restants: [IDS[2]],
+        lues: 2,
+      },
+      IDS,
+    );
+    const a = out.fiches[IDS[0]];
+    assert.deepEqual(
+      [a.capacity, a.capacitySource, a.bedrooms, a.bedroomsSource],
+      [4, "structured", 2, "text_regex"],
+    );
+    const b = out.fiches[IDS[1]];
+    assert.deepEqual(
+      [b.capacity, b.capacitySource, b.bedrooms, b.bedroomsSource],
+      [2, "text_regex", 0, "derived_from_type"],
+    );
+  });
+
   it("un refus arrête la tranche, dit son code et garde les restants", () => {
     const out = lireSortieFiches(
       {
         ok: false,
-        fiches: { [IDS[0]]: { guests: 6, bedrooms: 2, ecartee: false } },
+        fiches: {
+          [IDS[0]]: {
+            capacity: 6,
+            capacitySource: "structured",
+            bedrooms: 2,
+            bedroomsSource: "structured",
+            ecartee: false,
+          },
+        },
         vides: [],
         restants: IDS.slice(1),
         lues: 2,

@@ -166,7 +166,7 @@ describe("Ovo Network : annonces", () => {
     assert.equal(l.stationId, "la-clusaz");
     assert.equal(l.total, 8405.4);
     assert.equal(l.currency, "EUR");
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.bedrooms, 4);
     assert.equal(l.baths, 3);
     assert.equal(l.propertyType, "Chalet");

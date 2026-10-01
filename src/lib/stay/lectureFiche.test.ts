@@ -17,7 +17,7 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
       address: { addressLocality: "Mont-de-Lans" },
     })}</script>`;
     const l = lectureFiche(html);
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.lat, 45.02298);
     assert.equal(l.lon, 6.12571);
     assert.equal(l.locality, "Mont-de-Lans");
@@ -29,7 +29,7 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
       {"listingLat":45.02298,"listingLng":6.12571,"roomType":"Entire home/apt","personCapacity":8}
     </body></html>`;
     const l = lectureFiche(html);
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.lat, 45.02298);
     assert.equal(l.lon, 6.12571);
   });
@@ -37,7 +37,7 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
   it("lit « 8 voyageurs · 3 chambres » publiés dans les items de la fiche", () => {
     const html = `<html>"items":["8 voyageurs","3 chambres","5 lits","1 salle de bain"]</html>`;
     const l = lectureFiche(html);
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.bedrooms, 3);
   });
 
@@ -59,7 +59,7 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
   });
 
   it("un HTML trop court ou vide ne fabrique rien", () => {
-    assert.equal(lectureFiche("").guests, null);
+    assert.equal(lectureFiche("").capacity, null);
     assert.equal(lectureFiche("<html></html>").lat, null);
   });
 
@@ -80,7 +80,7 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
       <meta itemprop="longitude" content="6.11673" />
     </body></html>`;
     const l = lectureFiche(html);
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.rooms, 4);
     assert.equal(l.bedrooms, 3);
     assert.equal(l.lat, 45.00498);
@@ -192,8 +192,26 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
       <span>Max. 8 personnes</span>
     </html>`;
     const l = lectureFiche(html);
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.bedrooms, 3);
+  });
+
+  it("lit le bloc capacity du __NEXT_DATA__ d'une fiche MSEM", () => {
+    // Fiche relevée le 25 septembre 2026 (reservation.alpedhuez.com,
+    // « Écrin d'Huez »), réduite au bloc lu.
+    const html = `<html><script id="__NEXT_DATA__" type="application/json">
+      {"props":{"pageProps":{"lodging":{"capacity":{"maxCapacity":7,"minCapacity":1,"nbRooms":3,"nbBedrooms":2}}}}}
+    </script></html>`;
+    const l = lectureFiche(html);
+    assert.equal(l.capacity, 7);
+    assert.equal(l.bedrooms, 2);
+    assert.equal(l.rooms, 3);
+    // Flaine : « nbBedrooms » nul, rien n'est inventé.
+    const flaine = lectureFiche(
+      `<html>{"capacity":{"maxCapacity":6,"nbRooms":2,"nbBedrooms":null}}</html>`,
+    );
+    assert.equal(flaine.bedrooms, null);
+    assert.equal(flaine.rooms, 2);
   });
 
   it("lit un couple latitude/longitude hors bloc geo", () => {
@@ -211,7 +229,7 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
         id: "abnb-old",
         source: "Airbnb",
         title: "Les Deux-Alpes, appartement 6-8 pers, cosy, calme",
-        guests: null as number | null,
+        capacity: null as number | null,
         bedrooms: 3 as number | null,
         rooms: null as number | null,
         photo:
@@ -227,7 +245,7 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
         id: "abnb-27623894",
         source: "Airbnb",
         title: "Appartement cosy",
-        guests: null as number | null,
+        capacity: null as number | null,
         bedrooms: null as number | null,
         rooms: null as number | null,
         photo: null as string | null,
@@ -239,7 +257,7 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
     ];
     assert.equal(cleListing(live[0]), "Airbnb:27623894");
     assert.equal(poserReleve(live, dump), 1);
-    assert.equal(live[0].guests, 8);
+    assert.equal(live[0].capacity, 8);
     assert.equal(live[0].bedrooms, 3);
     assert.equal(live[0].lat, 45.022);
     assert.equal(live[0].lon, 6.1247);
@@ -251,7 +269,7 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
         id: "ing-2a-neve",
         source: "Centrale",
         title: "CHALET NEVE Chalet 8 personnes",
-        guests: 8 as number | null,
+        capacity: 8 as number | null,
         bedrooms: null as number | null,
         url: "https://reservation.les2alpes.com/chalet-neve-chalet-8-personnes-les-2-alpes.html",
         lat: null as number | null,
@@ -264,7 +282,7 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
         id: "ing-2a-neve",
         source: "Centrale",
         title: "_clients_223886005_photos_86a_5156059",
-        guests: null as number | null,
+        capacity: null as number | null,
         bedrooms: null as number | null,
         url: "https://reservation.les2alpes.com/chalet-neve-chalet-8-personnes-les-2-alpes.html",
         lat: null as number | null,
@@ -274,6 +292,6 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
     ];
     assert.equal(poserReleve(live, dump), 1);
     assert.equal(live[0].title, "CHALET NEVE Chalet 8 personnes");
-    assert.equal(live[0].guests, 8);
+    assert.equal(live[0].capacity, 8);
   });
 });

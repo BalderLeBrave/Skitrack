@@ -31,6 +31,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const SKIPLANET_SITE = "https://www.ski-planet.com";
 export const SKIPLANET_AJAX = `${SKIPLANET_SITE}/fr/ajax`;
@@ -504,10 +505,23 @@ export function skiPlanetListings(
       source: "Ski-Planet",
       total,
       currency: "EUR",
-      guests: l.capacite ?? lib.personnes,
-      // Convention commune : un studio compte 0 chambre ; le site ne publie pas les autres.
-      bedrooms: lib.studio ? 0 : null,
-      rooms: lib.pieces,
+      // Capacité : le champ caché `NbpersMax`, sinon le libellé « 2-4
+      // personnes » (un texte). Un studio compte 0 chambre, par son type ; les
+      // autres se tirent des pièces du libellé.
+      ...champsLogement(
+        annoncer(
+          {
+            capacity: l.capacite ?? lib.personnes,
+            bedrooms: lib.studio ? 0 : null,
+            rooms: lib.pieces,
+            source: {
+              capacity: l.capacite != null ? "structured" : "text_regex",
+              bedrooms: "derived_from_type",
+            },
+          },
+          l.nom,
+        ),
+      ),
       propertyType: lib.type,
       available: true,
       photo: residence.photo,

@@ -164,7 +164,7 @@ function annonce(over: Partial<Listing> = {}): Listing {
     source: "Airbnb",
     total: 2000,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: 3,
     available: true,
     photo: null,
@@ -408,14 +408,14 @@ describe("agreger — ce qui entre dans la médiane", () => {
 
   it("une capacité tue est comptée à part, jamais supposée suffisante", () => {
     const r = agreger(
-      [...totaux([1000, 2000]), annonce({ id: "muette", guests: null, bedrooms: null })],
+      [...totaux([1000, 2000]), annonce({ id: "muette", capacity: null, bedrooms: null })],
       CTX,
     );
     assert.deepEqual(r, { n: 2, muettes: 1, petits: 0, med: 1500 });
   });
 
   it("une annonce trop petite est comptée à part", () => {
-    const r = agreger([annonce({ id: "petit", guests: 4 }), annonce({ id: "ok" })], CTX);
+    const r = agreger([annonce({ id: "petit", capacity: 4 }), annonce({ id: "ok" })], CTX);
     assert.deepEqual(r, { n: 1, muettes: 0, petits: 1, med: 2000 });
   });
 
@@ -436,8 +436,8 @@ describe("agreger — ce qui entre dans la médiane", () => {
   it("une annonce muette ou trop petite, mais écartée avant, n'est pas comptée", () => {
     const r = agreger(
       [
-        annonce({ id: "muette-vieille", guests: null, scannedAt: NOW - 7 * HEURE }),
-        annonce({ id: "petite-loin", guests: 2, distToSlopesM: 30_000 }),
+        annonce({ id: "muette-vieille", capacity: null, scannedAt: NOW - 7 * HEURE }),
+        annonce({ id: "petite-loin", capacity: 2, distToSlopesM: 30_000 }),
       ],
       CTX,
     );
@@ -446,7 +446,7 @@ describe("agreger — ce qui entre dans la médiane", () => {
 
   it("une annonce rendue deux fois ne compte qu'une fois", () => {
     assert.equal(agreger([annonce(), annonce()], CTX).n, 1);
-    const tue = annonce({ id: "tue", guests: null });
+    const tue = annonce({ id: "tue", capacity: null });
     assert.equal(agreger([tue, tue], CTX).muettes, 1);
   });
 
@@ -464,9 +464,9 @@ describe("agreger — ce qui entre dans la médiane", () => {
   });
 
   it("les offres muettes ou trop petites se comptent une à une, regroupées ou non", () => {
-    const muettes = unBien.map((l) => ({ ...l, guests: null, bedrooms: null }));
+    const muettes = unBien.map((l) => ({ ...l, capacity: null, bedrooms: null }));
     assert.deepEqual(agreger(muettes, CTX), { n: 0, muettes: 3, petits: 0, med: null });
-    const petites = unBien.map((l) => ({ ...l, guests: 4 }));
+    const petites = unBien.map((l) => ({ ...l, capacity: 4 }));
     assert.deepEqual(agreger(petites, CTX), { n: 0, muettes: 0, petits: 3, med: null });
   });
 
@@ -1508,10 +1508,10 @@ describe("retenir — les annonces que la médiane compte", () => {
     ["cinq annonces valides", totaux([5000, 1000, 3000, 2000, 4000]), CTX],
     [
       "une capacité tue",
-      [...totaux([1000, 2000]), annonce({ id: "muette", guests: null, bedrooms: null })],
+      [...totaux([1000, 2000]), annonce({ id: "muette", capacity: null, bedrooms: null })],
       CTX,
     ],
-    ["une trop petite", [annonce({ id: "petit", guests: 4 }), annonce({ id: "ok" })], CTX],
+    ["une trop petite", [annonce({ id: "petit", capacity: 4 }), annonce({ id: "ok" })], CTX],
     ["un doublon", [annonce(), annonce()], CTX],
     [
       "des écartées",
@@ -1593,7 +1593,7 @@ function ancienne(l: Listing): Record<string, unknown> {
     source: l.source,
     total: l.total,
     currency: l.currency,
-    guests: l.guests,
+    guests: l.capacity,
     bedrooms: l.bedrooms,
     rooms: l.rooms ?? null,
     url: l.url,
@@ -1665,8 +1665,11 @@ describe("versListing : relire les annonces enregistrées", () => {
 
   it("l'ancien format devient une annonce entière : station de la clé, rien d'inventé", () => {
     const a = ancienne(situee());
+    // L'ancien format écrivait la capacité `guests` : elle devient `capacity`.
+    const { guests: capacity, ...reste } = a;
     assert.deepEqual(versListing(a, "les-2-alpes"), {
-      ...a,
+      ...reste,
+      capacity,
       stationId: "les-2-alpes",
       available: true,
       lat: null,
@@ -1736,7 +1739,7 @@ describe("versListing : relire les annonces enregistrées", () => {
       { ...ancienne(annonce()), guests: "8", bedrooms: Infinity, photo: 42, url: undefined },
       "les-2-alpes",
     );
-    assert.deepEqual([l?.guests, l?.bedrooms, l?.photo, l?.url], [null, null, null, null]);
+    assert.deepEqual([l?.capacity, l?.bedrooms, l?.photo, l?.url], [null, null, null, null]);
     const [p1] = galerie(1);
     const g = versListing({ ...compacter(annonce()), photos: [p1, 3, null] }, "les-2-alpes");
     assert.deepEqual(g?.photos, [p1]);
@@ -1909,7 +1912,7 @@ describe("annonces d'un relevé", () => {
   it("un relevé fait donne ses annonces retenues, entières", () => {
     const input = {
       ...base,
-      listings: [...totaux([1000, 2000]), annonce({ id: "petit", guests: 4 })],
+      listings: [...totaux([1000, 2000]), annonce({ id: "petit", capacity: 4 })],
     };
     const a = annoncesDuReleve(input);
     assert.deepEqual(
@@ -2180,7 +2183,7 @@ describe("tri des cartes", () => {
     guests: number | null,
     stationId = "les-2-alpes",
   ): CarteAnnonce => ({
-    a: compacter(annonce({ id, total, guests })),
+    a: compacter(annonce({ id, total, capacity: guests })),
     stationId,
     stationNom: stationId,
   });
@@ -2557,8 +2560,8 @@ describe("relevé : seuls les logements de station comptent", () => {
 
   it("agreger écarte un logement à 3 km d'une remontée, sans le compter nulle part", () => {
     assert.deepEqual(agreger([loin], CTX), { n: 0, muettes: 0, petits: 0, med: null });
-    const muetteLoin = annonce({ id: "muette-loin", distToLiftM: 3000, guests: null });
-    const petiteLoin = annonce({ id: "petite-loin", distToLiftM: 3000, guests: 2 });
+    const muetteLoin = annonce({ id: "muette-loin", distToLiftM: 3000, capacity: null });
+    const petiteLoin = annonce({ id: "petite-loin", distToLiftM: 3000, capacity: 2 });
     assert.deepEqual(agreger([muetteLoin, petiteLoin], CTX), {
       n: 0,
       muettes: 0,
@@ -2631,7 +2634,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
       ["", "", null, null, null],
     );
     assert.equal(passeAnnonce(a(), FL0, B), true);
-    assert.equal(passeAnnonce(a({ total: 50_000, guests: null, bedrooms: null }), FL0, B), true);
+    assert.equal(passeAnnonce(a({ total: 50_000, capacity: null, bedrooms: null }), FL0, B), true);
     assert.equal(passeAnnonce(a({ distToLiftM: 2100 }), FL0, B), false);
   });
 
@@ -2642,11 +2645,11 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
   });
 
   it("personnes : la capacité annoncée, la borne haute au maximum veut dire « et plus »", () => {
-    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [8, 20] }), B), true);
-    assert.equal(passeAnnonce(a({ guests: 24 }), f({ capacite: [8, 20] }), B), true);
-    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [10, 20] }), B), false);
-    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [1, 6] }), B), false);
-    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [1, 8] }), B), true);
+    assert.equal(passeAnnonce(a({ capacity: 8 }), f({ capacite: [8, 20] }), B), true);
+    assert.equal(passeAnnonce(a({ capacity: 24 }), f({ capacite: [8, 20] }), B), true);
+    assert.equal(passeAnnonce(a({ capacity: 8 }), f({ capacite: [10, 20] }), B), false);
+    assert.equal(passeAnnonce(a({ capacity: 8 }), f({ capacite: [1, 6] }), B), false);
+    assert.equal(passeAnnonce(a({ capacity: 8 }), f({ capacite: [1, 8] }), B), true);
   });
 
   it("chambres : annoncées, ou pièces moins une, studio compris", () => {
@@ -2665,7 +2668,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
   });
 
   it("une valeur absente écarte quand sa plage est active, et seulement alors", () => {
-    const muette = a({ guests: null, bedrooms: null, rooms: null });
+    const muette = a({ capacity: null, bedrooms: null, rooms: null });
     assert.equal(passeAnnonce(muette, f({ capacite: [1, 20] }), B), false);
     assert.equal(passeAnnonce(muette, f({ capacite: [4, 20] }), B), false);
     assert.equal(passeAnnonce(muette, f({ chambres: [0, 8] }), B), false);
@@ -3026,7 +3029,7 @@ describe("tri des cartes : plus près des remontées", () => {
 
 describe("complétion : les annonces à compléter", () => {
   const sansRien = (over: Partial<Listing> = {}) =>
-    annonce({ guests: null, bedrooms: null, lat: null, lon: null, distToSlopesM: null, ...over });
+    annonce({ capacity: null, bedrooms: null, lat: null, lon: null, distToSlopesM: null, ...over });
 
   it("une annonce sans position, capacité ni chambres, qui passe le reste, est à compléter", () => {
     const xs = aCompleter([sansRien()], CTX);
@@ -3041,7 +3044,7 @@ describe("complétion : les annonces à compléter", () => {
     assert.equal(aCompleter([annonce()], CTX).length, 0);
     assert.equal(aCompleter([annonce({ bedrooms: null, rooms: 3 })], CTX).length, 0);
     assert.equal(aCompleter([annonce({ bedrooms: null, rooms: null })], CTX).length, 1);
-    assert.equal(aCompleter([annonce({ guests: null })], CTX).length, 1);
+    assert.equal(aCompleter([annonce({ capacity: null })], CTX).length, 1);
     assert.equal(aCompleter([annonce({ lat: 0, lon: 0 })], CTX).length, 1);
   });
 
@@ -3053,7 +3056,7 @@ describe("complétion : les annonces à compléter", () => {
     ["un prix d’autres dates", sansRien({ pricedCheckIn: "2027-02-13", pricedCheckOut: "2027-02-20" })],
     ["un logement d’un autre domaine", sansRien({ domainFit: "other" })],
     ["un logement à plus de 12 km", sansRien({ lat: 45.3, lon: 6.5, distToSlopesM: 20_000 })],
-    ["un gîte sans devis ITEA live", gite({ guests: null, proven: "ITEA gites-web 2026-09-03" })],
+    ["un gîte sans devis ITEA live", gite({ capacity: null, proven: "ITEA gites-web 2026-09-03" })],
   ];
   for (const [cas, l] of horsCrible) {
     it(`ne complète pas ${cas} : la médiane ne le compterait jamais`, () => {
@@ -3062,15 +3065,15 @@ describe("complétion : les annonces à compléter", () => {
   }
 
   it("une annonce déjà trop petite pour le groupe ne se complète pas", () => {
-    assert.equal(aCompleter([sansRien({ guests: 4 })], CTX).length, 0);
+    assert.equal(aCompleter([sansRien({ capacity: 4 })], CTX).length, 0);
     const ctx = { ...CTX, groupe: { trav: 8, rooms: 3 } };
     assert.equal(aCompleter([sansRien({ bedrooms: 2 })], ctx).length, 0);
     assert.equal(aCompleter([sansRien({ bedrooms: 3 })], ctx).length, 1);
   });
 
   it("une position connue se juge : à 3 km d'une remontée, rien à compléter", () => {
-    assert.equal(aCompleter([annonce({ guests: null, distToLiftM: 3000 })], CTX).length, 0);
-    assert.equal(aCompleter([annonce({ guests: null, distToLiftM: 900 })], CTX).length, 1);
+    assert.equal(aCompleter([annonce({ capacity: null, distToLiftM: 3000 })], CTX).length, 0);
+    assert.equal(aCompleter([annonce({ capacity: null, distToLiftM: 900 })], CTX).length, 1);
   });
 
   it("les moins chères d'abord, et une annonce rendue deux fois ne compte qu'une fois", () => {
@@ -3093,7 +3096,7 @@ describe("complétion : les annonces à compléter", () => {
     const c = versCandidate(aCompleter([sansRien()], CTX)[0]);
     assert.equal(c.cle, "Airbnb:12345678");
     assert.equal(c.url, "https://www.airbnb.fr/rooms/12345678");
-    assert.equal(c.guests, null);
+    assert.equal(c.capacity, null);
     assert.equal("photos" in c, false);
   });
 });
@@ -3103,17 +3106,19 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
     const xs = connuesDuReleve([
       annonce(),
       annonce({ id: "airbnb-2" }),
-      annonce({ id: "x", url: "https://www.airbnb.fr/rooms/999999", guests: null }),
+      annonce({ id: "x", url: "https://www.airbnb.fr/rooms/999999", capacity: null }),
       annonce({ id: "y", url: "https://www.airbnb.fr/rooms/888888", proven: "repli relevé" }),
     ]);
     assert.deepEqual(xs, [
       {
         cle: "Airbnb:12345678",
-        guests: 8,
+        capacity: 8,
         bedrooms: 3,
         rooms: null,
         lat: S2A.lat + 0.002,
         lon: S2A.lon + 0.002,
+        capacitySource: "structured",
+        bedroomsSource: "structured",
       },
     ]);
   });
@@ -3131,15 +3136,15 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
 
   it("un correctif comble, une annonce retirée sort, rien d'autre ne change", () => {
     const xs = appliquerCorrectifs(
-      [annonce({ id: "a", guests: null }), annonce({ id: "b" }), annonce({ id: "h" })],
+      [annonce({ id: "a", capacity: null }), annonce({ id: "b" }), annonce({ id: "h" })],
       {
-        correctifs: { a: { guests: 6, proven: "Airbnb direct · fiche Airbnb", source: "Booking" } },
+        correctifs: { a: { capacity: 6, proven: "Airbnb direct · fiche Airbnb", source: "Booking" } },
         retires: ["h"],
       },
       S2A,
     );
     assert.deepEqual(
-      xs.map((l) => [l.id, l.guests, l.source, l.proven]),
+      xs.map((l) => [l.id, l.capacity, l.source, l.proven]),
       [
         ["a", 6, "Airbnb", "Airbnb direct · fiche Airbnb"],
         ["b", 8, "Airbnb", "Airbnb direct"],
@@ -3149,12 +3154,36 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
 
   it("un correctif ne change jamais le prix publié", () => {
     const [l] = appliquerCorrectifs(
-      [annonce({ id: "c", source: "Centrale", total: 1000, guests: null })],
-      { correctifs: { c: { guests: 6, total: 1045 } }, retires: [] },
+      [annonce({ id: "c", source: "Centrale", total: 1000, capacity: null })],
+      { correctifs: { c: { capacity: 6, total: 1045 } }, retires: [] },
       S2A,
     );
-    assert.equal(l.guests, 6);
+    assert.equal(l.capacity, 6);
     assert.equal(l.total, 1000);
+  });
+
+  it("la source d'un correctif passe avec sa valeur, et l'annonce se requalifie", () => {
+    const [l] = appliquerCorrectifs(
+      [
+        annonce({
+          id: "t3",
+          title: "Appartement 3 pièces 6 personnes",
+          capacity: 6,
+          capacitySource: "text_regex",
+          bedrooms: 2,
+          bedroomsSource: "derived_from_type",
+          rooms: 3,
+        }),
+      ],
+      { correctifs: { t3: { bedrooms: 1, bedroomsSource: "structured" } }, retires: [] },
+      S2A,
+    );
+    assert.equal(l.bedrooms, 1);
+    assert.equal(l.rooms, 3);
+    assert.equal(l.bedroomsSource, "structured");
+    assert.equal(l.capacitySource, "text_regex");
+    assert.equal(l.isStudio, false);
+    assert.equal(l.lodgingType, "appartement");
   });
 
   it("une position trouvée se mesure aussitôt, et la médiane compte l'annonce", () => {
@@ -3171,7 +3200,7 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
   });
 
   it("la recopie entre offres d'un même logement fait compter l'Airbnb muet", () => {
-    const muet = annonce({ id: "airbnb-9", title: "Chalet des Cimes, vue glacier", guests: null, bedrooms: null });
+    const muet = annonce({ id: "airbnb-9", title: "Chalet des Cimes, vue glacier", capacity: null, bedrooms: null });
     const soeur = offreCozy("abr-9", "Abritel", {
       title: "Chalet des Cimes, vue glacier",
       total: 2600,
@@ -3179,7 +3208,7 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
     });
     assert.deepEqual(agreger([muet], CTX), { n: 0, muettes: 1, petits: 0, med: null });
     const xs = appliquerCorrectifs([muet, soeur], recopieDuReleve([muet, soeur]), S2A);
-    assert.equal(xs[0].guests, 8);
+    assert.equal(xs[0].capacity, 8);
     assert.match(xs[0].proven, /même logement/);
     assert.equal(agreger([xs[0]], CTX).n, 1);
   });
@@ -3252,7 +3281,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
     propertyType: "Chalet",
     url: "https://reservation.haute-maurienne-vanoise.com/dp75-chalet-la-buidonniere-aussois/OSMB-102558-1",
     total: 4000,
-    guests: 18,
+    capacity: 18,
     bedrooms: 7,
   });
   const gardes = [giteDeCharme, odalys, vvf, buidonniere];
@@ -3270,7 +3299,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
   it("une fiche que son titre dément compte parmi les muettes", () => {
     const chevalBlanc = cozy("abr-11886124", "Abritel", {
       title: "Résidence Cheval Blanc - 2 Pièces Pour 4 Personnes Mae-8564",
-      guests: 8,
+      capacity: 8,
       bedrooms: 3,
       total: 2241,
     });
@@ -3280,7 +3309,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
   });
 
   it("la complétion ne cherche pas la fiche d'un hôtel", () => {
-    const sansFiche = { guests: null, bedrooms: null } as const;
+    const sansFiche = { capacity: null, bedrooms: null } as const;
     assert.equal(aCompleter([{ ...hotel, ...sansFiche }], CTX).length, 0);
     assert.equal(aCompleter([{ ...mobilHome, ...sansFiche }], CTX).length, 0);
     assert.equal(aCompleter([{ ...giteDeCharme, ...sansFiche }], CTX).length, 1);
@@ -3294,7 +3323,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
     const studio = compacter(
       cozy("abr-10213054", "Abritel", {
         title: "Studio Rénové Avec Balcon Et Parking à Flaine - Fr-1-425-121",
-        guests: 8,
+        capacity: 8,
         bedrooms: 3,
         total: 3325,
       }),

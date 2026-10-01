@@ -113,7 +113,7 @@ describe("relevé CozyCozy", () => {
       "Booking",
     );
     assert.deepEqual(
-      Object.fromEntries(rows.map((r) => [r.title, r.guests])),
+      Object.fromEntries(rows.map((r) => [r.title, r.capacity])),
       { "Résidence sans détail": null, "Studio 4 personnes": 4 },
       "le collecteur relève la capacité publiée, il n'écarte personne avec",
     );
@@ -164,7 +164,7 @@ describe("relevé CozyCozy", () => {
     assert.equal(row.platformId, "p2115294");
   });
 
-  it("lit les salles de bain et les pièces, sans convertir les pièces en chambres", () => {
+  it("lit les salles de bain et les pièces ; les chambres s'en dérivent, et le disent", () => {
     const [row] = cozyListings(
       charge(
         entree("Appartement 3 pièces", abritel({ totalPrice: { value: 2334 } }), {
@@ -176,7 +176,8 @@ describe("relevé CozyCozy", () => {
     );
     assert.equal(row.baths, 2);
     assert.equal(row.rooms, 3);
-    assert.equal(row.bedrooms, null, "« 3 pièces » n'est pas « 2 chambres » sur la fiche");
+    assert.equal(row.bedrooms, 2, "« 3 pièces » : 2 chambres, tirées du type");
+    assert.equal(row.bedroomsSource, "derived_from_type");
   });
 
   it("écarte toujours ce que la source met hors périmètre, et les doublons", () => {
@@ -294,7 +295,7 @@ describe("relevé CozyCozy", () => {
     const row = rows[0];
     assert.equal(row.total, 1903);
     assert.equal(row.currency, "EUR");
-    assert.equal(row.guests, 10);
+    assert.equal(row.capacity, 10);
     assert.equal(row.bedrooms, 4);
     assert.equal(row.beds, 11);
     assert.equal(row.propertyType, "châlet");

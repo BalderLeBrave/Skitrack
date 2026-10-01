@@ -280,7 +280,7 @@ function enListing(
   // et du produit, qui porte parfois « 8 personnes » quand le détail n'a pas
   // encore été lu.
   const occ = annoncer(
-    { guests: cap?.adultes ?? null, bedrooms: f.chambres, rooms: f.pieces },
+    { capacity: cap?.adultes ?? null, bedrooms: f.chambres, rooms: f.pieces },
     f.titre,
     f.service,
     f.produit,
@@ -292,9 +292,13 @@ function enListing(
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     available: true,
     photo: f.photo,
     photos: f.photos.length ? f.photos : null,

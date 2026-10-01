@@ -33,7 +33,7 @@ export type Couverture = {
   pointsPartages: number;
 };
 
-type Sujet = Pick<Listing, "lat" | "lon" | "guests" | "bedrooms"> & { rooms?: number | null };
+type Sujet = Pick<Listing, "lat" | "lon" | "capacity" | "bedrooms"> & { rooms?: number | null };
 
 function point(l: Sujet): boolean {
   const { lat, lon } = l;
@@ -58,7 +58,7 @@ export function couverture(listings: readonly Sujet[]): Couverture {
       const cle = `${l.lat},${l.lon}`;
       parPoint.set(cle, (parPoint.get(cle) ?? 0) + 1);
     }
-    if (l.guests != null) c.capacite += 1;
+    if (l.capacity != null) c.capacite += 1;
     if (l.bedrooms != null) c.chambres += 1;
     else if (l.rooms != null && l.rooms > 0) c.piecesSeules += 1;
   }

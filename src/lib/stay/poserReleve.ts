@@ -1,11 +1,20 @@
 /**
  * Recopie capacité, chambres et GPS d'un relevé déjà lu pour la même annonce.
  * Rien n'est estimé : c'est ce que la source avait publié, ailleurs que sur
- * la tuile du moment.
+ * la tuile du moment. Chaque valeur garde sa source : un champ structuré
+ * passe devant le texte, et une valeur du texte (lue dans le titre du
+ * relevé) ne comble qu'un champ vide.
  */
 
 import { airbnbIdOf } from "./enrichir.ts";
-import { occupancyOfListing } from "./occupancy.ts";
+import {
+  poserValeur,
+  qualifierLogement,
+  sourceCapacite,
+  sourceChambres,
+  type SourceCapacite,
+  type SourceValeur,
+} from "./logement.ts";
 import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
 
 export type SujetReleve = {
@@ -18,9 +27,12 @@ export type SujetReleve = {
   title?: string | null;
   propertyType?: string | null;
   priceLabel?: string | null;
-  guests: number | null;
+  capacity: number | null;
   bedrooms: number | null;
   rooms?: number | null;
+  capacitySource?: SourceCapacite | null;
+  bedroomsSource?: SourceValeur | null;
+  isStudio?: boolean | null;
   lat: number | null;
   lon: number | null;
   locality?: string | null;
@@ -64,10 +76,9 @@ export function cleListing(l: SujetReleve): string | null {
 }
 
 export function poserReleve<T extends SujetReleve, D extends SujetReleve>(rows: T[], dump: D[]): number {
-  const index = new Map<string, D & { guests: number | null; bedrooms: number | null; rooms?: number | null }>();
+  const index = new Map<string, D>();
   for (const raw of dump) {
-    const occ = occupancyOfListing(raw);
-    const d = { ...raw, ...occ };
+    const d = qualifierLogement(raw);
     const key = cleListing(d);
     if (key && !index.has(key)) index.set(key, d);
   }
@@ -78,18 +89,11 @@ export function poserReleve<T extends SujetReleve, D extends SujetReleve>(rows: 
     const d = index.get(key);
     if (!d) continue;
     let changed = false;
-    if (row.guests == null && d.guests != null) {
-      row.guests = d.guests;
-      changed = true;
-    }
-    if (row.bedrooms == null && d.bedrooms != null) {
-      row.bedrooms = d.bedrooms;
-      changed = true;
-    }
-    if ((row.rooms == null || row.rooms <= 0) && d.rooms != null) {
-      row.rooms = d.rooms;
-      changed = true;
-    }
+    // Chaque valeur avec sa source : un champ structuré passe devant le
+    // texte ; une valeur du texte (« 6-8 pers ») ne comble qu'un vide.
+    if (poserValeur(row, "capacity", d.capacity, sourceCapacite(d) ?? "structured")) changed = true;
+    if (poserValeur(row, "bedrooms", d.bedrooms, sourceChambres(d) ?? "structured")) changed = true;
+    if (poserValeur(row, "rooms", d.rooms, "structured")) changed = true;
     if (!plausible(row.lat, row.lon) && plausible(d.lat, d.lon)) {
       row.lat = d.lat;
       row.lon = d.lon;
@@ -107,6 +111,8 @@ export function poserReleve<T extends SujetReleve, D extends SujetReleve>(rows: 
       }
     }
     if (changed) {
+      // Les chambres dérivées suivent les valeurs qui viennent d'arriver.
+      Object.assign(row, qualifierLogement(row));
       if (!/relevé/.test(row.proven)) row.proven = `${row.proven} · relevé`;
       n += 1;
     }

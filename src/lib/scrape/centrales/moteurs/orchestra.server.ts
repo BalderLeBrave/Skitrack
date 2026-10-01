@@ -280,7 +280,7 @@ function enListing(
   // fiche, qui l'écrit sous le mot « Capacité », et à défaut du nom du logement
   // et de son chemin, qui parlent bien du bien.
   const occ = annoncer(
-    { guests: fiche?.capacite ?? null, bedrooms: null, rooms: fiche?.pieces ?? null },
+    { capacity: fiche?.capacite ?? null, bedrooms: null, rooms: fiche?.pieces ?? null },
     c.titre,
     c.chemin,
   );
@@ -295,9 +295,13 @@ function enListing(
     source: "Centrale",
     total: o.total,
     currency: "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     propertyType: c.type,
     available: true,
     photo: c.photo,

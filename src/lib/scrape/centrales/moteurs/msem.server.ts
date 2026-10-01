@@ -130,7 +130,7 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
   // Les chambres restent vides : aucune clé du catalogue ne les compte (les
   // dix catalogues, relevé du 25 septembre 2026). Le titre peut encore les
   // dire, et `annoncer` le lit.
-  const occ = annoncer({ guests: f.capacite, bedrooms: null, rooms: f.pieces }, f.titre);
+  const occ = annoncer({ capacity: f.capacite, bedrooms: null, rooms: f.pieces }, f.titre);
   return {
     id: `msem-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -138,9 +138,13 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     available: true,
     photo: f.photo,
     photos: f.photos.length ? f.photos : null,

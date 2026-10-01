@@ -27,6 +27,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const MV_SITE = "https://www.madamevacances.com";
 
@@ -447,9 +448,23 @@ export function madameVacancesListings(e: EtablissementMV, fiche: FicheMV, input
         source: "Madame Vacances" as const,
         total: l.total as number,
         currency: "EUR",
-        guests: l.capacite,
-        bedrooms: l.chambres,
-        rooms: l.pieces,
+        // Capacité : la case « Max » de la fiche. Chambres : la ligne « 2
+        // Chambre(s), 1 Salle de douche… », un texte ; 0 pour un studio ou un
+        // « 1 pièce », par le type.
+        ...champsLogement(
+          annoncer(
+            {
+              capacity: l.capacite,
+              bedrooms: l.chambres,
+              rooms: l.pieces,
+              source: {
+                capacity: "structured",
+                bedrooms: l.chambres === 0 && (/\bstudio\b/i.test(l.libelle) || l.pieces === 1) ? "derived_from_type" : "text_regex",
+              },
+            },
+            l.libelle,
+          ),
+        ),
         baths: l.sdb,
         propertyType: typePublie(l.libelle, e.type),
         available: true as const,

@@ -46,7 +46,7 @@ function annonce(over: Partial<Listing> = {}): Listing {
     source: "Airbnb",
     total: 2000,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: 3,
     available: true,
     photo: null,
@@ -68,7 +68,7 @@ function muet(n: number, over: Partial<Listing> = {}): Listing {
     id: `abnb-${n}`,
     url: `https://www.airbnb.fr/rooms/${n}0000`,
     title: `Appartement ${n}`,
-    guests: null,
+    capacity: null,
     bedrooms: null,
     total: 1000 + n,
     ...over,
@@ -101,7 +101,7 @@ describe("complétion d'une station : l'état entre deux tranches", () => {
       c.connues.map((x) => x.cle),
       ["Abritel:abr-9"],
     );
-    assert.equal(c.listings[0].guests, 8);
+    assert.equal(c.listings[0].capacity, 8);
     assert.match(c.listings[0].proven, /même logement/);
     assert.equal(aEnvoyer(c, CTX, "actives").length, 0);
   });
@@ -111,7 +111,7 @@ describe("complétion d'une station : l'état entre deux tranches", () => {
       id: "c-1",
       source: "Centrale",
       url: "https://reservation.exemple.fr/fiche/1",
-      guests: null,
+      capacity: null,
       total: 900,
     });
     const c = debutCompletion([muet(1), muet(2), muet(3), centrale], S2A);
@@ -136,7 +136,7 @@ describe("complétion d'une station : l'état entre deux tranches", () => {
       id: "abr-4",
       source: "Abritel",
       title: "Chalet des Cimes, vue glacier",
-      guests: null,
+      capacity: null,
       bedrooms: null,
       proven: `CozyCozy Abritel live ${IN}→${OUT}`,
       url: "https://www.abritel.fr/location-vacances/p4",
@@ -148,7 +148,7 @@ describe("complétion d'une station : l'état entre deux tranches", () => {
       c,
       {
         ...RIEN,
-        correctifs: { "abnb-4": { guests: 6, bedrooms: 2, proven: "Airbnb direct · fiche Airbnb" } },
+        correctifs: { "abnb-4": { capacity: 6, bedrooms: 2, proven: "Airbnb direct · fiche Airbnb" } },
         essayees: ["abnb-4"],
         lues: 1,
       },
@@ -156,7 +156,7 @@ describe("complétion d'une station : l'état entre deux tranches", () => {
     );
     assert.equal(avance, true);
     const soeur = c.listings.find((l) => l.id === "abr-4");
-    assert.equal(soeur?.guests, 6);
+    assert.equal(soeur?.capacity, 6);
     assert.equal(soeur?.bedrooms, 2);
     assert.deepEqual(progression(c), { faites: 1, total: 2 });
     assert.equal(aEnvoyer(c, CTX, "actives").length, 0);
@@ -215,8 +215,10 @@ after(() => {
 
 function fiche(guests: number, bedrooms: number, over: Partial<FicheAirbnb> = {}): FicheAirbnb {
   return {
-    guests,
+    capacity: guests,
+    capacitySource: "structured",
     bedrooms,
+    bedroomsSource: "structured",
     rooms: null,
     lat: null,
     lon: null,
@@ -331,7 +333,7 @@ describe("complétion d'une station : la boucle", () => {
     assert.equal(b.envois[0].connues?.length, 1);
     assert.deepEqual(b.notes.at(-1), { airbnb: "actives", faites: 3, total: 3 });
     assert.equal(agreger(fin, CTX).n, 4);
-    assert.ok(fin.every((l) => l.guests != null));
+    assert.ok(fin.every((l) => l.capacity != null));
   });
 
   it("un refus d'Airbnb : plus aucune fiche Airbnb, et la course le sait", async () => {
@@ -367,7 +369,7 @@ describe("complétion d'une station : la boucle", () => {
       async lirePagesAirbnb(rows) {
         pages += 1;
         if (pages === 1) return { essayees: [], arret: "rythme", attenteMs: 40_000, lectures: {}, lues: 0 };
-        rows[0].guests = 8;
+        rows[0].capacity = 8;
         rows[0].bedrooms = 3;
         return { essayees: [rows[0].id], arret: null, lectures: {}, lues: 1 };
       },
@@ -483,7 +485,7 @@ describe("complétion d'une station : la boucle", () => {
       id: "c-1",
       source: "Centrale",
       url: "https://reservation.exemple.fr/fiche/1",
-      guests: null,
+      capacity: null,
       total: 900,
     });
     let appels = 0;
@@ -520,7 +522,7 @@ describe("complétion d'une station : la boucle", () => {
     const fin = await silence(() => completerStation([muet(1), muet(2)], CTX, S2A, voisine.pilote));
     assert.equal(voisine.airbnb.length, 0);
     // Ce que la fiche a publié passe quand même, par la mémoire.
-    assert.equal(fin.find((l) => l.id === "abnb-1")?.guests, 8);
+    assert.equal(fin.find((l) => l.id === "abnb-1")?.capacity, 8);
   });
 
   it("un hôte qui refuse une page n'est plus sollicité de la course", async () => {
@@ -529,7 +531,7 @@ describe("complétion d'une station : la boucle", () => {
         id: `c-${n}`,
         source: "Centrale",
         url: `https://reservation.exemple.fr/fiche/${n}`,
-        guests: null,
+        capacity: null,
         total: 900 + n,
       });
     const b = banc(() => ({ fiches: {}, vides: [], restants: [], lues: 0, arret: null }), {

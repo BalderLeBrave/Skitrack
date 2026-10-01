@@ -9,7 +9,7 @@ function annonce(p: Partial<Listing> & Pick<Listing, "id" | "source">): Listing 
     title: "Appartement",
     total: 0,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: null,
     available: true,
     photo: null,
@@ -42,7 +42,7 @@ test("un bien des deux côtés : une seule fiche, celle de Cozy, comblée par le
     source: "Booking",
     platformId: "4521",
     total: 1800,
-    guests: 4,
+    capacity: 4,
     photo: "https://cozy/p.jpg",
     proven: "CozyCozy Booking live",
   });
@@ -51,7 +51,7 @@ test("un bien des deux côtés : une seule fiche, celle de Cozy, comblée par le
     source: "Booking",
     platformId: "4521",
     total: 1750,
-    guests: 6,
+    capacity: 6,
     lat: 45.3,
     lon: 6.58,
     bedrooms: 2,
@@ -63,7 +63,7 @@ test("un bien des deux côtés : une seule fiche, celle de Cozy, comblée par le
   const [l] = f.listings;
   assert.equal(l.id, "bk-cozy-1");
   assert.equal(l.total, 1800, "le prix publié par Cozy n'est pas écrasé");
-  assert.equal(l.guests, 4, "la capacité publiée par Cozy n'est pas écrasée");
+  assert.equal(l.capacity, 4, "la capacité publiée par Cozy n'est pas écrasée");
   assert.equal(l.lat, 45.3);
   assert.equal(l.bedrooms, 2);
   assert.match(l.proven, /complété par le relevé direct/);

@@ -99,7 +99,7 @@ export type OffreOrchestra = {
    * Bornes de la **bande tarifaire** qui a répondu, `minPax` et `maxPax`.
    *
    * **Ce n'est pas la capacité du logement**, et ce l'a longtemps été : le
-   * connecteur écrivait `maxPax` dans `guests`. Or `maxPax` est le haut de la
+   * connecteur écrivait `maxPax` dans la capacité (`capacity`). Or `maxPax` est le haut de la
    * bande commerciale — la clé « 1-6 » du dictionnaire, que la catégorie
    * répète —, c'est-à-dire jusqu'à combien de personnes ce tarif se vend. Un
    * studio vendu « 1 à 6 personnes » n'en couche pas six. La charge ne publie

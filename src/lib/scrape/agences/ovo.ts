@@ -29,6 +29,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const OVO_SITE = "https://www.ovonetwork.com";
 /** L'appel que fait la page de recherche du site. */
@@ -330,8 +331,8 @@ export function ovoListings(biens: ReadonlyArray<BienOvo>, input: LiveSearchInpu
       source: "Ovo Network",
       total: b.total ?? 0,
       currency: "EUR",
-      guests: b.capacite,
-      bedrooms: b.chambres,
+      // `capacity`, `bedrooms` : des champs de l'API.
+      ...champsLogement(annoncer({ capacity: b.capacite, bedrooms: b.chambres }, b.nom)),
       baths: b.sdb,
       propertyType: b.type,
       available: true,

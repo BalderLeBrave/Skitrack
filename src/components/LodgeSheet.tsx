@@ -8,7 +8,7 @@ import { provenancePhrase, sourcePhrase } from "@/lib/provenance";
 import { datesCourtes, nuitsLbl } from "@/lib/parcours";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { bedLbl, capLbl, prixLbl } from "@/lib/v7";
+import { bedNomme, capLbl, prixLbl } from "@/lib/v7";
 import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
@@ -209,7 +209,7 @@ export function LodgeSheet({
                 </li>
               ) : null}
               <li>
-                <strong>Capacité</strong> : {capLbl(listing)} · {bedLbl(listing)}
+                <strong>Capacité</strong> : {capLbl(listing)} · {bedNomme(listing)}
                 {listing.beds != null ? ` · ${listing.beds} lit${listing.beds > 1 ? "s" : ""}` : ""}
                 {listing.baths != null
                   ? ` · ${listing.baths} salle${listing.baths > 1 ? "s" : ""} de bain`

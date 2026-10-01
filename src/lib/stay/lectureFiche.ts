@@ -7,11 +7,20 @@
  * nomment des voyageurs, des chambres, des coordonnées.
  */
 
-import { occupancyFromText, mergeOccupancy, type Occupancy } from "./occupancy.ts";
+import { lireLogement, type SourceCapacite, type SourceValeur } from "./logement.ts";
+import type { Occupancy } from "./occupancy.ts";
 import { taxeSejourSomme } from "./tarif.ts";
 import { titrePublie } from "./titre.ts";
 
-export type LectureFiche = Occupancy & {
+/** Capacité, chambres et pièces lues, avec la source de chacune : un champ
+ *  structuré ou un JSON embarqué (`structured`), ou un texte (`text_regex`,
+ *  le 0 d'un studio écrit étant `derived_from_type`). */
+type OccupancyLue = Occupancy & {
+  capacitySource?: SourceCapacite | null;
+  bedroomsSource?: SourceValeur | null;
+};
+
+export type LectureFiche = OccupancyLue & {
   lat: number | null;
   lon: number | null;
   locality: string | null;
@@ -24,8 +33,10 @@ export type LectureFiche = Occupancy & {
 };
 
 const VIDE: LectureFiche = {
-  guests: null,
+  capacity: null,
+  capacitySource: null,
   bedrooms: null,
+  bedroomsSource: null,
   rooms: null,
   lat: null,
   lon: null,
@@ -79,8 +90,43 @@ function jsonLdBlocks(html: string): unknown[] {
   return out;
 }
 
+/** Des valeurs lues dans un champ structuré ou un JSON embarqué. */
+function structure(capacity: number | null, bedrooms: number | null, rooms: number | null): OccupancyLue {
+  return {
+    capacity,
+    capacitySource: capacity != null ? "structured" : null,
+    bedrooms,
+    bedroomsSource: bedrooms != null ? "structured" : null,
+    rooms,
+  };
+}
+
+/** Des valeurs lues dans un texte (`logement.ts`) : écrites, ou le 0 d'un studio. */
+function duTexte(...parts: Array<string | null | undefined>): OccupancyLue {
+  const lu = lireLogement(...parts);
+  const bedrooms = lu.chambresEcrites ?? (lu.studio ? 0 : null);
+  return {
+    capacity: lu.capacite,
+    capacitySource: lu.capacite != null ? "text_regex" : null,
+    bedrooms,
+    bedroomsSource: lu.chambresEcrites != null ? "text_regex" : bedrooms != null ? "derived_from_type" : null,
+    rooms: lu.pieces,
+  };
+}
+
+/** `a` d'abord, `b` comble ; chaque valeur garde sa source. */
+function fusion(a: OccupancyLue, b: OccupancyLue): OccupancyLue {
+  return {
+    capacity: a.capacity ?? b.capacity,
+    capacitySource: a.capacity != null ? a.capacitySource : b.capacitySource,
+    bedrooms: a.bedrooms ?? b.bedrooms,
+    bedroomsSource: a.bedrooms != null ? a.bedroomsSource : b.bedroomsSource,
+    rooms: a.rooms ?? b.rooms,
+  };
+}
+
 function mergeLecture(a: LectureFiche, b: LectureFiche): LectureFiche {
-  const occ = mergeOccupancy(a, b);
+  const occ = fusion(a, b);
   const gps = plausible(a.lat, a.lon) ? { lat: a.lat, lon: a.lon } : { lat: b.lat, lon: b.lon };
   return {
     ...occ,
@@ -93,12 +139,8 @@ function mergeLecture(a: LectureFiche, b: LectureFiche): LectureFiche {
   };
 }
 
-function fromOccupancyNode(o: Record<string, unknown>): Occupancy {
-  return {
-    guests: takeGuests(o.maxValue) ?? takeGuests(o.maxPersons) ?? takeGuests(o.maxGuests),
-    bedrooms: null,
-    rooms: null,
-  };
+function fromOccupancyNode(o: Record<string, unknown>): OccupancyLue {
+  return structure(takeGuests(o.maxValue) ?? takeGuests(o.maxPersons) ?? takeGuests(o.maxGuests), null, null);
 }
 
 /** Une entreprise, pas un logement : chez les centrales, le loueur ou l'agence. */
@@ -118,11 +160,11 @@ function fromRecord(o: Record<string, unknown>): LectureFiche {
   const bedrooms = takeBeds(o.numberOfBedrooms) ?? takeBeds(o.bedroomCount) ?? takeBeds(o.bedrooms);
   const rooms = takeBeds(o.numberOfRooms) ?? takeBeds(o.roomCount);
   if (guests != null || bedrooms != null || rooms != null) {
-    out = { ...out, guests, bedrooms, rooms };
+    out = { ...out, ...structure(guests, bedrooms, rooms) };
   }
   const occ = o.occupancy;
   if (occ && typeof occ === "object" && !Array.isArray(occ)) {
-    out = { ...out, ...mergeOccupancy(out, fromOccupancyNode(occ as Record<string, unknown>)) };
+    out = { ...out, ...fusion(out, fromOccupancyNode(occ as Record<string, unknown>)) };
   }
   const geo = o.geo;
   if (geo && typeof geo === "object" && !Array.isArray(geo)) {
@@ -160,7 +202,7 @@ function fromRecord(o: Record<string, unknown>): LectureFiche {
       const titre = titrePublie(name);
       if (titre) out = { ...out, title: out.title ?? titre };
     }
-    out = { ...out, ...mergeOccupancy(out, occupancyFromText(name)) };
+    out = { ...out, ...fusion(out, duTexte(name)) };
   }
   return out;
 }
@@ -219,19 +261,24 @@ function sansPointLoueur(l: LectureFiche, loueur: PointsLoueur): LectureFiche {
 function fromRegex(html: string): LectureFiche {
   let out: LectureFiche = { ...VIDE };
   const pc = html.match(/"personCapacity"\s*:\s*(\d+)/);
-  if (pc) out = { ...out, guests: takeGuests(pc[1]) };
+  if (pc) out = { ...out, capacity: takeGuests(pc[1]), capacitySource: "structured" };
   const guestsJson =
     html.match(/"numberOfGuests"\s*:\s*"?(\d+)/i)?.[1] ??
     html.match(/"guestCapacity"\s*:\s*"?(\d+)/i)?.[1] ??
     html.match(/"accommodates"\s*:\s*"?(\d+)/i)?.[1] ??
     html.match(/"maxOccupancy"\s*:\s*"?(\d+)/i)?.[1] ??
-    html.match(/"sleeps"\s*:\s*"?(\d+)/i)?.[1];
-  if (out.guests == null && guestsJson) out = { ...out, guests: takeGuests(guestsJson) };
+    html.match(/"sleeps"\s*:\s*"?(\d+)/i)?.[1] ??
+    // MSEM : le bloc `capacity` du `__NEXT_DATA__` de la fiche
+    // (`"capacity":{"maxCapacity":7,"nbRooms":3,"nbBedrooms":2}`).
+    html.match(/"maxCapacity"\s*:\s*"?(\d+)/)?.[1];
+  if (out.capacity == null && guestsJson) out = { ...out, capacity: takeGuests(guestsJson), capacitySource: "structured" };
   const bedsJson =
     html.match(/"numberOfBedrooms"\s*:\s*"?(\d+)/i)?.[1] ??
-    html.match(/"bedroomCount"\s*:\s*"?(\d+)/i)?.[1];
-  if (bedsJson) out = { ...out, bedrooms: takeBeds(bedsJson) };
-  const roomsJson = html.match(/"numberOfRooms"\s*:\s*"?(\d+)/i)?.[1];
+    html.match(/"bedroomCount"\s*:\s*"?(\d+)/i)?.[1] ??
+    html.match(/"nbBedrooms"\s*:\s*"?(\d+)/)?.[1];
+  if (bedsJson) out = { ...out, bedrooms: takeBeds(bedsJson), bedroomsSource: "structured" };
+  const roomsJson =
+    html.match(/"numberOfRooms"\s*:\s*"?(\d+)/i)?.[1] ?? html.match(/"nbRooms"\s*:\s*"?(\d+)/)?.[1];
   if (roomsJson) out = { ...out, rooms: takeBeds(roomsJson) };
   const latlng = html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+))\s*,\s*"listingLng"\s*:\s*(-?\d+(?:\.\d+))/);
   if (latlng) {
@@ -249,7 +296,7 @@ function fromRegex(html: string): LectureFiche {
   while ((m = reCh.exec(html))) phrases.push(m[0].replace(/"/g, ""));
   while ((m = rePers.exec(html))) phrases.push(m[0].replace(/"/g, ""));
   while ((m = reMax.exec(html))) phrases.push(m[0]);
-  if (phrases.length) out = { ...out, ...mergeOccupancy(out, occupancyFromText(...phrases)) };
+  if (phrases.length) out = { ...out, ...fusion(out, duTexte(...phrases)) };
   return out;
 }
 
@@ -272,7 +319,7 @@ function fromMeta(html: string): LectureFiche {
     if (!/name=["']description["']|property=["']og:(?:description|title)["']/i.test(tag)) continue;
     const content = tag.match(/content=["']([^"']*)["']/i)?.[1];
     if (!content) continue;
-    out = { ...out, ...mergeOccupancy(out, occupancyFromText(decodeHtml(content))) };
+    out = { ...out, ...fusion(out, duTexte(decodeHtml(content))) };
     if (/property=["']og:title["']/i.test(tag)) {
       const titre = titrePublie(decodeHtml(content));
       if (titre) out = { ...out, title: out.title ?? titre };
@@ -290,10 +337,11 @@ function fromMeta(html: string): LectureFiche {
  */
 function fromIngenie(html: string): LectureFiche {
   let out: LectureFiche = { ...VIDE };
-  const cap =
-    html.match(/GCAPAC-GCAP0?(\d+)/i)?.[1] ??
-    html.match(/Capacit[eé][^<]{0,80}<\/span>[\s\S]{0,280}?(\d+)\s*personnes/i)?.[1];
-  if (cap) out = { ...out, guests: takeGuests(cap) };
+  // Le critère `GCAPAC` est un attribut ; la ligne « Capacité … N personnes », un texte.
+  const capCritere = html.match(/GCAPAC-GCAP0?(\d+)/i)?.[1];
+  const capTexte = html.match(/Capacit[eé][^<]{0,80}<\/span>[\s\S]{0,280}?(\d+)\s*personnes/i)?.[1];
+  const cap = capCritere ?? capTexte;
+  if (cap) out = { ...out, capacity: takeGuests(cap), capacitySource: capCritere ? "structured" : "text_regex" };
   const pieces =
     html.match(/GTYPAP-G(\d+)PIEC/i)?.[1] ??
     html.match(/Nombre de pi[eè]ces[\s\S]{0,280}?(\d+)\s*pi[eè]ces/i)?.[1];
@@ -305,7 +353,7 @@ function fromIngenie(html: string): LectureFiche {
     const n = Number(m[1]);
     if (Number.isInteger(n) && n > maxCh && n <= MAX) maxCh = n;
   }
-  if (maxCh > 0) out = { ...out, bedrooms: takeBeds(maxCh) };
+  if (maxCh > 0) out = { ...out, bedrooms: takeBeds(maxCh), bedroomsSource: "structured" };
   const itemLat = html.match(/itemprop=["']latitude["'][^>]*content=["']([^"']+)["']/i)?.[1];
   const itemLon = html.match(/itemprop=["']longitude["'][^>]*content=["']([^"']+)["']/i)?.[1];
   const lat = asCoord(itemLat) ?? asCoord(html.match(/Latitude\s*:\s*(-?\d+(?:[.,]\d+)?)/i)?.[1] ?? null);
@@ -379,5 +427,8 @@ export function lectureFiche(html: string): LectureFiche {
   if (!plausible(out.lat, out.lon)) out = mergeLecture(out, fromGpsTexte(html, loueur));
   const taxe = taxeSejourSomme(html);
   if (taxe != null) out = { ...out, taxeSejour: out.taxeSejour ?? taxe };
+  // Une source sans valeur ne dit rien.
+  if (out.capacity == null) out = { ...out, capacitySource: null };
+  if (out.bedrooms == null) out = { ...out, bedroomsSource: null };
   return out;
 }

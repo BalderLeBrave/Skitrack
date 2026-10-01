@@ -16,7 +16,7 @@ export type Completude = {
 
 export type SujetCompletude = {
   total: number;
-  guests: number | null;
+  capacity: number | null;
   bedrooms: number | null;
   rooms?: number | null;
   lat: number | null;
@@ -29,7 +29,7 @@ export type SujetCompletude = {
 export function completudeOf(l: SujetCompletude): Completude {
   const trous: Trou[] = [];
   if (!(l.total > 0)) trous.push("prix");
-  if (l.guests == null) trous.push("capacite");
+  if (l.capacity == null) trous.push("capacite");
   if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) trous.push("chambres");
   if (l.lat == null || l.lon == null) trous.push("gps");
   if (galerieOf(l).length === 0) trous.push("photo");
@@ -42,9 +42,9 @@ export function trouLbl(t: Trou): string {
     case "prix":
       return "prix non publié";
     case "capacite":
-      return "capacité non annoncée";
+      return "capacité non renseignée";
     case "chambres":
-      return "chambres non annoncées";
+      return "chambres non renseignées";
     case "gps":
       return "GPS manquant";
     case "photo":

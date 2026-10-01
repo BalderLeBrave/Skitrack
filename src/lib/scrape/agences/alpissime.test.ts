@@ -176,8 +176,12 @@ describe("Alpissime : relevé d'une station", () => {
     assert.equal(l.source, "Alpissime");
     assert.equal(l.total, 1683.1);
     assert.equal(l.priceIndicative, false);
-    assert.equal(l.guests, 4);
-    assert.equal(l.bedrooms, null, "les chambres ne sont que sur la fiche");
+    assert.equal(l.capacity, 4);
+    // « 2 pièces 4 personnes » : 1 chambre tirée du type ; la capacité vient de
+    // la ligne de la carte, un texte.
+    assert.equal(l.bedrooms, 1);
+    assert.equal(l.bedroomsSource, "derived_from_type");
+    assert.equal(l.capacitySource, "text_regex");
     assert.equal(l.propertyType, "Appartement");
     assert.equal(l.locality, "Valloire");
     assert.equal(l.placeName, "Residence Valoria");
@@ -191,7 +195,7 @@ describe("Alpissime : relevé d'une station", () => {
     const [c] = lirePage(fx("alpissime-toutes-dim-jeu.html")).cartes;
     const arcs = { ...VALLOIRE, stationId: "arc-1800", lat: 45.573, lon: 6.779, checkIn: "2027-02-07", checkOut: "2027-02-11" };
     const [l] = annoncesAlpissime({ cartes: [c], plan: null }, arcs, stationAlpissime("66", "arc-1800"));
-    assert.deepEqual([l.propertyType, l.bedrooms, l.guests, l.total], ["Studio", 0, 2, 664.32]);
+    assert.deepEqual([l.propertyType, l.bedrooms, l.capacity, l.total], ["Studio", 0, 2, 664.32]);
   });
 });
 

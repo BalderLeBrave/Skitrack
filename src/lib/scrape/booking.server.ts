@@ -102,9 +102,17 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
       typeof row.totalPrice === "number" && Number.isFinite(row.totalPrice) && row.totalPrice > 0
         ? Math.round(row.totalPrice)
         : 0;
+    // Seul l'index Apollo (un JSON embarqué) se reprend tel quel ; le nom et
+    // le bloc « logement entier » que le worker a lus se relisent ici.
+    const textes = Array.isArray(row.textes) ? row.textes.filter((t): t is string => typeof t === "string") : [];
     const occ = annoncer(
-      { guests: compte(row.guests, 1), bedrooms: compte(row.bedrooms), rooms: compte(row.rooms, 1) },
+      {
+        capacity: row.capacitySource === "structured" ? compte(row.capacity, 1) : null,
+        bedrooms: row.bedroomsSource === "structured" ? compte(row.bedrooms) : null,
+        rooms: compte(row.rooms, 1),
+      },
       title,
+      ...textes,
     );
     seen.add(id);
     // `map.py` ne rend qu'une vignette par tuile aujourd'hui, mais il en rend
@@ -121,9 +129,13 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
       source: "Booking",
       total,
       currency: typeof row.currency === "string" && row.currency.trim() ? row.currency.trim() : "EUR",
-      guests: occ.guests,
+      capacity: occ.capacity,
       bedrooms: occ.bedrooms,
       rooms: occ.rooms,
+      capacityStandard: occ.capacityStandard,
+      capacitySource: occ.capacitySource,
+      bedroomsSource: occ.bedroomsSource,
+      isStudio: occ.isStudio,
       // Type publié par Booking (index Apollo), relevé depuis toujours et
       // jamais porté sur l'annonce.
       propertyType: typeof row.propertyType === "string" ? row.propertyType.trim() || null : null,
@@ -439,7 +451,7 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
     // c'est pourtant lui qu'on lisait — un « Chambre Double (2 personnes) »
     // suffisait à écarter l'annonce d'une recherche à huit.
     const occu = annoncer(
-      { guests: null, bedrooms: null },
+      { capacity: null, bedrooms: null },
       row.title,
       LOGEMENT_ENTIER.test(row.units) ? row.units : "",
     );
@@ -450,9 +462,13 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
       source: "Booking",
       total,
       currency: "EUR",
-      guests: occu.guests,
+      capacity: occu.capacity,
       bedrooms: occu.bedrooms,
       rooms: occu.rooms,
+      capacityStandard: occu.capacityStandard,
+      capacitySource: occu.capacitySource,
+      bedroomsSource: occu.bedroomsSource,
+      isStudio: occu.isStudio,
       available: true,
       photo: row.photo || null,
       priceLabel: row.price || null,

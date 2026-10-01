@@ -6,13 +6,13 @@ import {
   ficheDementieParLeTitre,
   occupancyFromRecord,
   occupancyFromText,
-  occupancyOfListing,
 } from "./occupancy.ts";
+import { qualifierLogement } from "./logement.ts";
 
 describe("occupancy : ce que la source a écrit, rien de plus", () => {
   it("lit une capacité nette", () => {
     assert.deepEqual(occupancyFromText("Demi chalet de gauche 8 personnes Les renoncules 2"), {
-      guests: 8,
+      capacity: 8,
       bedrooms: null,
       rooms: null,
     });
@@ -21,36 +21,36 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
   it("refuse le titre à deux logements", () => {
     // 6 ou 12 : choisir c'est inventer.
     assert.deepEqual(occupancyFromText("2 appartements de 6 personnes face à face"), {
-      guests: null,
+      capacity: null,
       bedrooms: null,
       rooms: null,
     });
     assert.deepEqual(occupancyFromText("2-appartements-de-6-personnes"), {
-      guests: null,
+      capacity: null,
       bedrooms: null,
       rooms: null,
     });
   });
 
   it("N°505 Appartement 8 personnes n'est pas cinq cent cinq logements", () => {
-    assert.equal(occupancyFromText("LE PRINCE DES ECRINS 505 Appartement 8 personnes").guests, 8);
-    assert.equal(occupancyFromText("LE JANDRI 02S01 Appartement 8 personnes").guests, 8);
+    assert.equal(occupancyFromText("LE PRINCE DES ECRINS 505 Appartement 8 personnes").capacity, 8);
+    assert.equal(occupancyFromText("LE JANDRI 02S01 Appartement 8 personnes").capacity, 8);
     assert.equal(
-      occupancyOfListing({
-        guests: null,
+      qualifierLogement({
+        capacity: null,
         bedrooms: null,
         title: "LE PRINCE DES ECRINS 505 Appartement 8 personnes",
         url: "https://reservation.les2alpes.com/le-prince-des-ecrins-n505-appartement-8-personnes-les-2-alpes.html",
-      }).guests,
+      }).capacity,
       8,
     );
   });
 
   it("prend le haut d'une fourchette 7/8", () => {
-    assert.equal(occupancyFromText("Capacité 7/8 personnes").guests, 8);
-    assert.equal(occupancyFromText("Appartement 3 pièces 7-8 pers.").guests, 8);
-    assert.equal(occupancyFromText("Les Deux-Alpes, appartement 6-8 pers, cosy, calme").guests, 8);
-    assert.equal(occupancyFromText("Grand appartement pied des pistes 13-15 personnes").guests, 15);
+    assert.equal(occupancyFromText("Capacité 7/8 personnes").capacity, 8);
+    assert.equal(occupancyFromText("Appartement 3 pièces 7-8 pers.").capacity, 8);
+    assert.equal(occupancyFromText("Les Deux-Alpes, appartement 6-8 pers, cosy, calme").capacity, 8);
+    assert.equal(occupancyFromText("Grand appartement pied des pistes 13-15 personnes").capacity, 15);
   });
 
   it("les pièces se lisent comme des pièces, et ne deviennent des chambres qu'à la comparaison", () => {
@@ -61,13 +61,13 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
     assert.equal(bedroomsFromRooms(1), 0);
     assert.equal(bedroomsFromRooms(null), null);
     assert.deepEqual(occupancyFromText("Appartement 3 pièces 8 personnes"), {
-      guests: 8,
+      capacity: 8,
       bedrooms: null,
       rooms: 3,
     });
     // Des chambres publiées restent des chambres publiées.
     assert.deepEqual(occupancyFromText("Chalet 10 personnes 4 chambres"), {
-      guests: 10,
+      capacity: 10,
       bedrooms: 4,
       rooms: null,
     });
@@ -75,7 +75,7 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
 
   it("un studio est une pièce et aucune chambre, et les deux sont publiés", () => {
     assert.deepEqual(occupancyFromText("STUDIO CABINE 4 pers."), {
-      guests: 4,
+      capacity: 4,
       bedrooms: 0,
       rooms: 1,
     });
@@ -87,9 +87,9 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
   });
 
   it("8 couchages est une capacité, 6 lits n'en est pas une", () => {
-    assert.equal(occupancyFromText("Appartement : 8 couchages face aux pistes").guests, 8);
+    assert.equal(occupancyFromText("Appartement : 8 couchages face aux pistes").capacity, 8);
     assert.deepEqual(occupancyFromText("6 lits · 3 chambres"), {
-      guests: null,
+      capacity: null,
       bedrooms: 3,
       rooms: null,
     });
@@ -97,44 +97,57 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
 
   it("lit un slug à tirets, la même phrase que le titre", () => {
     assert.equal(
-      occupancyFromText("l-olympe-n11-appartement-8-personnes-les-2-alpes.html").guests,
+      occupancyFromText("l-olympe-n11-appartement-8-personnes-les-2-alpes.html").capacity,
       8,
     );
     assert.deepEqual(
       occupancyFromText("vacanceole-l-edelweiss-appartement-2-pieces-cabine-8-personnes"),
-      { guests: 8, bedrooms: null, rooms: 2 },
+      { capacity: 8, bedrooms: null, rooms: 2 },
     );
   });
 
   it("le champ publié l'emporte sur le titre", () => {
-    const o = annoncer({ guests: 10, bedrooms: 4 }, "8 personnes · 2 chambres");
-    assert.deepEqual(o, { guests: 10, bedrooms: 4, rooms: null });
+    const o = annoncer({ capacity: 10, bedrooms: 4 }, "8 personnes · 2 chambres");
+    assert.deepEqual(o, {
+      capacity: 10,
+      bedrooms: 4,
+      rooms: null,
+      capacityStandard: null,
+      capacitySource: "structured",
+      bedroomsSource: "structured",
+      isStudio: false,
+    });
   });
 
   it("le titre complète un JSON muet", () => {
-    const o = annoncer({ guests: null, bedrooms: null }, "Chalet 10 personnes 4 chambres");
-    assert.deepEqual(o, { guests: 10, bedrooms: 4, rooms: null });
+    const o = annoncer({ capacity: null, bedrooms: null }, "Chalet 10 personnes 4 chambres");
+    assert.deepEqual(o, {
+      capacity: 10,
+      bedrooms: 4,
+      rooms: null,
+      capacityStandard: null,
+      capacitySource: "text_regex",
+      bedroomsSource: "text_regex",
+      isStudio: false,
+    });
   });
 
-  it("relit titre et URL d'une fiche déjà construite", () => {
-    assert.deepEqual(
-      occupancyOfListing({
-        guests: null,
-        bedrooms: 3,
-        title: "Les Deux-Alpes, appartement 6-8 pers, cosy, calme",
-        url: null,
-      }),
-      { guests: 8, bedrooms: 3, rooms: null },
-    );
-    assert.deepEqual(
-      occupancyOfListing({
-        guests: 8,
-        bedrooms: null,
-        title: "Vacancéole - l'Edelweiss-",
-        url: "https://reservation.les2alpes.com/vacanceole-l-edelweiss-appartement-2-pieces-cabine-8-personnes-les-2-alpes.html",
-      }),
-      { guests: 8, bedrooms: null, rooms: 2 },
-    );
+  it("un collecteur dit la source d'une valeur qu'il a lue dans un texte", () => {
+    const o = annoncer({ capacity: 6, bedrooms: 2, rooms: null, source: { capacity: "text_regex" } }, "Appartement 3 pièces");
+    assert.deepEqual([o.capacitySource, o.bedroomsSource, o.rooms], ["text_regex", "structured", 3]);
+    assert.equal(annoncer({ capacity: 4, bedrooms: null, source: "text_regex" }).capacitySource, "text_regex");
+  });
+
+  it("un type sans chambres écrites : derived_from_type ; un studio : isStudio", () => {
+    const t3 = annoncer({ capacity: 6, bedrooms: null }, "Appartement T3");
+    assert.deepEqual([t3.bedrooms, t3.bedroomsSource, t3.isStudio], [2, "derived_from_type", false]);
+    const studio = annoncer({ capacity: 2, bedrooms: null }, "Studio pied des pistes");
+    assert.deepEqual([studio.bedrooms, studio.bedroomsSource, studio.isStudio], [0, "derived_from_type", true]);
+  });
+
+  it("une plage : capacity est la borne haute, capacityStandard la basse", () => {
+    const o = annoncer({ capacity: null, bedrooms: null }, "Appartement 4 à 6 personnes");
+    assert.deepEqual([o.capacity, o.capacityStandard, o.capacitySource], [6, 4, "text_regex"]);
   });
 
   it("lit les clés structurées d'une fiche Cozy / Airbnb", () => {
@@ -143,82 +156,82 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
         name: "Chalet",
         subTitleDetails: { guestCapacity: 8, bedRoomCount: 3 },
       }),
-      { guests: 8, bedrooms: 3, rooms: null },
+      { capacity: 8, bedrooms: 3, rooms: null },
     );
     assert.deepEqual(
       occupancyFromRecord({ personCapacity: "6", bedroomCount: 0 }),
-      { guests: 6, bedrooms: 0, rooms: null },
+      { capacity: 6, bedrooms: 0, rooms: null },
     );
   });
 
   it("lit occupancy.maxPersons d'une fiche Booking", () => {
     assert.deepEqual(
       occupancyFromRecord({ occupancy: { maxPersons: 8 }, numberOfBedrooms: 3 }),
-      { guests: 8, bedrooms: 3, rooms: null },
+      { capacity: 8, bedrooms: 3, rooms: null },
     );
   });
 
   it("lit sleeps et maxOccupancy comme une capacité publiée", () => {
     assert.deepEqual(occupancyFromRecord({ sleeps: 8, bedroomCount: 3 }), {
-      guests: 8,
+      capacity: 8,
       bedrooms: 3,
       rooms: null,
     });
-    assert.equal(occupancyFromRecord({ maxOccupancy: 10 }).guests, 10);
+    assert.equal(occupancyFromRecord({ maxOccupancy: 10 }).capacity, 10);
   });
 
   it("lit personCapacity dans loggingContext Airbnb", () => {
     assert.equal(
       occupancyFromRecord({
         loggingContext: { eventDataLogging: { personCapacity: 8 } },
-      }).guests,
+      }).capacity,
       8,
     );
   });
 
   it("lit l'abréviation 8p / 10 P d'une tuile, pas un 2p cabine", () => {
-    assert.equal(occupancyFromText("8p · 3 chambres").guests, 8);
-    assert.equal(occupancyFromText("10 P").guests, 10);
-    assert.equal(occupancyFromText("Appartement 8p 80m²").guests, 8);
-    assert.equal(occupancyFromText("Superbe Appartement 8P pied des pistes (Réf 32)").guests, 8);
-    assert.equal(occupancyFromText("Chalet 10p sauna /superbe vue").guests, 10);
-    assert.equal(occupancyFromText("2p cabine").guests, null);
-    assert.equal(occupancyFromText("Appartement 2 pièces cabine").guests, null);
-    assert.equal(occupancyFromText("2 pièces · 4 pers.").guests, 4);
+    assert.equal(occupancyFromText("8p · 3 chambres").capacity, 8);
+    assert.equal(occupancyFromText("10 P").capacity, 10);
+    assert.equal(occupancyFromText("Appartement 8p 80m²").capacity, 8);
+    assert.equal(occupancyFromText("Superbe Appartement 8P pied des pistes (Réf 32)").capacity, 8);
+    assert.equal(occupancyFromText("Chalet 10p sauna /superbe vue").capacity, 10);
+    assert.equal(occupancyFromText("2p cabine").capacity, null);
+    assert.equal(occupancyFromText("Appartement 2 pièces cabine").capacity, null);
+    assert.equal(occupancyFromText("2 pièces · 4 pers.").capacity, 4);
   });
 
   it("accueille, capacité, F3 et 3 ch. sont des lectures", () => {
-    assert.equal(occupancyFromText("Chalet pouvant accueillir 10").guests, 10);
-    assert.equal(occupancyFromText("Capacité : 8").guests, 8);
+    assert.equal(occupancyFromText("Chalet pouvant accueillir 10").capacity, 10);
+    assert.equal(occupancyFromText("Capacité : 8").capacity, 8);
     assert.equal(occupancyFromText("F3 pied des pistes").rooms, 3);
     assert.equal(occupancyFromText("Appartement 3 ch. sud").bedrooms, 3);
     assert.equal(occupancyFromText("Grand chalet").bedrooms, null);
   });
 
   it("sleeps 8, cap. 8 et capacity 8 sont des lectures", () => {
-    assert.equal(occupancyFromText("Cabin sleeps 8 near the slopes").guests, 8);
-    assert.equal(occupancyFromText("Appartement cap. 8 pied des pistes").guests, 8);
-    assert.equal(occupancyFromText("capacity 10 with sauna").guests, 10);
-    assert.equal(occupancyFromText("cape of 8 mountains").guests, null);
+    assert.equal(occupancyFromText("Cabin sleeps 8 near the slopes").capacity, 8);
+    assert.equal(occupancyFromText("Appartement cap. 8 pied des pistes").capacity, 8);
+    assert.equal(occupancyFromText("capacity 10 with sauna").capacity, 10);
+    assert.equal(occupancyFromText("cape of 8 mountains").capacity, null);
   });
 
   it("ne lit pas les noms de photos GreenGo, numérotés : « 12-chambre… » n'est pas 12 chambres", () => {
     const photo = "https://images.greengo.voyage/canonical/accommmodation/ordered_images/12-chambre_rdc_cote_jardin-web.jpg";
-    const occ = occupancyOfListing({ source: "GreenGo", guests: null, bedrooms: null, title: "Chalet Paradis Blanc Morzine 5*", url: null, photo, photos: [photo] });
+    const occ = qualifierLogement({ source: "GreenGo", capacity: null, bedrooms: null, title: "Chalet Paradis Blanc Morzine 5*", url: null, photo, photos: [photo] });
     assert.equal(occ.bedrooms, null);
     assert.equal(occ.rooms, null);
   });
 
   it("lit un slug de photo comme un titre", () => {
     assert.equal(
-      occupancyOfListing({
-        guests: null,
+      qualifierLogement({
+        capacity: null,
         bedrooms: null,
         title: "L'OLYMPE N°11",
         url: null,
         photo:
           "https://reservation.les2alpes.com/medias/images/prestations/l-olympe-appartement-8-personnes-10.jpeg",
-      }).guests,
+      }).capacity,
       8,
     );
   });
@@ -226,10 +239,10 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
 
 describe("ficheDementieParLeTitre : le titre annonce plus petit que la fiche", () => {
   /** Une offre CozyCozy telle que les relevés du 25 septembre 2026 la portent. */
-  const offre = (title: string, guests: number | null, bedrooms: number | null, source = "Abritel") => ({
+  const offre = (title: string, capacity: number | null, bedrooms: number | null, source = "Abritel") => ({
     source,
     title,
-    guests,
+    capacity,
     bedrooms,
   });
 
@@ -298,7 +311,7 @@ describe("ficheDementieParLeTitre : le titre annonce plus petit que la fiche", (
     // Une fiche muette ne se contredit pas ; un titre sans taille non plus.
     assert.ok(!ficheDementieParLeTitre(offre("Studio Rénové à Flaine", null, null)));
     assert.ok(!ficheDementieParLeTitre(offre("Grand Appartement Familial", 10, 3)));
-    assert.ok(!ficheDementieParLeTitre({ title: "", guests: 8, bedrooms: 3 }));
+    assert.ok(!ficheDementieParLeTitre({ title: "", capacity: 8, bedrooms: 3 }));
   });
 
   it("un titre qui compte ses chambres ne se mesure pas à ses pièces", () => {

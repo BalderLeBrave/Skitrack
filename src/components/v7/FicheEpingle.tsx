@@ -11,7 +11,16 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { bedLbl, capLbl, distanceOf, firmOf, prixLbl, prixPersLbl } from "@/lib/v7";
+import {
+  bedLbl,
+  bedNomme,
+  capNomme,
+  distanceOf,
+  firmOf,
+  NON_RENSEIGNE,
+  prixLbl,
+  prixPersLbl,
+} from "@/lib/v7";
 
 export function FicheEpingle({
   l,
@@ -49,8 +58,8 @@ export function FicheEpingle({
         {!l.photo ? <span className="toujours7__regle">{sources}</span> : null}
         <strong className="fc__titre">{l.title}</strong>
         <span className="fc__ligne">
-          <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
-          <span>{bedLbl(l)}</span>
+          <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
+          <span className={bedLbl(l) === NON_RENSEIGNE ? "absent" : undefined}>{bedNomme(l)}</span>
         </span>
         <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>{d.text}</span>
         <span className="fc__prix">

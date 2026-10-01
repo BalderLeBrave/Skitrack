@@ -104,7 +104,7 @@ function annonce(n: number, muette = false): Listing {
     source: "Airbnb",
     total: 1000 + n,
     currency: "EUR",
-    guests: muette ? null : 8,
+    capacity: muette ? null : 8,
     bedrooms: muette ? null : 3,
     available: true,
     photo: null,
@@ -128,7 +128,7 @@ async function partsParDefaut({ data }: DemandePart): Promise<Rendu> {
 function renduMemoire(d: DemandeTranche["data"]): RenduTranche {
   return {
     correctifs: Object.fromEntries(
-      d.candidates.map((c) => [c.id, { guests: 8, bedrooms: 3, proven: `${c.proven} · mémoire des fiches` }]),
+      d.candidates.map((c) => [c.id, { capacity: 8, bedrooms: 3, proven: `${c.proven} · mémoire des fiches` }]),
     ),
     retires: [],
     restantes: 0,

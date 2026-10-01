@@ -113,7 +113,7 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
   const base = r.reservation.replace(/\/+$/, "");
   // Le titre dit souvent « Appartement 3 pièces cabine 6/8 personnes » : les
   // pièces s'y lisent, et elles se posent dans `rooms`, pas dans `bedrooms`.
-  const occ = annoncer({ guests: f.capacite, bedrooms: null }, f.titre, f.chemin);
+  const occ = annoncer({ capacity: f.capacite, bedrooms: null }, f.titre, f.chemin);
   return {
     id: `irs-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -121,9 +121,13 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     propertyType: f.categorie,
     available: true,
     photo: f.photo ? new URL(f.photo, `${base}/`).toString() : null,

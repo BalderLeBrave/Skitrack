@@ -16,6 +16,7 @@ import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
 import { SKIINFO } from "./skiinfo.ts";
 import type { Station } from "./stations.ts";
 import { availabilityOf, type Stay } from "./stay/availability.ts";
+import { chambresDesPieces } from "./stay/logement.ts";
 
 /* ---------- Station ---------- */
 
@@ -158,20 +159,50 @@ export function firmOf(l: Listing, stay: Stay): boolean {
   return availabilityOf(l, stay).status === "confirmed";
 }
 
+/** Ce qu'aucune source, aucune fiche ni aucun texte n'a dit. L'annonce reste
+ *  affichée ; seuls les filtres chiffrés l'écartent (`dansPlage`). */
+export const NON_RENSEIGNE = "Non renseigné";
+
+/** La capacité maximale, et la standard quand la source la distingue ou
+ *  donne une fourchette : « 4/6 pers. » pour « 4 à 6 personnes ». */
 export function capLbl(l: Listing): string {
-  return l.guests != null ? `${l.guests} pers.` : "capacité non annoncée";
+  if (l.capacity == null) return NON_RENSEIGNE;
+  if (l.capacityStandard != null && l.capacityStandard > 0 && l.capacityStandard < l.capacity) {
+    return `${l.capacityStandard}/${l.capacity} pers.`;
+  }
+  return `${l.capacity} pers.`;
 }
 
 export function bedLbl(l: Listing): string {
-  // Ce que la source a écrit, dans ses mots. Les pièces ne se convertissent
-  // plus en chambres au relevé : « 3 pièces » s'affiche « 3 pièces », et la
-  // conversion n'a lieu qu'au moment de comparer (`normalizedBedrooms`).
-  if (l.bedrooms == null) {
-    if (l.rooms != null && l.rooms > 0) return l.rooms === 1 ? "1 pièce" : `${l.rooms} pièces`;
-    return "chambres non annoncées";
+  // Ce que la source a écrit, dans ses mots. Des chambres tirées des pièces
+  // (« 3 pièces » : 2 chambres supposées) s'affichent en pièces : on ne dit
+  // pas « 2 ch. » d'un logement qui ne l'a pas annoncé. Un studio se dit
+  // « Studio », jamais « 0 ch. » ; la cabine ne compte pas comme chambre.
+  const cabine = l.cabin ? " + cabine" : "";
+  const pieces =
+    l.rooms != null && l.rooms > 0 ? (l.rooms === 1 ? "1 pièce" : `${l.rooms} pièces`) : null;
+  if (
+    l.isStudio === true ||
+    l.bedrooms === 0 ||
+    (l.bedrooms == null && l.lodgingType === "studio")
+  ) {
+    return `Studio${cabine}`;
   }
-  if (l.bedrooms === 0) return "studio";
-  return `${l.bedrooms} ch.`;
+  if (l.bedrooms == null) return pieces ? `${pieces}${cabine}` : NON_RENSEIGNE;
+  if (pieces && chambresDesPieces(l)) return `${pieces}${cabine}`;
+  return `${l.bedrooms} ch.${cabine}`;
+}
+
+/** Hors d'une case titrée (carte, épingle, ligne de fiche), « Non renseigné »
+ *  dit de quoi il parle : « Capacité : Non renseigné ». */
+export function capNomme(l: Listing): string {
+  const v = capLbl(l);
+  return v === NON_RENSEIGNE ? `Capacité : ${v}` : v;
+}
+
+export function bedNomme(l: Listing): string {
+  const v = bedLbl(l);
+  return v === NON_RENSEIGNE ? `Chambres : ${v}` : v;
 }
 
 /** Un total à 0 n'est pas un prix : c'est « non publié ». Rien d'autre que le montant. */

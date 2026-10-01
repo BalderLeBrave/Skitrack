@@ -12,6 +12,7 @@ import {
   trousDe,
   urlPropre,
   urlsPartagees,
+  VALEUR_DU_TEXTE,
 } from "./priseFiche.ts";
 
 function annonce(extra: Partial<Listing> = {}): Listing {
@@ -22,7 +23,7 @@ function annonce(extra: Partial<Listing> = {}): Listing {
     source: "Abritel",
     total: 900,
     currency: "EUR",
-    guests: 4,
+    capacity: 4,
     bedrooms: 1,
     available: true,
     photo: null,
@@ -43,7 +44,7 @@ describe("trous d'une annonce", () => {
   it("nomme capacité, chambres, GPS et titre-fichier", () => {
     assert.deepEqual(trousDe(annonce()), []);
     assert.deepEqual(
-      trousDe(annonce({ guests: null, bedrooms: null, lat: null, lon: null, title: "IMG_4021.jpg" })),
+      trousDe(annonce({ capacity: null, bedrooms: null, lat: null, lon: null, title: "IMG_4021.jpg" })),
       ["capacite", "chambres", "gps", "titre"],
     );
   });
@@ -56,34 +57,48 @@ describe("trous d'une annonce", () => {
 
 describe("ouvrir une fiche seulement si elle peut combler", () => {
   it("Booking en HTTP simple ne rend qu'un défi : jamais ouvert", () => {
-    assert.equal(raisonDeLaisser(annonce({ source: "Booking", guests: null }), BOOKING), "booking.com");
+    assert.equal(raisonDeLaisser(annonce({ source: "Booking", capacity: null }), BOOKING), "booking.com");
     assert.equal(raisonDeLaisser(annonce({ source: "Booking", lat: null, lon: null }), BOOKING), "booking.com");
   });
 
   it("Abritel publie le GPS et le titre, ni capacité ni chambres", () => {
-    assert.equal(raisonDeLaisser(annonce({ guests: null }), ABRITEL), "abritel.fr");
-    assert.equal(raisonDeLaisser(annonce({ guests: null, bedrooms: null }), ABRITEL), "abritel.fr");
-    assert.equal(raisonDeLaisser(annonce({ guests: null, lat: null, lon: null }), ABRITEL), null);
+    assert.equal(raisonDeLaisser(annonce({ capacity: null }), ABRITEL), "abritel.fr");
+    assert.equal(raisonDeLaisser(annonce({ capacity: null, bedrooms: null }), ABRITEL), "abritel.fr");
+    assert.equal(raisonDeLaisser(annonce({ capacity: null, lat: null, lon: null }), ABRITEL), null);
     assert.equal(raisonDeLaisser(annonce({ title: "photos_ab12_1234" }), ABRITEL), null);
   });
 
   it("Airbnb : rooms/ seulement pour un GPS vide, comme avant", () => {
-    const sansCap = annonce({ source: "Airbnb", guests: null, bedrooms: null });
+    const sansCap = annonce({ source: "Airbnb", capacity: null, bedrooms: null });
     assert.equal(raisonDeLaisser(sansCap, AIRBNB), "Airbnb avec GPS");
     assert.equal(raisonDeLaisser({ ...sansCap, lat: null, lon: null }, AIRBNB), null);
   });
 
   it("une page hôte GreenGo n'est jamais ouverte : seule l'API de détail est sûre", () => {
     const hote = "https://www.greengo.voyage/hote/chalet-paradis-blanc?checkIn=2027-02-06&checkOut=2027-02-13&numberOfAdults=2";
-    assert.equal(raisonDeLaisser(annonce({ source: "GreenGo", guests: null, bedrooms: null }), hote), "greengo.voyage");
+    assert.equal(raisonDeLaisser(annonce({ source: "GreenGo", capacity: null, bedrooms: null }), hote), "greengo.voyage");
   });
 
   it("Gîtes et hôte inconnu restent ouverts", () => {
     assert.equal(raisonDeLaisser(annonce({ source: "Gîtes de France" }), GITES), null);
     assert.equal(
-      raisonDeLaisser(annonce({ source: "Centrale", guests: null }), "https://reservation.exemple.fr/fiche/12"),
+      raisonDeLaisser(annonce({ source: "Centrale", capacity: null }), "https://reservation.exemple.fr/fiche/12"),
       null,
     );
+  });
+
+  it("une valeur du texte n'ouvre la fiche que chez un hôte qui la publie", () => {
+    const centrale = "https://reservation.exemple.fr/fiche/12";
+    const texte = annonce({ source: "Centrale", capacity: 6, capacitySource: "text_regex" });
+    // Un hôte inconnu : seule une annonce muette use son débit et son disjoncteur.
+    assert.equal(raisonDeLaisser(texte, centrale), VALEUR_DU_TEXTE);
+    assert.equal(raisonDeLaisser({ ...texte, bedrooms: null }, centrale), null);
+    // Alpissime publie capacité et chambres sur sa fiche : un champ structuré y remplace le texte.
+    const alpissime = "https://www.alpissime.com/appartement/3397_2-pieces/";
+    const derivees = annonce({ source: "Alpissime", bedrooms: 1, bedroomsSource: "derived_from_type" });
+    assert.equal(raisonDeLaisser(derivees, alpissime), null);
+    assert.deepEqual(trousDe(derivees), []);
+    assert.deepEqual(trousDe(derivees, { faibles: true }), ["chambres"]);
   });
 });
 
@@ -162,7 +177,7 @@ describe("une URL commune n'est jamais prise pour une fiche", () => {
   });
 
   it("laissée pour « URL commune », même trouée", () => {
-    const trouee = annonce({ source: "Centrale", guests: null, lat: null, lon: null });
+    const trouee = annonce({ source: "Centrale", capacity: null, lat: null, lon: null });
     assert.equal(raisonDeLaisser(trouee, ACCUEIL), "URL commune");
     assert.equal(raisonDeLaisser(trouee, FICHE, new Set([cleUrl(FICHE)])), "URL commune");
     assert.equal(raisonDeLaisser(trouee, FICHE, new Set()), null);
@@ -184,10 +199,10 @@ describe("une URL commune n'est jamais prise pour une fiche", () => {
 describe("choisir avant de borner", () => {
   it("les Airbnb à GPS ne prennent plus la place des fiches qu'on ouvre", () => {
     const airbnbs = Array.from({ length: 170 }, (_, i) =>
-      annonce({ id: `a${i}`, source: "Airbnb", guests: null, bedrooms: null, url: `${AIRBNB}${i}` }),
+      annonce({ id: `a${i}`, source: "Airbnb", capacity: null, bedrooms: null, url: `${AIRBNB}${i}` }),
     );
-    const gite = annonce({ id: "g", source: "Gîtes de France", guests: null, url: GITES });
-    const airbnbSansGps = annonce({ id: "n", source: "Airbnb", guests: null, lat: null, lon: null, url: AIRBNB });
+    const gite = annonce({ id: "g", source: "Gîtes de France", capacity: null, url: GITES });
+    const airbnbSansGps = annonce({ id: "n", source: "Airbnb", capacity: null, lat: null, lon: null, url: AIRBNB });
     const { aLire, laissees } = choisirFiches([...airbnbs, gite, airbnbSansGps], (l) => l.url);
     assert.deepEqual(
       aLire.map((l) => l.id),
@@ -198,7 +213,7 @@ describe("choisir avant de borner", () => {
   });
 
   it("une annonce sans URL de fiche n'est ni lue ni comptée", () => {
-    const { aLire, laissees } = choisirFiches([annonce({ guests: null })], () => null);
+    const { aLire, laissees } = choisirFiches([annonce({ capacity: null })], () => null);
     assert.equal(aLire.length, 0);
     assert.equal(laissees.size, 0);
     assert.equal(ecrireLaissees(laissees), "");

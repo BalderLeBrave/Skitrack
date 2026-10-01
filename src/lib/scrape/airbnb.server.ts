@@ -17,7 +17,7 @@ import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 import { prixHorsSejour } from "./airbnbDates";
-import { annoncer, occupancyFromRecord, type Occupancy } from "@/lib/stay/occupancy";
+import { annoncer, occupancyFromRecord, type OccupancyAnnoncee } from "@/lib/stay/occupancy";
 import { assurerCles } from "../cles/store.server";
 import {
   dossierScrape,
@@ -121,17 +121,26 @@ function structuredLines(record: Record<string, unknown>): string[] {
   return lines;
 }
 
-function occupancy(record: Record<string, unknown>): Occupancy {
+/** Le nom localisé se lit aussi : la forme 2026 de l'API n'a plus ni titre
+ *  ni sous-titre (« Appartement : 8 couchages face aux pistes »), et le
+ *  worker Python le lisait déjà. */
+function occupancy(record: Record<string, unknown>): OccupancyAnnoncee {
   const title = typeof record.title === "string" ? record.title : "";
   const sub = typeof record.subtitle === "string" ? record.subtitle : "";
-  return annoncer(occupancyFromRecord(record), title, sub, ...structuredLines(record));
+  return annoncer(
+    occupancyFromRecord(record),
+    title,
+    sub,
+    nestedName(record.nameLocalized),
+    ...structuredLines(record),
+  );
 }
 
 /**
  * « 6 lits » sur la tuile : un compte de lits, jamais un compte de voyageurs.
  *
  * La ligne était lue par le collecteur puis jetée, faute de champ pour la
- * recevoir ; `Listing.beds` la porte désormais, à côté de `guests`.
+ * recevoir ; `Listing.beds` la porte désormais, à côté de `capacity`.
  */
 function bedsFromText(...parts: Array<string | null | undefined>): number | null {
   const text = parts.filter((p) => p && p.trim()).join(" · ");
@@ -292,7 +301,7 @@ function extract(root: unknown, input: LiveSearchInput): Listing[] {
         const horsSejour = prixHorsSejour(record, label, structuredLines(record), input.checkIn, input.checkOut);
         const total = horsSejour ? 0 : (stayTotal(label) ?? 0);
         const occ = occupancy(record);
-        const tropPetit = occ.guests != null && occ.guests < input.guests;
+        const tropPetit = occ.capacity != null && occ.capacity < input.guests;
         const tropPeuDeChambres =
           input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms;
         if (!tropPetit && !tropPeuDeChambres) {
@@ -305,9 +314,13 @@ function extract(root: unknown, input: LiveSearchInput): Listing[] {
             source: "Airbnb",
             total,
             currency: "EUR",
-            guests: occ.guests,
+            capacity: occ.capacity,
             bedrooms: occ.bedrooms,
             rooms: occ.rooms,
+            capacityStandard: occ.capacityStandard,
+            capacitySource: occ.capacitySource,
+            bedroomsSource: occ.bedroomsSource,
+            isStudio: occ.isStudio,
             beds: bedsFromText(...structuredLines(record), name, sub),
             available: true,
             photo: photos[0] ?? null,
@@ -381,6 +394,12 @@ function lastJsonObject(raw: string): unknown {
   }
 }
 
+/** Une valeur que le worker a lue dans un champ structuré (`capacitySource`,
+ *  `bedroomsSource` : « structured »), sinon `null`. */
+function valeurStructuree(v: unknown, source: unknown, min: number): number | null {
+  return source === "structured" && typeof v === "number" && Number.isInteger(v) && v >= min && v <= 50 ? v : null;
+}
+
 function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[] {
   if (!payload || typeof payload !== "object") return [];
   const listings = (payload as { listings?: unknown }).listings;
@@ -406,11 +425,14 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
         : (stayTotal(label) ?? 0);
     if (!id || !name || seen.has(id)) continue;
     if (isDropped(name) || isDropped(sub)) continue;
-    const guests = typeof row.guests === "number" && row.guests > 0 ? row.guests : null;
-    const bedrooms = typeof row.bedrooms === "number" && row.bedrooms >= 0 ? row.bedrooms : null;
-    const rooms = typeof row.rooms === "number" && row.rooms > 0 ? row.rooms : null;
-    const occ = annoncer({ guests, bedrooms, rooms }, name, sub);
-    if (occ.guests != null && occ.guests < input.guests) continue;
+    // Seul le champ structuré du worker se reprend tel quel ; ce qu'il a lu
+    // dans un texte se relit ici, dans les mêmes textes, par le module commun.
+    const capacity = valeurStructuree(row.capacity, row.capacitySource, 1);
+    const bedrooms = valeurStructuree(row.bedrooms, row.bedroomsSource, 0);
+    // Les pièces du worker sortent d'un texte : elles se relisent aussi ici.
+    const textes = Array.isArray(row.textes) ? row.textes.filter((t): t is string => typeof t === "string") : [];
+    const occ = annoncer({ capacity, bedrooms }, name, sub, ...textes);
+    if (occ.capacity != null && occ.capacity < input.guests) continue;
     if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
     seen.add(id);
     const photos = Array.isArray(row.photos)
@@ -424,9 +446,13 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
       source: "Airbnb",
       total,
       currency: "EUR",
-      guests: occ.guests,
+      capacity: occ.capacity,
       bedrooms: occ.bedrooms,
       rooms: occ.rooms,
+      capacityStandard: occ.capacityStandard,
+      capacitySource: occ.capacitySource,
+      bedroomsSource: occ.bedroomsSource,
+      isStudio: occ.isStudio,
       beds: typeof row.beds === "number" && row.beds > 0 ? Math.trunc(row.beds) : bedsFromText(name, sub),
       available: true,
       photo: image ?? photos[0] ?? null,

@@ -31,6 +31,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const MC_SITE = "https://www.mountaincollection.com";
 export const MC_API = "https://ws.mountaincollection.com";
@@ -330,9 +331,8 @@ export function mcListings(produits: readonly ProduitMC[], input: LiveSearchInpu
       source: "Mountain Collection",
       total,
       currency: "EUR",
-      guests: p.capacite,
-      bedrooms: p.chambres,
-      rooms: p.pieces,
+      // `nbPax`, `nbChambre`, `nbPiece` : des champs de l'API.
+      ...champsLogement(annoncer({ capacity: p.capacite, bedrooms: p.chambres, rooms: p.pieces }, p.titre)),
       baths: p.sdb,
       propertyType: p.type,
       available: true,

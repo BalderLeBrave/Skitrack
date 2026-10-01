@@ -371,7 +371,7 @@ export function occupancyFromGitesHtml(html: string): Occupancy {
     html.match(/"occupancy"\s*:\s*\{[^}]{0,280}"maxValue"\s*:\s*"?(\d+)/i)?.[1];
   const b = html.match(/"numberOfBedrooms"\s*:\s*"?(\d+)/i)?.[1];
   return annoncer({
-    guests: g ? Number(g) : null,
+    capacity: g ? Number(g) : null,
     bedrooms: b ? Number(b) : null,
   });
 }
@@ -580,7 +580,19 @@ export function listingDeFiche(
   // La capacité se relit sur le titre et sur la seule ligne de capacité de la
   // tuile — jamais sur tout le texte de la tuile, où traînent des nombres qui
   // ne parlent pas de personnes.
-  const occ = annoncer(fiche.occupancy, tile.title, tile.capacite);
+  // Capacité et chambres viennent du JSON-LD de la fiche ITEA : un champ
+  // structuré. À défaut, la ligne de capacité de la tuile, un élément dédié
+  // (`.g2f-accommodationTile-text-capacity`, « 4 personnes ») ; le titre et
+  // une fourchette de cette ligne se lisent comme du texte.
+  const capaciteTuile = /^(\d{1,2})\s*personnes?\b/i.exec(tile.capacite.trim())?.[1];
+  const occ = annoncer(
+    {
+      ...fiche.occupancy,
+      capacity: fiche.occupancy.capacity ?? (capaciteTuile ? Number(capaciteTuile) : null),
+    },
+    tile.title,
+    tile.capacite,
+  );
   const dates = `${input.checkIn}→${input.checkOut}`;
   const proven =
     fiche.total > 0
@@ -596,9 +608,13 @@ export function listingDeFiche(
     // publiée, on garde celle du pays où Gîtes de France vend, sans prétendre
     // l'avoir lue.
     currency: fiche.currency ?? "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     propertyType: tile.typeLabel || null,
     priceLabel: fiche.priceLabel,
     platformId: fiche.platformId,

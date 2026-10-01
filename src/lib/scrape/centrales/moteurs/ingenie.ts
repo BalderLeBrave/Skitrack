@@ -74,7 +74,7 @@
  * 8 personnes » est une annonce. « 2 appartements de 6 personnes face à face »
  * n'en est pas une : six ou douze, choisir c'est inventer, et le filtre
  * écarterait un logement que la centrale vient de proposer. Dans ce cas
- * `guests` reste vide, et l'écran dit « capacité non annoncée ».
+ * `capacity` reste vide, et l'écran dit « Non renseigné ».
  */
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */

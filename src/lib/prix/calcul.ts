@@ -21,6 +21,13 @@ import { availabilityOf } from "../stay/availability.ts";
 import { addDaysIso, formatDayIso } from "../stay/calendar.ts";
 import { enrichirListing } from "../stay/enrichir.ts";
 import { estFicheGitesIntrouvable } from "../stay/ficheGites.ts";
+import {
+  qualifierLogement,
+  sourceCapacite,
+  sourceChambres,
+  type SourceCapacite,
+  type SourceValeur,
+} from "../stay/logement.ts";
 import { ficheDementieParLeTitre } from "../stay/occupancy.ts";
 import { motifHorsSujet } from "./horsSujet.ts";
 import {
@@ -365,15 +372,17 @@ export function versListing(a: unknown, stationId: string): Listing | null {
   let proven = "";
   if (typeof o.proven === "string") proven = o.proven;
   else if (source === "Gîtes de France" && total > 0) proven = DEVIS_GITES_RETENU;
+  // Avant le 1er octobre 2026, la capacité s'enregistrait `guests`.
+  const { guests: ancienneCapacite, ...reste } = o;
   return {
-    ...(o as Partial<Listing>),
+    ...(reste as Partial<Listing>),
     id,
     stationId: typeof o.stationId === "string" ? o.stationId : stationId,
     title,
     source,
     total,
     currency,
-    guests: nombreOuNull(o.guests),
+    capacity: nombreOuNull(o.capacity ?? ancienneCapacite),
     bedrooms: nombreOuNull(o.bedrooms),
     available: true,
     photo: texteOuNull(o.photo),
@@ -555,9 +564,12 @@ export function annoncesDuReleve(input: EntreeReleve): AnnonceRetenue[] {
 /* ---------- Complétion des relevés ---------- */
 
 /** Ce qui manque encore à une annonce pour être jugée : sa position, sa
- *  capacité, ou ses chambres (à défaut ses pièces, `normalizedBedrooms`). */
+ *  capacité, ou ses chambres (à défaut ses pièces, `normalizedBedrooms`).
+ *  Une valeur lue dans le texte ou tirée du type suffit à juger : la
+ *  complétion de l'écran Prix ne part pas pour elle. C'est la seconde passe de Logements qui va chercher
+ *  la page de détail quand elle la publie (`stay/completerFiche.server.ts`). */
 export function manqueFiche(l: Listing): boolean {
-  return !gpsPrecis(l) || l.guests == null || normalizedBedrooms(l) == null;
+  return !gpsPrecis(l) || l.capacity == null || normalizedBedrooms(l) == null;
 }
 
 /**
@@ -591,8 +603,12 @@ export function aCompleter(listings: readonly Listing[], ctx: ContexteReleve): L
  *  quoi trouver sa fiche et dire ce qui lui manque, rien de plus. */
 export type CandidateFiche = Pick<
   Listing,
-  "id" | "source" | "title" | "url" | "lat" | "lon" | "guests" | "bedrooms" | "total" | "currency" | "proven"
+  "id" | "source" | "title" | "url" | "lat" | "lon" | "capacity" | "bedrooms" | "total" | "currency" | "proven"
 > & {
+  /** D'où viennent capacité et chambres : une fiche ne remplace qu'une
+   *  valeur de moins bonne source, jamais un champ structuré. */
+  capacitySource?: SourceCapacite | null;
+  bedroomsSource?: SourceValeur | null;
   /** `cleListing` : la clé de la mémoire des fiches. */
   cle: string | null;
   platformId: string | null;
@@ -611,7 +627,7 @@ export function versCandidate(l: Listing): CandidateFiche {
     platformId: l.platformId ?? null,
     lat: l.lat,
     lon: l.lon,
-    guests: l.guests,
+    capacity: l.capacity,
     bedrooms: l.bedrooms,
     rooms: l.rooms ?? null,
     beds: l.beds ?? null,
@@ -619,17 +635,23 @@ export function versCandidate(l: Listing): CandidateFiche {
     currency: l.currency,
     proven: l.proven,
     locality: l.locality ?? null,
+    capacitySource: sourceCapacite(l),
+    bedroomsSource: sourceChambres(l),
   };
 }
 
 /** Une annonce complète du relevé, pour la mémoire des fiches. */
 export type FicheConnue = {
   cle: string;
-  guests: number;
+  capacity: number;
   bedrooms: number | null;
   rooms: number | null;
   lat: number;
   lon: number;
+  /** La source de chaque valeur, gardée avec elle par la mémoire : une valeur
+   *  lue dans un titre ne passera jamais devant un champ structuré. */
+  capacitySource?: SourceCapacite | null;
+  bedroomsSource?: SourceValeur | null;
 };
 
 /** Les annonces complètes (position, capacité, chambres ou pièces) d'un
@@ -641,17 +663,22 @@ export function connuesDuReleve(listings: readonly Listing[]): FicheConnue[] {
   for (const brute of listings) {
     if (REPLI.test(brute.proven ?? "")) continue;
     const l = enrichirListing(brute);
-    if (manqueFiche(l) || l.guests == null || l.lat == null || l.lon == null) continue;
+    // Chaque valeur passe avec sa source : une capacité lue dans le sous-titre
+    // d'une tuile se garde, et un champ structuré la remplacera.
+    if (!gpsPrecis(l) || l.capacity == null || l.lat == null || l.lon == null) continue;
+    if (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)) continue;
     const cle = cleListing(l);
     if (!cle || vues.has(cle)) continue;
     vues.add(cle);
     out.push({
       cle,
-      guests: l.guests,
+      capacity: l.capacity,
       bedrooms: l.bedrooms,
       rooms: l.rooms ?? null,
       lat: l.lat,
       lon: l.lon,
+      capacitySource: sourceCapacite(l),
+      bedroomsSource: sourceChambres(l),
     });
   }
   return out;
@@ -672,10 +699,13 @@ export type Correctifs = {
 
 /** Ce qu'un correctif peut changer : les trous comblés, et la trace de la
  *  fiche. Jamais le prix publié : la médiane ne mêlerait plus des totaux
- *  avec et sans taxe de séjour. Rien d'autre ne passe. */
+ *  avec et sans taxe de séjour. Rien d'autre ne passe. Une valeur comblée
+ *  passe avec sa source (`capacitySource`, `bedroomsSource`). */
 const CHAMPS_CORRIGES = [
-  "guests",
+  "capacity",
+  "capacitySource",
   "bedrooms",
+  "bedroomsSource",
   "rooms",
   "lat",
   "lon",
@@ -683,6 +713,9 @@ const CHAMPS_CORRIGES = [
   "title",
   "proven",
 ] as const satisfies readonly (keyof Listing)[];
+
+/** Ce qui, corrigé, fait requalifier le logement (`qualifierLogement`). */
+const LOGEMENT_CORRIGE = ["capacity", "capacitySource", "bedrooms", "bedroomsSource", "rooms", "title"] as const;
 
 /**
  * Les annonces du relevé, correctifs posés. Une annonce retirée (Airbnb :
@@ -703,10 +736,13 @@ export function appliquerCorrectifs(
       out.push(l);
       continue;
     }
-    const next: Listing = { ...l };
+    let next: Listing = { ...l };
     for (const k of CHAMPS_CORRIGES) {
       if (k in corr) (next as Record<string, unknown>)[k] = corr[k];
     }
+    // Des chambres lues sur la fiche changent ce que le type laissait
+    // supposer (studio, chambres tirées des pièces) : on requalifie.
+    if (LOGEMENT_CORRIGE.some((k) => k in corr)) next = qualifierLogement(next);
     const deplace = next.lat !== l.lat || next.lon !== l.lon;
     out.push(deplace && station ? attachAccess(next, station) : next);
   }
@@ -1107,7 +1143,7 @@ export function passeAnnonce(a: AnnonceRetenue, fl: Filtres, b: Bornes): boolean
   if (!passeBudget(a.total, fl.budget, b.budget)) return false;
   if (!dansLaStation(a)) return false;
   if (!dansPlage(distFiltrableM(a), fl.distance, b.distance)) return false;
-  if (!dansPlage(a.guests ?? null, fl.capacite, b.capacite)) return false;
+  if (!dansPlage(a.capacity ?? null, fl.capacite, b.capacite)) return false;
   if (!dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres)) return false;
   return !horsSujetRelu(a);
 }
@@ -1384,7 +1420,7 @@ function parCarte(p: CarteAnnonce, q: CarteAnnonce): number {
 export function comparateurBudget(t: TriB): (p: CarteAnnonce, q: CarteAnnonce) => number {
   if (t.k === "cap") {
     return (p, q) =>
-      parMesure(p.a.guests, q.a.guests, t.dir) || p.a.total - q.a.total || parCarte(p, q);
+      parMesure(p.a.capacity, q.a.capacity, t.dir) || p.a.total - q.a.total || parCarte(p, q);
   }
   if (t.k === "dist") {
     return (p, q) =>

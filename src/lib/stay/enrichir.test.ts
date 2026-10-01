@@ -12,7 +12,7 @@ function fiche(extra: Partial<Listing> = {}): Listing {
     source: "Booking",
     total: 1800,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: null,
     available: true,
     photo: null,
@@ -27,7 +27,7 @@ function fiche(extra: Partial<Listing> = {}): Listing {
 describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", () => {
   it("relit la capacité d'un titre muet dans les champs dédiés", () => {
     const l = enrichirListing(fiche({ title: "Duplex T3 8 personnes, 3 chambres" }));
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.bedrooms, 3);
     assert.equal(l.rooms, 3);
   });
@@ -37,8 +37,8 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
   });
 
   it("accueille 10 et capacité 8 sont des lectures, pas des inventions", () => {
-    assert.equal(enrichirListing(fiche({ title: "Chalet pouvant accueillir 10" })).guests, 10);
-    assert.equal(enrichirListing(fiche({ title: "Capacité : 8" })).guests, 8);
+    assert.equal(enrichirListing(fiche({ title: "Chalet pouvant accueillir 10" })).capacity, 10);
+    assert.equal(enrichirListing(fiche({ title: "Capacité : 8" })).capacity, 8);
   });
 
   it("la première photo de la galerie devient la vignette", () => {
@@ -47,8 +47,8 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
   });
 
   it("ne touche pas à un champ déjà publié", () => {
-    const l = enrichirListing(fiche({ guests: 6, title: "8 personnes" }));
-    assert.equal(l.guests, 6);
+    const l = enrichirListing(fiche({ capacity: 6, title: "8 personnes" }));
+    assert.equal(l.capacity, 6);
   });
 
   it("lit l'identifiant Airbnb dans une photo Hosting-", () => {
@@ -105,7 +105,7 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
       source: "Airbnb",
       title: "Les Deux-Alpes, appartement 6-8 pers, cosy, calme",
       total: 2231,
-      guests: null,
+      capacity: null,
       bedrooms: 3,
       photo:
         "https://a0.muscache.com/im/pictures/miso/Hosting-27623894/original/f09c2e09-9c61-4a8a-a3a2-d7481a14b78e.jpeg",
@@ -117,7 +117,7 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
     assert.ok(completudeOf(avant).trous.includes("url"));
     assert.ok(completudeOf(avant).trous.includes("capacite"));
     const cosy = enrichirListing(avant);
-    assert.equal(cosy.guests, 8);
+    assert.equal(cosy.capacity, 8);
     assert.equal(cosy.url, "https://www.airbnb.fr/rooms/27623894");
     assert.equal(completudeOf(cosy).ok, true);
     const jardin = enrichirListing(
@@ -129,7 +129,7 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
       }),
     );
     assert.equal(jardin.url, null);
-    assert.equal(jardin.guests, null);
+    assert.equal(jardin.capacity, null);
     assert.ok(completudeOf(jardin).trous.includes("url"));
     assert.ok(completudeOf(jardin).trous.includes("capacite"));
   });
@@ -145,7 +145,7 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
       }),
     );
     assert.equal(l.title, "chalet neve chalet 8 personnes les 2 alpes");
-    assert.equal(l.guests, 8);
+    assert.equal(l.capacity, 8);
     assert.equal(l.priceIndicative, null);
   });
 

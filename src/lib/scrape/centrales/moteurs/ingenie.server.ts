@@ -112,7 +112,7 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
   // sous le titre ou dans les critères —, le titre et le chemin ensuite.
   // « Chalet - Chalet Santa Claus », « Appartement 3 pièces » : les pièces que
   // le titre annonce sont des pièces, et restent des pièces.
-  const occ = annoncer({ guests: f.capacite, bedrooms: f.chambres, rooms: f.pieces }, f.titre, f.chemin);
+  const occ = annoncer({ capacity: f.capacite, bedrooms: f.chambres, rooms: f.pieces }, f.titre, f.chemin);
   return {
     id: `ing-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -120,9 +120,13 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     available: true,
     photo: f.photo,
     priceLabel: f.libelle,

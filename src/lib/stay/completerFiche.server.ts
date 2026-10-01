@@ -19,6 +19,7 @@ import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
 import { PAUSE_MAX_MS, estHoteAirbnb, estRefus, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureFiche, type LectureFiche } from "./lectureFiche.ts";
+import { poserValeur, qualifierLogement, valeurDuTexte } from "./logement.ts";
 import { PAR_HOTE, parHote, RythmeHotes, semaphore } from "./limiteHotes.ts";
 import { horsFraisSejour } from "./tarif.ts";
 import { poserReleve } from "./poserReleve.ts";
@@ -63,20 +64,36 @@ const UA =
 type CacheEntry = { at: number; lect: LectureFiche; hit: boolean; blocked?: boolean };
 const cache = new Map<string, CacheEntry>();
 
+/**
+ * L'annonce a un trou que sa fiche peut combler : une valeur absente, ou que
+ * seul le texte ou le type a donnée (`text_regex`, `derived_from_type`). Un
+ * champ structuré de la page de détail passe devant le texte
+ * (`logement.ts`) ; `raisonDeLaisser` ne l'ouvre pour une valeur du texte que
+ * chez un hôte dont la fiche la publie, et la politique de lecture reste
+ * celle-ci : deux fiches au plus en vol par hôte, une seconde entre deux
+ * départs (`limiteHotes.ts`), un hôte laissé après cinq fiches qui ne
+ * comblent rien.
+ */
 function trouee(l: Listing): boolean {
-  if (l.guests == null) return true;
+  if (l.capacity == null) return true;
   if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) return true;
+  if (valeurDuTexte(l, "capacity") || valeurDuTexte(l, "bedrooms")) return true;
   if (titreEstFichier(l.title)) return true;
   if (l.source === "Gîtes de France") return false;
   if (!plausible(l.lat, l.lon)) return true;
   return false;
 }
 
+/** Les vrais trous d'abord, toujours : une valeur absente pèse dix fois une
+ *  valeur lue dans le texte, si bien qu'aucune annonce qui n'a que des
+ *  valeurs du texte ne passe devant une annonce muette. */
 function trousN(l: Listing): number {
   let n = 0;
-  if (l.guests == null) n += 1;
-  if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) n += 1;
-  if (!plausible(l.lat, l.lon)) n += 1;
+  if (l.capacity == null) n += 10;
+  else if (valeurDuTexte(l, "capacity")) n += 1;
+  if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) n += 10;
+  else if (valeurDuTexte(l, "bedrooms")) n += 1;
+  if (!plausible(l.lat, l.lon)) n += 10;
   return n;
 }
 
@@ -137,7 +154,7 @@ function lectureEnCache(url: string): LectureFiche | null {
 
 function utile(lect: LectureFiche): boolean {
   return (
-    lect.guests != null ||
+    lect.capacity != null ||
     lect.bedrooms != null ||
     lect.rooms != null ||
     plausible(lect.lat, lect.lon) ||
@@ -159,16 +176,14 @@ export function poserLecture(
   opts: { taxe?: boolean } = {},
 ): boolean {
   let changed = false;
-  if (row.guests == null && lect.guests != null) {
-    row.guests = lect.guests;
-    changed = true;
-  }
-  if (row.bedrooms == null && lect.bedrooms != null) {
-    row.bedrooms = lect.bedrooms;
-    changed = true;
-  }
-  if ((row.rooms == null || row.rooms <= 0) && lect.rooms != null) {
-    row.rooms = lect.rooms;
+  // Un champ structuré de la page de détail passe devant le texte, jamais
+  // devant celui de la plateforme ; les chambres dérivées suivent ensuite.
+  let logement = false;
+  if (poserValeur(row, "capacity", lect.capacity, lect.capacitySource ?? "structured")) logement = true;
+  if (poserValeur(row, "bedrooms", lect.bedrooms, lect.bedroomsSource ?? "structured")) logement = true;
+  if (poserValeur(row, "rooms", lect.rooms, "structured")) logement = true;
+  if (logement) {
+    Object.assign(row, qualifierLogement(row));
     changed = true;
   }
   if (!plausible(row.lat, row.lon) && plausible(lect.lat, lect.lon)) {
@@ -410,8 +425,10 @@ async function fetchHtml(
 }
 
 const VIDE: LectureFiche = {
-  guests: null,
+  capacity: null,
+  capacitySource: null,
   bedrooms: null,
+  bedroomsSource: null,
   rooms: null,
   lat: null,
   lon: null,
@@ -708,7 +725,7 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
 
 function courte(lect: LectureFiche | null): LectureCourte | null {
   if (!lect) return null;
-  return { guests: lect.guests, bedrooms: lect.bedrooms, rooms: lect.rooms, lat: lect.lat, lon: lect.lon };
+  return { capacity: lect.capacity, bedrooms: lect.bedrooms, rooms: lect.rooms, lat: lect.lat, lon: lect.lon };
 }
 
 /**

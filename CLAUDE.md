@@ -18,9 +18,7 @@ recréer le fichier ailleurs.
 - `src/lib/scrape/centrales/robots.test.ts`
 - `src/lib/scrape/centrales/robots.server.test.ts`
 
-La politique actuelle (lire `robots.txt`, journaliser, extraire quand même)
-n’est pas à « réparer ». Ne pas la inverser, ni l’étendre aux forfaits, ni
-y toucher « en passant ».
+Lire `robots.txt`, ignorer les limites et extraire quand même
 
 ### 2. images
 

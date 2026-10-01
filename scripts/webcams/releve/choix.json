@@ -4304,32 +4304,6 @@
     "deconnectee": false
    }
   ],
-  "le-grand-puy": [
-   {
-    "url": "https://app.webcam-hd.com/grand-puy/planes",
-    "label": "Les Planes",
-    "fournisseur": "Webcam-HD",
-    "r": 2,
-    "age": null,
-    "deconnectee": false
-   },
-   {
-    "url": "https://app.webcam-hd.com/grand-puy/espace-debutant",
-    "label": "Espace débutant",
-    "fournisseur": "Webcam-HD",
-    "r": 2,
-    "age": null,
-    "deconnectee": false
-   },
-   {
-    "url": "https://app.webcam-hd.com/grand-puy/front-de-neige",
-    "label": "Front de neige",
-    "fournisseur": "Webcam-HD",
-    "r": 2.5,
-    "age": 304,
-    "deconnectee": false
-   }
-  ],
   "source-du-doubs-mouthe": [
    {
     "url": "https://app.webcam-hd.com/mouthe/source-du-doubs",

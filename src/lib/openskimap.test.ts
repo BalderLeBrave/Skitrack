@@ -4,11 +4,13 @@ import { osmFor, osmSkiinfo, osmSkiinfoAll, osmSkiinfoSummary } from "./openskim
 import { STATIONS } from "./stations.ts";
 
 describe("OpenSkiMap × Skiinfo", () => {
-  it("229/231 domaines FR matchés ; 122 OSM = segments ; 2 absents", () => {
+  it("228/230 domaines FR matchés ; 122 OSM = segments ; 2 absents", () => {
     const s = osmSkiinfoSummary(osmSkiinfoAll());
-    assert.equal(s.n, 231);
+    // 231 et 46 « km court » jusqu'au 30 septembre 2026 : Le Grand Puy, fermé,
+    // est sorti.
+    assert.equal(s.n, 230);
     assert.equal(s.segments, 122);
-    assert.equal(s.km_court, 46);
+    assert.equal(s.km_court, 45);
     assert.equal(s.ok, 25);
     assert.equal(s.ecart_n, 11);
     assert.equal(s.grain_domaine, 2);
@@ -20,7 +22,7 @@ describe("OpenSkiMap × Skiinfo", () => {
     assert.equal(s.osm_absent, 2);
     assert.equal(
       s.segments + s.km_court + s.ok + s.ecart_n + s.grain_domaine + s.osm_vide + s.osm_absent,
-      231,
+      230,
     );
   });
 

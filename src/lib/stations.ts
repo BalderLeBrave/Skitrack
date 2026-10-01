@@ -1,13 +1,15 @@
-/** Référentiel des stations FR : classeur France Montagnes × OpenSkiMap (280
- *  lignes, 4 doublons écartés), plus les stations du dépôt absentes du
- *  classeur (35) — 315 entrées.
+/** Référentiel des stations FR : classeur France Montagnes × OpenSkiMap (279
+ *  lignes, 4 doublons et 1 station fermée écartés), plus les stations du dépôt
+ *  absentes du classeur (34) : 313 entrées.
  *
  *  Clé primaire : l'identifiant du dépôt partout où la station y existe. Les
- *  231 identifiants du dépôt survivent donc tous, inchangés — voir
- *  `stationMigration.ts` et son test. Les 84 stations que seul le classeur
- *  décrit portent un identifiant dérivé de leur nom. Les cinq identifiants
- *  retirés le 26 septembre 2026 (`IDS_RETIRES`) se résolvent encore, vers la
- *  station qui les remplace.
+ *  identifiants du dépôt survivent donc tous, inchangés (voir
+ *  `stationMigration.ts` et son test), sauf ceux des stations fermées pour de
+ *  bon (`STATIONS_FERMEES`, Le Grand Puy le 30 septembre 2026), qui ne
+ *  résolvent plus rien. Les 84 stations que seul le classeur décrivait portent
+ *  un identifiant dérivé de leur nom. Les cinq identifiants retirés le
+ *  26 septembre 2026 (`IDS_RETIRES`) se résolvent encore, vers la station qui
+ *  les remplace.
  *
  *  Ce que le dépôt garde la main sur : nom curé, altitudes vérifiées, IGN RGE
  *  ALTI au pin, photo, mix Skiinfo. Ce que le classeur apporte : type, statut,
@@ -20,6 +22,7 @@
 import {
   CLASSEUR,
   GPS_FIXES,
+  IDS_FERMES,
   IDS_RETIRES,
   nomAffiche,
   posRelevee,
@@ -138,7 +141,8 @@ function pctOf(slopes: StationSlopes): ColorShare | null {
   return g + b + r + k > 0 ? { green: g, blue: b, red: r, black: k } : null;
 }
 
-const DEPOT: DepotRow[] = rows as DepotRow[];
+/** Les lignes du dépôt, sans les stations fermées pour de bon. */
+const DEPOT: DepotRow[] = (rows as DepotRow[]).filter((r) => !IDS_FERMES.has(r.id));
 const DEPOT_BY_ID = new Map(DEPOT.map((r) => [r.id, r]));
 
 /**
@@ -291,7 +295,8 @@ const DEPOT_ONLY: Station[] = DEPOT.filter((r) => !IN_CLASSEUR.has(r.id)).map((r
 
 export const STATIONS: Station[] = [...FROM_CLASSEUR, ...DEPOT_ONLY];
 
-/** Les 231 du dépôt : seules à porter `demM` et une fiche Skiinfo. */
+/** Les 230 du dépôt (231, moins Le Grand Puy, fermé) : seules à porter `demM`
+ *  et une fiche Skiinfo. */
 export const DEPOT_STATIONS: Station[] = STATIONS.filter((s) => s.origin === "depot");
 
 const BY_ID = new Map(STATIONS.map((s) => [s.id, s]));

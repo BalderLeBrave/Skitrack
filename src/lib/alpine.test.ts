@@ -10,20 +10,22 @@ import {
 import { STATIONS } from "./stations.ts";
 
 describe("carte alpine + IGN", () => {
-  it("227 stations alpines FR, IGN RGE ALTI au pin pour celles du dépôt", () => {
+  it("225 stations alpines FR, IGN RGE ALTI au pin pour celles du dépôt", () => {
     const rows = alpineStations();
     // 231 jusqu'au 26 septembre 2026 : Sainte-Foy Station, Saint-Pancrace les
     // Bottières et Lus-la-Croix-Haute (Alpes du Nord), « Praloup » au Sauze
-    // (Alpes du Sud) doublaient une autre station (`IDS_RETIRES`).
-    assert.equal(rows.length, 227);
+    // (Alpes du Sud) doublaient une autre station (`IDS_RETIRES`). 227 jusqu'au
+    // 30 septembre 2026 : Le Grand Puy (Alpes du Sud), fermé pour de bon, est
+    // sorti sous ses deux identifiants (`seyne-les-alpes`, `le-grand-puy`).
+    assert.equal(rows.length, 225);
     assert.equal(rows.filter((s) => s.massif === "Alpes du Nord").length, 164);
-    assert.equal(rows.filter((s) => s.massif === "Alpes du Sud").length, 63);
+    assert.equal(rows.filter((s) => s.massif === "Alpes du Sud").length, 61);
     assert.ok(STATIONS.filter((s) => !isAlpine(s)).every((s) => !s.massif.startsWith("Alpes")));
     assert.equal(ign.source, "IGN RGE ALTI");
     // Le classeur n’apporte pas de relevé IGN au pin : l’invariant ne vaut
     // que pour les stations qui viennent du dépôt.
     const depot = rows.filter((s) => s.origin === "depot");
-    assert.equal(depot.length, 156);
+    assert.equal(depot.length, 155);
     for (const s of depot) {
       assert.equal(s.demM, ign.m[s.id as keyof typeof ign.m], s.id);
       assert.ok(s.demM != null && s.demM > 400 && s.demM < 4000, s.id);
@@ -31,8 +33,8 @@ describe("carte alpine + IGN", () => {
     assert.ok(rows.filter((s) => s.origin === "classeur").every((s) => s.demM == null));
   });
 
-  it("France entière : 315 pins, massifs hors Alpes présents", () => {
-    assert.equal(mapFilter(STATIONS, "all").length, 315);
+  it("France entière : 313 pins, massifs hors Alpes présents", () => {
+    assert.equal(mapFilter(STATIONS, "all").length, 313);
     assert.equal(mapFilter(STATIONS, "pyrenees").length, 40);
     assert.equal(mapFilter(STATIONS, "jura").length, 13);
     assert.equal(mapFilter(STATIONS, "vosges").length, 19);
@@ -60,7 +62,7 @@ describe("carte alpine + IGN", () => {
 
   it("GeoJSON : Valmeinier ≠ Valloire ; Oz n’est plus au Pic Blanc", () => {
     const fc = alpineFeatureCollection(mapFilter(STATIONS, "all"));
-    assert.equal(fc.features.length, 315);
+    assert.equal(fc.features.length, 313);
     const vt = fc.features.find((f) => f.properties?.id === "valmeinier")!;
     const vo = fc.features.find((f) => f.properties?.id === "valloire")!;
     const oz = fc.features.find((f) => f.properties?.id === "oz-en-oisans")!;

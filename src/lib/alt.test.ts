@@ -7,8 +7,9 @@ import { SKIINFO } from "./skiinfo.ts";
 
 describe("altitudes par source", () => {
   it("chaque station du dépôt : IGN au pin, min/max = fiche Skiinfo, pas le domaine lié", () => {
-    assert.equal(STATIONS.length, 315);
-    assert.equal(DEPOT_STATIONS.length, 231);
+    // Le Grand Puy, fermé, est sorti le 30 septembre 2026 (`STATIONS_FERMEES`).
+    assert.equal(STATIONS.length, 313);
+    assert.equal(DEPOT_STATIONS.length, 230);
     // Les 84 du classeur n’ont ni relevé IGN au pin ni fiche Skiinfo.
     assert.ok(
       STATIONS.filter((s) => s.origin === "classeur").every(

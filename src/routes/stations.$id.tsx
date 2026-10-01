@@ -16,14 +16,14 @@ import { PictoBra } from "@/components/v7/PictoBra";
 import { PistesStation } from "@/components/v7/PistesStation";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
-import { useForfait } from "@/components/v7/useForfait";
+import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
+import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
 import { BRA_LABELS, lieuLisible } from "@/lib/bra/parse";
 import { getForecastPair, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
 import { fuseauStation, meteoEnDateDu } from "@/lib/meteo/enDateDu";
 import {
   datesLbl,
-  eurN,
   fmt,
   groupLbl,
   stationPhoto,
@@ -31,7 +31,9 @@ import {
   useParcours,
   useSejour,
 } from "@/lib/parcours";
-import { coutForfaits } from "@/lib/forfaits/cout";
+import { echecLbl, libellesForfait } from "@/lib/forfaits/prixSejour";
+import type { Resolution } from "@/lib/forfaits/resolution";
+import { montantCents } from "@/lib/devises";
 import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
@@ -55,8 +57,8 @@ export const Route = createFileRoute("/stations/$id")({ component: Fiche });
  *
  * Jusqu'au 26 septembre 2026, la journée et le 6 jours enfant de 142 domaines
  * s'affichaient sous « Relevé le 11 août 2026 » alors que le catalogue les
- * calculait à partir du 6 jours adulte — aux Portes du Soleil, 55 € et 234 €
- * pour 292 € relevés. Ils restent affichés, pour l'ordre de grandeur, mais
+ * calculait à partir du 6 jours adulte (aux Portes du Soleil, 55 € et 234 €
+ * pour 292 € relevés). Ils restent affichés, pour l'ordre de grandeur, mais
  * disent ce qu'ils sont, et que le coût du séjour ne les compte pas.
  *
  * La phrase sur le coût ne vaut que pour un groupe qui compte des enfants
@@ -66,13 +68,24 @@ export const Route = createFileRoute("/stations/$id")({ component: Fiche });
 function noteEstimation(journee: boolean, enfant: boolean, enfantsAuTarifAdulte: boolean): string | null {
   if (!journee && !enfant) return null;
   const quoi =
-    journee && enfant
-      ? "Journée et 6 jours enfant estimés"
-      : journee
-        ? "Journée estimée"
-        : "6 jours enfant estimé";
+    journee && enfant ? "Journée et forfait enfant estimés" : journee ? "Journée estimée" : "Forfait enfant estimé";
   const cout = enfant && enfantsAuTarifAdulte ? " Le coût du séjour compte donc les enfants au tarif adulte." : "";
   return `${quoi} d’après le 6 jours adulte, faute de relevé.${cout}`;
+}
+
+/** Le prix d'une case, ou ce qui le remplace : « non communiqué », et
+ *  l'estimation du catalogue quand elle existe (« ≈ 55 € », « estimé »). */
+function CaseForfait({ r }: { r: Resolution | null }) {
+  if (!r) return <b className="absent">non relevé</b>;
+  if (r.statut === "resolu") return <b>{libellesForfait(r).prix}</b>;
+  if (r.estimation)
+    return (
+      <>
+        <b>≈ {montantCents(r.estimation.prix, r.estimation.devise)}</b>
+        <span>estimé</span>
+      </>
+    );
+  return <b className="absent">{echecLbl(r)}</b>;
 }
 
 /* ---------- Prévision ---------- */
@@ -494,8 +507,8 @@ function FicheBody({ s }: { s: Station }) {
   const cmp = useParcours((x) => x.cmp);
   const retain = useParcours((x) => x.retain);
   const toggleCmp = useParcours((x) => x.toggleCmp);
-  const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
-  const forfait = useForfait(s);
+  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
+  const prix = usePrixForfait(s);
   const { wx, loMesure, hiMesure } = useForecast(s);
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
@@ -512,13 +525,16 @@ function FicheBody({ s }: { s: Station }) {
       ? `Photo Skiinfo de la station ${pret.fromName}, même domaine`
       : "Photo Skiinfo"
     : stationPhotoAbsence(s);
-  const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
-  const passGroup = pass.total;
+  const adulte = prix.forfaits?.adulte.statut === "resolu" ? prix.forfaits.adulte : null;
+  const enfant = prix.forfaits?.enfant ?? null;
+  const lib = adulte ? libellesForfait(adulte) : null;
+  const pass = prix.budget;
+  const joursLbl = prix.jours != null ? `${prix.jours} jour${prix.jours > 1 ? "s" : ""}` : "Séjour";
   // Ce que le catalogue estime sans l'avoir relevé : affiché « estimé », hors
-  // du coût, qui ne lit que `j1` et `enf6`.
-  const estimeJ1 = forfait && forfait.j1 == null ? (forfait.estime?.j1 ?? null) : null;
-  const estimeEnf6 = forfait && forfait.enf6 == null ? (forfait.estime?.enf6 ?? null) : null;
-  const note = forfait ? noteEstimation(estimeJ1 != null, estimeEnf6 != null, pass.enfantsAuTarifAdulte) : null;
+  // du coût.
+  const estimeJ1 = prix.journee?.statut !== "resolu" && !!prix.journee?.estimation;
+  const estimeEnf = enfant?.statut !== "resolu" && !!enfant?.estimation;
+  const note = adulte ? noteEstimation(estimeJ1, estimeEnf, pass?.enfantsAuTarifAdulte ?? false) : null;
 
   return (
     <Coquille>
@@ -585,56 +601,65 @@ function FicheBody({ s }: { s: Station }) {
             {/* ── Forfaits ─────────────────────────────────────────── */}
             <section className="carte7-sect">
               <div className="carte7-sect__tete">
-                <h2>Forfaits{forfait ? ` · ${forfait.zone}` : ""}</h2>
-                {/* La date ne couvre que ce qui est relevé : quand la journée
-                    ou l'enfant sont estimés, elle dit de quel prix elle parle. */}
-                <span>
-                  {forfait?.releveLbl
-                    ? `${estimeJ1 != null || estimeEnf6 != null ? "6 jours adulte relevé" : "Relevé"} le ${forfait.releveLbl}`
-                    : "Aucun relevé"}
-                </span>
+                <h2>Forfaits{adulte ? ` · ${adulte.perimetre.nom}` : ""}</h2>
+                {/* D'où vient le prix, en clair : la page officielle et sa
+                    date, le catalogue et la sienne, ou l'agrégateur. */}
+                <span>{lib ? lib.source : prix.pret ? "Aucun relevé" : "Lecture des tarifs…"}</span>
               </div>
-              {forfait ? (
-                <div className="forfaits7">
-                  <div>
-                    <span>Journée adulte</span>
-                    <b>{eurN(forfait.j1) ?? (estimeJ1 != null ? `≈ ${eurN(estimeJ1)}` : "non relevé")}</b>
-                    {estimeJ1 != null ? <span>estimé</span> : null}
+              {adulte && lib ? (
+                <>
+                  <div className="forfaits7">
+                    <div>
+                      <span>Journée adulte</span>
+                      <CaseForfait r={prix.journee} />
+                    </div>
+                    <div>
+                      <span>{joursLbl} adulte</span>
+                      <b className="forfaits7__grand">{lib.prix}</b>
+                      {/* La durée du forfait retenu, quand ce n'est pas celle
+                          du séjour : six journées additionnées, ou le 6 jours
+                          pour cinq jours de ski. */}
+                      {lib.duree !== joursLbl ? <span className="forfaits7__herite">{lib.duree}</span> : null}
+                      {lib.faible ? (
+                        <FiabiliteFaible raisons={lib.raisons} />
+                      ) : adulte.grille.source.origine === "officiel" ? (
+                        <span className="forfaits7__releve">
+                          <Icon name="coche" taille={12} />
+                          Page officielle
+                        </span>
+                      ) : null}
+                    </div>
+                    <div>
+                      <span>{joursLbl} enfant</span>
+                      <CaseForfait r={enfant} />
+                      {enfant?.statut === "resolu" && enfant.drapeaux.categorieRepli ? (
+                        <span className="forfaits7__herite">tarif « {enfant.categorie.libelle} »</span>
+                      ) : null}
+                    </div>
+                    <div>
+                      <span>Saison adulte</span>
+                      {prix.saison ? (
+                        <b>{montantCents(prix.saison.prix, prix.saison.devise)}</b>
+                      ) : (
+                        <b className="absent">non relevé</b>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <span>6 jours adulte</span>
-                    <b className="forfaits7__grand">{eurN(forfait.j6)}</b>
-                    {forfait.releve ? (
-                      <span className="forfaits7__releve">
-                        <Icon name="coche" taille={12} />
-                        Prix relevé
-                      </span>
-                    ) : null}
-                    {/* Le tarif pris au domaine qui relie la station le dit :
-                        il est juste, mais ce n'est pas la station qui le
-                        publie. */}
-                    {forfait.heriteLbl ? (
-                      <span className="forfaits7__herite">{forfait.heriteLbl}</span>
-                    ) : null}
-                  </div>
-                  <div>
-                    <span>6 jours enfant</span>
-                    <b>{eurN(forfait.enf6) ?? (estimeEnf6 != null ? `≈ ${eurN(estimeEnf6)}` : "non relevé")}</b>
-                    {estimeEnf6 != null ? <span>estimé</span> : null}
-                  </div>
-                  <div>
-                    <span>Saison adulte</span>
-                    <b>{eurN(forfait.saison) ?? "non relevé"}</b>
-                  </div>
-                </div>
+                  {/* La période du prix, ses bornes de validité et le forfait
+                      (station seule ou domaine relié). */}
+                  <p className="forfaits7__periode">
+                    <b>{lib.periode}</b>, {lib.bornes} · {lib.perimetre}
+                  </p>
+                </>
               ) : null}
               {note ? <p className="carte7-sect__texte">{note}</p> : null}
-              {forfait ? null : (
+              {prix.pret && !adulte ? (
                 <p className="carte7-sect__texte">
-                  Aucun tarif relevé pour ce domaine. Le coût du séjour n’inclura pas de forfait tant
-                  qu’un prix n’a pas été relevé ou saisi.
+                  {prix.forfaits?.adulte.statut === "grille-ancienne"
+                    ? "Forfait non publié : le dernier tarif connu a plus de trois saisons. Le coût du séjour n’inclura pas de forfait tant qu’un prix récent n’a pas été relevé ou saisi."
+                    : "Aucun tarif relevé pour ce domaine. Le coût du séjour n’inclura pas de forfait tant qu’un prix n’a pas été relevé ou saisi."}
                 </p>
-              )}
+              ) : null}
             </section>
 
             {/* ── Aujourd'hui ──────────────────────────────────────── */}
@@ -699,19 +724,18 @@ function FicheBody({ s }: { s: Station }) {
                 <dd>{groupLbl(trav, rooms, enfants)}</dd>
               </div>
               <div>
-                <dt>Forfaits 6 j</dt>
-                <dd className={passGroup == null ? "absent" : undefined}>
-                  {eurN(passGroup) ?? "non relevés"}
-                  {/* « au tarif relevé » ne se dit que si tout l'est : un
-                      enfant compté au tarif adulte, faute de tarif enfant
-                      relevé, porte déjà sa mention dans le détail. */}
-                  <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
-                    {pass.total == null
-                      ? "aucun tarif pour ce domaine"
-                      : pass.enfantsAuTarifAdulte
-                        ? pass.detail
-                        : `${pass.detail}, au tarif relevé`}
-                  </span>
+                <dt>{pass?.libelle ?? "Forfaits"}</dt>
+                <dd className={pass?.total == null ? "absent" : undefined}>
+                  {pass?.total != null ? montantCents(pass.total, pass.devise) : (pass?.manque ?? "non relevés")}
+                  {/* Le détail et la période du forfait ; un enfant compté au
+                      tarif adulte, faute de tarif enfant publié, porte sa
+                      mention dans le détail. */}
+                  {pass ? (
+                    <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
+                      {pass.total == null ? "aucun tarif pour ce domaine" : pass.detail}
+                    </span>
+                  ) : null}
+                  {pass?.periode ? <span>{pass.periode}</span> : null}
                 </dd>
               </div>
             </dl>

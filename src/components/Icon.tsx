@@ -42,7 +42,8 @@ export type IconName =
   | "epingle"
   | "lune"
   | "externe"
-  | "agrandir";
+  | "agrandir"
+  | "info";
 
 /** Tracés du registre. Grille de 24, trait ouvert, jamais de remplissage. */
 const TRACES: Record<IconName, ReactNode> = {
@@ -98,6 +99,14 @@ const TRACES: Record<IconName, ReactNode> = {
   externe: <path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />,
   // Les quatre coins d'un cadre qui s'ouvre : la webcam en grand.
   agrandir: <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />,
+  // Un cercle et un « i » : l'indicateur discret d'un prix peu fiable, plus
+  // doux que l'alerte.
+  info: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 11v5M12 8h.01" />
+    </>
+  ),
 };
 
 export function Icon({

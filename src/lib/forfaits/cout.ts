@@ -25,7 +25,13 @@
  * adulte », plutôt que « 6 × 292 € adulte » pour un groupe qui en compte deux.
  */
 
-import { formatTarif } from "./age.ts";
+import { montantCents } from "../devises.ts";
+
+/** Un prix du détail, au centime quand il en a : « 118,20 € » (six journées
+ *  à 19,70 €) ne s'arrondit pas en « 118 € » sous un total qui, lui, les
+ *  compte. */
+const formatTarif = (n: number, devise: string) => montantCents(n, devise) ?? "";
+const auCentime = (n: number) => Math.round(n * 100) / 100;
 
 export type CoutForfaits = {
   /** Le coût du groupe, ou `null` si aucun tarif n'est relevé. */
@@ -67,16 +73,16 @@ export function coutForfaits(
   const enf = Math.max(0, Math.round(enfants));
   if (!enf) {
     return {
-      total: j6 * ad,
+      total: auCentime(j6 * ad),
       devise,
       detail: `${ad} × ${formatTarif(j6, devise)} adulte`,
       enfantsAuTarifAdulte: false,
     };
   }
   if (enf6 == null) {
-    const enfants = `${enf} × ${formatTarif(j6, devise)} enfant au tarif adulte, tarif enfant non relevé`;
+    const enfants = `${enf} × ${formatTarif(j6, devise)} enfant au tarif adulte, tarif enfant non communiqué`;
     return {
-      total: j6 * (ad + enf),
+      total: auCentime(j6 * (ad + enf)),
       devise,
       detail: ad ? `${ad} × ${formatTarif(j6, devise)} adulte + ${enfants}` : enfants,
       enfantsAuTarifAdulte: true,
@@ -84,7 +90,7 @@ export function coutForfaits(
   }
   const pieces = [`${ad} × ${formatTarif(j6, devise)} adulte`, `${enf} × ${formatTarif(enf6, devise)} enfant`];
   return {
-    total: j6 * ad + enf6 * enf,
+    total: auCentime(j6 * ad + enf6 * enf),
     devise,
     detail: ad ? pieces.join(" + ") : pieces[1],
     enfantsAuTarifAdulte: false,

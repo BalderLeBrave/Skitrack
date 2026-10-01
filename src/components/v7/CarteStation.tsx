@@ -22,12 +22,17 @@
 import type { MouseEvent } from "react";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
+import { FiabiliteFaible } from "./FiabiliteFaible";
 import { PartPistes } from "./PartPistes";
+import { usePrixStations } from "./usePrixForfait";
+import { montantCents } from "@/lib/devises";
+import { echecLbl, libellesForfait, mentionForfait } from "@/lib/forfaits/prixSejour";
+import { forfaitsStation } from "@/lib/forfaits/prixStations";
 import { lignePistes } from "@/lib/pistesDetail";
 import { SKIINFO } from "@/lib/skiinfo";
 import { stationPhoto, stationPhotoAbsence, useParcours } from "@/lib/parcours";
 import type { Station } from "@/lib/stations";
-import { altLbl, kmLbl, passHeriteLbl, passLbl, sub, villageLbl } from "@/lib/v7";
+import { altLbl, kmLbl, sub, villageLbl } from "@/lib/v7";
 
 export function CarteStation({
   s,
@@ -50,7 +55,10 @@ export function CarteStation({
   const retain = useParcours((p) => p.retain);
   const inCmp = cmp.includes(s.id);
   const retenue = useParcours((p) => p.stationId) === s.id;
-  const pass = passLbl(s);
+  // Le forfait adulte du séjour : ses dates fixent la durée et la période.
+  const { pret, jours } = usePrixStations();
+  const forfait = forfaitsStation(s.id)?.adulte ?? null;
+  const pass = forfait?.statut === "resolu" ? forfait : null;
 
   const ouvrir = (e?: MouseEvent) => {
     e?.preventDefault();
@@ -121,10 +129,15 @@ export function CarteStation({
             <b className={villageLbl(s) ? undefined : "absent"}>{villageLbl(s) ?? "non relevé"}</b>
           </div>
           <div>
-            <span>Forfait 6 j</span>
-            <b className={pass ? undefined : "absent"} title={passHeriteLbl(s) ?? undefined}>
-              {pass ?? "non relevé"}
-            </b>
+            <span>Forfait {jours ?? 6} j</span>
+            {pass ? (
+              <b title={mentionForfait(pass)}>
+                {montantCents(pass.prix, pass.devise)}{" "}
+                {libellesForfait(pass).faible ? <FiabiliteFaible court raisons={libellesForfait(pass).raisons} /> : null}
+              </b>
+            ) : (
+              <b className="absent">{forfait && forfait.statut !== "resolu" ? echecLbl(forfait) : pret ? "non relevé" : "…"}</b>
+            )}
           </div>
         </div>
         {variante === "liste" ? (

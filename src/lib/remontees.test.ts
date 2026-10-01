@@ -131,8 +131,8 @@ describe("attachAccess : la remontée d'un logement du domaine", () => {
     });
   }
 
-  it("garde sur les 315 stations : une gare à 2 km du repère le fait retenir", () => {
-    assert.equal(STATIONS.length, 315);
+  it("garde sur les 313 stations : une gare à 2 km du repère le fait retenir", () => {
+    assert.equal(STATIONS.length, 313);
     const ecartees: string[] = [];
     for (const s of STATIONS) {
       const l = auRepere(s);

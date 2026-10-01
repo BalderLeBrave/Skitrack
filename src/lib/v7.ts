@@ -10,14 +10,12 @@
  *  mesure : elle se lit « non relevée ». */
 
 import { domaineNomme, sansDomaineAlpin } from "./classeur.ts";
-import { rattachementForfait, stationHasGlacier } from "./forfaits/catalog.ts";
-import type { ForfaitSeed } from "./forfaits/types.ts";
+import { stationHasGlacier } from "./forfaits/catalog.ts";
 import type { Listing } from "./listings.ts";
 import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
 import { SKIINFO } from "./skiinfo.ts";
 import type { Station } from "./stations.ts";
 import { availabilityOf, type Stay } from "./stay/availability.ts";
-import { deviseDuPays, montantN } from "./devises.ts";
 
 /* ---------- Station ---------- */
 
@@ -54,39 +52,6 @@ export function kmLbl(s: Station): string | null {
 
 export function liftsLbl(s: Station): string | null {
   return s.lifts != null ? String(s.lifts) : null;
-}
-
-/** Tarifs semés du catalogue de forfaits, pour le domaine de la station.
- *  C'est ce que la maquette lisait (`forfaits[id] = d.seed`), au rattachement
- *  par le domaine près : une station sans entrée propre prend le tarif du
- *  forfait qui la relie. */
-export function forfaitOf(s: Station): ForfaitSeed | null {
-  return rattachementForfait(s.id, s.domain)?.domaine.seed ?? null;
-}
-
-/**
- * La devise du forfait d'une station, qui est celle du domaine qui le publie.
- *
- * `null` quand aucun domaine ne la rattache : il n'y a alors pas de tarif, donc
- * pas de devise à nommer.
- */
-export function deviseForfaitOf(s: Station): string | null {
-  return deviseDuPays(rattachementForfait(s.id, s.domain)?.domaine.country);
-}
-
-export function passLbl(s: Station): string | null {
-  return montantN(forfaitOf(s)?.j6, deviseForfaitOf(s) ?? "EUR");
-}
-
-/**
- * « prix du forfait Les 3 Vallées » — la mention qui accompagne un tarif pris
- * au domaine plutôt qu'à la station.
- *
- * `null` quand la station publie le sien : il n'y a alors rien à préciser.
- */
-export function passHeriteLbl(s: Station): string | null {
-  const r = rattachementForfait(s.id, s.domain);
-  return r?.herite && r.nomDomaine ? `prix du forfait ${r.nomDomaine}` : null;
 }
 
 export const glacier = (s: Station) => stationHasGlacier(s.id);

@@ -4,11 +4,12 @@ import { ignSkiinfo, ignSkiinfoAll, ignSkiinfoSummary } from "./ignSkiinfo.ts";
 import { STATIONS } from "./stations.ts";
 
 describe("IGN × Skiinfo", () => {
-  it("231 stations : IGN ≈ village pour 217, 11 dans le domaine, 2 sous la base, 1 au sommet", () => {
+  it("230 stations : IGN ≈ village pour 216, 11 dans le domaine, 2 sous la base, 1 au sommet", () => {
     const rows = ignSkiinfoAll();
     const s = ignSkiinfoSummary(rows);
-    assert.equal(s.n, 231);
-    assert.equal(s.village, 217);
+    // 231 et 217 jusqu'au 30 septembre 2026 : Le Grand Puy, fermé, est sorti.
+    assert.equal(s.n, 230);
+    assert.equal(s.village, 216);
     assert.equal(s.domaine, 11);
     assert.equal(s.sous_base, 2);
     assert.equal(s.sommet, 1);

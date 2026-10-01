@@ -12,14 +12,15 @@ import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { useForfait } from "@/components/v7/useForfait";
+import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
+import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { resolveListing } from "@/lib/accommodation";
-import { coutForfaits } from "@/lib/forfaits/cout";
+import { libellesForfait, mentionForfait } from "@/lib/forfaits/prixSejour";
+import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { dire } from "@/lib/i18n";
 import {
   datesLbl,
-  eur,
   eurCents,
   groupLbl,
   nuitsLbl,
@@ -47,10 +48,10 @@ export const Route = createFileRoute("/reservation")({ component: Reservation })
 function Reservation() {
   const go = useGo();
   const P = useParcours();
-  const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
   const s = P.stationId ? stationById(P.stationId) : undefined;
   const l = P.lodgeId ? resolveListing(P.lodgeId) : undefined;
-  const forfait = useForfait(s);
+  const prix = usePrixForfait(s);
 
   // Sans logement, la maquette renvoie où on le choisit, avec le bandeau.
   // L'état est relu dans le magasin : au premier rendu du navigateur, le
@@ -77,13 +78,15 @@ function Reservation() {
 
   const stay = { checkIn, checkOut };
   const firm = firmOf(l, stay);
-  // Le coût des forfaits comptait huit adultes pour un groupe qui pouvait en
-  // compter six et deux enfants, alors que le tarif enfant était relevé.
-  const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
+  // Le forfait du séjour, résolu pour ses dates : adultes et enfants chacun
+  // à leur tarif, sur le même forfait, pour la durée du séjour.
+  const pass = prix.budget;
+  const adulte = prix.forfaits?.adulte.statut === "resolu" ? prix.forfaits.adulte : null;
+  const lib = adulte ? libellesForfait(adulte) : null;
   // Un séjour vendu forfaits compris les porte déjà dans son prix : les
   // ajouter les ferait compter deux fois.
   const forfaitsCompris = forfaitInclus(l);
-  const passGroupN = forfaitsCompris ? 0 : (pass.total ?? 0);
+  const passGroupN = forfaitsCompris ? 0 : (pass?.total ?? 0);
   const totalN = l.total + passGroupN;
   const d = distanceOf(l);
 
@@ -95,9 +98,9 @@ function Reservation() {
       `Forfaits : ${
         forfaitsCompris
           ? "compris dans le prix du logement"
-          : pass.total != null
-            ? `${eur(passGroupN)} (${pass.detail})`
-            : "non relevés"
+          : pass?.total != null && adulte && lib
+            ? `${montantCents(passGroupN, pass.devise)} (${pass.libelle.toLowerCase()} : ${pass.detail} ; ${mentionForfait(adulte)}${lib.faible ? " ; fiabilité faible" : ""})`
+            : (pass?.manque ?? "non relevés")
       }`,
       `Total : ${l.total > 0 ? eurCents(totalN) : "logement non tarifé"}`,
     ].join("\n");
@@ -278,19 +281,21 @@ function Reservation() {
                 <span className="carte7-sect__texte carte7-sect__texte--petit">
                   {groupLbl(trav, rooms, enfants)}
                 </span>
-                <span className={`carte7-sect__chiffres${forfaitsCompris || pass.total != null ? "" : " absent"}`}>
-                  {/* Sans tarif enfant relevé, seul le tarif adulte a une date :
-                      « au tarif relevé » aurait couvert l'enfant compté au
-                      tarif adulte. */}
-                  {forfaitsCompris
-                    ? "Forfaits compris dans le prix du logement"
-                    : pass.total != null
-                    ? `Forfaits 6 jours : ${pass.detail}${
-                        forfait?.releveLbl
-                          ? `${pass.enfantsAuTarifAdulte ? " ; tarif adulte relevé" : ", au tarif relevé"} le ${forfait.releveLbl}`
-                          : ""
-                      }`
-                    : "Forfaits non relevés pour ce domaine"}
+                <span className={`carte7-sect__chiffres${forfaitsCompris || pass?.total != null ? "" : " absent"}`}>
+                  {/* Le prix, sa période, ses bornes, son forfait et sa
+                      source ; l'indicateur discret quand il est peu fiable. */}
+                  {forfaitsCompris ? (
+                    "Forfaits compris dans le prix du logement"
+                  ) : pass?.total != null && adulte && lib ? (
+                    <>
+                      {`${pass.libelle} : ${pass.detail}. ${mentionForfait(adulte)}. ${lib.source}. `}
+                      {lib.faible ? <FiabiliteFaible raisons={lib.raisons} /> : null}
+                    </>
+                  ) : pass?.manque === "non publié" ? (
+                    "Forfait non publié : le dernier tarif connu a plus de trois saisons"
+                  ) : (
+                    "Forfaits non relevés pour ce domaine"
+                  )}
                 </span>
               </section>
             </div>
@@ -320,13 +325,15 @@ function Reservation() {
                   ) : (
                     <>
                       <th>
-                        Forfaits · 6 jours
-                        <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
-                          {pass.detail}
+                        Forfaits{pass?.duree ? ` · ${pass.duree}` : ""}
+                        <span className={pass?.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
+                          {pass?.detail ?? "aucun tarif relevé"}
                         </span>
+                        {pass?.periode ? <span>{pass.periode}</span> : null}
+                        {lib?.faible ? <FiabiliteFaible raisons={lib.raisons} /> : null}
                       </th>
-                      <td className={pass.total != null ? undefined : "absent"}>
-                        {pass.total != null ? eur(passGroupN) : "non relevés"}
+                      <td className={pass?.total != null ? undefined : "absent"}>
+                        {pass?.total != null ? montantCents(passGroupN, pass.devise) : (pass?.manque ?? "non relevés")}
                       </td>
                     </>
                   )}

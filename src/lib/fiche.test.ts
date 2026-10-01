@@ -33,7 +33,7 @@ describe("fiche détaillée", () => {
   });
 
   it("chaque station FR a une fiche : GPS toujours, IGN pour le dépôt", () => {
-    assert.equal(STATIONS.length, 315);
+    assert.equal(STATIONS.length, 313);
     for (const s of STATIONS) {
       const f = stationFiche(s);
       assert.equal(f.id, s.id);
@@ -149,18 +149,20 @@ describe("échelle des chiffres : un domaine, un jeu de chiffres", () => {
 });
 
 describe("photo de station : la sienne, celle de son domaine, ou rien", () => {
-  it("229 photos propres, 66 empruntées au domaine, 20 sans photo", () => {
+  it("228 photos propres, 66 empruntées au domaine, 19 sans photo", () => {
     // Jusqu'au 26 septembre 2026 : 72 empruntées et 19 sans photo, sur 320.
     // Quatre doublons écartés empruntaient la photo de leur station (Sainte-Foy
     // Station, Saint-Pancrace, « Praloup » celle du Sauze, Espace Aubrac) ;
     // Lus-la-Croix-Haute, sans photo, est devenue Lus la Jarjatte, qui a la
     // sienne. Névache et La Bourboule n'empruntent plus : l'une n'a pas de
     // domaine nommé, l'autre plus de domaine du tout. Aucune image n'a changé.
+    // Le 30 septembre, Le Grand Puy, fermé, est sorti : sa photo propre
+    // (`le-grand-puy`) et sa ligne sans photo (`seyne-les-alpes`) avec lui.
     const c = photoCoverage();
-    assert.equal(c.total, 315);
-    assert.equal(c.propres, 229);
+    assert.equal(c.total, 313);
+    assert.equal(c.propres, 228);
     assert.equal(c.empruntees, 66);
-    assert.equal(c.absentes.length, 20);
+    assert.equal(c.absentes.length, 19);
     assert.ok(c.absentes.includes("nevache"));
     assert.ok(c.absentes.includes("la-bourboule"));
   });

@@ -21,6 +21,11 @@
  *   --sources <a,b>          seulement ces sources (« Airbnb », « Ingénie »,
  *                            « Alpissime »…) ;
  *   --sans-fiches            sans la seconde passe ;
+ *   --fiches-airbnb [N]      lit aussi les fiches Airbnb des annonces sans
+ *                            capacité ou sans chambres, N par station au plus
+ *                            (60 par défaut), comme la complétion de l'écran
+ *                            Prix : même limiteur, même pause entre deux
+ *                            fiches, arrêt au premier refus ;
  *   --comparer <a.json> <b.json>
  *                            compare deux échantillons, sans réseau.
  *
@@ -180,6 +185,10 @@ const filtre = option("sources")
   .map((s) => s.trim())
   .filter(Boolean);
 const avecFiches = !args.includes("--sans-fiches");
+/** Fiches Airbnb lues au plus par station ; 0 : aucune. */
+const fichesAirbnb = args.includes("--fiches-airbnb")
+  ? Math.max(1, Number(option("fiches-airbnb")) || 60)
+  : 0;
 
 /* ---------- Les modules de l'application ---------- */
 
@@ -187,8 +196,77 @@ const { stationById, STATIONS } = await import("../../src/lib/stations.ts");
 const { ficheCentrale } = await import("../../src/lib/scrape/centrales/registre.ts");
 const { SOURCES_AGENCES, stationsDe } = await import("../../src/lib/scrape/agences/couverture.ts");
 const { runLiveSearch } = await import("../../src/lib/scrape/run.server.ts");
-const { enrichirListing } = await import("../../src/lib/stay/enrichir.ts");
+const { airbnbIdOf, enrichirListing } = await import("../../src/lib/stay/enrichir.ts");
 const { fillFiches } = await import("../../src/lib/stay/completerFiche.server.ts");
+
+/** Une tranche de fiches Airbnb : soixante au plus, à 5 ou 6 s l'une. */
+const TRANCHE_AIRBNB_MS = 6 * 60_000;
+
+/**
+ * Les fiches Airbnb des annonces sans capacité ou sans chambres, lues comme la
+ * complétion de l'écran Prix les lit (`lireFichesAirbnb`) : par tranches, au
+ * limiteur partagé, avec la même pause entre deux fiches. Un refus, le
+ * coupe-circuit ou une requête qu'Airbnb ne connaît plus arrêtent tout. Les
+ * valeurs lues comblent les trous (`comblerDepuisMemoire`), puis l'annonce se
+ * requalifie (`enrichirListing`). Le même code tourne sur l'ancien schéma.
+ */
+async function completerAirbnb(rows: Annonce[], max: number): Promise<void> {
+  const { lireFichesAirbnb } = await import("../../src/lib/scrape/airbnb.server.ts");
+  const { MAX_FICHES_TRANCHE } = await import("../../src/lib/scrape/airbnbFiches.ts");
+  const { comblerDepuisMemoire } = await import("../../src/lib/stay/memoireFiches.server.ts");
+  const parId = new Map<string, Annonce[]>();
+  for (const row of rows) {
+    if (row.source !== "Airbnb" || (row.bedrooms != null && capaciteDe(row) != null)) continue;
+    const id = airbnbIdOf(row as never);
+    if (id) parId.set(id, [...(parId.get(id) ?? []), row]);
+  }
+  const voulues = parId.size;
+  let reste = [...parId.keys()].slice(0, max);
+  let lues = 0;
+  let comblees = 0;
+  let vaines = 0;
+  let arret: string | null = null;
+  while (reste.length > 0) {
+    const ids = reste.slice(0, MAX_FICHES_TRANCHE);
+    const lu = await lireFichesAirbnb({
+      ids,
+      checkIn: du,
+      checkOut: au,
+      adults: voyageurs,
+      echeance: Date.now() + TRANCHE_AIRBNB_MS,
+    });
+    lues += lu.lues;
+    for (const [id, f] of Object.entries(lu.fiches)) {
+      if ((f as { ecartee?: boolean }).ecartee) continue;
+      for (const row of parId.get(id) ?? []) {
+        if (comblerDepuisMemoire(row as never, f as never)) {
+          Object.assign(row, enrichirListing(row as never));
+          comblees += 1;
+        }
+      }
+    }
+    reste = [...lu.restants, ...reste.slice(ids.length)];
+    if (lu.arret == null) continue;
+    if (lu.arret === "echeance" || lu.arret === "rythme") {
+      // Trois tranches de suite sans une fiche lue : on n'insiste pas.
+      vaines = lu.lues > 0 ? 0 : vaines + 1;
+      if (vaines >= 3) {
+        arret = lu.raison ?? lu.arret;
+        break;
+      }
+      if (lu.attenteMs)
+        await new Promise((r) => setTimeout(r, Math.min(lu.attenteMs ?? 0, 120_000)));
+      continue;
+    }
+    arret = lu.raison ?? lu.arret;
+    break;
+  }
+  console.info(
+    `[echantillon] fiches Airbnb : ${lues} lues pour ${Math.min(voulues, max)} demandées` +
+      ` (${voulues} annonces incomplètes), ${comblees} annonce(s) complétée(s)` +
+      `${arret ? `, arrêté : ${arret}` : ""}`,
+  );
+}
 
 /** Les plateformes se relèvent sur trois stations fournies en annonces. */
 const PLATEFORMES = ["les-2-alpes", "valloire", "avoriaz"];
@@ -289,6 +367,13 @@ for (const c of cibles) {
       console.warn(`[echantillon] seconde passe : ${(err as Error).message}`);
     }
   }
+  if (fichesAirbnb > 0 && c.part === "airbnb" && rows.length > 0) {
+    try {
+      await completerAirbnb(rows, fichesAirbnb);
+    } catch (err) {
+      console.warn(`[echantillon] fiches Airbnb : ${(err as Error).message}`);
+    }
+  }
   for (const l of rows) {
     const nom = nomSource(l, st.id);
     compter(echantillon.final, nom, l);
@@ -315,7 +400,8 @@ const csv = [
       n.source,
       n.station,
       n.id,
-      n.titre.replace(/;/g, ","),
+      // Un titre Airbnb peut tenir sur deux lignes : une annonce, une ligne.
+      n.titre.replace(/;/g, ",").replace(/\s*[\r\n]+\s*/g, " "),
       n.url ?? "",
       n.chambres ?? "",
       n.capacite ?? "",

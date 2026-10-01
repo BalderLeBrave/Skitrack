@@ -38,6 +38,7 @@ import {
   fmtPlage,
   grpKey,
   idsALancer,
+  toutesALancer,
   jetons,
   jetonsBudget,
   lieuSansReleve,
@@ -81,6 +82,8 @@ import {
   poigneeProche,
   poserBorne,
   relLbl,
+  relToutesLbl,
+  dureeReleveLbl,
   releveLbl,
   remesurerRemontee,
   resultatDuReleve,
@@ -2343,8 +2346,8 @@ describe("libellés de l'onglet budget", () => {
     assert.deepEqual(videBudget(true, 0), {
       titre: "Aucune annonce relevée pour ces dates",
       hint:
-        "Les logements proposés viennent des relevés. Lancez un relevé dans l’onglet " +
-        "Par station, ou revenez à des dates déjà relevées.",
+        "Les logements proposés viennent des relevés. Relevez toutes les stations, ou un lieu " +
+        "dans l’onglet Par station, ou revenez à des dates déjà relevées.",
       versStation: true,
     });
     assert.deepEqual(videBudget(false, 3), {
@@ -2368,7 +2371,7 @@ describe("libellés de l'onglet budget", () => {
   it("videBudget : un lieu choisi sans relevé pour ces dates renvoie vers Par station", () => {
     assert.deepEqual(videBudget(false, 0, true, true), {
       titre: "Ce lieu n’a pas été relevé pour ces dates",
-      hint: "Lancez un relevé dans l’onglet Par station, ou choisissez d’autres dates.",
+      hint: "Relevez toutes les stations, ou ce lieu dans l’onglet Par station, ou choisissez d’autres dates.",
       versStation: true,
     });
     // Aucun relevé du tout passe avant ; un lieu relevé laisse la suite.
@@ -2521,6 +2524,49 @@ describe("relevés à lancer", () => {
   });
 });
 
+describe("toutesALancer : « Par budget » relève toutes les stations", () => {
+  const ids = ["a", "b", "c", "d"];
+  const job = (over: Partial<Job> = {}): Job => ({
+    nom: "toutes les stations",
+    ids: ["a", "b", "c"],
+    per: PER,
+    groupe: GRP,
+    ...over,
+  });
+
+  it("celles qui n'ont pas de relevé, et elles seules", () => {
+    const faites = new Set(["b", "d"]);
+    assert.deepEqual(toutesALancer(ids, (id) => faites.has(id), PER, GRP, null, []), {
+      ids: ["a", "c"],
+      aNouveau: false,
+    });
+  });
+
+  it("toutes faites : toutes à nouveau", () => {
+    assert.deepEqual(toutesALancer(ids, () => true, PER, GRP, null, []), { ids, aNouveau: true });
+  });
+
+  it("ce qu'un relevé des mêmes dates prévoit déjà n'est pas relancé", () => {
+    const file = [job({ ids: ["a"] })];
+    assert.deepEqual(toutesALancer(ids, (id) => id === "b", PER, GRP, null, file).ids, ["c", "d"]);
+    assert.deepEqual(toutesALancer(ids, () => false, PER, GRP, { ...job({ ids }), i: 0 }, []).ids, []);
+  });
+
+  it("le bouton dit ce qu'il relève", () => {
+    assert.equal(relToutesLbl(320, 320, false), "Relever les 320 stations");
+    assert.equal(relToutesLbl(12, 320, false), "Relever les 12 stations restantes");
+    assert.equal(relToutesLbl(1, 320, false), "Relever la dernière station");
+    assert.equal(relToutesLbl(320, 320, true), "Relever à nouveau les 320 stations");
+  });
+
+  it("la durée se dit en clair, une minute par station", () => {
+    assert.equal(dureeReleveLbl(12), "environ 12 min");
+    assert.equal(dureeReleveLbl(60), "environ 1 h");
+    assert.equal(dureeReleveLbl(320), "environ 5 h 20");
+    assert.equal(dureeReleveLbl(305), "environ 5 h 05");
+  });
+});
+
 /* ---------- Logements de station (25 sept. 2026) ---------- */
 
 describe("dansLaStation : à 2 km au plus d'une remontée", () => {
@@ -2623,7 +2669,9 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     assert.equal(fmtPlage("chambres", 8), "8 ch.");
     assert.equal(plageLbl("chambres", [8, 8], B.chambres), "8 ch. et plus");
     assert.equal(plageLbl("chambres", [2, 2], B.chambres), "2 ch.");
-    assert.equal(plageLbl("chambres", [0, 0], B.chambres), "0 ch.");
+    // Zéro chambre : « Studio », jamais « 0 ch. ».
+    assert.equal(plageLbl("chambres", [0, 0], B.chambres), "Studio");
+    assert.equal(fmtPlage("chambres", 0), "Studio");
     assert.equal(plageLbl("capacite", [1, 6], B.capacite), "jusqu’à 6 pers.");
     assert.equal(plageLbl("capacite", [4, 8], B.capacite), "4 pers. à 8 pers.");
   });

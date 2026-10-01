@@ -48,6 +48,8 @@
  * aucun alias `@/`.
  */
 
+import { airbnbIdOf } from "./airbnbId.ts";
+
 /* ---------- Types ---------- */
 
 export type TypeLogement =
@@ -356,6 +358,10 @@ export type SujetLogement = {
   rooms?: number | null;
   cabin?: boolean | null;
   lodgingType?: TypeLogement | null;
+  /** Airbnb : de quoi retrouver sa page (`airbnbIdOf`). */
+  platformId?: string | null;
+  /** Airbnb : sa page a été lue ; ce qui y manque y manque vraiment. */
+  pdpLue?: boolean | null;
 };
 
 /** Les textes d'une annonce. Sans les photos GreenGo : leurs noms sont des
@@ -408,6 +414,7 @@ export function estStudio(bedrooms: number | null): boolean | null {
  * dérivées suivent les pièces du moment. Idempotente.
  */
 export function qualifierLogement<T extends SujetLogement>(l: T): T & Qualifie {
+  if (l.source === "Airbnb") return qualifierAirbnb(l);
   const lu = lireLogement(...textesDe(l));
 
   let capacity = takeGuests(l.capacity);
@@ -466,6 +473,68 @@ export function qualifierLogement<T extends SujetLogement>(l: T): T & Qualifie {
 }
 
 /**
+ * Airbnb : capacité et chambres ne viennent que de champs structurés, ceux de
+ * la recherche puis ceux de la page du logement (`personCapacity`,
+ * `bedroomCount`). Règle du propriétaire (1er octobre 2026) : ni regex sur le
+ * titre, ni déduction des pièces ou du type, ni valeur inventée. Ce que seul
+ * le texte disait redevient un trou, que la page comblera (`priseFiche.ts`).
+ * 0 chambre est un studio ; 0 personne n'est pas une capacité.
+ *
+ * Une exception, pour la capacité seule : quand elle est introuvable
+ * (`capaciteIntrouvable`), celle que le titre écrit compte, en `text_regex`.
+ * Un champ structuré, arrivé plus tard, la remplace (`poserValeur`).
+ */
+function qualifierAirbnb<T extends SujetLogement>(l: T): T & Qualifie {
+  const structure = (source: SourceValeur | null | undefined) =>
+    (source ?? "structured") === "structured";
+  let capacity = structure(l.capacitySource) ? takeGuests(l.capacity) : null;
+  let capacitySource: SourceCapacite | null = capacity == null ? null : "structured";
+  let capacityStandard = capacity != null ? takeGuests(l.capacityStandard) : null;
+  if (capacity == null && capaciteIntrouvable(l)) {
+    const lu = lireLogement(l.title);
+    if (lu.capacite != null) {
+      capacity = lu.capacite;
+      capacitySource = "text_regex";
+      capacityStandard = lu.capaciteStandard;
+    }
+  }
+  if (capacityStandard != null && capacity != null && capacityStandard >= capacity)
+    capacityStandard = null;
+  const bedrooms = structure(l.bedroomsSource) ? takeBeds(l.bedrooms) : null;
+  const rooms = l.rooms != null && l.rooms > 0 ? l.rooms : null;
+  let lodgingType = l.lodgingType ?? typePublie(l.propertyType) ?? null;
+  if (
+    bedrooms === 0 &&
+    (rooms == null || rooms <= 1) &&
+    (lodgingType == null || lodgingType === "appartement")
+  ) {
+    lodgingType = "studio";
+  }
+  return {
+    ...l,
+    capacity,
+    capacityStandard,
+    capacitySource,
+    bedrooms,
+    bedroomsSource: bedrooms == null ? null : "structured",
+    isStudio: estStudio(bedrooms),
+    rooms,
+    cabin: l.cabin ?? null,
+    lodgingType,
+  };
+}
+
+/**
+ * La capacité d'une annonce Airbnb est introuvable ailleurs que dans son
+ * titre : sa page a été lue sans `personCapacity` (`pdpLue`), ou elle n'a
+ * aucune page à lire (ni `platformId`, ni URL `rooms/`, ni photo `Hosting-`).
+ * Une page pas encore lue, ou refusée (429), ne l'est pas : elle sera lue.
+ */
+export function capaciteIntrouvable(l: SujetLogement): boolean {
+  return l.pdpLue === true || airbnbIdOf(l) == null;
+}
+
+/**
  * Pose une valeur lue ailleurs (page de détail, mémoire, offre sœur) si elle
  * vaut mieux que celle de l'annonce : absente, ou d'une source de rang
  * inférieur. Les pièces ne comblent qu'un vide. Rend `true` si elle est
@@ -478,6 +547,9 @@ export function poserValeur(
   v: number | null | undefined,
   source: SourceValeur,
 ): boolean {
+  // Airbnb : rien que du structuré (`qualifierAirbnb`). Une valeur du texte
+  // ou du type ne comble pas un trou Airbnb : la page du logement le fera.
+  if (l.source === "Airbnb" && source !== "structured") return false;
   if (champ === "rooms") {
     const x = takeBeds(v);
     if (x == null || x < 1 || (l.rooms != null && l.rooms > 0)) return false;
@@ -523,13 +595,24 @@ export function chambresDesPieces(l: SujetLogement): boolean {
 
 /* ---------- Résidu ---------- */
 
-/** Une annonce dont la capacité ou les chambres restent introuvables. */
+/** Une annonce dont la capacité ou les chambres (et, pour Airbnb, le GPS)
+ *  restent introuvables. */
 export type Residu = {
   id: string;
   source: string;
   url: string | null;
-  manque: Array<"capacity" | "bedrooms">;
+  manque: Array<"gps" | "capacity" | "bedrooms">;
+  /** Airbnb : la page du logement a été lue (le champ y manque vraiment), ou
+   *  pas encore (refusée, en file : elle se relira). */
+  pageLue?: boolean;
 };
+
+/** Un point utilisable : fini, pas (0, 0), dans le globe. */
+function pointPlausible(lat: number | null | undefined, lon: number | null | undefined): boolean {
+  if (lat == null || lon == null || !Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  if (lat === 0 && lon === 0) return false;
+  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
 
 /**
  * Les annonces dont la capacité ou les chambres restent `null` après toutes
@@ -542,14 +625,27 @@ export function residuLogements(
     url: string | null;
     capacity: number | null;
     bedrooms: number | null;
+    lat?: number | null;
+    lon?: number | null;
+    pdpLue?: boolean | null;
   }>,
 ): Residu[] {
   const out: Residu[] = [];
   for (const l of rows) {
+    const airbnb = l.source === "Airbnb";
     const manque: Residu["manque"] = [];
-    if (l.capacity == null) manque.push("capacity");
+    // Airbnb doit finir avec ses trois champs : le point aussi se nomme.
+    if (airbnb && !pointPlausible(l.lat, l.lon)) manque.push("gps");
+    if (l.capacity == null || (airbnb && !(l.capacity > 0))) manque.push("capacity");
     if (l.bedrooms == null) manque.push("bedrooms");
-    if (manque.length) out.push({ id: l.id, source: l.source, url: l.url, manque });
+    if (manque.length === 0) continue;
+    out.push({
+      id: l.id,
+      source: l.source,
+      url: l.url,
+      manque,
+      ...(airbnb ? { pageLue: l.pdpLue === true } : {}),
+    });
   }
   return out;
 }
@@ -563,9 +659,10 @@ export const RESIDU_DETAIL_MAX = 30;
  */
 export function journalResidu(residu: readonly Residu[], contexte: string): string[] {
   if (residu.length === 0) return [];
-  const parSource = new Map<string, { capacite: number; chambres: number }>();
+  const parSource = new Map<string, { gps: number; capacite: number; chambres: number }>();
   for (const r of residu) {
-    const c = parSource.get(r.source) ?? { capacite: 0, chambres: 0 };
+    const c = parSource.get(r.source) ?? { gps: 0, capacite: 0, chambres: 0 };
+    if (r.manque.includes("gps")) c.gps += 1;
     if (r.manque.includes("capacity")) c.capacite += 1;
     if (r.manque.includes("bedrooms")) c.chambres += 1;
     parSource.set(r.source, c);
@@ -573,16 +670,28 @@ export function journalResidu(residu: readonly Residu[], contexte: string): stri
   const comptes = [...parSource]
     .map(
       ([s, c]) =>
-        `${s} ${[c.capacite ? `${c.capacite} sans capacité` : "", c.chambres ? `${c.chambres} sans chambres` : ""].filter(Boolean).join(", ")}`,
+        `${s} ${[
+          c.gps ? `${c.gps} sans GPS` : "",
+          c.capacite ? `${c.capacite} sans capacité` : "",
+          c.chambres ? `${c.chambres} sans chambres` : "",
+        ]
+          .filter(Boolean)
+          .join(", ")}`,
     )
     .join(" · ");
   const lignes = [
-    `[logement] ${contexte} : ${residu.length} annonces à null après toutes les stratégies (${comptes})`,
+    `[logement] ${contexte} : ${residu.length} ${residu.length > 1 ? "annonces" : "annonce"} à null après toutes les stratégies (${comptes})`,
   ];
+  const noms = { gps: "GPS", capacity: "capacité", bedrooms: "chambres" } as const;
   for (const r of residu.slice(0, RESIDU_DETAIL_MAX)) {
-    const manque = r.manque.map((m) => (m === "capacity" ? "capacité" : "chambres")).join(" et ");
+    const manque = r.manque.map((m) => noms[m]).join(" et ");
+    // « capacité introuvable », mais « chambres introuvables ».
+    const accord =
+      r.manque.length === 1 && r.manque[0] !== "bedrooms" ? "introuvable" : "introuvables";
+    // Airbnb : page lue, le champ y manque vraiment ; sinon elle se relira.
+    const page = r.pageLue == null ? "" : r.pageLue ? " (page lue)" : " (page pas encore lue)";
     lignes.push(
-      `[logement]   ${r.source} ${r.id} : ${manque} introuvables, ${r.url ?? "sans lien"}`,
+      `[logement]   ${r.source} ${r.id} : ${manque} ${accord}${page}, ${r.url ?? "sans lien"}`,
     );
   }
   if (residu.length > RESIDU_DETAIL_MAX)

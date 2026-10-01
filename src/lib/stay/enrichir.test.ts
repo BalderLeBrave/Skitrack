@@ -99,7 +99,7 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
     assert.equal(deja.url, "https://www.airbnb.fr/rooms/1");
   });
 
-  it("une tuile Airbnb muette devient complète dès que photo et titre parlent", () => {
+  it("une tuile Airbnb muette retrouve son URL par la photo ; sa capacité attend sa page, jamais le titre", () => {
     const avant = fiche({
       id: "abnb-6-8-cosy",
       source: "Airbnb",
@@ -117,9 +117,11 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
     assert.ok(completudeOf(avant).trous.includes("url"));
     assert.ok(completudeOf(avant).trous.includes("capacite"));
     const cosy = enrichirListing(avant);
-    assert.equal(cosy.capacity, 8);
+    // « 6-8 pers » au titre ne compte pas : personCapacity, sur la page.
+    assert.equal(cosy.capacity, null);
+    assert.equal(cosy.bedrooms, 3);
     assert.equal(cosy.url, "https://www.airbnb.fr/rooms/27623894");
-    assert.equal(completudeOf(cosy).ok, true);
+    assert.deepEqual(completudeOf(cosy).trous, ["capacite"]);
     const jardin = enrichirListing(
       fiche({
         source: "Airbnb",

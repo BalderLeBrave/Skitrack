@@ -214,6 +214,7 @@ describe("tranche : fiches Airbnb", () => {
       bedrooms: 2,
       bedroomsSource: "structured",
       proven: `pyairbnb live · ${MARQUE_AIRBNB}`,
+      pdpLue: true,
     });
     assert.deepEqual(r.essayees.sort(), ["abnb-1", "abnb-2"]);
     assert.equal(r.restantes, 1);
@@ -258,6 +259,7 @@ describe("tranche : fiches Airbnb", () => {
       proven: `pyairbnb live · ${MARQUE_AIRBNB}`,
       capacitySource: "structured",
       bedroomsSource: "structured",
+      pdpLue: true,
     });
   });
 
@@ -407,6 +409,82 @@ describe("tranche : fiches Airbnb", () => {
     assert.equal(dp.memoire.lire("Airbnb:30000", T0), null);
     const r = await trancheProfonde(demande({ mode: "memoire", candidates }), dp);
     assert.deepEqual(r.laissees, []);
+  });
+});
+
+describe("tranche : la capacité Airbnb du titre, quand la page ne la donne pas", () => {
+  const fiche = (capacity: number | null) => ({
+    capacity,
+    bedrooms: 2,
+    rooms: null,
+    lat: 45.5,
+    lon: 6.5,
+    roomType: "Entire home/apt",
+    typeLogement: "Logement entier : chalet",
+    ecartee: false,
+  });
+
+  it("fiche lue sans personCapacity : la capacité du titre, en text_regex", async () => {
+    const { deps: dp } = deps({
+      fiches: (d) => ({ fiches: { [d.ids[0]]: fiche(null) }, vides: [], restants: [], lues: 1, arret: null }),
+    });
+    const r = await silence(() =>
+      trancheProfonde(demande({ candidates: [cand({ id: "abnb-1", title: "Chalet 10 personnes" })] }), dp),
+    );
+    const c = r.correctifs["abnb-1"];
+    assert.deepEqual([c?.capacity, c?.capacitySource, c?.bedrooms, c?.pdpLue], [10, "text_regex", 2, true]);
+  });
+
+  it("fiche lue avec personCapacity : la fiche, jamais le titre", async () => {
+    const { deps: dp } = deps({
+      fiches: (d) => ({ fiches: { [d.ids[0]]: fiche(6) }, vides: [], restants: [], lues: 1, arret: null }),
+    });
+    const r = await silence(() =>
+      trancheProfonde(demande({ candidates: [cand({ id: "abnb-1", title: "Chalet 10 personnes" })] }), dp),
+    );
+    assert.deepEqual([r.correctifs["abnb-1"]?.capacity, r.correctifs["abnb-1"]?.capacitySource], [6, "structured"]);
+  });
+
+  it("page lue sans rien d'utile (vide) : la capacité du titre", async () => {
+    const { deps: dp } = deps({
+      fiches: (d) => ({ fiches: {}, vides: [...d.ids], restants: [], lues: 1, arret: null }),
+    });
+    const r = await silence(() =>
+      trancheProfonde(demande({ candidates: [cand({ id: "abnb-2", title: "Studio 4 pers." })] }), dp),
+    );
+    assert.deepEqual([r.correctifs["abnb-2"]?.capacity, r.correctifs["abnb-2"]?.pdpLue], [4, true]);
+  });
+
+  it("lot jugé illisible : pas une page lue, le titre ne compte pas encore", async () => {
+    const { deps: dp } = deps({
+      fiches: (d) => ({ fiches: {}, vides: [...d.ids], restants: [], lues: 1, arret: "illisible" }),
+    });
+    const r = await silence(() =>
+      trancheProfonde(demande({ candidates: [cand({ id: "abnb-3", title: "Chalet 10 personnes" })] }), dp),
+    );
+    assert.equal(r.correctifs["abnb-3"]?.capacity ?? null, null);
+    assert.equal(r.correctifs["abnb-3"]?.pdpLue ?? null, null);
+  });
+
+  it("refus (429) : rien n'est lu, le titre ne compte pas encore", async () => {
+    const { deps: dp } = deps({
+      fiches: (d) => ({ fiches: {}, vides: [], restants: [...d.ids], lues: 1, arret: "refus", statut: 429 }),
+    });
+    const r = await silence(() =>
+      trancheProfonde(demande({ candidates: [cand({ id: "abnb-4", title: "Chalet 10 personnes" })] }), dp),
+    );
+    assert.equal(r.correctifs["abnb-4"]?.capacity ?? null, null);
+  });
+
+  it("tranche « mémoire » : une page lue il y a moins de trente jours rend la capacité du titre", async () => {
+    const { deps: dp } = deps();
+    dp.memoire.noter([{ cle: "Airbnb:50000", lue: true }], T0);
+    const r = await trancheProfonde(
+      demande({ mode: "memoire", candidates: [cand({ id: "abnb-5", title: "Chalet 10 personnes" })] }),
+      dp,
+    );
+    const c = r.correctifs["abnb-5"];
+    assert.deepEqual([c?.capacity, c?.capacitySource, c?.pdpLue], [10, "text_regex", true]);
   });
 });
 

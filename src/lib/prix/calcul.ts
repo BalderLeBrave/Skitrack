@@ -667,6 +667,9 @@ export function connuesDuReleve(listings: readonly Listing[]): FicheConnue[] {
     // d'une tuile se garde, et un champ structuré la remplacera.
     if (!gpsPrecis(l) || l.capacity == null || l.lat == null || l.lon == null) continue;
     if (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)) continue;
+    // Un point de repli Airbnb (page, BAN, jumelage) n'est pas celui de
+    // l'annonce : il ne se mémorise pas comme tel (`repliGps.ts`).
+    if (l.source === "Airbnb" && l.gpsSource != null && l.gpsSource !== "pdp") continue;
     const cle = cleListing(l);
     if (!cle || vues.has(cle)) continue;
     vues.add(cle);
@@ -712,10 +715,14 @@ const CHAMPS_CORRIGES = [
   "locality",
   "title",
   "proven",
+  "gpsSource",
+  "pdpLue",
 ] as const satisfies readonly (keyof Listing)[];
 
 /** Ce qui, corrigé, fait requalifier le logement (`qualifierLogement`). */
-const LOGEMENT_CORRIGE = ["capacity", "capacitySource", "bedrooms", "bedroomsSource", "rooms", "title"] as const;
+// `pdpLue` : une page Airbnb lue sans personCapacity rend la capacité du
+// titre recevable (`capaciteIntrouvable`).
+const LOGEMENT_CORRIGE = ["capacity", "capacitySource", "bedrooms", "bedroomsSource", "rooms", "title", "pdpLue"] as const;
 
 /**
  * Les annonces du relevé, correctifs posés. Une annonce retirée (Airbnb :

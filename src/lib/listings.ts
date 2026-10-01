@@ -12,6 +12,7 @@ import type { SourceAgence } from "./scrape/agences/couverture";
 import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
 import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement";
+import type { SourceGps } from "./stay/repliGps";
 
 export type Listing = {
   id: string;
@@ -82,6 +83,17 @@ export type Listing = {
   url: string | null;
   lat: number | null;
   lon: number | null;
+  /**
+   * D'où vient le point quand ce n'est pas la liste de la source : la page du
+   * logement (`pdp`), des coordonnées écrites ailleurs dans cette page
+   * (`page`), l'adresse qu'elle publie géocodée par la BAN (`ban`), ou le même
+   * logement relevé sur une autre source (`jumelage`). Absent : la liste.
+   * Airbnb seulement, règle du 1er octobre 2026 (`stay/repliGps.ts`).
+   */
+  gpsSource?: SourceGps | null;
+  /** Airbnb : la page du logement a été lue. Un champ qui manque encore n'y
+   *  figure pas ; une page refusée ou pas encore lue n'est pas un échec. */
+  pdpLue?: boolean | null;
   distToSlopesM?: number | null;
   locality?: string | null;
   placeName?: string | null;

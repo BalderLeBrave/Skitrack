@@ -32,6 +32,7 @@
 import type { Listing } from "../listings.ts";
 import { RANG_SOURCE, sourceCapacite, sourceChambres, type SourceCapacite, type SourceValeur } from "./logement.ts";
 import { gpsPrecis } from "./lodgingFilter.ts";
+import type { SourceGps } from "./repliGps.ts";
 import {
   capaciteCompatible,
   cleCozy,
@@ -51,8 +52,26 @@ type Champs = Pick<Listing, "capacity" | "bedrooms" | "rooms" | "lat" | "lon">;
 export type Recopie = Partial<Champs> & {
   capacitySource?: SourceCapacite;
   bedroomsSource?: SourceValeur;
+  /** Airbnb : un point reçu d'une sœur se dit `jumelage` (`repliGps.ts`). */
+  gpsSource?: SourceGps;
   proven: string;
 };
+
+/**
+ * Ce qu'une offre Airbnb peut recevoir de ses sœurs (règle du propriétaire,
+ * 1er octobre 2026) : ni capacité ni chambres, qui ne viennent que de sa
+ * page (`personCapacity`, `bedroomCount`) ; un point, seulement si sa page a
+ * été lue sans `listingLat` / `listingLng`, et seulement à la place d'un
+ * point absent. Une page refusée ou pas encore lue n'est pas un échec : elle
+ * se relira, sans repli.
+ */
+function recoitNombres(o: Listing): boolean {
+  return o.source !== "Airbnb";
+}
+
+function recoitPoint(o: Listing): boolean {
+  return o.source !== "Airbnb" || o.pdpLue === true;
+}
 
 function titresCommuns(a: Listing, b: Listing): string[] {
   const deB = new Set(clesTitre(b.title));
@@ -132,8 +151,8 @@ export function recopierSoeurs(listings: readonly Listing[]): Map<string, Recopi
           if (i === j || !memeLogement(offres[i], offres[j])) continue;
           const a = vals[i];
           const b = vals[j];
-          for (const k of NOMBRES) if (prendre(a, b, k)) bouge = true;
-          if (!gpsPrecis(a) && gpsPrecis(b)) {
+          if (recoitNombres(offres[i])) for (const k of NOMBRES) if (prendre(a, b, k)) bouge = true;
+          if (!gpsPrecis(a) && gpsPrecis(b) && recoitPoint(offres[i])) {
             a.lat = b.lat;
             a.lon = b.lon;
             bouge = true;
@@ -154,9 +173,31 @@ export function recopierSoeurs(listings: readonly Listing[]): Map<string, Recopi
       if (v.lat !== o.lat || v.lon !== o.lon) {
         recu.lat = v.lat;
         recu.lon = v.lon;
+        if (o.source === "Airbnb") recu.gpsSource = "jumelage";
       }
       if (Object.keys(recu).length > 0) out.set(o.id, { ...recu, proven: marquer(o.proven) });
     });
+  }
+  return out;
+}
+
+/**
+ * Le jumelage du seul point, pour les annonces Airbnb dont la page a été lue
+ * sans coordonnées (Logements) : le point d'une offre sœur du même logement
+ * (`regrouper`, `memeLogement`), repris tel quel, jamais moyenné avec la
+ * station. Rien d'autre ne passe, et aucune autre source ne reçoit quoi que
+ * ce soit. Par identifiant d'annonce.
+ */
+export function jumelageGpsAirbnb(listings: readonly Listing[]): Map<string, { lat: number; lon: number }> {
+  const out = new Map<string, { lat: number; lon: number }>();
+  for (const { offres } of regrouper(listings)) {
+    if (offres.length < 2) continue;
+    if (offres.some((a, i) => offres.some((b, j) => j > i && !capaciteCompatible(a, b)))) continue;
+    for (const o of offres) {
+      if (o.source !== "Airbnb" || o.pdpLue !== true || gpsPrecis(o)) continue;
+      const soeur = offres.find((x) => x !== o && gpsPrecis(x) && memeLogement(o, x));
+      if (soeur) out.set(o.id, { lat: soeur.lat as number, lon: soeur.lon as number });
+    }
   }
   return out;
 }

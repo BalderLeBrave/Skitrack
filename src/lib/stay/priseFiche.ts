@@ -194,6 +194,29 @@ export function urlsPartagees(
  *  le texte, chez un hôte dont on ne sait pas ce que la fiche publie. */
 export const VALEUR_DU_TEXTE = "valeur déjà lue dans le texte";
 
+/**
+ * Une annonce Airbnb complète : GPS plausible, capacité, chambres. Règle du
+ * propriétaire (1er octobre 2026) : 0 chambre est une valeur (un studio),
+ * `null` est un trou ; 0 personne n'est pas une capacité. Il en manque une,
+ * la fiche (PDP) est lue ; aucune annonce n'est écartée pour autant.
+ */
+export function airbnbComplet(
+  l: Pick<Listing, "lat" | "lon" | "capacity" | "bedrooms">,
+): boolean {
+  return plausible(l.lat, l.lon) && l.capacity != null && l.capacity > 0 && l.bedrooms != null;
+}
+
+/** Ce qu'il manque à une annonce Airbnb, dans l'ordre du journal. */
+export function troisChampsAirbnb(
+  l: Pick<Listing, "lat" | "lon" | "capacity" | "bedrooms">,
+): Array<"gps" | "capacity" | "bedrooms"> {
+  const manque: Array<"gps" | "capacity" | "bedrooms"> = [];
+  if (!plausible(l.lat, l.lon)) manque.push("gps");
+  if (l.capacity == null || !(l.capacity > 0)) manque.push("capacity");
+  if (l.bedrooms == null) manque.push("bedrooms");
+  return manque;
+}
+
 /** L'URL qui mène à la fiche propre de l'annonce, hors Airbnb et Gîtes. */
 export function urlPropre(l: Pick<Listing, "source" | "url">): string | null {
   if (l.source === "Airbnb" || l.source === "Gîtes de France") return null;
@@ -216,7 +239,10 @@ export function raisonDeLaisser(
   // Nom et URL publics à aligner, même sans trou : voir `fillFiches`.
   if (l.source === "Gîtes de France") return null;
   if (l.source === "Airbnb" || estHoteAirbnb(url)) {
-    return plausible(l.lat, l.lon) ? "Airbnb avec GPS" : null;
+    // Les trois champs déjà là : rien à lire. Il en manque un : la liste ne
+    // l'a pas, la PDP le publie (personCapacity, bedroomCount, listingLat,
+    // listingLng). 0 chambre (studio) est une valeur, pas un trou.
+    return airbnbComplet(l) ? "Airbnb avec GPS" : null;
   }
   if (estPageDeSite(url) || communes?.has(cleUrl(url))) return "URL commune";
   const hote = hoteDe(url) ?? "";

@@ -3215,6 +3215,8 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
       [
         annonce({
           id: "t3",
+          source: "Centrale",
+          url: "https://www.centrale.fr/logement/3",
           title: "Appartement 3 pièces 6 personnes",
           capacity: 6,
           capacitySource: "text_regex",
@@ -3247,8 +3249,13 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
     assert.equal(agreger([l], CTX).n, 1);
   });
 
-  it("la recopie entre offres d'un même logement fait compter l'Airbnb muet", () => {
-    const muet = annonce({ id: "airbnb-9", title: "Chalet des Cimes, vue glacier", capacity: null, bedrooms: null });
+  it("la recopie entre offres d'un même logement fait compter l'offre muette", () => {
+    const muet = offreCozy("bk-9", "Booking", {
+      title: "Chalet des Cimes, vue glacier",
+      capacity: null,
+      bedrooms: null,
+      url: "https://www.booking.com/hotel/fr/chalet-des-cimes.html",
+    });
     const soeur = offreCozy("abr-9", "Abritel", {
       title: "Chalet des Cimes, vue glacier",
       total: 2600,
@@ -3259,6 +3266,31 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
     assert.equal(xs[0].capacity, 8);
     assert.match(xs[0].proven, /même logement/);
     assert.equal(agreger([xs[0]], CTX).n, 1);
+  });
+
+  it("Airbnb : sa page lue sans capacité, celle du titre compte ; pas avant", () => {
+    const muet = annonce({ id: "airbnb-8", title: "Chalet familial 10 personnes", capacity: null });
+    assert.equal(enrichirListing(muet).capacity, null);
+    const [l] = appliquerCorrectifs([muet], { correctifs: { "airbnb-8": { pdpLue: true } }, retires: [] }, S2A);
+    assert.deepEqual([l.capacity, l.capacitySource, l.pdpLue], [10, "text_regex", true]);
+    assert.equal(agreger([l], CTX).n, 1);
+  });
+
+  it("Airbnb : la sœur ne lui prête ni capacité ni chambres, sa page le fera", () => {
+    const muet = annonce({ id: "airbnb-9", title: "Chalet des Cimes, vue glacier", capacity: null, bedrooms: null });
+    const soeur = offreCozy("abr-9", "Abritel", {
+      title: "Chalet des Cimes, vue glacier",
+      total: 2600,
+      url: "https://www.abritel.fr/location-vacances/p9",
+    });
+    const xs = appliquerCorrectifs([muet, soeur], recopieDuReleve([muet, soeur]), S2A);
+    assert.deepEqual([xs[0].capacity, xs[0].bedrooms], [null, null]);
+    assert.equal(xs.length, 2);
+    assert.deepEqual(agreger([xs[0]], CTX), { n: 0, muettes: 1, petits: 0, med: null });
+    assert.deepEqual(
+      aCompleter(xs, CTX).map((l) => l.id),
+      ["airbnb-9"],
+    );
   });
 });
 

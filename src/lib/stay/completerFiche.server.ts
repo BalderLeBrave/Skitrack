@@ -18,13 +18,16 @@ import { airbnbCookieHeader } from "./airbnbSession.server.ts";
 import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
 import { PAUSE_MAX_MS, estHoteAirbnb, estRefus, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
-import { lectureFiche, type LectureFiche } from "./lectureFiche.ts";
+import { lectureAirbnb, lectureFiche, pageAirbnbLisible, type LectureFiche } from "./lectureFiche.ts";
+import { adressePourBan, BAN_URL, pointBan, requeteBan, type FeatureBan, type SourceGps } from "./repliGps.ts";
+import { stationById } from "../stations.ts";
 import { poserValeur, qualifierLogement, valeurDuTexte } from "./logement.ts";
 import { PAR_HOTE, parHote, RythmeHotes, semaphore } from "./limiteHotes.ts";
 import { horsFraisSejour } from "./tarif.ts";
 import { poserReleve } from "./poserReleve.ts";
 import {
   choisirFiches,
+  airbnbComplet,
   clePage,
   disjoncteur,
   ecrireLaissees,
@@ -75,6 +78,9 @@ const cache = new Map<string, CacheEntry>();
  * comblent rien.
  */
 function trouee(l: Listing): boolean {
+  // Airbnb : les trois champs, toujours. Des chambres absentes sont un trou
+  // même avec des pièces, 0 personne n'est pas une capacité (`airbnbComplet`).
+  if (l.source === "Airbnb" && !airbnbComplet(l)) return true;
   if (l.capacity == null) return true;
   if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) return true;
   if (valeurDuTexte(l, "capacity") || valeurDuTexte(l, "bedrooms")) return true;
@@ -88,10 +94,11 @@ function trouee(l: Listing): boolean {
  *  valeur lue dans le texte, si bien qu'aucune annonce qui n'a que des
  *  valeurs du texte ne passe devant une annonce muette. */
 function trousN(l: Listing): number {
+  const airbnb = l.source === "Airbnb";
   let n = 0;
-  if (l.capacity == null) n += 10;
+  if (l.capacity == null || (airbnb && !(l.capacity > 0))) n += 10;
   else if (valeurDuTexte(l, "capacity")) n += 1;
-  if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) n += 10;
+  if (l.bedrooms == null && (airbnb || l.rooms == null || l.rooms <= 0)) n += 10;
   else if (valeurDuTexte(l, "bedrooms")) n += 1;
   if (!plausible(l.lat, l.lon)) n += 10;
   return n;
@@ -179,16 +186,26 @@ export function poserLecture(
   // Un champ structuré de la page de détail passe devant le texte, jamais
   // devant celui de la plateforme ; les chambres dérivées suivent ensuite.
   let logement = false;
+  // Airbnb : la page lue, ce qu'elle ne publie pas y manque vraiment ; une
+  // capacité absente devient celle du titre (`capaciteIntrouvable`).
+  const pageNeuve = Boolean(lect.pageLue) && row.source === "Airbnb" && row.pdpLue !== true;
+  if (pageNeuve) row.pdpLue = true;
   if (poserValeur(row, "capacity", lect.capacity, lect.capacitySource ?? "structured")) logement = true;
   if (poserValeur(row, "bedrooms", lect.bedrooms, lect.bedroomsSource ?? "structured")) logement = true;
   if (poserValeur(row, "rooms", lect.rooms, "structured")) logement = true;
   if (logement) {
     Object.assign(row, qualifierLogement(row));
     changed = true;
+  } else if (pageNeuve && row.capacity == null) {
+    Object.assign(row, qualifierLogement(row));
+    if (row.capacity != null) changed = true;
   }
   if (!plausible(row.lat, row.lon) && plausible(lect.lat, lect.lon)) {
     row.lat = lect.lat;
     row.lon = lect.lon;
+    // Airbnb : le point dit d'où il vient (`repliGps.ts`). Un point de la
+    // liste n'est jamais touché : on n'arrive ici que sans lui.
+    if (lect.gpsSource) row.gpsSource = lect.gpsSource;
     changed = true;
   }
   if (!row.locality && lect.locality) {
@@ -286,6 +303,56 @@ async function geocodeRue(street: string, locality: string | null): Promise<{ la
   }
 }
 
+/** Les réponses BAN déjà reçues, par requête : une adresse ne se redemande pas. */
+const banCache = new Map<string, { at: number; features: FeatureBan[] | null }>();
+
+/**
+ * La Base Adresse Nationale, pour une adresse déjà publiée par une page
+ * Airbnb lue. `null` si le service ne répond pas : le point reste un trou.
+ */
+async function geocoderBan(q: string): Promise<FeatureBan[] | null> {
+  const deja = banCache.get(q);
+  if (deja && Date.now() - deja.at < HIT_MS) return deja.features;
+  try {
+    const u = new URL(BAN_URL);
+    u.searchParams.set("q", q);
+    u.searchParams.set("limit", "5");
+    const res = await fetch(u, {
+      headers: { Accept: "application/json", "User-Agent": "Skitrack/1.0" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const corps = (await res.json()) as { features?: FeatureBan[] };
+    const features = Array.isArray(corps?.features) ? corps.features : [];
+    banCache.set(q, { at: Date.now(), features });
+    return features;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Le repli d'une page Airbnb lue sans `listingLat` / `listingLng`, dans
+ * l'ordre : coordonnées déjà écrites dans la page (`page`), puis l'adresse de
+ * voie qu'elle publie, géocodée par la BAN et jugée par `pointBan` (`ban`).
+ * Le jumelage vient après, sur le relevé entier (`recopie.ts`). `null` : la
+ * page ne dit rien de plus, le trou reste nommé.
+ */
+async function repliGpsAirbnb(
+  html: string,
+  row: Listing,
+): Promise<{ lat: number; lon: number; source: SourceGps } | null> {
+  // Ce que la page écrit en nombres : JSON-LD, attributs, paires lat/lng.
+  const page = lectureFiche(html);
+  if (plausible(page.lat, page.lon)) return { lat: page.lat as number, lon: page.lon as number, source: "page" };
+  const adresse = adressePourBan(page.street, page.postcode, page.locality ?? row.locality ?? null);
+  if (!adresse) return null;
+  const station = stationById(row.stationId);
+  if (!station) return null;
+  const point = pointBan(await geocoderBan(requeteBan(adresse)), adresse, { lat: station.lat, lon: station.lon });
+  return point ? { ...point, source: "ban" } : null;
+}
+
 async function fillAdresses(listings: Listing[], until: number, communes: ReadonlySet<string>): Promise<number> {
   const cluster = clusterGps(listings);
   if (!cluster) return 0;
@@ -293,6 +360,9 @@ async function fillAdresses(listings: Listing[], until: number, communes: Readon
   for (const row of listings) {
     if (Date.now() >= until) break;
     if (plausible(row.lat, row.lon)) continue;
+    // Airbnb : la BAN seule, jugée par `pointBan` (`repliGpsAirbnb`), jamais
+    // ce géocodage-ci, qui ne juge le point qu'au centre des autres.
+    if (row.source === "Airbnb") continue;
     const url = ficheUrlOf(row);
     if (!url) continue;
     // La rue d'une page commune est celle de l'office ou de l'agence.
@@ -650,12 +720,139 @@ async function fillAirbnbSeq(
       suite.ouvertes.push({ row, lect: null });
       continue;
     }
-    const lect = lectureFiche(got.html);
-    cache.set(cacheKey(url), { at: Date.now(), lect, hit: utile(lect) });
+    // La page Airbnb ne rattrape que ce qu'elle publie en champs : capacité,
+    // chambres, point (`lectureAirbnb`). Ni titre ni texte. Lue sans point,
+    // et seulement lue : le repli de la page elle-même (`repliGpsAirbnb`).
+    if (!pageAirbnbLisible(got.html)) {
+      // Une coquille sans les données du logement n'est pas une page lue :
+      // pas de repli, et elle se relira dans une demi-heure.
+      cache.set(cacheKey(url), { at: Date.now(), lect: VIDE, hit: false });
+      suite.ouvertes.push({ row, lect: null });
+      continue;
+    }
+    let lect: LectureFiche = { ...lectureAirbnb(got.html), pageLue: true };
+    if (!plausible(row.lat, row.lon) && !plausible(lect.lat, lect.lon)) {
+      const repli = await repliGpsAirbnb(got.html, row);
+      if (repli) lect = { ...lect, lat: repli.lat, lon: repli.lon, gpsSource: repli.source };
+    }
+    // Lue : ce qu'elle publie, ou ne publie pas, vaut pour la journée.
+    cache.set(cacheKey(url), { at: Date.now(), lect, hit: true });
     if (poserLecture(row, lect)) suite.filled += 1;
     suite.ouvertes.push({ row, lect });
   }
   return suite;
+}
+
+/* ---------- Fiches Airbnb : la suite en tâche de fond ---------- */
+
+/** Une suite ne dure pas plus ; ce qui reste attend la recherche suivante. */
+const SUITE_AIRBNB_MAX_MS = 45 * 60_000;
+/** Une fiche de la suite, attente du créneau comprise, ne dure pas plus. */
+const FICHE_SUITE_MS = 60_000;
+/** Pauses de coupe-circuit de suite qu'une suite attend, après quoi elle laisse la file à la recherche suivante. */
+const REFUS_SUITE_MAX = 3;
+/** Les annonces Airbnb dont la page reste à lire, une fois chacune (clé de page). */
+const suiteAirbnb = new Map<string, Listing>();
+let suiteAirbnbEnCours = false;
+
+/**
+ * Les pages Airbnb que le budget de la recherche n'a pas couvertes.
+ *
+ * Une recherche n'a que quelques dizaines de secondes, et Airbnb pas plus de
+ * dix-huit appels par minute : à Abondance, le 1er octobre 2026, 226 annonces
+ * à GPS attendaient leur page et aucune n'était lue (« 0/226 »). La suite
+ * les lit ensuite, une à une, au rythme de l'écran Prix en arrière-plan
+ * (`ROOMS_PROFOND`, 6 s au moins entre deux pages), par le même limiteur et
+ * le même coupe-circuit : après un refus (429, 503, 403, page de blocage),
+ * elle attend la pause demandée, puis reprend la même page ; trois pauses de
+ * suite, elle laisse la file à la recherche suivante. Un refus n'est pas un
+ * échec de GPS : rien ne passe au repli. Ce qu'elle lit entre dans le cache des fiches, et la
+ * recherche suivante le pose sans rien redemander. Aucune annonce n'est
+ * retirée : ce que la page ne publie pas reste un trou, nommé au journal.
+ * Rend le nombre d'annonces ajoutées à la file.
+ */
+function lancerSuiteAirbnb(rows: readonly Listing[]): number {
+  let ajoutees = 0;
+  for (const row of rows) {
+    const url = ficheUrlOf(row);
+    // Déjà lue, ou coquille relue il y a peu : le cache le dit. Une page
+    // refusée, elle, reste à lire : la suite attendra la pause.
+    if (!url || lectureEnCache(url)) continue;
+    const k = cacheKey(url);
+    if (suiteAirbnb.has(k)) continue;
+    suiteAirbnb.set(k, { ...row });
+    ajoutees += 1;
+  }
+  if (!suiteAirbnbEnCours && suiteAirbnb.size > 0) void deroulerSuiteAirbnb();
+  return ajoutees;
+}
+
+async function deroulerSuiteAirbnb(): Promise<void> {
+  suiteAirbnbEnCours = true;
+  const fin = Date.now() + SUITE_AIRBNB_MAX_MS;
+  const compte: Compte = { lues: 0 };
+  const essais = new Map<string, number>();
+  const dormir = (ms: number) => new Promise((r) => setTimeout(r, Math.max(0, ms)));
+  let comblees = 0;
+  let refus = 0;
+  let arret: string | null = null;
+  try {
+    while (suiteAirbnb.size > 0) {
+      if (Date.now() >= fin) {
+        arret = "échéance";
+        break;
+      }
+      // Un refus d'Airbnb (429, 503, 403, page de blocage) a ouvert le
+      // coupe-circuit : la pause qu'il demande d'abord, puis la même page.
+      // Ce n'est pas un échec de GPS : rien ne passe au repli.
+      if (circuitOpen()) {
+        refus += 1;
+        if (refus > REFUS_SUITE_MAX) {
+          arret = "refus répétés d'Airbnb, la recherche suivante reprendra";
+          break;
+        }
+        await dormir(Math.min(airbnbCircuitRestantMs() + 5_000, fin - Date.now()));
+        continue;
+      }
+      const [k, row] = suiteAirbnb.entries().next().value as [string, Listing];
+      const until = Math.min(fin, Date.now() + FICHE_SUITE_MS);
+      const s = await fillAirbnbSeq([row], until, compte, ROOMS_PROFOND);
+      if (s.arret === "refus" || s.arret === "coupe-circuit") {
+        if (!circuitOpen()) await dormir(ROOMS_PROFOND.ecartMs);
+        continue;
+      }
+      if (s.arret === "rythme") {
+        // Le créneau n'est pas venu : la même page attend son tour.
+        await dormir(Math.min(Math.max(s.attenteMs ?? 0, 1_000), FICHE_SUITE_MS));
+        continue;
+      }
+      suiteAirbnb.delete(k);
+      if (s.ouvertes.length > 0) {
+        // Lue (pleine ou non), ou partie sans réponse : la page a eu sa chance.
+        comblees += s.filled;
+        refus = 0;
+        continue;
+      }
+      // Pas partie à temps : en fin de file, trois essais au plus.
+      const n = (essais.get(k) ?? 0) + 1;
+      if (n < 3) {
+        essais.set(k, n);
+        suiteAirbnb.set(k, row);
+      }
+    }
+  } catch (err) {
+    arret = err instanceof Error ? err.message : String(err);
+  } finally {
+    suiteAirbnbEnCours = false;
+    console.info(
+      `[fiche] Airbnb en tâche de fond : ${compte.lues} pages lues, ${comblees} annonce(s) complétée(s), ${suiteAirbnb.size} restante(s)${arret ? `, arrêt : ${arret}` : ""}`,
+    );
+  }
+}
+
+/** Pour les tests : la file de la suite Airbnb, et si elle tourne. */
+export function etatSuiteAirbnb(): { file: number; enCours: boolean } {
+  return { file: suiteAirbnb.size, enCours: suiteAirbnbEnCours };
 }
 
 /**
@@ -697,24 +894,41 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
     todo.push(row);
   }
   // Ce que la fiche ne peut pas combler n'est pas ouvert (voir priseFiche.ts),
-  // et le tri précède la borne : un Airbnb à GPS, qu'on n'ouvre jamais, ne
-  // prend plus la place d'une fiche qu'on ouvrirait.
+  // et le tri précède la borne : un Airbnb complet à GPS, qu'on n'ouvre
+  // jamais, ne prend plus la place d'une fiche qu'on ouvrirait.
   const { aLire, laissees } = choisirFiches(todo, ficheUrlOf, communes);
   const compte: Compte = { lues: 0 };
+  const estAirbnb = (l: Listing) => l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? "");
+  // Toutes les annonces Airbnb à lire, au-delà de la borne aussi : ce que la
+  // recherche n'aura pas le temps de lire part en tâche de fond.
+  const airbnbALire = aLire.filter(estAirbnb);
+  let enFond = 0;
   if (aLire.length > 0 && Date.now() < until) {
     const targets = aLire.slice(0, MAX_FICHES);
-    // GPS déjà là : pas de rooms/, c'est ce fetch qui ouvre le 429. `choisirFiches` les a laissés.
-    const airbnb = targets.filter((l) => l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? ""));
-    const autres = targets.filter((l) => !(l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? "")));
-    filled += (await fillPool(autres, until, WORKERS, compte)).filled;
-    if (airbnb.length && !circuitOpen()) {
-      filled += (await fillAirbnbSeq(airbnb, until, compte)).filled;
-    } else if (airbnb.length && circuitOpen()) {
+    // Un Airbnb ne s'ouvre que s'il manque son GPS, sa capacité ou ses
+    // chambres (`raisonDeLaisser`) : ce fetch est celui qui ouvre le 429, il
+    // part une fiche à la fois, au rythme de `fillAirbnbSeq`. Les autres
+    // hôtes et Airbnb vont de front : ce ne sont pas les mêmes files.
+    const airbnb = targets.filter(estAirbnb);
+    const autres = targets.filter((l) => !estAirbnb(l));
+    const [pool, seq] = await Promise.all([
+      fillPool(autres, until, WORKERS, compte),
+      airbnb.length && !circuitOpen() ? fillAirbnbSeq(airbnb, until, compte) : Promise.resolve(null),
+    ]);
+    filled += pool.filled + (seq?.filled ?? 0);
+    if (airbnb.length && seq == null) {
       console.warn(`[fiche] ${enPause()} — ${airbnb.length} fiches reportées`);
     }
+    // Ce que la recherche n'a pas ouvert part en tâche de fond, au-delà de la
+    // borne aussi ; après un refus, la suite attend d'abord la pause.
+    const ouvertes = new Set(seq?.ouvertes.map((o) => o.row.id) ?? []);
+    enFond = lancerSuiteAirbnb(airbnbALire.filter((l) => !ouvertes.has(l.id)));
+  } else if (airbnbALire.length > 0) {
+    enFond = lancerSuiteAirbnb(airbnbALire);
   }
   console.info(
-    `[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${compte.lues} lues${ecrireLaissees(laissees)}`,
+    `[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${compte.lues} lues${ecrireLaissees(laissees)}` +
+      (enFond > 0 ? ` · ${enFond} Airbnb à lire en tâche de fond` : ""),
   );
   filled += await fillAdresses(listings, until, communes);
   await verifierFichesGites(listings, until);

@@ -96,7 +96,7 @@ function fromJsonLd(html: string): { minM: number | null; maxM: number | null; c
 function photoUrl(html: string): string | null {
   const og = /property=["']og:image["'][^>]*content=["']([^"']+)["']/i.exec(html)
     ?? /content=["']([^"']+)["'][^>]*property=["']og:image["']/i.exec(html);
-  let url = og?.[1]?.replace(/&/g, "&") ?? null;
+  let url = og?.[1]?.replace(/&amp;/g, "&") ?? null;
   if (url?.includes("resort_header")) url = null;
   if (url?.includes("cdn.bfldr.com")) return url;
   const gallery = /https:\/\/cdn\.bfldr\.com\/[^"\\\s]+/.exec(html);

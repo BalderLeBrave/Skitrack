@@ -57,9 +57,12 @@ const ENTITES: Record<string, string> = {
 
 function decoder(s: string): string {
   return s
-    .replace(/&([A-Za-z]+);/g, (brut, nom: string) => ENTITES[nom] ?? brut)
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(Number.parseInt(h, 16)))
+    // Une seule passe : `&amp;#39;` donne `&#39;`, pas une apostrophe.
+    .replace(/&(?:#(\d+)|#x([0-9a-f]+)|([A-Za-z]+));/gi, (brut, dec?: string, hex?: string, nom?: string) => {
+      if (dec) return String.fromCharCode(Number(dec));
+      if (hex) return String.fromCharCode(Number.parseInt(hex, 16));
+      return ENTITES[nom ?? ""] ?? brut;
+    })
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .replace(/^-->/, "")

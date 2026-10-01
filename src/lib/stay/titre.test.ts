@@ -40,4 +40,11 @@ describe("titre d'annonce, pas nom de fichier", () => {
     assert.equal(titrePublie("La P&acirc;ture"), "La Pâture");
     assert.equal(titrePublie("G&icirc;tes de France&reg;"), "Gîtes de France®");
   });
+
+  it("décode en une seule passe : &amp;#39; reste &#39;", () => {
+    assert.equal(titrePublie("Chalet L&#x27;Arolle"), "Chalet L'Arolle");
+    assert.equal(titrePublie("Chalet L&amp;#39;Arolle"), "Chalet L&#39;Arolle");
+    assert.equal(titrePublie("Chalet L&amp;#x27;Arolle"), "Chalet L&#x27;Arolle");
+    assert.equal(titrePublie("Ride &amp;amp; Breakfast"), "Ride &amp; Breakfast");
+  });
 });

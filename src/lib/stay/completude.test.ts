@@ -5,7 +5,7 @@ import { completudeOf, galerieOf, trouLbl, trousPhrase } from "./completude.ts";
 function sujet(extra: Partial<Parameters<typeof completudeOf>[0]> = {}) {
   return {
     total: 1800,
-    guests: 8,
+    capacity: 8,
     bedrooms: 3,
     rooms: null,
     lat: 45.01,
@@ -43,7 +43,7 @@ describe("completude : ce qui manque se nomme, un zéro n'est pas un prix", () =
 
   it("GPS, photo, lien, capacité : chaque absence a son nom", () => {
     const c = completudeOf(
-      sujet({ guests: null, lat: null, lon: null, photo: null, url: null, total: 0, bedrooms: null }),
+      sujet({ capacity: null, lat: null, lon: null, photo: null, url: null, total: 0, bedrooms: null }),
     );
     assert.deepEqual(c.trous, ["prix", "capacite", "chambres", "gps", "photo", "url"]);
   });
@@ -62,7 +62,7 @@ describe("completude : ce qui manque se nomme, un zéro n'est pas un prix", () =
     const phrase = trousPhrase([
       sujet(),
       sujet({ lat: null, lon: null, url: null }),
-      sujet({ guests: null, total: 0 }),
+      sujet({ capacity: null, total: 0 }),
     ]);
     assert.equal(phrase, "1 sans prix, 1 sans capacité, 1 sans GPS, 1 sans lien");
     // Un studio (0 chambre) n'est pas un trou ; un nombre de chambres absent l'est.

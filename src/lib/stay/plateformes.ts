@@ -25,7 +25,7 @@ export type SujetPlateforme = {
   source: string;
   total: number;
   url?: string | null;
-  guests?: number | null;
+  capacity?: number | null;
   bedrooms?: number | null;
   rooms?: number | null;
   lat?: number | null;
@@ -212,7 +212,7 @@ function colonneOf(
     nCompletes: rows.filter((l) =>
       completudeOf({
         total: l.total,
-        guests: l.guests ?? null,
+        capacity: l.capacity ?? null,
         bedrooms: l.bedrooms ?? null,
         rooms: l.rooms ?? null,
         lat: l.lat ?? null,

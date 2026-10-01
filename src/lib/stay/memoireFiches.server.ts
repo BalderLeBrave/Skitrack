@@ -30,6 +30,7 @@
 import { mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
+import { poserValeur, RANG_SOURCE, type SourceCapacite, type SourceValeur } from "./logement.ts";
 
 /** Trente jours : au-delà, une annonce a pu changer (travaux, nouvelle capacité). */
 export const DUREE_MEMOIRE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -38,11 +39,15 @@ const RAFRAICHIR_MS = 24 * 60 * 60 * 1000;
 
 /** Ce qu'une source a publié sur une annonce. `null` : elle ne l'a pas dit. */
 export type ValeursFiche = {
-  guests: number | null;
+  capacity: number | null;
   bedrooms: number | null;
   rooms: number | null;
   lat: number | null;
   lon: number | null;
+  /** La source de la capacité et des chambres gardées : un champ structuré
+   *  (fiche, API) ou un texte. Absente d'un fichier plus ancien : structurée. */
+  capacitySource?: SourceCapacite | null;
+  bedroomsSource?: SourceValeur | null;
   /** Airbnb : hôtel, chambre ou hébergement insolite, qui n'est pas un logement entier. */
   ecartee?: boolean;
   /**
@@ -56,15 +61,15 @@ export type ValeursFiche = {
  * La dernière publication de chaque valeur rendue par `lire`, en ms. Le point
  * (lat, lon) n'en a qu'une, sous `point`. Une valeur absente n'a pas de date.
  */
-export type DatesFiche = Partial<Record<"guests" | "bedrooms" | "rooms" | "point", number>>;
+export type DatesFiche = Partial<Record<"capacity" | "bedrooms" | "rooms" | "point", number>>;
 /** Ce que `lire` rend : les valeurs, et la date de chacune. */
 export type ValeursLues = ValeursFiche & { dates: DatesFiche };
 
 /** Ce qui se date une à une : chaque valeur, et la lecture de la fiche. */
-type Datee = "guests" | "bedrooms" | "rooms" | "point" | "ecartee" | "lue";
+type Datee = "capacity" | "bedrooms" | "rooms" | "point" | "ecartee" | "lue";
 type Dates = Partial<Record<Datee, number>>;
-const DATEES: readonly Datee[] = ["guests", "bedrooms", "rooms", "point", "ecartee", "lue"];
-const NOMBRES = ["guests", "bedrooms", "rooms"] as const;
+const DATEES: readonly Datee[] = ["capacity", "bedrooms", "rooms", "point", "ecartee", "lue"];
+const NOMBRES = ["capacity", "bedrooms", "rooms"] as const;
 /** Les dates qu'on montre : celles des valeurs, pas celles de l'écart ni de la lecture. */
 const MONTREES = [...NOMBRES, "point"] as const;
 
@@ -104,20 +109,39 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
   const lat = coordonnee(v?.lat, 90);
   const lon = coordonnee(v?.lon, 180);
   const point = lat != null && lon != null && !(lat === 0 && lon === 0);
+  // Un fichier d'avant le 1er octobre 2026 écrivait la capacité `guests`.
+  const capacity = entier(v?.capacity ?? (v as { guests?: unknown } | null | undefined)?.guests, 1);
+  const bedrooms = entier(v?.bedrooms, 0);
+  const capacitySource = capacity != null ? (sourceLue(v?.capacitySource, false) as SourceCapacite | null) : null;
+  const bedroomsSource = bedrooms != null ? sourceLue(v?.bedroomsSource, true) : null;
   return {
-    guests: entier(v?.guests, 1),
-    bedrooms: entier(v?.bedrooms, 0),
+    capacity,
+    bedrooms,
     rooms: entier(v?.rooms, 1),
     lat: point ? lat : null,
     lon: point ? lon : null,
+    ...(capacitySource ? { capacitySource } : {}),
+    ...(bedroomsSource ? { bedroomsSource } : {}),
     ...(typeof v?.ecartee === "boolean" ? { ecartee: v.ecartee } : {}),
     ...(v?.lue === true ? { lue: true } : {}),
   };
 }
 
+function sourceLue(v: unknown, derivee: boolean): SourceValeur | null {
+  if (v === "structured" || v === "text_regex") return v;
+  return derivee && v === "derived_from_type" ? v : null;
+}
+
+/** La source d'une valeur gardée ; sans source, un champ structuré. */
+function sourceDe(v: ValeursFiche, k: (typeof NOMBRES)[number]): SourceValeur {
+  if (k === "capacity") return v.capacitySource ?? "structured";
+  if (k === "bedrooms") return v.bedroomsSource ?? "structured";
+  return "structured";
+}
+
 function utile(v: ValeursFiche): boolean {
   return (
-    v.guests != null ||
+    v.capacity != null ||
     v.bedrooms != null ||
     v.rooms != null ||
     v.lat != null ||
@@ -130,7 +154,8 @@ function datesLues(brut: unknown): Dates | undefined {
   if (!brut || typeof brut !== "object") return undefined;
   const out: Dates = {};
   for (const k of DATEES) {
-    const t = (brut as Record<string, unknown>)[k];
+    // La date de la capacité s'écrivait `guests` avant le 1er octobre 2026.
+    const t = (brut as Record<string, unknown>)[k] ?? (k === "capacity" ? (brut as Record<string, unknown>).guests : undefined);
     if (typeof t === "number" && Number.isFinite(t)) out[k] = t;
   }
   return out;
@@ -143,12 +168,14 @@ function datesLues(brut: unknown): Dates | undefined {
 function fraiche(e: Entree, now: number, dureeMs: number): Datees | null {
   const date = (k: Datee): number => e.dates?.[k] ?? e.vu;
   const frais = (k: Datee): boolean => now - date(k) <= dureeMs;
-  const out: Datees = { guests: null, bedrooms: null, rooms: null, lat: null, lon: null, vu: 0, dates: {} };
+  const out: Datees = { capacity: null, bedrooms: null, rooms: null, lat: null, lon: null, vu: 0, dates: {} };
   for (const k of NOMBRES) {
     if (e[k] == null || !frais(k)) continue;
     out[k] = e[k];
     out.dates[k] = date(k);
   }
+  if (out.capacity != null && e.capacitySource) out.capacitySource = e.capacitySource;
+  if (out.bedrooms != null && e.bedroomsSource) out.bedroomsSource = e.bedroomsSource;
   if (e.lat != null && e.lon != null && frais("point")) {
     out.lat = e.lat;
     out.lon = e.lon;
@@ -271,11 +298,13 @@ export class MemoireFiches {
       if (t != null) dates[k] = t;
     }
     return {
-      guests: f.guests,
+      capacity: f.capacity,
       bedrooms: f.bedrooms,
       rooms: f.rooms,
       lat: f.lat,
       lon: f.lon,
+      ...(f.capacitySource ? { capacitySource: f.capacitySource } : {}),
+      ...(f.bedroomsSource ? { bedroomsSource: f.bedroomsSource } : {}),
       ...(typeof f.ecartee === "boolean" ? { ecartee: f.ecartee } : {}),
       ...(f.dates.lue != null ? { lue: true } : {}),
       dates,
@@ -284,8 +313,9 @@ export class MemoireFiches {
 
   /**
    * Note ce que des sources viennent de publier. Une valeur publiée remplace
-   * celle d'avant (elle est plus récente) et prend la date du jour ; une
-   * absence n'efface rien, et ne rajeunit pas la valeur qu'on avait. `lue` :
+   * celle d'avant (elle est plus récente) et prend la date du jour, sauf si
+   * elle vient d'une moins bonne source (un titre contre un champ structuré) ;
+   * une absence n'efface rien, et ne rajeunit pas la valeur qu'on avait. `lue` :
    * la fiche vient d'être lue. N'écrit le fichier que si quelque chose a
    * changé. Rend le nombre d'annonces notées ou rafraîchies.
    */
@@ -303,7 +333,7 @@ export class MemoireFiches {
       const a = avant ? fraiche(avant, now, this.dureeMs) : null;
       const apres: Datees = a
         ? { ...a, dates: { ...a.dates } }
-        : { guests: null, bedrooms: null, rooms: null, lat: null, lon: null, vu: now, dates: {} };
+        : { capacity: null, bedrooms: null, rooms: null, lat: null, lon: null, vu: now, dates: {} };
       let change = a == null;
       // Une valeur revue telle quelle n'est réécrite, pour sa date, qu'une fois par jour.
       const revoir = (k: Datee, pareille: boolean) => {
@@ -313,8 +343,13 @@ export class MemoireFiches {
       for (const k of NOMBRES) {
         const x = v[k];
         if (x == null) continue;
-        revoir(k, apres[k] === x);
+        const source = sourceDe(v, k);
+        const avantSource = sourceDe(apres, k);
+        if (apres[k] != null && RANG_SOURCE[source] > RANG_SOURCE[avantSource]) continue;
+        revoir(k, apres[k] === x && source === avantSource);
         apres[k] = x;
+        if (k === "capacity") apres.capacitySource = v.capacitySource ?? null;
+        if (k === "bedrooms") apres.bedroomsSource = v.bedroomsSource ?? null;
       }
       if (v.lat != null && v.lon != null) {
         revoir("point", apres.lat === v.lat && apres.lon === v.lon);
@@ -353,30 +388,27 @@ export class MemoireFiches {
 
 /** Ce qu'on peut combler d'une annonce : les trous seulement. */
 export type SujetMemoire = {
-  guests: number | null;
+  capacity: number | null;
+  capacitySource?: SourceCapacite | null;
   bedrooms: number | null;
+  bedroomsSource?: SourceValeur | null;
+  isStudio?: boolean | null;
   rooms?: number | null;
   lat: number | null;
   lon: number | null;
 };
 
 /**
- * Pose sur `row` ce que la mémoire sait et que l'annonce tait. Jamais une
- * valeur publiée remplacée. Rend `true` si quelque chose a été posé.
+ * Pose sur `row` ce que la mémoire sait et que l'annonce tait, ou qu'elle ne
+ * tient que d'une moins bonne source : chaque valeur avec sa source gardée
+ * (`poserValeur`). Jamais un champ structuré remplacé. Rend `true` si
+ * quelque chose a été posé ; à l'appelant de requalifier l'annonce
+ * (`qualifierLogement`).
  */
 export function comblerDepuisMemoire(row: SujetMemoire, m: ValeursFiche): boolean {
   let pose = false;
-  if (row.guests == null && m.guests != null) {
-    row.guests = m.guests;
-    pose = true;
-  }
-  if (row.bedrooms == null && m.bedrooms != null) {
-    row.bedrooms = m.bedrooms;
-    pose = true;
-  }
-  if ((row.rooms == null || row.rooms <= 0) && m.rooms != null) {
-    row.rooms = m.rooms;
-    pose = true;
+  for (const champ of NOMBRES) {
+    if (poserValeur(row, champ, m[champ], sourceDe(m, champ))) pose = true;
   }
   const point =
     row.lat != null &&

@@ -15,7 +15,7 @@ function annonce(extra: Partial<Listing & AvecCompletude> = {}): Listing & AvecC
     source: "Centrale",
     total: 1800,
     currency: "EUR",
-    guests: 6,
+    capacity: 6,
     bedrooms: 2,
     available: true,
     photo: null,
@@ -44,7 +44,7 @@ function remontee(extra: Partial<NearestLift> = {}): NearestLift {
 describe("porte : ce qui sort porte une completude entière", () => {
   it("les trois champs sont là, même sur une annonce nue", () => {
     const out = passerLaPorte(
-      annonce({ guests: null, bedrooms: null, lat: null, lon: null }),
+      annonce({ capacity: null, bedrooms: null, lat: null, lon: null }),
       "releve",
     );
     assert.deepEqual(out.completude.bedrooms, inconnu("Centrale", "non publié par la source"));
@@ -65,7 +65,7 @@ describe("porte : ce qui sort porte une completude entière", () => {
 
   it("un statut unknown ne porte jamais 0", () => {
     const cas = [
-      annonce({ guests: 0, bedrooms: null, rooms: 0 }),
+      annonce({ capacity: 0, bedrooms: null, rooms: 0 }),
       annonce({
         completude: { capacity: { value: 0, status: "unknown", source: "", reason: "x" } },
       }),
@@ -97,11 +97,11 @@ describe("porte : ce qui sort porte une completude entière", () => {
 
   it("guests à 0 ou négatif : hors bornes, pas une capacité", () => {
     assert.deepEqual(
-      passerLaPorte(annonce({ guests: 0 }), "releve").completude.capacity,
+      passerLaPorte(annonce({ capacity: 0 }), "releve").completude.capacity,
       inconnu("Centrale", "valeur hors bornes : 0"),
     );
     assert.deepEqual(
-      passerLaPorte(annonce({ guests: -2 }), "releve").completude.capacity,
+      passerLaPorte(annonce({ capacity: -2 }), "releve").completude.capacity,
       inconnu("Centrale", "valeur hors bornes : -2"),
     );
   });
@@ -136,7 +136,7 @@ describe("porte : ce qui sort porte une completude entière", () => {
   });
 
   it("la capacité ne se dérive jamais des pièces ni des chambres", () => {
-    const out = passerLaPorte(annonce({ guests: null, bedrooms: 3, rooms: 4 }), "releve");
+    const out = passerLaPorte(annonce({ capacity: null, bedrooms: 3, rooms: 4 }), "releve");
     assert.deepEqual(out.completude.capacity, inconnu("Centrale", "non publié par la source"));
   });
 
@@ -144,7 +144,7 @@ describe("porte : ce qui sort porte une completude entière", () => {
     const out = passerLaPorte(
       annonce({
         title: "Chalet 4 chambres, 8 personnes",
-        guests: null,
+        capacity: null,
         bedrooms: null,
         rooms: null,
       }),
@@ -156,7 +156,7 @@ describe("porte : ce qui sort porte une completude entière", () => {
 
   it("en mémoire, les trois sont inconnus, même si l'annonce porte des nombres", () => {
     const out = passerLaPorte(
-      annonce({ guests: 6, bedrooms: 2, rooms: 3, lat: 45.01, lon: 6.12 }),
+      annonce({ capacity: 6, bedrooms: 2, rooms: 3, lat: 45.01, lon: 6.12 }),
       "memoire",
     );
     assert.deepEqual(out.completude.bedrooms, inconnu("Centrale", MEMOIRE));
@@ -304,8 +304,8 @@ describe("porte : ce qui sort porte une completude entière", () => {
   it("passer deux fois la porte ne change rien", () => {
     const cas = [
       annonce(),
-      annonce({ guests: null, bedrooms: null, rooms: 3, lat: null, lon: null }),
-      annonce({ guests: 0, bedrooms: -1 }),
+      annonce({ capacity: null, bedrooms: null, rooms: 3, lat: null, lon: null }),
+      annonce({ capacity: 0, bedrooms: -1 }),
       annonce({
         completude: { bedrooms: { value: 2, status: "unknown", source: "", reason: "r" } },
       }),

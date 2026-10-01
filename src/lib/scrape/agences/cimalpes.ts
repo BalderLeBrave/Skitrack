@@ -29,6 +29,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const CIMALPES_SITE = "https://cimalpes.com";
 const RECHERCHE = `${CIMALPES_SITE}/fr/recherche-location/`;
@@ -168,6 +169,8 @@ export type CarteCimalpes = {
   lieu: string | null;
   /** « N voyageurs » : adultes et enfants. */
   capacite: number | null;
+  /** Le 0 chambre vient du mot « Studio », pas d'un nombre écrit. */
+  studio: boolean;
   /** Chambres publiées ; un studio en a 0. */
   chambres: number | null;
   surface: number | null;
@@ -221,6 +224,7 @@ function lireCarte(p: string): CarteCimalpes | null {
     lieu: texte(paragraphe(p, "lieuproduct")),
     capacite: entier(/(\d+)\s*voyageurs?\b/i.exec(detail)?.[1], 100),
     chambres: chambres != null ? entier(chambres, 50) : /\bstudio\b/i.test(detail) ? 0 : null,
+    studio: chambres == null && /\bstudio\b/i.test(detail),
     surface: entier(/(\d+)\s*m²/.exec(detail)?.[1], 5000),
     prix: surDemande ? null : montant(brut),
     libellePrix,
@@ -292,8 +296,18 @@ export function cimalpesListings(cartes: readonly CarteCimalpes[], input: LiveSe
       source: "Cimalpes",
       total: c.prix ?? 0,
       currency: "EUR",
-      guests: c.capacite,
-      bedrooms: c.chambres,
+      // « 12 voyageurs ⸱ 2 chambres ⸱ 85 m² » : une ligne de texte ; le 0 d'un
+      // studio vient de son type.
+      ...champsLogement(
+        annoncer(
+          {
+            capacity: c.capacite,
+            bedrooms: c.chambres,
+            source: { capacity: "text_regex", bedrooms: c.studio ? "derived_from_type" : "text_regex" },
+          },
+          c.titre,
+        ),
+      ),
       propertyType: c.type,
       available: true,
       photo: c.photos[0] ?? null,

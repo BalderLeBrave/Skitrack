@@ -8,13 +8,21 @@
  * estimé : un nombre hors bornes est jeté, pas corrigé.
  */
 
+import type { SourceCapacite, SourceValeur } from "../stay/logement.ts";
+import { annoncer } from "../stay/occupancy.ts";
+
 /** Pourquoi une tranche s'est arrêtée. Seul `refus` veut dire qu'Airbnb a refusé. */
 export type ArretFiches =
   "refus" | "coupe-circuit" | "rythme" | "echeance" | "hash" | "illisible" | "cle" | "worker";
 
 export type FicheAirbnb = {
-  guests: number | null;
+  capacity: number | null;
+  /** `structured` : `personCapacity` de la fiche ; `text_regex` : son texte. */
+  capacitySource?: SourceCapacite | null;
   bedrooms: number | null;
+  /** `structured` : `bedroomCount` ; sinon le titre de partage (« 2 chambres »)
+   *  ou l'aperçu (« Studio »), relus par le module commun. */
+  bedroomsSource?: SourceValeur | null;
   rooms: number | null;
   lat: number | null;
   lon: number | null;
@@ -139,10 +147,25 @@ function position(lat: unknown, lon: unknown): { lat: number | null; lon: number
 function fiche(v: unknown): FicheAirbnb | null {
   if (v == null || typeof v !== "object") return null;
   const r = v as Record<string, unknown>;
+  // Seuls les champs structurés du worker se reprennent tels quels ; le titre
+  // de partage et l'aperçu qu'il a lus se relisent ici (`logement.ts`).
+  const textes = Array.isArray(r.textes)
+    ? r.textes.filter((t): t is string => typeof t === "string")
+    : [];
+  const occ = annoncer(
+    {
+      capacity: r.capacitySource === "structured" ? entier(r.capacity, 1) : null,
+      bedrooms: r.bedroomsSource === "structured" ? entier(r.bedrooms, 0) : null,
+      rooms: entier(r.rooms, 1),
+    },
+    ...textes,
+  );
   return {
-    guests: entier(r.guests, 1),
-    bedrooms: entier(r.bedrooms, 0),
-    rooms: entier(r.rooms, 1),
+    capacity: occ.capacity,
+    capacitySource: occ.capacitySource,
+    bedrooms: occ.bedrooms,
+    bedroomsSource: occ.bedroomsSource,
+    rooms: occ.rooms,
     ...position(r.lat, r.lon),
     roomType: texte(r.roomType),
     typeLogement: texte(r.typeLogement),

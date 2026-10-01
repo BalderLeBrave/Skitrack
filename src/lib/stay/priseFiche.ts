@@ -37,6 +37,7 @@
 
 import type { Listing } from "../listings.ts";
 import { estHoteAirbnb } from "./http429.ts";
+import { valeurDuTexte } from "./logement.ts";
 import { titreEstFichier } from "./titre.ts";
 
 export type Trou = "capacite" | "chambres" | "gps" | "titre";
@@ -48,10 +49,16 @@ export function plausible(lat: number | null | undefined, lon: number | null | u
   return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
 }
 
-export function trousDe(l: Listing): Trou[] {
+/**
+ * Ce qui manque à une annonce. Avec `faibles` : aussi ce que seul le texte ou
+ * le type a donné (`text_regex`, `derived_from_type`), qu'un champ structuré
+ * de la page de détail, quand elle le publie, remplace (`logement.ts`).
+ */
+export function trousDe(l: Listing, opts: { faibles?: boolean } = {}): Trou[] {
   const out: Trou[] = [];
-  if (l.guests == null) out.push("capacite");
-  if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) out.push("chambres");
+  const faible = (champ: "capacity" | "bedrooms") => !!opts.faibles && valeurDuTexte(l, champ);
+  if (l.capacity == null || faible("capacity")) out.push("capacite");
+  if ((l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) || faible("bedrooms")) out.push("chambres");
   if (!plausible(l.lat, l.lon)) out.push("gps");
   if (titreEstFichier(l.title)) out.push("titre");
   return out;
@@ -183,6 +190,10 @@ export function urlsPartagees(
   return new Set([...porteurs].filter(([, ids]) => ids.size >= 2).map(([cle]) => cle));
 }
 
+/** La raison de laisser une fiche quand l'annonce n'a qu'une valeur lue dans
+ *  le texte, chez un hôte dont on ne sait pas ce que la fiche publie. */
+export const VALEUR_DU_TEXTE = "valeur déjà lue dans le texte";
+
 /** L'URL qui mène à la fiche propre de l'annonce, hors Airbnb et Gîtes. */
 export function urlPropre(l: Pick<Listing, "source" | "url">): string | null {
   if (l.source === "Airbnb" || l.source === "Gîtes de France") return null;
@@ -210,8 +221,11 @@ export function raisonDeLaisser(
   if (estPageDeSite(url) || communes?.has(cleUrl(url))) return "URL commune";
   const hote = hoteDe(url) ?? "";
   const regle = PRISES.find((r) => r.hote.test(hote));
-  if (!regle) return null;
-  return trousDe(l).some((t) => regle.prise.has(t)) ? null : regle.nom;
+  // Chez un hôte dont on ne sait pas ce que la fiche publie, seul un vrai
+  // trou la fait ouvrir : une valeur déjà lue dans le texte n'y use pas le
+  // débit et le disjoncteur de l'hôte au détriment des annonces muettes.
+  if (!regle) return trousDe(l).length > 0 ? null : VALEUR_DU_TEXTE;
+  return trousDe(l, { faibles: true }).some((t) => regle.prise.has(t)) ? null : regle.nom;
 }
 
 /**

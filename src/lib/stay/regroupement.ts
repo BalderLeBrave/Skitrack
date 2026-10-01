@@ -89,10 +89,10 @@ export function distanceM(a: { lat: number; lon: number }, b: { lat: number; lon
  * 2026).
  */
 export function capaciteCompatible(
-  a: Pick<Listing, "guests" | "bedrooms">,
-  b: Pick<Listing, "guests" | "bedrooms">,
+  a: Pick<Listing, "capacity" | "bedrooms">,
+  b: Pick<Listing, "capacity" | "bedrooms">,
 ): boolean {
-  if (a.guests != null && b.guests != null && a.guests !== b.guests) return false;
+  if (a.capacity != null && b.capacity != null && a.capacity !== b.capacity) return false;
   if (a.bedrooms != null && b.bedrooms != null && Math.abs(a.bedrooms - b.bedrooms) > 1) return false;
   return true;
 }

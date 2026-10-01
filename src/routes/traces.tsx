@@ -17,6 +17,7 @@ import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
 import { parMesure, type Sens } from "@/lib/tri";
+import { bedNomme, capNomme } from "@/lib/v7";
 
 export const Route = createFileRoute("/traces")({ component: Traces });
 
@@ -257,8 +258,7 @@ function Traces() {
                           </button>
                           <p className="text-note text-muted">
                             {listing.source}
-                            {listing.bedrooms != null ? ` · ${listing.bedrooms} ch.` : ""}
-                            {listing.guests != null ? ` · ${listing.guests} pers.` : ""}
+                            {` · ${bedNomme(listing)} · ${capNomme(listing)}`}
                           </p>
                         </td>
                         <td>{formatEuro(listing.total)}</td>

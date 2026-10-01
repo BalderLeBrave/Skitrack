@@ -50,8 +50,8 @@ function chambresDe(l: Listing, origine: Origine): Provenance<number> {
 
 function capaciteDe(l: Listing, origine: Origine): Provenance<number> {
   if (origine === "memoire") return inconnu(l.source, MEMOIRE);
-  if (entier(l.guests, 1, MAX)) return extrait(l.guests, l.source);
-  if (typeof l.guests === "number") return inconnu(l.source, horsBornes(l.guests));
+  if (entier(l.capacity, 1, MAX)) return extrait(l.capacity, l.source);
+  if (typeof l.capacity === "number") return inconnu(l.source, horsBornes(l.capacity));
   return inconnu(l.source, NON_PUBLIE);
 }
 

@@ -65,7 +65,7 @@ function fiche(extra: Partial<Fiche> = {}): Fiche {
     total: 0,
     currency: null,
     priceLabel: null,
-    occupancy: { guests: null, bedrooms: null, rooms: null },
+    occupancy: { capacity: null, bedrooms: null, rooms: null },
     lieu: { lat: null, lon: null, locality: null },
     platformId: null,
     ...extra,
@@ -142,13 +142,13 @@ describe("tableau de prix ITEA", () => {
 describe("fiche ITEA", () => {
   it("lit capacité et chambres publiées", () => {
     const occ = occupancyFromGitesHtml('{"numberOfGuests":"9","numberOfBedrooms":3}');
-    assert.equal(occ.guests, 9);
+    assert.equal(occ.capacity, 9);
     assert.equal(occ.bedrooms, 3);
   });
 
   it("rend null, et non zéro, quand la fiche ne les publie pas", () => {
     const occ = occupancyFromGitesHtml("<html><body>rien</body></html>");
-    assert.equal(occ.guests, null);
+    assert.equal(occ.capacity, null);
     assert.equal(occ.bedrooms, null);
   });
 
@@ -207,13 +207,13 @@ describe("annonce Gîtes de France", () => {
       "38G40102",
       INPUT,
     );
-    assert.equal(l.guests, 4);
+    assert.equal(l.capacity, 4);
     assert.equal(l.total, 512);
   });
 
   it("sort aussi quand aucune capacité n'est publiée, sans nombre inventé", () => {
     const l = listingDeFiche(tuile(), fiche({ total: 512 }), "38G40102", INPUT);
-    assert.equal(l.guests, null);
+    assert.equal(l.capacity, null);
     assert.equal(l.bedrooms, null);
   });
 
@@ -266,7 +266,7 @@ describe("annonce Gîtes de France", () => {
     assert.equal(l.platformId, "38G550149.G");
   });
 
-  it("rend les pièces comme des pièces, jamais comme des chambres", () => {
+  it("rend les pièces comme des pièces ; les chambres s'en dérivent, et le disent", () => {
     const l = listingDeFiche(
       tuile({ title: "Le Petit Gîte, 3 pièces" }),
       fiche({ total: 900 }),
@@ -274,7 +274,8 @@ describe("annonce Gîtes de France", () => {
       INPUT,
     );
     assert.equal(l.rooms, 3);
-    assert.equal(l.bedrooms, null);
+    assert.equal(l.bedrooms, 2);
+    assert.equal(l.bedroomsSource, "derived_from_type");
   });
 });
 

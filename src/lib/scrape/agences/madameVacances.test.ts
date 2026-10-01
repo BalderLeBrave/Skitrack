@@ -147,7 +147,7 @@ describe("Madame Vacances : annonces", () => {
     assert.equal(l.source, "Madame Vacances");
     assert.equal(l.title, "Au Coeur des Ours — Appartement 3 pièces, 6 personnes");
     assert.equal(l.total, 2191);
-    assert.deepEqual([l.guests, l.bedrooms, l.rooms, l.baths, l.propertyType], [6, 2, 3, 1, "Appartement"]);
+    assert.deepEqual([l.capacity, l.bedrooms, l.rooms, l.baths, l.propertyType], [6, 2, 3, 1, "Appartement"]);
     assert.deepEqual([l.lat, l.lon, l.locality, l.placeName], [45.017657, 6.125397, "Les Deux Alpes", "Au Coeur des Ours"]);
     assert.equal(l.priceLabel, "2191 € / logt, 7 nuits — prix barré 2267 € — frais obligatoires en sus : frais de dossier, taxe de séjour");
     assert.equal(l.skiPassIncluded, false);

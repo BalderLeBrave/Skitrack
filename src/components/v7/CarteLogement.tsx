@@ -11,7 +11,17 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { completudeOf, trouLbl } from "@/lib/stay/completude";
-import { bedLbl, capLbl, distanceOf, firmOf, mediaTon, prixLbl, prixPersLbl } from "@/lib/v7";
+import {
+  bedLbl,
+  bedNomme,
+  capNomme,
+  distanceOf,
+  firmOf,
+  mediaTon,
+  NON_RENSEIGNE,
+  prixLbl,
+  prixPersLbl,
+} from "@/lib/v7";
 
 /**
  * Logements par page, comme sur Airbnb. La carte ne porte que ceux de la page
@@ -98,8 +108,8 @@ export const CarteLogement = memo(function CarteLogement({
       <div className="lodge7__corps">
         <strong className="lodge7__titre">{l.title}</strong>
         <div className="lodge7__meta">
-          <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
-          <span>{bedLbl(l)}</span>
+          <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
+          <span className={bedLbl(l) === NON_RENSEIGNE ? "absent" : undefined}>{bedNomme(l)}</span>
         </div>
         {complet.trous.length ? (
           <span className="lodge7__trous">{complet.trous.map(trouLbl).join(" · ")}</span>

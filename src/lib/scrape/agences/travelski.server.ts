@@ -87,7 +87,7 @@ function sansPosition(l: Listing): boolean {
 
 /** La clé de mémoire d'un logement de la fiche : celle de ses annonces (`cleListing`). */
 function cleLogement(id: string): string | null {
-  return cleListing({ source: "Travelski", platformId: id, proven: "", guests: null, bedrooms: null, lat: null, lon: null });
+  return cleListing({ source: "Travelski", platformId: id, proven: "", capacity: null, bedrooms: null, lat: null, lon: null });
 }
 
 function cleStation(input: LiveSearchInput): string {
@@ -178,7 +178,7 @@ async function lireStation(tache: Tache, input: LiveSearchInput, residences: rea
         memoire.noter(
           [...fiche.logements.values()].map((l) => ({
             cle: cleLogement(l.id),
-            guests: l.capacite,
+            capacity: l.capacite,
             bedrooms: l.chambres,
             rooms: l.pieces,
             lat: fiche.lat,

@@ -50,7 +50,7 @@ export type FilterSubject = {
   url?: string | null;
   total?: number | null;
   /** Couchages annoncés. `null` = la source s'est tue. */
-  guests?: number | null;
+  capacity?: number | null;
   /** Chambres annoncées. `null` = la source s'est tue. */
   bedrooms?: number | null;
   /** Pièces annoncées, convention des centrales. `null` = non annoncé. */
@@ -282,8 +282,8 @@ export function partyVerdict(listing: FilterSubject, criteria: PartyCriteria): P
   let ignore = false;
 
   if (criteria.travelers > 0) {
-    if (listing.guests != null) {
-      if (listing.guests < criteria.travelers) return "trop-petit";
+    if (listing.capacity != null) {
+      if (listing.capacity < criteria.travelers) return "trop-petit";
     } else {
       ignore = true;
     }

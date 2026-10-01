@@ -193,7 +193,7 @@ describe("La Giettaz : Portes du Mont-Blanc, pas l'Espace Diamant", () => {
         source: "Airbnb",
         total: 1500,
         currency: "EUR",
-        guests: 6,
+        capacity: 6,
         bedrooms: 3,
         available: true,
         photo: null,

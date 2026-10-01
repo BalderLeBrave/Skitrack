@@ -35,6 +35,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "./types";
+import { annoncer, champsLogement } from "../stay/occupancy.ts";
 
 export const GREENGO_SITE = "https://www.greengo.voyage";
 export const GREENGO_API = "https://operations.greengo.voyage/graphql";
@@ -362,8 +363,9 @@ export function greengoListings(
         total: 0,
         priceIndicative: hote.minParNuit != null ? true : null,
         priceLabel: hote.minParNuit != null ? `dès ${hote.minParNuit} € la nuit` : null,
-        guests: hote.capacite,
-        bedrooms: null,
+        // Le résumé de la recherche (`minMaxNumberOfTravellersAllowed`) : un
+        // champ de l'API ; les chambres ne sont que dans le détail de l'hôte.
+        ...champsLogement(annoncer({ capacity: hote.capacite, bedrooms: null }, hote.nom)),
         photo: hote.photos[0] ?? null,
         photos: hote.photos.length ? hote.photos : null,
         platformId: hote.id,
@@ -384,8 +386,9 @@ export function greengoListings(
         id: hote.unique ? `gg-${hote.id}` : `gg-${u.id}`,
         title: titre,
         total: u.total ?? 0,
-        guests: u.capacite,
-        bedrooms: u.chambres,
+        // Le détail de l'hôte (`maxNumberOfTravellers`, `numberOfBedrooms`) :
+        // des champs de l'API.
+        ...champsLogement(annoncer({ capacity: u.capacite, bedrooms: u.chambres }, titre)),
         beds: u.lits,
         baths: u.sdb,
         propertyType: libelleType(u.type),

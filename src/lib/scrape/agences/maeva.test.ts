@@ -123,11 +123,14 @@ describe("Maeva : annonces", () => {
     assert.equal(l.total, 1820);
     assert.equal(l.priceLabel, "1 820 € logement seul");
     assert.deepEqual([l.priceIndicative, l.skiPassIncluded], [false, false]);
-    assert.deepEqual([l.guests, l.bedrooms, l.rooms, l.propertyType], [4, 1, 2, "Location de particulier"]);
+    assert.deepEqual([l.capacity, l.bedrooms, l.rooms, l.propertyType], [4, 1, 2, "Location de particulier"]);
     assert.deepEqual([l.lat, l.lon, l.locality, l.placeName], [46.19222143, 6.77676623, "Avoriaz", "Résidence Les Alpages - maeva Home"]);
     assert.equal(l.url, "https://www.maeva.com/fr-fr/residence-les-alpages-maeva-home_57404.html?date_debut=2027-02-06&date_fin=2027-02-13");
     assert.equal(l.proven, "Maeva live 2027-02-06→2027-02-13");
     assert.equal(ls[0].bedrooms, 0, "le studio");
+    // Le champ de l'API disait 1 : le 0 vient de la typologie « Studio ».
+    assert.deepEqual([ls[0].isStudio, ls[0].bedroomsSource, ls[0].capacitySource], [true, "derived_from_type", "structured"]);
+    assert.deepEqual([l.bedroomsSource, l.isStudio], ["structured", false]);
   });
 
   it("formule ski : une seconde annonce, forfait compris, au prix par personne du groupe fois ses adultes", () => {

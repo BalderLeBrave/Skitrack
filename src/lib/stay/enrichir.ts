@@ -4,12 +4,14 @@
  *
  * Le GPS Gîtes et l'accès ski se posent dans `searchStay`, qui connaît la
  * station. Ici, rien n'est estimé : on ne fait que poser ce que la source
- * a déjà écrit, ailleurs que dans le champ dédié.
+ * a déjà écrit, ailleurs que dans le champ dédié. Capacité, chambres,
+ * pièces, cabine et type passent par `qualifierLogement`, qui dit la source
+ * de chaque valeur (`capacitySource`, `bedroomsSource`).
  */
 
 import type { Listing } from "../listings.ts";
 import { galerieOf } from "./completude.ts";
-import { occupancyOfListing } from "./occupancy.ts";
+import { qualifierLogement } from "./logement.ts";
 import { purgerTarifFigé } from "./tarif.ts";
 import { titreDepuisUrl, titreEstFichier } from "./titre.ts";
 
@@ -63,7 +65,7 @@ export function airbnbIdOf(l: {
 
 export function enrichirListing(l: Listing): Listing {
   const title = titreEstFichier(l.title) ? (titreDepuisUrl(l.url) ?? l.title) : l.title;
-  const occ = occupancyOfListing({ ...l, title });
+  const qualifie = qualifierLogement({ ...l, title });
   const photo = l.photo ?? galerieOf(l)[0] ?? null;
   const airbnbId = l.source === "Airbnb" ? airbnbIdOf(l) : null;
   const url = l.url ?? (airbnbId ? `https://www.airbnb.fr/rooms/${airbnbId}` : null);
@@ -73,9 +75,7 @@ export function enrichirListing(l: Listing): Listing {
   // « à partir de » du gabarit n'en fait pas un tarif d'appel.
   const priceIndicative = l.source === "Centrale" && l.total > 0 ? null : (l.priceIndicative ?? null);
   const next = {
-    ...l,
-    title,
-    ...occ,
+    ...qualifie,
     photo,
     url,
     platformId,

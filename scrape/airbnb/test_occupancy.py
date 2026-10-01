@@ -28,7 +28,7 @@ def _pdp(*, lat=45.02298, lng=6.12571, guests=8, bedrooms=3):
 
 def test_occupancy_from_pdp_lit_gps_et_capacite():
     occ = occupancy_from_pdp(_pdp())
-    assert occ["guests"] == 8
+    assert occ["capacity"] == 8
     assert occ["bedrooms"] == 3
     assert occ["lat"] == 45.02298
     assert occ["lon"] == 6.12571
@@ -42,15 +42,15 @@ def test_occupancy_from_pdp_jette_un_zero_zero():
 
 
 def test_merge_occupancy_pose_le_gps_seulement_s_il_manque():
-    row = {"id": "1", "guests": None, "bedrooms": None, "lat": None, "lon": None}
+    row = {"id": "1", "capacity": None, "bedrooms": None, "lat": None, "lon": None}
     out = merge_occupancy(row, occupancy_from_pdp(_pdp()))
-    assert out["guests"] == 8
+    assert out["capacity"] == 8
     assert out["lat"] == 45.02298
     deja = merge_occupancy(
-        {"id": "1", "guests": 6, "bedrooms": 2, "lat": 45.0, "lon": 6.0},
+        {"id": "1", "capacity": 6, "bedrooms": 2, "lat": 45.0, "lon": 6.0},
         occupancy_from_pdp(_pdp()),
     )
-    assert deja["guests"] == 6
+    assert deja["capacity"] == 6
     assert deja["lat"] == 45.0
 
 
@@ -84,7 +84,7 @@ PDP_REELLE = {
 
 def test_fiche_reelle_capacite_chambres_position_et_type():
     occ = occupancy_from_pdp(PDP_REELLE)
-    assert occ["guests"] == 4
+    assert occ["capacity"] == 4
     assert occ["bedrooms"] == 2, "lu dans le titre de partage"
     assert (occ["lat"], occ["lon"]) == (46.15005540000001, 6.757117464418014)
     assert occ["room_type"] == "Entire home/apt"
@@ -101,7 +101,7 @@ def test_titre_de_partage_studio_et_lieu_a_chiffre():
     assert (studio["bedrooms"], studio["rooms"]) == (0, 1)
     chalet = occupancy_from_pdp(_titre("Chalet · Les 2 Alpes · 5 chambres · 9 lits · 3 salles de bain"))
     assert chalet["bedrooms"] == 5
-    assert chalet["guests"] is None, "des lits ne sont pas des voyageurs"
+    assert chalet["capacity"] is None, "des lits ne sont pas des voyageurs"
     lieu = occupancy_from_pdp(_titre("Appartement · Studio Village · ★4,5 · 2 chambres"))
     assert lieu["bedrooms"] == 2, "le lieu n'est pas lu"
 
@@ -137,7 +137,7 @@ def test_l_apercu_donne_les_chambres_que_les_champs_taisent():
     occ = occupancy_from_pdp(
         _pdp_apercu(["6 voyageurs", "3 chambres", "4 lits", "2 salles de bain"], log={"personCapacity": 6})
     )
-    assert occ["guests"] == 6
+    assert occ["capacity"] == 6
     assert occ["bedrooms"] == 3
     assert occ["type_logement"] == "Logement entier : chalet"
     assert occ["dropped"] is False
@@ -145,13 +145,13 @@ def test_l_apercu_donne_les_chambres_que_les_champs_taisent():
 
 def test_les_champs_chiffres_passent_avant_l_apercu():
     occ = occupancy_from_pdp(_pdp_apercu(["4 voyageurs", "1 chambre"], log={"personCapacity": 6, "bedroomCount": 2}))
-    assert occ["guests"] == 6
+    assert occ["capacity"] == 6
     assert occ["bedrooms"] == 2
 
 
 def test_un_studio_de_l_apercu_n_a_aucune_chambre():
     occ = occupancy_from_pdp(_pdp_apercu(["2 voyageurs", "Studio", "1 lit"]))
-    assert occ["guests"] == 2
+    assert occ["capacity"] == 2
     assert occ["bedrooms"] == 0
     assert occ["rooms"] == 1
 
@@ -159,7 +159,7 @@ def test_un_studio_de_l_apercu_n_a_aucune_chambre():
 def test_des_lits_ne_sont_ni_des_chambres_ni_des_voyageurs():
     occ = occupancy_from_pdp(_pdp_apercu(["4 lits", "1 salle de bain"]))
     assert occ["bedrooms"] is None
-    assert occ["guests"] is None
+    assert occ["capacity"] is None
 
 
 def test_hotel_et_chambres_sont_ecartes_par_le_type_de_chambre():
@@ -185,8 +185,8 @@ def test_chambre_d_hotes_et_insolites_sont_ecartes_mais_pas_la_cabane():
 
 def test_merge_occupancy_pose_les_pieces_seulement_si_elles_manquent():
     occ = occupancy_from_pdp(_pdp_apercu(["2 voyageurs", "Studio"]))
-    assert merge_occupancy({"id": "1", "guests": None, "bedrooms": None, "rooms": None}, occ)["rooms"] == 1
-    assert merge_occupancy({"id": "1", "guests": None, "bedrooms": None, "rooms": 2}, occ)["rooms"] == 2
+    assert merge_occupancy({"id": "1", "capacity": None, "bedrooms": None, "rooms": None}, occ)["rooms"] == 1
+    assert merge_occupancy({"id": "1", "capacity": None, "bedrooms": None, "rooms": 2}, occ)["rooms"] == 2
     assert merge_occupancy({"id": "1"}, {**occ, "dropped": True}) is None
 
 
@@ -212,7 +212,7 @@ def test_la_forme_stays_pdp_sections_se_lit_aussi():
         }
     }
     occ = occupancy_from_pdp(raw)
-    assert occ["guests"] == 5
+    assert occ["capacity"] == 5
     assert occ["lat"] == 46.19
     assert occ["dropped"] is False
 
@@ -228,3 +228,12 @@ if __name__ == "__main__":
                 failed += 1
                 print("FAIL", name, err)
     raise SystemExit(failed)
+
+
+def test_la_source_dit_si_la_valeur_vient_d_un_champ_ou_du_texte():
+    occ = occupancy_from_pdp(_pdp(guests=8, bedrooms=3))
+    assert (occ["capacitySource"], occ["bedroomsSource"]) == ("structured", "structured")
+    texte = occupancy_from_pdp(PDP_REELLE)
+    assert texte["capacitySource"] == "structured"
+    assert texte["bedroomsSource"] == "text_regex", "les chambres du titre de partage"
+    assert any("2 chambres" in t for t in texte["textes"]), "Node relit le titre de partage"

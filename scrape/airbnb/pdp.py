@@ -103,7 +103,7 @@ def _jeter_cle() -> None:
 
 
 def _incomplete(row: dict[str, Any]) -> bool:
-    if row.get("guests") is None:
+    if row.get("capacity") is None:
         return True
     if row.get("bedrooms") is None:
         return True
@@ -262,7 +262,7 @@ def enrich_listings(
     budget_s: float = BUDGET_S,
     pause_s: float = PAUSE_S,
 ) -> tuple[list[dict[str, Any]], int]:
-    """Complète guests / chambres / GPS. Rend (annonces, nb de fiches lues)."""
+    """Complète capacité / chambres / GPS. Rend (annonces, nb de fiches lues)."""
     if airbnb_circuit.open():
         return listings, 0
     cap = max_n if max_n is not None else MAX_ENRICH
@@ -310,7 +310,7 @@ def enrich_listings(
         merged = merge_occupancy(row, occ) if occ else dict(row)
         if merged is None:
             continue
-        guests = merged.get("guests")
+        guests = merged.get("capacity")
         if min_guests and isinstance(guests, int) and guests < min_guests:
             continue
         out.append(merged)
@@ -347,16 +347,19 @@ def fiche_de(occ: dict[str, Any] | None) -> dict[str, Any] | None:
     if not occ:
         return None
     fiche = {
-        "guests": occ.get("guests"),
+        "capacity": occ.get("capacity"),
+        "capacitySource": occ.get("capacitySource"),
         "bedrooms": occ.get("bedrooms"),
+        "bedroomsSource": occ.get("bedroomsSource"),
         "rooms": occ.get("rooms"),
+        "textes": occ.get("textes") or [],
         "lat": occ.get("lat"),
         "lon": occ.get("lon"),
         "roomType": occ.get("room_type"),
         "typeLogement": occ.get("type_logement"),
         "ecartee": bool(occ.get("dropped")),
     }
-    if fiche["ecartee"] or any(fiche[k] is not None for k in ("guests", "bedrooms", "rooms", "lat")):
+    if fiche["ecartee"] or any(fiche[k] is not None for k in ("capacity", "bedrooms", "rooms", "lat")):
         return fiche
     return None
 
@@ -382,7 +385,7 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
     """Mode « fiches » : capacité, chambres, GPS et type pour une liste d'annonces.
 
     Entrée : `ids`, `checkIn`, `checkOut`, `adults`, `deadlineMs` (instant
-    absolu), `pauseS`. Sortie : `fiches` ({id: {guests, bedrooms, rooms, lat,
+    absolu), `pauseS`. Sortie : `fiches` ({id: {capacity, bedrooms, rooms, lat,
     lon, roomType, typeLogement, ecartee}}), `vides` (lues sans rien d'utile),
     `restants` (non lues : à redemander), `lues` (requêtes parties), et, si le
     lot s'est arrêté, `arret` (refus, coupe-circuit, rythme, echeance, hash,
@@ -507,7 +510,7 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
             fiches[lid] = fiche
         else:
             vides.append(lid)
-        if fiche and (fiche["guests"] is not None or fiche["ecartee"]):
+        if fiche and (fiche["capacity"] is not None or fiche["ecartee"]):
             vides_de_suite = 0
         else:
             vides_de_suite += 1

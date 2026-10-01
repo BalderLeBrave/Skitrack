@@ -37,7 +37,7 @@ export function clePlateforme(l: Pick<Listing, "source" | "url" | "platformId">)
 const COMBLABLES = [
   "lat",
   "lon",
-  "guests",
+  "capacity",
   "bedrooms",
   "rooms",
   "beds",

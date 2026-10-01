@@ -305,7 +305,7 @@ describe("GreenGo : annonces", () => {
     assert.equal(l.platformId, "1bcc24b4-b278-4bf7-a77c-e3246c9ec4d2");
     assert.equal(l.title, "Néva");
     assert.equal(l.total, 2649);
-    assert.equal(l.guests, 4);
+    assert.equal(l.capacity, 4);
     assert.equal(l.bedrooms, 1);
     assert.equal(l.propertyType, "Appartement entier");
     assert.equal(l.lat, 46.1922);
@@ -349,7 +349,7 @@ describe("GreenGo : annonces", () => {
     const toutes = lireDetail(DETAIL_BEAUREGARD).map((u) => ({ ...u, reservable: true }));
     const listings = greengoListings(beauregard, toutes, AVORIAZ);
     assert.deepEqual(
-      listings.map((l) => [l.title, l.propertyType, l.guests, l.bedrooms, l.total]),
+      listings.map((l) => [l.title, l.propertyType, l.capacity, l.bedrooms, l.total]),
       [["Chalet d'alpage de Beauregard", "Chalet", 12, 7, 3613]],
     );
   });
@@ -377,7 +377,7 @@ describe("GreenGo : annonces", () => {
     assert.equal(l.total, 0);
     assert.equal(l.priceIndicative, true);
     assert.equal(l.priceLabel, "dès 378 € la nuit");
-    assert.equal(l.guests, 4);
+    assert.equal(l.capacity, 4);
     assert.equal(l.bedrooms, null, "les chambres ne viennent que du détail");
     assert.equal(l.propertyType ?? null, null, "le type ne vient que du détail");
     assert.equal(l.id, "gg-e86b77f8-bb8c-4af0-826a-8150eb501d50");

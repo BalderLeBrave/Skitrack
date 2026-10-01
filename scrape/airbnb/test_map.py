@@ -100,7 +100,7 @@ def test_stay_to_listing_total_seulement():
     # Les mots de la source, pas une chaîne fabriquée à partir du total.
     assert row["priceLabel"] == "2 215 € au total"
     assert row["priceIndicative"] is False
-    assert row["guests"] == 8
+    assert row["capacity"] == 8
     assert row["bedrooms"] == 3
     assert "check_in=2027-02-06" in row["url"]
 
@@ -165,7 +165,7 @@ def test_rating_lu_seulement_s_il_est_ecrit():
     assert row["reviewCount"] is None
 
 
-def test_lits_poses_dans_beds_pas_dans_guests():
+def test_lits_poses_dans_beds_pas_dans_capacity():
     rec = _stay(
         title="Appartement cosy",
         subtitle=None,
@@ -174,7 +174,7 @@ def test_lits_poses_dans_beds_pas_dans_guests():
     row = stay_to_listing(rec, check_in=None, check_out=None, adults=None)
     assert row["beds"] == 6
     assert row["bedrooms"] == 3
-    assert row["guests"] is None
+    assert row["capacity"] is None
 
 
 def test_sans_prix_range_apres_les_prix_publies():
@@ -252,8 +252,11 @@ def test_stay_to_listing_forme_api_2026():
     assert row["id"] == "1508115810354645728"
     assert row["total"] == 1775
     assert row["bedrooms"] == 3
-    assert row["guests"] == 8
+    assert row["capacity"] == 8
     assert "pistes" in row["name"]
+    # Lues dans le nom et les lignes de la tuile : Node les relit (`textes`).
+    assert (row["capacitySource"], row["bedroomsSource"]) == ("text_regex", "text_regex")
+    assert "3 chambres" in row["textes"] and row["name"] in row["textes"]
 
 
 if __name__ == "__main__":

@@ -338,8 +338,14 @@ def beds_from_text(*texts: str | None) -> int | None:
     return n if 0 < n <= 50 else None
 
 
-def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None, int | None]:
-    guests = bedrooms = rooms = None
+def occupancy_structuree(record: dict[str, Any]) -> tuple[int | None, int | None]:
+    """(capacité, chambres) des seuls champs structurés de l'enregistrement.
+
+    Ce sont les seules valeurs que Node reprend telles quelles (`capacitySource`
+    et `bedroomsSource` « structured ») : le texte se relit côté Node, par le
+    module commun à tous les collecteurs (`src/lib/stay/logement.ts`).
+    """
+    guests = bedrooms = None
 
     def take_guests(n: Any) -> int | None:
         return n if isinstance(n, int) and 0 < n <= 50 else None
@@ -376,6 +382,12 @@ def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None,
             walk(val, depth + 1)
 
     walk(record, 0)
+    return guests, bedrooms
+
+
+def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None, int | None]:
+    guests, bedrooms = occupancy_structuree(record)
+    rooms = None
     t_g, t_b, t_r = occupancy_from_text(
         record.get("title") if isinstance(record.get("title"), str) else None,
         record.get("subtitle") if isinstance(record.get("subtitle"), str) else None,
@@ -387,6 +399,14 @@ def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None,
     if rooms is None:
         rooms = t_r
     return guests, bedrooms, rooms
+
+
+def source_de(valeur: int | None, structuree: int | None) -> str | None:
+    """« structured » quand la valeur vient d'un champ structuré, « text_regex »
+    quand le texte l'a donnée, None sans valeur."""
+    if valeur is None:
+        return None
+    return "structured" if structuree is not None and structuree == valeur else "text_regex"
 
 
 def decode_listing_id(encoded: Any) -> str:
@@ -548,6 +568,9 @@ def stay_to_listing(
     # Un total pour d'autres dates n'est pas un prix pour ce séjour.
     hors_sejour = prix_hors_sejour(record, label, lines, check_in, check_out)
     total = None if hors_sejour else stay_total_from_label(label)
+    # La capacité du worker sert aussi au tri et au filtre des petits
+    # logements ; seule la donnée structurée part vers Node comme telle.
+    s_guests, s_bedrooms = occupancy_structuree(record)
     guests, bedrooms, rooms = occupancy_from_stay(record)
     extra_g, extra_b, extra_r = occupancy_from_text(name, *lines)
     if guests is None:
@@ -587,9 +610,13 @@ def stay_to_listing(
         "image": photos[0] if photos else None,
         "photos": photos,
         "url": url,
-        "guests": guests,
+        "capacity": guests,
+        "capacitySource": source_de(guests, s_guests),
         "bedrooms": bedrooms,
+        "bedroomsSource": source_de(bedrooms, s_bedrooms),
         "rooms": rooms,
+        # Les textes lus, que Node relit avec le module commun.
+        "textes": [t for t in (title, subtitle, name, *lines) if t],
         "beds": beds,
         "rating": rating,
         "reviewCount": review_count,
@@ -648,7 +675,7 @@ def listings_from_raw(
         row = stay_to_listing(stay, check_in=check_in, check_out=check_out, adults=adults)
         if row is None or row["id"] in seen:
             continue
-        if min_guests and row.get("guests") is not None and row["guests"] < min_guests:
+        if min_guests and row.get("capacity") is not None and row["capacity"] < min_guests:
             continue
         if min_bedrooms and row.get("bedrooms") is not None and row["bedrooms"] < min_bedrooms:
             continue

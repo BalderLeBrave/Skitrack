@@ -36,6 +36,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const ALPISSIME_SITE = "https://www.alpissime.com";
 /** Cartes par page de recherche, fixé par le site. */
@@ -537,10 +538,19 @@ export function annonceAlpissime(
     source: "Alpissime",
     total,
     currency: "EUR",
-    guests: c.capacite,
-    // Un studio publié n'a pas de chambre ; les autres attendent la fiche.
-    bedrooms: type === "Studio" ? 0 : null,
-    rooms: null,
+    // La capacité se lit dans la ligne de la carte (« Appart. • 4 pers. ») :
+    // un texte. Un studio publié n'a pas de chambre, par son type ; les autres
+    // chambres se tirent des pièces du titre, ou attendent la fiche.
+    ...champsLogement(
+      annoncer(
+        {
+          capacity: c.capacite,
+          bedrooms: type === "Studio" ? 0 : null,
+          source: { capacity: "text_regex", bedrooms: "derived_from_type" },
+        },
+        c.titre,
+      ),
+    ),
     propertyType: type,
     available: true,
     photo: c.photos[0] ?? null,

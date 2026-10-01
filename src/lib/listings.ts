@@ -11,6 +11,7 @@ import type { DomainVerdict } from "./domainFit";
 import type { SourceAgence } from "./scrape/agences/couverture";
 import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
+import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement";
 
 export type Listing = {
   id: string;
@@ -32,8 +33,19 @@ export type Listing = {
   /** Devise publiée. « EUR » partout en France, mais lue quand la source la
    *  donne : elle était écrite en dur dans les quarante et un collecteurs. */
   currency: string;
-  guests: number | null;
+  /** Le nombre de personnes maximum (couchages). `null` : introuvable, jamais
+   *  0 ni 1 par défaut (`stay/logement.ts`). */
+  capacity: number | null;
+  /** D'où vient `capacity` : `structured` (champ structuré, JSON embarqué) ou
+   *  `text_regex` (texte libre). Absente : la donnée du collecteur. */
+  capacitySource?: SourceCapacite | null;
+  /** Les chambres séparées. Un studio : 0, et `isStudio`. */
   bedrooms: number | null;
+  /** D'où vient `bedrooms` : `structured`, `text_regex`, ou
+   *  `derived_from_type` (T3 : 2 chambres). Absente : la donnée du collecteur. */
+  bedroomsSource?: SourceValeur | null;
+  /** Un studio : `bedrooms` 0. L'écran dit « Studio », jamais « 0 chambre ». */
+  isStudio?: boolean | null;
   /**
    * Pièces annoncées, convention française des centrales — « 3 pièces ».
    *
@@ -50,6 +62,21 @@ export type Listing = {
   /** Type publié par la source : « Appartement », « Chalet », « Gîte »… Jamais
    *  déduit d'un titre. */
   propertyType?: string | null;
+  /**
+   * Le type de logement, ramené à sept : studio, appartement, chalet, maison,
+   * chambre, hôtel, autre. Publié (`propertyType`), sinon lu dans le titre
+   * (`stay/logement.ts`).
+   */
+  lodgingType?: TypeLogement | null;
+  /** Une cabine (coin nuit fermé) : elle ne compte pas comme une chambre. */
+  cabin?: boolean | null;
+  /** La capacité standard, quand la source la distingue de la maximale, ou la
+   *  borne basse d'une fourchette « 4/6 personnes » ; `capacity` porte la
+   *  maximale. */
+  capacityStandard?: number | null;
+  /** La description publiée, quand la source en donne une : lue comme le
+   *  titre (`qualifierLogement`). */
+  description?: string | null;
   available: true;
   photo: string | null;
   url: string | null;
@@ -129,7 +156,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Gîtes de France",
     total: 727.44,
     currency: "EUR",
-    guests: 9,
+    capacity: 9,
     bedrooms: 3,
     available: true,
     photo:
@@ -146,7 +173,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Gîtes de France",
     total: 1551.44,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: 2,
     available: true,
     photo:
@@ -163,7 +190,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Gîtes de France",
     total: 1838.4,
     currency: "EUR",
-    guests: 12,
+    capacity: 12,
     bedrooms: 3,
     available: true,
     photo:
@@ -180,7 +207,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Gîtes de France",
     total: 1898.4,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: 4,
     available: true,
     photo:
@@ -197,7 +224,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Gîtes de France",
     total: 1938.4,
     currency: "EUR",
-    guests: 10,
+    capacity: 10,
     bedrooms: 4,
     available: true,
     photo:
@@ -214,7 +241,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Centrale",
     total: 2215,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: null,
     available: true,
     photo:
@@ -231,7 +258,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 2231,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 3,
     available: true,
     photo:
@@ -248,7 +275,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Abritel",
     total: 2334.49,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: 2,
     available: true,
     photo:
@@ -265,7 +292,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Centrale",
     total: 2430,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: null,
     available: true,
     photo:
@@ -282,7 +309,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Gîtes de France",
     total: 2448.4,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: 3,
     available: true,
     photo:
@@ -299,7 +326,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Centrale",
     total: 2479,
     currency: "EUR",
-    guests: 9,
+    capacity: 9,
     bedrooms: null,
     available: true,
     photo:
@@ -316,7 +343,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Centrale",
     total: 2505,
     currency: "EUR",
-    guests: 8,
+    capacity: 8,
     bedrooms: null,
     available: true,
     photo:
@@ -333,7 +360,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 2694,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 3,
     available: true,
     photo:
@@ -350,7 +377,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 3418,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 3,
     available: true,
     photo:
@@ -367,7 +394,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 3469,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 4,
     available: true,
     photo:
@@ -384,7 +411,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 3619,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 3,
     available: true,
     photo:
@@ -401,7 +428,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Gîtes de France",
     total: 4261.52,
     currency: "EUR",
-    guests: 14,
+    capacity: 14,
     bedrooms: 7,
     available: true,
     photo: "https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg",
@@ -417,7 +444,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 4897,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 4,
     available: true,
     photo:
@@ -434,7 +461,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 5420,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 4,
     available: true,
     photo:
@@ -451,7 +478,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 5568,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 4,
     available: true,
     photo:
@@ -468,7 +495,7 @@ export const RELEVE_2A: Listing[] = [
     source: "Airbnb",
     total: 5805,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: 5,
     available: true,
     photo:
@@ -489,7 +516,7 @@ export function listingsForStay(stationId: string, guests: number, bedrooms: num
   return RELEVE_2A.filter((l) => l.stationId === stationId)
     .map(withPublishedOccupancy)
     .filter((l) => {
-      if (l.guests != null && l.guests < guests) return false;
+      if (l.capacity != null && l.capacity < guests) return false;
       if (bedrooms > 0 && l.bedrooms != null && l.bedrooms < bedrooms) return false;
       return true;
     })

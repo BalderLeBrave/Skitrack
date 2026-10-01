@@ -116,7 +116,7 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
   // « 3 pièces » comble ce que le bloc tait. Les chambres ne sont publiées
   // nulle part en champ propre (relevé du 25 septembre 2026).
   const occ = annoncer(
-    { guests: f.capacite, bedrooms: null, rooms: f.pieces },
+    { capacity: f.capacite, bedrooms: null, rooms: f.pieces },
     f.type,
     f.titre,
     f.adresse,
@@ -132,9 +132,13 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: occ.guests,
+    capacity: occ.capacity,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
     propertyType: f.type,
     available: true,
     photo: f.photo,

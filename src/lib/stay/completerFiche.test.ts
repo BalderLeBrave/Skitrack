@@ -92,7 +92,7 @@ function ligne(n: number, hote: string, over: Partial<Listing> = {}): Listing {
     source: "Centrale",
     total: 1000,
     currency: "EUR",
-    guests: null,
+    capacity: null,
     bedrooms: null,
     available: true,
     photo: null,
@@ -211,13 +211,13 @@ describe("pages de fiche de l'écran Prix : ce qu'une tranche rend", () => {
     const a = ligne(1, "", { url: `${base}?package=12` });
     const b = ligne(2, "", { url: `${base}?package=13` });
     const ra = await lire([a], 42_000);
-    assert.deepEqual([ra.essayees, a.guests], [["c-1"], 6]);
+    assert.deepEqual([ra.essayees, a.capacity], [["c-1"], 6]);
     // Une tranche plus tard, la fiche B se lit elle-même : rien de la page A.
     const rb = await lire([b], 42_000);
     assert.equal(departs.length, 2);
     assert.equal(departs[1].url, `${base}?package=13`);
-    assert.equal(b.guests, 4);
-    assert.equal(rb.lectures["c-2"]?.guests, 4);
+    assert.equal(b.capacity, 4);
+    assert.equal(rb.lectures["c-2"]?.capacity, 4);
   });
 
   it("la même fiche à d'autres dates se relit dans le cache : seules les dates sont ôtées de la clé", async () => {
@@ -227,7 +227,7 @@ describe("pages de fiche de l'écran Prix : ce qu'une tranche rend", () => {
     await lire([a], 42_000);
     const rb = await lire([b], 42_000);
     assert.equal(departs.length, 1);
-    assert.deepEqual([rb.essayees, b.guests], [["c-2"], 6]);
+    assert.deepEqual([rb.essayees, b.capacity], [["c-2"], 6]);
   });
 
   it("la taxe de séjour d'une page ne change pas le prix relevé", async () => {
@@ -238,7 +238,7 @@ describe("pages de fiche de l'écran Prix : ce qu'une tranche rend", () => {
     const row = ligne(1, "taxe.exemple.fr");
     const r = await lire([row], 42_000);
     assert.deepEqual(r.essayees, ["c-1"]);
-    assert.equal(row.guests, 6);
+    assert.equal(row.capacity, 6);
     assert.equal(row.total, 1000);
     assert.doesNotMatch(row.proven, /taxe de séjour/);
   });
@@ -280,7 +280,7 @@ describe("pages de fiche : le rythme par hôte", () => {
 
 describe("poserLecture : la taxe de séjour, une fois", () => {
   const lect = (taxeSejour: number | null): LectureFiche => ({
-    guests: 6,
+    capacity: 6,
     bedrooms: null,
     rooms: null,
     lat: null,
@@ -302,7 +302,7 @@ describe("poserLecture : la taxe de séjour, une fois", () => {
     const row = ligne(1, "panier.exemple.fr", { total: 1060, proven: "Ingénie live · panier" });
     poserLecture(row, lect(60));
     assert.equal(row.total, 1060);
-    assert.equal(row.guests, 6);
+    assert.equal(row.capacity, 6);
     const libelle = ligne(2, "panier.exemple.fr", { total: 1060, priceLabel: "loyer et taxe de séjour" });
     poserLecture(libelle, lect(60));
     assert.equal(libelle.total, 1060);

@@ -151,7 +151,7 @@ describe("Mountain Collection : annonces", () => {
     assert.equal(l.id, "mc-2331");
     assert.equal(l.source, "Mountain Collection");
     assert.equal(l.total, 2917);
-    assert.deepEqual([l.guests, l.bedrooms, l.rooms, l.baths, l.propertyType], [6, 2, 3, 2, "Appartement"]);
+    assert.deepEqual([l.capacity, l.bedrooms, l.rooms, l.baths, l.propertyType], [6, 2, 3, 2, "Appartement"]);
     assert.deepEqual([l.lat, l.lon, l.locality], [45.00764, 6.12237, "Les 2 Alpes"]);
     assert.equal(l.skiPassIncluded, false);
     assert.equal(l.priceLabel, null);

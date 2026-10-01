@@ -17,6 +17,8 @@ import type { RenduTranche } from "./completion.server";
 const SOURCES = ["Airbnb", "Gîtes de France", "Booking", "Abritel", "Centrale", "GreenGo", ...SOURCES_AGENCES] as const;
 
 const nombre = z.number().finite().nullable();
+const sourceValeur = z.enum(["structured", "text_regex", "derived_from_type"]);
+const sourceCapacite = z.enum(["structured", "text_regex"]);
 
 const Candidate = z.object({
   id: z.string().min(1).max(1000),
@@ -27,7 +29,7 @@ const Candidate = z.object({
   platformId: z.string().max(1000).nullable(),
   lat: nombre,
   lon: nombre,
-  guests: nombre,
+  capacity: nombre,
   bedrooms: nombre,
   rooms: nombre,
   beds: nombre,
@@ -35,15 +37,19 @@ const Candidate = z.object({
   currency: z.string().max(8),
   proven: z.string().max(4000),
   locality: z.string().max(400).nullable(),
+  capacitySource: sourceCapacite.nullable().optional(),
+  bedroomsSource: sourceValeur.nullable().optional(),
 });
 
 const Connue = z.object({
   cle: z.string().min(1).max(2000),
-  guests: z.number().finite(),
+  capacity: z.number().finite(),
   bedrooms: nombre,
   rooms: nombre,
   lat: z.number().finite(),
   lon: z.number().finite(),
+  capacitySource: sourceCapacite.nullable().optional(),
+  bedroomsSource: sourceValeur.nullable().optional(),
 });
 
 const Input = z.object({

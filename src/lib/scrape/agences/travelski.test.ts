@@ -135,7 +135,7 @@ describe("Travelski : annonces", () => {
     assert.equal(l.title, "Pierre & Vacances Résidence Atria-Crozats — Appartement 4 personnes - 1 chambre - Balcon");
     assert.equal(l.total, 3111, "3 087 € + 24 € de frais de service");
     assert.equal(l.priceLabel, "Hébergement, 7 nuits, frais de service inclus");
-    assert.deepEqual([l.guests, l.bedrooms, l.rooms, l.propertyType], [4, 1, 2, "Résidence de Tourisme"]);
+    assert.deepEqual([l.capacity, l.bedrooms, l.rooms, l.propertyType], [4, 1, 2, "Résidence de Tourisme"]);
     assert.deepEqual([l.lat, l.lon], [46.193199, 6.77615]);
     assert.equal(l.skiPassIncluded, false);
     assert.equal(l.platformId, "80136");
@@ -167,7 +167,8 @@ describe("Travelski : annonces", () => {
   it("sans fiche, pas de position ; chambres du nom", () => {
     const tilia = RECHERCHE.residences.find((r) => r.liheId === "136708")!;
     const [l] = travelskiListings(tilia, null, AVORIAZ);
-    assert.deepEqual([l.id, l.total, l.lat, l.lon, l.rooms, l.bedrooms, l.propertyType], ["tsk-922064", 2130, null, null, 2, null, "Appartement de particulier"]);
+    assert.deepEqual([l.id, l.total, l.lat, l.lon, l.rooms, l.bedrooms, l.propertyType], ["tsk-922064", 2130, null, null, 2, 1, "Appartement de particulier"]);
+    assert.equal(l.bedroomsSource, "derived_from_type", "« 2 pièces » dans le nom : 1 chambre tirée du type");
     assert.equal(travelskiListings(atria(), { ...FICHE!, liheId: "1" }, AVORIAZ)[0].lat, null, "la fiche d'une autre résidence ne sert pas");
   });
 

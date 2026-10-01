@@ -80,7 +80,18 @@ describe("Cimalpes : lecture", () => {
 
   it("un studio n'a pas de chambre", () => {
     const c = lireRecherche(VAL_THORENS).cartes.find((x) => x.id === "2813")!;
-    assert.deepEqual([c.chambres, c.surface], [0, 28]);
+    assert.deepEqual([c.chambres, c.surface, c.studio], [0, 28, true]);
+  });
+
+  it("chaque valeur dit sa source : la ligne de la carte est un texte, le 0 d'un studio un type", () => {
+    const ls = cimalpesListings(lireRecherche(VAL_THORENS).cartes, VT);
+    const studio = ls.find((l) => l.id === "cim-2813")!;
+    assert.deepEqual(
+      [studio.bedrooms, studio.isStudio, studio.bedroomsSource, studio.capacitySource],
+      [0, true, "derived_from_type", "text_regex"],
+    );
+    const autre = ls.find((l) => l.id !== "cim-2813" && l.bedrooms != null && l.bedrooms > 0)!;
+    assert.deepEqual([autre.isStudio, autre.bedroomsSource], [false, "text_regex"]);
   });
 
   it("« Prix sur demande » : pas de prix, le libellé reste", () => {
@@ -112,7 +123,7 @@ describe("Cimalpes : annonces", () => {
     assert.equal(l.source, "Cimalpes");
     assert.equal(l.total, 8100);
     assert.equal(l.priceIndicative, false);
-    assert.deepEqual([l.guests, l.bedrooms, l.propertyType, l.locality], [12, 2, "Appartement", "Val Thorens - Centre & proche centre"]);
+    assert.deepEqual([l.capacity, l.bedrooms, l.propertyType, l.locality], [12, 2, "Appartement", "Val Thorens - Centre & proche centre"]);
     assert.deepEqual([l.lat, l.lon], [null, null]);
     assert.equal(l.skiPassIncluded, false);
     assert.equal(l.priceLabel, "8 100 € /semaine");

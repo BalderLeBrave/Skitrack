@@ -576,7 +576,7 @@ function LogementsStation({ s }: { s: Station }) {
   const relancer = () => setStay({ searchNonce: Date.now() });
   /* ---------- Prédicats ---------- */
   const lp: Pred[] = [];
-  lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.guests == null || l.guests >= trav, fixed: true });
+  lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.capacity == null || l.capacity >= trav, fixed: true });
   // Les pièces comptent, comme dans `lodgingFilter`. Les deux règles de
   // chambres ne lisaient que `bedrooms` : une annonce de centrale publiant
   // « 2 pièces » sans chambres traversait en silence « Chambres ≥ 4 » — elle en
@@ -645,7 +645,7 @@ function LogementsStation({ s }: { s: Station }) {
     lp.push({
       id: "lcap",
       label: lfLbl("cap", lcap),
-      fn: (l) => dansPlage(l.guests, lcap, RANGE.cap.b),
+      fn: (l) => dansPlage(l.capacity, lcap, RANGE.cap.b),
       remove: () => patchLf({ cap: null }),
     });
   if (lrooms != null)
@@ -694,7 +694,7 @@ function LogementsStation({ s }: { s: Station }) {
   const tri: Record<LodgeSort, (a: Listing, b: Listing) => number> = {
     pp: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     total: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
-    cap: (a, b) => parMesure(a.guests ?? null, b.guests ?? null, lsens),
+    cap: (a, b) => parMesure(a.capacity ?? null, b.capacity ?? null, lsens),
     dist: (a, b) => parMesure(distFiltrableM(a), distFiltrableM(b), lsens),
     trous: (a, b) => {
       const d = lsens * (completudeOf(a).trous.length - completudeOf(b).trous.length);
@@ -795,7 +795,7 @@ function LogementsStation({ s }: { s: Station }) {
     }
     // La capacité publiée la plus grande du relevé — `null` si **aucune**
     // annonce n'en publie. On ne dit un chiffre que si quelqu'un l'a écrit.
-    const capacites = raw.map((l) => l.guests).filter((g): g is number => g != null);
+    const capacites = raw.map((l) => l.capacity).filter((g): g is number => g != null);
     const plusGrande = capacites.length ? Math.max(...capacites) : null;
     const muettes = raw.length - capacites.length;
     // Les règles verrouillées ne se retirent pas : chacune dit où elle se règle.

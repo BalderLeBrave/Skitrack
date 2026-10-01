@@ -33,6 +33,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const TRAVELSKI_SITE = "https://www.travelski.com";
 export const TRAVELSKI_API = "https://api.travelski.com";
@@ -547,9 +548,23 @@ export function travelskiListings(
         source: "Travelski",
         total,
         currency: "EUR",
-        guests: o.capacite,
-        bedrooms: logement?.chambres ?? nom.chambres,
-        rooms: logement?.pieces ?? nom.pieces,
+        // Capacité : le champ de l'API. Chambres : la fiche (`window.lihe`, un
+        // JSON embarqué), sinon le nom du logement (un texte), 0 pour un studio.
+        ...champsLogement(
+          annoncer(
+            {
+              capacity: o.capacite,
+              bedrooms: logement?.chambres ?? nom.chambres,
+              rooms: logement?.pieces ?? nom.pieces,
+              source: {
+                capacity: "structured",
+                bedrooms:
+                  logement?.chambres != null ? "structured" : nom.chambres === 0 ? "derived_from_type" : "text_regex",
+              },
+            },
+            o.nom,
+          ),
+        ),
         propertyType: code ? (LIBELLES_TYPE[code] ?? null) : null,
         available: true,
         photo: r.image,

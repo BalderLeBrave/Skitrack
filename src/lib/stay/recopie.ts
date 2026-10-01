@@ -21,9 +21,16 @@
  * logements, et rien ne dit auquel appartient l'offre qui ne publie rien.
  *
  * Jamais une valeur publiée remplacée ; jamais entre deux logements distincts.
+ * Chaque valeur passe avec sa source (`stay/logement.ts`) : elle comble un
+ * vide, ou remplace une valeur de moins bonne source (un champ structuré
+ * devant le texte, le texte devant le type) ; une valeur que la sœur tirait
+ * de son texte (son titre, le sous-titre de sa tuile) reste `text_regex`. Ne
+ * recopier que les champs structurés laissait muet l'Airbnb dont la sœur
+ * Abritel disait « 4 chambres • 10 personnes » sous son titre.
  */
 
 import type { Listing } from "../listings.ts";
+import { RANG_SOURCE, sourceCapacite, sourceChambres, type SourceCapacite, type SourceValeur } from "./logement.ts";
 import { gpsPrecis } from "./lodgingFilter.ts";
 import {
   capaciteCompatible,
@@ -38,9 +45,14 @@ import {
 /** La trace laissée dans `proven` d'une offre complétée par sa sœur. */
 export const MARQUE_SOEUR = "même logement";
 
-type Champs = Pick<Listing, "guests" | "bedrooms" | "rooms" | "lat" | "lon">;
-/** Ce qu'une offre reçoit : ses trous comblés, et la trace dans `proven`. */
-export type Recopie = Partial<Champs> & { proven: string };
+type Champs = Pick<Listing, "capacity" | "bedrooms" | "rooms" | "lat" | "lon">;
+/** Ce qu'une offre reçoit : ses trous comblés, leur source, et la trace dans
+ *  `proven`. */
+export type Recopie = Partial<Champs> & {
+  capacitySource?: SourceCapacite;
+  bedroomsSource?: SourceValeur;
+  proven: string;
+};
 
 function titresCommuns(a: Listing, b: Listing): string[] {
   const deB = new Set(clesTitre(b.title));
@@ -63,6 +75,31 @@ export function memeLogement(a: Listing, b: Listing): boolean {
   );
 }
 
+const NOMBRES = ["capacity", "bedrooms", "rooms"] as const;
+type Nombre = (typeof NOMBRES)[number];
+type Valeurs = Champs & { de: Record<Nombre, SourceValeur> };
+
+/** La source d'une valeur ; les pièces n'en ont pas, et ne comblent qu'un vide. */
+function sourceDe(o: Listing, k: Nombre): SourceValeur {
+  if (k === "capacity") return sourceCapacite(o) ?? "structured";
+  if (k === "bedrooms") return sourceChambres(o) ?? "structured";
+  return "structured";
+}
+
+/**
+ * `a` prend la valeur de `b` : dans un champ vide, ou à la place d'une valeur
+ * de moins bonne source. Chaque prise améliore la source, et la boucle finit.
+ */
+function prendre(a: Valeurs, b: Valeurs, k: Nombre): boolean {
+  const x = b[k];
+  if (x == null || (k === "rooms" && x <= 0)) return false;
+  const vide = a[k] == null || (k === "rooms" && (a[k] as number) <= 0);
+  if (!vide && RANG_SOURCE[b.de[k]] >= RANG_SOURCE[a.de[k]]) return false;
+  a[k] = x;
+  a.de[k] = b.de[k];
+  return true;
+}
+
 function marquer(proven: string): string {
   return proven.includes(MARQUE_SOEUR) ? proven : `${proven} · ${MARQUE_SOEUR}`;
 }
@@ -79,12 +116,14 @@ export function recopierSoeurs(listings: readonly Listing[]): Map<string, Recopi
     if (offres.length < 2) continue;
     // Deux capacités publiées qui se contredisent : deux logements au moins.
     if (offres.some((a, i) => offres.some((b, j) => j > i && !capaciteCompatible(a, b)))) continue;
-    const vals: Champs[] = offres.map((o) => ({
-      guests: o.guests,
+    // Chaque valeur connue, et sa source.
+    const vals: Valeurs[] = offres.map((o) => ({
+      capacity: o.capacity,
       bedrooms: o.bedrooms,
       rooms: o.rooms ?? null,
       lat: o.lat,
       lon: o.lon,
+      de: { capacity: sourceDe(o, "capacity"), bedrooms: sourceDe(o, "bedrooms"), rooms: "structured" },
     }));
     for (let tour = 0; tour < offres.length; tour += 1) {
       let bouge = false;
@@ -93,18 +132,7 @@ export function recopierSoeurs(listings: readonly Listing[]): Map<string, Recopi
           if (i === j || !memeLogement(offres[i], offres[j])) continue;
           const a = vals[i];
           const b = vals[j];
-          if (a.guests == null && b.guests != null) {
-            a.guests = b.guests;
-            bouge = true;
-          }
-          if (a.bedrooms == null && b.bedrooms != null) {
-            a.bedrooms = b.bedrooms;
-            bouge = true;
-          }
-          if ((a.rooms == null || a.rooms <= 0) && b.rooms != null && b.rooms > 0) {
-            a.rooms = b.rooms;
-            bouge = true;
-          }
+          for (const k of NOMBRES) if (prendre(a, b, k)) bouge = true;
           if (!gpsPrecis(a) && gpsPrecis(b)) {
             a.lat = b.lat;
             a.lon = b.lon;
@@ -116,10 +144,13 @@ export function recopierSoeurs(listings: readonly Listing[]): Map<string, Recopi
     }
     offres.forEach((o, i) => {
       const v = vals[i];
-      const recu: Partial<Champs> = {};
-      if (v.guests !== o.guests) recu.guests = v.guests;
-      if (v.bedrooms !== o.bedrooms) recu.bedrooms = v.bedrooms;
-      if (v.rooms !== (o.rooms ?? null)) recu.rooms = v.rooms;
+      const recu: Omit<Recopie, "proven"> = {};
+      for (const k of NOMBRES) {
+        if (v[k] === (o[k] ?? null) && (v[k] == null || v.de[k] === sourceDe(o, k))) continue;
+        recu[k] = v[k];
+        if (k === "capacity") recu.capacitySource = v.de.capacity === "structured" ? "structured" : "text_regex";
+        if (k === "bedrooms") recu.bedroomsSource = v.de.bedrooms;
+      }
       if (v.lat !== o.lat || v.lon !== o.lon) {
         recu.lat = v.lat;
         recu.lon = v.lon;

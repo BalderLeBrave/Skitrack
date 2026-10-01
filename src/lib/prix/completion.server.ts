@@ -32,6 +32,7 @@ import {
 } from "../scrape/airbnbFiches.ts";
 import { airbnbIdOf } from "../stay/enrichir.ts";
 import { comblerDepuisMemoire, type ValeursFiche } from "../stay/memoireFiches.server.ts";
+import { qualifierLogement, sourceCapacite, sourceChambres } from "../stay/logement.ts";
 import { cleListing } from "../stay/poserReleve.ts";
 import { airbnbSuspendu, manqueFiche, type CandidateFiche, type FicheConnue } from "./calcul.ts";
 
@@ -85,7 +86,7 @@ export type RenduTranche = {
 };
 
 /** Ce qu'une fiche a publié, pour la mémoire. */
-export type LectureCourte = Pick<ValeursFiche, "guests" | "bedrooms" | "rooms" | "lat" | "lon">;
+export type LectureCourte = Pick<ValeursFiche, "capacity" | "bedrooms" | "rooms" | "lat" | "lon">;
 
 /** Ce qu'une tranche de pages hors Airbnb a fait (`lirePagesProfond`). */
 export type PagesProfond = {
@@ -140,7 +141,7 @@ function versLigne(c: CandidateFiche, stationId: string): Listing {
     source: c.source,
     total: c.total,
     currency: c.currency,
-    guests: c.guests,
+    capacity: c.capacity,
     bedrooms: c.bedrooms,
     rooms: c.rooms,
     beds: c.beds,
@@ -152,6 +153,8 @@ function versLigne(c: CandidateFiche, stationId: string): Listing {
     lon: c.lon,
     locality: c.locality,
     proven: c.proven,
+    capacitySource: c.capacitySource ?? null,
+    bedroomsSource: c.bedroomsSource ?? null,
   };
 }
 
@@ -165,7 +168,7 @@ function marquer(row: Listing, marque: string): void {
  * de centrale ne s'y ajoute pas, `lirePagesProfond`).
  */
 const CHAMPS = [
-  "guests",
+  "capacity",
   "bedrooms",
   "rooms",
   "lat",
@@ -181,6 +184,19 @@ function correctif(avant: Listing, apres: Listing): Partial<Listing> | null {
   for (const k of CHAMPS) {
     if (avant[k] === apres[k]) continue;
     (c as Record<string, unknown>)[k] = apres[k];
+    n += 1;
+  }
+  // La source voyage avec la valeur : sans elle, une capacité lue sur la
+  // fiche se relirait chez le client comme la donnée du collecteur, ou
+  // comme le texte qu'elle remplace.
+  const capacite = sourceCapacite(apres);
+  if (capacite && capacite !== sourceCapacite(avant)) {
+    c.capacitySource = capacite;
+    n += 1;
+  }
+  const chambres = sourceChambres(apres);
+  if (chambres && chambres !== sourceChambres(avant)) {
+    c.bedroomsSource = chambres;
     n += 1;
   }
   return n > 0 ? c : null;
@@ -253,7 +269,10 @@ async function trancheAirbnb(
         bilan.retires.push(row.id);
         continue;
       }
-      if (comblerDepuisMemoire(row, f)) marquer(row, MARQUE_AIRBNB);
+      if (comblerDepuisMemoire(row, f)) {
+        Object.assign(row, qualifierLogement(row));
+        marquer(row, MARQUE_AIRBNB);
+      }
     }
   }
   for (const id of lu.vides) {
@@ -328,7 +347,10 @@ export async function trancheProfonde(d: DemandeTranche, deps: Dependances): Pro
         retires.add(row.id);
         continue;
       }
-      if (comblerDepuisMemoire(row, m)) marquer(row, MARQUE_MEMOIRE);
+      if (comblerDepuisMemoire(row, m)) {
+        Object.assign(row, qualifierLogement(row));
+        marquer(row, MARQUE_MEMOIRE);
+      }
       // Sa fiche Airbnb a été lue il y a moins de trente jours, et ne publie
       // pas ce qui manque encore : la redemander coûterait une requête pour rien.
       if (row.source === "Airbnb" && m.lue && manqueFiche(row)) laissees.add(row.id);

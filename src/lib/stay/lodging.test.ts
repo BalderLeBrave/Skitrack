@@ -43,7 +43,7 @@ function bien(over: Partial<FilterSubject> = {}): FilterSubject {
     source: "Airbnb",
     url: "https://www.airbnb.fr/rooms/123",
     total: 2231,
-    guests: 8,
+    capacity: 8,
     bedrooms: 3,
     ...over,
   };
@@ -218,7 +218,7 @@ describe("filtre : « non annoncé » n'est pas « ne convient pas »", () => {
   });
 
   it("« non annoncé » passe quand on le demande, et sort par défaut", () => {
-    const muet = bien({ guests: null, bedrooms: null, rooms: null });
+    const muet = bien({ capacity: null, bedrooms: null, rooms: null });
     assert.equal(partyVerdict(muet, { travelers: 8, rooms: 4 }), "non-annonce");
     assert.ok(!fitsParty(muet, { travelers: 8, rooms: 4 }));
     assert.ok(fitsParty(muet, { travelers: 8, rooms: 4 }, true));
@@ -229,7 +229,7 @@ describe("filtre : « non annoncé » n'est pas « ne convient pas »", () => {
   it("« annoncé trop petit » sort, même en réaffichant les non-annoncées", () => {
     // Un refus l'emporte sur une absence : 1 chambre publiée quand on en
     // demande quatre est démontrablement trop petit, capacité publiée ou non.
-    const petit = bien({ guests: null, bedrooms: 1 });
+    const petit = bien({ capacity: null, bedrooms: 1 });
     assert.equal(partyVerdict(petit, { travelers: 8, rooms: 4 }), "trop-petit");
     assert.ok(!fitsParty(petit, { travelers: 8, rooms: 4 }, true));
   });
@@ -286,18 +286,18 @@ describe("filtre : ce qui sort, et pourquoi", () => {
   const criteres = { travelers: 8, rooms: 4, stay: STAY, now: NOW };
 
   it("une annonce sans tarif échappe au prix, pas au reste", () => {
-    const sansPrix = bien({ id: "sp", total: 0, guests: 8, bedrooms: 4 });
+    const sansPrix = bien({ id: "sp", total: 0, capacity: 8, bedrooms: 4 });
     assert.equal(
       dropReasonFor(sansPrix, { ...criteres, budgetMin: 0, budgetMax: 500, budgetCeiling: 6000 }),
       null,
     );
     // Mais la capacité, elle, l'engage toujours.
-    const petitSansPrix = bien({ id: "sp2", total: 0, guests: 8, bedrooms: 1 });
+    const petitSansPrix = bien({ id: "sp2", total: 0, capacity: 8, bedrooms: 1 });
     assert.equal(dropReasonFor(petitSansPrix, criteres), "capacite");
   });
 
   it("le prix écarte quand la fourchette est posée, jamais quand elle est ouverte", () => {
-    const cher = bien({ id: "c", total: 5420, guests: 10, bedrooms: 4 });
+    const cher = bien({ id: "c", total: 5420, capacity: 10, bedrooms: 4 });
     assert.equal(
       dropReasonFor(cher, { ...criteres, budgetMin: 0, budgetMax: 3000, budgetCeiling: 6000 }),
       "prix",
@@ -309,13 +309,13 @@ describe("filtre : ce qui sort, et pourquoi", () => {
   });
 
   it("la source décochée et la disponibilité ont leur propre motif", () => {
-    const abnb = bien({ id: "a", guests: 8, bedrooms: 4 });
+    const abnb = bien({ id: "a", capacity: 8, bedrooms: 4 });
     assert.equal(dropReasonFor(abnb, { ...criteres, srcOff: ["Airbnb"] }), "source");
     // Sans champ de relevé daté, l'annonce n'est pas prouvée disponible.
     assert.equal(dropReasonFor(abnb, { ...criteres, onlyAvailable: true }), "disponibilite");
     // Une porte d'entrée n'est pas jugée là-dessus.
     assert.equal(
-      dropReasonFor(bien({ id: "d", url: null, guests: 8, bedrooms: 4 }), {
+      dropReasonFor(bien({ id: "d", url: null, capacity: 8, bedrooms: 4 }), {
         ...criteres,
         onlyAvailable: true,
       }),
@@ -325,22 +325,22 @@ describe("filtre : ce qui sort, et pourquoi", () => {
 
   it("les écarts sont comptés par motif, pour que l'écran puisse les nommer", () => {
     const rows: FilterSubject[] = [
-      bien({ id: "ok1", guests: 8, bedrooms: 4, total: 2000 }),
-      bien({ id: "ok2", guests: 12, bedrooms: 5, total: 2500 }),
-      bien({ id: "petit1", guests: 4, bedrooms: 4, total: 1000 }),
-      bien({ id: "petit2", guests: 8, bedrooms: 2, total: 1200 }),
-      bien({ id: "cher1", guests: 8, bedrooms: 4, total: 5000 }),
-      bien({ id: "cher2", guests: 9, bedrooms: 4, total: 5800 }),
+      bien({ id: "ok1", capacity: 8, bedrooms: 4, total: 2000 }),
+      bien({ id: "ok2", capacity: 12, bedrooms: 5, total: 2500 }),
+      bien({ id: "petit1", capacity: 4, bedrooms: 4, total: 1000 }),
+      bien({ id: "petit2", capacity: 8, bedrooms: 2, total: 1200 }),
+      bien({ id: "cher1", capacity: 8, bedrooms: 4, total: 5000 }),
+      bien({ id: "cher2", capacity: 9, bedrooms: 4, total: 5800 }),
       bien({
         id: "groupe1",
-        guests: 20,
+        capacity: 20,
         bedrooms: 7,
         total: 4000,
         source: "Gîtes de France",
         title: "Gîte de groupe des Cimes",
         url: "https://www.gites-de-france.com/fr/gite-de-groupe-des-cimes",
       }),
-      bien({ id: "src1", guests: 8, bedrooms: 4, total: 2100, source: "Booking" }),
+      bien({ id: "src1", capacity: 8, bedrooms: 4, total: 2100, source: "Booking" }),
     ];
     const out = applyFilter(rows, {
       ...criteres,
@@ -369,7 +369,7 @@ describe("filtre : ce qui sort, et pourquoi", () => {
       "6 biens masqués : 1 gîte de groupe, 2 trop petits, 2 hors budget, 1 issu d’une source décochée",
     );
     // Un motif unique ne répète pas son nombre.
-    const unSeul = applyFilter([bien({ id: "c", total: 9000, guests: 8, bedrooms: 4 })], {
+    const unSeul = applyFilter([bien({ id: "c", total: 9000, capacity: 8, bedrooms: 4 })], {
       ...criteres,
       budgetMin: 0,
       budgetMax: 3000,
@@ -384,7 +384,7 @@ describe("filtre : ce qui sort, et pourquoi", () => {
   });
 
   it("rien de masqué : rien à écrire", () => {
-    const out = applyFilter([bien({ id: "ok", guests: 8, bedrooms: 4 })], criteres);
+    const out = applyFilter([bien({ id: "ok", capacity: 8, bedrooms: 4 })], criteres);
     assert.equal(out.dropped.total, 0);
     assert.equal(droppedLabel(out.dropped), "");
   });
@@ -394,7 +394,7 @@ describe("filtre : la zone de recherche", () => {
   const criteres = { travelers: 8, rooms: 4, stay: STAY, now: NOW };
   // Un sujet qui satisfait déjà capacité et chambres : seule la géographie
   // doit pouvoir l'écarter, sans quoi le test mesurerait autre chose.
-  const zone = (over: Partial<FilterSubject> = {}) => bien({ guests: 8, bedrooms: 4, ...over });
+  const zone = (over: Partial<FilterSubject> = {}) => bien({ capacity: 8, bedrooms: 4, ...over });
 
   it("un logement à 300 km sort, et le motif le nomme", () => {
     // Le critère de fin, à la lettre : 300 km du repère de la station, aucun
@@ -475,7 +475,7 @@ describe("filtre : la zone de recherche", () => {
       source: "Airbnb",
       total: 2100,
       currency: "EUR",
-      guests: 8,
+      capacity: 8,
       bedrooms: 4,
       available: true,
       photo: null,
@@ -512,7 +512,7 @@ describe("filtre : la zone de recherche", () => {
       source: "Airbnb",
       total: 1800,
       currency: "EUR",
-      guests: 8,
+      capacity: 8,
       bedrooms: 4,
       available: true,
       photo: null,
@@ -578,7 +578,7 @@ describe("filtre : la zone de recherche", () => {
     assert.equal(distFiltrableM({ distToLiftM: 180, distToSlopesM: 2_400 }), 180);
     assert.equal(distFiltrableM({ distToLiftM: null, distToSlopesM: 2_400 }), 2_400);
     assert.equal(distFiltrableM({ distToLiftM: null, distToSlopesM: null }), null);
-    const tropLoin = zone({ id: "loin-lift", distToLiftM: 3_000, distToSlopesM: 400, guests: 8, bedrooms: 4 });
+    const tropLoin = zone({ id: "loin-lift", distToLiftM: 3_000, distToSlopesM: 400, capacity: 8, bedrooms: 4 });
     assert.equal(distFiltrableM(tropLoin), 3_000);
   });
 
@@ -587,10 +587,10 @@ describe("filtre : la zone de recherche", () => {
     // publient aucune capacité. Les compter « trop petites » accusait la
     // source d'un refus qu'elle n'a jamais prononcé.
     const rows: FilterSubject[] = [
-      bien({ id: "ok", guests: 8, bedrooms: 4, total: 2000 }),
-      bien({ id: "petit", guests: 4, bedrooms: 4, total: 1000 }),
-      bien({ id: "muet1", guests: null, bedrooms: null, rooms: null, total: 1500 }),
-      bien({ id: "muet2", guests: null, bedrooms: null, rooms: null, total: 1600 }),
+      bien({ id: "ok", capacity: 8, bedrooms: 4, total: 2000 }),
+      bien({ id: "petit", capacity: 4, bedrooms: 4, total: 1000 }),
+      bien({ id: "muet1", capacity: null, bedrooms: null, rooms: null, total: 1500 }),
+      bien({ id: "muet2", capacity: null, bedrooms: null, rooms: null, total: 1600 }),
     ];
     const out = applyFilter(rows, { travelers: 8, rooms: 4, stay: STAY, now: NOW });
     assert.deepEqual(
@@ -628,7 +628,7 @@ describe("filtre : une fiche que son titre dément n'est pas annoncée", () => {
   const chevalBlanc = bien({
     source: "Abritel",
     title: "Résidence Cheval Blanc - 2 Pièces Pour 4 Personnes Mae-8564",
-    guests: 8,
+    capacity: 8,
     bedrooms: 3,
   });
 
@@ -652,14 +652,14 @@ describe("filtre : une fiche que son titre dément n'est pas annoncée", () => {
     const tourDuMerle = bien({
       source: "Booking",
       title: "Résidence La Tour Du Merle - 4 Pièces Pour 7 Personnes Mae-3298",
-      guests: 8,
+      capacity: 8,
       bedrooms: 3,
     });
     assert.equal(partyVerdict(tourDuMerle, { travelers: 6, rooms: 3 }), "convient");
     const narcisse = bien({
       source: "GreenGo",
       title: "Gîte Narcisse — Grand gite Narcisse (gite et studio)",
-      guests: 12,
+      capacity: 12,
       bedrooms: 5,
     });
     assert.equal(partyVerdict(narcisse, { travelers: 6, rooms: 3 }), "convient");

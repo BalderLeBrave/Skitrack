@@ -2,7 +2,7 @@ import type { Listing } from "@/lib/listings";
 import { RELEVE_2A } from "@/lib/listings";
 import { attachAccess } from "@/lib/access";
 import { stationById } from "@/lib/stations";
-import { occupancyOfListing } from "@/lib/stay/occupancy";
+import { qualifierLogement } from "@/lib/stay/logement";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
@@ -55,12 +55,9 @@ const GREENGO_SOURCES = ["GreenGo"] as const;
 const ECHEANCE_PART_MS = 40_000;
 
 function locate(input: LiveSearchInput, listings: Listing[]): Listing[] {
-  const withOcc = listings.map((l) => {
-    const occ = occupancyOfListing(l);
-    return occ.guests === l.guests && occ.bedrooms === l.bedrooms && occ.rooms === (l.rooms ?? null)
-      ? l
-      : { ...l, ...occ };
-  });
+  // Capacité, chambres, pièces, cabine et type, chacun avec son origine :
+  // ce que le collecteur a posé, puis ce que le texte dit (`logement.ts`).
+  const withOcc = listings.map((l) => qualifierLogement(l));
   const station = stationById(input.stationId);
   const located = station ? withOcc.map((l) => attachAccess(l, station)) : withOcc;
   // `total: 0` veut dire « prix non publié », pas « gratuit » : un tri croissant

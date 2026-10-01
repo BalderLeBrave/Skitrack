@@ -4,12 +4,12 @@ import { couverture, phraseCouverture } from "./couverture.ts";
 
 describe("couverture d'une centrale : point, capacité, chambres", () => {
   const annonces = [
-    { lat: 45.687045, lon: 6.565435, guests: 10, bedrooms: 3, rooms: 4 },
-    { lat: null, lon: null, guests: 8, bedrooms: null, rooms: 4 },
+    { lat: 45.687045, lon: 6.565435, capacity: 10, bedrooms: 3, rooms: 4 },
+    { lat: null, lon: null, capacity: 8, bedrooms: null, rooms: 4 },
     // Un studio publie zéro chambre : c'est une chambre publiée, pas un trou.
-    { lat: 46.27721, lon: 6.83957, guests: null, bedrooms: 0, rooms: 1 },
+    { lat: 46.27721, lon: 6.83957, capacity: null, bedrooms: 0, rooms: 1 },
     // Zéro-zéro n'est pas un point.
-    { lat: 0, lon: 0, guests: null, bedrooms: null, rooms: null },
+    { lat: 0, lon: 0, capacity: null, bedrooms: null, rooms: null },
   ];
 
   it("compte ce qui est là, et sépare chambres publiées et pièces seules", () => {
@@ -26,7 +26,7 @@ describe("couverture d'une centrale : point, capacité, chambres", () => {
   it("signale trois logements au même point, sans rien retirer", () => {
     // Deux logements d'un même chalet au même point, c'est ordinaire (Valloire,
     // « Gros Grenier A » et « C ») ; trois ou plus se signalent.
-    const memePoint = { lat: 45.160057, lon: 6.418719, guests: 8, bedrooms: null, rooms: 4 };
+    const memePoint = { lat: 45.160057, lon: 6.418719, capacity: 8, bedrooms: null, rooms: 4 };
     assert.equal(couverture([memePoint, memePoint]).pointsPartages, 0);
     const c = couverture([memePoint, memePoint, memePoint, ...annonces]);
     assert.equal(c.pointsPartages, 3);

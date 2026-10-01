@@ -2,7 +2,7 @@
  * La migration des annonces enregistrées avant la phase 1 : elles n'ont pas
  * de `completude`, et en reçoivent une, aux trois champs inconnus.
  *
- * Rien n'est deviné. Les nombres que l'annonce porte (`guests`, `bedrooms`)
+ * Rien n'est deviné. Les nombres que l'annonce porte (`capacity`, `bedrooms`)
  * datent de son relevé, et la porte (`stay/porte.ts`) ne les croit pas sans
  * rafraîchissement : la raison est la sienne, mot pour mot. Le module est
  * pur, pour être lu dans la transaction de mise à niveau d'IndexedDB

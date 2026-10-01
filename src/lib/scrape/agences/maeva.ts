@@ -31,6 +31,7 @@
 
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
+import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
 export const MAEVA_SITE = "https://www.maeva.com";
 export const MAEVA_RECHERCHE = `${MAEVA_SITE}/fr-fr/assets/dm.php`;
@@ -368,9 +369,19 @@ export function maevaListings(
       source: "Maeva" as const,
       title: `${r.nom} — ${p.libelle}`,
       currency: "EUR",
-      guests: p.places,
-      bedrooms: chambres(p),
-      rooms: pieces(p.typeProduit),
+      // Champs de l'API (`produit_nb_places`, `produit_nb_chambres`) ; le 0
+      // d'un studio vient de sa typologie, pas du champ.
+      ...champsLogement(
+        annoncer(
+          {
+            capacity: p.places,
+            bedrooms: chambres(p),
+            rooms: pieces(p.typeProduit),
+            source: { capacity: "structured", bedrooms: chambres(p) === p.chambres ? "structured" : "derived_from_type" },
+          },
+          p.libelle,
+        ),
+      ),
       propertyType: r.type ?? p.typeProduit,
       available: true as const,
       photo: photos[0] ?? null,

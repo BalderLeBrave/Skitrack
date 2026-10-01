@@ -18,7 +18,7 @@ function L(over: Partial<SujetPlateforme> & { source: string }): SujetPlateforme
   return {
     total: 0,
     url: "https://example.test/a",
-    guests: 8,
+    capacity: 8,
     bedrooms: 3,
     lat: 45.01,
     lon: 6.12,

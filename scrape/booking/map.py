@@ -242,7 +242,7 @@ def harvest_places(node: Any, out: dict[str, dict[str, Any]]) -> None:
         occu = node.get("occupancy") if isinstance(node.get("occupancy"), dict) else {}
         max_p = occu.get("maxPersons") or occu.get("maxGuests") or node.get("maxPersons")
         if isinstance(max_p, int) and 0 < max_p <= 50:
-            slot["guests"] = max_p
+            slot["capacity"] = max_p
         br = node.get("numberOfBedrooms") or node.get("bedroomCount") or node.get("bedrooms")
         if isinstance(br, int) and 0 <= br <= 50:
             slot["bedrooms"] = br
@@ -443,11 +443,15 @@ def listings_from_html(
         # logement entier, et jamais le texte complet de la tuile.
         whole_unit = units if ENTIRE_UNIT.search(units) else ""
         guests, bedrooms, rooms = occupancy_from_text(name, whole_unit)
-        extra_g, extra_b = extra.get("guests"), extra.get("bedrooms")
+        guests_src = "text_regex" if guests is not None else None
+        bedrooms_src = "text_regex" if bedrooms is not None else None
+        # L'index Apollo est un JSON embarqué : un champ structuré. Seul lui
+        # part vers Node comme tel ; le texte s'y relit (`textes`).
+        extra_g, extra_b = extra.get("capacity"), extra.get("bedrooms")
         if isinstance(extra_g, int):
-            guests = extra_g
+            guests, guests_src = extra_g, "structured"
         if isinstance(extra_b, int):
-            bedrooms = extra_b
+            bedrooms, bedrooms_src = extra_b, "structured"
         img = card.select_one('[data-testid="image"], img')
         image = _attr(img, "src") or _attr(img, "data-src")
         url = href
@@ -473,9 +477,12 @@ def listings_from_html(
                 "images": [image] if image and image.startswith("http") else [],
                 "latitude": lat if isinstance(lat, (int, float)) else None,
                 "longitude": lon if isinstance(lon, (int, float)) else None,
-                "guests": guests,
+                "capacity": guests,
+                "capacitySource": guests_src,
                 "bedrooms": bedrooms,
+                "bedroomsSource": bedrooms_src,
                 "rooms": rooms,
+                "textes": [t for t in (name, whole_unit) if t],
                 "propertyType": property_type,
                 "priceConfidence": "total_confirmed" if total is not None else "no_stay_total",
                 # Une plateforme tarife ce qu'elle peut vendre : sans total de

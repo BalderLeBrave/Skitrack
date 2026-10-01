@@ -21,9 +21,12 @@ IDS = ["32854505", "40601911", "40601929", "986024481050825680"]
 
 def _occ(guests=4, bedrooms=1, dropped=False, room_type="Entire home/apt"):
     return {
-        "guests": guests,
+        "capacity": guests,
+        "capacitySource": "structured" if guests is not None else None,
         "bedrooms": bedrooms,
+        "bedroomsSource": "structured" if bedrooms is not None else None,
         "rooms": None,
+        "textes": [],
         "lat": 46.18,
         "lon": 6.70,
         "room_type": room_type,
@@ -91,9 +94,12 @@ def test_les_fiches_lues_reviennent_par_identifiant():
     assert appels == IDS
     assert list(out["fiches"]) == IDS
     assert out["fiches"][IDS[0]] == {
-        "guests": 2,
+        "capacity": 2,
+        "capacitySource": "structured",
         "bedrooms": 1,
+        "bedroomsSource": "structured",
         "rooms": None,
+        "textes": [],
         "lat": 46.18,
         "lon": 6.70,
         "roomType": "Entire home/apt",
@@ -241,9 +247,9 @@ def test_lire_reponse_pdp_classe_refus_hash_et_echecs():
             }
         }
     }
-    assert pdp.lire_reponse_pdp(200, {}, json.dumps(fiche))["guests"] == 5
+    assert pdp.lire_reponse_pdp(200, {}, json.dumps(fiche))["capacity"] == 5
     partielle = {**fiche, "errors": [{"message": "section indisponible"}]}
-    assert pdp.lire_reponse_pdp(200, {}, json.dumps(partielle))["guests"] == 5, "une section en erreur n'efface pas la fiche"
+    assert pdp.lire_reponse_pdp(200, {}, json.dumps(partielle))["capacity"] == 5, "une section en erreur n'efface pas la fiche"
 
 
 def test_l_url_porte_l_operation_le_hash_et_l_identifiant():

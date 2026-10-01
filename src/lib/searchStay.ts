@@ -7,6 +7,7 @@ import type { LiveSearchResult, SourceName } from "./scrape/types";
 import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
 import { enrichirListing } from "./stay/enrichir";
+import { journalResidu, residuLogements } from "./stay/logement";
 import { estFicheGitesIntrouvable } from "./stay/ficheGites";
 import { estOffreGitesVerifiee, purgerTarifFigé } from "./stay/tarif";
 
@@ -213,8 +214,8 @@ async function completer(
     if (!estTimeout(err)) throw err;
     console.warn("[searchStay] complément de fiches : délai dépassé, on rend ce qui est lu");
   }
-  return poserAcces(
-    rows.filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l)),
-    stationId,
-  );
+  const rendues = rows.filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
+  // Ce qui reste introuvable reste `null`, et se dit : jamais de valeur par défaut.
+  for (const ligne of journalResidu(residuLogements(rendues), stationId)) console.info(ligne);
+  return poserAcces(rendues, stationId);
 }

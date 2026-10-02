@@ -366,6 +366,10 @@ async function relever(s: Station, job: Job, gen: number, signal: AbortSignal): 
     bedrooms: borne(job.groupe.rooms, 0, 20),
     // Jamais de relance : le relevé Airbnb de quinze minutes sert aussi à Logements.
     relance: false,
+    // Prix lit ses candidates Airbnb par leur fiche PDP (`completerProfond`) :
+    // la passe du relevé ne met aucune page Airbnb en tâche de fond (elle lit
+    // au premier plan ce que le limiteur laisse, comme avant).
+    pour: "prix" as const,
   };
   // Dans l'ordre de PARTS, quel que soit l'ordre de départ.
   const lus: PromiseSettledResult<Rendu>[] = [];

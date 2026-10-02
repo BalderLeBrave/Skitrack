@@ -37,6 +37,8 @@ export type LectureFiche = OccupancyLue & {
   title: string | null;
   /** Lits annoncés par la page (« 4 lits », aperçu Airbnb), à part de la capacité. */
   beds?: number | null;
+  /** Airbnb : chambre privée ou partagée, chambre d'hôtel ou hébergement insolite (`ecarteeAirbnb`). */
+  ecartee?: boolean;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
   taxeSejour: number | null;
 };
@@ -519,6 +521,50 @@ function apercuAirbnb(html: string): string[] | null {
   }
 }
 
+/* Les règles du worker, recopiées telles quelles pour juger une page `rooms/`
+ * comme il juge une fiche PDP : `scrape/airbnb/map.py` (`PRIVATE`,
+ * `HOTEL_TILE`, `ENTIRE`, `is_dropped_listing`) et `scrape/airbnb/occupancy.py`
+ * (`INSOLITE_RE`, lu sur le type de logement seul). */
+const PRIVEE =
+  /chambre d['’ ]?hotes|maison d['’ ]?hotes|private[ _-]?room|chambre privee|shared[ _-]?room|chambre partage|bed[- ]and[- ]breakfast|hotel[ _]room|chambre d['’ ]?hotel/i;
+const HOTEL_EN_TETE = /^h[oô]tels?\b/i;
+const ENTIER = /appartement|chalet|maison|logement entier|entire/i;
+const INSOLITE =
+  /(?:^|[\s\-_'’:(])(?:campings?|glamping|campement|tentes?|tipis?|yourtes?|roulottes?|bulles?|mobil-?homes?|caravanes?|camping-?cars?|bateaux?|p[eé]niches?|igloos?|cabanes? dans les arbres|emplacements?)(?=$|[\s\-_'’.,:)])/i;
+
+function plierTexte(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+/** `is_dropped_listing` du worker. */
+function pasUnLogementEntier(texte: string | null | undefined): boolean {
+  if (!texte || !texte.trim()) return false;
+  const t = plierTexte(texte);
+  if (PRIVEE.test(t)) return true;
+  return HOTEL_EN_TETE.test(t) && !ENTIER.test(t);
+}
+
+/**
+ * Une page Airbnb qui n'est pas un logement entier, jugée comme le worker juge
+ * une fiche PDP (`occupancy_from_pdp`) : le `roomType` (« Private room »,
+ * « Hotel room ») ou le type publié (« Logement entier : tente »). La page
+ * `rooms/` ne porte pas `isHotelRatePlanEnabled` : ce seul signal-là manque.
+ */
+export function ecarteeAirbnb(html: string): boolean {
+  const lire = (cle: string) => {
+    const brut = html.match(new RegExp(`"${cle}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`))?.[1];
+    if (brut == null) return null;
+    try {
+      return JSON.parse(`"${brut}"`) as string;
+    } catch {
+      return brut;
+    }
+  };
+  const roomType = lire("roomType");
+  const type = lire("propertyType");
+  return pasUnLogementEntier(roomType) || pasUnLogementEntier(type) || (type != null && INSOLITE.test(type));
+}
+
 /** « 4 lits », « 1 lit » : le nombre de lits annoncé, à part de la capacité. */
 function litsDe(lignes: readonly string[]): number | null {
   for (const l of lignes) {
@@ -568,6 +614,7 @@ export function lectureAirbnb(html: string): LectureFiche {
   }
   const lits = apercu ? litsDe(apercu) : null;
   if (lits != null) out = { ...out, beds: lits };
+  if (ecarteeAirbnb(html)) out = { ...out, ecartee: true };
   const lat = Number(html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
   const lon = Number(html.match(/"listingLng"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
   if (plausible(lat, lon)) out = { ...out, lat, lon, gpsSource: "pdp" };

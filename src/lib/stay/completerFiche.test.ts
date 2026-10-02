@@ -42,8 +42,19 @@ const DOSSIER = mkdtempSync(join(tmpdir(), "skitrack-pages-"));
 process.env.SKITRACK_TAUX = join(DOSSIER, "taux.json");
 process.env.SKITRACK_AIRBNB_CIRCUIT = join(DOSSIER, "airbnb-429");
 process.env.SKITRACK_AIRBNB_SESSION = join(DOSSIER, "airbnb-session.json");
+// La mémoire des fiches (`fiches.json`) aussi : jamais celle de l'application.
+process.env.SKITRACK_CONFIG_DIR = DOSSIER;
 
-const { lirePagesAirbnbProfond, lirePagesProfond, poserLecture } = await import("./completerFiche.server.ts");
+const {
+  etatSuiteAirbnb,
+  fillFiches,
+  lirePagesAirbnbProfond,
+  lirePagesProfond,
+  noteDeLecture,
+  poserLecture,
+  poserMemoire,
+} = await import("./completerFiche.server.ts");
+const { memoireFiches } = await import("./memoireFiches.server.ts");
 
 const T0 = Date.parse("2027-01-10T12:00:00Z");
 
@@ -179,6 +190,25 @@ describe("pages de fiche de l'écran Prix : ce qu'une tranche rend", () => {
     assert.deepEqual(r.essayees, ["c-4"]);
   });
 
+  it("un hôte qui a refusé reste en pause d'une tranche, ou d'une recherche, à l'autre", async () => {
+    repondre = (url) => (url.includes("pause.exemple.fr") ? { status: 429 } : { html: page() });
+    const un = await lire([ligne(1, "pause.exemple.fr"), ligne(2, "pause.exemple.fr")], 42_000);
+    assert.deepEqual(un.hotesRefus, ["pause.exemple.fr"]);
+    assert.equal(departs.filter((d) => d.url.includes("pause.exemple.fr")).length, 1);
+    // Tranche suivante, course nouvelle (rien d'exclu) : l'hôte ne reçoit rien,
+    // et ce n'est pas un refus de plus.
+    const deux = await lire([ligne(3, "pause.exemple.fr"), ligne(4, "ailleurs.exemple.fr")], 42_000);
+    assert.equal(departs.filter((d) => d.url.includes("pause.exemple.fr")).length, 1);
+    assert.deepEqual(deux.hotesRefus, []);
+    assert.deepEqual(deux.laissees, ["c-3"]);
+    assert.deepEqual(deux.essayees, ["c-4"]);
+    // Dix minutes plus tard, la pause est levée.
+    mock.timers.tick(10 * 60_000 + 1_000);
+    repondre = () => ({ html: page() });
+    await lire([ligne(5, "pause.exemple.fr")], 42_000);
+    assert.equal(departs.filter((d) => d.url.includes("pause.exemple.fr")).length, 2);
+  });
+
   it("un hôte déjà exclu de la course ne reçoit rien", async () => {
     const r = await lire([ligne(1, "exclu.exemple.fr")], 42_000, ["exclu.exemple.fr"]);
     assert.equal(departs.length, 0);
@@ -266,7 +296,7 @@ describe("pages de fiche : le rythme par hôte", () => {
     assert.ok(vers[1] - vers[0] >= 1_000, `écart de ${vers[1] - vers[0]} ms`);
   });
 
-  it("six secondes au moins entre deux pages rooms/, d'une tranche à l'autre", async () => {
+  it("5 s au moins entre deux pages rooms/, d'une tranche à l'autre", async () => {
     repondre = () => ({ html: page(`<script>{"personCapacity":4}</script>`) });
     const airbnb = (n: number) =>
       ligne(n, "www.airbnb.fr", { id: `abnb-${n}`, source: "Airbnb", url: `https://www.airbnb.fr/rooms/${n}` });
@@ -274,7 +304,7 @@ describe("pages de fiche : le rythme par hôte", () => {
     const deux = await silence(() => jouer(lirePagesAirbnbProfond([airbnb(4100002)], Date.now() + 42_000)));
     assert.deepEqual([un.essayees, deux.essayees], [["abnb-4100001"], ["abnb-4100002"]]);
     assert.equal(departs.length, 2);
-    assert.ok(departs[1].t - departs[0].t >= 6_000, `écart de ${departs[1].t - departs[0].t} ms`);
+    assert.ok(departs[1].t - departs[0].t >= 5_000, `écart de ${departs[1].t - departs[0].t} ms`);
   });
 });
 
@@ -314,5 +344,351 @@ describe("poserLecture : la taxe de séjour, une fois", () => {
     const libelle = ligne(2, "panier.exemple.fr", { total: 1060, priceLabel: "loyer et taxe de séjour" });
     poserLecture(libelle, lect(60));
     assert.equal(libelle.total, 1060);
+  });
+});
+
+describe("mémoire des fiches : Logements la lit et l'alimente", () => {
+  const airbnb = (id: string, over: Partial<Listing> = {}): Listing => ({
+    ...ligne(0, "www.airbnb.fr"),
+    id: `abnb-${id}`,
+    source: "Airbnb",
+    title: "Hébergement à Mont-de-Lans",
+    url: `https://www.airbnb.fr/rooms/${id}?check_in=2027-01-23&check_out=2027-01-30&adults=6`,
+    lat: 45.03604,
+    lon: 6.11436,
+    proven: "pyairbnb live 2027-01-23→2027-01-30",
+    ...over,
+  });
+  const lecture = (over: Partial<LectureFiche>): LectureFiche => ({
+    capacity: null,
+    bedrooms: null,
+    rooms: null,
+    lat: null,
+    lon: null,
+    locality: null,
+    street: null,
+    title: null,
+    taxeSejour: null,
+    ...over,
+  });
+
+  it("note une page Airbnb lue, ses sources, et son point seulement s'il est celui de la page", () => {
+    // rooms/21670960, lu le 2 octobre 2026 : personCapacity 6, « 2 chambres » de l'aperçu, listingLat/Lng.
+    const lue = lecture({
+      capacity: 6,
+      capacitySource: "structured",
+      bedrooms: 2,
+      bedroomsSource: "text_regex",
+      lat: 45.03604,
+      lon: 6.11436,
+      gpsSource: "pdp",
+      pageLue: true,
+    });
+    assert.deepEqual(noteDeLecture(airbnb("21670960"), lue), {
+      cle: "Airbnb:21670960",
+      capacity: 6,
+      capacitySource: "structured",
+      bedrooms: 2,
+      bedroomsSource: "text_regex",
+      rooms: null,
+      lat: 45.03604,
+      lon: 6.11436,
+      // Une page rooms/, pas la fiche PDP : `page`, que l'écran Prix ne prend
+      // pas pour une fiche lue.
+      page: true,
+    });
+    // Un point de repli (adresse géocodée) ne se mémorise pas ; une coquille non plus.
+    const ban = noteDeLecture(airbnb("21670960"), { ...lue, gpsSource: "ban" });
+    assert.deepEqual([ban?.lat, ban?.lon, ban?.capacity], [null, null, 6]);
+    assert.equal(noteDeLecture(airbnb("21670960"), { ...lue, pageLue: false }), null);
+    assert.equal(noteDeLecture(airbnb("21670960"), null), null);
+    // Une page dont le format n'est pas reconnu (pas de personCapacity) n'est pas notée « lue ».
+    assert.equal(noteDeLecture(airbnb("21670960"), { ...lue, capacity: null, capacitySource: null }), null);
+    assert.equal(noteDeLecture(airbnb("21670960"), { ...lue, capacitySource: "text_regex" }), null);
+    // Une chambre privée ou un hébergement insolite se note écarté, pour l'écran Prix.
+    assert.equal(noteDeLecture(airbnb("21670960"), { ...lue, ecartee: true })?.ecartee, true);
+    assert.equal("ecartee" in (noteDeLecture(airbnb("21670960"), lue) ?? {}), false);
+    // Hors Airbnb : pas de « lue », le point de la fiche reste.
+    const centrale = noteDeLecture(ligne(7, "resa.exemple.fr"), lecture({ capacity: 4, lat: 45.1, lon: 6.1 }));
+    assert.deepEqual([centrale?.cle, centrale?.capacitySource, centrale?.lat, "lue" in (centrale ?? {})], [
+      "Centrale:c-7",
+      "structured",
+      45.1,
+      false,
+    ]);
+  });
+
+  it("une page lue par une passe précédente comble l'annonce sans réseau, même après un redémarrage", () => {
+    memoireFiches().noter([
+      {
+        cle: "Airbnb:21670960",
+        capacity: 6,
+        capacitySource: "structured",
+        bedrooms: 2,
+        bedroomsSource: "text_regex",
+        lat: 45.03604,
+        lon: 6.11436,
+        lue: true,
+      },
+      // Lue, sans chambres publiées : la redemander ne servirait à rien.
+      { cle: "Airbnb:714330356704298148", capacity: 2, capacitySource: "structured", lue: true },
+    ]);
+    const rows = [
+      airbnb("21670960", { capacity: null, bedrooms: null }),
+      airbnb("714330356704298148", { capacity: null, bedrooms: null }),
+      airbnb("999", { capacity: null, bedrooms: null }),
+    ];
+    const n = departs.length;
+    const { posees, dejaLues } = poserMemoire(rows);
+    assert.equal(departs.length, n, "aucune requête");
+    assert.equal(posees, 2);
+    const [a, b, c] = rows;
+    assert.deepEqual(
+      [a.capacity, a.capacitySource, a.bedrooms, a.bedroomsSource, a.pdpLue],
+      [6, "structured", 2, "text_regex", true],
+    );
+    assert.match(a.proven, /mémoire des fiches/);
+    assert.deepEqual([b.capacity, b.bedrooms, b.pdpLue], [2, null, true]);
+    assert.deepEqual([...dejaLues], ["abnb-714330356704298148"]);
+    // Inconnue de la mémoire : intacte, elle sera lue.
+    assert.deepEqual([c.capacity, c.bedrooms, c.pdpLue ?? null], [null, null, null]);
+  });
+
+  it("une page rooms/ lue par Logements comble Logements, pas l'écran Prix, qui lit sa fiche PDP", () => {
+    memoireFiches().noter([
+      { cle: "Airbnb:6660001", capacity: 4, capacitySource: "structured", bedrooms: 1, bedroomsSource: "text_regex", page: true },
+    ]);
+    const logements = airbnb("6660001", { capacity: null, bedrooms: null });
+    poserMemoire([logements]);
+    assert.deepEqual([logements.capacity, logements.bedrooms, logements.pdpLue], [4, 1, true]);
+    const prix = airbnb("6660001", { capacity: null, bedrooms: null });
+    const { dejaLues } = poserMemoire([prix], { fichePdpSeule: true });
+    // Rien ne se pose : l'annonce reste candidate à sa fiche PDP, que Prix
+    // lira (avec son signal hôtel), et rien n'est « déjà lu ».
+    assert.deepEqual([prix.capacity, prix.bedrooms, prix.pdpLue ?? null], [null, null, null]);
+    assert.equal(dejaLues.size, 0);
+  });
+
+  it("la mémoire ne repose ni une valeur sans source, ni un point, ni une annonce hors Airbnb", () => {
+    memoireFiches().noter([
+      // Entrée d'un fichier plus ancien : des valeurs sans source.
+      { cle: "Airbnb:5550001", capacity: 6, bedrooms: 3, lat: 45.1, lon: 6.1, lue: true },
+      { cle: "Centrale:c-9", capacity: 8, capacitySource: "structured", bedrooms: 3, bedroomsSource: "structured" },
+    ]);
+    const sansSource = airbnb("5550001", { capacity: null, bedrooms: null, lat: null, lon: null });
+    const centrale = ligne(9, "resa.exemple.fr");
+    poserMemoire([sansSource, centrale]);
+    assert.deepEqual([sansSource.capacity, sansSource.bedrooms, sansSource.lat], [null, null, null]);
+    // La centrale garde sa fiche à ouvrir (et la taxe de séjour que pose la page).
+    assert.deepEqual([centrale.capacity, centrale.bedrooms], [null, null]);
+  });
+
+  it("relecture sans budget (fillFiches à 0 ms) : aucune page ne part, la mémoire se pose", async () => {
+    memoireFiches().noter([
+      { cle: "Airbnb:41783408", capacity: 4, capacitySource: "structured", bedrooms: 2, bedroomsSource: "text_regex", lue: true },
+    ]);
+    const row = airbnb("41783408", { capacity: null, bedrooms: null });
+    const n = departs.length;
+    // Et une annonce que la mémoire ne connaît pas : rien n'est mis en file.
+    const inconnue = airbnb("7770001", { capacity: null, bedrooms: null });
+    await silence(() => fillFiches([row, inconnue], 0));
+    assert.equal(departs.length, n, "aucune requête");
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+    assert.deepEqual([row.capacity, row.bedrooms, row.bedroomsSource, row.pdpLue], [4, 2, "text_regex", true]);
+    assert.deepEqual([inconnue.capacity, inconnue.bedrooms], [null, null]);
+  });
+});
+
+describe("ordre de lecture des pages Airbnb : ce que l'écran montre d'abord", () => {
+  it("dans la station, puis avec un prix, puis la moins chère ; rien n'est retiré", async () => {
+    const { ordreDeLecture } = await import("./completerFiche.server.ts");
+    const a = (id: string, total: number, distToLiftM: number | null, domainFit: "in" | "other" = "in") => ({
+      id,
+      total,
+      distToLiftM,
+      domainFit,
+    });
+    const rows = [
+      a("autre-domaine-pas-cher", 100, 300, "other"),
+      a("loin-cher", 900, 8_000),
+      a("station-sans-prix", 0, 500),
+      a("station-cher", 1_400, 300),
+      a("inconnu", 600, null),
+      a("station-pas-cher", 700, 1_900),
+    ];
+    assert.deepEqual(
+      ordreDeLecture(rows).map((r) => r.id),
+      ["station-pas-cher", "station-cher", "station-sans-prix", "inconnu", "loin-cher", "autre-domaine-pas-cher"],
+    );
+    assert.equal(ordreDeLecture(rows).length, rows.length);
+  });
+});
+
+describe("la suite de Logements à côté d'une course Prix", () => {
+  const rooms = (n: number): Listing =>
+    ligne(n, "www.airbnb.fr", { id: `abnb-${n}`, source: "Airbnb", url: `https://www.airbnb.fr/rooms/${n}` });
+  /** Les écarts entre deux départs de pages rooms/, depuis le dernier effacement de `departs`. */
+  const ecarts = () => {
+    const t = departs.filter((d) => d.url.includes("/rooms/")).map((d) => d.t);
+    return t.slice(1).map((x, i) => x - t[i]);
+  };
+  /** Met les annonces en file et fait tourner l'horloge jusqu'à la fin de la suite. */
+  async function derouler(rows: Listing[]): Promise<void> {
+    const { prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    assert.equal(prioriserSuiteAirbnb(rows), rows.length);
+    await silence(() =>
+      jouer(
+        (async () => {
+          do await new Promise((ok) => setTimeout(ok, 500));
+          while (etatSuiteAirbnb().enCours);
+        })(),
+        50,
+      ),
+    );
+  }
+
+  it("6 s entre deux pages pendant une tranche de Prix et 90 s après ; seule, 5 s", async () => {
+    const { pendantTranchePrix } = await import("./completerFiche.server.ts");
+    repondre = () => ({ html: page(`<script>{"personCapacity":4}</script>`) });
+    let finir: () => void = () => undefined;
+    const tranche = pendantTranchePrix(() => new Promise<void>((ok) => (finir = ok)));
+    await derouler([rooms(4200001), rooms(4200002), rooms(4200003)]);
+    const pendant = ecarts();
+    finir();
+    await tranche;
+    departs.length = 0;
+    await derouler([rooms(4200004), rooms(4200005)]);
+    const traine = ecarts();
+    mock.timers.tick(90_000);
+    departs.length = 0;
+    await derouler([rooms(4200006), rooms(4200007)]);
+    const seule = ecarts();
+    assert.equal(pendant.length, 2);
+    assert.ok(pendant.every((e) => e >= 6_000), `pendant la tranche : ${pendant.join(", ")} ms`);
+    assert.equal(traine.length, 1);
+    assert.ok(traine[0] >= 6_000, `après la tranche : ${traine[0]} ms`);
+    assert.equal(seule.length, 1);
+    assert.ok(seule[0] >= 5_000 && seule[0] < 6_000, `seule : ${seule[0]} ms`);
+  });
+});
+
+describe("mémoire des fiches : l'écran Prix et les annonces sans point", () => {
+  const airbnb = (id: string, over: Partial<Listing> = {}): Listing => ({
+    ...ligne(0, "www.airbnb.fr"),
+    id: `abnb-${id}`,
+    source: "Airbnb",
+    title: "Hébergement à Mont-de-Lans",
+    url: `https://www.airbnb.fr/rooms/${id}?check_in=2027-01-23&check_out=2027-01-30&adults=6`,
+    lat: 45.03604,
+    lon: 6.11436,
+    proven: "pyairbnb live 2027-01-23→2027-01-30",
+    ...over,
+  });
+
+  it("Prix ne pose rien sur une annonce que la mémoire sait écartée : elle reste candidate", () => {
+    memoireFiches().noter([
+      { cle: "Airbnb:8880001", capacity: 2, capacitySource: "structured", bedrooms: 1, bedroomsSource: "structured", lue: true, ecartee: true },
+    ]);
+    const prix = airbnb("8880001", { capacity: null, bedrooms: null });
+    const r = poserMemoire([prix], { fichePdpSeule: true });
+    assert.deepEqual([prix.capacity, prix.bedrooms, prix.pdpLue ?? null], [null, null, null]);
+    assert.deepEqual([...r.ecartees], ["abnb-8880001"]);
+    assert.equal(r.dejaLues.size, 0);
+    // Logements, lui, l'affiche : l'écart ne vaut que pour la médiane de Prix.
+    const logements = airbnb("8880001", { capacity: null, bedrooms: null });
+    poserMemoire([logements]);
+    assert.deepEqual([logements.capacity, logements.bedrooms], [2, 1]);
+  });
+
+  it("les lits de l'aperçu se notent avec la page et reviennent de la mémoire, dans un vide seulement", () => {
+    const lue = airbnb("8880003", { capacity: null, bedrooms: null });
+    const note = noteDeLecture(lue, {
+      capacity: 6,
+      capacitySource: "structured",
+      bedrooms: 2,
+      bedroomsSource: "text_regex",
+      rooms: null,
+      lat: null,
+      lon: null,
+      locality: null,
+      street: null,
+      title: null,
+      taxeSejour: null,
+      beds: 4,
+      pageLue: true,
+    });
+    assert.equal(note?.beds, 4);
+    memoireFiches().noter([note!]);
+    // Redémarrage : une annonce neuve du relevé, sans lits.
+    const neuve = airbnb("8880003", { capacity: null, bedrooms: null });
+    poserMemoire([neuve]);
+    assert.deepEqual([neuve.capacity, neuve.bedrooms, neuve.beds], [6, 2, 4]);
+    const avecLits = airbnb("8880003", { capacity: null, bedrooms: null, beds: 5 });
+    poserMemoire([avecLits]);
+    assert.equal(avecLits.beds, 5);
+  });
+
+  it("lue sans chambres publiées : à point, elle ne se relit pas ; sans point, sa page se relit", () => {
+    memoireFiches().noter([{ cle: "Airbnb:8880002", capacity: 4, capacitySource: "structured", page: true }]);
+    const aPoint = airbnb("8880002", { capacity: null, bedrooms: null });
+    const sansPoint = airbnb("8880002", { id: "abnb-8880002-b", capacity: null, bedrooms: null, lat: null, lon: null });
+    const r = poserMemoire([aPoint, sansPoint]);
+    assert.deepEqual([...r.dejaLues], ["abnb-8880002"]);
+    assert.deepEqual([sansPoint.capacity, sansPoint.pdpLue], [4, true]);
+  });
+});
+
+describe("la passe du relevé de Prix", () => {
+  const rooms = (n: number): Listing =>
+    ligne(n, "www.airbnb.fr", {
+      id: `abnb-${n}`,
+      source: "Airbnb",
+      url: `https://www.airbnb.fr/rooms/${n}`,
+      lat: 45.03604,
+      lon: 6.11436,
+    });
+
+  it("les pages rooms/ au premier plan, comme avant, et rien en tâche de fond", async () => {
+    // Loin des appels et des pauses des essais précédents (même heure simulée de départ).
+    mock.timers.tick(10 * 60_000);
+    repondre = () => ({ html: page(`<script>{"personCapacity":4,"bedroomCount":2}</script>`) });
+    const rows = [rooms(4300003), rooms(4300004)];
+    await silence(() => jouer(fillFiches(rows, 30_000, { pour: "prix" })));
+    assert.equal(departs.filter((d) => d.url.includes("/rooms/")).length, 2);
+    assert.deepEqual(
+      rows.map((r) => r.capacity),
+      [4, 4],
+    );
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+});
+
+describe("la suite de Logements : la station qu'on regarde passe devant", () => {
+  const rooms = (n: number): Listing =>
+    ligne(n, "www.airbnb.fr", {
+      id: `abnb-${n}`,
+      source: "Airbnb",
+      url: `https://www.airbnb.fr/rooms/${n}`,
+      lat: 45.03604,
+      lon: 6.11436,
+    });
+  const ordre = () => departs.filter((d) => d.url.includes("/rooms/")).map((d) => Number(/rooms\/(\d+)/.exec(d.url)?.[1]));
+
+  it("une recherche abandonnée qui finit après ne passe pas devant ; celle qu'on regarde, si", async () => {
+    const { noterVue } = await import("./completerFiche.server.ts");
+    mock.timers.tick(10 * 60_000);
+    repondre = () => ({ html: page(`<script>{"personCapacity":4,"bedroomCount":2}</script>`) });
+    noterVue("station-a");
+    // La recherche A met ses pages en file ; la suite en lit une.
+    const tache = silence(async () => {
+      await fillFiches([rooms(4400001), rooms(4400002)], 30_000, { vue: "station-a" });
+      // B, abandonnée pour A, répond ensuite : en fin de file.
+      await fillFiches([rooms(4400101)], 30_000, { vue: "station-b" });
+      // Puis A est relancée et la regardée : elle passe devant ce qui reste.
+      await fillFiches([rooms(4400003)], 30_000, { vue: "station-a" });
+      for (let i = 0; i < 400 && etatSuiteAirbnb().enCours; i++) await new Promise((ok) => setTimeout(ok, 500));
+    });
+    await jouer(tache, 50);
+    assert.deepEqual(ordre(), [4400001, 4400003, 4400002, 4400101]);
   });
 });

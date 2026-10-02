@@ -204,6 +204,26 @@ export function cartesOrchestra(page: string): CarteOrchestra[] {
 }
 
 /**
+ * La référence que la centrale publie pour un logement : celle de son URL
+ * (« …-ref-ccdt052-86645 », la même que « ref CCDT052 » sur la carte), en
+ * minuscules comme le calendrier l'écrit. Sans elle, le numéro du logement,
+ * que l'URL porte aussi. Jamais le code de la catégorie de prix du jour, que
+ * plusieurs logements partagent (« Housing ») ou qui change selon la date.
+ */
+export function refOrchestra(c: Pick<CarteOrchestra, "id" | "chemin">): string {
+  const id = String(c.id);
+  const chemin = (c.chemin ?? "").replace(/[?#].*$/, "").replace(/\/+$/, "");
+  const fin = `-${id}`;
+  if (chemin.endsWith(fin)) {
+    const avant = chemin.slice(0, -fin.length);
+    const i = avant.toLowerCase().lastIndexOf("-ref-");
+    const ref = i >= 0 ? avant.slice(i + 5) : "";
+    if (/^[a-z0-9][a-z0-9-]*$/i.test(ref)) return ref.toLowerCase();
+  }
+  return id;
+}
+
+/**
  * La règle du propriétaire (`regleTypes.ts`), sur le type de la carte et, pour
  * le seul camping, sur son titre et son chemin. Rend le motif d'écart, ou
  * `null` quand le logement est gardé, type inconnu compris.

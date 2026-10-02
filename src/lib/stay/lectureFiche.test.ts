@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { decodeHtml, lectureAirbnb, lectureFiche } from "./lectureFiche.ts";
+import { decodeHtml, ecarteeAirbnb, lectureAirbnb, lectureFiche } from "./lectureFiche.ts";
 import { cleListing, poserReleve } from "./poserReleve.ts";
 
 describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
@@ -55,6 +55,23 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     // Un studio dans l'aperçu : 0 chambre.
     const studio = lectureAirbnb(`{"__typename":"StaysPdpOverview","title":"Logement entier","items":["2 voyageurs","Studio","1 lit","1 salle de bain"]}`);
     assert.deepEqual([studio.bedrooms, studio.bedroomsSource, studio.beds], [0, "derived_from_type", 1]);
+  });
+
+  it("ecarteeAirbnb : la règle du worker, sur le roomType et le type publié de la page", () => {
+    // rooms/21670960, 2 octobre 2026 : un logement entier.
+    assert.equal(
+      ecarteeAirbnb(`{"roomType":"Entire home/apt","personCapacity":6}{"propertyType":"Logement entier : hébergement"}`),
+      false,
+    );
+    assert.equal(ecarteeAirbnb(`{"roomType":"Private room"}`), true);
+    assert.equal(ecarteeAirbnb(`{"roomType":"Hotel room"}`), true);
+    assert.equal(ecarteeAirbnb(`{"roomType":"Entire home/apt"}{"propertyType":"Logement entier : tente"}`), true);
+    assert.equal(ecarteeAirbnb(`{"roomType":"Entire home/apt"}{"propertyType":"Chambre d'hôtes"}`), true);
+    // « Hôtel » en tête, mais logement entier : gardé (`is_dropped_listing`).
+    assert.equal(ecarteeAirbnb(`{"propertyType":"Hôtel particulier, appartement entier"}`), false);
+    // Rien à juger : gardé.
+    assert.equal(ecarteeAirbnb(`{"personCapacity":4}`), false);
+    assert.equal(lectureAirbnb(`{"roomType":"Private room","personCapacity":2}`).ecartee, true);
   });
 
   it("lectureAirbnb : sans bedroomCount, les chambres du titre de partage ; « Studio » vaut 0", () => {

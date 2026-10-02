@@ -3171,6 +3171,13 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
     ]);
   });
 
+  it("une annonce comblée par la mémoire des fiches ne se renote pas : sa date ne rajeunit pas", () => {
+    const xs = connuesDuReleve([
+      annonce({ id: "m", url: "https://www.airbnb.fr/rooms/777777", proven: "pyairbnb live · mémoire des fiches" }),
+    ]);
+    assert.deepEqual(xs, []);
+  });
+
   it("une URL que deux annonces portent est commune, sur tout le relevé", () => {
     const accueil = "https://www.centrale.fr/";
     const fiche = "https://www.centrale.fr/logement/12";

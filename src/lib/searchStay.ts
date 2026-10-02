@@ -23,6 +23,11 @@ const Input = z.object({
   part: z.enum(["airbnb", "gites", "cozy", "centrales", "greengo", "agences", "browser", "all"]).optional(),
   /** « Relancer le relevé » à l'écran : le cache long d'Airbnb ne sert que 90 s. */
   relance: z.boolean().optional(),
+  /**
+   * L'écran qui demande. Prix lit ses candidates Airbnb par leur fiche PDP : sa
+   * passe ne met aucune page en tâche de fond (`fillFiches`, `pour`).
+   */
+  pour: z.enum(["logements", "prix"]).optional(),
 });
 
 /** Une part (Airbnb, Gîtes…) ne doit pas retenir l'écran. Le repli s'affiche. */
@@ -63,11 +68,22 @@ export const searchStay = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<LiveSearchResult> => {
     const part = data.part ?? "all";
     const t0 = Date.now();
-    const { runLiveSearch } = await import("./scrape/run.server");
+    const [{ runLiveSearch }, { pendantReleveAirbnb, noterVue }] = await Promise.all([
+      import("./scrape/run.server"),
+      import("./stay/completerFiche.server"),
+    ]);
+    // L'écran Logements regarde cette station : dès l'entrée, avant le relevé,
+    // pour qu'une recherche abandonnée qui finit après ne passe pas devant.
+    const vue = data.pour === "prix" ? undefined : data.stationId;
+    if (vue) noterVue(vue);
+    // Une part qui relève la liste Airbnb tient la tâche de fond des pages à
+    // l'écart pendant le relevé : il garde ses créneaux du limiteur.
+    const releveAirbnb = part === "airbnb" || part === "all" || part === "browser";
+    const relever = () => runLiveSearch(data, part, { relance: data.relance === true });
     let res: LiveSearchResult;
     try {
       res = await withDeadline(
-        runLiveSearch(data, part, { relance: data.relance === true }),
+        releveAirbnb ? pendantReleveAirbnb(relever) : relever(),
         SEARCH_PART_MS,
         `search ${part}`,
       );
@@ -84,22 +100,37 @@ export const searchStay = createServerFn({ method: "POST" })
         data.stationId,
         remain,
         { checkIn: data.checkIn, checkOut: data.checkOut, guests: data.guests },
+        { pour: data.pour, vue },
       ),
     };
   });
 
 /** Ce que la relecture peut prendre d'un coup : le relevé Airbnb d'une grande station. */
 const ANNONCES_MAX = 2_000;
-/** Le temps laissé à une relecture : les pages déjà lues se posent sans réseau. */
-const RELECTURE_MS = 20_000;
+/** Les annonces qu'on met en tête d'un coup : celle qu'on ouvre, pas une liste. */
+const OUVERTES_MAX = 3;
 
 /**
  * Relit les annonces que l'écran tient déjà, par la seconde passe seule
- * (`fillFiches`), sans nouveau relevé : les pages Airbnb se lisent en tâche
- * de fond pendant trois quarts d'heure (6 s par page), et l'écran les
- * affichait « non renseigné » jusqu'à la recherche suivante. Ce que la tâche a
- * lu est dans le cache des fiches et se pose sans réseau ; ce qui reste à lire
- * part au rythme ordinaire. Les annonces reviennent telles quelles, comblées.
+ * (`fillFiches`), sans nouveau relevé et **sans réseau** : ce que la tâche de
+ * fond a lu (cache des fiches) et la mémoire des fiches se posent, et rien ne
+ * part d'ici. Les pages Airbnb se lisent en tâche de fond ; l'écran les
+ * affichait « non renseigné » jusqu'à la recherche suivante. Ce qui reste à
+ * lire retourne en fin de file de la tâche de fond, et une suite arrêtée
+ * (échéance de 45 min, refus répétés) repart à son rythme, derrière le même
+ * limiteur : avant, la relecture lisait elle-même ses pages et relançait la
+ * suite.
+ *
+ * `lireMaintenant` : les annonces Airbnb qu'on vient d'ouvrir (trois au plus)
+ * passent d'abord en tête de la file de la tâche de fond
+ * (`prioriserSuiteAirbnb`), même limiteur, même coupe-circuit ; l'écran les
+ * relit ensuite. Les autres sources ne sont pas lues à l'ouverture : seule,
+ * hors du relevé entier, une annonce ne dit pas si sa page est commune à
+ * plusieurs (`urlsPartagees`), et sa lecture poserait sur elle la page d'une
+ * résidence.
+ *
+ * Les annonces reviennent comblées, leur accès aux pistes recalculé si leur
+ * point a changé.
  */
 export const completerAnnonces = createServerFn({ method: "POST" })
   .validator(
@@ -107,18 +138,31 @@ export const completerAnnonces = createServerFn({ method: "POST" })
       listings: z
         .array(z.object({ id: z.string().min(1), source: z.string().min(1), stationId: z.string().min(1) }).passthrough())
         .max(ANNONCES_MAX),
+      lireMaintenant: z.boolean().optional(),
     }),
   )
   .handler(async ({ data }): Promise<Listing[]> => {
-    const rows = data.listings as unknown as Listing[];
+    const lire = data.lireMaintenant === true;
+    const rows = (data.listings as unknown as Listing[]).slice(0, lire ? OUVERTES_MAX : ANNONCES_MAX);
     if (rows.length === 0) return rows;
+    const points = new Map(rows.map((l) => [l.id, `${l.lat},${l.lon}`]));
     try {
-      const { fillFiches } = await import("./stay/completerFiche.server");
-      await fillFiches(rows, RELECTURE_MS);
+      const { fillFiches, prioriserSuiteAirbnb } = await import("./stay/completerFiche.server");
+      if (lire) {
+        // En tête AVANT la relecture : la suite, si elle repart, part sur elle.
+        const { airbnbComplet } = await import("./stay/priseFiche");
+        prioriserSuiteAirbnb(rows.filter((l) => l.source === "Airbnb" && !airbnbComplet(l)));
+      }
+      // Ce que le cache et la mémoire savent, sans réseau. Ce qui reste à
+      // lire retourne en fin de file, et une suite arrêtée repart.
+      await fillFiches(rows, 0, { relecture: true });
     } catch {
-      /* réseau, pause Airbnb : les trous restent nommés, la relecture suivante reprendra */
+      /* mémoire illisible : les trous restent nommés, la relecture suivante reprendra */
     }
-    return rows;
+    const bouges = rows.filter((l) => points.get(l.id) !== `${l.lat},${l.lon}`);
+    if (bouges.length === 0) return rows;
+    const parId = new Map(poserAcces(bouges, bouges[0].stationId).map((l) => [l.id, l]));
+    return rows.map((l) => parId.get(l.id) ?? l);
   });
 
 /** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, devis ITEA daté. */
@@ -136,7 +180,8 @@ export const completerReleve = createServerFn({ method: "POST" })
       data.checkIn && data.checkOut && data.guests
         ? { checkIn: data.checkIn, checkOut: data.checkOut, guests: data.guests }
         : undefined;
-    return completer(listingsForStay(data.stationId, 1, 0), data.stationId, 28_000, stay);
+    // En tête de la suite seulement si l'écran regarde encore cette station.
+    return completer(listingsForStay(data.stationId, 1, 0), data.stationId, 28_000, stay, { vue: data.stationId });
   });
 
 /**
@@ -191,6 +236,7 @@ async function completer(
   stationId: string,
   budgetMs: number,
   stay?: { checkIn: string; checkOut: string; guests: number },
+  fiches: { pour?: "logements" | "prix"; vue?: string } = {},
 ): Promise<Listing[]> {
   // Copie : les remplisseurs mutent en place, et le relevé figé ne doit pas l'être.
   const rows = listings.map((l) => ({ ...enrichirListing(l) }));
@@ -214,7 +260,7 @@ async function completer(
           if (budgetMs <= 0) return;
           try {
             const { fillFiches } = await import("./stay/completerFiche.server");
-            await fillFiches(rows, budgetMs);
+            await fillFiches(rows, budgetMs, fiches);
           } catch {
             /* robots, réseau : les trous restent nommés */
           }

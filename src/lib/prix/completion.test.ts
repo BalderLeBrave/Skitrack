@@ -151,6 +151,18 @@ describe("tranche « mémoire » : aucune requête", () => {
     assert.deepEqual(r.correctifs, {});
   });
 
+  it("une page rooms/ lue par Logements ne comble pas : l'Airbnb reste candidate à sa fiche PDP", async () => {
+    const { deps: dp } = deps();
+    dp.memoire.noter(
+      [{ cle: "Airbnb:80000", capacity: 8, capacitySource: "structured", bedrooms: 3, bedroomsSource: "text_regex", page: true }],
+      T0,
+    );
+    const r = await trancheProfonde(demande({ mode: "memoire", candidates: [cand({ id: "abnb-8" })] }), dp);
+    assert.deepEqual(r.correctifs, {});
+    assert.deepEqual([r.retires, r.laissees], [[], []]);
+    assert.equal(r.restantes, 1);
+  });
+
   it("dit ce qu'aucune fiche ne complétera, et le compte des restantes suit", async () => {
     const { deps: dp } = deps({ laissees: (rows) => rows.filter((l) => l.source === "Booking").map((l) => l.id) });
     const r = await trancheProfonde(
@@ -367,6 +379,44 @@ describe("tranche : fiches Airbnb", () => {
     assert.equal(r.attenteMs, 40_000);
     assert.equal(airbnbSuspendu(r.arretAirbnb), false);
     assert.equal(r.restantes, 1);
+  });
+
+  for (const arret of ["illisible", "cle", "worker"] as const) {
+    it(`fiche PDP en panne (${arret}) : repli sur les pages rooms/ des annonces trouées, la panne reste l'arrêt`, async () => {
+      const { deps: dp, appels } = deps({
+        fiches: (d) => ({ fiches: {}, vides: [], restants: [...d.ids], lues: 1, arret }),
+        async lirePagesAirbnb(rows: Listing[]): Promise<PagesAirbnbProfond> {
+          appels.rooms.push(rows);
+          rows[0].capacity = 4;
+          return {
+            essayees: [rows[0].id],
+            // Le limiteur fait attendre la seconde : la course ne repart pas pour autant sur la fiche PDP.
+            arret: "rythme",
+            attenteMs: 30_000,
+            lectures: { [rows[0].id]: { capacity: 4, bedrooms: null, rooms: null, lat: null, lon: null } },
+            lues: 1,
+          };
+        },
+      });
+      const r = await silence(() =>
+        trancheProfonde(demande({ candidates: [cand({ id: "abnb-1" }), cand({ id: "abnb-2" })] }), dp),
+      );
+      assert.deepEqual(
+        appels.rooms[0].map((l) => l.id),
+        ["abnb-1", "abnb-2"],
+      );
+      assert.equal(r.correctifs["abnb-1"]?.capacity, 4);
+      assert.equal(r.arretAirbnb, arret);
+      assert.equal(airbnbSuspendu(r.arretAirbnb), true);
+    });
+  }
+
+  it("un refus de la fiche PDP : aucune page rooms/ derrière", async () => {
+    const { deps: dp, appels } = deps({
+      fiches: (d) => ({ fiches: {}, vides: [], restants: [...d.ids], lues: 1, arret: "refus" }),
+    });
+    await silence(() => trancheProfonde(demande({ candidates: [cand({ id: "abnb-1" })] }), dp));
+    assert.equal(appels.rooms.length, 0);
   });
 
   it("une fiche lue qui ne publie pas tout, ou vide, ne se redemande pas de trente jours", async () => {

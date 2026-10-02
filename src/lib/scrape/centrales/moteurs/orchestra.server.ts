@@ -281,7 +281,7 @@ function enListing(
   // fiche, qui l'écrit sous le mot « Capacité », et à défaut du nom du logement
   // et de son chemin, qui parlent bien du bien.
   const occ = annoncer(
-    { capacity: fiche?.capacite ?? null, bedrooms: null, rooms: fiche?.pieces ?? null },
+    { capacity: fiche?.capacite ?? null, bedrooms: fiche?.chambres ?? null, rooms: fiche?.pieces ?? null },
     c.titre,
     c.chemin,
   );

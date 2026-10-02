@@ -4,6 +4,7 @@ import { SCRAPE_UA, sleep } from "./browser.server.ts";
 import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer, type Occupancy } from "../stay/occupancy.ts";
+import { capaciteFormuleItea } from "../stay/lectureFiche.ts";
 import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } from "./gitesGps.server.ts";
 import { communeGites } from "./gitesCommunes.ts";
 
@@ -371,7 +372,7 @@ export function occupancyFromGitesHtml(html: string): Occupancy {
     html.match(/"occupancy"\s*:\s*\{[^}]{0,280}"maxValue"\s*:\s*"?(\d+)/i)?.[1];
   const b = html.match(/"numberOfBedrooms"\s*:\s*"?(\d+)/i)?.[1];
   return annoncer({
-    capacity: g ? Number(g) : null,
+    capacity: g ? Number(g) : (capaciteFormuleItea(html) ?? null),
     bedrooms: b ? Number(b) : null,
   });
 }

@@ -30,12 +30,14 @@ import {
   SKIPLANET_SITE,
   calendrierIllisible,
   lireCalendrier,
+  lirePhotosLogement,
   logementGarde,
   nuitsEntre,
   ordonnerResidences,
   residencesDe,
   skiPlanetListings,
   urlCalendrier,
+  urlInfosLogement,
   type CalendrierSkiPlanet,
   type ResidenceSkiPlanet,
   type TableSkiPlanet,
@@ -66,7 +68,39 @@ type Tache = {
   raison?: string;
   echecs: number;
 };
-const g = globalThis as typeof globalThis & { __skitrackCalendriersSkiPlanet__?: Map<string, Lu>; __skitrackTacheSkiPlanet__?: Tache };
+const g = globalThis as typeof globalThis & {
+  __skitrackCalendriersSkiPlanet__?: Map<string, Lu>;
+  __skitrackTacheSkiPlanet__?: Tache;
+  __skitrackPhotosSkiPlanet__?: Map<string, { a: number; photos: string[] }>;
+};
+/** Les photos d'un logement changent peu : une semaine. */
+const DUREE_PHOTOS_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Les photos lues sur le panneau de chaque logement (`infos-logement.php`), pour le processus. */
+function memoirePhotos(): Map<string, { a: number; photos: string[] }> {
+  return (g.__skitrackPhotosSkiPlanet__ ??= new Map());
+}
+
+/** Les photos connues d'un logement, `null` s'il n'a pas été lu (ou plus depuis une semaine). */
+function photosConnues(idLogement: string, now = Date.now()): string[] | null {
+  const e = memoirePhotos().get(idLogement);
+  if (!e || now - e.a > DUREE_PHOTOS_MS) return null;
+  return e.photos;
+}
+
+/** Les logements vendus des résidences sans photo dans la table, dont le panneau n'est pas lu. */
+function logementsSansPhoto(input: LiveSearchInput, residences: readonly ResidenceSkiPlanet[]): string[] {
+  const ids = new Set<string>();
+  for (const r of residences) {
+    if (r.photo) continue;
+    for (const forfait of [false, true]) {
+      for (const l of relire(cle(r.id, input, forfait))?.logements ?? []) {
+        if (logementGarde(l) && photosConnues(l.id) == null) ids.add(l.id);
+      }
+    }
+  }
+  return [...ids];
+}
 
 /** Les calendriers lus, pour le processus : le module se réévalue en développement. */
 function memoire(): Map<string, Lu> {
@@ -152,11 +186,41 @@ async function lireStation(tache: Tache, input: LiveSearchInput, residences: rea
     if (relire(cle(r.id, input, false))) continue;
     if (!(await lire(r, false))) return;
   }
+  // Les photos des logements dont la résidence n'en a pas (table) : le
+  // panneau de chaque logement, avant les forfaits, au même rythme.
+  if (!(await lirePhotos(tache, input, residences, echeance))) return;
   for (const r of residences) {
     if (tache.arret) return;
     if (!proposeForfait(r, input) || relire(cle(r.id, input, true))) continue;
     if (!(await lire(r, true))) return;
   }
+  // Les logements que seuls les forfaits ont montrés.
+  await lirePhotos(tache, input, residences, echeance);
+}
+
+/** Lit le panneau des logements sans photo. `false` : la lecture s'arrête là. */
+async function lirePhotos(tache: Tache, input: LiveSearchInput, residences: readonly ResidenceSkiPlanet[], echeance: number): Promise<boolean> {
+  let suite = 0;
+  for (const id of logementsSansPhoto(input, residences)) {
+    if (tache.arret) return false;
+    try {
+      const res = await demander({ hote: HOTE, url: urlInfosLogement(id), echeance, entetes: { ...ENTETES_AJAX } });
+      // Un panneau sans photo se note aussi : il ne se relit pas à chaque relevé.
+      memoirePhotos().set(id, { a: Date.now(), photos: lirePhotosLogement(res.texte) });
+      suite = 0;
+    } catch (err) {
+      if (err instanceof ArretAgence) {
+        if (!arretDeTemps(err)) tache.raison = raisonDe(err);
+        return false;
+      }
+      tache.echecs++;
+      if (++suite >= ECHECS_DE_SUITE) {
+        tache.raison = `${suite} panneaux de logement illisibles de suite : ${raisonDe(err)}`;
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 /** La tâche de la station : celle en cours si c'est la même, sinon une nouvelle, qui arrête l'autre. */
@@ -206,8 +270,8 @@ export async function releverSkiPlanet(input: LiveSearchInput, opts: OptionsRele
     }
     // Du calendrier forfaits compris, seules les offres qui le sont.
     const lot = [
-      ...(s ? skiPlanetListings(r, s, input) : []),
-      ...(f ? skiPlanetListings(r, f, input, s).filter((l) => l.skiPassIncluded === true) : []),
+      ...(s ? skiPlanetListings(r, s, input, null, photosConnues) : []),
+      ...(f ? skiPlanetListings(r, f, input, s, photosConnues).filter((l) => l.skiPassIncluded === true) : []),
     ];
     for (const l of lot) {
       if (vus.has(l.id)) continue;

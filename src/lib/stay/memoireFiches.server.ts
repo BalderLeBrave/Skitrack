@@ -48,6 +48,8 @@ export type ValeursFiche = {
    *  (fiche, API) ou un texte. Absente d'un fichier plus ancien : structurée. */
   capacitySource?: SourceCapacite | null;
   bedroomsSource?: SourceValeur | null;
+  /** La capacité gardée est la somme des couchages décrits (`couchages.ts`). */
+  capaciteCouchages?: boolean;
   /**
    * Airbnb : les lits de l'aperçu de la page (« 4 lits »), à part de la
    * capacité. Sans eux, une annonce comblée par la mémoire au redémarrage ne
@@ -109,7 +111,7 @@ export function cheminMemoire(): string {
 }
 
 function entier(v: unknown, min: number): number | null {
-  return typeof v === "number" && Number.isInteger(v) && v >= min && v <= 50 ? v : null;
+  return typeof v === "number" && Number.isInteger(v) && v >= min && v <= 99 ? v : null;
 }
 
 function coordonnee(v: unknown, borne: number): number | null {
@@ -135,6 +137,7 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
     lat: point ? lat : null,
     lon: point ? lon : null,
     ...(capacitySource ? { capacitySource } : {}),
+    ...(capacity != null && v?.capaciteCouchages === true ? { capaciteCouchages: true } : {}),
     ...(bedroomsSource ? { bedroomsSource } : {}),
     ...(beds != null ? { beds } : {}),
     ...(typeof v?.ecartee === "boolean" ? { ecartee: v.ecartee } : {}),
@@ -193,6 +196,7 @@ function fraiche(e: Entree, now: number, dureeMs: number): Datees | null {
     out.dates[k] = date(k);
   }
   if (out.capacity != null && e.capacitySource) out.capacitySource = e.capacitySource;
+  if (out.capacity != null && e.capaciteCouchages === true) out.capaciteCouchages = true;
   if (out.bedrooms != null && e.bedroomsSource) out.bedroomsSource = e.bedroomsSource;
   if (e.lat != null && e.lon != null && frais("point")) {
     out.lat = e.lat;
@@ -328,6 +332,7 @@ export class MemoireFiches {
       lat: f.lat,
       lon: f.lon,
       ...(f.capacitySource ? { capacitySource: f.capacitySource } : {}),
+      ...(f.capaciteCouchages ? { capaciteCouchages: true } : {}),
       ...(f.bedroomsSource ? { bedroomsSource: f.bedroomsSource } : {}),
       ...(f.beds != null ? { beds: f.beds } : {}),
       ...(typeof f.ecartee === "boolean" ? { ecartee: f.ecartee } : {}),
@@ -374,7 +379,11 @@ export class MemoireFiches {
         if (apres[k] != null && RANG_SOURCE[source] > RANG_SOURCE[avantSource]) continue;
         revoir(k, apres[k] === x && source === avantSource);
         apres[k] = x;
-        if (k === "capacity") apres.capacitySource = v.capacitySource ?? null;
+        if (k === "capacity") {
+          apres.capacitySource = v.capacitySource ?? null;
+          if (v.capaciteCouchages) apres.capaciteCouchages = true;
+          else delete apres.capaciteCouchages;
+        }
         if (k === "bedrooms") apres.bedroomsSource = v.bedroomsSource ?? null;
       }
       if (v.lat != null && v.lon != null) {

@@ -18,6 +18,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { centraleAutorise } from "../robots.server";
@@ -80,10 +81,10 @@ export type ReglageMsem = {
 };
 
 const catalogues = new Map<string, { at: number; valeur: CatalogueMsem }>();
-async function json(url: string, corps?: Record<string, unknown>): Promise<unknown> {
+async function json(url: string, corps?: Record<string, unknown>, delaiMs = TIMEOUT_MS): Promise<unknown> {
   await centraleAutorise(url);
   const ctrl = new AbortController();
-  const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const minuteur = setTimeout(() => ctrl.abort(), delaiMs);
   try {
     const r = await fetch(url, {
       method: corps ? "POST" : "GET",
@@ -160,8 +161,128 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
       // nom à elle : l'appeler « avant remise » serait une déduction, et la
       // centrale n'écrit nulle part que l'un descend de l'autre.
       f.prixPublic != null ? ` — prix public publié : ${f.prixPublic.toLocaleString("fr-FR")} €` : ""
-    }`,
+    }${f.capaciteVendue ? ` — capacité : le plus grand groupe vendu, ${f.capacite} pers.` : ""}`,
   };
+}
+
+/** Le plus grand groupe qu'on demande aux offres : au-delà, la capacité reste inconnue. */
+const GROUPE_MAX = 30;
+/**
+ * Le temps qu'une montée en tâche de fond se donne. Les offres répondent
+ * parfois en près de quarante secondes (Flaine, 2 octobre 2026) : la montée
+ * ne peut pas tenir dans la recherche, qui ne l'attend donc pas.
+ */
+const BUDGET_CAPACITES_MS = 6 * 60_000;
+/** Le délai d'une requête d'offres de la montée. */
+const DELAI_MONTEE_MS = 75_000;
+/** Par station et logement : le plus grand groupe vendu, et si la montée s'est arrêtée sur un refus (`fini`). */
+const vendus = new Map<string, { at: number; groupe: number; fini: boolean }>();
+/** Les stations dont une montée court : une seule à la fois par station. */
+const montees = new Set<string>();
+
+/** La clé d'un logement dans la mémoire des fiches : la sienne, écrite par la seule montée. */
+function cleMemoireMsem(r: ReglageMsem, id: string): string {
+  return `MSEM:${r.resort}:${id}`;
+}
+
+/**
+ * La capacité que la centrale vend, pour les logements dont ni le catalogue
+ * (`maxCapacity` à 0) ni le titre ne disent la capacité : les studios de
+ * Flaine, par exemple (2 octobre 2026). Rend ce qui est déjà su (montée finie
+ * dans le processus, ou mémoire des fiches de moins de trente jours), et lance
+ * pour le reste une montée en tâche de fond : les offres se demandent pour un
+ * groupe ; on monte d'une personne à la fois, une seconde entre deux appels,
+ * tant qu'un de ces logements est encore vendu. Le dernier groupe vendu est sa
+ * capacité. Un logement encore vendu quand le temps ou `GROUPE_MAX` arrête la
+ * montée ne reçoit rien : la montée suivante reprend à ce groupe.
+ */
+function capacitesVendues(r: ReglageMsem, ctx: ContexteCentrale, ids: readonly string[]): Map<string, number> {
+  const out = new Map<string, number>();
+  const cle = (id: string) => `${r.resort}|${r.canal}|${id}`;
+  const depart = Math.max(1, Math.trunc(ctx.guests));
+  const groupe = new Map<string, number>();
+  let memoire: ReturnType<typeof memoireFiches> | null = null;
+  try {
+    memoire = memoireFiches();
+  } catch {
+    memoire = null;
+  }
+  for (const id of ids) {
+    const h = vendus.get(cle(id));
+    if (h && Date.now() - h.at < CATALOGUE_TTL_MS) {
+      if (h.fini) out.set(id, h.groupe);
+      else groupe.set(id, Math.max(h.groupe, depart));
+      continue;
+    }
+    const m = memoire?.lire(cleMemoireMsem(r, id));
+    if (m?.capacity != null && m.capacitySource === "structured") out.set(id, m.capacity);
+    else groupe.set(id, depart);
+  }
+  const station = `${r.resort}|${r.canal}`;
+  if (groupe.size > 0 && !montees.has(station)) {
+    montees.add(station);
+    void monter(r, ctx, groupe, cle)
+      .catch(() => undefined)
+      .finally(() => montees.delete(station));
+  }
+  return out;
+}
+
+async function monter(
+  r: ReglageMsem,
+  ctx: ContexteCentrale,
+  groupe: Map<string, number>,
+  cle: (id: string) => string,
+): Promise<void> {
+  const fin = Date.now() + BUDGET_CAPACITES_MS;
+  const notes: Array<{ cle: string; capacity: number; capacitySource: "structured" }> = [];
+  let restants = [...groupe.keys()];
+  while (restants.length > 0 && Date.now() < fin) {
+    const g = Math.min(...restants.map((id) => groupe.get(id) ?? 1)) + 1;
+    if (g > GROUPE_MAX) break;
+    // Personne n'attend : la requête a 75 s (les offres en ont pris près de
+    // quarante à Flaine le 2 octobre 2026), et un échec se retente une fois,
+    // dix secondes plus tard.
+    let offres: OffresMsem | null = null;
+    for (let essai = 0; essai < 2 && offres == null; essai++) {
+      await pause(essai === 0 ? ECART_MS : 10_000);
+      try {
+        offres = (await json(
+          urlOffresMsem(MSEM_BASE, r.resort),
+          corpsOffresMsem(r.canal, { ...ctx, guests: g }),
+          DELAI_MONTEE_MS,
+        )) as OffresMsem;
+      } catch {
+        offres = null;
+      }
+    }
+    if (offres == null) break;
+    const encore: string[] = [];
+    for (const id of restants) {
+      const avant = groupe.get(id) ?? 1;
+      if (avant >= g) {
+        encore.push(id);
+      } else if (offres?.[id] != null) {
+        groupe.set(id, g);
+        encore.push(id);
+      } else {
+        vendus.set(cle(id), { at: Date.now(), groupe: avant, fini: true });
+        notes.push({ cle: cleMemoireMsem(r, id), capacity: avant, capacitySource: "structured" });
+      }
+    }
+    restants = encore;
+  }
+  for (const id of restants) vendus.set(cle(id), { at: Date.now(), groupe: groupe.get(id) ?? 1, fini: false });
+  if (notes.length > 0) {
+    try {
+      memoireFiches().noter(notes);
+    } catch {
+      /* mémoire refusée : la montée du processus reste */
+    }
+  }
+  console.info(
+    `[centrale] ${r.host} : capacité vendue trouvée en tâche de fond pour ${notes.length}/${groupe.size} hébergement(s)`,
+  );
 }
 
 /**
@@ -185,6 +306,29 @@ export async function chercherMsem(ctx: ContexteCentrale, r: ReglageMsem): Promi
     corpsOffresMsem(r.canal, ctx),
   )) as OffresMsem;
   const fiches = joindreMsem(cat, offres);
+  // Sans capacité au catalogue ni dans le titre : celle que la centrale vend.
+  // Pas pour une résidence : elle vend sous un seul prix plusieurs types de
+  // logement (« 2 pièces 4 personnes » à « 5 pièces 10 personnes », Odalys
+  // l'Éclose), et son plus grand groupe vendu n'est pas celui du prix affiché.
+  const sansCapacite = fiches.filter(
+    (f) =>
+      f.capacite == null &&
+      f.kind !== "RESIDENCE" &&
+      annoncer({ capacity: null, bedrooms: null }, f.titre).capacity == null,
+  );
+  if (sansCapacite.length > 0) {
+    const vendues = capacitesVendues(r, ctx, sansCapacite.map((f) => f.id));
+    for (const f of sansCapacite) {
+      const cap = vendues.get(f.id);
+      if (cap != null) {
+        f.capacite = cap;
+        f.capaciteVendue = true;
+      }
+    }
+    console.info(
+      `[centrale] ${r.host} : capacité vendue connue pour ${vendues.size}/${sansCapacite.length} hébergement(s) sans capacité publiée, le reste en tâche de fond`,
+    );
+  }
   const auCatalogue = cat.accomodations?.length ?? 0;
   const ecartees = Object.entries(horsLocationMsem(cat, offres));
   console.info(

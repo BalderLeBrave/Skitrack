@@ -170,7 +170,7 @@ describe("mémoire des fiches : ce qui se garde", () => {
   });
 
   it("des nombres hors bornes ne se gardent pas", () => {
-    assert.deepEqual(valeursLues({ capacity: 0, bedrooms: -1, rooms: 99, lat: 120, lon: 6 }), {
+    assert.deepEqual(valeursLues({ capacity: 0, bedrooms: -1, rooms: 150, lat: 120, lon: 6 }), {
       capacity: null,
       bedrooms: null,
       rooms: null,
@@ -317,5 +317,17 @@ describe("combler depuis la mémoire : les trous seulement", () => {
     assert.equal(row.lat, 45.1);
     const plein = { capacity: 2, bedrooms: 1, rooms: 2, lat: 45, lon: 6 };
     assert.equal(comblerDepuisMemoire(plein, { capacity: 3, bedrooms: 2, rooms: 2, lat: 44, lon: 5 }), false);
+  });
+});
+
+describe("mémoire des fiches : la capacité tirée des couchages", () => {
+  it("garde la marque avec la capacité, et l'oublie quand une autre source la remplace", () => {
+    const m = neuve("couchages");
+    m.noter([{ cle: "Centrale:c-1", capacity: 4, capacitySource: "text_regex", capaciteCouchages: true }], T0);
+    assert.equal(m.lire("Centrale:c-1", T0 + 1)?.capaciteCouchages, true);
+    m.noter([{ cle: "Centrale:c-1", capacity: 5, capacitySource: "structured" }], T0 + 2 * JOUR);
+    const lu = m.lire("Centrale:c-1", T0 + 2 * JOUR);
+    assert.equal(lu?.capacity, 5);
+    assert.equal(lu?.capaciteCouchages, undefined);
   });
 });

@@ -692,3 +692,82 @@ describe("la suite de Logements : la station qu'on regarde passe devant", () => 
     assert.deepEqual(ordre(), [4400001, 4400003, 4400002, 4400101]);
   });
 });
+
+describe("un gîte labellisé distribué par une centrale : la fiche Gîtes de France par son code", () => {
+  it("la fiche de la centrale ne chiffre pas la capacité : celle du widget Gîtes de France la donne", async () => {
+    mock.timers.tick(10 * 60_000);
+    repondre = (url) =>
+      url.includes("widget-fngf.itea.fr")
+        ? {
+            html: page(
+              `<select name="formule_capacite"><option value="1">1 personne</option><option value="2">2 personnes</option><option value="3">3 personnes</option></select>`,
+            ),
+          }
+        : { html: page(`<meta name="description" content="Gîte dans la maison du propriétaire" />`) };
+    const row = ligne(7, "reservation.lessaisies.com", { title: "Le Cerf ( 73G132308 )", bedrooms: 1, bedroomsSource: "structured" });
+    await silence(() => jouer(fillFiches([row], 30_000)));
+    assert.ok(departs.some((d) => d.url.includes("widget-fngf.itea.fr/fiche-73G132308")), "fiche Gîtes de France demandée");
+    assert.deepEqual([row.capacity, row.capacitySource], [3, "structured"]);
+    assert.match(row.proven, /fiche Gîtes de France/);
+    assert.equal(row.total, 1000, "ni taxe ni loyer ajoutés");
+  });
+});
+
+describe("les fiches hors Airbnb que la recherche n'a pas ouvertes : en tâche de fond", () => {
+  it("lues après la recherche, puis posées par la relecture de l'écran, sans réseau", async () => {
+    const { etatSuiteAutres } = await import("./completerFiche.server.ts");
+    mock.timers.tick(10 * 60_000);
+    repondre = () => ({ html: page(`<meta name="description" content="Appartement 6 personnes, 2 chambres" />`), apresMs: 600 });
+    const hote = "fond.exemple.fr";
+    const rows = [ligne(9101, hote), ligne(9102, hote), ligne(9103, hote), ligne(9104, hote)];
+    // Une recherche au budget trop court pour les quatre fiches d'un même hôte.
+    await silence(() => jouer(fillFiches(rows, 1_500)));
+    const lues = rows.filter((r) => r.capacity != null).length;
+    assert.ok(lues < 4, `${lues} lues pendant la recherche`);
+    await silence(() =>
+      jouer(
+        (async () => {
+          do await new Promise((ok) => setTimeout(ok, 500));
+          while (etatSuiteAutres().enCours);
+        })(),
+        50,
+      ),
+    );
+    assert.equal(departs.filter((d) => d.url.includes(hote)).length, 4, "chaque fiche demandée une fois");
+    const relues = rows.map((r) => ({ ...r }));
+    const n = departs.length;
+    await silence(() => fillFiches(relues, 0, { relecture: true }));
+    assert.equal(departs.length, n, "la relecture ne fait aucune requête");
+    assert.deepEqual(
+      relues.map((r) => [r.capacity, r.bedrooms]),
+      [
+        [6, 2],
+        [6, 2],
+        [6, 2],
+        [6, 2],
+      ],
+    );
+  });
+});
+
+describe("poserLecture : la capacité tirée des couchages le dit", () => {
+  it("« capacité : somme des couchages décrits » dans la provenance", () => {
+    const row = ligne(5, "couchages.exemple.fr");
+    const lect: LectureFiche = {
+      capacity: 4,
+      capacitySource: "text_regex",
+      capaciteCouchages: true,
+      bedrooms: null,
+      rooms: null,
+      lat: null,
+      lon: null,
+      locality: null,
+      street: null,
+      title: null,
+      taxeSejour: null,
+    };
+    assert.equal(poserLecture(row, lect), true);
+    assert.equal(row.capacity, 4);
+    assert.match(row.proven, /capacité : somme des couchages décrits/);
+  });
+});

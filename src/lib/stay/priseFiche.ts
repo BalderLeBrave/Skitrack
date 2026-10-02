@@ -89,7 +89,10 @@ export function hoteDe(url: string): string | null {
 /** Les hôtes dont on sait ce que la fiche publie en HTTP simple. */
 const PRISES: ReadonlyArray<{ nom: string; hote: RegExp; prise: ReadonlySet<Trou> }> = [
   { nom: "booking.com", hote: /(^|\.)booking\.com$/i, prise: new Set() },
-  { nom: "abritel.fr", hote: /(^|\.)abritel\.fr$/i, prise: new Set(["gps", "titre"]) },
+  // Relu le 2 octobre 2026 : le résumé (`propertyHighlightedDetails`) publie
+  // « 22 chambres » et « 62 personnes » sur p2305900, les chambres seules sur
+  // p5392632vb ; la fiche s'ouvre donc aussi pour la capacité et les chambres.
+  { nom: "abritel.fr", hote: /(^|\.)abritel\.fr$/i, prise: new Set(["gps", "titre", "capacite", "chambres"]) },
   { nom: "greengo.voyage", hote: /(^|\.)greengo\.voyage$/i, prise: new Set() },
   { nom: "alpissime.com", hote: /(^|\.)alpissime\.com$/i, prise: new Set(["capacite", "chambres", "titre"]) },
   { nom: "cimalpes.com", hote: /(^|\.)cimalpes\.com$/i, prise: new Set(["gps", "titre"]) },

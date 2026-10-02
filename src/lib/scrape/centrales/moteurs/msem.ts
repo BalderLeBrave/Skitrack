@@ -127,6 +127,11 @@ export type FicheMsem = {
   prixPublic: number | null;
   /** Capacité maximale annoncée par la centrale. */
   capacite: number | null;
+  /** La capacité est le plus grand groupe pour lequel la centrale vend le
+   *  logement (`capacitesVendues`), faute de `maxCapacity`. */
+  capaciteVendue?: boolean;
+  /** `kind` du catalogue : une `RESIDENCE` vend plusieurs types de logement sous un seul prix. */
+  kind?: string | null;
   /** Pièces, pas chambres. C'est ce que la centrale compte, et c'est ainsi
    *  qu'on le rend : la conversion appartient à la comparaison. */
   pieces: number | null;
@@ -355,6 +360,7 @@ export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem 
       total: total != null && total > 0 ? total : 0,
       prixPublic: public_ != null && public_ > 0 ? public_ : null,
       capacite: positifOuRien(h.maxCapacity),
+      kind: typeof h.kind === "string" ? h.kind : null,
       pieces: positifOuRien(h.nbRooms),
       slug: typeof h.slug === "string" && h.slug ? h.slug : null,
       photo: galerie[0] ?? null,

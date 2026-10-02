@@ -81,6 +81,7 @@ import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
+import { photosDeResidence } from "@/lib/stay/photoResidence";
 import { attachAccess } from "@/lib/access";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import {
@@ -218,7 +219,10 @@ const RELECTURES_OUVERTE_MAX = 30;
  * donne un point de repli que la mémoire des fiches ne garde pas.
  */
 function aCombler(l: Listing): boolean {
-  return l.source === "Airbnb" && !airbnbComplet(l) && !(l.pdpLue === true && plausible(l.lat, l.lon));
+  if (l.source === "Airbnb") return !airbnbComplet(l) && !(l.pdpLue === true && plausible(l.lat, l.lon));
+  // Hors Airbnb : une fiche que la tâche de fond lit encore, à qui il manque
+  // la capacité, ou les chambres sans pièces dont les tirer.
+  return Boolean(l.url) && (l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)));
 }
 
 /** Recherche en direct, telle que la route précédente la lançait. */
@@ -564,10 +568,20 @@ function LogementsStation({ s }: { s: Station }) {
     // sur une autre source, repris tel quel (`jumelageGpsAirbnb`), et son
     // accès aux pistes mesuré depuis ce point.
     const jumeles = jumelageGpsAirbnb(lignes);
-    if (jumeles.size === 0) return lignes;
-    return lignes.map((l) => {
-      const p = jumeles.get(l.id);
-      return p ? attachAccess({ ...l, lat: p.lat, lon: p.lon, gpsSource: "jumelage" as const }, s) : l;
+    const placees =
+      jumeles.size === 0
+        ? lignes
+        : lignes.map((l) => {
+            const p = jumeles.get(l.id);
+            return p ? attachAccess({ ...l, lat: p.lat, lon: p.lon, gpsSource: "jumelage" as const }, s) : l;
+          });
+    // Ski-Planet sans photo : celle de la même résidence publiée par une autre
+    // source du relevé (`photosDeResidence`), dite dans la provenance.
+    const photos = photosDeResidence(placees);
+    if (photos.size === 0) return placees;
+    return placees.map((l) => {
+      const r = photos.get(l.id);
+      return r ? { ...l, photo: r.photo, proven: `${l.proven} · ${r.proven}` } : l;
     });
   }, [liveListings, liveSources, frozen, dumpGps, s]);
 

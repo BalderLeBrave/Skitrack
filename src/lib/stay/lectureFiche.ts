@@ -7,11 +7,12 @@
  * nomment des voyageurs, des chambres, des coordonnées.
  */
 
-import { lireLogement, type SourceCapacite, type SourceValeur } from "./logement.ts";
+import { lireLogement, RANG_SOURCE, type SourceCapacite, type SourceValeur } from "./logement.ts";
 import type { SourceGps } from "./repliGps.ts";
 import type { Occupancy } from "./occupancy.ts";
 import { taxeSejourSomme } from "./tarif.ts";
 import { titrePublie } from "./titre.ts";
+import { capaciteDesCouchages } from "./couchages.ts";
 
 /** Capacité, chambres et pièces lues, avec la source de chacune : un champ
  *  structuré ou un JSON embarqué (`structured`), ou un texte (`text_regex`,
@@ -41,6 +42,8 @@ export type LectureFiche = OccupancyLue & {
   ecartee?: boolean;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
   taxeSejour: number | null;
+  /** La capacité est la somme des couchages décrits (`couchages.ts`), aucune page ne la chiffrant. */
+  capaciteCouchages?: boolean;
 };
 
 const VIDE: LectureFiche = {
@@ -57,7 +60,7 @@ const VIDE: LectureFiche = {
   taxeSejour: null,
 };
 
-const MAX = 50;
+const MAX = 99;
 
 function plausible(lat: number | null, lon: number | null): boolean {
   if (lat == null || lon == null) return false;
@@ -125,13 +128,25 @@ function duTexte(...parts: Array<string | null | undefined>): OccupancyLue {
   };
 }
 
-/** `a` d'abord, `b` comble ; chaque valeur garde sa source. */
+/** Le rang d'une source lue : un champ structuré avant le texte, le texte avant le type. */
+function rang(source: SourceValeur | null | undefined): number {
+  return RANG_SOURCE[source ?? "structured"];
+}
+
+/**
+ * `a` d'abord, `b` comble ; chaque valeur garde sa source. Une valeur de `b`
+ * d'une meilleure source remplace celle de `a` : le critère `GCAPAC-GCAP03`
+ * d'une fiche Ingénie passe devant « Appartement 3 personnes » lu plus tôt
+ * dans le titre (Les 2 Alpes, 2 octobre 2026).
+ */
 function fusion(a: OccupancyLue, b: OccupancyLue): OccupancyLue {
+  const capB = b.capacity != null && (a.capacity == null || rang(b.capacitySource) < rang(a.capacitySource));
+  const chB = b.bedrooms != null && (a.bedrooms == null || rang(b.bedroomsSource) < rang(a.bedroomsSource));
   return {
-    capacity: a.capacity ?? b.capacity,
-    capacitySource: a.capacity != null ? a.capacitySource : b.capacitySource,
-    bedrooms: a.bedrooms ?? b.bedrooms,
-    bedroomsSource: a.bedrooms != null ? a.bedroomsSource : b.bedroomsSource,
+    capacity: capB ? b.capacity : a.capacity,
+    capacitySource: capB ? b.capacitySource : a.capacitySource,
+    bedrooms: chB ? b.bedrooms : a.bedrooms,
+    bedroomsSource: chB ? b.bedroomsSource : a.bedroomsSource,
     rooms: a.rooms ?? b.rooms,
   };
 }
@@ -149,6 +164,7 @@ function mergeLecture(a: LectureFiche, b: LectureFiche): LectureFiche {
     // Chaque titre est déjà passé par `titrePublie` : le relire le décoderait une fois de plus.
     title: a.title ?? b.title,
     taxeSejour: a.taxeSejour ?? b.taxeSejour,
+    ...(a.capaciteCouchages && occ.capacity === a.capacity ? { capaciteCouchages: true } : {}),
   };
 }
 
@@ -225,6 +241,19 @@ function fromRecord(o: Record<string, unknown>): LectureFiche {
       if (titre) out = { ...out, title: out.title ?? titre };
     }
     out = { ...out, ...fusion(out, duTexte(name)) };
+  }
+  // La description d'un logement : ses chambres (« une chambre (1 lit 2
+  // personnes) », gîtes du widget Gîtes de France), ses pièces, et la capacité
+  // qu'elle énonce — jamais celle d'un couchage (« 1 lit 2 personnes »,
+  // `capaciteEcrite`).
+  // Les fiches Ingénie décrivent l'annonce dans un `Product` (son nom, sa
+  // description), à côté du `LocalBusiness` de l'agence.
+  if ((lodging || /\bProduct\b/i.test(kind)) && typeof o.description === "string") {
+    const lu = lireLogement(decodeHtml(o.description));
+    if (out.bedrooms == null && lu.chambresEcrites != null) {
+      out = { ...out, bedrooms: lu.chambresEcrites, bedroomsSource: "text_regex" };
+    } else if (out.bedrooms == null && out.rooms == null && lu.pieces != null) out = { ...out, rooms: lu.pieces };
+    if (out.capacity == null && lu.capacite != null) out = { ...out, capacity: lu.capacite, capacitySource: "text_regex" };
   }
   return out;
 }
@@ -314,9 +343,13 @@ function fromRegex(html: string): LectureFiche {
   const rePers = /"(\d+)\s*(?:personnes?|pers\.?)"/gi;
   const reMax = /Max(?:imum|\.)?\s*(?:de\s+)?(\d+)\s*(?:personnes?|voyageurs?|occupants?|guests?)/gi;
   let m: RegExpExecArray | null;
-  while ((m = reVoy.exec(html))) phrases.push(m[0].replace(/"/g, ""));
-  while ((m = reCh.exec(html))) phrases.push(m[0].replace(/"/g, ""));
-  while ((m = rePers.exec(html))) phrases.push(m[0].replace(/"/g, ""));
+  // La valeur d'un champ de formulaire n'est pas une capacité : le sélecteur
+  // de voyageurs d'Abritel porte `value="2 personnes"`, la taille du groupe
+  // cherché (Châtel, 2 octobre 2026), et la fiche en tirait 2 personnes.
+  const deChamp = (i: number) => /(?:\bvalue|placeholder|aria-valuetext)\s*=\s*$|"(?:value|placeholder)"\s*:\s*$/i.test(html.slice(Math.max(0, i - 24), i));
+  while ((m = reVoy.exec(html))) if (!deChamp(m.index)) phrases.push(m[0].replace(/"/g, ""));
+  while ((m = reCh.exec(html))) if (!deChamp(m.index)) phrases.push(m[0].replace(/"/g, ""));
+  while ((m = rePers.exec(html))) if (!deChamp(m.index)) phrases.push(m[0].replace(/"/g, ""));
   while ((m = reMax.exec(html))) phrases.push(m[0]);
   if (phrases.length) out = { ...out, ...fusion(out, duTexte(...phrases)) };
   return out;
@@ -360,13 +393,55 @@ function fromMeta(html: string): LectureFiche {
  * `contenu_descriptif`, débarrassés de leurs balises. `null` sans descriptif,
  * ou sans « N chambres » dedans.
  */
-function chambresDuDescriptif(html: string): number | null {
+/**
+ * La quantité d'un critère Ingénie : `<li class="capacite-nombreChambres-G">
+ * <span class="quantite">1</span> <span class="libelle">chambre(s)</span>`.
+ */
+function critereQuantite(html: string, critere: string): string | undefined {
+  const re = new RegExp(`class=["']${critere}(?:-[A-Z])?["'][^>]*>\\s*<span[^>]*\\bquantite\\b[^>]*>\\s*(\\d+)`, "i");
+  return re.exec(html)?.[1];
+}
+
+/**
+ * Le critère « TYPE DE LOGEMENT » (`OTYPA-…`, Val d'Arly, 2 octobre 2026) :
+ * « deux pièces » (`OTYPA-OTYP2P`), ou des variantes de studio (« studio
+ * cabine », « studio mezzanine »…). Un seul nombre de pièces écrit : celui-là ;
+ * sinon un studio, une pièce. `undefined` sans ce critère.
+ */
+function piecesTypeLogement(html: string): string | undefined {
+  const valeurs = [...html.matchAll(/<li class=["']OTYPA-[^"']*["'][^>]*>([^<]{1,60})<\/li>/gi)].map((m) =>
+    decodeHtml(m[1] ?? "").trim(),
+  );
+  if (valeurs.length === 0) return undefined;
+  const pieces = new Set(valeurs.map((v) => lireLogement(v)).filter((lu) => !lu.studio && lu.pieces != null).map((lu) => lu.pieces));
+  if (pieces.size === 1) return String([...pieces][0]);
+  if (pieces.size === 0 && valeurs.some((v) => /\bstudio/i.test(v))) return "1";
+  return undefined;
+}
+
+/**
+ * Le critère dont le titre est « Nombre de chambres » ou « Nombre de
+ * chambre(s) », quel que soit son code : « 1 Chambre » (`GNCHME-GCHN01`,
+ * Gérardmer), une quantité (`<span class="quantite">2</span>`), ou « 1
+ * Coin(s) nuit » (Les Rousses) — un coin nuit n'est pas une chambre : 0.
+ */
+function critereNombreDeChambres(html: string): string | undefined {
+  const bloc = /crit_[A-Z0-9_]+["'][^>]*>\s*Nombre de chambres?(?:\s*\(s\))?\s*(?:<span>[^<]*<\/span>\s*)?<\/span>\s*<ul class=["']valeur-critere["'][^>]*>([\s\S]{0,600}?)<\/ul>/i.exec(html)?.[1];
+  if (!bloc) return undefined;
+  const texte = decodeHtml(bloc.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+  const n = /(\d+)\s*chambres?\b/i.exec(texte)?.[1] ?? (/^\d+$/.test(texte) ? texte : undefined);
+  if (n != null) return n;
+  if (/coins?\s*\(?s?\)?\s*nuit/i.test(texte) && !/chambre/i.test(texte)) return "0";
+  return undefined;
+}
+
+function descriptifIngenie(html: string): ReturnType<typeof lireLogement> | null {
   const textes: string[] = [];
   const re = /class=["']contenu_descriptif["'][^>]*>([\s\S]*?)<\/span>\s*<\/div>/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html))) textes.push(decodeHtml((m[1] ?? "").replace(/<[^>]*>/g, " ")));
   if (textes.length === 0) return null;
-  return lireLogement(textes.join(" · ").replace(/\s+/g, " ")).chambresEcrites;
+  return lireLogement(textes.join(" · ").replace(/\s+/g, " "));
 }
 
 /**
@@ -385,7 +460,15 @@ function fromIngenie(html: string): LectureFiche {
   const capCritere =
     html.match(/GCAPAC-GCAP0?(\d+)/i)?.[1] ??
     html.match(/\bOPERSONNES-(\d+)PERS\b/i)?.[1] ??
-    html.match(/capaciteMaximumPossible[^>]*>\s*<span[^>]*\bquantite\b[^>]*>\s*(\d+)/i)?.[1];
+    html.match(/capaciteMaximumPossible[^>]*>\s*<span[^>]*\bquantite\b[^>]*>\s*(\d+)/i)?.[1] ??
+    // `ICAPAC-ICAPAC` suivi de sa quantité (« 2 personnes », Les Menuires,
+    // fiches Interhome, 2 octobre 2026).
+    html.match(/\bICAPAC-ICAPAC\b[^>]*>\s*<span[^>]*\bquantite\b[^>]*>\s*(\d+)/i)?.[1] ??
+    // Bloc « Capacité » : `capacite-capaciteHebergement`, à côté de
+    // `capacite-nombreChambres` et `capacite-nombrePieces` (Val d'Arly).
+    critereQuantite(html, "capacite-capaciteHebergement") ??
+    // `CAPAMAX-CAPALOGEMENT` (Le Collet d'Allevard).
+    critereQuantite(html, "CAPAMAX-CAPALOGEMENT");
   const capTexte = html.match(
     /Capacit[eé][^<]{0,80}(?:<span>[^<]{0,4}<\/span>\s*)?<\/span>[\s\S]{0,280}?(\d+)\s*personnes/i,
   )?.[1];
@@ -393,16 +476,28 @@ function fromIngenie(html: string): LectureFiche {
   if (cap) out = { ...out, capacity: takeGuests(cap), capacitySource: capCritere ? "structured" : "text_regex" };
   const pieces =
     html.match(/GTYPAP-G(\d+)PIEC/i)?.[1] ??
-    html.match(/Nombre de pi[eè]ces[\s\S]{0,280}?(\d+)\s*pi[eè]ces/i)?.[1];
+    critereQuantite(html, "capacite-nombrePieces") ??
+    html.match(/Nombre de pi[eè]ces[\s\S]{0,280}?(\d+)\s*pi[eè]ces/i)?.[1] ??
+    // « Nombre de pièces : Studio » (`GTYPAP-GSTUDI`, « Studio + coin(s)
+    // nuit ») : une pièce, que `qualifierLogement` lit 0 chambre.
+    (/\bGTYPAP-G?STUDI/i.test(html) ? "1" : undefined) ??
+    piecesTypeLogement(html);
   if (pieces) out = { ...out, rooms: takeBeds(pieces) };
   // Le nombre publié (`NBDECHAMBRE-CHAMBRE1`, « 1 chambre »), sinon le
   // décompte des titres `Chambre 1`, `Chambre 2` (`crit_GCHAM1`, `crit_CHAMBRE1`).
-  const chPubliees = html.match(/\bNBDECHAMBRE-CHAMBRE(\d+)\b/i)?.[1];
+  const chPubliees =
+    html.match(/\bNBDECHAMBRE-CHAMBRE(\d+)\b/i)?.[1] ??
+    critereQuantite(html, "capacite-nombreChambres") ??
+    critereNombreDeChambres(html);
+  // Le numéro du libellé « Chambre N », pas celui du critère : `crit_GCHAM7`
+  // est « Cabine 1 » chez Vacanceole (Chamrousse, 2 octobre 2026), et le
+  // plus grand numéro de critère donnait 7 chambres à un studio.
   let maxCh = 0;
-  const reCh = /crit_G?CHAM(?:BRE)?(\d+)\b/g;
+  // « Dans la chambre 1- couchage » (`crit_CHAMB1`, Le Collet) aussi.
+  const reCh = /crit_G?CHAM(?:BRE|B)?\d+\b[^>]*>\s*([^<]{0,40})/g;
   let m: RegExpExecArray | null;
   while ((m = reCh.exec(html))) {
-    const n = Number(m[1]);
+    const n = Number(/^(?:dans\s+la\s+)?chambre\s*n?°?\s*(\d+)/i.exec(decodeHtml(m[1] ?? "").trim())?.[1]);
     if (Number.isInteger(n) && n > maxCh && n <= MAX) maxCh = n;
   }
   const ch = chPubliees != null ? takeBeds(chPubliees) : maxCh > 0 ? takeBeds(maxCh) : null;
@@ -410,9 +505,20 @@ function fromIngenie(html: string): LectureFiche {
   // Sans critère, les chambres écrites dans le descriptif (« 3 chambres (1 lit
   // 1 personne / 1 lit 2 personnes…) », gîtes distribués par la centrale). La
   // capacité ne s'y lit pas : « 2 lits gigognes 1 personne » décrit un lit.
+  const descriptif = descriptifIngenie(html);
+  // La capacité que le descriptif énonce (« Studio … pour 4 personnes », La
+  // Rosière), quand aucun critère ne la donne. Un couchage (« 1 lit 2
+  // personnes ») n'en est pas une (`capaciteEcrite`).
+  if (out.capacity == null && descriptif?.capacite != null) {
+    out = { ...out, capacity: descriptif.capacite, capacitySource: "text_regex" };
+  }
   if (out.bedrooms == null) {
-    const chambres = chambresDuDescriptif(html);
-    if (chambres != null) out = { ...out, bedrooms: chambres, bedroomsSource: "text_regex" };
+    const lu = descriptif;
+    if (lu?.chambresEcrites != null) out = { ...out, bedrooms: lu.chambresEcrites, bedroomsSource: "text_regex" };
+    // Sans chambres écrites, les pièces que le descriptif nomme (« studio 18
+    // m2 », « 2 pièces ») : `qualifierLogement` en tire les chambres, 0 pour
+    // un studio, comme pour tout type sans chambres écrites.
+    else if (out.rooms == null && lu?.pieces != null) out = { ...out, rooms: lu.pieces };
   }
   const itemLat = html.match(/itemprop=["']latitude["'][^>]*content=["']([^"']+)["']/i)?.[1];
   const itemLon = html.match(/itemprop=["']longitude["'][^>]*content=["']([^"']+)["']/i)?.[1];
@@ -436,6 +542,169 @@ function fromLibelles(html: string): LectureFiche {
   if (ch == null) return { ...VIDE };
   const n = takeBeds(ch);
   return n == null ? { ...VIDE } : { ...VIDE, bedrooms: n, bedroomsSource: "structured" };
+}
+
+/**
+ * Fiche Gîtes de France (widget ITEA) : le formulaire de réservation
+ * `formule_capacite` propose 1 à N personnes, N étant la capacité que la
+ * réservation accepte. Lu le 2 octobre 2026 sur le gîte 73G34159 (Arêches),
+ * dont ni le JSON-LD ni le texte ne chiffrent la capacité : « 1 personne ·
+ * 2 personnes · 3 personnes ». `null` sans ce formulaire.
+ */
+export function capaciteFormuleItea(html: string): number | null {
+  const select = /<select[^>]*\bname=["']formule_capacite["'][^>]*>([\s\S]*?)<\/select>/i.exec(html)?.[1];
+  if (!select) return null;
+  let max: number | null = null;
+  for (const m of select.matchAll(/<option[^>]*\bvalue=["']?(\d+)["']?/gi)) {
+    const n = takeGuests(m[1]);
+    if (n != null && (max == null || n > max)) max = n;
+  }
+  return max;
+}
+
+/**
+ * Fiche Orchestra (La Plagne) : le bloc « Information », des libellés en gras
+ * suivis de leur valeur — `<strong>Capacité:</strong> 4`, `<strong>Chambres à
+ * coucher:</strong> 1`, `<strong>Type</strong>: Appt 2 pièces` ou « Studio
+ * divisible ». Relevé le 2 octobre 2026 ; aucune autre partie de la page ne
+ * chiffre les chambres.
+ */
+function fromLibellesGras(html: string): LectureFiche {
+  let out: LectureFiche = { ...VIDE };
+  const cap = /<strong>\s*Capacit[ée]\s*:\s*<\/strong>\s*(\d+)/i.exec(html)?.[1];
+  if (cap) out = { ...out, capacity: takeGuests(cap), capacitySource: "structured" };
+  const ch = /<strong>\s*Chambres?\s+à\s+coucher\s*:\s*<\/strong>\s*(\d+)/i.exec(html)?.[1];
+  if (ch) out = { ...out, bedrooms: takeBeds(ch), bedroomsSource: "structured" };
+  const type = /<strong>\s*Type\s*<\/strong>\s*:\s*([^<]{1,60})/i.exec(html)?.[1];
+  if (type) {
+    const lu = lireLogement(decodeHtml(type));
+    if (lu.pieces != null) out = { ...out, rooms: lu.pieces };
+  }
+  if (out.capacity == null) out = { ...out, capacitySource: null };
+  return out;
+}
+
+/**
+ * Les chambres d'une description : la somme des lignes d'une énumération
+ * (« - 1 Chambre avec un lit double… - 1 chambre en suite… »), sinon le
+ * nombre annoncé (« offre 5 chambres », « une chambre »). `null` sans aucun.
+ */
+export function chambresDeDescription(texte: string): number | null {
+  const lignes = texte.split(/\r?\n|<br\s*\/?>|\s\|\s/i);
+  let somme = 0;
+  let enumerees = 0;
+  for (const ligne of lignes) {
+    const m = /^\s*[-•*]\s*(\d+|une?|deux|trois|quatre|cinq)\s+chambres?\b/i.exec(ligne);
+    if (!m) continue;
+    const n = /^\d+$/.test(m[1]) ? Number(m[1]) : lireLogement(`${m[1]} chambre`).chambresEcrites;
+    if (n == null) continue;
+    somme += n;
+    enumerees += 1;
+  }
+  if (enumerees > 0) return takeBeds(somme);
+  return lireLogement(texte).chambresEcrites;
+}
+
+/**
+ * Fiche Ingénie : la description de l'annonce est écrite dans le JSON-LD de
+ * l'agence (`LocalBusiness`, « Agence Cimalpes »), pas dans un bloc du
+ * logement (Les 2 Alpes, 2 octobre 2026 : « Chalet de 193m² qui offre 5
+ * chambres et peut accueillir 12 personnes »). Lue sur les pages Ingénie
+ * seulement : ailleurs, la description d'une agence parle de l'agence.
+ */
+function fromDescriptionIngenie(html: string): LectureFiche {
+  if (!/static\.ingenie\.fr/.test(html)) return { ...VIDE };
+  let out: LectureFiche = { ...VIDE };
+  for (const bloc of jsonLdBlocks(html)) {
+    const items = Array.isArray(bloc) ? bloc : [bloc];
+    for (const o of items) {
+      const d = o && typeof o === "object" ? (o as Record<string, unknown>).description : null;
+      if (typeof d !== "string" || !d.trim()) continue;
+      const texte = decodeHtml(d);
+      const lu = lireLogement(texte.replace(/<br\s*\/?>/gi, " · "));
+      if (out.capacity == null && lu.capacite != null) out = { ...out, capacity: lu.capacite, capacitySource: "text_regex" };
+      const ch = chambresDeDescription(texte);
+      if (out.bedrooms == null && ch != null) out = { ...out, bedrooms: ch, bedroomsSource: "text_regex" };
+      if (out.rooms == null && lu.pieces != null) out = { ...out, rooms: lu.pieces };
+    }
+  }
+  return out;
+}
+
+/**
+ * Fiche Abritel (Vrbo) : le résumé du logement, `propertyHighlightedDetails`
+ * → `infoItems`, un texte par icône — `room` « 22 chambres », `people » « 62
+ * personnes » (Cordon, 2 octobre 2026). Le JSON est échappé dans la page.
+ */
+function fromResumeAbritel(html: string): LectureFiche {
+  if (!html.includes("propertyHighlightedDetails")) return { ...VIDE };
+  const brut = html.replace(/\\+"/g, '"');
+  const i = brut.indexOf('"propertyHighlightedDetails"');
+  const bloc = brut.slice(i, i + 4000);
+  let out: LectureFiche = { ...VIDE };
+  for (const m of bloc.matchAll(/"id":"(room|people)"[^{}]*\}\},"text":"(\d+)\s*(?:chambres?|personnes?|voyageurs?)"/g)) {
+    if (m[1] === "people" && out.capacity == null) out = { ...out, capacity: takeGuests(m[2]), capacitySource: "structured" };
+    if (m[1] === "room" && out.bedrooms == null) out = { ...out, bedrooms: takeBeds(m[2]), bedroomsSource: "structured" };
+  }
+  // Sans l'icône `people` : la capacité que la description du logement
+  // énonce (« il accueille jusqu'à 8 personnes avec 4 chambres », p2708242),
+  // jamais celle d'un couchage (`capaciteEcrite`).
+  if (out.capacity == null) {
+    // Le bloc peut être dans une chaîne JavaScript, guillemets échappés.
+    for (const m of html.matchAll(/<div data-stid=\\?"content-markup\\?">([\s\S]{0,20000}?)<\/div>/g)) {
+      const lu = lireLogement(decodeHtml((m[1] ?? "").replace(/<[^>]*>/g, " ")));
+      if (lu.capacite != null) {
+        out = { ...out, capacity: lu.capacite, capacitySource: "text_regex" };
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Les textes d'une page qui décrivent ses couchages, du plus sûr au moins
+ * sûr : les critères Ingénie (« Coin montagne ouvert : 1 x 2 lits 1 personne
+ * superposés », Risoul), le descriptif Ingénie (« Couchages : Entrée : 2 lits
+ * superposés Séjour : Canapé convertible 140X190 », La Daille), la
+ * description du JSON-LD, celle d'Abritel. Un seul texte compte : le même lit
+ * décrit deux fois ne se compte pas deux fois.
+ */
+export function textesCouchages(html: string): { texte: string; compteExige?: boolean }[] {
+  const textes: { texte: string; compteExige?: boolean }[] = [];
+  const nettoyer = (s: string) => decodeHtml(s.replace(/<br\s*\/?>/gi, " . ").replace(/<\/li>/gi, " . ").replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+  const criteres: string[] = [];
+  for (const m of html.matchAll(/<ul class=["']valeur-critere["'][^>]*>([\s\S]{0,1500}?)<\/ul>/gi)) {
+    const t = nettoyer(m[1] ?? "");
+    if (t) criteres.push(t);
+  }
+  // Les critères listent aussi des équipements (« Lit 140 cm ») : un lit n'y compte qu'avec son nombre.
+  if (criteres.length > 0) textes.push({ texte: criteres.join(" . "), compteExige: true });
+  const descriptif: string[] = [];
+  for (const m of html.matchAll(/class=["']contenu_descriptif["'][^>]*>([\s\S]*?)<\/span>\s*<\/div>/gi)) descriptif.push(nettoyer(m[1] ?? ""));
+  if (descriptif.length > 0) textes.push({ texte: descriptif.join(" . ") });
+  for (const bloc of jsonLdBlocks(html)) {
+    for (const o of Array.isArray(bloc) ? bloc : [bloc]) {
+      const d = o && typeof o === "object" ? (o as Record<string, unknown>).description : null;
+      if (typeof d === "string" && d.trim()) textes.push({ texte: nettoyer(d) });
+    }
+  }
+  for (const m of html.matchAll(/<div data-stid=\\?"content-markup\\?">([\s\S]{0,20000}?)<\/div>/g)) textes.push({ texte: nettoyer(m[1] ?? "") });
+  return textes;
+}
+
+/** La somme des couchages du premier texte de la page qui les chiffre tous (`couchages.ts`). */
+function capaciteDesCouchagesPage(html: string): number | null {
+  for (const { texte, compteExige } of textesCouchages(html)) {
+    const cap = capaciteDesCouchages(texte, { compteExige });
+    if (cap != null) return cap;
+  }
+  return null;
+}
+
+function fromFormuleItea(html: string): LectureFiche {
+  const cap = capaciteFormuleItea(html);
+  return cap == null ? { ...VIDE } : { ...VIDE, capacity: cap, capacitySource: "structured" };
 }
 
 /** Le point d'une carte de la page : `data-atlas-latlng` (Booking), `data-lat`. */
@@ -642,6 +911,15 @@ export function lectureFiche(html: string): LectureFiche {
   out = mergeLecture(out, ingenie);
   if (ingenie.title) out = { ...out, title: ingenie.title };
   out = mergeLecture(out, fromLibelles(html));
+  out = mergeLecture(out, fromFormuleItea(html));
+  out = mergeLecture(out, fromLibellesGras(html));
+  out = mergeLecture(out, fromDescriptionIngenie(html));
+  out = mergeLecture(out, fromResumeAbritel(html));
+  // En dernier : la somme des couchages décrits, quand rien ne chiffre la capacité.
+  if (out.capacity == null) {
+    const cap = capaciteDesCouchagesPage(html);
+    if (cap != null) out = { ...out, capacity: cap, capacitySource: "text_regex", capaciteCouchages: true };
+  }
   if (!plausible(out.lat, out.lon)) out = mergeLecture(out, sansPointLoueur(fromGpsAttributs(html), loueur));
   if (!plausible(out.lat, out.lon)) out = mergeLecture(out, fromGpsTexte(html, loueur));
   const taxe = taxeSejourSomme(html);

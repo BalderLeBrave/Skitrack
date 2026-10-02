@@ -64,9 +64,9 @@ describe("ouvrir une fiche seulement si elle peut combler", () => {
     assert.equal(raisonDeLaisser(annonce({ source: "Booking", lat: null, lon: null }), BOOKING), "booking.com");
   });
 
-  it("Abritel publie le GPS et le titre, ni capacité ni chambres", () => {
-    assert.equal(raisonDeLaisser(annonce({ capacity: null }), ABRITEL), "abritel.fr");
-    assert.equal(raisonDeLaisser(annonce({ capacity: null, bedrooms: null }), ABRITEL), "abritel.fr");
+  it("Abritel publie le GPS, le titre, et dans son résumé la capacité et les chambres (relu le 2 octobre 2026)", () => {
+    assert.equal(raisonDeLaisser(annonce({ capacity: null }), ABRITEL), null);
+    assert.equal(raisonDeLaisser(annonce({ capacity: null, bedrooms: null }), ABRITEL), null);
     assert.equal(raisonDeLaisser(annonce({ capacity: null, lat: null, lon: null }), ABRITEL), null);
     assert.equal(raisonDeLaisser(annonce({ title: "photos_ab12_1234" }), ABRITEL), null);
   });

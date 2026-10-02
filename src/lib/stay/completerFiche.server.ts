@@ -30,6 +30,7 @@ import {
   choisirFiches,
   airbnbComplet,
   clePage,
+  cleUrl,
   disjoncteur,
   ecrireLaissees,
   hoteDe,
@@ -39,6 +40,7 @@ import {
   urlsPartagees,
 } from "./priseFiche.ts";
 import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
+import { NOTE_COUCHAGES } from "./couchages.ts";
 import {
   estPageGitesIntrouvable,
   marquerFicheIntrouvable,
@@ -179,6 +181,11 @@ function utile(lect: LectureFiche): boolean {
  * (Logements). L'écran Prix ne la pose pas : sa complétion ne comble que des
  * trous, et une médiane ne mêle pas des totaux avec et sans taxe.
  */
+/** La capacité posée est la somme des couchages décrits : `proven` le dit. */
+function noterCouchages(row: Listing): void {
+  if (!row.proven.includes(NOTE_COUCHAGES)) row.proven = `${row.proven} · ${NOTE_COUCHAGES}`;
+}
+
 export function poserLecture(
   row: Listing,
   lect: LectureFiche,
@@ -193,7 +200,10 @@ export function poserLecture(
   // capacité absente devient celle du titre (`capaciteIntrouvable`).
   const pageNeuve = Boolean(lect.pageLue) && row.source === "Airbnb" && row.pdpLue !== true;
   if (pageNeuve) row.pdpLue = true;
-  if (poserValeur(row, "capacity", lect.capacity, lect.capacitySource ?? "structured")) logement = true;
+  if (poserValeur(row, "capacity", lect.capacity, lect.capacitySource ?? "structured")) {
+    logement = true;
+    if (lect.capaciteCouchages) noterCouchages(row);
+  }
   if (poserValeur(row, "bedrooms", lect.bedrooms, lect.bedroomsSource ?? "structured")) logement = true;
   if (poserValeur(row, "rooms", lect.rooms, "structured")) logement = true;
   if (logement) {
@@ -861,6 +871,7 @@ export function noteDeLecture(row: Listing, lect: LectureFiche | null): Note | n
     cle,
     capacity: lect.capacity,
     capacitySource: lect.capacity != null ? (lect.capacitySource ?? "structured") : null,
+    ...(lect.capacity != null && lect.capaciteCouchages ? { capaciteCouchages: true } : {}),
     bedrooms: lect.bedrooms,
     bedroomsSource: lect.bedrooms != null ? (lect.bedroomsSource ?? "structured") : null,
     rooms: lect.rooms,
@@ -956,9 +967,11 @@ export function poserMemoire(
     // page (chambres du titre de partage, voyageurs de l'aperçu) tiennent.
     // Avant de combler : `poserValeur` le lit.
     if (m.lue) row.pdpLue = true;
+    const capaciteAvant = row.capacity;
     if (comblerDepuisMemoire(row, m)) {
       Object.assign(row, qualifierLogement(row));
       if (!row.proven.includes(MARQUE_MEMOIRE)) row.proven = `${row.proven} · ${MARQUE_MEMOIRE}`;
+      if (m.capaciteCouchages && row.capacity !== capaciteAvant && row.capacity === m.capacity) noterCouchages(row);
       posees += 1;
     } else if (m.lue && row.capacity == null) {
       // Sans personCapacity : la capacité du titre (`capaciteIntrouvable`).
@@ -987,6 +1000,174 @@ function ecarteesDeLaMemoire(rows: readonly Listing[]): Set<string> {
     // Une mémoire illisible ne retire rien : `poserMemoire` ne lira rien non plus.
   }
   return out;
+}
+
+/**
+ * Un gîte labellisé Gîtes de France que distribue une centrale ou une agence
+ * (« Le Cerf ( 73G132308 ) », photos « …-73G34159.jpg ») : quand sa fiche ne
+ * chiffre ni sa capacité ni ses chambres (Arêches, Les Saisies, 2 octobre
+ * 2026), on lit la fiche officielle du même gîte, celle du widget Gîtes de
+ * France, par son code. Elle ne comble que les trous, jamais la taxe de séjour
+ * ni le loyer. Rend le nombre d'annonces comblées.
+ */
+async function repliGitesDeFrance(
+  rows: readonly Listing[],
+  until: number,
+  compte: Compte,
+): Promise<{ filled: number; notes: Note[] }> {
+  const vrais = new Map<Listing, Listing>();
+  for (const row of rows) {
+    if (row.source === "Airbnb" || row.source === "Gîtes de France") continue;
+    const sansChambres = row.bedrooms == null && (row.rooms == null || row.rooms <= 0);
+    if (row.capacity != null && !sansChambres) continue;
+    const code = gitesCodeOf(row.id) || gitesCodeOf(row.url) || gitesCodeOf(row.title) || gitesCodeOf(row.photo);
+    if (!code) continue;
+    const relais: Listing = {
+      ...row,
+      id: `gdf-${code}`,
+      source: "Gîtes de France",
+      url: gitesWidgetUrl(code),
+      capacity: null,
+      bedrooms: null,
+      rooms: null,
+    };
+    vrais.set(relais, row);
+  }
+  if (vrais.size === 0 || Date.now() >= until) return { filled: 0, notes: [] };
+  const bilan = await fillPool([...vrais.keys()], until, WORKERS, compte, { taxe: false });
+  let filled = 0;
+  const notes: Note[] = [];
+  for (const { row: relais, lect } of bilan.ouvertes) {
+    const row = vrais.get(relais);
+    if (!row || !lect) continue;
+    if (poserLecture(row, lect, "fiche Gîtes de France", { taxe: false })) {
+      filled += 1;
+      const n = noteDeLecture(row, lect);
+      if (n) notes.push(n);
+    }
+  }
+  if (vrais.size > 0) console.info(`[fiche] Gîtes de France par leur code : ${filled}/${vrais.size} annonce(s) comblée(s)`);
+  return { filled, notes };
+}
+
+/* ---------- Fiches hors Airbnb : la suite en tâche de fond ---------- */
+
+/** Par page (`cleUrl`) : le verdict de la dernière recherche, `true` si plusieurs annonces la portaient. */
+const verdictsPages = new Map<string, boolean>();
+const VERDICTS_MAX = 50_000;
+
+function retenirVerdicts(listings: readonly Listing[], communes: ReadonlySet<string>): void {
+  for (const l of listings) {
+    const u = urlPropre(l);
+    if (!u) continue;
+    const cle = cleUrl(u);
+    verdictsPages.delete(cle);
+    verdictsPages.set(cle, communes.has(cle));
+  }
+  if (verdictsPages.size <= VERDICTS_MAX) return;
+  for (const cle of verdictsPages.keys()) {
+    if (verdictsPages.size <= VERDICTS_MAX * 0.75) break;
+    verdictsPages.delete(cle);
+  }
+}
+
+/** Les fiches hors Airbnb à lire, une fois chacune (clé de page). */
+const suiteAutres = new Map<string, { row: Listing; essais: number }>();
+let suiteAutresEnCours = false;
+/** Une suite ne dure pas plus ; ce qui reste attend la recherche suivante. */
+const SUITE_AUTRES_MAX_MS = 20 * 60_000;
+/** Les fiches d'un tour de la suite, et le temps qu'il se donne. */
+const LOT_AUTRES = 40;
+const TOUR_AUTRES_MS = 90_000;
+
+/**
+ * Met en file les fiches hors Airbnb qu'une recherche n'a pas eu le temps
+ * d'ouvrir : aux 2 Alpes, le 2 octobre 2026, 216 annonces de la centrale pour
+ * 160 fiches au plus en 36 s, et rien ne lisait le reste ; elles gardaient la
+ * capacité du titre et pas de chambres. La suite les lit par lots, au même
+ * rythme par hôte que la recherche (`fillPool` : deux fiches en vol, une
+ * seconde entre deux départs, pause après un refus, hôte laissé après cinq
+ * fiches qui ne comblent rien), avec moins de lecteurs. Ce qu'elle lit va
+ * dans le cache et la mémoire des fiches. Rend le nombre de fiches ajoutées.
+ */
+function lancerSuiteAutres(rows: readonly Listing[]): number {
+  let ajoutees = 0;
+  for (const row of rows) {
+    const url = ficheUrlOf(row);
+    if (!url || lectureEnCache(url)) continue;
+    const k = cacheKey(url);
+    if (suiteAutres.has(k)) continue;
+    suiteAutres.set(k, { row: { ...row }, essais: 0 });
+    ajoutees += 1;
+  }
+  if (!suiteAutresEnCours && suiteAutres.size > 0) void deroulerSuiteAutres();
+  return ajoutees;
+}
+
+async function deroulerSuiteAutres(): Promise<void> {
+  suiteAutresEnCours = true;
+  const fin = Date.now() + SUITE_AUTRES_MAX_MS;
+  const compte: Compte = { lues: 0 };
+  let comblees = 0;
+  try {
+    while (suiteAutres.size > 0 && Date.now() < fin) {
+      const lot: Array<[string, { row: Listing; essais: number }]> = [];
+      const enPauseAvant = new Set(hotesEnPause());
+      for (const [k, v] of suiteAutres) {
+        const url = ficheUrlOf(v.row);
+        if (!url || lectureEnCache(url)) {
+          suiteAutres.delete(k);
+          continue;
+        }
+        // Un hôte en pause après un refus attend son tour ; les autres passent.
+        if (enPauseAvant.has(hoteDe(url) ?? "")) continue;
+        lot.push([k, v]);
+        if (lot.length >= LOT_AUTRES) break;
+      }
+      if (lot.length === 0) {
+        // Plus que des hôtes en pause : on attend la fin de la première.
+        if (suiteAutres.size > 0 && enPauseAvant.size > 0) {
+          await new Promise((r) => setTimeout(r, 60_000));
+          continue;
+        }
+        break;
+      }
+      const bilan = await fillPool(
+        lot.map(([, v]) => v.row),
+        Math.min(fin, Date.now() + TOUR_AUTRES_MS),
+        4,
+        compte,
+      );
+      comblees += bilan.filled;
+      noter(bilan.ouvertes.map((o) => noteDeLecture(o.row, o.lect)).filter((n): n is Note => n != null));
+      const ouvertes = new Set(bilan.ouvertes.map((o) => o.row.id));
+      const laissees = new Set(bilan.laissees.map((r) => r.id));
+      const enPause = new Set(hotesEnPause());
+      for (const [k, v] of lot) {
+        const hote = hoteDe(ficheUrlOf(v.row) ?? "");
+        // Laissée parce que son hôte a refusé (429, 503) : elle attend la fin
+        // de la pause, sans compter d'essai — Les Menuires, 2 octobre 2026.
+        if (!ouvertes.has(v.row.id) && hote && enPause.has(hote)) continue;
+        // Ouverte, ou laissée (refus durable, lecteur qui ne comble rien) :
+        // elle a eu sa chance. Pas partie à temps : trois tours au plus.
+        if (ouvertes.has(v.row.id) || laissees.has(v.row.id) || ++v.essais >= 3) suiteAutres.delete(k);
+      }
+      // Rien n'a bougé dans ce tour (tous les hôtes en pause) : on attend.
+      if (bilan.ouvertes.length === 0) await new Promise((r) => setTimeout(r, 60_000));
+    }
+  } catch {
+    /* une page illisible n'arrête pas la suite d'une autre recherche */
+  } finally {
+    suiteAutresEnCours = false;
+    console.info(
+      `[fiche] fiches hors Airbnb en tâche de fond : ${compte.lues} lues, ${comblees} annonce(s) complétée(s), ${suiteAutres.size} restante(s)`,
+    );
+  }
+}
+
+/** Pour les tests : la file des fiches hors Airbnb, et si elle tourne. */
+export function etatSuiteAutres(): { file: number; enCours: boolean } {
+  return { file: suiteAutres.size, enCours: suiteAutresEnCours };
 }
 
 /* ---------- Fiches Airbnb : la suite en tâche de fond ---------- */
@@ -1313,6 +1494,14 @@ export async function fillFiches(
   // Une page que portent plusieurs annonces n'est la fiche d'aucune : ni
   // ouverte, ni lue dans le cache pour l'une d'elles (`priseFiche.ts`).
   const communes = urlsPartagees(listings, urlPropre);
+  // Une recherche voit la liste entière : son verdict sur chaque page (portée
+  // par une annonce ou par plusieurs) vaut pour les relectures, qui n'en
+  // renvoient qu'une partie et y verraient propre une page de résidence.
+  if (budgetMs > 0) retenirVerdicts(listings, communes);
+  else for (const l of listings) {
+    const u = urlPropre(l);
+    if (u && verdictsPages.get(cleUrl(u)) === true) communes.add(cleUrl(u));
+  }
   // Le cache d'abord : il tient la lecture entière d'une page lue il y a
   // moins d'un jour (les lits de l'aperçu, le point de repli), la mémoire
   // seulement une partie. Pour l'écran Prix, pas une annonce que la mémoire
@@ -1392,11 +1581,13 @@ export async function fillFiches(
   if (prix && airbnbALire.length > 0 && airbnbPremier.length === 0) {
     console.warn(`[fiche] ${enPause()} — ${airbnbALire.length} fiches reportées`);
   }
+  const ouvertesAutres = new Set<string>();
   if ((autres.length > 0 || airbnbPremier.length > 0) && Date.now() < until) {
     const [pool, seq] = await Promise.all([
       autres.length > 0 ? fillPool(autres.slice(0, MAX_FICHES), until, WORKERS, compte) : null,
       airbnbPremier.length > 0 ? fillAirbnbSeq(airbnbPremier, until, compte) : null,
     ]);
+    for (const o of pool?.ouvertes ?? []) ouvertesAutres.add(o.row.id);
     filled += (pool?.filled ?? 0) + (seq?.filled ?? 0);
     // Ce que cette passe a lu va dans la mémoire des fiches.
     noter(
@@ -1405,10 +1596,34 @@ export async function fillFiches(
         .filter((n): n is Note => n != null),
     );
   }
+  // Ce que la fiche de la centrale n'a pas donné, la fiche Gîtes de France du
+  // même gîte, par son code.
+  if (Date.now() < until) {
+    const gdf = await repliGitesDeFrance(listings, until, compte);
+    filled += gdf.filled;
+    noter(gdf.notes);
+  }
+  // Logements : les fiches hors Airbnb que la passe n'a pas ouvertes (au-delà
+  // de `MAX_FICHES`, ou passé son échéance) se lisent en tâche de fond ; la
+  // relecture de l'écran les pose depuis le cache.
+  // Une relecture ne met en file qu'une page qu'une recherche a vue portée par
+  // cette seule annonce.
+  const pagePropre = (l: Listing) => {
+    const u = urlPropre(l);
+    return u == null || verdictsPages.get(cleUrl(u)) === false;
+  };
+  const autresRestants = autres.filter(
+    (l) => !ouvertesAutres.has(l.id) && trouee(l) && (budgetMs > 0 || pagePropre(l)),
+  );
+  const autresEnFond =
+    !prix && (budgetMs > 0 || opts.relecture === true) && autresRestants.length > 0
+      ? lancerSuiteAutres(autresRestants)
+      : 0;
   if (memoire.dejaLues.size > 0) laissees.set(PAGE_DEJA_LUE, memoire.dejaLues.size);
   console.info(
     `[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${compte.lues} lues${ecrireLaissees(laissees)}` +
-      (enFond > 0 ? ` · ${enFond} Airbnb à lire en tâche de fond` : ""),
+      (enFond > 0 ? ` · ${enFond} Airbnb à lire en tâche de fond` : "") +
+      (autresEnFond > 0 ? ` · ${autresEnFond} autres fiches à lire en tâche de fond` : ""),
   );
   filled += await fillAdresses(listings, until, communes);
   await verifierFichesGites(listings, until);

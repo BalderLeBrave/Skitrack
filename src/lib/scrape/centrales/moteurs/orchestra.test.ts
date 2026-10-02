@@ -349,6 +349,7 @@ const RIEN = {
   capacite: null,
   typeDeBien: null,
   pieces: null,
+  chambres: null,
   village: null,
   adresse: null,
   lat: null,
@@ -369,6 +370,7 @@ describe("Orchestra : le type de la carte, la capacité et le lieu de la fiche",
       capacite: 6,
       typeDeBien: "2 pièces",
       pieces: 2,
+      chambres: null,
       village: "CHAMPAGNY",
       adresse: "160 Rue des Hauts du Crey, CHAMPAGNY, 73350",
       lat: 45.45672911614459,
@@ -378,6 +380,7 @@ describe("Orchestra : le type de la carte, la capacité et le lieu de la fiche",
       capacite: 12,
       typeDeBien: "6 pièces",
       pieces: 6,
+      chambres: null,
       village: "CHAMPAGNY EN VANOISE",
       adresse: "1103 Rue de la Vanoise, CHAMPAGNY EN VANOISE, 73350",
       lat: 45.456729,
@@ -427,5 +430,16 @@ describe("Orchestra : le type de la carte, la capacité et le lieu de la fiche",
     const carte = { type: "Appartement", titre: "Chalet Les Bulles", chemin: "/location/x-1" };
     assert.equal(horsRegleOrchestra(carte), null);
     assert.equal(horsRegleOrchestra({ ...carte, titre: "Camping Le Bettex" }), "camping");
+  });
+});
+
+describe("Orchestra : le gabarit « Information » de La Plagne (2 octobre 2026)", () => {
+  it("« Capacité: 10 » sans unité, « Chambres à coucher: 5 », « <strong>Type</strong>: Chalet »", () => {
+    const fiche = `<h3 class="title-content secondary">Information</h3>
+                  <div class="txt-content">- <strong>Résidence:</strong> LES CHALETS DES ALPAGES<br/>- <strong>Ref:</strong> C11ALP<br/>- <strong>Type</strong>: Chalet<br/>- <strong>Capacité:</strong> 10<br/>- <strong>Superficie:</strong> 90 m<sup>2</sup><br/>- <strong>Chambres à coucher:</strong> 5<br/>- <strong>Lit simple:</strong> 4<br/></div>`;
+    const f = ficheOrchestra(fiche);
+    assert.deepEqual([f.capacite, f.typeDeBien, f.chambres, f.pieces], [10, "Chalet", 5, null]);
+    const studio = ficheOrchestra(fiche.replace("<strong>Type</strong>: Chalet", "<strong>Type</strong>: Studio divisible"));
+    assert.equal(studio.pieces, 1);
   });
 });

@@ -76,6 +76,8 @@ export type FicheOrchestra = {
   typeDeBien: string | null;
   /** Les pièces que le type de bien écrit. */
   pieces: number | null;
+  /** « Chambres à coucher: 5 » (gabarit de La Plagne, 2 octobre 2026). */
+  chambres: number | null;
   /** « Village : CHAMPAGNY », tel quel. */
   village: string | null;
   /** « Adresse », ses lignes jointes : « 160 Rue des Hauts du Crey, CHAMPAGNY, 73350 ». */
@@ -340,9 +342,11 @@ function lieuOrchestra(page: string): Pick<FicheOrchestra, "adresse" | "lat" | "
 export function ficheOrchestra(page: string): FicheOrchestra {
   const lieu = lieuOrchestra(page);
   const bloc = BLOC_INFORMATION.exec(page);
-  if (!bloc) return { capacite: null, typeDeBien: null, pieces: null, village: null, ...lieu };
+  if (!bloc) return { capacite: null, typeDeBien: null, pieces: null, chambres: null, village: null, ...lieu };
   const champs = new Map<string, string>();
-  for (const m of (bloc[1] ?? "").matchAll(/<strong>\s*([^<]+?)\s*:\s*<\/strong>\s*([^<]*)/g)) {
+  // « <strong>Capacité :</strong> 6 », ou les deux-points hors du gras :
+  // « <strong>Type</strong>: Chalet » (La Plagne).
+  for (const m of (bloc[1] ?? "").matchAll(/<strong>\s*([^<:]+?)\s*(?::\s*<\/strong>|<\/strong>\s*:)\s*([^<]*)/g)) {
     // La clé est pliée : « Capacité » et « Capacit&eacute; » se valent.
     const cle = plierType(desechapper(m[1] ?? "").replace(/&([a-zA-Z])[a-z]+;/g, "$1"));
     const valeur = desechapper(m[2] ?? "")
@@ -350,13 +354,17 @@ export function ficheOrchestra(page: string): FicheOrchestra {
       .trim();
     if (valeur && !champs.has(cle)) champs.set(cle, valeur);
   }
-  const cap = /^(\d{1,2})\s*personnes?$/i.exec(champs.get("capacite") ?? "");
-  const typeDeBien = champs.get("type de bien") ?? null;
+  // « 6 Personnes », ou le nombre seul (« Capacité: 10 », La Plagne).
+  const cap = /^(\d{1,2})(?:\s*personnes?)?$/i.exec(champs.get("capacite") ?? "");
+  const typeDeBien = champs.get("type de bien") ?? champs.get("type") ?? null;
   const pi = typeDeBien ? /\b(\d{1,2})\s*pi(?:è|e|&egrave;)ces?\b/i.exec(typeDeBien) : null;
+  const ch = /^(\d{1,2})$/.exec(champs.get("chambres a coucher") ?? "");
   return {
     capacite: cap ? entierPublie(cap[1]) : null,
     typeDeBien,
-    pieces: pi ? entierPublie(pi[1]) : null,
+    // Un studio (« Studio divisible ») : une pièce.
+    pieces: pi ? entierPublie(pi[1]) : typeDeBien && /\bstudio\b/i.test(typeDeBien) ? 1 : null,
+    chambres: ch ? Number(ch[1]) : null,
     village: champs.get("village") ?? null,
     ...lieu,
   };

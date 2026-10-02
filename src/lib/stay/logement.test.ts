@@ -537,3 +537,38 @@ describe("résidu : les annonces restées à null, journalisées", () => {
     assert.match(lignes.at(-1) ?? "", /et 5 autres/);
   });
 });
+
+describe("codes d'agence en fin de titre (Vacanceole, Chamrousse)", () => {
+  it("« 2P6 » : deux pièces pour six personnes, plus « 2 personnes » ; « 2P6C » avec une cabine", () => {
+    const a = lireLogement("Les Cytises N°304 - 2P6");
+    assert.deepEqual([a.capacite, a.pieces, a.chambresDerivees, a.cabine], [6, 2, 1, false]);
+    const b = lireLogement("Les Marmottes N°311 - 2P6C");
+    assert.deepEqual([b.capacite, b.pieces, b.cabine], [6, 2, true]);
+    assert.deepEqual([lireLogement("V du Bachat Arolles A N°21 - 4P8").capacite, lireLogement("V du Bachat Arolles A N°21 - 4P8").pieces], [8, 4]);
+  });
+
+  it("« ST4 » : un studio pour quatre", () => {
+    const s = lireLogement("Le Carina N°4 - ST4");
+    assert.deepEqual([s.capacite, s.studio, s.pieces, s.chambresDerivees], [4, true, 1, 0]);
+  });
+});
+
+describe("capacité écrite : un couchage n'est pas le logement ; nombres en lettres", () => {
+  it("« 1 lit 2 personnes », « canapé convertible 2 personnes », « un lit pour 2 personnes » : rien", () => {
+    assert.equal(lireLogement("une chambre (1 lit 2 personnes) avec volet").capacite, null);
+    assert.equal(lireLogement("séjour avec canapé convertible 2 personnes").capacite, null);
+    assert.equal(lireLogement("chalet avec un lit pour 2 personnes").capacite, null);
+  });
+
+  it("« pour 4 personnes », « Appartement 6 personnes » : le logement", () => {
+    assert.equal(lireLogement("Studio neuf avec mezzanine et coin montagne pour 4 personnes").capacite, 4);
+    assert.equal(lireLogement("Appartement 6 personnes, 1 lit 2 personnes").capacite, 6);
+  });
+
+  it("« une chambre », « deux chambres » étage par étage, « deux pièces » ; « dans une chambre » ne compte pas", () => {
+    assert.equal(lireLogement("séjour-cuisine coin salon, une chambre (1 lit 2 personnes)").chambresEcrites, 1);
+    assert.equal(lireLogement("Rez-de-chaussée : une chambre. 1er étage : deux chambres et une mezzanine").chambresEcrites, 3);
+    assert.equal(lireLogement("lit bébé dans une chambre").chambresEcrites, null);
+    assert.equal(lireLogement("deux pièces").pieces, 2);
+  });
+});

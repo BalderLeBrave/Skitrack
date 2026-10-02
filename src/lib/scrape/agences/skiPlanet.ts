@@ -153,6 +153,27 @@ function coordonnee(v: unknown, borne: number): number | null {
   return typeof v === "number" && Number.isFinite(v) && v !== 0 && Math.abs(v) <= borne ? v : null;
 }
 
+/**
+ * Le panneau « Voir descriptif et photos » d'un logement du calendrier
+ * (`afficheLogement`, `js/tools182.js`) : son descriptif et ses photos.
+ * Relevé le 3 octobre 2026 sur le logement 76147 (Résidence le Cervin, La
+ * Plagne), dont la résidence n'a pas de photo dans la table.
+ */
+export function urlInfosLogement(idLogement: string): string {
+  return `${SKIPLANET_AJAX}/infos-logement.php?${new URLSearchParams({ id_logement: idLogement })}`;
+}
+
+/**
+ * Les photos d'un logement, dans l'ordre du panneau, au grand format qu'il
+ * publie (le petit n'est que la vignette du diaporama) ; sans grand format,
+ * celles qu'il donne.
+ */
+export function lirePhotosLogement(html: string): string[] {
+  const toutes = [...new Set([...html.matchAll(/https:\/\/docs\.ski-planet\.com\/photo\/[\w-]+(?:\/[\w.-]+)+\.(?:jpe?g|webp)/gi)].map((m) => m[0]))];
+  const grandes = toutes.filter((u) => /\/large\//.test(u));
+  return grandes.length > 0 ? grandes : toutes;
+}
+
 /** L'adresse d'une photo de la table (chemin sous `SKIPLANET_PHOTOS`), ou `null`. */
 export function adressePhoto(chemin: unknown): string | null {
   return typeof chemin === "string" && /^[\w-]+(?:\/[\w.-]+)+\.(?:jpe?g|webp)$/i.test(chemin) ? `${SKIPLANET_PHOTOS}${chemin}` : null;
@@ -461,6 +482,8 @@ export function skiPlanetListings(
   calendrier: CalendrierSkiPlanet,
   input: LiveSearchInput,
   seul?: CalendrierSkiPlanet | null,
+  /** Les photos du logement lues sur son panneau (`lirePhotosLogement`), pour une résidence sans photo. */
+  photosLogement?: (idLogement: string) => readonly string[] | null,
 ): Listing[] {
   if (!calendrier.disponible) return [];
   const nuits = nuitsEntre(input.checkIn, input.checkOut);
@@ -498,6 +521,8 @@ export function skiPlanetListings(
       total = arrondi(l.prix);
       priceLabel = l.texteSejour ?? `${l.prix}€`;
     }
+    // La photo de la résidence (table), sinon celles du logement (son panneau).
+    const photos = residence.photo ? [residence.photo] : [...(photosLogement?.(l.id) ?? [])];
     out.push({
       id: forfait === true ? `sp-${l.id}-forfait` : `sp-${l.id}`,
       stationId: input.stationId,
@@ -524,8 +549,8 @@ export function skiPlanetListings(
       ),
       propertyType: lib.type,
       available: true,
-      photo: residence.photo,
-      photos: residence.photo ? [residence.photo] : null,
+      photo: photos[0] ?? null,
+      photos: photos.length > 0 ? photos : null,
       url: l.url,
       lat: position?.lat ?? null,
       lon: position?.lon ?? null,

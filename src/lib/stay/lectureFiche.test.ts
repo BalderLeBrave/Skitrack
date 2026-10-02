@@ -176,7 +176,7 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.bedroomsSource, "text_regex");
   });
 
-  it("le descriptif ne donne jamais la capacité : « 1 lit 1 personne » décrit un lit", () => {
+  it("un couchage n'est pas une capacité ; « 2 chambres (1 lit 2 personnes) » ne s'additionne pas", () => {
     const html = `<div class="pave1 pave-containText"><span class="contenu_descriptif">Salon (2 lits gigognes 1 personne.), 2 chambres (1 lit 2 personnes).</span></div>`;
     const l = lectureFiche(html);
     assert.equal(l.capacity, null);
@@ -461,5 +461,143 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
     assert.equal(poserReleve(live, dump), 1);
     assert.equal(live[0].title, "CHALET NEVE Chalet 8 personnes");
     assert.equal(live[0].capacity, 8);
+  });
+});
+
+describe("lectureFiche : fiches des centrales relevées le 2 octobre 2026", () => {
+  it("Ingénie : le critère structuré passe devant « 3 personnes » du titre, et « Studio » vaut une pièce", () => {
+    const html = `<html><head><title>L' ANDROMEDE N°68 Appartement 3 personnes</title></head><body>
+      <h1>L' ANDROMEDE N°68 Appartement 3 personnes</h1>
+      <li class="GTYPAP-G"><span class="type-titre">Nombre de pièces : </span><ul class="valeur-critere"><li class="GTYPAP-GSTUDI-G">Studio</li><li class="GTYPAP-STUDIOCOINNUIT-G">Studio + coin(s) nuit</li></ul></li>
+      <li class="GCAPAC-G"><span class="type-titre">Capacité (bébés compris) : </span><ul class="valeur-critere"><li class="GCAPAC-GCAP03-G">3 personnes</li></ul></li>
+      </body></html>`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource, l.rooms], [3, "structured", 1]);
+  });
+
+  it("Ingénie : `ICAPAC-ICAPAC` et un descriptif « studio 18 m2 »", () => {
+    const html = `<html><body>${"<p>x</p>".repeat(30)}
+      <span class="ICAPAC-ICAPAC-I"><span class="quantite">2</span> <span class="libelle">personnes</span></span>
+      <div class="cadre"><span class="contenu_descriptif">"Asters 18 Bâtiment C1" studio 18 m2 au 2ème étage. Séjour avec 1 divan-lit double.</span></div>
+      </body></html>`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource, l.rooms, l.bedrooms], [2, "structured", 1, null]);
+  });
+
+  it("Ingénie : le bloc « Capacité » (`capacite-nombreChambres`, `-nombrePieces`, `-capaciteHebergement`)", () => {
+    const html = `<html><body>${"<p>x</p>".repeat(30)}
+      <li class="capacite-G"><span class="type-titre crit_capacite">Capacité <span>:</span> </span><ul class="valeur-critere">
+      <li class="capacite-nombreChambres-G"><span class="quantite">1</span> <span class="libelle">chambre(s)</span></li>
+      <li class="capacite-capaciteHebergement-G"><span class="quantite">4</span> <span class="libelle">personnes</span></li>
+      <li class="capacite-nombrePieces-G"><span class="quantite">2</span> <span class="libelle">pièce(s)</span></li></ul></li>
+      </body></html>`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource, l.bedrooms, l.bedroomsSource, l.rooms], [4, "structured", 1, "structured", 2]);
+  });
+
+  it("Ingénie : « Cabine 1 » (`crit_GCHAM7`) n'est pas une septième chambre", () => {
+    const html = `<html><body>${"<p>x</p>".repeat(30)}
+      <li class="GCHAM1-I"><span class="type-titre crit_GCHAM1">Chambre 1 <span>:</span> </span></li>
+      <li class="GCHAM7-I"><span class="type-titre crit_GCHAM7">Cabine 1 <span>:</span> </span></li>
+      </body></html>`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.bedrooms, l.bedroomsSource], [1, "structured"]);
+  });
+
+  it("Gîtes de France (widget ITEA) : la capacité du formulaire de réservation `formule_capacite`", () => {
+    const html = `<html><body>${"<p>x</p>".repeat(30)}
+      <select name="formule_capacite" id="formule_selectCapacite"><option value="1">1 personne</option><option selected value="2">2 personnes</option><option value="3">3 personnes</option></select>
+      <select name="formule_capacite_enfant"><option value="0">0 enfant</option><option value="4">4 enfants</option></select>
+      </body></html>`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource], [3, "structured"]);
+  });
+});
+
+describe("lectureFiche : libellés et descriptions des fiches, 2 octobre 2026", () => {
+  it("Orchestra : le bloc « Information » en gras (capacité, chambres à coucher, type)", () => {
+    const html = `<div class="txt-content">- <strong>Ref:</strong> LC-SXT306<br/>- <strong>Type</strong>: Appt 2 pièces<br/>- <strong>Capacité:</strong> 4<br/>- <strong>Chambres à coucher:</strong> 1<br/>- <strong>Lit simple:</strong> 2<br/></div>${"<p>x</p>".repeat(30)}`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource, l.bedrooms, l.bedroomsSource, l.rooms], [4, "structured", 1, "structured", 2]);
+  });
+
+  it("Ingénie : le critère « TYPE DE LOGEMENT » (`OTYPA`), « deux pièces » ou des studios", () => {
+    const deux = `<ul class="valeur-critere"><li class="OTYPA-OTYAPPT-G">appartement</li><li class="OTYPA-OTYP2P-G">deux pièces</li></ul>${"<p>x</p>".repeat(30)}`;
+    assert.equal(lectureFiche(deux).rooms, 2);
+    const studio = `<ul class="valeur-critere"><li class="OTYPA-OTYAPPT-G">appartement</li><li class="OTYPA-OTYPST-G">studio</li><li class="OTYPA-OTYPSC-G">studio cabine</li></ul>${"<p>x</p>".repeat(30)}`;
+    assert.equal(lectureFiche(studio).rooms, 1);
+  });
+
+  it("la description du `Product` d'une fiche : « pour 4 personnes », pas la taille d'un lit", () => {
+    const html = `<script type="application/ld+json">${JSON.stringify({
+      "@type": "Product",
+      name: "Studio - LES BALCONS DE LA TARENTAISE",
+      description: "Studio neuf avec mezzanine et coin montagne pour 4 personnes. Séjour avec 1 lit 2 personnes.",
+    })}</script>${"<p>x</p>".repeat(30)}`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource], [4, "text_regex"]);
+  });
+
+  it("la valeur d'un champ de formulaire (`value=\"2 personnes\"`) n'est pas une capacité", () => {
+    const html = `<label>Voyageurs</label><input type="text" value="2 personnes"/>${"<p>x</p>".repeat(30)}`;
+    assert.equal(lectureFiche(html).capacity, null);
+  });
+});
+
+describe("lectureFiche : la description qu'Ingénie écrit dans le bloc de l'agence", () => {
+  const page = (description: string, ingenie = true) =>
+    `<html><head>${ingenie ? '<script src="https://static.ingenie.fr/js/ScriptsLoader.js"></script>' : ""}<script type="application/ld+json">${JSON.stringify({
+      "@type": "LocalBusiness",
+      name: "Agence Cimalpes",
+      description,
+    })}</script></head><body>${"<p>x</p>".repeat(30)}</body></html>`;
+
+  it("« offre 5 chambres et peut accueillir 12 personnes », puis l'énumération des chambres", () => {
+    const l = lectureFiche(
+      page("Chalet de 193m² qui offre 5 chambres et peut accueillir 12 personnes.<br />- 1 Chambre avec un lit double<br />- 1 Chambre avec deux lits doubles<br />- 1 Chambre en suite<br />- 1 Chambre avec un lit double<br />- 1 Chambre avec un lit double"),
+    );
+    assert.deepEqual([l.capacity, l.bedrooms], [12, 5]);
+  });
+
+  it("une énumération sans total : sa somme (« - 1 chambre … - 1 chambre en suite »)", () => {
+    const l = lectureFiche(page("Conçu pour 8 personnes.<br />- 1 chambre avec lit double (160x200)<br />- 1 dortoir avec 2 lits superposés<br />- 1 chambre en suite avec salle de douche"));
+    assert.deepEqual([l.capacity, l.bedrooms], [8, 2]);
+  });
+
+  it("hors d'une page Ingénie, la description d'une agence n'est pas lue", () => {
+    const l = lectureFiche(page("Agence fondée en 1980, 3 chambres d'hôtes et 12 personnes à votre service", false));
+    assert.deepEqual([l.capacity, l.bedrooms], [null, null]);
+  });
+});
+
+describe("lectureFiche : le résumé d'une fiche Abritel", () => {
+  it("`propertyHighlightedDetails` : « 22 chambres » (icône room), « 62 personnes » (icône people)", () => {
+    const item = (icone: string, texte: string) =>
+      `{\\"__typename\\":\\"PropertyInfoItem\\",\\"primary\\":{\\"__typename\\":\\"EGDSGraphicText\\",\\"graphic\\":{\\"__typename\\":\\"Icon\\",\\"description\\":\\"\\",\\"id\\":\\"${icone}\\",\\"size\\":null}},\\"text\\":\\"${texte}\\"}`;
+    const html = `<script>window.__DATA__ = "{\\"propertyHighlightedDetails\\":{\\"__typename\\":\\"PropertyInfoContent\\",\\"infoItems\\":[${item("room", "22 chambres")},${item("bathroom", "9 salles de bain")},${item("people", "62 personnes")}]}}";</script>${"<p>x</p>".repeat(30)}`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource, l.bedrooms, l.bedroomsSource], [62, "structured", 22, "structured"]);
+  });
+});
+
+describe("lectureFiche : la somme des couchages, faute de capacité chiffrée", () => {
+  it("critère Ingénie « 1 x 2 lits 1 personne superposés » : 2, marquée", () => {
+    const html = `<div><span class="libelle-critere" id="crit_GCOINM">Coin montagne ouvert <span>:</span> </span><ul class="valeur-critere"><li class="GCOINM-G2LSUP-G">1 x 2 lits 1 personne superposés</li></ul></div>${"<p>x</p>".repeat(10)}`;
+    const l = lectureFiche(html);
+    assert.deepEqual([l.capacity, l.capacitySource, l.capaciteCouchages], [2, "text_regex", true]);
+  });
+
+  it("un couchage sans places : rien", () => {
+    const html = `<div><ul class="valeur-critere"><li>1 lit double</li><li>1 canapé-lit</li></ul></div>${"<p>x</p>".repeat(10)}`;
+    const l = lectureFiche(html);
+    assert.equal(l.capacity, null);
+    assert.equal(l.capaciteCouchages, undefined);
+  });
+
+  it("une capacité chiffrée passe devant les couchages", () => {
+    const html = `<div><span class="GCAPAC-GCAP06"></span><ul class="valeur-critere"><li>1 lit 2 personnes</li></ul></div>${"<p>x</p>".repeat(10)}`;
+    const l = lectureFiche(html);
+    assert.equal(l.capacity, 6);
+    assert.equal(l.capaciteCouchages, undefined);
   });
 });

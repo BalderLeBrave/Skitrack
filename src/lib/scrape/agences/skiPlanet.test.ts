@@ -11,6 +11,7 @@ import {
   lireCalendrier,
   lireFicheArchivee,
   lireLibelle,
+  lirePhotosLogement,
   logementGarde,
   nuitsEntre,
   ordonnerResidences,
@@ -19,6 +20,7 @@ import {
   slug,
   urlAutocompletion,
   urlCalendrier,
+  urlInfosLogement,
   type ResidenceSkiPlanet,
   type TableSkiPlanet,
 } from "./skiPlanet.ts";
@@ -321,5 +323,37 @@ describe("Ski-Planet : couverture", () => {
     assert.deepEqual(lieuxDe("Ski-Planet", "tignes"), ["tignes"]);
     assert.deepEqual(lieuxDe("Ski-Planet", "tignes-le-lac"), []);
     assert.deepEqual(lieuxDe("Ski-Planet", "orelle"), ["orelle"]);
+  });
+});
+
+describe("Ski-Planet : le panneau d'un logement, pour une résidence sans photo", () => {
+  // Réponse réelle du 3 octobre 2026 : logement 76147, Résidence le Cervin (La Plagne).
+  const PANNEAU = fx("sp-infos-logement-76147.html");
+
+  it("l'adresse du panneau (`afficheLogement`)", () => {
+    assert.equal(urlInfosLogement("76147"), "https://www.ski-planet.com/fr/ajax/infos-logement.php?id_logement=76147");
+  });
+
+  it("ses photos au grand format, dans l'ordre, sans doublon ni vignette", () => {
+    const photos = lirePhotosLogement(PANNEAU);
+    assert.ok(photos.length >= 3, `${photos.length} photos`);
+    assert.equal(
+      photos[0],
+      "https://docs.ski-planet.com/photo/la-plagne/large/residence-le-cervin-appartement-duplex-2-pieces-6-personnes-706-sejour-1018813.jpg",
+    );
+    assert.ok(photos.every((u) => u.includes("/large/")));
+    assert.equal(new Set(photos).size, photos.length);
+    assert.deepEqual(lirePhotosLogement("<p>rien</p>"), []);
+  });
+
+  it("la photo de la résidence d'abord ; sans elle, celles du logement", () => {
+    const panneau = (id: string) => (id === "69622" ? ["https://docs.ski-planet.com/photo/avoriaz/large/a.jpg", "https://docs.ski-planet.com/photo/avoriaz/large/b.jpg"] : null);
+    const [avec] = skiPlanetListings(SNOW, SEUL, AVORIAZ, null, panneau);
+    assert.equal(avec.photo, SNOW.photo);
+    const [sans] = skiPlanetListings({ ...SNOW, photo: null }, SEUL, AVORIAZ, null, panneau);
+    assert.equal(sans.photo, "https://docs.ski-planet.com/photo/avoriaz/large/a.jpg");
+    assert.equal(sans.photos?.length, 2);
+    const [inconnu] = skiPlanetListings({ ...SNOW, photo: null }, SEUL, AVORIAZ);
+    assert.deepEqual([inconnu.photo, inconnu.photos], [null, null]);
   });
 });

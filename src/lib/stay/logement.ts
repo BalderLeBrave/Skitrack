@@ -98,7 +98,8 @@ export type LectureLogement = {
 
 /* ---------- Motifs ---------- */
 
-const MAX = 50;
+/** Au-delà, un nombre lu n'est plus une capacité plausible. Un gîte de groupe en publie 62 (Abritel, Cordon, 2 octobre 2026). */
+const MAX = 99;
 
 /** « 2 appartements de 6 personnes » : plusieurs logements, aucune capacité. */
 export const MULTI_UNITE =
@@ -153,9 +154,24 @@ const GUESTS_ONE = new RegExp(String.raw`(\d+)\s*-?\s*${UNITE_PERSONNES}\b`, "gi
 /** « 2 places de parking », « garage 2 places » : pas une capacité. */
 const PARKING_APRES = /^\s*(?:de\s+)?(?:parking|garage|stationnement)/i;
 const PARKING_AVANT = /(?:parking|garage|stationnement)\W{0,3}\w{0,12}\W{0,3}$/i;
+/**
+ * « 1 lit 2 personnes », « canapé convertible 2 places », « 2 lits gigognes 1
+ * personne » : la taille d'un couchage, pas la capacité du logement.
+ */
+const COUCHAGE_AVANT = /\b(?:lits?|canap[ée]s?(?:[- ]lits?)?|convertibles?|clic[- ]?clac|bz|gigognes?|superpos[ée]s|banquettes?|divans?(?:[- ]lits?)?|futons?)\b[^.;,:()\d]{0,24}$/i;
 
 /** « 8p », « 10 P », « 2P » : capacité ou pièces, voir `lireLogement`. */
 const N_P = /(?<![\p{L}\d])(\d+)\s*[pP](?![\p{L}])/gu;
+/**
+ * Codes d'agence en fin de titre (Vacanceole, Chamrousse, 2 octobre 2026) :
+ * « 2P6 », deux pièces pour six personnes, « 2P6C » avec une cabine ;
+ * « ST4 », un studio pour quatre. Vérifié sur les annonces de la même agence
+ * dont la fiche publie capacité et pièces (« 4P8 » : 8 personnes, 4 pièces ;
+ * « ST5 » : 5 personnes). Lu en majuscules seulement. Sans lui, « 2P6 » se
+ * lisait 2 personnes.
+ */
+const CODE_PIECES = /(?<![\p{L}\d])([1-9])P(\d{1,2})(C?)(?![\p{L}\d])/u;
+const CODE_STUDIO = /(?<![\p{L}\d])ST(\d{1,2})(?![\p{L}\d])/u;
 
 const GUESTS_ACCUEIL = /accueill(?:e|ant|ir)\s+(?:jusqu['’]?à\s+)?(\d+)\b/i;
 const GUESTS_CAPACITE = /capacit(?:[eé]|y)\s*(?:de\s+|:\s*)?(?:jusqu['’]?à\s+)?(\d+)\b/i;
@@ -193,6 +209,30 @@ export function takeBeds(n: unknown): number | null {
   return v != null && v >= 0 && v <= MAX ? v : null;
 }
 
+const NOMBRES_EN_LETTRES: Record<string, number> = {
+  un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10,
+};
+
+/**
+ * Les chambres écrites en lettres, quand aucun chiffre ne les compte : « une
+ * chambre (1 lit 2 personnes) » (gîte 73G132308, Les Saisies, 2 octobre
+ * 2026), « deux chambres ». Une description étage par étage (« Rez-de-chaussée :
+ * une chambre… 1er étage : deux chambres ») se somme. « dans une chambre »,
+ * « de la chambre » ne comptent pas une pièce. `null` sans aucune.
+ */
+function chambresEnLettres(text: string): number | null {
+  const re = /(?<![\p{L}])(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+chambres?(?![\p{L}])/giu;
+  let total = 0;
+  let vu = false;
+  for (const m of text.matchAll(re)) {
+    const avant = text.slice(Math.max(0, m.index - 8), m.index);
+    if (/(?:dans|pour|par|avec|de)\s+$/i.test(avant)) continue;
+    total += NOMBRES_EN_LETTRES[m[1].toLowerCase()] ?? 0;
+    vu = true;
+  }
+  return vu ? takeBeds(total) : null;
+}
+
 /** La première capacité écrite « N personnes / pers / couchages / places »,
  *  hors places de parking. */
 function capaciteEcrite(text: string): number | null {
@@ -201,6 +241,12 @@ function capaciteEcrite(text: string): number | null {
     const apres = text.slice(m.index + m[0].length);
     if (/places?$/i.test(m[0]) && (PARKING_APRES.test(apres) || PARKING_AVANT.test(avant)))
       continue;
+    // « … coin montagne pour 4 personnes » : le logement ; « un lit pour 2
+    // personnes » : le lit.
+    const pourLogement =
+      /\bpour\s+$/i.test(avant) &&
+      !/\b(?:lits?|canap\S*|convertibles?|bz|gigognes?|superpos\S*|divans?|futons?)\s+(?:\S+\s+)?pour\s+$/i.test(avant);
+    if (COUCHAGE_AVANT.test(avant) && !pourLogement) continue;
     const v = takeGuests(Number(m[1]));
     if (v != null) return v;
   }
@@ -259,19 +305,25 @@ export function lireLogement(...parts: Array<string | null | undefined>): Lectur
   const plie = plier(text);
   const lot = LOTS.some((re) => re.test(plie));
   const multi = MULTI_UNITE.test(text) || MULTI_UNITE_SLUG.test(text);
-  const cabine = CABINE.test(text);
+  const codeP = CODE_PIECES.exec(text);
+  const codeS = codeP ? null : CODE_STUDIO.exec(text);
+  const cabine = CABINE.test(text) || codeP?.[3] === "C";
+  const capaciteCode = takeGuests(Number(codeP?.[2] ?? codeS?.[1]));
+  const piecesCode = codeP ? takeBeds(Number(codeP[1])) : codeS ? 1 : null;
 
-  // « 2P » : pièces s'il ne peut pas être une capacité.
+  // « 2P » : pièces s'il ne peut pas être une capacité. Un code d'agence
+  // (« 2P6 ») n'y entre pas : il a sa lecture.
   const range = fourchetteEcrite(text);
   const ecrite = capaciteEcrite(text);
-  const nps = [...text.matchAll(N_P)].filter(
-    (m) => !/^\s*pi[eè]ces?\b/i.test(text.slice(m.index + m[0].length)),
+  const texteNP = codeP ? text.replace(codeP[0], " ") : text;
+  const nps = [...texteNP.matchAll(N_P)].filter(
+    (m) => !/^\s*pi[eè]ces?\b/i.test(texteNP.slice(m.index + m[0].length)),
   );
   let piecesNP: number | null = null;
   let personnesNP: number | null = null;
   nps.forEach((m, i) => {
     const n = Number(m[1]);
-    const cabineApres = /^\s*cabines?\b/i.test(text.slice(m.index + m[0].length));
+    const cabineApres = /^\s*cabines?\b/i.test(texteNP.slice(m.index + m[0].length));
     const pieces =
       n >= 1 &&
       n <= 9 &&
@@ -288,7 +340,7 @@ export function lireLogement(...parts: Array<string | null | undefined>): Lectur
       capacite = haut;
       capaciteStandard = base < haut ? base : null;
     } else {
-      capacite = ecrite ?? personnesNP;
+      capacite = ecrite ?? capaciteCode ?? personnesNP;
       if (capacite == null) {
         const acc =
           GUESTS_ACCUEIL.exec(text) ??
@@ -301,16 +353,18 @@ export function lireLogement(...parts: Array<string | null | undefined>): Lectur
   }
 
   const ch = BEDROOMS.exec(text);
-  const chambresEcrites = ch ? takeBeds(Number(ch[1])) : null;
+  const chambresEcrites = ch ? takeBeds(Number(ch[1])) : chambresEnLettres(text);
 
   const pi = PIECES.exec(text);
-  let pieces = pi ? takeBeds(Number(pi[1])) : null;
+  // « deux pièces » : le type écrit en lettres (Val d'Arly, critère `OTYPA`).
+  const piLettres = pi ? null : /(?<![\p{L}])(une|deux|trois|quatre|cinq|six|sept|huit)\s+pi[eè]ces?(?![\p{L}])/iu.exec(text);
+  let pieces = pi ? takeBeds(Number(pi[1])) : piLettres ? takeBeds(NOMBRES_EN_LETTRES[piLettres[1].toLowerCase()]) : null;
   if (pieces != null && pieces < 1) pieces = null;
   if (pieces == null) {
     const t = T_TYPE.exec(text) ?? F_TYPE.exec(text);
     if (t) pieces = takeBeds(Number(t[1]));
   }
-  pieces ??= piecesNP;
+  pieces ??= piecesCode ?? piecesNP;
 
   // « Studio » dit deux choses : une pièce, aucune chambre. Pas dans un lot,
   // et pas quand deux chambres ou plus sont écrites : « Chalet Le Studio - 5

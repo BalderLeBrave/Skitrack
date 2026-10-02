@@ -80,7 +80,9 @@ const cache = new Map<string, CacheEntry>();
 function trouee(l: Listing): boolean {
   // Airbnb : les trois champs, toujours. Des chambres absentes sont un trou
   // même avec des pièces, 0 personne n'est pas une capacité (`airbnbComplet`).
-  if (l.source === "Airbnb" && !airbnbComplet(l)) return true;
+  // Des chambres lues dans le titre de partage de sa page n'en sont pas un :
+  // Airbnb ne les publie pas autrement (`qualifierAirbnb`).
+  if (l.source === "Airbnb") return !airbnbComplet(l);
   if (l.capacity == null) return true;
   if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) return true;
   if (valeurDuTexte(l, "capacity") || valeurDuTexte(l, "bedrooms")) return true;

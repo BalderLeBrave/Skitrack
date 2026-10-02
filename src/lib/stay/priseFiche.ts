@@ -31,6 +31,20 @@
  *   s'ouvrent jamais. La position et la photo des résidences viennent de
  *   leurs fiches archivées (`scrape/ski-planet/tables.mts`).
  *
+ * Mesuré le 2 octobre 2026, fiches ouvertes par `fillFiches` et relues par
+ * `lectureFiche` :
+ * - reservation.haute-maurienne-vanoise.com (Open System, `dp…`) : la page
+ *   est une coquille de recherche (titre, sélecteur « Nombre de pers. »), sans
+ *   capacité, pièces ni point ; la liste (`tabPointCarto`, « Capacité : N
+ *   pers. », « Appartement N pièces ») porte déjà tout ce que le site publie ;
+ * - www.laplagneresort.com (Orchestra) : le relevé lit ses fiches lui-même
+ *   (« Capacité : N Personnes », « Type de bien : N pièces », point), et les
+ *   garde 30 jours ; le lecteur générique n'y lit rien (10 lues, 5 de suite
+ *   sans rien combler) ;
+ * - www.lesarcs-reservation.com (iResa) : la fiche publie « Nb chambre(s) :
+ *   N » pour un logement à chambres (rien pour un studio), jamais de point ;
+ *   la capacité est déjà dans la liste (`cap_max`).
+ *
  * Un hôte absent de la table est tenté ; le disjoncteur l'arrête s'il ne
  * comble rien.
  */
@@ -81,6 +95,13 @@ const PRISES: ReadonlyArray<{ nom: string; hote: RegExp; prise: ReadonlySet<Trou
   { nom: "cimalpes.com", hote: /(^|\.)cimalpes\.com$/i, prise: new Set(["gps", "titre"]) },
   { nom: "travelski.com", hote: /(^|\.)travelski\.com$/i, prise: new Set() },
   { nom: "ski-planet.com", hote: /(^|\.)ski-planet\.com$/i, prise: new Set() },
+  {
+    nom: "haute-maurienne-vanoise.com",
+    hote: /(^|\.)reservation\.haute-maurienne-vanoise\.com$/i,
+    prise: new Set(),
+  },
+  { nom: "laplagneresort.com", hote: /(^|\.)laplagneresort\.com$/i, prise: new Set() },
+  { nom: "lesarcs-reservation.com", hote: /(^|\.)lesarcs-reservation\.com$/i, prise: new Set(["chambres"]) },
 ];
 
 /**
@@ -194,6 +215,9 @@ export function urlsPartagees(
  *  le texte, chez un hôte dont on ne sait pas ce que la fiche publie. */
 export const VALEUR_DU_TEXTE = "valeur déjà lue dans le texte";
 
+/** La raison de laisser une annonce Airbnb : GPS, capacité et chambres déjà là. */
+export const AIRBNB_COMPLET = "Airbnb complet";
+
 /**
  * Une annonce Airbnb complète : GPS plausible, capacité, chambres. Règle du
  * propriétaire (1er octobre 2026) : 0 chambre est une valeur (un studio),
@@ -241,8 +265,10 @@ export function raisonDeLaisser(
   if (l.source === "Airbnb" || estHoteAirbnb(url)) {
     // Les trois champs déjà là : rien à lire. Il en manque un : la liste ne
     // l'a pas, la PDP le publie (personCapacity, bedroomCount, listingLat,
-    // listingLng). 0 chambre (studio) est une valeur, pas un trou.
-    return airbnbComplet(l) ? "Airbnb avec GPS" : null;
+    // listingLng). 0 chambre (studio) est une valeur, pas un trou. Un GPS
+    // seul ne suffit plus (règle du 1er octobre 2026) : le seau se nomme
+    // par ce qu'il contient, des annonces complètes.
+    return airbnbComplet(l) ? AIRBNB_COMPLET : null;
   }
   if (estPageDeSite(url) || communes?.has(cleUrl(url))) return "URL commune";
   const hote = hoteDe(url) ?? "";

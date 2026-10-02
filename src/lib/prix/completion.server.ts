@@ -362,15 +362,17 @@ export async function trancheProfonde(d: DemandeTranche, deps: Dependances): Pro
         retires.add(row.id);
         continue;
       }
+      // Sa page a été lue : ce qui y manque y manque vraiment, et les chambres
+      // que la mémoire tient de son titre de partage sont recevables
+      // (`poserValeur`). À poser avant de combler.
+      if (row.source === "Airbnb" && m.lue) row.pdpLue = true;
       if (comblerDepuisMemoire(row, m)) {
         Object.assign(row, qualifierLogement(row));
         marquer(row, MARQUE_MEMOIRE);
       }
-      if (row.source === "Airbnb" && m.lue) {
-        // Sa page a été lue : ce qui y manque y manque vraiment, et une
-        // capacité absente devient celle du titre (`capaciteIntrouvable`).
-        row.pdpLue = true;
-        if (row.capacity == null) Object.assign(row, qualifierLogement(row));
+      if (row.source === "Airbnb" && m.lue && row.capacity == null) {
+        // Une capacité absente devient celle du titre (`capaciteIntrouvable`).
+        Object.assign(row, qualifierLogement(row));
       }
       // Sa fiche Airbnb a été lue il y a moins de trente jours, et ne publie
       // pas ce qui manque encore : la redemander coûterait une requête pour rien.

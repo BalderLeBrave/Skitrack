@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Listing } from "../listings.ts";
 import {
+  AIRBNB_COMPLET,
   airbnbComplet,
   choisirFiches,
   clePage,
@@ -80,10 +81,11 @@ describe("ouvrir une fiche seulement si elle peut combler", () => {
     // GPS manquant, même avec capacité et chambres : à lire.
     assert.equal(raisonDeLaisser({ ...base, capacity: 4, bedrooms: 2, lat: null, lon: null }, AIRBNB), null);
     assert.equal(raisonDeLaisser({ ...base, capacity: 4, bedrooms: 2, lat: 0, lon: 0 }, AIRBNB), null);
-    // Les trois : laissée.
-    assert.equal(raisonDeLaisser({ ...base, capacity: 4, bedrooms: 2 }, AIRBNB), "Airbnb avec GPS");
+    // Les trois : laissée, et le seau dit pourquoi (plus « avec GPS »).
+    assert.equal(AIRBNB_COMPLET, "Airbnb complet");
+    assert.equal(raisonDeLaisser({ ...base, capacity: 4, bedrooms: 2 }, AIRBNB), AIRBNB_COMPLET);
     // 0 chambre (studio) est une valeur, pas un trou.
-    assert.equal(raisonDeLaisser({ ...base, capacity: 2, bedrooms: 0 }, AIRBNB), "Airbnb avec GPS");
+    assert.equal(raisonDeLaisser({ ...base, capacity: 2, bedrooms: 0 }, AIRBNB), AIRBNB_COMPLET);
     // 0 personne n'est pas une capacité.
     assert.equal(raisonDeLaisser({ ...base, capacity: 0, bedrooms: 1 }, AIRBNB), null);
   });
@@ -104,6 +106,26 @@ describe("ouvrir une fiche seulement si elle peut combler", () => {
   it("une page hôte GreenGo n'est jamais ouverte : seule l'API de détail est sûre", () => {
     const hote = "https://www.greengo.voyage/hote/chalet-paradis-blanc?checkIn=2027-02-06&checkOut=2027-02-13&numberOfAdults=2";
     assert.equal(raisonDeLaisser(annonce({ source: "GreenGo", capacity: null, bedrooms: null }), hote), "greengo.voyage");
+  });
+
+  it("fiches mesurées le 2 octobre 2026 : Open System et Orchestra muettes, iResa pour les chambres", () => {
+    const openSystem =
+      "https://reservation.haute-maurienne-vanoise.com/dp7-les-balcons-de-val-cenis-le-haut-val-cenis-lanslevillard/RESAX-132362?DateRecherche=2027-02-06%7C2027-02-13";
+    const orchestra = "https://www.laplagneresort.com/location/residence-silenes-n318-ref-lp-sil318-103686";
+    const iresa = "https://www.lesarcs-reservation.com/residence-le-rochefort-appartement-2-pieces-cabine-4-personnes-ndeg309?package=3605";
+    const trouee = annonce({ source: "Centrale", capacity: null, bedrooms: null, lat: null, lon: null });
+    // Coquille de recherche, et fiche que le relevé Orchestra lit lui-même : jamais ouvertes.
+    assert.equal(raisonDeLaisser(trouee, openSystem), "haute-maurienne-vanoise.com");
+    assert.equal(raisonDeLaisser(trouee, orchestra), "laplagneresort.com");
+    // iResa : « Nb chambre(s) : N » sur la fiche, jamais de point ni de capacité.
+    assert.equal(raisonDeLaisser(trouee, iresa), null);
+    assert.equal(raisonDeLaisser(annonce({ source: "Centrale", lat: null, lon: null }), iresa), "lesarcs-reservation.com");
+    assert.equal(raisonDeLaisser(annonce({ source: "Centrale", capacity: null }), iresa), "lesarcs-reservation.com");
+    // Des chambres tirées des pièces (« 2 pièces ») : la fiche les publie, elle s'ouvre.
+    assert.equal(
+      raisonDeLaisser(annonce({ source: "Centrale", rooms: 2, bedrooms: 1, bedroomsSource: "derived_from_type" }), iresa),
+      null,
+    );
   });
 
   it("Gîtes et hôte inconnu restent ouverts", () => {
@@ -224,7 +246,7 @@ describe("une URL commune n'est jamais prise pour une fiche", () => {
 });
 
 describe("choisir avant de borner", () => {
-  it("le seau « Airbnb avec GPS » ne compte que les annonces complètes, qui ne prennent pas la place des autres", () => {
+  it("le seau « Airbnb complet » ne compte que les annonces complètes, qui ne prennent pas la place des autres", () => {
     // 100 complètes (GPS, capacité, chambres, dont 10 studios à 0 chambre),
     // 40 sans capacité, 25 sans chambres, 5 sans GPS : seules les 100
     // complètes restent dans le seau ; les 70 autres sont lues.
@@ -239,10 +261,15 @@ describe("choisir avant de borner", () => {
     ];
     const gite = annonce({ id: "g", source: "Gîtes de France", capacity: null, url: GITES });
     const { aLire, laissees } = choisirFiches([...lot, gite], (l) => l.url);
-    assert.equal(laissees.get("Airbnb avec GPS"), n.complets);
+    assert.equal(laissees.get(AIRBNB_COMPLET), n.complets);
     assert.equal(aLire.length, n.sansCapacite + n.sansChambres + n.sansGps + 1);
     assert.ok(aLire.every((l) => !l.id.startsWith("a")));
-    assert.equal(ecrireLaissees(laissees), " · laissées : Airbnb avec GPS 100");
+    // Les trouées du même lot sont ouvertes avec le gîte, dans l'ordre reçu.
+    assert.deepEqual(
+      aLire.map((l) => l.id[0]),
+      [..."c".repeat(n.sansCapacite), ..."b".repeat(n.sansChambres), ..."n".repeat(n.sansGps), "g"],
+    );
+    assert.equal(ecrireLaissees(laissees), " · laissées : Airbnb complet 100");
   });
 
   it("une annonce sans URL de fiche n'est ni lue ni comptée", () => {

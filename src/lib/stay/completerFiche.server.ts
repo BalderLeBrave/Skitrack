@@ -214,6 +214,11 @@ export function poserLecture(
     row.locality = lect.locality;
     changed = true;
   }
+  // Les lits de l'aperçu Airbnb (« 4 lits ») : à part de la capacité, dans un vide.
+  if (row.beds == null && lect.beds != null) {
+    row.beds = lect.beds;
+    changed = true;
+  }
   if (lect.title && !titreEstFichier(lect.title)) {
     const slug = titreDepuisUrl(row.url);
     const gitesRenomme = row.source === "Gîtes de France" && row.title !== lect.title;

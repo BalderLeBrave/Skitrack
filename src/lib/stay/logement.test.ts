@@ -305,16 +305,20 @@ describe("Airbnb : capacité et chambres de la page, le titre en dernier recours
     assert.deepEqual([q.capacity, q.bedrooms, q.isStudio], [null, 0, true]);
   });
 
-  it("poserValeur : du texte venu d'ailleurs ne comble pas un trou Airbnb, une valeur de page oui", () => {
-    const l = airbnb("Chalet 6 personnes", { pdpLue: true });
-    assert.equal(poserValeur(l, "capacity", 6, "text_regex"), false);
-    assert.equal(l.capacity, null);
-    assert.equal(poserValeur(l, "capacity", 6, "structured"), true);
-    assert.equal(l.capacity, 6);
-    // Page pas encore lue : des chambres du texte ne tiennent pas.
+  it("poserValeur : du texte ne comble un trou Airbnb qu'une fois la page lue ; le structuré passe devant", () => {
+    // Page pas encore lue : ni capacité ni chambres du texte.
     const avant = airbnb("Chalet 6 personnes");
+    assert.equal(poserValeur(avant, "capacity", 6, "text_regex"), false);
     assert.equal(poserValeur(avant, "bedrooms", 2, "text_regex"), false);
-    assert.equal(avant.bedrooms, null);
+    assert.deepEqual([avant.capacity, avant.bedrooms], [null, null]);
+    // Page lue : « 6 voyageurs » de l'aperçu tient, un personCapacity le remplace.
+    const l = airbnb("Chalet", { pdpLue: true });
+    assert.equal(poserValeur(l, "capacity", 6, "text_regex"), true);
+    Object.assign(l, qualifierLogement(l));
+    assert.deepEqual([l.capacity, l.capacitySource], [6, "text_regex"]);
+    assert.equal(poserValeur(l, "capacity", 8, "structured"), true);
+    assert.deepEqual([qualifierLogement(l).capacity, qualifierLogement(l).capacitySource], [8, "structured"]);
+    assert.equal(poserValeur(l, "capacity", 6, "text_regex"), false);
   });
 
   it("page lue : les chambres de son titre de partage tiennent, un bedroomCount les remplace", () => {

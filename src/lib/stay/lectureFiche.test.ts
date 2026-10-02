@@ -34,6 +34,29 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.lon, 6.12571);
   });
 
+  it("lectureAirbnb : l'aperçu de la page (« N voyageurs · N chambres · N lits ») avant le titre de partage", () => {
+    // Bloc `overview` de rooms/1456397434311994216, lu le 2 octobre 2026 :
+    // les lignes que l'écran montre sous le titre.
+    const apercu = `{"overview":{"__typename":"StaysPdpOverview","title":"Logement entier : appartement - Bernex, France","items":["2 voyageurs","1 chambre","1 lit","1 salle de bain"],"reviewsInfo":null}}`;
+    // Sans personCapacity : la capacité de l'aperçu, en text_regex ; les lits à part.
+    const seul = lectureAirbnb(apercu);
+    assert.deepEqual(
+      [seul.capacity, seul.capacitySource, seul.bedrooms, seul.bedroomsSource, seul.beds],
+      [2, "text_regex", 1, "text_regex", 1],
+    );
+    // personCapacity publié : il passe devant « 2 voyageurs ».
+    const struct = lectureAirbnb(`{"personCapacity":4}${apercu}`);
+    assert.deepEqual([struct.capacity, struct.capacitySource], [4, "structured"]);
+    // L'aperçu passe devant le titre de partage pour les chambres.
+    const deux = lectureAirbnb(
+      `{"__typename":"StaysPdpOverview","title":"Logement entier : chalet","items":["6 voyageurs","2 chambres","4 lits","2 salles de bain"]}{"sharingConfig":{"title":"Chalet · 3 chambres · 4 lits"}}`,
+    );
+    assert.deepEqual([deux.capacity, deux.bedrooms, deux.beds], [6, 2, 4]);
+    // Un studio dans l'aperçu : 0 chambre.
+    const studio = lectureAirbnb(`{"__typename":"StaysPdpOverview","title":"Logement entier","items":["2 voyageurs","Studio","1 lit","1 salle de bain"]}`);
+    assert.deepEqual([studio.bedrooms, studio.bedroomsSource, studio.beds], [0, "derived_from_type", 1]);
+  });
+
   it("lectureAirbnb : sans bedroomCount, les chambres du titre de partage ; « Studio » vaut 0", () => {
     // Page rooms/1456397434311994216 lue le 2 octobre 2026 (Abondance),
     // réduite aux champs lus : personCapacity, listingLat/Lng, sharingConfig.

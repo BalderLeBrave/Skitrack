@@ -480,25 +480,30 @@ export function qualifierLogement<T extends SujetLogement>(l: T): T & Qualifie {
  * le texte disait redevient un trou, que la page comblera (`priseFiche.ts`).
  * 0 chambre est un studio ; 0 personne n'est pas une capacité.
  *
- * Deux exceptions, une par champ, quand la page a été lue (`pdpLue`) :
- * - la capacité : introuvable (`capaciteIntrouvable`), celle que le titre
- *   écrit compte, en `text_regex` ;
- * - les chambres : mesuré le 2 octobre 2026 sur dix fiches PDP et une page
- *   `rooms/` d'Abondance, Airbnb ne publie aucun `bedroomCount` ; les
- *   chambres n'y sont écrites que dans le titre de partage
- *   (`sharingConfig.title`, « Appartement · Bernex · ★4,92 · 1 chambre · 1
- *   lit · 1 salle de bain », ou « Studio »). Ce sont les mots de la page
- *   elle-même, lus par le lecteur de fiche (`lectureAirbnb`, `pdp.py`) ; ils
- *   tiennent, en `text_regex` (« N chambres ») ou `derived_from_type` (le 0
- *   d'un « Studio »). Le titre de la tuile, lui, ne donne jamais de chambres.
+ * Exceptions, quand la page a été lue (`pdpLue`) : ses propres mots tiennent.
+ * - L'aperçu de la page (« 6 voyageurs · 2 chambres · 4 lits · 1 salle de
+ *   bain », bloc `StaysPdpOverview`) et, pour les chambres, le titre de
+ *   partage (`sharingConfig.title`) : mesuré le 2 octobre 2026 sur dix fiches
+ *   PDP et une page `rooms/` d'Abondance, Airbnb ne publie aucun
+ *   `bedroomCount`, et `personCapacity` manque parfois. Lus par le lecteur
+ *   de fiche (`lectureAirbnb`, `pdp.py`), posés par `poserValeur`, ils
+ *   tiennent en `text_regex` (« N chambres », « N voyageurs ») ou
+ *   `derived_from_type` (le 0 d'un « Studio »).
+ * - La capacité introuvable (`capaciteIntrouvable`) : celle que le titre de
+ *   l'annonce écrit compte, en `text_regex`. Le titre de la tuile ne donne
+ *   jamais de chambres.
  * Un champ structuré, arrivé plus tard, remplace l'un comme l'autre
  * (`poserValeur`).
  */
 function qualifierAirbnb<T extends SujetLogement>(l: T): T & Qualifie {
   const structure = (source: SourceValeur | null | undefined) =>
     (source ?? "structured") === "structured";
-  let capacity = structure(l.capacitySource) ? takeGuests(l.capacity) : null;
-  let capacitySource: SourceCapacite | null = capacity == null ? null : "structured";
+  // La capacité : structurée, ou les mots de la page lue (« N voyageurs » de
+  // l'aperçu, posés par `poserValeur` une fois `pdpLue`).
+  const capaciteDeLaPage = l.pdpLue === true && !structure(l.capacitySource);
+  let capacity = structure(l.capacitySource) || capaciteDeLaPage ? takeGuests(l.capacity) : null;
+  let capacitySource: SourceCapacite | null =
+    capacity == null ? null : capaciteDeLaPage ? "text_regex" : "structured";
   let capacityStandard = capacity != null ? takeGuests(l.capacityStandard) : null;
   if (capacity == null && capaciteIntrouvable(l)) {
     const lu = lireLogement(l.title);
@@ -563,9 +568,10 @@ export function poserValeur(
 ): boolean {
   // Airbnb : rien que du structuré (`qualifierAirbnb`). Une valeur du texte
   // ou du type ne comble pas un trou Airbnb : la page du logement le fera.
-  // Sauf les chambres que cette page, une fois lue, écrit elle-même
-  // (`sharingConfig.title`) : Airbnb ne les publie pas autrement.
-  if (l.source === "Airbnb" && source !== "structured" && !(champ === "bedrooms" && l.pdpLue === true)) {
+  // Sauf ce que cette page, une fois lue, écrit elle-même (aperçu « N
+  // voyageurs · N chambres », titre de partage) : la capacité et les chambres
+  // qu'elle donne tiennent, un champ structuré les remplace.
+  if (l.source === "Airbnb" && source !== "structured" && !(l.pdpLue === true && champ !== "rooms")) {
     return false;
   }
   if (champ === "rooms") {

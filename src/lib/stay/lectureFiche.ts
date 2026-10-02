@@ -35,6 +35,8 @@ export type LectureFiche = OccupancyLue & {
   pageLue?: boolean;
   /** Nom de l'annonce tel que la fiche le publie (`h1`, og:title). */
   title: string | null;
+  /** Lits annoncés par la page (« 4 lits », aperçu Airbnb), à part de la capacité. */
+  beds?: number | null;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
   taxeSejour: number | null;
 };
@@ -499,32 +501,73 @@ function titrePartageAirbnb(html: string): string | null {
 }
 
 /**
- * La page d'un logement Airbnb (PDP, `rooms/`) : les quatre champs qu'elle
- * publie, et eux seuls. Règle du propriétaire (1er octobre 2026) : pour
- * Airbnb, c'est la seule source de rattrapage. `personCapacity` est
- * structuré ; `listingLat` et `listingLng` font le point, de provenance `pdp`.
- * `bedroomCount`, quand la page le porte, est structuré ; mesuré le 2 octobre
- * 2026 (dix fiches PDP et une page `rooms/`, Abondance), Airbnb ne le publie
- * pas, et n'écrit les chambres que dans son titre de partage : « N chambres »
- * y vaut `text_regex`, « Studio » le 0 d'un studio (`derived_from_type`),
- * comme le lit déjà `pdp.py`. Ni titre d'annonce, ni description, ni méta :
- * un champ absent reste un trou, que le journal nomme. 0 chambre est un
- * studio ; 0 personne n'est pas une capacité.
+ * L'aperçu d'une page Airbnb, les lignes que l'écran montre sous le titre
+ * (« 6 voyageurs · 2 chambres · 4 lits · 1 salle de bain ») : dans le HTML
+ * reçu, elles ne sont pas des `<li>` (le navigateur les rend), mais le bloc
+ * JSON `"overview":{"__typename":"StaysPdpOverview", … "items":[…]}`. Lu le
+ * 2 octobre 2026 sur `rooms/1456397434311994216`.
+ */
+function apercuAirbnb(html: string): string[] | null {
+  const m = html.match(/"__typename"\s*:\s*"StaysPdpOverview"[^{}[\]]*?"items"\s*:\s*\[((?:\s*"(?:[^"\\]|\\.)*"\s*,?)*)\]/);
+  if (!m) return null;
+  try {
+    const items = JSON.parse(`[${m[1]}]`) as unknown[];
+    const lignes = items.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+    return lignes.length > 0 ? lignes : null;
+  } catch {
+    return null;
+  }
+}
+
+/** « 4 lits », « 1 lit » : le nombre de lits annoncé, à part de la capacité. */
+function litsDe(lignes: readonly string[]): number | null {
+  for (const l of lignes) {
+    const m = l.match(/(\d+)\s*lits?\b/i);
+    if (m) return takeGuests(m[1]);
+  }
+  return null;
+}
+
+/**
+ * La page d'un logement Airbnb (PDP, `rooms/`) : ce qu'elle publie, et elle
+ * seule. Règle du propriétaire (1er octobre 2026) : pour Airbnb, c'est la
+ * seule source de rattrapage. Les champs structurés d'abord : `personCapacity`,
+ * `bedroomCount` quand la page le porte, `listingLat`/`listingLng` pour le
+ * point (provenance `pdp`). Puis les mots de la page elle-même (2 octobre
+ * 2026) : l'aperçu (`apercuAirbnb`, « N voyageurs », « N chambres »,
+ * « Studio », « N lits »), et à défaut le titre de partage pour les chambres.
+ * Mesuré sur dix fiches PDP et une page `rooms/` (Abondance), Airbnb ne
+ * publie pas de `bedroomCount` : les chambres viennent de l'aperçu, en
+ * `text_regex` (« N chambres ») ou `derived_from_type` (le 0 d'un
+ * « Studio »), comme le lit déjà `pdp.py`. Ni titre d'annonce, ni
+ * description, ni méta : un champ absent reste un trou, que le journal nomme.
+ * 0 chambre est un studio ; 0 personne n'est pas une capacité.
  */
 export function lectureAirbnb(html: string): LectureFiche {
   let out: LectureFiche = { ...VIDE };
   if (!html) return out;
+  const apercu = apercuAirbnb(html);
   const capacite = takeGuests(html.match(/"personCapacity"\s*:\s*(\d+)/)?.[1]);
   if (capacite != null) out = { ...out, capacity: capacite, capacitySource: "structured" };
+  else if (apercu) {
+    const lu = duTexte(...apercu);
+    if (lu.capacity != null) out = { ...out, capacity: lu.capacity, capacitySource: "text_regex" };
+  }
   const chambres = takeBeds(html.match(/"bedroomCount"\s*:\s*(\d+)/)?.[1]);
   if (chambres != null) out = { ...out, bedrooms: chambres, bedroomsSource: "structured" };
   else {
-    const partage = titrePartageAirbnb(html);
-    if (partage) {
-      const lu = duTexte(partage);
-      if (lu.bedrooms != null) out = { ...out, bedrooms: lu.bedrooms, bedroomsSource: lu.bedroomsSource ?? null };
+    const lu = apercu ? duTexte(...apercu) : null;
+    if (lu && lu.bedrooms != null) out = { ...out, bedrooms: lu.bedrooms, bedroomsSource: lu.bedroomsSource ?? null };
+    else {
+      const partage = titrePartageAirbnb(html);
+      if (partage) {
+        const p = duTexte(partage);
+        if (p.bedrooms != null) out = { ...out, bedrooms: p.bedrooms, bedroomsSource: p.bedroomsSource ?? null };
+      }
     }
   }
+  const lits = apercu ? litsDe(apercu) : null;
+  if (lits != null) out = { ...out, beds: lits };
   const lat = Number(html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
   const lon = Number(html.match(/"listingLng"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
   if (plausible(lat, lon)) out = { ...out, lat, lon, gpsSource: "pdp" };

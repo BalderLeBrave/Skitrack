@@ -298,6 +298,14 @@ describe("poserLecture : la taxe de séjour, une fois", () => {
     assert.match(row.proven, /taxe de séjour/);
   });
 
+  it("les lits de la page comblent un vide, jamais une valeur déjà là", () => {
+    const row = ligne(3, "loyer.exemple.fr");
+    assert.equal(poserLecture(row, { ...lect(null), capacity: null, beds: 4 }), true);
+    assert.equal(row.beds, 4);
+    assert.equal(poserLecture(row, { ...lect(null), capacity: null, beds: 2 }), false);
+    assert.equal(row.beds, 4);
+  });
+
   it("après le panier (loyer et taxe), la taxe ne s'ajoute pas une seconde fois", () => {
     const row = ligne(1, "panier.exemple.fr", { total: 1060, proven: "Ingénie live · panier" });
     poserLecture(row, lect(60));

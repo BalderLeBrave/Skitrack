@@ -308,10 +308,33 @@ describe("Airbnb : capacité et chambres de la page, le titre en dernier recours
   it("poserValeur : du texte venu d'ailleurs ne comble pas un trou Airbnb, une valeur de page oui", () => {
     const l = airbnb("Chalet 6 personnes", { pdpLue: true });
     assert.equal(poserValeur(l, "capacity", 6, "text_regex"), false);
-    assert.equal(poserValeur(l, "bedrooms", 2, "derived_from_type"), false);
-    assert.deepEqual([l.capacity, l.bedrooms], [null, null]);
+    assert.equal(l.capacity, null);
     assert.equal(poserValeur(l, "capacity", 6, "structured"), true);
     assert.equal(l.capacity, 6);
+    // Page pas encore lue : des chambres du texte ne tiennent pas.
+    const avant = airbnb("Chalet 6 personnes");
+    assert.equal(poserValeur(avant, "bedrooms", 2, "text_regex"), false);
+    assert.equal(avant.bedrooms, null);
+  });
+
+  it("page lue : les chambres de son titre de partage tiennent, un bedroomCount les remplace", () => {
+    // Fiches PDP d'Abondance, 2 octobre 2026 : « Appartement · ★4,92 · 1
+    // chambre · 1 lit · 1 salle de bain », « … · Studio · 3 lits · … » ;
+    // aucune ne porte `bedroomCount`.
+    const l = airbnb("Echappée belle en Haute Savoie", { pdpLue: true });
+    assert.equal(poserValeur(l, "bedrooms", 1, "text_regex"), true);
+    Object.assign(l, qualifierLogement(l));
+    assert.deepEqual([l.bedrooms, l.bedroomsSource, l.isStudio], [1, "text_regex", false]);
+    const studio = airbnb("Studio à la montagne", { pdpLue: true });
+    assert.equal(poserValeur(studio, "bedrooms", 0, "derived_from_type"), true);
+    Object.assign(studio, qualifierLogement(studio));
+    assert.deepEqual([studio.bedrooms, studio.bedroomsSource, studio.isStudio], [0, "derived_from_type", true]);
+    // Un champ structuré, arrivé plus tard, passe devant.
+    assert.equal(poserValeur(l, "bedrooms", 2, "structured"), true);
+    assert.deepEqual([qualifierLogement(l).bedrooms, qualifierLogement(l).bedroomsSource], [2, "structured"]);
+    // Le titre de la tuile, lui, ne donne jamais de chambres, page lue ou non.
+    const tuile = qualifierLogement(airbnb("Chalet 4 chambres", { pdpLue: true }));
+    assert.equal(tuile.bedrooms, null);
   });
 });
 

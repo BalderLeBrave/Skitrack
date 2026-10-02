@@ -421,6 +421,19 @@ function fromIngenie(html: string): LectureFiche {
   return out;
 }
 
+/**
+ * Fiche iResa (lesarcs-reservation.com) : les chambres écrites en libellé,
+ * « Nb chambre(s) : 1 » (`SheetEquipmentServices-listing`), lu le 2 octobre
+ * 2026 sur une fiche réelle. Un studio n'a pas la ligne : rien n'est déduit.
+ * Ni capacité (celle de la liste, `cap_max`) ni point sur cette page.
+ */
+function fromLibelles(html: string): LectureFiche {
+  const ch = html.match(/Nb\s+chambres?\s*\(s\)\s*:\s*(\d+)/i)?.[1];
+  if (ch == null) return { ...VIDE };
+  const n = takeBeds(ch);
+  return n == null ? { ...VIDE } : { ...VIDE, bedrooms: n, bedroomsSource: "structured" };
+}
+
 /** Le point d'une carte de la page : `data-atlas-latlng` (Booking), `data-lat`. */
 function fromGpsAttributs(html: string): LectureFiche {
   let out: LectureFiche = { ...VIDE };
@@ -470,13 +483,33 @@ export function pageAirbnbLisible(html: string): boolean {
 }
 
 /**
+ * Le titre de partage d'une page Airbnb (`sharingConfig.title`) : « Appartement
+ * · Bernex · ★4,92 · 1 chambre · 1 lit · 1 salle de bain », ou « … · Studio ·
+ * 3 lits · … ». Lu le 2 octobre 2026 sur une page `rooms/` réelle, la même
+ * forme que `lignes_partage` du worker (`scrape/airbnb/occupancy.py`).
+ */
+function titrePartageAirbnb(html: string): string | null {
+  const brut = html.match(/"sharingConfig"\s*:\s*\{[^{}]*?"title"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1];
+  if (!brut) return null;
+  try {
+    return JSON.parse(`"${brut}"`) as string;
+  } catch {
+    return brut;
+  }
+}
+
+/**
  * La page d'un logement Airbnb (PDP, `rooms/`) : les quatre champs qu'elle
  * publie, et eux seuls. Règle du propriétaire (1er octobre 2026) : pour
- * Airbnb, c'est la seule source de rattrapage. `personCapacity` et
- * `bedroomCount` sont structurés ; `listingLat` et `listingLng` font le point,
- * de provenance `pdp`. Ni titre, ni description, ni méta, ni texte : un champ
- * absent reste un trou, que le journal nomme. 0 chambre est un studio ; 0
- * personne n'est pas une capacité.
+ * Airbnb, c'est la seule source de rattrapage. `personCapacity` est
+ * structuré ; `listingLat` et `listingLng` font le point, de provenance `pdp`.
+ * `bedroomCount`, quand la page le porte, est structuré ; mesuré le 2 octobre
+ * 2026 (dix fiches PDP et une page `rooms/`, Abondance), Airbnb ne le publie
+ * pas, et n'écrit les chambres que dans son titre de partage : « N chambres »
+ * y vaut `text_regex`, « Studio » le 0 d'un studio (`derived_from_type`),
+ * comme le lit déjà `pdp.py`. Ni titre d'annonce, ni description, ni méta :
+ * un champ absent reste un trou, que le journal nomme. 0 chambre est un
+ * studio ; 0 personne n'est pas une capacité.
  */
 export function lectureAirbnb(html: string): LectureFiche {
   let out: LectureFiche = { ...VIDE };
@@ -485,6 +518,13 @@ export function lectureAirbnb(html: string): LectureFiche {
   if (capacite != null) out = { ...out, capacity: capacite, capacitySource: "structured" };
   const chambres = takeBeds(html.match(/"bedroomCount"\s*:\s*(\d+)/)?.[1]);
   if (chambres != null) out = { ...out, bedrooms: chambres, bedroomsSource: "structured" };
+  else {
+    const partage = titrePartageAirbnb(html);
+    if (partage) {
+      const lu = duTexte(partage);
+      if (lu.bedrooms != null) out = { ...out, bedrooms: lu.bedrooms, bedroomsSource: lu.bedroomsSource ?? null };
+    }
+  }
   const lat = Number(html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
   const lon = Number(html.match(/"listingLng"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
   if (plausible(lat, lon)) out = { ...out, lat, lon, gpsSource: "pdp" };
@@ -511,6 +551,7 @@ export function lectureFiche(html: string): LectureFiche {
   const ingenie = sansPointLoueur(fromIngenie(html), loueur);
   out = mergeLecture(out, ingenie);
   if (ingenie.title) out = { ...out, title: ingenie.title };
+  out = mergeLecture(out, fromLibelles(html));
   if (!plausible(out.lat, out.lon)) out = mergeLecture(out, sansPointLoueur(fromGpsAttributs(html), loueur));
   if (!plausible(out.lat, out.lon)) out = mergeLecture(out, fromGpsTexte(html, loueur));
   const taxe = taxeSejourSomme(html);

@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { decodeHtml, lectureFiche } from "./lectureFiche.ts";
+import { decodeHtml, lectureAirbnb, lectureFiche } from "./lectureFiche.ts";
 import { cleListing, poserReleve } from "./poserReleve.ts";
 
 describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
@@ -32,6 +32,24 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.capacity, 8);
     assert.equal(l.lat, 45.02298);
     assert.equal(l.lon, 6.12571);
+  });
+
+  it("lectureAirbnb : sans bedroomCount, les chambres du titre de partage ; « Studio » vaut 0", () => {
+    // Page rooms/1456397434311994216 lue le 2 octobre 2026 (Abondance),
+    // réduite aux champs lus : personCapacity, listingLat/Lng, sharingConfig.
+    const page = `<html><script>{"listingLat":46.35609,"listingLng":6.69164,"roomType":"Entire home/apt","personCapacity":2}
+      {"sharingConfig":{"__typename":"PdpSharingConfig","title":"Appartement · Bernex · ★4,92 · 1 chambre · 1 lit · 1 salle de bain","propertyType":"Appartement"}}</script></html>`;
+    const l = lectureAirbnb(page);
+    assert.deepEqual([l.capacity, l.capacitySource, l.bedrooms, l.bedroomsSource, l.lat, l.lon, l.gpsSource], [
+      2, "structured", 1, "text_regex", 46.35609, 6.69164, "pdp",
+    ]);
+    const studio = lectureAirbnb(`{"sharingConfig":{"__typename":"PdpSharingConfig","title":"Appartement · Abondance · ★4,61 · Studio · 3 lits · 1 salle de bain"}}`);
+    assert.deepEqual([studio.bedrooms, studio.bedroomsSource], [0, "derived_from_type"]);
+    // Un bedroomCount publié passe devant le titre de partage.
+    const structure = lectureAirbnb(`{"bedroomCount":2,"sharingConfig":{"title":"Maison · 1 chambre · 2 lits"}}`);
+    assert.deepEqual([structure.bedrooms, structure.bedroomsSource], [2, "structured"]);
+    // Sans titre de partage ni bedroomCount : un trou.
+    assert.equal(lectureAirbnb(`{"personCapacity":4}`).bedrooms, null);
   });
 
   it("lit « 8 voyageurs · 3 chambres » publiés dans les items de la fiche", () => {
@@ -281,6 +299,25 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     // Une entité numérique derrière un `&amp;` ne se décode pas non plus.
     const apostrophe = `<html><head><meta property="og:title" content="Chalet L&amp;#39;Arolle" /></head></html>`;
     assert.equal(lectureFiche(apostrophe).title, "Chalet L&#39;Arolle");
+  });
+
+  it("lit « Nb chambre(s) : N » d'une fiche iResa, rien pour un studio", () => {
+    // Fiche relevée le 2 octobre 2026 (lesarcs-reservation.com, « Résidence Le
+    // Rochefort - appartement 2 pièces cabine 4 personnes n°309 »), réduite
+    // aux lignes lues.
+    const html = `<html><ul><li class="SheetEquipmentServices-listing"> Nb chambre(s) : 1 </li>
+      <li class="SheetEquipmentServices-listing"> Draps fournis : non </li>
+      <li class="SheetEquipmentServices-listing"> Séjour : 1 canapé lit pour 2 personnes </li></ul></html>`;
+    const l = lectureFiche(html);
+    assert.equal(l.bedrooms, 1);
+    assert.equal(l.bedroomsSource, "structured");
+    assert.equal(l.lat, null);
+    // Le studio n°317 (Le Ruitor) n'a pas la ligne : rien n'est déduit ici.
+    const studio = lectureFiche(
+      `<html><ul><li class="SheetEquipmentServices-listing"> Draps fournis : non </li>
+      <li class="SheetEquipmentServices-listing"> Étage : 03 </li></ul></html>`,
+    );
+    assert.equal(studio.bedrooms, null);
   });
 
   it("lit un couple latitude/longitude hors bloc geo", () => {

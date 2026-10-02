@@ -74,7 +74,7 @@ import {
   DEVIS_MS,
   TARIF_MS,
 } from "@/lib/searchStay";
-import { airbnbComplet } from "@/lib/stay/priseFiche";
+import { airbnbComplet, plausible } from "@/lib/stay/priseFiche";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
@@ -196,15 +196,30 @@ function palierDistLbl(m: number): string {
 /** Le temps qu'on laisse aux critères pour se poser avant de relancer la recherche. */
 const RELANCE_MS = 800;
 /**
- * Les pages Airbnb se lisent en tâche de fond, 6 s par page, jusqu'à trois
- * quarts d'heure (`completerFiche.server.ts`) : tant qu'une annonce Airbnb
- * n'a pas ses trois champs, l'écran relit ses annonces à cet intervalle, sans
- * nouveau relevé (`completerAnnonces`), au lieu d'afficher « non renseigné »
- * jusqu'à la recherche suivante.
+ * Les pages Airbnb se lisent en tâche de fond, une toutes les 5 s au moins
+ * (`completerFiche.server.ts`), et la recherche ne les attend plus : tant
+ * qu'une annonce Airbnb n'a pas ses trois champs, l'écran relit ses annonces
+ * à cet intervalle, sans nouveau relevé et sans réseau (`completerAnnonces` :
+ * le cache et la mémoire des fiches seuls, quelques dizaines de ms), au lieu
+ * d'afficher « non renseigné » jusqu'à la recherche suivante. Chaque relecture
+ * remet aussi en fin de file ce qui lui manque, et relance une suite arrêtée.
  */
-const RELECTURE_AIRBNB_MS = 60_000;
-/** Au plus : la durée d'une suite côté serveur, 45 min. */
-const RELECTURES_AIRBNB_MAX = 45;
+const RELECTURE_AIRBNB_MS = 15_000;
+/** Au plus 45 min après la recherche, comme les 45 relectures d'une minute d'avant. */
+const RELECTURES_AIRBNB_MAX = 180;
+/** L'annonce ouverte se relit plus souvent, sans réseau, deux minutes au plus. */
+const RELECTURE_OUVERTE_MS = 4_000;
+const RELECTURES_OUVERTE_MAX = 30;
+
+/**
+ * Une annonce Airbnb à qui il manque GPS, capacité ou chambres, et que la
+ * tâche de fond peut encore combler. Lue et à point (`pdpLue`), ce qui lui
+ * manque, sa page ne le publie pas. Sans point, sa page se relit encore : elle
+ * donne un point de repli que la mémoire des fiches ne garde pas.
+ */
+function aCombler(l: Listing): boolean {
+  return l.source === "Airbnb" && !airbnbComplet(l) && !(l.pdpLue === true && plausible(l.lat, l.lon));
+}
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
@@ -259,8 +274,9 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     // tient ; elles reviennent comblées de ce que le cache des fiches sait.
     let relecture: ReturnType<typeof setTimeout> | null = null;
     let relectures = 0;
-    const incompletes = (rows: readonly Listing[]) =>
-      rows.filter((l) => l.source === "Airbnb" && !airbnbComplet(l));
+    // Seules partent les annonces que la tâche de fond peut encore combler :
+    // une requête légère, et les autres ne se redessinent pas pour rien.
+    const incompletes = (rows: readonly Listing[]) => rows.filter(aCombler);
     const planifierRelecture = (rows: readonly Listing[]) => {
       if (cancelled || relectures >= RELECTURES_AIRBNB_MAX || incompletes(rows).length === 0) return;
       relecture = setTimeout(relireAirbnb, RELECTURE_AIRBNB_MS);
@@ -268,8 +284,8 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     const relireAirbnb = () => {
       if (cancelled) return;
       relectures += 1;
-      const actuelles = (useStay.getState().liveListings ?? []).filter((l) => l.source === "Airbnb");
-      if (incompletes(actuelles).length === 0) return;
+      const actuelles = incompletes(useStay.getState().liveListings ?? []);
+      if (actuelles.length === 0) return;
       void completerAnnonces({ data: { listings: actuelles } })
         .then((rows) => {
           if (cancelled) return;
@@ -922,6 +938,45 @@ function LogementsStation({ s }: { s: Station }) {
   }, []);
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
   const sheetGroupe = sheet ? (logementDe.get(sheet.id) ?? null) : null;
+  // L'annonce Airbnb qu'on ouvre et à qui il manque capacité, chambres ou
+  // position : elle passe en tête de la lecture (`completerAnnonces`, `lireMaintenant`),
+  // puis l'écran la relit sans réseau toutes les `RELECTURE_OUVERTE_MS`, tant
+  // que le volet est ouvert et qu'elle reste trouée. La réponse remplace
+  // l'annonce affichée (`patchLive`).
+  const patchLive = useStay((x) => x.patchLive);
+  const lectureOuverte = useRef(new Set<string>());
+  const sheetIncomplete = sheet != null && sheet.url != null && aCombler(sheet);
+  useEffect(() => {
+    if (!sheet || !sheetIncomplete) return;
+    const id = sheet.id;
+    let fini = false;
+    let essais = 0;
+    let minuterie: ReturnType<typeof setTimeout> | null = null;
+    const tour = () => {
+      if (fini) return;
+      const brute = (useStay.getState().liveListings ?? []).find((l) => l.id === id);
+      if (!brute) return;
+      const lire = !lectureOuverte.current.has(id);
+      lectureOuverte.current.add(id);
+      essais += 1;
+      void completerAnnonces({ data: { listings: [brute], lireMaintenant: lire } })
+        .then((rows) => {
+          if (fini) return;
+          patchLive(rows);
+          const r = rows.find((x) => x.id === id);
+          if (r && aCombler(r) && essais < RELECTURES_OUVERTE_MAX) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);
+        })
+        .catch(() => {
+          if (!fini && essais < RELECTURES_OUVERTE_MAX) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);
+        });
+    };
+    tour();
+    return () => {
+      fini = true;
+      if (minuterie) clearTimeout(minuterie);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheet?.id, sheetIncomplete]);
   /** L'étiquette de sources d'un logement désigné par son offre principale. */
   const groupeLbl = (l: Listing) => {
     const g = logementDe.get(l.id);

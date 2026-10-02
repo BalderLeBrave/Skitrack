@@ -53,6 +53,7 @@ import {
   horsRegleOrchestra,
   nuitsOrchestra,
   prixOrchestra,
+  refOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
   type CarteOrchestra,
@@ -317,7 +318,14 @@ function enListing(
     // Un prix par personne n'est pas un total de séjour, et ne se compare pas à
     // un total. Le drapeau le dit à l'écran plutôt que de le laisser croire.
     priceIndicative: o.parLogement === false ? true : null,
-    platformId: o.codeProduit,
+    // La référence que la centrale publie pour ce logement (`refOrchestra`),
+    // et non `codeProduit`, le code de la catégorie de prix du jour : le plus
+    // souvent la même (« ccdt052 »), mais « Housing » pour neuf logements, et
+    // un code par date pour d'autres. Pris pour référence, il rangeait
+    // plusieurs logements de La Plagne sous une même clé de la mémoire des
+    // fiches (`cleListing`), qui leur prêtait le même point et la même
+    // capacité (2 octobre 2026).
+    platformId: refOrchestra(c),
     proven: `${r.nom} (Orchestra, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuit${
       nuits > 1 ? "s" : ""
     }, ${ctx.guests} pers.${o.categorie ? ` — ${o.categorie}` : ""}${bande}`,

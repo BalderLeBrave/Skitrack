@@ -7,9 +7,21 @@ import {
   horsRegleOrchestra,
   nuitsOrchestra,
   prixOrchestra,
+  refOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
 } from "./orchestra.ts";
+
+describe("Orchestra : la référence publiée du logement", () => {
+  it("celle de l'URL, en minuscules ; sans elle, le numéro du logement", () => {
+    const chemin = (s: string) => ({ id: "86645", chemin: s });
+    assert.equal(refOrchestra(chemin("/location/2-pieces-residence-le-chardonnet-ref-ccdt052-86645")), "ccdt052");
+    assert.equal(refOrchestra(chemin("/location/studio-ref-exemple-ref-PL-LC604-86645")), "pl-lc604");
+    assert.equal(refOrchestra(chemin("/location/chalet-les-pins-86645")), "86645");
+    assert.equal(refOrchestra(chemin("/location/2-pieces-ref-ccdt052-99999")), "86645");
+    assert.equal(refOrchestra({ id: "86645", chemin: null }), "86645");
+  });
+});
 
 /**
  * Relevé du 13 septembre 2026 sur `www.laplagneresort.com`, destination

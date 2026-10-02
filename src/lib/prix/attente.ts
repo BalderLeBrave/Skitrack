@@ -30,10 +30,12 @@ export const ATTENTE_GREENGO_MAX_MS = 120_000;
 
 export const etatAirbnb = createServerFn({ method: "GET" }).handler(
   async (): Promise<EtatCreneau> => {
-    const [{ airbnbCircuitRestantMs }, { attentePlacesMs, pauseTauxMs }] = await Promise.all([
-      import("../stay/airbnbCircuit.server"),
-      import("../stay/taux.server"),
-    ]);
+    const [{ airbnbCircuitRestantMs }, { attentePlacesMs, pauseTauxMs }, { demanderCreneauAirbnb }] =
+      await Promise.all([
+        import("../stay/airbnbCircuit.server"),
+        import("../stay/taux.server"),
+        import("../stay/completerFiche.server"),
+      ]);
     const refus = Math.max(airbnbCircuitRestantMs(), pauseTauxMs("airbnb"));
     if (refus > 0) return { attenteMs: refus, motif: "refus" };
     const greengo = attentePlacesMs("greengo", PLACES_GREENGO);
@@ -41,7 +43,12 @@ export const etatAirbnb = createServerFn({ method: "GET" }).handler(
       attentePlacesMs("airbnb", PLACES_PAR_STATION),
       greengo <= ATTENTE_GREENGO_MAX_MS ? greengo : 0,
     );
-    if (rythme > 0) return { attenteMs: rythme, motif: "rythme" };
+    if (rythme > 0) {
+      // La tâche de fond des pages de Logements s'efface tant qu'on attend :
+      // sans cela, elle tenait la fenêtre pleine jusqu'à la fin de sa file.
+      if (attentePlacesMs("airbnb", PLACES_PAR_STATION) > 0) demanderCreneauAirbnb();
+      return { attenteMs: rythme, motif: "rythme" };
+    }
     return { attenteMs: 0, motif: null };
   },
 );

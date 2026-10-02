@@ -21,10 +21,11 @@ import { PAUSE_MAX_MS, estHoteAirbnb, estRefus, estStatutRalenti, htmlEstBloque,
 import { lectureAirbnb, lectureFiche, pageAirbnbLisible, type LectureFiche } from "./lectureFiche.ts";
 import { adressePourBan, BAN_URL, pointBan, requeteBan, type FeatureBan, type SourceGps } from "./repliGps.ts";
 import { stationById } from "../stations.ts";
-import { poserValeur, qualifierLogement, valeurDuTexte } from "./logement.ts";
+import { MARQUE_MEMOIRE, poserValeur, qualifierLogement, valeurDuTexte } from "./logement.ts";
 import { PAR_HOTE, parHote, RythmeHotes, semaphore } from "./limiteHotes.ts";
 import { horsFraisSejour } from "./tarif.ts";
-import { poserReleve } from "./poserReleve.ts";
+import { cleListing, poserReleve } from "./poserReleve.ts";
+import { comblerDepuisMemoire, memoireFiches, type ValeursFiche } from "./memoireFiches.server.ts";
 import {
   choisirFiches,
   airbnbComplet,
@@ -531,6 +532,26 @@ type BilanPages = {
  */
 const departsHotes = new Map<string, number>();
 
+/** Une pause posée sur un hôte de fiche qui a refusé, au moins ce temps. */
+const PAUSE_HOTE_MS = 10 * 60_000;
+/**
+ * Les hôtes de fiche (hors Airbnb) qui ont refusé (429, 403, 503, page de
+ * blocage), et jusqu'à quand on les laisse, pour tout le processus : leur
+ * `Retry-After`, et 10 minutes au moins. Le refus ne valait que pour la passe :
+ * chaque recherche redemandait l'hôte et essuyait un nouveau refus (douze de
+ * suite chez fr.locationlesmenuires.com le 2 octobre 2026, une par recherche).
+ */
+const pausesHotes = new Map<string, number>();
+
+function hotesEnPause(now = Date.now()): string[] {
+  const out: string[] = [];
+  for (const [hote, jusqua] of pausesHotes) {
+    if (jusqua > now) out.push(hote);
+    else pausesHotes.delete(hote);
+  }
+  return out;
+}
+
 /**
  * Les pages de fiche hors Airbnb, hôte par hôte (`limiteHotes.ts`) : deux
  * lectures en vol au plus par hôte, une seconde entre deux départs, et
@@ -551,7 +572,7 @@ async function fillPool(
   compte: Compte,
   opts: { rythme?: RythmeHotes; taxe?: boolean } = {},
 ): Promise<BilanPages> {
-  const rythme = opts.rythme ?? new RythmeHotes({ departs: departsHotes });
+  const rythme = opts.rythme ?? new RythmeHotes({ refus: hotesEnPause(), departs: departsHotes });
   const bilan: BilanPages = { filled: 0, ouvertes: [], laissees: [] };
   if (targets.length === 0) return bilan;
   const disj = disjoncteur(SANS_PRISE_MAX);
@@ -594,8 +615,9 @@ async function fillPool(
         const got = await fetchHtml(url, until, compte);
         if (got.kind === "limited") {
           rythme.refuser(hote);
+          pausesHotes.set(hote, Date.now() + Math.max(got.retryAfterMs, PAUSE_HOTE_MS));
           laisser(hote, row);
-          console.warn(`[fiche] ${hote} : HTTP ${got.status}, hôte laissé pour la suite`);
+          console.warn(`[fiche] ${hote} : HTTP ${got.status}, hôte laissé pour ${Math.round(Math.max(got.retryAfterMs, PAUSE_HOTE_MS) / 60_000)} min`);
           continue;
         }
         if (got.kind === "muet") {
@@ -641,11 +663,34 @@ type RythmeRooms = { ecartMs: number; attenteMaxMs: number };
 /** Logements : l'écran attend, 5 s d'attente du créneau au plus. */
 const ROOMS_LOGEMENTS: RythmeRooms = { ecartMs: 1_200, attenteMaxMs: 5_000 };
 /**
- * Prix, en arrière-plan : personne n'attend, le créneau peut prendre 30 s ;
- * mais 6 s au moins entre deux pages `rooms/`, dont le rythme soutenu est le
- * déclencheur connu du 429 et n'a jamais été mesuré.
+ * En arrière-plan (la suite de Logements, les pages de repli de Prix) :
+ * personne n'attend, le créneau peut prendre 30 s. 5 s entre deux pages, et
+ * la suite s'efface pendant un relevé de liste (`pendantReleveAirbnb`).
+ *
+ * Choisi le 2 octobre 2026 par simulation, en temps virtuel, sur les vraies
+ * fonctions du limiteur (`taux.server.ts`, 2 s et 18 appels par minute) et la
+ * règle du worker Python (5 s d'attente au plus, 3 essais, échéance 40 s,
+ * 12 pages), pour un relevé lancé pendant la suite (réponses de 1,6 s, pages
+ * de 0,7 s) :
+ * - l'ancien réglage (6 s, sans pause) : 10,5 pages sur 12, 33,4 s, relevé
+ *   coupé 40 fois sur 40 ; suite à 8,9 pages par minute ;
+ * - 5 s et pause : 12 sur 12, 25,4 s, aucun coupé ; suite à 10,3 par minute ;
+ * - 3,5 s et pause : 12 sur 12 mais 34,7 s ; suite à 13,8. Écarté : la
+ *   recherche concurrente y attend ses créneaux plus longtemps qu'avant.
+ * Mesuré le même jour aux 2 Alpes, recherche concurrente : 282 annonces,
+ * coupée, avec l'ancien réglage ; 290 et complète à 3,5 s et pause (291
+ * seule) ; à 2 s, 283, coupée.
  */
-const ROOMS_PROFOND: RythmeRooms = { ecartMs: 6_000, attenteMaxMs: 30_000 };
+const ROOMS_PROFOND: RythmeRooms = { ecartMs: 5_000, attenteMaxMs: 30_000 };
+/**
+ * Quand la suite de Logements et une course Prix lisent ensemble, chacune
+ * reprend l'ancien réglage, 6 s. À 5 s, la suite prenait 12 des 18 places de
+ * la minute et n'en laissait que 6 au worker PDP de Prix, contre 8 avant ; et
+ * les pages de repli de Prix, à 5 s contre 6 pour la suite, lui auraient pris
+ * toutes les places. Ensemble, rien ne change donc par rapport à avant ; seul,
+ * chacun lit à 5 s.
+ */
+const ROOMS_PARTAGE: RythmeRooms = { ecartMs: 6_000, attenteMaxMs: 30_000 };
 
 /**
  * Le départ de la dernière page `rooms/` du processus, tous appels confondus :
@@ -661,7 +706,7 @@ type SuiteAirbnb = {
 };
 
 /**
- * Les fiches `rooms/`, une à une, `rythme.ecartMs` au moins entre deux.
+ * Les fiches `rooms/`, une à une, `ecartMs` du rythme au moins entre deux (relu à chaque page).
  *
  * Notre limiteur qui dit « trop tôt » arrête le lot sans toucher au
  * coupe-circuit partagé : celui-ci, le relevé Airbnb suivant le rapporte
@@ -675,7 +720,7 @@ async function fillAirbnbSeq(
   targets: Listing[],
   until: number,
   compte: Compte,
-  rythme: RythmeRooms = ROOMS_LOGEMENTS,
+  rythme: RythmeRooms | (() => RythmeRooms) = ROOMS_LOGEMENTS,
 ): Promise<SuiteAirbnb> {
   const suite: SuiteAirbnb = { filled: 0, ouvertes: [], arret: null };
   for (let i = 0; i < targets.length; i++) {
@@ -688,12 +733,15 @@ async function fillAirbnbSeq(
     const row = targets[i];
     const url = ficheUrlOf(row);
     if (!url) continue;
-    const ecart = derniereRooms + rythme.ecartMs - Date.now();
+    // Relu à chaque page : une suite qui démarre, ou une course Prix qui
+    // s'arrête, change le rythme en route.
+    const r = typeof rythme === "function" ? rythme() : rythme;
+    const ecart = derniereRooms + r.ecartMs - Date.now();
     if (ecart > 0) {
       if (Date.now() + ecart >= until) break;
-      await new Promise((r) => setTimeout(r, ecart));
+      await new Promise((ok) => setTimeout(ok, ecart));
     }
-    const got = await fetchHtml(url, until, compte, rythme.attenteMaxMs);
+    const got = await fetchHtml(url, until, compte, r.attenteMaxMs);
     if (got.kind === "pause") {
       console.warn(`[fiche] ${enPause()} — ${targets.length - i} fiches non lues`);
       suite.arret = "coupe-circuit";
@@ -724,6 +772,10 @@ async function fillAirbnbSeq(
       break;
     }
     if (got.kind !== "html") {
+      // Une réponse vide ou non lisible (404, défi 202, page trop courte) se
+      // garde comme un échec ordinaire (30 min) : la recherche ou la
+      // relecture suivante ne la redemande pas tout de suite.
+      if (got.kind === "empty") cache.set(cacheKey(url), { at: Date.now(), lect: VIDE, hit: false });
       suite.ouvertes.push({ row, lect: null });
       continue;
     }
@@ -750,6 +802,193 @@ async function fillAirbnbSeq(
   return suite;
 }
 
+/** Une annonce à moins de cette distance d'une remontée est « dans la station ». */
+const DANS_LA_STATION_M = 2_000;
+
+/**
+ * L'ordre de lecture des pages Airbnb : celles que l'écran montre en premier
+ * d'abord. Hors « autre domaine » (l'écran ne les montre pas, et le point de
+ * la page est celui de la tuile : sa lecture ne change pas le verdict), puis
+ * dans la station (à moins de 2 km d'une remontée), puis avec un prix pour ces
+ * dates, puis la moins chère. Aucune n'est retirée : l'ordre seul change, et
+ * les autres domaines sont lus après, pour les stations voisines et Prix.
+ * Stable : à égalité, l'ordre reçu.
+ *
+ * À Abondance, le 2 octobre 2026 : 325 annonces sur 413 de la liste directe
+ * sont « autre domaine » ; la dernière annonce affichable passe du rang 408 au
+ * rang 88 de la file.
+ */
+export function ordreDeLecture<T extends Pick<Listing, "total" | "distToLiftM" | "domainFit">>(
+  rows: readonly T[],
+): T[] {
+  const cle = (l: T): [number, number, number, number] => [
+    l.domainFit === "other" ? 1 : 0,
+    l.distToLiftM != null && l.distToLiftM <= DANS_LA_STATION_M ? 0 : 1,
+    l.total > 0 ? 0 : 1,
+    l.total > 0 ? l.total : 0,
+  ];
+  return rows
+    .map((l, i) => ({ l, i, k: cle(l) }))
+    .sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2] || a.k[3] - b.k[3] || a.i - b.i)
+    .map((x) => x.l);
+}
+
+/* ---------- La mémoire des fiches (30 jours, partagée avec l'écran Prix) ---------- */
+
+/** La raison de laisser une page Airbnb lue il y a moins de trente jours. */
+export const PAGE_DEJA_LUE = "page Airbnb lue (mémoire)";
+
+type Note = { cle: string } & Partial<ValeursFiche>;
+
+/**
+ * Ce qu'une page lue a publié, à noter dans la mémoire des fiches : les
+ * valeurs et leur source. Airbnb : seulement une page lisible (`pageLue`), et
+ * son point seulement s'il est celui de la page (`listingLat`, provenance
+ * `pdp`) — un repli (adresse géocodée, jumelage) ne se mémorise pas. `null` :
+ * rien à noter.
+ */
+export function noteDeLecture(row: Listing, lect: LectureFiche | null): Note | null {
+  const cle = cleListing(row);
+  if (!cle || !lect) return null;
+  const airbnb = row.source === "Airbnb";
+  // Airbnb : seulement une page dont on a reconnu le format, c'est-à-dire qui
+  // publie `personCapacity`. Un conteneur vide ou une page d'un autre format
+  // ne se note pas « lue » : elle se relira, et son silence ne fait pas
+  // accepter la capacité du titre pendant trente jours.
+  if (airbnb && (lect.pageLue !== true || lect.capacitySource !== "structured")) return null;
+  const point = plausible(lect.lat, lect.lon) && (!airbnb || lect.gpsSource === "pdp");
+  const note: Note = {
+    cle,
+    capacity: lect.capacity,
+    capacitySource: lect.capacity != null ? (lect.capacitySource ?? "structured") : null,
+    bedrooms: lect.bedrooms,
+    bedroomsSource: lect.bedrooms != null ? (lect.bedroomsSource ?? "structured") : null,
+    rooms: lect.rooms,
+    // Les lits de l'aperçu Airbnb : la mémoire les repose après un redémarrage.
+    ...(lect.beds != null ? { beds: lect.beds } : {}),
+    lat: point ? lect.lat : null,
+    lon: point ? lect.lon : null,
+    // Une page `rooms/`, pas la fiche PDP (`page`, et non `lue`) : l'écran Prix
+    // lit encore la fiche PDP, seule à porter le signal hôtel. Une chambre ou
+    // un hébergement insolite que la page montre (`ecarteeAirbnb`) se note
+    // écarté.
+    ...(airbnb ? { page: true, ...(lect.ecartee === true ? { ecartee: true } : {}) } : {}),
+  };
+  return note;
+}
+
+function noter(notes: readonly Note[]): void {
+  if (notes.length === 0) return;
+  try {
+    memoireFiches().noter(notes);
+  } catch (err) {
+    // Une mémoire illisible ou un disque refusé ne coupe pas la recherche.
+    console.warn("[fiche] mémoire des fiches non écrite :", (err as Error).message);
+  }
+}
+
+/**
+ * Pose sur les annonces trouées ce que la mémoire des fiches sait d'elles, sans
+ * réseau : une page lue il y a moins de trente jours, par Logements ou par
+ * Prix, ne se relit pas après un redémarrage, et son annonce s'affiche
+ * complète tout de suite. Rien n'est estimé : chaque valeur garde la source
+ * de sa lecture (`comblerDepuisMemoire`, `poserValeur`), et ne comble qu'un
+ * trou. Rend le nombre d'annonces comblées, et les identifiants des annonces
+ * Airbnb dont la page a été lue et ne publie pas ce qui leur manque encore :
+ * la redemander coûterait une requête pour rien. Pour l'écran Prix
+ * (`fichePdpSeule`), aussi celles que la mémoire sait écartées (`ecartees`) :
+ * rien ne s'y pose.
+ */
+export function poserMemoire(
+  rows: Listing[],
+  opts: { fichePdpSeule?: boolean } = {},
+): { posees: number; dejaLues: Set<string>; ecartees: Set<string> } {
+  let posees = 0;
+  const dejaLues = new Set<string>();
+  const ecartees = new Set<string>();
+  let memoire: ReturnType<typeof memoireFiches>;
+  try {
+    memoire = memoireFiches();
+  } catch {
+    return { posees, dejaLues, ecartees };
+  }
+  for (const row of rows) {
+    // Airbnb seulement : ailleurs, ouvrir la page pose aussi ce que la mémoire
+    // ne garde pas (la taxe de séjour d'une centrale ajoutée au loyer), et une
+    // annonce comblée par la mémoire ne l'ouvrirait plus.
+    if (row.source !== "Airbnb" || !trouee(row)) continue;
+    let lu: ReturnType<typeof memoire.lire>;
+    try {
+      lu = memoire.lire(cleListing(row));
+    } catch {
+      return { posees, dejaLues, ecartees };
+    }
+    if (!lu) continue;
+    // L'écran Prix ne pose rien sur une annonce que sa fiche a écartée (tente,
+    // chambre d'hôtel, chambre privée) : restée trouée, elle reste candidate,
+    // et la tranche « mémoire » de la complétion la retire (`trancheProfonde`).
+    // Comblée ici, elle n'était plus candidate et entrait dans la médiane.
+    if (opts.fichePdpSeule && lu.ecartee === true) {
+      ecartees.add(row.id);
+      continue;
+    }
+    // Pour l'écran Prix, une entrée que seule une page `rooms/` de Logements a
+    // écrite ne pose rien : elle n'a pas le signal hôtel de la fiche PDP, et
+    // l'annonce comblée par elle n'aurait plus été candidate à sa fiche.
+    if (opts.fichePdpSeule && lu.page === true && lu.lue !== true) continue;
+    // Seules les valeurs dont la source est écrite : une entrée d'un fichier
+    // plus ancien, sans source, n'est pas prise pour un champ structuré. Pas
+    // de point : celui d'une annonce Airbnb vient de la liste ou de sa page,
+    // jamais d'un repli gardé ailleurs.
+    // Lue : sa fiche PDP (Prix), ou sa page `rooms/` (Logements). Pour l'écran
+    // Prix (`fichePdpSeule`), la page seule ne compte pas : il lit la fiche,
+    // qui porte en plus le signal hôtel.
+    const lue = lu.lue === true || (!opts.fichePdpSeule && lu.page === true);
+    const m = {
+      ...lu,
+      lue,
+      capacity: lu.capacitySource ? lu.capacity : null,
+      bedrooms: lu.bedroomsSource ? lu.bedrooms : null,
+      lat: null,
+      lon: null,
+    };
+    // La page a été lue : ce qui y manque y manque vraiment, et les mots de la
+    // page (chambres du titre de partage, voyageurs de l'aperçu) tiennent.
+    // Avant de combler : `poserValeur` le lit.
+    if (m.lue) row.pdpLue = true;
+    if (comblerDepuisMemoire(row, m)) {
+      Object.assign(row, qualifierLogement(row));
+      if (!row.proven.includes(MARQUE_MEMOIRE)) row.proven = `${row.proven} · ${MARQUE_MEMOIRE}`;
+      posees += 1;
+    } else if (m.lue && row.capacity == null) {
+      // Sans personCapacity : la capacité du titre (`capaciteIntrouvable`).
+      Object.assign(row, qualifierLogement(row));
+    }
+    // Sans point, la page se relit encore : elle donne un point de repli
+    // (adresse géocodée) que la mémoire ne garde pas (`repliGps.ts`).
+    if (m.lue && trouee(row) && plausible(row.lat, row.lon)) dejaLues.add(row.id);
+  }
+  return { posees, dejaLues, ecartees };
+}
+
+/**
+ * Les annonces Airbnb que la mémoire des fiches sait écartées (tente, chambre
+ * d'hôtel, chambre privée) : l'écran Prix n'y pose rien, ni du cache ni de la
+ * mémoire, pour que sa complétion les retire (`poserMemoire`).
+ */
+function ecarteesDeLaMemoire(rows: readonly Listing[]): Set<string> {
+  const out = new Set<string>();
+  try {
+    const memoire = memoireFiches();
+    for (const row of rows) {
+      if (row.source === "Airbnb" && trouee(row) && memoire.lire(cleListing(row))?.ecartee === true) out.add(row.id);
+    }
+  } catch {
+    // Une mémoire illisible ne retire rien : `poserMemoire` ne lira rien non plus.
+  }
+  return out;
+}
+
 /* ---------- Fiches Airbnb : la suite en tâche de fond ---------- */
 
 /** Une suite ne dure pas plus ; ce qui reste attend la recherche suivante. */
@@ -763,13 +1002,15 @@ const suiteAirbnb = new Map<string, Listing>();
 let suiteAirbnbEnCours = false;
 
 /**
- * Les pages Airbnb que le budget de la recherche n'a pas couvertes.
+ * Les pages Airbnb d'une recherche, toutes : la recherche ne les attend pas
+ * (`fillFiches`).
  *
  * Une recherche n'a que quelques dizaines de secondes, et Airbnb pas plus de
  * dix-huit appels par minute : à Abondance, le 1er octobre 2026, 226 annonces
  * à GPS attendaient leur page et aucune n'était lue (« 0/226 »). La suite
- * les lit ensuite, une à une, au rythme de l'écran Prix en arrière-plan
- * (`ROOMS_PROFOND`, 6 s au moins entre deux pages), par le même limiteur et
+ * les lit ensuite, une à une, 5 s au moins entre deux, en s'effaçant pendant
+ * un relevé de liste
+ * (`ROOMS_PROFOND`), par le même limiteur et
  * le même coupe-circuit : après un refus (429, 503, 403, page de blocage),
  * elle attend la pause demandée, puis reprend la même page ; trois pauses de
  * suite, elle laisse la file à la recherche suivante. Un refus n'est pas un
@@ -778,20 +1019,117 @@ let suiteAirbnbEnCours = false;
  * retirée : ce que la page ne publie pas reste un trou, nommé au journal.
  * Rend le nombre d'annonces ajoutées à la file.
  */
-function lancerSuiteAirbnb(rows: readonly Listing[]): number {
+/**
+ * La station que l'écran Logements a demandée en dernier (`noterVue`, à
+ * l'entrée de la recherche). Seules ses pages passent en tête de la suite :
+ * une recherche abandonnée (station B, puis retour à A) finit souvent après
+ * celle qu'on regarde, et ses pages passaient devant.
+ */
+let vueCourante: string | null = null;
+
+/** L'écran Logements demande cette station : ses pages passeront en tête. */
+export function noterVue(vue: string): void {
+  vueCourante = vue;
+}
+
+function lancerSuiteAirbnb(rows: readonly Listing[], enTete = false): number {
   let ajoutees = 0;
+  const lot = new Map<string, Listing>();
   for (const row of rows) {
     const url = ficheUrlOf(row);
     // Déjà lue, ou coquille relue il y a peu : le cache le dit. Une page
     // refusée, elle, reste à lire : la suite attendra la pause.
     if (!url || lectureEnCache(url)) continue;
     const k = cacheKey(url);
-    if (suiteAirbnb.has(k)) continue;
-    suiteAirbnb.set(k, { ...row });
-    ajoutees += 1;
+    if (lot.has(k)) continue;
+    if (!suiteAirbnb.has(k)) ajoutees += 1;
+    lot.set(k, suiteAirbnb.get(k) ?? { ...row });
+  }
+  if (enTete) {
+    // La recherche qu'on regarde passe devant ce qui reste d'une recherche
+    // précédente (une autre station, d'autres dates), sans rien en retirer.
+    const reste = [...suiteAirbnb].filter(([k]) => !lot.has(k));
+    suiteAirbnb.clear();
+    for (const [k, row] of [...lot, ...reste]) suiteAirbnb.set(k, row);
+  } else {
+    for (const [k, row] of lot) if (!suiteAirbnb.has(k)) suiteAirbnb.set(k, row);
   }
   if (!suiteAirbnbEnCours && suiteAirbnb.size > 0) void deroulerSuiteAirbnb();
   return ajoutees;
+}
+
+/** Les relevés de liste Airbnb en cours dans le processus (`pendantReleveAirbnb`). */
+let relevesAirbnbEnCours = 0;
+/** Jusqu'à quand un relevé attend son créneau (`demanderCreneauAirbnb`). */
+let creneauDemandeJusqua = 0;
+
+/**
+ * Un relevé attend que le limiteur lui laisse ses places : l'écran Prix, avant
+ * chaque station, attend qu'il ne reste que 6 appels Airbnb dans la minute
+ * (`etatAirbnb`, 12 places). La suite, qui lit 10 pages par minute, tenait la
+ * fenêtre au-dessus : la course attendait la fin de la file, jusqu'à trois
+ * quarts d'heure. Tant que la demande est renouvelée (Prix la relit toutes les
+ * 5 s), la suite s'efface ; la fenêtre se vide en une minute au plus, puis le
+ * relevé la tient lui-même (`pendantReleveAirbnb`).
+ */
+export function demanderCreneauAirbnb(dureeMs = 15_000): void {
+  creneauDemandeJusqua = Math.max(creneauDemandeJusqua, Date.now() + dureeMs);
+}
+
+/**
+ * Tient la tâche de fond à l'écart pendant un relevé de liste Airbnb : elle ne
+ * réserve plus de créneau tant qu'il court. Le relevé (worker Python, une
+ * douzaine d'appels StaysSearch en 40 s) passe par le même limiteur, 18 appels
+ * par minute glissante. Si la suite le remplissait à côté, le relevé
+ * s'arrêtait à mi-chemin (« limiteur local ») : la moitié des annonces Airbnb
+ * de la recherche manquait (simulation de la revue du 2 octobre 2026 : 6
+ * pages sur 12 à 2 s d'écart, 10 à 11 à 6 s). Suspendue, la suite rend ses
+ * créneaux au rythme où ils sortent de la fenêtre, un toutes les 3,3 s : de
+ * quoi tenir les douze appels du relevé.
+ */
+export async function pendantReleveAirbnb<T>(f: () => Promise<T>): Promise<T> {
+  relevesAirbnbEnCours += 1;
+  try {
+    return await f();
+  } finally {
+    relevesAirbnbEnCours -= 1;
+  }
+}
+
+/** Les tranches de Prix qui lisent des fiches Airbnb en ce moment (`pendantTranchePrix`). */
+let tranchesPrixEnCours = 0;
+/** Jusqu'à quand la tranche suivante de la même course est attendue. */
+let tranchePrixJusqua = 0;
+/**
+ * Entre deux tranches, Prix attend au plus 60 s le limiteur
+ * (`ATTENTE_FICHES_MAX_MS` de `releve.ts`), puis fait l'aller-retour : la
+ * course compte encore comme lisant 90 s après la fin d'une tranche.
+ */
+const TRAINE_PRIX_MS = 90_000;
+
+/**
+ * Une tranche de complétion de Prix lit des fiches Airbnb (worker PDP, puis
+ * pages de repli) : tant qu'elle court, et un moment après, la suite et ces
+ * pages se partagent le limiteur à l'ancien rythme (`ROOMS_PARTAGE`).
+ */
+export async function pendantTranchePrix<T>(f: () => Promise<T>): Promise<T> {
+  tranchesPrixEnCours += 1;
+  try {
+    return await f();
+  } finally {
+    tranchesPrixEnCours -= 1;
+    tranchePrixJusqua = Math.max(tranchePrixJusqua, Date.now() + TRAINE_PRIX_MS);
+  }
+}
+
+/** Le rythme de la suite : l'ancien tant qu'une course Prix lit aussi. */
+function rythmeSuite(): RythmeRooms {
+  return tranchesPrixEnCours > 0 || Date.now() < tranchePrixJusqua ? ROOMS_PARTAGE : ROOMS_PROFOND;
+}
+
+/** Le rythme des pages de repli de Prix : l'ancien tant que la suite a des pages à lire. */
+function rythmeRepliPrix(): RythmeRooms {
+  return suiteAirbnbEnCours && suiteAirbnb.size > 0 ? ROOMS_PARTAGE : ROOMS_PROFOND;
 }
 
 async function deroulerSuiteAirbnb(): Promise<void> {
@@ -803,11 +1141,21 @@ async function deroulerSuiteAirbnb(): Promise<void> {
   let comblees = 0;
   let refus = 0;
   let arret: string | null = null;
+  // Ce que la suite lit va aussi dans la mémoire des fiches, par paquets de
+  // dix pages : une page lue ne se relit plus après un redémarrage.
+  const notes: Note[] = [];
+  const vider = () => noter(notes.splice(0));
   try {
     while (suiteAirbnb.size > 0) {
       if (Date.now() >= fin) {
         arret = "échéance";
         break;
+      }
+      // Un relevé de liste Airbnb court, ou en attend la place : la suite lui
+      // laisse le limiteur.
+      if (relevesAirbnbEnCours > 0 || Date.now() < creneauDemandeJusqua) {
+        await dormir(1_000);
+        continue;
       }
       // Un refus d'Airbnb (429, 503, 403, page de blocage) a ouvert le
       // coupe-circuit : la pause qu'il demande d'abord, puis la même page.
@@ -822,16 +1170,44 @@ async function deroulerSuiteAirbnb(): Promise<void> {
         continue;
       }
       const [k, row] = suiteAirbnb.entries().next().value as [string, Listing];
+      // Déjà lue depuis sa mise en file (une recherche, une annonce ouverte) :
+      // le cache la tient, elle ne se redemande pas.
+      const urlSuite = ficheUrlOf(row);
+      if (urlSuite && lectureEnCache(urlSuite)) {
+        suiteAirbnb.delete(k);
+        continue;
+      }
+      // Lue entre-temps ailleurs, et gardée dans la mémoire des fiches (la
+      // fiche PDP d'une course Prix) : rien à redemander.
+      const copie: Listing = { ...row };
+      const parMemoire = poserMemoire([copie]);
+      if (!trouee(copie) || parMemoire.dejaLues.has(copie.id)) {
+        suiteAirbnb.delete(k);
+        continue;
+      }
       const until = Math.min(fin, Date.now() + FICHE_SUITE_MS);
-      const s = await fillAirbnbSeq([row], until, compte, ROOMS_PROFOND);
+      const s = await fillAirbnbSeq([row], until, compte, rythmeSuite);
+      for (const o of s.ouvertes) {
+        const n = noteDeLecture(o.row, o.lect);
+        if (n) notes.push(n);
+      }
+      if (notes.length >= 10) vider();
       if (s.arret === "refus" || s.arret === "coupe-circuit") {
-        if (!circuitOpen()) await dormir(ROOMS_PROFOND.ecartMs);
+        if (!circuitOpen()) await dormir(rythmeSuite().ecartMs);
         continue;
       }
       if (s.arret === "rythme") {
         // Le créneau n'est pas venu : la même page attend son tour.
         await dormir(Math.min(Math.max(s.attenteMs ?? 0, 1_000), FICHE_SUITE_MS));
         continue;
+      }
+      if (s.ouvertes.length === 0 && until >= fin) {
+        // L'échéance de la suite l'a retenue, pas la page : elle reste en
+        // file, en tête, pour la relance suivante (une recherche, la relecture
+        // de l'écran). Comptée comme un essai, toute la file était jetée en
+        // quelques millisecondes.
+        arret = "échéance";
+        break;
       }
       suiteAirbnb.delete(k);
       if (s.ouvertes.length > 0) {
@@ -850,11 +1226,39 @@ async function deroulerSuiteAirbnb(): Promise<void> {
   } catch (err) {
     arret = err instanceof Error ? err.message : String(err);
   } finally {
+    vider();
     suiteAirbnbEnCours = false;
     console.info(
       `[fiche] Airbnb en tâche de fond : ${compte.lues} pages lues, ${comblees} annonce(s) complétée(s), ${suiteAirbnb.size} restante(s)${arret ? `, arrêt : ${arret}` : ""}`,
     );
   }
+}
+
+/**
+ * Met en tête de la file les annonces Airbnb qu'on vient d'ouvrir, et lance la
+ * suite si elle ne tourne pas. Leur page part à la prochaine place de la
+ * suite, au même rythme et derrière le même limiteur : juste après une
+ * recherche, celui-ci est plein (la liste vient de consommer ses appels), et
+ * une lecture tentée à côté était refusée par lui. Une page déjà lue (cache,
+ * ou mémoire des fiches : `pdpLue`, avec un point) n'est pas remise en file.
+ * Rend le nombre d'annonces mises en tête.
+ */
+export function prioriserSuiteAirbnb(rows: readonly Listing[]): number {
+  const tete = new Map<string, Listing>();
+  for (const row of rows) {
+    // Lue et à point : ce qui manque, sa page ne le publie pas. Sans point, sa
+    // page donne encore un point de repli (`poserMemoire`).
+    if (row.source !== "Airbnb" || (row.pdpLue === true && plausible(row.lat, row.lon))) continue;
+    const url = ficheUrlOf(row);
+    if (!url || lectureEnCache(url)) continue;
+    tete.set(cacheKey(url), { ...row });
+  }
+  if (tete.size === 0) return 0;
+  const reste = [...suiteAirbnb].filter(([k]) => !tete.has(k));
+  suiteAirbnb.clear();
+  for (const [k, row] of [...tete, ...reste]) suiteAirbnb.set(k, row);
+  if (!suiteAirbnbEnCours) void deroulerSuiteAirbnb();
+  return tete.size;
 }
 
 /** Pour les tests : la file de la suite Airbnb, et si elle tourne. */
@@ -870,13 +1274,71 @@ export function etatSuiteAirbnb(): { file: number; enCours: boolean } {
  * `budgetMs` borne le réseau : un délai épuisé n'efface pas ce que le relevé
  * ou le cache ont déjà posé.
  */
-export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Promise<number> {
+/**
+ * `pour: "prix"` : la passe d'un relevé de l'écran Prix. Elle ne met aucune
+ * page Airbnb en tâche de fond (Prix lit ses candidates par leur fiche PDP,
+ * `trancheProfonde`) : la suite lisait sinon jusqu'à 352 pages par station
+ * pour 23 candidates, et tenait le limiteur pendant la course. Et la mémoire
+ * ne la comble que de fiches PDP lues (`fichePdpSeule`).
+ *
+ * Ses pages `rooms/`, elle les lit au premier plan, comme avant, dans ce que
+ * le limiteur laisse après la liste : sans elles, une station dont la fiche
+ * PDP tombait en panne, était refusée ou périmée dès la première tranche
+ * gardait jusqu'à deux fois moins d'annonces Airbnb, et la requête périmée
+ * rendait chaque station deux à trois fois plus lente (revue du 2 octobre 2026).
+ *
+ * `vue` : la station de l'écran Logements qui demande (`noterVue`). Les pages
+ * d'une recherche ne passent en tête de la suite que si l'écran regarde
+ * encore cette station ; sinon elles vont en fin de file.
+ *
+ * `relecture` : la relecture de l'écran (`completerAnnonces`), sans budget.
+ * Rien ne part d'elle, mais ce qui reste à lire retourne en fin de file, et
+ * une suite arrêtée (échéance, refus répétés) repart à son rythme, comme
+ * quand la relecture lisait elle-même ses pages.
+ */
+export type OptionsFiches = {
+  pour?: "logements" | "prix";
+  vue?: string;
+  relecture?: boolean;
+};
+
+export async function fillFiches(
+  listings: Listing[],
+  budgetMs = BUDGET_MS,
+  opts: OptionsFiches = {},
+): Promise<number> {
+  const prix = opts.pour === "prix";
   let filled = poserReleve(listings, RELEVE_2A);
   const until = Date.now() + Math.max(0, budgetMs);
   // Une page que portent plusieurs annonces n'est la fiche d'aucune : ni
   // ouverte, ni lue dans le cache pour l'une d'elles (`priseFiche.ts`).
   const communes = urlsPartagees(listings, urlPropre);
-  const trous = listings.filter((l) => trouee(l) && ficheUrlOf(l));
+  // Le cache d'abord : il tient la lecture entière d'une page lue il y a
+  // moins d'un jour (les lits de l'aperçu, le point de repli), la mémoire
+  // seulement une partie. Pour l'écran Prix, pas une annonce que la mémoire
+  // sait écartée (`poserMemoire`).
+  let cached = 0;
+  const servies = new Set<string>();
+  const ecarteesPrix = prix ? ecarteesDeLaMemoire(listings) : new Set<string>();
+  for (const row of listings) {
+    if (row.source !== "Airbnb" || !trouee(row) || ecarteesPrix.has(row.id)) continue;
+    const url = ficheUrlOf(row);
+    if (!url || raisonDeLaisser(row, url, communes) === "URL commune") continue;
+    const hit = lireCache(url);
+    if (!hit) continue;
+    if (poserLecture(row, hit)) filled += 1;
+    cached += 1;
+    servies.add(row.id);
+  }
+  // Ce que la mémoire des fiches sait déjà, sans réseau (`poserMemoire`). Elle
+  // est rangée par annonce (`cleListing`), pas par URL : une page commune n'y
+  // a jamais rien écrit pour l'une d'elles.
+  const memoire = poserMemoire(listings, { fichePdpSeule: prix });
+  filled += memoire.posees;
+  if (memoire.posees) console.info(`[fiche] ${memoire.posees} annonce(s) comblée(s) par la mémoire des fiches`);
+  const trous = listings.filter(
+    (l) => trouee(l) && ficheUrlOf(l) && !memoire.dejaLues.has(l.id) && !memoire.ecartees.has(l.id),
+  );
   const gites = listings.filter((l) => l.source === "Gîtes de France" && ficheUrlOf(l));
   const seen = new Set(trous);
   const need = [...trous, ...gites.filter((l) => !seen.has(l))].sort((a, b) => trousN(b) - trousN(a));
@@ -887,11 +1349,12 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
     return filled;
   }
 
-  let cached = 0;
   const todo: Listing[] = [];
   for (const row of need) {
     const url = ficheUrlOf(row);
     if (!url) continue;
+    // Déjà posée depuis le cache, plus haut : la même lecture ne comble rien de plus.
+    if (servies.has(row.id)) continue;
     const hit = raisonDeLaisser(row, url, communes) === "URL commune" ? null : lireCache(url);
     if (hit) {
       if (poserLecture(row, hit)) filled += 1;
@@ -906,33 +1369,43 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
   const { aLire, laissees } = choisirFiches(todo, ficheUrlOf, communes);
   const compte: Compte = { lues: 0 };
   const estAirbnb = (l: Listing) => l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? "");
-  // Toutes les annonces Airbnb à lire, au-delà de la borne aussi : ce que la
-  // recherche n'aura pas le temps de lire part en tâche de fond.
-  const airbnbALire = aLire.filter(estAirbnb);
-  let enFond = 0;
-  if (aLire.length > 0 && Date.now() < until) {
-    const targets = aLire.slice(0, MAX_FICHES);
-    // Un Airbnb ne s'ouvre que s'il manque son GPS, sa capacité ou ses
-    // chambres (`raisonDeLaisser`) : ce fetch est celui qui ouvre le 429, il
-    // part une fiche à la fois, au rythme de `fillAirbnbSeq`. Les autres
-    // hôtes et Airbnb vont de front : ce ne sont pas les mêmes files.
-    const airbnb = targets.filter(estAirbnb);
-    const autres = targets.filter((l) => !estAirbnb(l));
-    const [pool, seq] = await Promise.all([
-      fillPool(autres, until, WORKERS, compte),
-      airbnb.length && !circuitOpen() ? fillAirbnbSeq(airbnb, until, compte) : Promise.resolve(null),
-    ]);
-    filled += pool.filled + (seq?.filled ?? 0);
-    if (airbnb.length && seq == null) {
-      console.warn(`[fiche] ${enPause()} — ${airbnb.length} fiches reportées`);
-    }
-    // Ce que la recherche n'a pas ouvert part en tâche de fond, au-delà de la
-    // borne aussi ; après un refus, la suite attend d'abord la pause.
-    const ouvertes = new Set(seq?.ouvertes.map((o) => o.row.id) ?? []);
-    enFond = lancerSuiteAirbnb(airbnbALire.filter((l) => !ouvertes.has(l.id)));
-  } else if (airbnbALire.length > 0) {
-    enFond = lancerSuiteAirbnb(airbnbALire);
+  // Les pages Airbnb partent toutes en tâche de fond, tout de suite, dans
+  // l'ordre où l'écran les montre (`ordreDeLecture`) : la recherche ne les
+  // attend plus. Mesuré le 2 octobre 2026 aux 2 Alpes : juste après la liste,
+  // le limiteur partagé est plein (la liste vient d'y passer), et la lecture
+  // au premier plan retenait la réponse 12 à 23 s pour 6 pages, que la suite
+  // lit au même rythme. L'écran les reçoit par sa relecture.
+  const airbnbALire = ordreDeLecture(aLire.filter(estAirbnb));
+  // Une recherche met ses pages en file : en tête si l'écran regarde encore
+  // sa station (`vue`). La relecture de l'écran (`relecture`) remet en fin de
+  // file ce qui lui manque encore et relance une suite arrêtée. Sans l'une ni
+  // l'autre, rien n'est mis en file.
+  const enTete = budgetMs > 0 && opts.vue != null && opts.vue === vueCourante;
+  const enFond =
+    airbnbALire.length > 0 && !prix && (budgetMs > 0 || opts.relecture === true)
+      ? lancerSuiteAirbnb(airbnbALire, enTete)
+      : 0;
+  const autres = aLire.filter((l) => !estAirbnb(l));
+  // Prix : ses pages `rooms/` au premier plan, une à une, au rythme de
+  // Logements, comme avant ; rien pendant une pause d'Airbnb.
+  const airbnbPremier = prix && !circuitOpen() ? aLire.filter(estAirbnb).slice(0, MAX_FICHES) : [];
+  if (prix && airbnbALire.length > 0 && airbnbPremier.length === 0) {
+    console.warn(`[fiche] ${enPause()} — ${airbnbALire.length} fiches reportées`);
   }
+  if ((autres.length > 0 || airbnbPremier.length > 0) && Date.now() < until) {
+    const [pool, seq] = await Promise.all([
+      autres.length > 0 ? fillPool(autres.slice(0, MAX_FICHES), until, WORKERS, compte) : null,
+      airbnbPremier.length > 0 ? fillAirbnbSeq(airbnbPremier, until, compte) : null,
+    ]);
+    filled += (pool?.filled ?? 0) + (seq?.filled ?? 0);
+    // Ce que cette passe a lu va dans la mémoire des fiches.
+    noter(
+      [...(pool?.ouvertes ?? []), ...(seq?.ouvertes ?? [])]
+        .map((o) => noteDeLecture(o.row, o.lect))
+        .filter((n): n is Note => n != null),
+    );
+  }
+  if (memoire.dejaLues.size > 0) laissees.set(PAGE_DEJA_LUE, memoire.dejaLues.size);
   console.info(
     `[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${compte.lues} lues${ecrireLaissees(laissees)}` +
       (enFond > 0 ? ` · ${enFond} Airbnb à lire en tâche de fond` : ""),
@@ -944,9 +1417,25 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
 
 /* ---------- Écran Prix : complétion par tranches ---------- */
 
-function courte(lect: LectureFiche | null): LectureCourte | null {
+/**
+ * Ce qu'une page lue par l'écran Prix a publié, pour sa mémoire : chaque valeur
+ * avec sa source (sans elle, la mémoire tenait un texte pour un champ
+ * structuré), et, pour Airbnb, le point seulement s'il est celui de la page
+ * (`listingLat`, provenance `pdp`) : un repli (adresse géocodée, coordonnées
+ * de la page) ne se mémorise pas (`repliGps.ts`).
+ */
+function courte(row: Listing, lect: LectureFiche | null): LectureCourte | null {
   if (!lect) return null;
-  return { capacity: lect.capacity, bedrooms: lect.bedrooms, rooms: lect.rooms, lat: lect.lat, lon: lect.lon };
+  const point = plausible(lect.lat, lect.lon) && (row.source !== "Airbnb" || lect.gpsSource === "pdp");
+  return {
+    capacity: lect.capacity,
+    bedrooms: lect.bedrooms,
+    rooms: lect.rooms,
+    lat: point ? lect.lat : null,
+    lon: point ? lect.lon : null,
+    capacitySource: lect.capacity != null ? (lect.capacitySource ?? "structured") : null,
+    bedroomsSource: lect.bedrooms != null ? (lect.bedroomsSource ?? "structured") : null,
+  };
 }
 
 /**
@@ -984,21 +1473,23 @@ export async function lirePagesProfond(rows: Listing[], opts: OptionsPages): Pro
     if (hit) {
       poserLecture(row, hit, "fiche", { taxe: false });
       essayees.push(row.id);
-      lectures[row.id] = courte(hit) as LectureCourte;
+      lectures[row.id] = courte(row, hit) as LectureCourte;
       continue;
     }
     todo.push(row);
   }
   const compte: Compte = { lues: 0 };
-  const rythme = new RythmeHotes({ refus: opts.hotesExclus, departs: departsHotes });
+  const enPause = hotesEnPause();
+  const rythme = new RythmeHotes({ refus: [...opts.hotesExclus, ...enPause], departs: departsHotes });
   const bilan = await fillPool(todo, opts.until, WORKERS, compte, { rythme, taxe: false });
   for (const { row, lect } of bilan.ouvertes) {
     essayees.push(row.id);
-    const l = courte(lect);
+    const l = courte(row, lect);
     if (l) lectures[row.id] = l;
   }
   for (const row of bilan.laissees) laissees.add(row.id);
-  const hotesRefus = rythme.refuses().filter((h) => !opts.hotesExclus.includes(h));
+  // Les refus de cette tranche, pas les pauses déjà posées par une autre.
+  const hotesRefus = rythme.refuses().filter((h) => !opts.hotesExclus.includes(h) && !enPause.includes(h));
   // Les annonces d'un hôte qui a refusé en route : plus rien vers lui.
   const faites = new Set(essayees);
   for (const row of todo) {
@@ -1011,7 +1502,8 @@ export async function lirePagesProfond(rows: Listing[], opts: OptionsPages): Pro
 /**
  * Les pages `rooms/` des annonces Airbnb, repli de l'écran Prix quand la
  * requête PDP n'est plus connue d'Airbnb (`lireFichesAirbnb` rend `hash`).
- * Une à une, 6 s au moins entre deux, arrêt au premier refus.
+ * Une à une, 5 s au moins entre deux (6 s quand la suite de Logements lit
+ * aussi : `rythmeRepliPrix`), arrêt au premier refus.
  */
 export async function lirePagesAirbnbProfond(rows: Listing[], until: number): Promise<PagesAirbnbProfond> {
   const essayees: string[] = [];
@@ -1024,16 +1516,16 @@ export async function lirePagesAirbnbProfond(rows: Listing[], until: number): Pr
     if (hit) {
       poserLecture(row, hit, "fiche Airbnb");
       essayees.push(row.id);
-      lectures[row.id] = courte(hit) as LectureCourte;
+      lectures[row.id] = courte(row, hit) as LectureCourte;
       continue;
     }
     todo.push(row);
   }
   const compte: Compte = { lues: 0 };
-  const suite = await fillAirbnbSeq(todo, until, compte, ROOMS_PROFOND);
+  const suite = await fillAirbnbSeq(todo, until, compte, rythmeRepliPrix);
   for (const { row, lect } of suite.ouvertes) {
     essayees.push(row.id);
-    const l = courte(lect);
+    const l = courte(row, lect);
     if (l) lectures[row.id] = l;
   }
   return {

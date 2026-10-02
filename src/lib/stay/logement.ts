@@ -617,6 +617,15 @@ export function chambresDesPieces(l: SujetLogement): boolean {
   );
 }
 
+/**
+ * La trace laissée dans `proven` d'une annonce comblée par la mémoire des
+ * fiches (`memoireFiches.server.ts`), par Logements comme par Prix. Une valeur
+ * qui en vient n'est pas republiée ce jour : elle ne se renote pas
+ * (`connuesDuReleve`), sans quoi sa date rajeunissait à chaque relevé et
+ * elle ne s'effaçait jamais.
+ */
+export const MARQUE_MEMOIRE = "mémoire des fiches";
+
 /* ---------- Résidu ---------- */
 
 /** Une annonce dont la capacité ou les chambres (et, pour Airbnb, le GPS)

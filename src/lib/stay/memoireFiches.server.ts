@@ -48,6 +48,12 @@ export type ValeursFiche = {
    *  (fiche, API) ou un texte. Absente d'un fichier plus ancien : structurée. */
   capacitySource?: SourceCapacite | null;
   bedroomsSource?: SourceValeur | null;
+  /**
+   * Airbnb : les lits de l'aperçu de la page (« 4 lits »), à part de la
+   * capacité. Sans eux, une annonce comblée par la mémoire au redémarrage ne
+   * relisait plus sa page, et sa fiche perdait ses lits pendant trente jours.
+   */
+  beds?: number | null;
   /** Airbnb : hôtel, chambre ou hébergement insolite, qui n'est pas un logement entier. */
   ecartee?: boolean;
   /**
@@ -55,6 +61,13 @@ export type ValeursFiche = {
    * l'être ; rendu par `lire`, elle l'a été il y a moins de trente jours.
    */
   lue?: boolean;
+  /**
+   * Airbnb : la page `rooms/` du logement a été lue (écran Logements), pas sa
+   * fiche PDP. Elle publie capacité, chambres et point, mais pas
+   * `isHotelRatePlanEnabled` : l'écran Prix, qui écarte les hôtels sur ce
+   * signal, ne la prend pas pour une fiche lue (`lue`) et lit sa fiche PDP.
+   */
+  page?: boolean;
 };
 
 /**
@@ -66,14 +79,14 @@ export type DatesFiche = Partial<Record<"capacity" | "bedrooms" | "rooms" | "poi
 export type ValeursLues = ValeursFiche & { dates: DatesFiche };
 
 /** Ce qui se date une à une : chaque valeur, et la lecture de la fiche. */
-type Datee = "capacity" | "bedrooms" | "rooms" | "point" | "ecartee" | "lue";
+type Datee = "capacity" | "bedrooms" | "rooms" | "beds" | "point" | "ecartee" | "lue" | "page";
 type Dates = Partial<Record<Datee, number>>;
-const DATEES: readonly Datee[] = ["capacity", "bedrooms", "rooms", "point", "ecartee", "lue"];
+const DATEES: readonly Datee[] = ["capacity", "bedrooms", "rooms", "beds", "point", "ecartee", "lue", "page"];
 const NOMBRES = ["capacity", "bedrooms", "rooms"] as const;
 /** Les dates qu'on montre : celles des valeurs, pas celles de l'écart ni de la lecture. */
 const MONTREES = [...NOMBRES, "point"] as const;
 
-type Entree = Omit<ValeursFiche, "lue"> & {
+type Entree = Omit<ValeursFiche, "lue" | "page"> & {
   /** La plus récente des dates, en ms. */
   vu: number;
   /** La dernière publication de chaque valeur, en ms. Absente d'un fichier plus ancien : `vu` pour toutes. */
@@ -114,6 +127,7 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
   const bedrooms = entier(v?.bedrooms, 0);
   const capacitySource = capacity != null ? (sourceLue(v?.capacitySource, false) as SourceCapacite | null) : null;
   const bedroomsSource = bedrooms != null ? sourceLue(v?.bedroomsSource, true) : null;
+  const beds = entier(v?.beds, 1);
   return {
     capacity,
     bedrooms,
@@ -122,8 +136,10 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
     lon: point ? lon : null,
     ...(capacitySource ? { capacitySource } : {}),
     ...(bedroomsSource ? { bedroomsSource } : {}),
+    ...(beds != null ? { beds } : {}),
     ...(typeof v?.ecartee === "boolean" ? { ecartee: v.ecartee } : {}),
     ...(v?.lue === true ? { lue: true } : {}),
+    ...(v?.page === true ? { page: true } : {}),
   };
 }
 
@@ -144,9 +160,11 @@ function utile(v: ValeursFiche): boolean {
     v.capacity != null ||
     v.bedrooms != null ||
     v.rooms != null ||
+    v.beds != null ||
     v.lat != null ||
     typeof v.ecartee === "boolean" ||
-    v.lue === true
+    v.lue === true ||
+    v.page === true
   );
 }
 
@@ -181,6 +199,10 @@ function fraiche(e: Entree, now: number, dureeMs: number): Datees | null {
     out.lon = e.lon;
     out.dates.point = date("point");
   }
+  if (e.beds != null && frais("beds")) {
+    out.beds = e.beds;
+    out.dates.beds = date("beds");
+  }
   if (typeof e.ecartee === "boolean" && frais("ecartee")) {
     out.ecartee = e.ecartee;
     out.dates.ecartee = date("ecartee");
@@ -188,6 +210,8 @@ function fraiche(e: Entree, now: number, dureeMs: number): Datees | null {
   // « Lue » ne se déduit pas d'un fichier plus ancien : seule sa date le dit.
   const lue = e.dates?.lue;
   if (lue != null && now - lue <= dureeMs) out.dates.lue = lue;
+  const page = e.dates?.page;
+  if (page != null && now - page <= dureeMs) out.dates.page = page;
   const vus = Object.values(out.dates);
   if (vus.length === 0) return null;
   out.vu = Math.max(...vus);
@@ -237,7 +261,7 @@ export class MemoireFiches {
       if (!brut || typeof brut !== "object") return;
       for (const [cle, e] of Object.entries(brut)) {
         if (!e || typeof e !== "object" || typeof e.vu !== "number") continue;
-        const { lue: _lue, ...v } = valeursLues(e);
+        const { lue: _lue, page: _page, ...v } = valeursLues(e);
         const f = fraiche({ ...v, vu: e.vu, dates: datesLues(e.dates) }, now, this.dureeMs);
         if (f) this.fiches.set(cle, f);
       }
@@ -305,8 +329,10 @@ export class MemoireFiches {
       lon: f.lon,
       ...(f.capacitySource ? { capacitySource: f.capacitySource } : {}),
       ...(f.bedroomsSource ? { bedroomsSource: f.bedroomsSource } : {}),
+      ...(f.beds != null ? { beds: f.beds } : {}),
       ...(typeof f.ecartee === "boolean" ? { ecartee: f.ecartee } : {}),
       ...(f.dates.lue != null ? { lue: true } : {}),
+      ...(f.dates.page != null ? { page: true } : {}),
       dates,
     };
   }
@@ -356,11 +382,16 @@ export class MemoireFiches {
         apres.lat = v.lat;
         apres.lon = v.lon;
       }
+      if (v.beds != null) {
+        revoir("beds", apres.beds === v.beds);
+        apres.beds = v.beds;
+      }
       if (typeof v.ecartee === "boolean") {
         revoir("ecartee", apres.ecartee === v.ecartee);
         apres.ecartee = v.ecartee;
       }
       if (v.lue) revoir("lue", apres.dates.lue != null);
+      if (v.page) revoir("page", apres.dates.page != null);
       if (!change) continue;
       apres.vu = Math.max(...Object.values(apres.dates));
       this.fiches.set(brute.cle, apres);
@@ -394,6 +425,7 @@ export type SujetMemoire = {
   bedroomsSource?: SourceValeur | null;
   isStudio?: boolean | null;
   rooms?: number | null;
+  beds?: number | null;
   lat: number | null;
   lon: number | null;
 };
@@ -419,6 +451,11 @@ export function comblerDepuisMemoire(row: SujetMemoire, m: ValeursFiche): boolea
   if (!point && m.lat != null && m.lon != null) {
     row.lat = m.lat;
     row.lon = m.lon;
+    pose = true;
+  }
+  // Les lits, dans un vide seulement : jamais ceux que l'annonce publie.
+  if (row.beds == null && m.beds != null) {
+    row.beds = m.beds;
     pose = true;
   }
   return pose;

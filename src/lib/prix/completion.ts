@@ -77,12 +77,16 @@ export const completerProfond = createServerFn({ method: "POST" })
       import("../stay/completerFiche.server"),
       import("../scrape/airbnb.server"),
     ]);
-    return trancheProfonde(data, {
-      lireFichesAirbnb,
-      lirePages: pages.lirePagesProfond,
-      lirePagesAirbnb: pages.lirePagesAirbnbProfond,
-      laissees: pages.laisseesProfond,
-      memoire: memoireFiches(),
-      maintenant: Date.now,
-    });
+    const tranche = () =>
+      trancheProfonde(data, {
+        lireFichesAirbnb,
+        lirePages: pages.lirePagesProfond,
+        lirePagesAirbnb: pages.lirePagesAirbnbProfond,
+        laissees: pages.laisseesProfond,
+        memoire: memoireFiches(),
+        maintenant: Date.now,
+      });
+    // Une tranche qui lit des fiches Airbnb partage le limiteur avec la suite
+    // de Logements à l'ancien rythme (`pendantTranchePrix`).
+    return data.mode === "tranche" && !data.airbnbSuspendu ? pages.pendantTranchePrix(tranche) : tranche();
   });

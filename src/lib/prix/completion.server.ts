@@ -32,9 +32,10 @@ import {
 } from "../scrape/airbnbFiches.ts";
 import { airbnbIdOf } from "../stay/enrichir.ts";
 import { comblerDepuisMemoire, type ValeursFiche } from "../stay/memoireFiches.server.ts";
-import { qualifierLogement, sourceCapacite, sourceChambres } from "../stay/logement.ts";
+import { MARQUE_MEMOIRE as MARQUE, qualifierLogement, sourceCapacite, sourceChambres } from "../stay/logement.ts";
 import { cleListing } from "../stay/poserReleve.ts";
 import { gpsPrecis } from "../stay/lodgingFilter.ts";
+import { airbnbComplet } from "../stay/priseFiche.ts";
 import { airbnbSuspendu, manqueFiche, type CandidateFiche, type FicheConnue } from "./calcul.ts";
 
 /** Ce qu'une tranche prend au plus, réponse comprise. */
@@ -42,7 +43,7 @@ export const TRANCHE_MS = 45_000;
 /** Le temps de rendre la réponse, pris sur la tranche. */
 const MARGE_MS = 3_000;
 
-export const MARQUE_MEMOIRE = "mémoire des fiches";
+export const MARQUE_MEMOIRE = MARQUE;
 export const MARQUE_AIRBNB = "fiche Airbnb";
 
 export type DemandeTranche = {
@@ -87,7 +88,10 @@ export type RenduTranche = {
 };
 
 /** Ce qu'une fiche a publié, pour la mémoire. */
-export type LectureCourte = Pick<ValeursFiche, "capacity" | "bedrooms" | "rooms" | "lat" | "lon">;
+export type LectureCourte = Pick<
+  ValeursFiche,
+  "capacity" | "bedrooms" | "rooms" | "lat" | "lon" | "capacitySource" | "bedroomsSource"
+>;
 
 /** Ce qu'une tranche de pages hors Airbnb a fait (`lirePagesProfond`). */
 export type PagesProfond = {
@@ -126,7 +130,7 @@ export type Dependances = {
   lireFichesAirbnb(d: DemandeFichesAirbnb): Promise<LectureFichesAirbnb>;
   /** Lit les pages et comble les annonces reçues (mutées sur place). */
   lirePages(rows: Listing[], opts: OptionsPages): Promise<PagesProfond>;
-  /** Les pages `rooms/`, une à une, au moins 6 s d'écart ; comble sur place. */
+  /** Les pages `rooms/`, une à une, au moins 5 s d'écart (6 s quand la suite de Logements lit aussi) ; comble sur place. */
   lirePagesAirbnb(rows: Listing[], until: number): Promise<PagesAirbnbProfond>;
   /** Les annonces hors Airbnb qu'aucune page ne complétera. */
   laissees(rows: Listing[], opts: Omit<OptionsPages, "until">): string[];
@@ -263,9 +267,13 @@ async function trancheAirbnb(
   if (lu.attenteMs != null) bilan.attenteMs = lu.attenteMs;
   // Une fiche lue, pleine ou vide, se note comme lue : elle ne se redemande
   // plus de trente jours, ni à la station voisine, ni à la course suivante.
-  // Sauf si le worker a jugé le format illisible : ces fiches-là sont suspectes.
-  const lue = lu.arret !== "illisible";
+  // Sauf si le worker a jugé le format illisible : ces fiches-là sont
+  // suspectes. Pas celle qui publie `personCapacity` : son format a été
+  // reconnu (le worker ne juge « illisible » qu'après une série de fiches sans
+  // capacité), comme Logements l'exige pour noter une page (`noteDeLecture`).
+  const lotLu = lu.arret !== "illisible";
   for (const [id, f] of Object.entries(lu.fiches) as [string, FicheAirbnb][]) {
+    const lue = lotLu || f.capacitySource === "structured";
     for (const row of parId.get(id) ?? []) {
       bilan.essayees.push(row.id);
       bilan.lectures.push({ cle: cleDe(row), ...f, lue });
@@ -290,21 +298,31 @@ async function trancheAirbnb(
   for (const id of lu.vides) {
     for (const row of parId.get(id) ?? []) {
       bilan.essayees.push(row.id);
-      if (!lue) continue;
+      if (!lotLu) continue;
       row.pdpLue = true;
       if (row.capacity == null) Object.assign(row, qualifierLogement(row));
       bilan.lectures.push({ cle: cleDe(row), lue: true });
     }
   }
 
-  if (lu.arret === "hash") {
-    // La requête PDP n'est plus connue d'Airbnb : les pages `rooms/`, une à
-    // une, au moins 6 s d'écart, arrêt au premier refus.
+  // La fiche PDP en panne (format illisible, clé, worker) : rien n'a été
+  // refusé, et les pages `rooms/` ne passent pas par elle. Avant, la passe du
+  // relevé en lisait quelques-unes avant les fiches ; sans ce repli, aucune
+  // annonce Airbnb de la station ne se complétait plus.
+  const panne = lu.arret === "illisible" || lu.arret === "cle" || lu.arret === "worker";
+  if (lu.arret === "hash" || panne) {
+    // La requête PDP n'est plus connue d'Airbnb, ou elle est en panne : les
+    // pages `rooms/`, une à une, au moins 5 s d'écart (6 s à côté de la suite
+    // de Logements), arrêt au premier refus. En panne, aussi celles qu'un lot
+    // illisible a laissées trouées.
     const faites = new Set(bilan.essayees);
-    const reste = [...parId.values()].flat().filter((row) => !faites.has(row.id));
+    const retirees = new Set(bilan.retires);
+    const reste = [...parId.values()]
+      .flat()
+      .filter((row) => !retirees.has(row.id) && (panne ? !airbnbComplet(row) : !faites.has(row.id)));
     const p = await deps.lirePagesAirbnb(reste, until);
     bilan.lues += p.lues;
-    bilan.essayees.push(...p.essayees);
+    bilan.essayees.push(...p.essayees.filter((id) => !faites.has(id)));
     // Une page `rooms/` publie moins que la fiche PDP : elle ne se note pas
     // comme lue, et la fiche se lira quand la requête sera réparée. Dans la
     // course, le cache des pages évite de la redemander au réseau.
@@ -318,9 +336,10 @@ async function trancheAirbnb(
         p.arret === "refus"
           ? "Airbnb a refusé une page rooms/"
           : "coupe-circuit Airbnb, pause après un refus";
-    } else if (p.arret === "rythme") {
+    } else if (p.arret === "rythme" && !panne) {
       // Notre limiteur fait attendre les pages `rooms/` : rien n'est refusé,
-      // la boucle attend ce qu'il demande, comme pour les fiches.
+      // la boucle attend ce qu'il demande, comme pour les fiches. En panne,
+      // la panne reste l'arrêt : la course ne redemande pas de fiche PDP.
       bilan.arret = "rythme";
       bilan.raison = "limiteur local des pages rooms/ (requête de fiche périmée)";
       if (p.attenteMs != null) bilan.attenteMs = p.attenteMs;
@@ -362,6 +381,12 @@ export async function trancheProfonde(d: DemandeTranche, deps: Dependances): Pro
         retires.add(row.id);
         continue;
       }
+      // Seule sa page `rooms/` a été lue, par Logements : elle ne porte pas le
+      // signal hôtel de la fiche PDP. Comblée par elle, l'annonce n'était plus
+      // candidate, sa fiche ne se lisait jamais, et un hôtel entrait dans la
+      // médiane. Elle reste candidate, comme avant que Logements ne note ses
+      // pages.
+      if (row.source === "Airbnb" && m.page === true && m.lue !== true) continue;
       // Sa page a été lue : ce qui y manque y manque vraiment, et les chambres
       // que la mémoire tient de son titre de partage sont recevables
       // (`poserValeur`). À poser avant de combler.

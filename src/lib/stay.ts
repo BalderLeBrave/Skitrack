@@ -73,7 +73,16 @@ export const useStay = create<StayStore>()(
         set((s) => {
           if (!s.liveListings || rows.length === 0) return {};
           const parId = new Map(rows.map((r) => [r.id, r]));
-          return { liveListings: s.liveListings.map((l) => parId.get(l.id) ?? l) };
+          // Une relecture qui ne change rien ne redessine pas l'écran : les
+          // annonces sont comparées telles qu'elles ont fait l'aller-retour.
+          let change = false;
+          const suivantes = s.liveListings.map((l) => {
+            const r = parId.get(l.id);
+            if (!r || JSON.stringify(r) === JSON.stringify(l)) return l;
+            change = true;
+            return r;
+          });
+          return change ? { liveListings: suivantes } : {};
         }),
       setSearching: (searching) => set({ searching }),
     }),

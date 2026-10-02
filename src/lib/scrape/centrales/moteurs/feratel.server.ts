@@ -35,6 +35,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
@@ -97,6 +98,89 @@ const capacitesLues = new Map<string, { lueA: number; produits: Map<string, Capa
  * leur est demandé jusqu'au redémarrage. La recherche, elle, continue.
  */
 const capacitesRefusees = new Set<string>();
+
+/**
+ * La clé d'un produit dans la mémoire des fiches (`memoireFiches.server.ts`).
+ * La sienne, pas celle de son annonce (« Centrale: » et `platformId`) : le
+ * relevé de l'écran Prix note les annonces complètes sous cette dernière, à
+ * la date du relevé. La capacité s'y rajeunissait à chaque course, et le
+ * détail ne se relisait plus jamais. Ici, seul un détail lu écrit, daté de sa
+ * lecture.
+ */
+function cleMemoire(organisation: string, produitId: string): string {
+  return `Feratel:${organisation}:${produitId}`;
+}
+
+type NoteCapacite = { cle: string; capacity: number; capacitySource: "structured" };
+/** Les capacités lues pas encore écrites, avec l'heure de leur lecture. */
+const notesEnAttente: Array<{ note: NoteCapacite; lueA: number }> = [];
+/**
+ * Écrire la mémoire réécrit tout son fichier (plusieurs mégaoctets), de façon
+ * synchrone : une fois par paquet de détails, pas à chaque détail.
+ */
+const NOTES_PAR_ECRITURE = 20;
+
+/**
+ * Verse dans la mémoire des fiches (30 jours, sur disque) les capacités d'un
+ * détail lu. La table du processus (`capacitesLues`) les gardait aussi trente
+ * jours, mais se perdait au redémarrage : la première recherche de La Clusaz
+ * retombait alors à 11 capacités sur 194 (2 octobre 2026), le temps que la
+ * tâche de fond relise les détails. Écrit par paquets (`ecrireCapacites`).
+ */
+function noterCapacites(organisation: string, lecture: ReadonlyMap<string, CapaciteFeratel>, maintenant: number): void {
+  for (const [id, c] of lecture) {
+    if (c.adultes == null) continue;
+    notesEnAttente.push({
+      note: { cle: cleMemoire(organisation, id), capacity: c.adultes, capacitySource: "structured" },
+      lueA: maintenant,
+    });
+  }
+  if (notesEnAttente.length >= NOTES_PAR_ECRITURE) ecrireCapacites();
+}
+
+/**
+ * Écrit les capacités en attente, en une fois. Le paquet est daté de sa plus
+ * ancienne lecture : une capacité n'y paraît jamais plus fraîche qu'elle ne
+ * l'est, elle s'efface au plus quelques secondes plus tôt.
+ */
+function ecrireCapacites(): void {
+  if (notesEnAttente.length === 0) return;
+  const lot = notesEnAttente.splice(0);
+  try {
+    memoireFiches().noter(
+      lot.map((n) => n.note),
+      Math.min(...lot.map((n) => n.lueA)),
+    );
+  } catch (err) {
+    console.warn("[centrale] Feratel : mémoire des fiches non écrite :", (err as Error).message);
+  }
+}
+
+/**
+ * Reprend de la mémoire des fiches la capacité du produit vendu, quand la
+ * table du processus ne l'a pas (redémarrage) : lue il y a moins de trente
+ * jours, la même règle que `CAPACITE_TTL_MS`, et datée de sa lecture. Le
+ * détail ne se redemande alors pas. Rien n'est estimé : seule une valeur
+ * structurée (`maxAdults`) relue telle quelle.
+ */
+function reprendreDeLaMemoire(r: ReglageFeratel, f: FicheFeratel): void {
+  if (!f.produitId) return;
+  const cle = `${r.organisation}|${f.id}`;
+  const garde = capacitesLues.get(cle);
+  const maintenant = Date.now();
+  if (garde && capacitesFraiches(garde.produits, maintenant, CAPACITE_TTL_MS).has(f.produitId)) return;
+  let m: ReturnType<ReturnType<typeof memoireFiches>["lire"]>;
+  try {
+    m = memoireFiches().lire(cleMemoire(r.organisation, f.produitId), maintenant);
+  } catch {
+    return;
+  }
+  const lueA = m?.dates.capacity;
+  if (m?.capacity == null || m.capacitySource !== "structured" || lueA == null) return;
+  const produits = new Map(garde?.produits ?? []);
+  produits.set(f.produitId, { adultes: m.capacity, lits: null, lueA });
+  capacitesLues.set(cle, { lueA: Math.max(garde?.lueA ?? 0, lueA), produits });
+}
 
 /** Une réponse hors 2xx, avec son statut, pour distinguer un refus d'une panne. */
 class ErreurStatut extends Error {
@@ -214,6 +298,7 @@ async function lireCapacites(
   const produitAbsent: FicheFeratel[] = [];
   let enMemoire = 0;
   for (const f of fiches) {
+    reprendreDeLaMemoire(r, f);
     const garde = capacitesLues.get(`${r.organisation}|${f.id}`);
     const maintenant = Date.now();
     if (!garde || maintenant - garde.lueA >= CAPACITE_TTL_MS) {
@@ -233,6 +318,8 @@ async function lireCapacites(
     lecture = await lireDetailsFeratel(aLire, debut + CAPACITE_BUDGET_MS, detailsFeratel(r, recherche, session, debut));
   } finally {
     lecturesAuPremierPlan -= 1;
+    // Ce que la recherche a lu va sur disque avant qu'elle réponde.
+    ecrireCapacites();
   }
   // Ce que la mémoire sait maintenant de ces hébergements : lu par cette
   // recherche, ou par une suite en tâche de fond pendant qu'elle lisait.
@@ -279,13 +366,10 @@ function detailsFeratel(
         // Ce qui était déjà su des autres produits reste, avec sa date ; le neuf
         // s'y ajoute à la date du jour.
         const maintenant = Date.now();
-        const produits = verserCapacites(
-          capacitesLues.get(cle)?.produits,
-          capacitesFeratel(res.valeur as ReponseServicesFeratel),
-          maintenant,
-          CAPACITE_TTL_MS,
-        );
+        const lecture = capacitesFeratel(res.valeur as ReponseServicesFeratel);
+        const produits = verserCapacites(capacitesLues.get(cle)?.produits, lecture, maintenant, CAPACITE_TTL_MS);
         capacitesLues.set(cle, { lueA: maintenant, produits });
+        noterCapacites(r.organisation, lecture, maintenant);
       } catch (e) {
         if (e instanceof ErreurStatut && (e.statut === 403 || e.statut === 429 || e.statut === 503)) {
           capacitesRefusees.add(r.organisation);
@@ -363,7 +447,10 @@ function lancerSuiteCapacites(
     .catch(() => {
       /* `lireDetailsFeratel` ne lève pas : un échec arrête la suite, il est rendu. */
     })
-    .finally(() => suitesEnCours.delete(r.organisation));
+    .finally(() => {
+      ecrireCapacites();
+      suitesEnCours.delete(r.organisation);
+    });
   return true;
 }
 

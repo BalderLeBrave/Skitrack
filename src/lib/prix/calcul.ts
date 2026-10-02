@@ -22,6 +22,7 @@ import { addDaysIso, formatDayIso } from "../stay/calendar.ts";
 import { enrichirListing } from "../stay/enrichir.ts";
 import { estFicheGitesIntrouvable } from "../stay/ficheGites.ts";
 import {
+  MARQUE_MEMOIRE,
   qualifierLogement,
   sourceCapacite,
   sourceChambres,
@@ -662,6 +663,9 @@ export function connuesDuReleve(listings: readonly Listing[]): FicheConnue[] {
   const out: FicheConnue[] = [];
   for (const brute of listings) {
     if (REPLI.test(brute.proven ?? "")) continue;
+    // Comblée par la mémoire des fiches : ses valeurs n'ont pas été republiées
+    // ce jour, et les renoter rajeunirait leur date (`MARQUE_MEMOIRE`).
+    if ((brute.proven ?? "").includes(MARQUE_MEMOIRE)) continue;
     const l = enrichirListing(brute);
     // Chaque valeur passe avec sa source : une capacité lue dans le sous-titre
     // d'une tuile se garde, et un champ structuré la remplacera.

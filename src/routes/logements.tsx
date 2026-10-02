@@ -65,7 +65,16 @@ import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { agencesDe } from "@/lib/scrape/agences/couverture";
 import { partyLabel } from "@/lib/stay/party";
-import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS, TARIF_MS } from "@/lib/searchStay";
+import {
+  searchStay,
+  completerAnnonces,
+  completerReleve,
+  PAUSE_DELAI,
+  SEARCH_PART_MS,
+  DEVIS_MS,
+  TARIF_MS,
+} from "@/lib/searchStay";
+import { airbnbComplet } from "@/lib/stay/priseFiche";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
@@ -186,6 +195,16 @@ function palierDistLbl(m: number): string {
 
 /** Le temps qu'on laisse aux critères pour se poser avant de relancer la recherche. */
 const RELANCE_MS = 800;
+/**
+ * Les pages Airbnb se lisent en tâche de fond, 6 s par page, jusqu'à trois
+ * quarts d'heure (`completerFiche.server.ts`) : tant qu'une annonce Airbnb
+ * n'a pas ses trois champs, l'écran relit ses annonces à cet intervalle, sans
+ * nouveau relevé (`completerAnnonces`), au lieu d'afficher « non renseigné »
+ * jusqu'à la recherche suivante.
+ */
+const RELECTURE_AIRBNB_MS = 60_000;
+/** Au plus : la durée d'une suite côté serveur, 45 min. */
+const RELECTURES_AIRBNB_MAX = 45;
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
@@ -197,6 +216,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   const bedrooms = useStay((s) => s.bedrooms);
   const searchNonce = useStay((s) => s.searchNonce);
   const mergeLive = useStay((s) => s.mergeLive);
+  const patchLive = useStay((s) => s.patchLive);
   const setSearching = useStay((s) => s.setSearching);
   const setLive = useStay((s) => s.setLive);
   // La première recherche part tout de suite ; les suivantes attendent que les
@@ -234,6 +254,33 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       pending -= 1;
       if (!cancelled && pending <= 0) setSearching(false);
     };
+    // Relecture des annonces Airbnb incomplètes, pendant que leurs pages se
+    // lisent en tâche de fond. Les annonces partent telles que l'écran les
+    // tient ; elles reviennent comblées de ce que le cache des fiches sait.
+    let relecture: ReturnType<typeof setTimeout> | null = null;
+    let relectures = 0;
+    const incompletes = (rows: readonly Listing[]) =>
+      rows.filter((l) => l.source === "Airbnb" && !airbnbComplet(l));
+    const planifierRelecture = (rows: readonly Listing[]) => {
+      if (cancelled || relectures >= RELECTURES_AIRBNB_MAX || incompletes(rows).length === 0) return;
+      relecture = setTimeout(relireAirbnb, RELECTURE_AIRBNB_MS);
+    };
+    const relireAirbnb = () => {
+      if (cancelled) return;
+      relectures += 1;
+      const actuelles = (useStay.getState().liveListings ?? []).filter((l) => l.source === "Airbnb");
+      if (incompletes(actuelles).length === 0) return;
+      void completerAnnonces({ data: { listings: actuelles } })
+        .then((rows) => {
+          if (cancelled) return;
+          patchLive(rows);
+          planifierRelecture(rows);
+        })
+        .catch(() => {
+          // Réseau ou pause Airbnb : on réessaie à l'intervalle suivant.
+          planifierRelecture(actuelles);
+        });
+    };
     const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences") => {
       const wait =
         part === "gites"
@@ -246,6 +293,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           if (cancelled) return;
           if (res.listings.length > 0) {
             mergeLive(res.listings, res.sources);
+            if (part === "airbnb") planifierRelecture(res.listings);
             return;
           }
           // Les agences n'ont pas de relevé figé : leurs rapports disent ce
@@ -334,6 +382,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     return () => {
       cancelled = true;
       clearTimeout(depart);
+      if (relecture) clearTimeout(relecture);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);

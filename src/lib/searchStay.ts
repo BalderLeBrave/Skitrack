@@ -88,6 +88,39 @@ export const searchStay = createServerFn({ method: "POST" })
     };
   });
 
+/** Ce que la relecture peut prendre d'un coup : le relevé Airbnb d'une grande station. */
+const ANNONCES_MAX = 2_000;
+/** Le temps laissé à une relecture : les pages déjà lues se posent sans réseau. */
+const RELECTURE_MS = 20_000;
+
+/**
+ * Relit les annonces que l'écran tient déjà, par la seconde passe seule
+ * (`fillFiches`), sans nouveau relevé : les pages Airbnb se lisent en tâche
+ * de fond pendant trois quarts d'heure (6 s par page), et l'écran les
+ * affichait « non renseigné » jusqu'à la recherche suivante. Ce que la tâche a
+ * lu est dans le cache des fiches et se pose sans réseau ; ce qui reste à lire
+ * part au rythme ordinaire. Les annonces reviennent telles quelles, comblées.
+ */
+export const completerAnnonces = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      listings: z
+        .array(z.object({ id: z.string().min(1), source: z.string().min(1), stationId: z.string().min(1) }).passthrough())
+        .max(ANNONCES_MAX),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const rows = data.listings as unknown as Listing[];
+    if (rows.length === 0) return rows;
+    try {
+      const { fillFiches } = await import("./stay/completerFiche.server");
+      await fillFiches(rows, RELECTURE_MS);
+    } catch {
+      /* réseau, pause Airbnb : les trous restent nommés, la relecture suivante reprendra */
+    }
+    return rows;
+  });
+
 /** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, devis ITEA daté. */
 export const completerReleve = createServerFn({ method: "POST" })
   .validator(

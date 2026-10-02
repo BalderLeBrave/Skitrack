@@ -29,6 +29,8 @@ type StayStore = Stay & {
   searching: boolean;
   setLive: (rows: Listing[] | null, sources: SourceReport[], searching: boolean) => void;
   mergeLive: (rows: Listing[], sources: SourceReport[]) => void;
+  /** Remplace, par identifiant, des annonces déjà affichées (relecture des fiches) ; les autres restent. */
+  patchLive: (rows: Listing[]) => void;
   setSearching: (searching: boolean) => void;
 };
 
@@ -66,6 +68,12 @@ export const useStay = create<StayStore>()(
             liveListings: listings,
             liveSources: [...s.liveSources.filter((r) => !replaced.has(r.source)), ...sources],
           };
+        }),
+      patchLive: (rows) =>
+        set((s) => {
+          if (!s.liveListings || rows.length === 0) return {};
+          const parId = new Map(rows.map((r) => [r.id, r]));
+          return { liveListings: s.liveListings.map((l) => parId.get(l.id) ?? l) };
         }),
       setSearching: (searching) => set({ searching }),
     }),

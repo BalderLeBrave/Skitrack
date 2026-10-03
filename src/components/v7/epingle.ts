@@ -79,9 +79,17 @@ export function epingleRepere(nom: string): Epingle {
  * marqueur reste d'un pixel : la pastille se centre elle-même, comme un
  * libellé posé sur un point.
  */
-export function epinglePrix(prix: string, nom: string, etat: "normale" | "retenue" | "vue"): Epingle {
+export function epinglePrix(
+  prix: string,
+  nom: string,
+  etat: "normale" | "retenue" | "vue",
+  /** Le logement est dans un dossier de favoris : un petit cœur devant le prix. */
+  favori = false,
+): Epingle {
+  const classe = `epingle-prix epingle-prix--${etat}${favori ? " epingle-prix--favori" : ""}`;
+  const libelle = `${echappe(nom)}, ${echappe(prix)}${favori ? ", dans vos favoris" : ""}`;
   return {
-    html: `<div class="epingle-prix epingle-prix--${etat}" aria-label="${echappe(nom)}, ${echappe(prix)}">${echappe(prix)}</div>`,
+    html: `<div class="${classe}" aria-label="${libelle}">${echappe(prix)}</div>`,
     taille: [1, 1],
     ancre: [0, 0],
   };

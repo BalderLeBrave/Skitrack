@@ -43,6 +43,8 @@ import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { AGE_ENFANT, clampChildren } from "@/lib/stay/party";
 import { useTheme } from "@/lib/theme";
+import { nombreFavoris } from "@/lib/favoris/modele";
+import { useFavoris } from "@/lib/favoris/store";
 
 const PARCOURS: { go: Screen; step: number | null; label: MsgId }[] = [
   { go: "home", step: null, label: "nav.home" },
@@ -174,6 +176,27 @@ function MenuPlus() {
   );
 }
 
+/** « Favoris » et le nombre de logements enregistrés (V7Coquille.dc.html, menu du compte). */
+function LienFavoris({ actif, libelle }: { actif: boolean; libelle: string }) {
+  const n = useFavoris(nombreFavoris);
+  // Gardés dans le navigateur : le rendu serveur ne les compte pas.
+  const [monte, setMonte] = useState(false);
+  useEffect(() => setMonte(true), []);
+  const compte = monte ? n : 0;
+  return (
+    <Link
+      to="/favoris"
+      className={`v7nav__util v7nav__prix${actif ? " v7nav__prix--on" : ""}`}
+      aria-current={actif ? "page" : undefined}
+      title={compte > 0 ? `${compte} logement${compte > 1 ? "s" : ""} enregistré${compte > 1 ? "s" : ""}` : "Logements enregistrés dans vos dossiers"}
+    >
+      <Icon name="coeur" taille={15} />
+      {libelle}
+      {compte > 0 ? <span className="v7nav__compte">{compte}</span> : null}
+    </Link>
+  );
+}
+
 function Barre() {
   const t = useT();
   const go = useGo();
@@ -250,6 +273,7 @@ function Barre() {
           <Icon name="barres" taille={15} />
           {t("nav.prices")}
         </Link>
+        <LienFavoris actif={ecran === "favoris"} libelle={t("nav.favorites")} />
         <i className="v7nav__sep" aria-hidden />
         {/* L'icône dit le thème en cours ; elle montrait un soleil dans les
             deux états, donc rien. */}
@@ -366,7 +390,7 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
   // rend la recherche qu'il vient de quitter.
   // Pas sur « Prix » : il tient sa propre période, et les critères de Comparer
   // encombreraient son adresse sans rien y régler.
-  useCriteresUrl(!controle && ecran !== "prix", pathname);
+  useCriteresUrl(!controle && ecran !== "prix" && ecran !== "favoris", pathname);
 
   // Changer d'écran ferme le panneau de séjour et remonte en haut de page,
   // comme `fromHash` dans la maquette.
@@ -451,7 +475,8 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
           ecran !== "home" &&
           ecran !== "compare" &&
           ecran !== "lodging" &&
-          ecran !== "prix" ? (
+          ecran !== "prix" &&
+          ecran !== "favoris" ? (
             <PiluleSejour />
           ) : null}
           {!controle && stayOpen ? <PanneauSejour /> : null}

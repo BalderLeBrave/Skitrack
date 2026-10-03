@@ -128,6 +128,8 @@ import { todayIso } from "@/lib/stay/calendar";
 import { clampRooms, clampTravelers } from "@/lib/stay/party";
 import { STATIONS, type Station } from "@/lib/stations";
 import { prixPin } from "@/lib/v7";
+import { useIdsFavoris } from "@/lib/favoris/store";
+import { useAltitudes } from "@/lib/altitude/store";
 
 export const Route = createFileRoute("/prix")({ component: Prix });
 
@@ -1148,6 +1150,9 @@ function VueBudget({
     }
     return out;
   }, [pageItems, logementDe, parId, epinglee, ouverte, lodgeId]);
+  const favoris = useIdsFavoris();
+  // L'altitude des logements de la page : entre stations, elle se compare.
+  const altDe = useAltitudes(useMemo(() => pageItems.map((c) => c.a), [pageItems]));
   const marqueurs = useMemo(
     () =>
       situees.map((l) => {
@@ -1160,11 +1165,11 @@ function VueBudget({
           lat: l.lat as number,
           lon: l.lon as number,
           nom: l.title,
-          epingle: epinglePrix(prixPin(l), l.title, etat),
+          epingle: epinglePrix(prixPin(l), l.title, etat, offres.some((id) => favoris.has(id))),
           zIndex: sel ? ETAGE.designee : ETAGE.normale,
         };
       }),
-    [situees, logementDe, ouverte, lodgeId, seen],
+    [situees, logementDe, ouverte, lodgeId, seen, favoris],
   );
   /** L'offre de ce logement que le séjour retient, ou `null`. Retenir à
    *  nouveau la relâche : l'action porte sur elle, pas sur la principale. */
@@ -1371,6 +1376,8 @@ function VueBudget({
                         ouvrir={ouvrirAnnonce}
                         retenir={retenir}
                         designer={setActifCarte}
+                        altitude={altDe(c.a)}
+                        avecAltitude
                       />
                     );
                   })}

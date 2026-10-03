@@ -26,6 +26,7 @@ export type IconName =
   | "filtres"
   | "point"
   | "etoile"
+  | "coeur"
   | "televerser"
   | "soleil"
   | "pluie"
@@ -63,6 +64,9 @@ const TRACES: Record<IconName, ReactNode> = {
   filtres: <path d="M4 6h16M7 12h10M10 18h4" />,
   point: <circle cx="12" cy="12" r="3" />,
   etoile: <path d="M12 4.5l2.3 4.9 5.2.7-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2L4.5 10l5.2-.7z" />,
+  // Le cœur des favoris. Plein quand le logement est enregistré : seule
+  // exception à « jamais de remplissage », posée par `.coeur7--on` (v7.css).
+  coeur: <path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z" />,
   televerser: <path d="M12 19V5M7 10l5-5 5 5M5 20h14" />,
   soleil: (
     <>

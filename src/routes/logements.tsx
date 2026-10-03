@@ -82,6 +82,8 @@ import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
 import { photosDeResidence } from "@/lib/stay/photoResidence";
+import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
+import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import {
@@ -98,7 +100,7 @@ import {
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap" | "dist" | "trous";
+type LodgeSort = "pp" | "total" | "cap" | "dist" | "alt" | "trous";
 
 /** Les critères du tri ; le sens se choisit à côté. Chacun part dans son sens
  *  de départ : le moins cher, le plus grand, le plus près d'abord, et les
@@ -107,6 +109,8 @@ const TRIS_LOGEMENT: { k: LodgeSort; label: string; sens: Sens }[] = [
   { k: "pp", label: "Tri : prix par personne", sens: 1 },
   { k: "total", label: "Tri : prix total", sens: 1 },
   { k: "dist", label: "Tri : distance", sens: 1 },
+  // Le plus haut d'abord : la neige y tient mieux.
+  { k: "alt", label: "Tri : altitude", sens: -1 },
   { k: "cap", label: "Tri : capacité", sens: -1 },
   { k: "trous", label: "Tri : trous dans la fiche", sens: -1 },
 ];
@@ -584,6 +588,13 @@ function LogementsStation({ s }: { s: Station }) {
       return r ? { ...l, photo: r.photo, proven: `${l.proven} · ${r.proven}` } : l;
     });
   }, [liveListings, liveSources, frozen, dumpGps, s]);
+  // Un logement enregistré qui repasse dans le relevé : sa copie dans les
+  // favoris prend la photo, le point et, pour le même séjour, le prix d'aujourd'hui.
+  useEffect(() => {
+    if (raw.length > 0) useFavoris.getState().rafraichir(raw, { checkIn, checkOut, trav });
+  }, [raw, checkIn, checkOut, trav]);
+  // L'altitude de chaque annonce à point, pour la carte et le tri.
+  const altDe = useAltitudes(raw);
 
   const [lf, setLf] = useState<LF>(LF0);
   const [lsort, setLsort] = useState<LodgeSort>("pp");
@@ -792,6 +803,7 @@ function LogementsStation({ s }: { s: Station }) {
     total: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     cap: (a, b) => parMesure(a.capacity ?? null, b.capacity ?? null, lsens),
     dist: (a, b) => parMesure(distFiltrableM(a), distFiltrableM(b), lsens),
+    alt: (a, b) => parMesure(altDe(a)?.m, altDe(b)?.m, lsens),
     trous: (a, b) => {
       const d = lsens * (completudeOf(a).trous.length - completudeOf(b).trous.length);
       return d !== 0 ? d : parMesure(apres(a.total), apres(b.total), 1);
@@ -818,7 +830,7 @@ function LogementsStation({ s }: { s: Station }) {
     // `tri` est reconstruit à chaque rendu ; son contenu ne dépend que de
     // `lsort` et `lsens`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupesBruts, lvisCle, lsort, lsens]);
+  }, [groupesBruts, lvisCle, lsort, lsens, lsort === "alt" ? altDe : null]);
   const logementDe = useMemo(() => {
     const m = new Map<string, Logement>();
     for (const g of logements) for (const o of g.offres) m.set(o.id, g);
@@ -1039,6 +1051,7 @@ function LogementsStation({ s }: { s: Station }) {
     if (!id) return null;
     return logementDe.get(l.id)?.offres.find((o) => o.id === id) ?? (l.id === id ? l : null);
   };
+  const favoris = useIdsFavoris();
   const marqueurs = useMemo(
     () => [
       {
@@ -1054,12 +1067,13 @@ function LogementsStation({ s }: { s: Station }) {
         const sel = offreDe(l, sheetId) != null || offreDe(l, P.lodgeId) != null;
         const vue = logementDe.get(l.id)?.offres.some((o) => P.seen[o.id]) ?? !!P.seen[l.id];
         const etat = sel ? "retenue" : vue ? "vue" : "normale";
+        const favori = logementDe.get(l.id)?.offres.some((o) => favoris.has(o.id)) ?? favoris.has(l.id);
         return {
           id: l.id,
           lat: l.lat as number,
           lon: l.lon as number,
           nom: l.title,
-          epingle: epinglePrix(prixPin(l), l.title, etat),
+          epingle: epinglePrix(prixPin(l), l.title, etat, favori),
           zIndex: sel ? ETAGE.designee : ETAGE.normale,
         };
       }),
@@ -1068,7 +1082,7 @@ function LogementsStation({ s }: { s: Station }) {
     // et les vues. `logements` suit le relevé : un prix qui change sans changer
     // d'identifiant se redessine.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [s.id, s.lat, s.lon, s.name, situees.map((l) => l.id).join(","), logements, sheetId, P.lodgeId, P.seen],
+    [s.id, s.lat, s.lon, s.name, situees.map((l) => l.id).join(","), logements, sheetId, P.lodgeId, P.seen, favoris],
   );
   /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
    *  cadre : calculée sur le cadre, recadrer changerait la liste, qui changerait
@@ -1394,6 +1408,8 @@ function LogementsStation({ s }: { s: Station }) {
                       ouvrir={openSheet}
                       retenir={keep}
                       designer={setActifCarte}
+                      altitude={altDe(l)}
+                      avecAltitude
                     />
                   ))}
                 </div>

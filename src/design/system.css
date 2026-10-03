@@ -120,6 +120,8 @@
   --color-neige: #e6f0fa;
   --color-neige-texte: #085291;
   --color-soleil: #c9891f;
+  /* Le cœur des favoris, plein quand le logement est enregistré. */
+  --color-coeur: #e0315b;
 
   /* Blanc du flocon : seul blanc pur du système, sur une photo sombre. */
   --color-flocon: #ffffff;

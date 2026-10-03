@@ -56,3 +56,9 @@ app.log
 
 # Dossiers de travail des relevés (docs/WEBCAMS.md, docs/PISTES-DETAIL.md).
 travail/
+
+# Python embarqué dans l'installateur Windows (scripts/preparer-python-embarque.mjs).
+build/python/
+build/python-cache/
+# Tuiles de la carte, copiées pour l'installateur (scripts/release-win.mjs).
+build/carte/

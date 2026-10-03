@@ -26,6 +26,18 @@ function cheminServeur() {
     : join(root, ".output", "server", "index.mjs");
 }
 
+/**
+ * Le Python embarqué par l'installateur (`scripts/preparer-python-embarque.mjs`),
+ * avec curl_cffi, bs4 et requests : les workers Airbnb et Booking n'ont plus
+ * besoin d'un Python sur la machine. Absent (développement), le serveur
+ * cherche lui-même (`src/lib/scrape/python.server.ts`).
+ */
+function pythonEmbarque() {
+  if (!app.isPackaged) return null;
+  const py = join(process.resourcesPath, "python", "python.exe");
+  return existsSync(py) ? py : null;
+}
+
 function dossierDonnees() {
   const d = app.getPath("userData");
   mkdirSync(d, { recursive: true });
@@ -63,6 +75,7 @@ function demarrerServeur() {
       // sable Grok). Le serveur relit la clé à l'exécution : sans elle, il la
       // croirait active et contredirait le client.
       VITE_AUTH_ENABLED: process.env.VITE_AUTH_ENABLED ?? "false",
+      ...(pythonEmbarque() ? { SKITRACK_PYTHON: pythonEmbarque(), PYTHONUTF8: "1", PYTHONDONTWRITEBYTECODE: "1" } : {}),
       // Journal de taux, coupe-circuit et session Airbnb : pas de chemin propre
       // à l'app. Les défauts sont dans le dossier temporaire de l'utilisateur,
       // communs au serveur de développement et aux scripts : un seul limiteur

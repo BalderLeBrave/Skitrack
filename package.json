@@ -1,6 +1,6 @@
 {
   "name": "skitrack",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Comparer un séjour ski par domaine skiable et par altitude réelle",
   "author": "Adrien RAFFRAY",
   "private": true,
@@ -17,6 +17,7 @@
     "electron:dev": "node scripts/electron-dev.mjs",
     "build": "node scripts/with-app-env.mjs vite build && npm run db:migrate",
     "dist:win": "electron-builder --win",
+    "release:win": "node scripts/preparer-python-embarque.mjs && node scripts/release-win.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "catalogue:import": "node scripts/import-france-montagnes.mjs",
     "scrape:python": "node scripts/installer-python-scrape.mjs",

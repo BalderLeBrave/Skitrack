@@ -9,6 +9,32 @@ files:
 extraResources:
   - from: .output
     to: output
+  # Les workers de relevé Airbnb et Booking, là où le serveur les cherche
+  # (`process.cwd()/scrape/…`, son dossier de travail étant `output`).
+  - from: scrape/airbnb
+    to: output/scrape/airbnb
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+      - "!**/test_*.py"
+  - from: scrape/booking
+    to: output/scrape/booking
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+      - "!**/test_*.py"
+      - "!Dockerfile"
+  # Le Python qui les fait tourner, avec leurs dépendances
+  # (`node scripts/preparer-python-embarque.mjs`).
+  - from: build/python
+    to: python
+  # Les tuiles de la carte des pistes (135 Mo), hors du dossier public : le
+  # serveur statique de Nitro ignore `Range`, c'est le middleware
+  # `server/middleware/pmtiles-plages.ts` qui les sert, par tranches.
+  - from: build/carte
+    to: output/tuiles
+    filter:
+      - "*.pmtiles"
 win:
   target:
     - target: nsis

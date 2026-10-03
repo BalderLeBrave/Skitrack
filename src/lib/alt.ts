@@ -17,6 +17,7 @@ import { domainForStation } from "./forfaits/catalog.ts";
 import type { DomaineMonde } from "./monde/monde.ts";
 import { SKIINFO } from "./skiinfo.ts";
 import { dropM, type Station } from "./stations.ts";
+import { tr } from "./i18n/tr.ts";
 
 export type AltSourceId =
   | "village"
@@ -62,11 +63,11 @@ function band(
 
 export function altBands(station: Station): AltBand[] {
   const out: AltBand[] = [
-    band("village", "Village (cette station)", station.villageM, null, null),
+    band("village", tr("Village (cette station)"), station.villageM, null, null),
   ];
   const si = SKIINFO[station.id];
   if (si?.minM != null || si?.maxM != null) {
-    out.push(band("skiinfo", "Skiinfo (cette fiche)", null, si.minM ?? null, si.maxM ?? null));
+    out.push(band("skiinfo", tr("Skiinfo (cette fiche)"), null, si.minM ?? null, si.maxM ?? null));
   }
   if (station.fmId != null && (station.fmMinM != null || station.fmMaxM != null)) {
     out.push(
@@ -76,15 +77,15 @@ export function altBands(station: Station): AltBand[] {
   if (station.demM != null) {
     const pin =
       station.pinKind === "sommet"
-        ? "IGN au pin (sommet, pas le village)"
+        ? tr("IGN au pin (sommet, pas le village)")
         : station.pinKind === "base"
-          ? "IGN au pin (village)"
-          : "IGN au pin GPS";
+          ? tr("IGN au pin (village)")
+          : tr("IGN au pin GPS");
     out.push(band("ign", pin, station.pinKind === "sommet" ? null : station.demM, null, station.pinKind === "sommet" ? station.demM : null));
   }
   const cat = domainForStation(station.id);
   if (cat && (cat.villageM != null || cat.minM != null || cat.maxM != null)) {
-    out.push(band("catalog", "Catalogue domaine", cat.villageM ?? null, cat.minM ?? null, cat.maxM ?? null));
+    out.push(band("catalog", tr("Catalogue domaine"), cat.villageM ?? null, cat.minM ?? null, cat.maxM ?? null));
   }
   return out;
 }
@@ -107,11 +108,11 @@ export function altBands(station: Station): AltBand[] {
 export function altBandsDomaine(d: DomaineMonde, demM: number | null = null): AltBand[] {
   const out: AltBand[] = [];
   if (d.minM != null || d.maxM != null) {
-    out.push(band("openskimap", "OpenSkiMap (domaine, pas un village)", null, d.minM, d.maxM));
+    out.push(band("openskimap", tr("OpenSkiMap (domaine, pas un village)"), null, d.minM, d.maxM));
   }
   if (demM != null) {
     out.push({
-      ...band("dem", "Modèle de terrain au point de référence du domaine", null, null, null),
+      ...band("dem", tr("Modèle de terrain au point de référence du domaine"), null, null, null),
       pointM: demM,
     });
   }

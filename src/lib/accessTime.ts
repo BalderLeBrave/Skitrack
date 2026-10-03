@@ -26,6 +26,8 @@
  * ajoutés, parce que la mise en forme s'écrivait dans chaque appelant.
  */
 
+import { aTraduire, tr } from "./i18n/tr.ts";
+
 /** Marche en station, chaussures aux pieds et matériel sur l'épaule. */
 const WALK_M_PER_MIN = 50;
 
@@ -91,10 +93,10 @@ export function accessTimeOf(distanceM: number, engineType: EngineAccessType): A
 }
 
 const MODE_LABEL: Record<AccessMode, string> = {
-  skis_aux_pieds: "skis aux pieds",
-  a_pied: "à pied",
-  navette: "en navette",
-  voiture: "en voiture",
+  skis_aux_pieds: aTraduire("skis aux pieds"),
+  a_pied: aTraduire("à pied"),
+  navette: aTraduire("en navette"),
+  voiture: aTraduire("en voiture"),
 };
 
 /**
@@ -106,9 +108,9 @@ const MODE_LABEL: Record<AccessMode, string> = {
 export function formatAccessTime(access: AccessTime | null): string {
   if (!access) return "";
   if (access.minutes == null) {
-    return access.mode === "skis_aux_pieds" ? "Skis aux pieds" : MODE_LABEL[access.mode];
+    return access.mode === "skis_aux_pieds" ? tr("Skis aux pieds") : tr(MODE_LABEL[access.mode]);
   }
-  return `${access.minutes} min ${MODE_LABEL[access.mode]}`;
+  return tr("{minutes} min {moyen}", { minutes: access.minutes, moyen: tr(MODE_LABEL[access.mode]) });
 }
 
 /**
@@ -118,6 +120,6 @@ export function formatAccessTime(access: AccessTime | null): string {
  * chaque logement, elle devient du décor qu'on ne lit plus, et c'est
  * exactement la phrase qu'il faut lire.
  */
-export const ACCESS_TIME_NOTE =
-  "Temps estimés : distance à vol d’oiseau, facteur de détour et vitesse moyenne. " +
-  "Ce n’est pas un itinéraire calculé, et l’attente d’une navette n’y figure pas.";
+export const ACCESS_TIME_NOTE = aTraduire(
+  "Temps estimés : distance à vol d’oiseau, facteur de détour et vitesse moyenne. Ce n’est pas un itinéraire calculé, et l’attente d’une navette n’y figure pas.",
+);

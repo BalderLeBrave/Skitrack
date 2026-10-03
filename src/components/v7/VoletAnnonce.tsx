@@ -16,13 +16,14 @@ import { useEchap } from "@/components/v7/fermeture";
 import { OffresLogement } from "@/components/v7/OffresLogement";
 import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee } from "@/lib/altitude/altitude";
 import { useAltitudes } from "@/lib/altitude/store";
+import { tr } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { provenancePhrase } from "@/lib/provenance";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import type { Logement } from "@/lib/stay/regroupement";
-import { bedLbl, capLbl, distanceOf, firmOf, mediaTon, prixLbl, prixPersLbl } from "@/lib/v7";
+import { bedLbl, capLbl, distanceOf, firmOf, mediaTon, persLbl, prixLbl, prixPersLbl } from "@/lib/v7";
 
 export function VoletAnnonce({
   l,
@@ -80,14 +81,14 @@ export function VoletAnnonce({
             <ImageSlot
               shape="rect"
               id={`v7app-sheet-${l.id}`}
-              placeholder="Photo de l’annonce"
+              placeholder={tr("Photo de l’annonce")}
               className="lodge7__slot"
               src={galerie[photoI] ?? l.photo}
             />
           ) : (
-            <span>Pas de photo dans l’annonce {l.source}</span>
+            <span>{tr("Pas de photo dans l’annonce {source}", { source: l.source })}</span>
           )}
-          <button type="button" className="volet7__fermer" aria-label="Fermer" onClick={onFermer}>
+          <button type="button" className="volet7__fermer" aria-label={tr("Fermer")} onClick={onFermer}>
             <Icon name="croix" taille={14} />
           </button>
           <BoutonFavori
@@ -99,28 +100,28 @@ export function VoletAnnonce({
         <div className="volet7__corps">
           <div>
             <span className="volet7__ref">
-              {l.source} · réf. {l.id}
-              {l.priceIndicative ? " · prix « à partir de »" : ""}
+              {l.source} · {tr("réf. {ref}", { ref: l.id })}
+              {l.priceIndicative ? ` · ${tr("prix « à partir de »")}` : ""}
             </span>
             <h2>{l.title}</h2>
           </div>
           <GalerieAnnonce urls={galerie} index={photoI} onIndex={setPhotoI} />
           <div className="volet7__faits">
             <div>
-              <span>Capacité</span>
+              <span>{tr("Capacité")}</span>
               <b>{capLbl(l)}</b>
             </div>
             <div>
-              <span>Chambres</span>
+              <span>{tr("Chambres")}</span>
               <b>{bedLbl(l)}</b>
             </div>
             <div className="volet7__large">
-              <span>Distance aux remontées</span>
+              <span>{tr("Distance aux remontées")}</span>
               <b className="volet7__doux">{distanceOf(l).text}</b>
             </div>
             {pointAltitude(l) ? (
               <div className="volet7__large" title={altitudeAide(altitude, positionApprochee(l))}>
-                <span>Altitude</span>
+                <span>{tr("Altitude")}</span>
                 <b className={altitude ? undefined : "volet7__doux"}>{altitudeLbl(altitude, positionApprochee(l))}</b>
               </div>
             ) : null}
@@ -129,28 +130,28 @@ export function VoletAnnonce({
           <div className="volet7__prix">
             <div>
               <span>
-                Total du séjour · {nuitsLbl(nights)} · {trav} pers.
+                {tr("Total du séjour · {nuits} · {pers}", { nuits: nuitsLbl(nights), pers: persLbl(trav) })}
               </span>
               <b>{prixLbl(l)}</b>
             </div>
             <div>
-              <span>Par personne</span>
+              <span>{tr("Par personne")}</span>
               <b className="volet7__pp">{prixPersLbl(l, trav) ?? "–"}</b>
             </div>
             {firmOf(l, stay) ? (
               <div className="volet7__ok">
                 <Icon name="coche" taille={16} />
                 <span>
-                  <b>Prix relevé pour ces dates.</b> La source a tarifé cette annonce pour ce séjour
-                  ; le prix sera revérifié à la réservation.
+                  <b>{tr("Prix relevé pour ces dates.")}</b>{" "}
+                  {tr("La source a tarifé cette annonce pour ce séjour ; le prix sera revérifié à la réservation.")}
                 </span>
               </div>
             ) : (
               <div className="volet7__alerte">
                 <Icon name="alerte" taille={16} />
                 <span>
-                  <b>Disponibilité non confirmée.</b> {availabilityLabel(availabilityOf(l, stay))}.
-                  La disponibilité sera vérifiée à la réservation.
+                  <b>{tr("Disponibilité non confirmée.")}</b> {availabilityLabel(availabilityOf(l, stay))}.{" "}
+                  {tr("La disponibilité sera vérifiée à la réservation.")}
                 </span>
               </div>
             )}
@@ -159,7 +160,7 @@ export function VoletAnnonce({
             <OffresLogement g={groupe} ici={l.id} voir={onVoirOffre} />
           ) : null}
           <div className="volet7__prov">
-            <span>Provenance</span>
+            <span>{tr("Provenance")}</span>
             {/* La phrase, pas la trace du collecteur : celle-ci mêle anglais,
                 jargon et dates ISO (« StaySearchResult live 2027-02-06… »). */}
             <p>{provenancePhrase(l)}</p>
@@ -170,7 +171,7 @@ export function VoletAnnonce({
               className={`btn7 btn7--grand btn7--pleine${retenu ? " btn7--tenu" : " btn7--encre"}`}
               onClick={onRetenir}
             >
-              {retenu ? "Retenu" : "Retenir"}
+              {retenu ? tr("Retenu") : tr("Retenir")}
             </button>
             {l.url ? (
               <a
@@ -179,12 +180,12 @@ export function VoletAnnonce({
                 rel="noopener"
                 className="btn7 btn7--fantome btn7--pleine btn7--lien"
               >
-                Ouvrir sur {l.source}
+                {tr("Ouvrir sur {source}", { source: l.source })}
                 <Icon name="externe" taille={12} />
               </a>
             ) : (
               <span className="volet7__sanslien">
-                L’annonce n’a pas de lien dans le relevé : la réservation se fera à la main.
+                {tr("L’annonce n’a pas de lien dans le relevé : la réservation se fera à la main.")}
               </span>
             )}
             {suite}

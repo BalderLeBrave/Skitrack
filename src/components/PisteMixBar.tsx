@@ -9,19 +9,20 @@ import {
   type PisteUnit,
   type StationSlopes,
 } from "@/lib/pistes";
+import { tr, trN } from "@/lib/i18n";
 
 const INITIALS = { green: "V", blue: "B", red: "R", black: "N" } as const;
 
 function qualityLabel(slopes: StationSlopes): string {
   if (slopes.source === "skiinfo") {
-    return slopes.skiinfoGrain === "valley" ? "Skiinfo · vallée" : "Skiinfo";
+    return slopes.skiinfoGrain === "valley" ? tr("Skiinfo · vallée") : "Skiinfo";
   }
   if (slopes.quality === "grain_mismatch") {
-    return slopes.osmArea ? `OSM = ${slopes.osmArea}, pas la station seule` : "grain OSM ≠ station";
+    return slopes.osmArea ? tr("OSM = {domaine}, pas la station seule", { domaine: slopes.osmArea }) : tr("grain OSM ≠ station");
   }
-  if (slopes.quality === "partial") return "mix partiel — pas un décompte brochure";
-  if (slopes.quality === "segments") return "tracés OSM (pas des pistes brochure)";
-  return "pistes OSM";
+  if (slopes.quality === "partial") return tr("mix partiel, pas un décompte brochure");
+  if (slopes.quality === "segments") return tr("tracés OSM (pas des pistes brochure)");
+  return tr("pistes OSM");
 }
 
 export function PisteMixBar({
@@ -48,9 +49,9 @@ export function PisteMixBar({
     return (
       <div className={`piste${compact ? " piste--compact" : ""}`} data-testid="piste-mix">
         {!compact ? (
-          <p className="piste__hint">{formatKm(slopes.announcedKm)} km · mix indisponible</p>
+          <p className="piste__hint">{tr("{km} km · mix indisponible", { km: formatKm(slopes.announcedKm) })}</p>
         ) : (
-          <div className="piste__bar" role="img" aria-label="Répartition des pistes" />
+          <div className="piste__bar" role="img" aria-label={tr("Répartition des pistes")} />
         )}
       </div>
     );
@@ -58,7 +59,7 @@ export function PisteMixBar({
 
   return (
     <div className={`piste${compact ? " piste--compact" : ""}`} data-testid="piste-mix">
-      <div className="piste__bar" role="img" aria-label="Répartition des pistes">
+      <div className="piste__bar" role="img" aria-label={tr("Répartition des pistes")}>
         {values.map((v) =>
           v.weight <= 0 ? null : (
             <span
@@ -83,7 +84,7 @@ export function PisteMixBar({
         ))}
         <strong>
           {unit === "count"
-            ? `${classic} pistes`
+            ? trN(classic, "{n} piste", "{n} pistes")
             : unit === "pct"
               ? `${PISTE_CLASSIC.reduce((n, c) => n + displayPct(slopes, c), 0)} %`
               : `${formatKm(split.total)} km`}
@@ -97,16 +98,33 @@ export function PisteMixBar({
 
 function mixHint(slopes: StationSlopes, split: { total: number }, classic: number): string {
   if (slopes.source === "skiinfo") {
-    const grain = slopes.skiinfoGrain === "valley" ? "vallée" : "station";
-    const kmBit = split.total > 0 ? `${formatKm(split.total)} km · ` : "km non publié · ";
-    return `${kmBit}${classic} pistes (${grain}, Skiinfo). % = bloc publié.`;
+    const grain = slopes.skiinfoGrain === "valley" ? tr("vallée") : tr("station");
+    const km = split.total > 0 ? tr("{km} km", { km: formatKm(split.total) }) : tr("km non publié");
+    return tr("{km} · {pistes} ({grain}, Skiinfo). % = bloc publié.", {
+      km,
+      pistes: trN(classic, "{n} piste", "{n} pistes"),
+      grain,
+    });
   }
-  const extra = (slopes.counts.other ?? 0) > 0 ? ` · ${slopes.counts.other} hors vert/bleu/rouge/noir` : "";
+  const extra =
+    (slopes.counts.other ?? 0) > 0 ? tr(" · {n} hors vert/bleu/rouge/noir", { n: slopes.counts.other ?? 0 }) : "";
+  const traces = trN(classic, "{n} tracé", "{n} tracés");
   if (slopes.quality === "grain_mismatch") {
-    return `${formatKm(slopes.announcedKm)} km annoncés station. OSM décrit ${slopes.osmArea ?? "un domaine lié"} (${formatKm(split.total)} km mesurés, ${classic} tracés${extra}). Pas un mix station.`;
+    return tr("{annonce} km annoncés station. OSM décrit {domaine} ({mesure} km mesurés, {traces}{extra}). Pas un mix station.", {
+      annonce: formatKm(slopes.announcedKm),
+      domaine: slopes.osmArea ?? tr("un domaine lié"),
+      mesure: formatKm(split.total),
+      traces,
+      extra,
+    });
   }
   if (slopes.quality === "partial") {
-    return `${formatKm(split.total)} km annoncés · mix OSM partiel (${classic} tracés${extra}).`;
+    return tr("{km} km annoncés · mix OSM partiel ({traces}{extra}).", { km: formatKm(split.total), traces, extra });
   }
-  return `${formatKm(split.total)} km annoncés, répartis selon les longueurs OSM (${classic} tracés${extra}). ${qualityLabel(slopes)}.`;
+  return tr("{km} km annoncés, répartis selon les longueurs OSM ({traces}{extra}). {qualite}.", {
+    km: formatKm(split.total),
+    traces,
+    extra,
+    qualite: qualityLabel(slopes),
+  });
 }

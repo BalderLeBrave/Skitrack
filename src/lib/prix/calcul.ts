@@ -53,6 +53,7 @@ import { estOffreGitesVerifiee } from "../stay/tarif.ts";
 import { maxM, prixLbl, villageM } from "../v7.ts";
 import { dansPlage, type Plage } from "../plage.ts";
 import { parMesure, type Sens } from "../tri.ts";
+import { aTraduire, tr, trN } from "../i18n/tr.ts";
 
 // Les fourchettes sont communes à tous les écrans : elles vivent dans
 // `plage.ts`, et s'exportent encore d'ici pour l'écran Prix et ses tests.
@@ -125,7 +126,7 @@ export function departIso(p: Periode): string {
 
 /** « du 6 févr. au 13 févr. » */
 export function perLbl(p: Periode): string {
-  return `du ${dm(p.from)} au ${dm(departIso(p))}`;
+  return tr("du {du} au {au}", { du: dm(p.from), au: dm(departIso(p)) });
 }
 
 /** « 13 févr. 2027 » */
@@ -514,7 +515,8 @@ export function sourcesEnDefaut(
   return ORDRE_SOURCES.filter((s) => enDefaut.has(s));
 }
 
-const AUCUNE_SOURCE = "Aucune source n’a répondu.";
+/** Gardée dans le résultat (`raison`), traduite à l'affichage. */
+const AUCUNE_SOURCE = aTraduire("Aucune source n’a répondu.");
 
 /** Ce que la boucle de relevé rapporte d'une station. */
 export type EntreeReleve = ContexteReleve & {
@@ -851,21 +853,21 @@ export type DefPlageStation = DefPlage & { k: PlageStationK };
 
 /** Les plages de station, communes aux deux onglets. */
 export const PLAGES_STATION: readonly DefPlageStation[] = [
-  { k: "km", lbl: "Kilomètres de pistes", pas: 10, unite: "km" },
-  { k: "sommet", lbl: "Sommet", pas: 100, unite: "m" },
-  { k: "village", lbl: "Altitude du village", pas: 100, unite: "m" },
+  { k: "km", lbl: aTraduire("Kilomètres de pistes"), pas: 10, unite: "km" },
+  { k: "sommet", lbl: aTraduire("Sommet"), pas: 100, unite: "m" },
+  { k: "village", lbl: aTraduire("Altitude du village"), pas: 100, unite: "m" },
 ];
 
 /** Les plages de l'onglet « Par station ». */
 export const PLAGES: readonly DefPlage[] = [
-  { k: "prix", lbl: "Médiane", pas: 100, unite: "€", fixe: [0, 6000] },
+  { k: "prix", lbl: aTraduire("Médiane"), pas: 100, unite: "€", fixe: [0, 6000] },
   ...PLAGES_STATION,
 ];
 
 /** Porte sur le total d'une annonce, jamais sur une station : `passe` l'ignore. */
 export const PLAGE_BUDGET: DefPlage = {
   k: "budget",
-  lbl: "Budget, total du séjour",
+  lbl: aTraduire("Budget, total du séjour"),
   pas: 100,
   unite: "€",
   fixe: [0, 10000],
@@ -878,11 +880,11 @@ export const PLAGE_BUDGET: DefPlage = {
  *  un choix de quatre paliers ; elle est une fourchette comme les autres, et
  *  ses deux bornes se tapent. */
 export const PLAGES_LOGEMENT: readonly DefPlage[] = [
-  { k: "capacite", lbl: "Personnes", pas: 1, unite: "pers.", fixe: [1, 20] },
-  { k: "chambres", lbl: "Chambres", pas: 1, unite: "ch.", fixe: [0, 8] },
+  { k: "capacite", lbl: aTraduire("Personnes"), pas: 1, unite: "pers.", fixe: [1, 20] },
+  { k: "chambres", lbl: aTraduire("Chambres"), pas: 1, unite: "ch.", fixe: [0, 8] },
   {
     k: "distance",
-    lbl: "Distance aux remontées",
+    lbl: aTraduire("Distance aux remontées"),
     pas: 100,
     unite: "m",
     fixe: [0, DISTANCE_STATION_M],
@@ -924,9 +926,10 @@ export function bornesPlages(stations: readonly Station[]): Bornes {
 export function fmtPlage(k: PlageK, v: number): string {
   if (k === "prix" || k === "budget") return eur(v);
   if (k === "km") return `${fmt(v)} km`;
-  if (k === "capacite") return `${fmt(v)} pers.`;
+  // « 1 pers. » et « 1 ch. » à part : l'anglais dit « 1 person », « 2 people ».
+  if (k === "capacite") return v === 1 ? tr("1 pers.") : tr("{n} pers.", { n: fmt(v) });
   // Zéro chambre se dit « Studio », jamais « 0 ch. », comme partout.
-  if (k === "chambres") return v === 0 ? "Studio" : `${fmt(v)} ch.`;
+  if (k === "chambres") return v === 0 ? tr("Studio") : v === 1 ? tr("1 ch.") : tr("{n} ch.", { n: fmt(v) });
   return `${fmt(v)} m`;
 }
 
@@ -935,12 +938,12 @@ export function fmtPlage(k: PlageK, v: number): string {
  *  disent un nombre, « 2 ch. », et non « 2 ch. à 2 ch. ». La distance, elle,
  *  s'arrête aux 2 km de la station : « 500 m à 2 000 m », pas « et plus ». */
 export function plageLbl(k: PlageK, pl: Plage, b: readonly [number, number]): string {
-  if (pl == null) return "Indifférent";
+  if (pl == null) return tr("Indifférent");
   const [lo, hi] = pl;
-  if (hi >= b[1] && k !== "distance") return `${fmtPlage(k, lo)} et plus`;
+  if (hi >= b[1] && k !== "distance") return tr("{min} et plus", { min: fmtPlage(k, lo) });
   if (lo === hi && (k === "capacite" || k === "chambres")) return fmtPlage(k, lo);
-  if (lo <= b[0]) return `jusqu’à ${fmtPlage(k, hi)}`;
-  return `${fmtPlage(k, lo)} à ${fmtPlage(k, hi)}`;
+  if (lo <= b[0]) return tr("jusqu’à {max}", { max: fmtPlage(k, hi) });
+  return tr("{min} à {max}", { min: fmtPlage(k, lo), max: fmtPlage(k, hi) });
 }
 
 /* ---------- Critères actifs ---------- */
@@ -1059,7 +1062,7 @@ export function optionsDomaine(
     if (domaineNomme(s.domain)) compte.set(s.domain, (compte.get(s.domain) ?? 0) + 1);
   }
   return [
-    { v: "", label: "Tous" },
+    { v: "", label: tr("Tous") },
     ...[...compte.keys()]
       .sort((a, b) => a.localeCompare(b, "fr"))
       .map((d) => ({ v: d, label: `${d} · ${compte.get(d)}` })),
@@ -1097,7 +1100,7 @@ export function optionsStation(
   const opts = ids
     .map((id) => ({ v: id, label: nom(id) }))
     .sort((a, b) => a.label.localeCompare(b.label, "fr") || ordreTexte(a.v, b.v));
-  return [{ v: "", label: "Toutes" }, ...opts];
+  return [{ v: "", label: tr("Toutes") }, ...opts];
 }
 
 /* ---------- Lignes, tri ---------- */
@@ -1213,10 +1216,10 @@ export const TRI0: Tri = { k: "med", dir: 1 };
 
 /** Les critères du choix « Trier ». Le sens se choisit à côté. */
 export const TRIS: readonly { k: Tri["k"]; label: string }[] = [
-  { k: "med", label: "Prix" },
-  { k: "nom", label: "Nom" },
-  { k: "massif", label: "Massif, puis prix" },
-  { k: "n", label: "Nombre de logements" },
+  { k: "med", label: aTraduire("Prix") },
+  { k: "nom", label: aTraduire("Nom") },
+  { k: "massif", label: aTraduire("Massif, puis prix") },
+  { k: "n", label: aTraduire("Nombre de logements") },
 ];
 
 /** Le sens qu'un critère prend quand on le choisit : le moins cher, A à Z et
@@ -1294,22 +1297,22 @@ export function plur(n: number, un: string, plusieurs: string): string {
 
 /** « 12 stations sur 320 » */
 export function countFl(n: number, total: number): string {
-  return `${plur(n, "station", "stations")} sur ${total}`;
+  return trN(n, "{n} station sur {total}", "{n} stations sur {total}", { total });
 }
 
 /** « 40 affichées sur 320 », « 1 affichée sur 1 » */
 export function countLbl(affichees: number, total: number): string {
-  return `${plur(affichees, "affichée", "affichées")} sur ${total}`;
+  return trN(affichees, "{n} affichée sur {total}", "{n} affichées sur {total}", { total });
 }
 
 export function moreLbl(restant: number): string {
-  return `Afficher ${Math.min(PAGE, restant)} de plus`;
+  return tr("Afficher {n} de plus", { n: Math.min(PAGE, restant) });
 }
 
 export function relLbl(n: number, listeFaite: boolean): string {
   if (listeFaite)
-    return n === 1 ? "Relever à nouveau la station" : `Relever à nouveau les ${n} stations`;
-  return n === 1 ? "Relever la station affichée" : `Relever les ${n} stations de la liste`;
+    return n === 1 ? tr("Relever à nouveau la station") : tr("Relever à nouveau les {n} stations", { n });
+  return n === 1 ? tr("Relever la station affichée") : tr("Relever les {n} stations de la liste", { n });
 }
 
 /**
@@ -1337,22 +1340,23 @@ export function toutesALancer(
 
 /** Le bouton de `toutesALancer` : ce qu'il relève, en toutes lettres. */
 export function relToutesLbl(n: number, total: number, aNouveau: boolean): string {
-  if (aNouveau) return n === 1 ? "Relever à nouveau la station" : `Relever à nouveau les ${n} stations`;
-  if (n === total) return `Relever les ${n} stations`;
-  return n === 1 ? "Relever la dernière station" : `Relever les ${n} stations restantes`;
+  if (aNouveau) return n === 1 ? tr("Relever à nouveau la station") : tr("Relever à nouveau les {n} stations", { n });
+  if (n === total) return tr("Relever les {n} stations", { n });
+  return n === 1 ? tr("Relever la dernière station") : tr("Relever les {n} stations restantes", { n });
 }
 
 /** Une minute par station, en clair : « environ 12 min », « environ 5 h 20 ». */
 export function dureeReleveLbl(stations: number): string {
-  if (stations < 60) return `environ ${stations} min`;
+  if (stations < 60) return tr("environ {n} min", { n: stations });
   const h = Math.floor(stations / 60);
   const m = stations % 60;
-  return m ? `environ ${h} h ${String(m).padStart(2, "0")}` : `environ ${h} h`;
+  return m ? tr("environ {h} h {m}", { h, m: String(m).padStart(2, "0") }) : tr("environ {h} h", { h });
 }
 
-/** Le nom d'une liste lancée : massif et département, les plages n'y entrent pas. */
+/** Le nom d'une liste lancée : massif et département, les plages n'y entrent pas.
+ *  Le nom par défaut reste en français dans la file ; le bandeau le traduit. */
 export function nomListe(fl: Filtres): string {
-  return [...fl.massif, ...fl.dept].join(", ") || "stations de la liste";
+  return [...fl.massif, ...fl.dept].join(", ") || aTraduire("stations de la liste");
 }
 
 /** `v` : la valeur d'un lieu choisi parmi d'autres, que son jeton retire seule. */
@@ -1362,7 +1366,7 @@ function jetonsLieu(fl: Filtres, noms: ReadonlyMap<string, string>): Jeton[] {
   return [
     ...fl.massif.map((v) => ({ k: "massif" as const, lbl: v, v })),
     ...fl.dept.map((v) => ({ k: "dept" as const, lbl: v, v })),
-    ...fl.domaine.map((v) => ({ k: "domaine" as const, lbl: `Domaine : ${v}`, v })),
+    ...fl.domaine.map((v) => ({ k: "domaine" as const, lbl: tr("Domaine : {domaine}", { domaine: v }), v })),
     ...fl.station.map((v) => ({ k: "station" as const, lbl: noms.get(v) ?? v, v })),
   ];
 }
@@ -1371,7 +1375,9 @@ function jetonsPlages(defs: readonly DefPlage[], fl: Filtres, b: Bornes): Jeton[
   const out: Jeton[] = [];
   for (const def of defs) {
     const pl = fl[def.k];
-    if (pl != null) out.push({ k: def.k, lbl: `${def.lbl} : ${plageLbl(def.k, pl, b[def.k])}` });
+    if (pl != null) {
+      out.push({ k: def.k, lbl: tr("{critere} : {plage}", { critere: tr(def.lbl), plage: plageLbl(def.k, pl, b[def.k]) }) });
+    }
   }
   return out;
 }
@@ -1379,7 +1385,7 @@ function jetonsPlages(defs: readonly DefPlage[], fl: Filtres, b: Bornes): Jeton[
 /** Les jetons de l'onglet « Par station » : le budget n'y paraît pas. */
 export function jetons(fl: Filtres, b: Bornes): Jeton[] {
   const out: Jeton[] = jetonsLieu({ ...fl, domaine: [], station: [] }, new Map());
-  if (fl.avecPrix) out.push({ k: "avecPrix", lbl: "Avec un prix" });
+  if (fl.avecPrix) out.push({ k: "avecPrix", lbl: tr("Avec un prix") });
   return [...out, ...jetonsPlages(PLAGES, fl, b)];
 }
 
@@ -1393,7 +1399,7 @@ export function jetonsBudget(
 ): Jeton[] {
   const out: Jeton[] = [];
   if (fl.budget != null) {
-    out.push({ k: "budget", lbl: `Budget : ${plageLbl("budget", fl.budget, b.budget)}` });
+    out.push({ k: "budget", lbl: tr("Budget : {plage}", { plage: plageLbl("budget", fl.budget, b.budget) }) });
   }
   out.push(...jetonsLieu(fl, noms));
   return [...out, ...jetonsPlages(PLAGES_LOGEMENT, fl, b), ...jetonsPlages(PLAGES_STATION, fl, b)];
@@ -1417,8 +1423,8 @@ export function retirerJeton(fl: Filtres, k: keyof Filtres, v?: string): Filtres
 export function annSub(r: Resultat | null): string {
   if (r?.etat !== "fait") return "";
   const parts: string[] = [];
-  if (r.muettes > 0) parts.push(`${r.muettes} sans capacité annoncée`);
-  if (r.petits > 0) parts.push(plur(r.petits, "trop petite", "trop petites"));
+  if (r.muettes > 0) parts.push(tr("{n} sans capacité annoncée", { n: r.muettes }));
+  if (r.petits > 0) parts.push(trN(r.petits, "{n} trop petite", "{n} trop petites"));
   return parts.join(", ");
 }
 
@@ -1428,7 +1434,9 @@ export function partielLbl(sources: readonly string[]): string {
   if (sources.length === 0) return "";
   const tete = sources.slice(0, -1);
   const dernier = sources[sources.length - 1];
-  return `partiel, sans ${tete.length > 0 ? `${tete.join(", ")} ni ${dernier}` : dernier}`;
+  return tete.length > 0
+    ? tr("partiel, sans {sources} ni {derniere}", { sources: tete.join(", "), derniere: dernier })
+    : tr("partiel, sans {derniere}", { derniere: dernier });
 }
 
 function deux(n: number): string {
@@ -1448,15 +1456,18 @@ export function releveLbl(r: Resultat | null): string {
 }
 
 export function sousTitre(nights: number, trav: number): string {
-  return `Médiane du total pour ${nuitsLbl(nights)}, parmi les logements qui accueillent ${travLbl(trav)}.`;
+  return tr("Médiane du total pour {nuits}, parmi les logements qui accueillent {trav}.", {
+    nuits: nuitsLbl(nights),
+    trav: travLbl(trav),
+  });
 }
 
 export function ecartLbl(sejour: Periode): string {
-  return `Votre séjour : ${perLbl(sejour)}, ${nuitsLbl(sejour.nights)}.`;
+  return tr("Votre séjour : {periode}, {nuits}.", { periode: perLbl(sejour), nuits: nuitsLbl(sejour.nights) });
 }
 
 export function medHead(nights: number): string {
-  return `Médiane, ${nuitsLbl(nights)}`;
+  return tr("Médiane, {nuits}", { nuits: nuitsLbl(nights) });
 }
 
 /** Compte à rebours, arrondi à la seconde supérieure : « 45 s », « 1 min 5 s ».
@@ -1476,9 +1487,9 @@ export function dureeLbl(ms: number): string {
 export type TriB = { k: "prix" | "cap" | "dist"; dir: Sens };
 export const TRIB0: TriB = { k: "prix", dir: 1 };
 export const TRIS_B: readonly { k: TriB["k"]; label: string }[] = [
-  { k: "prix", label: "Prix" },
-  { k: "cap", label: "Capacité" },
-  { k: "dist", label: "Distance aux remontées" },
+  { k: "prix", label: aTraduire("Prix") },
+  { k: "cap", label: aTraduire("Capacité") },
+  { k: "dist", label: aTraduire("Distance aux remontées") },
 ];
 
 /** Le sens de départ : le moins cher, le plus grand, le plus près d'abord. */
@@ -1726,13 +1737,15 @@ export function sourcesBudget(g: LogementBudget): string {
 export function autresBudget(g: LogementBudget): string | null {
   const autres = g.offres.slice(1);
   if (autres.length === 0) return null;
-  return `Aussi sur ${autres.map((o) => `${o.a.source} (${prixLbl(o.a)})`).join(", ")}`;
+  return tr("Aussi sur {offres}", { offres: autres.map((o) => `${o.a.source} (${prixLbl(o.a)})`).join(", ") });
 }
 
 /** « 12 logements dans 3 stations », « 0 logement ». */
 export function countBudget(nAnnonces: number, nStations: number): string {
-  const n = plur(nAnnonces, "logement", "logements");
-  return nStations > 0 ? `${n} dans ${plur(nStations, "station", "stations")}` : n;
+  const n = trN(nAnnonces, "{n} logement", "{n} logements");
+  return nStations > 0
+    ? tr("{logements} dans {stations}", { logements: n, stations: trN(nStations, "{n} station", "{n} stations") })
+    : n;
 }
 
 /** Le domaine ou la station choisis n'ont aucune station relevée pour la
@@ -1760,41 +1773,50 @@ export function videBudget(
 ): { titre: string; hint: string; versStation: boolean } {
   if (aucunReleve) {
     return {
-      titre: "Aucune annonce relevée pour ces dates",
-      hint: "Les logements proposés viennent des relevés. Relevez toutes les stations, ou un lieu dans l’onglet Par station, ou revenez à des dates déjà relevées.",
+      titre: tr("Aucune annonce relevée pour ces dates"),
+      hint: tr(
+        "Les logements proposés viennent des relevés. Relevez toutes les stations, ou un lieu dans l’onglet Par station, ou revenez à des dates déjà relevées.",
+      ),
       versStation: true,
     };
   }
   if (sansReleve) {
     return {
-      titre: "Ce lieu n’a pas été relevé pour ces dates",
-      hint: "Relevez toutes les stations, ou ce lieu dans l’onglet Par station, ou choisissez d’autres dates.",
+      titre: tr("Ce lieu n’a pas été relevé pour ces dates"),
+      hint: tr("Relevez toutes les stations, ou ce lieu dans l’onglet Par station, ou choisissez d’autres dates."),
       versStation: true,
     };
   }
   if (avantBudget > 0) {
     return {
-      titre: "Aucun logement dans ce budget",
-      hint: `${plur(avantBudget, "logement correspond", "logements correspondent")} aux autres critères. Élargissez le budget pour ${avantBudget > 1 ? "les" : "le"} voir.`,
+      titre: tr("Aucun logement dans ce budget"),
+      hint: trN(
+        avantBudget,
+        "{n} logement correspond aux autres critères. Élargissez le budget pour le voir.",
+        "{n} logements correspondent aux autres critères. Élargissez le budget pour les voir.",
+      ),
       versStation: false,
     };
   }
   if (!criteres) {
     return {
-      titre: "Aucun logement de station pour ces dates",
-      hint: "Les relevés de ces dates n’ont retenu aucun logement à 2 km au plus d’une remontée.",
+      titre: tr("Aucun logement de station pour ces dates"),
+      hint: tr("Les relevés de ces dates n’ont retenu aucun logement à 2 km au plus d’une remontée."),
       versStation: false,
     };
   }
   return {
-    titre: "Aucun logement ne correspond à ces critères",
-    hint: "Retirez un critère, ou effacez-les tous.",
+    titre: tr("Aucun logement ne correspond à ces critères"),
+    hint: tr("Retirez un critère, ou effacez-les tous."),
     versStation: false,
   };
 }
 
 export function sousTitreBudget(nights: number, trav: number): string {
-  return `Logements qui accueillent ${travLbl(trav)} pour ${nuitsLbl(nights)}, dans votre budget.`;
+  return tr("Logements qui accueillent {trav} pour {nuits}, dans votre budget.", {
+    trav: travLbl(trav),
+    nuits: nuitsLbl(nights),
+  });
 }
 
 /* ---------- File des relevés ---------- */

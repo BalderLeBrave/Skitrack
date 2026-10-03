@@ -40,6 +40,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist, type PersistStorage } from "zustand/middleware";
 import type { Listing } from "../listings";
+import { aTraduire, tr } from "../i18n/tr.ts";
 import { useParcours } from "../parcours";
 import { agencesDe } from "../scrape/agences/couverture";
 import { DEVIS_MS, SEARCH_PART_MS, TARIF_MS, searchStay } from "../searchStay";
@@ -431,7 +432,7 @@ async function relever(s: Station, job: Job, gen: number, signal: AbortSignal): 
   } catch (err) {
     console.warn("[prix] relevé en échec", s.id, err);
     return {
-      resultat: { etat: "echec", ts: Date.now(), raison: "Le relevé n’a pas abouti." },
+      resultat: { etat: "echec", ts: Date.now(), raison: aTraduire("Le relevé n’a pas abouti.") },
       annonces: [],
       injoignable,
       partsRendues,
@@ -554,7 +555,7 @@ function abandonner(): void {
   usePrix.setState({ course: null, file: [] });
   useParcours
     .getState()
-    .say("Le relevé s’est arrêté : l’application ne répond plus. Relancez-le plus tard.");
+    .say(tr("Le relevé s’est arrêté : l’application ne répond plus. Relancez-le plus tard."));
 }
 
 function demarrer(job: Job): void {

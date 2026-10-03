@@ -1,3 +1,4 @@
+import { langueIntl } from "./i18n/langue.ts";
 /** Mix de pistes. Source affichée : Skiinfo (bloc Domaine skiable), relevé daté.
  *  OSM reste le contrat de géométrie, pas le mix brochure. */
 
@@ -259,7 +260,7 @@ export function stationMatchesPiste(
 }
 
 export function formatKm(n: number): string {
-  return n.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+  return n.toLocaleString(langueIntl(), { maximumFractionDigits: 1 });
 }
 
 export type RunFeature = {

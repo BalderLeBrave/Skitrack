@@ -23,6 +23,8 @@
 
 import { montantCents } from "../devises.ts";
 import { periodeLbl } from "../provenance.ts";
+import { aTraduire, tr, trN } from "../i18n/tr.ts";
+import { langueIntl } from "../i18n/langue.ts";
 import { coutForfaits, type CoutForfaits } from "./cout.ts";
 import {
   joursDeSki,
@@ -96,7 +98,7 @@ export function journeeDuSejour(
   const estimation = journeeEstimee(grilles, adulte);
   return {
     statut: "duree-absente",
-    detail: `aucune journée publiée sur le forfait ${adulte.perimetre.nom}`,
+    detail: tr("aucune journée publiée sur le forfait {nom}", { nom: adulte.perimetre.nom }),
     dureesDisponibles: [r.duree.retenue],
     ...(estimation ? { estimation } : {}),
   };
@@ -141,14 +143,14 @@ export function joursDuSejour(dates: DatesSejour): number | null {
 
 /* ---------- Ce qui s'écrit ---------- */
 
-const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? "s" : ""}`;
-
 /** « 6 jours », « 6 journées » (additionnées), « 6 jours, pour 5 jours de
  *  ski » (durée supérieure retenue). */
 export function dureeLbl(r: PrixResolu): string {
-  if (r.calcul === "journees") return pluriel(r.duree.demandee, "journée");
-  const d = pluriel(r.duree.retenue, "jour");
-  return r.drapeaux.dureeSuperieure ? `${d}, pour ${pluriel(r.duree.demandee, "jour")} de ski` : d;
+  if (r.calcul === "journees") return trN(r.duree.demandee, "{n} journée", "{n} journées");
+  const d = trN(r.duree.retenue, "{n} jour", "{n} jours");
+  return r.drapeaux.dureeSuperieure
+    ? trN(r.duree.demandee, "{duree}, pour {n} jour de ski", "{duree}, pour {n} jours de ski", { duree: d })
+    : d;
 }
 
 /**
@@ -160,16 +162,21 @@ export function periodeDuPrix(r: PrixResolu): { libelle: string; bornes: string 
   const touchees = r.periodes.length ? r.periodes : [r.periode];
   const saison = r.grille.saison;
   if (touchees.every((p) => p.saisonEntiere))
-    return { libelle: `Saison ${saison}`, bornes: "sans période publiée" };
+    return { libelle: tr("Saison {saison}", { saison }), bornes: tr("sans période publiée") };
   const datees = touchees.filter((p) => !p.saisonEntiere);
-  const libelle = [...new Set(datees.map((p) => p.libelle))].join(" puis ");
+  const libelle = [...new Set(datees.map((p) => p.libelle))].join(tr(" puis "));
   const bornes = periodeLbl(datees[0].debut, datees[datees.length - 1].fin) ?? "";
-  return { libelle, bornes: r.drapeaux.saisonAnterieure ? `${bornes}, saison ${saison}` : bornes };
+  return {
+    libelle,
+    bornes: r.drapeaux.saisonAnterieure ? tr("{bornes}, saison {saison}", { bornes, saison }) : bornes,
+  };
 }
 
 /** « Forfait du domaine Les 3 Vallées », « Forfait de la station La Schlucht ». */
 export function perimetreLbl(r: PrixResolu): string {
-  return `Forfait ${r.perimetre.type === "domaine" ? "du domaine" : "de la station"} ${r.perimetre.nom}`;
+  return r.perimetre.type === "domaine"
+    ? tr("Forfait du domaine {nom}", { nom: r.perimetre.nom })
+    : tr("Forfait de la station {nom}", { nom: r.perimetre.nom });
 }
 
 /** Tout ce qui accompagne un prix résolu. */
@@ -189,18 +196,47 @@ export type LibellesForfait = {
 };
 
 /** Ce que dit une grille de confiance faible, avant les notes du résolveur. */
-const NON_VERIFIE = "Prix non vérifié sur la page officielle de la saison.";
+const NON_VERIFIE = aTraduire("Prix non vérifié sur la page officielle de la saison.");
+
+const MOIS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+
+/** « 11 août 2026 », écrit dans une grille, dans la langue de l'interface. */
+function dateDansLaLangue(fr: string): string {
+  const m = /^(\d{1,2}) (\S+) (\d{4})$/.exec(fr.trim());
+  const mois = m ? MOIS_FR.indexOf(m[2]) : -1;
+  if (!m || mois < 0) return fr;
+  return new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+    new Date(Date.UTC(Number(m[3]), mois, Number(m[1]))),
+  );
+}
+
+/**
+ * La source d'une grille telle que l'écran la montre. Le libellé est écrit en
+ * français dans la grille (`migration.ts`) et y reste : il se traduit ici, à
+ * l'affichage, date comprise. Un libellé d'une autre forme passe tel quel.
+ */
+export function sourceAffichee(libelle: string): string {
+  const cat = /^Catalogue des forfaits(?:, relevé du (.+))?$/.exec(libelle);
+  if (cat) {
+    return cat[1]
+      ? tr("Catalogue des forfaits, relevé du {date}", { date: dateDansLaLangue(cat[1]) })
+      : tr("Catalogue des forfaits");
+  }
+  const page = /^Page officielle, relevé du (.+)$/.exec(libelle);
+  if (page) return tr("Page officielle, relevé du {date}", { date: dateDansLaLangue(page[1]) });
+  return libelle;
+}
 
 export function libellesForfait(r: PrixResolu): LibellesForfait {
   const { libelle, bornes } = periodeDuPrix(r);
-  const raisons = r.grille.confiance === "faible" ? [NON_VERIFIE, ...r.notes] : r.notes;
+  const raisons = r.grille.confiance === "faible" ? [tr(NON_VERIFIE), ...r.notes] : r.notes;
   return {
     prix: montantCents(r.prix, r.devise) ?? "",
     duree: dureeLbl(r),
     periode: libelle,
     bornes,
     perimetre: perimetreLbl(r),
-    source: r.grille.source.libelle,
+    source: sourceAffichee(r.grille.source.libelle),
     faible: r.fiabilite === "faible",
     raisons: raisons.join(" "),
   };
@@ -221,15 +257,15 @@ export function mentionForfait(r: PrixResolu): string {
 export function echecLbl(e: EchecResolution): string {
   switch (e.statut) {
     case "grille-ancienne":
-      return "non publié";
+      return tr("non publié");
     case "categorie-absente":
-      return "non communiqué";
+      return tr("non communiqué");
     case "duree-absente":
-      return "durée non publiée";
+      return tr("durée non publiée");
     case "dates-invalides":
-      return "dates à revoir";
+      return tr("dates à revoir");
     default:
-      return "non relevé";
+      return tr("non relevé");
   }
 }
 
@@ -261,7 +297,7 @@ export function budgetForfaits(
   if (a.statut !== "resolu") {
     return {
       ...coutForfaits(null, null, adultes, enfants),
-      libelle: "Forfaits",
+      libelle: tr("Forfaits"),
       duree: null,
       periode: null,
       periodeCourte: null,
@@ -274,7 +310,7 @@ export function budgetForfaits(
   const duree = dureeLbl(a).split(",")[0];
   return {
     ...coutForfaits(a.prix, e, adultes, enfants, a.devise),
-    libelle: `Forfaits ${duree}`,
+    libelle: tr("Forfaits {duree}", { duree }),
     duree,
     periode: `${libelle}, ${bornes}`,
     periodeCourte: libelle,

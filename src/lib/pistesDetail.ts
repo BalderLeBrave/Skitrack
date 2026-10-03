@@ -25,6 +25,8 @@
 
 import { difficultyToColor, type PisteColor } from "./pistes.ts";
 import type { OsmVerdict } from "./openskimap.ts";
+import { langueIntl } from "./i18n/langue.ts";
+import { aTraduire, tr, trN } from "./i18n/tr.ts";
 
 export type TronconDetail = {
   nom: string | null;
@@ -98,13 +100,14 @@ export type PisteDetail = {
   rattaches: number;
 };
 
-/** Les libellés des couleurs, écrits en toutes lettres à côté de la pastille. */
+/** Les libellés des couleurs, écrits en toutes lettres à côté de la pastille.
+ *  À traduire au rendu : `tr(COULEUR_LIBELLE[c])`. */
 export const COULEUR_LIBELLE: Record<PisteColor, string> = {
-  green: "Verte",
-  blue: "Bleue",
-  red: "Rouge",
-  black: "Noire",
-  other: "Autre",
+  green: aTraduire("Verte"),
+  blue: aTraduire("Bleue"),
+  red: aTraduire("Rouge"),
+  black: aTraduire("Noire"),
+  other: aTraduire("Autre"),
 };
 
 /** L'ordre des couleurs dans le tableau et dans le tri. */
@@ -215,7 +218,7 @@ export function regrouper(
     }
     // Pas une piste : ni affiché, ni compté.
     if (t.recouvre || t.ecarte || t.acces) return;
-    sansNom.push(enPiste(`sans-nom-${i}`, t.pres ? `Sans nom, ${t.pres}` : null, couleur, sect, [t]));
+    sansNom.push(enPiste(`sans-nom-${i}`, t.pres ? tr("Sans nom, {pres}", { pres: t.pres }) : null, couleur, sect, [t]));
   });
   const pistes = [...groupes.entries()].map(([cle, g]) => enPiste(cle, g.nom, g.couleur, g.secteur, g.ts));
   return {
@@ -381,10 +384,13 @@ export function lignePistes(
   row: { n: number | null; km: number | null; grain: "station" | "valley" } | null | undefined,
 ): string | null {
   if (!row || (row.n == null && row.km == null)) return null;
-  const nb = (v: number, d = 0) => v.toLocaleString("fr-FR", { maximumFractionDigits: d });
+  const nb = (v: number, d = 0) => v.toLocaleString(langueIntl(), { maximumFractionDigits: d });
   const morceaux = [
-    row.n != null ? `${nb(row.n)}\u00a0piste${row.n > 1 ? "s" : ""}` : null,
+    row.n != null ? trN(row.n, "{n}\u00a0piste", "{n}\u00a0pistes", { n: nb(row.n) }) : null,
     row.km != null ? `${nb(row.km, 1)}\u00a0km` : null,
   ].filter(Boolean);
-  return `${morceaux.join(" · ")} (Skiinfo, ${row.grain === "valley" ? "vallée" : "station"})`;
+  return tr("{chiffres} (Skiinfo, {echelle})", {
+    chiffres: morceaux.join(" · "),
+    echelle: row.grain === "valley" ? tr("vallée") : tr("station"),
+  });
 }

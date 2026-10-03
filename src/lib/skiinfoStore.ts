@@ -1,6 +1,8 @@
 /** Overlay Skiinfo en mémoire. Le snapshot JSON reste le repli. */
 
 import type { SkiinfoRow } from "./skiinfo.ts";
+import { langueIntl } from "./i18n/langue.ts";
+import { tr } from "./i18n/tr.ts";
 
 export const SKIINFO_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -39,12 +41,14 @@ export function markStaleIfNeeded(row: SkiinfoLive, ttlMs = SKIINFO_TTL_MS, now 
 
 export function formatSkiinfoAge(row: SkiinfoLive, now = Date.now()): string {
   const at = Date.parse(row.fetchedAt ?? "");
-  if (!Number.isFinite(at)) return `relevé ${row.at}`;
-  if (row.status === "erreur") return row.lastError ? `fiche injoignable — ${row.lastError}` : "fiche injoignable";
-  if (row.status === "stale") return "relevé à actualiser";
+  if (!Number.isFinite(at)) return tr("relevé {date}", { date: row.at });
+  if (row.status === "erreur") {
+    return row.lastError ? tr("fiche injoignable : {erreur}", { erreur: row.lastError }) : tr("fiche injoignable");
+  }
+  if (row.status === "stale") return tr("relevé à actualiser");
   const delta = now - at;
-  if (delta < 60_000) return "à l’instant";
-  if (delta < 3_600_000) return `il y a ${Math.max(1, Math.round(delta / 60_000))} min`;
-  if (delta < 36_000_000) return `il y a ${Math.max(1, Math.round(delta / 3_600_000))} h`;
-  return new Date(at).toLocaleDateString("fr-FR");
+  if (delta < 60_000) return tr("à l’instant");
+  if (delta < 3_600_000) return tr("il y a {n} min", { n: Math.max(1, Math.round(delta / 60_000)) });
+  if (delta < 36_000_000) return tr("il y a {n} h", { n: Math.max(1, Math.round(delta / 3_600_000)) });
+  return new Date(at).toLocaleDateString(langueIntl());
 }

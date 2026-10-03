@@ -19,7 +19,7 @@ import { Vide } from "@/components/v7/Vide";
 import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
-import { BRA_LABELS, lieuLisible } from "@/lib/bra/parse";
+import { braLabel, lieuLisible } from "@/lib/bra/parse";
 import { getForecastPair, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
 import { fuseauStation, meteoEnDateDu } from "@/lib/meteo/enDateDu";
 import {
@@ -49,6 +49,8 @@ import {
 } from "@/lib/v7";
 import { webcamsForStation } from "@/lib/webcams";
 import { Webcams } from "@/components/v7/Webcams";
+import { langueIntl } from "@/lib/i18n/langue";
+import { aTraduire, langue, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/stations/$id")({ component: Fiche });
 
@@ -68,21 +70,26 @@ export const Route = createFileRoute("/stations/$id")({ component: Fiche });
 function noteEstimation(journee: boolean, enfant: boolean, enfantsAuTarifAdulte: boolean): string | null {
   if (!journee && !enfant) return null;
   const quoi =
-    journee && enfant ? "Journée et forfait enfant estimés" : journee ? "Journée estimée" : "Forfait enfant estimé";
-  const cout = enfant && enfantsAuTarifAdulte ? " Le coût du séjour compte donc les enfants au tarif adulte." : "";
-  return `${quoi} d’après le 6 jours adulte, faute de relevé.${cout}`;
+    journee && enfant
+      ? tr("Journée et forfait enfant estimés d’après le 6 jours adulte, faute de relevé.")
+      : journee
+        ? tr("Journée estimée d’après le 6 jours adulte, faute de relevé.")
+        : tr("Forfait enfant estimé d’après le 6 jours adulte, faute de relevé.");
+  const cout =
+    enfant && enfantsAuTarifAdulte ? ` ${tr("Le coût du séjour compte donc les enfants au tarif adulte.")}` : "";
+  return `${quoi}${cout}`;
 }
 
 /** Le prix d'une case, ou ce qui le remplace : « non communiqué », et
  *  l'estimation du catalogue quand elle existe (« ≈ 55 € », « estimé »). */
 function CaseForfait({ r }: { r: Resolution | null }) {
-  if (!r) return <b className="absent">non relevé</b>;
+  if (!r) return <b className="absent">{tr("non relevé")}</b>;
   if (r.statut === "resolu") return <b>{libellesForfait(r).prix}</b>;
   if (r.estimation)
     return (
       <>
         <b>≈ {montantCents(r.estimation.prix, r.estimation.devise)}</b>
-        <span>estimé</span>
+        <span>{tr("estimé")}</span>
       </>
     );
   return <b className="absent">{echecLbl(r)}</b>;
@@ -130,11 +137,16 @@ function jourLbl(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!m) return iso;
   const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
-  return `${JOURS[d.getUTCDay()]} ${m[3]}`;
+  // En anglais, le jour abrégé vient d'`Intl` (« Sun ») ; le français garde sa table.
+  const jour =
+    langue() === "en"
+      ? d.toLocaleDateString(langueIntl(), { weekday: "short", timeZone: "UTC" })
+      : JOURS[d.getUTCDay()];
+  return `${jour} ${m[3]}`;
 }
 
 function temp(v: number | null | undefined): string {
-  return v == null ? "non relevé" : `${Math.round(v)} °C`;
+  return v == null ? tr("non relevé") : `${Math.round(v)} °C`;
 }
 
 /** Une altitude aujourd'hui : matin, après-midi et cinq mesures du jour. */
@@ -147,47 +159,47 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
         <span>{alt}</span>
       </div>
       {wx.status === "loading" ? (
-        <p className="wx7__msg">Prévision en cours de chargement…</p>
+        <p className="wx7__msg">{tr("Prévision en cours de chargement…")}</p>
       ) : wx.status === "err" || !lvl || !j ? (
-        <p className="wx7__msg">Prévision indisponible.</p>
+        <p className="wx7__msg">{tr("Prévision indisponible.")}</p>
       ) : (
         <>
           <div className="wx7__deux">
             <div>
-              <span>Matin</span>
+              <span>{tr("Matin")}</span>
               <b>{temp(lvl.morning.temp)}</b>
             </div>
             <div>
-              <span>Après-midi</span>
+              <span>{tr("Après-midi")}</span>
               <b>{temp(lvl.afternoon.temp)}</b>
             </div>
           </div>
           <dl className="wx7__mesures">
             <div>
-              <dt>Min / max</dt>
+              <dt>{tr("Min / max")}</dt>
               <dd>
                 {j.tempMin == null || j.tempMax == null
-                  ? "non relevé"
+                  ? tr("non relevé")
                   : `${Math.round(j.tempMin)} / ${Math.round(j.tempMax)} °C`}
               </dd>
             </div>
             <div>
-              <dt>Vent max</dt>
-              <dd>{j.windMaxKmh == null ? "non relevé" : `${Math.round(j.windMaxKmh)} km/h`}</dd>
+              <dt>{tr("Vent max")}</dt>
+              <dd>{j.windMaxKmh == null ? tr("non relevé") : `${Math.round(j.windMaxKmh)} km/h`}</dd>
             </div>
             <div>
-              <dt>Neige 24 h</dt>
+              <dt>{tr("Neige 24 h")}</dt>
               <dd className={j.snowCm ? "wx7__neige" : undefined}>
-                {j.snowCm == null ? "non relevé" : j.snowCm > 0 ? `${j.snowCm} cm` : "0 cm"}
+                {j.snowCm == null ? tr("non relevé") : j.snowCm > 0 ? `${j.snowCm} cm` : "0 cm"}
               </dd>
             </div>
             <div>
-              <dt>Pluie 24 h</dt>
-              <dd>{j.rainMm == null ? "non relevé" : `${j.rainMm} mm`}</dd>
+              <dt>{tr("Pluie 24 h")}</dt>
+              <dd>{j.rainMm == null ? tr("non relevé") : `${j.rainMm} mm`}</dd>
             </div>
             <div>
-              <dt>Neige au sol</dt>
-              <dd>{j.depthCm == null ? "non modélisée" : `${Math.round(j.depthCm)} cm`}</dd>
+              <dt>{tr("Neige au sol")}</dt>
+              <dd>{j.depthCm == null ? tr("non modélisée") : `${Math.round(j.depthCm)} cm`}</dd>
             </div>
           </dl>
         </>
@@ -212,7 +224,7 @@ function Bande({ titre, lvl }: { titre: string; lvl: ForecastLevel }) {
                 absente : il reste lisible à l'icône, et en infobulle. */}
             <span
               className={`bande7__neige${d.snowCm ? " bande7__neige--oui" : ""}`}
-              title={d.snowCm === 0 ? "Pas de neige prévue" : undefined}
+              title={d.snowCm === 0 ? tr("Pas de neige prévue") : undefined}
             >
               {d.snowCm == null ? "–" : d.snowCm > 0 ? `${d.snowCm} cm` : ""}
             </span>
@@ -308,18 +320,19 @@ function useBra(stationId: string): { etat: EtatBraUI; reessayer: () => void } {
   };
 }
 
-/** « rattaché par proximité » se dit : une déduction n'est pas un relevé. */
+/** « rattaché par proximité » se dit : une déduction n'est pas un relevé.
+ *  Traduit au rendu. */
 const VOIE_LBL: Record<string, string> = {
   nom: "",
-  domaine: " (rattachement par le domaine)",
-  proximite: " (rattachement par proximité)",
+  domaine: aTraduire(" (rattachement par le domaine)"),
+  proximite: aTraduire(" (rattachement par proximité)"),
 };
 
 function heureLisible(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleString("fr-FR", {
+  return d.toLocaleString(langueIntl(), {
     weekday: "short",
     day: "2-digit",
     month: "short",
@@ -346,28 +359,30 @@ function echu(validUntil: string | null | undefined): boolean {
  * bulletin non obtenu, qu'on peut redemander. Sans niveau publié, le
  * pictogramme reste gris et sans chiffre.
  */
-function BulletinAvalanche({ bra }: { bra: ReturnType<typeof useBra> }) {
+function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useBra>; massifStation?: string }) {
   const [ouvert, setOuvert] = useState(false);
   const idTexte = useId();
   const braData = bra.etat.status === "pret" ? bra.etat.data : null;
   const official = braData?.official;
   const risque = official?.ok && official.risk != null ? official.risk : null;
-  const voie = braData?.voie ? VOIE_LBL[braData.voie] : "";
+  const voieFr = braData?.voie ? VOIE_LBL[braData.voie] : "";
+  const voie = voieFr ? tr(voieFr) : "";
 
   let titre: string;
   let texte: ReactNode = null;
   let action: ReactNode = null;
   if (bra.etat.status === "chargement") {
-    titre = "Bulletin en cours de chargement…";
+    titre = tr("Bulletin en cours de chargement…");
   } else if (risque != null) {
-    titre = `Risque ${BRA_LABELS[risque]?.fr ?? risque}${braData?.massif ? ` · ${braData.massif}` : ""}`;
+    titre = `${tr("Risque {niveau}", { niveau: braLabel(risque) ?? risque })}${braData?.massif ? ` · ${braData.massif}` : ""}`;
     texte = (
       <>
-        Bulletin officiel Météo-France
-        {official?.acces === "donnees-ouvertes" ? " (archive publique, data.gouv.fr)" : ""}
+        {tr("Bulletin officiel Météo-France")}
+        {official?.acces === "donnees-ouvertes" ? tr(" (archive publique, data.gouv.fr)") : ""}
         {heureLisible(official?.issuedAt) ? (
           <>
-            , publié le <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
+            , {tr("publié le")}{" "}
+            <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
           </>
         ) : null}
         {voie}.
@@ -376,50 +391,59 @@ function BulletinAvalanche({ bra }: { bra: ReturnType<typeof useBra> }) {
         {echu(official?.validUntil) ? (
           <>
             {" "}
-            Échu depuis le{" "}
-            <time dateTime={official?.validUntil ?? undefined}>{heureLisible(official?.validUntil)}</time>, aucun
-            bulletin plus récent n’est disponible.
+            {tr("Échu depuis le")}{" "}
+            <time dateTime={official?.validUntil ?? undefined}>{heureLisible(official?.validUntil)}</time>
+            {tr(", aucun bulletin plus récent n’est disponible.")}
           </>
         ) : null}
         {official?.loc1 && official.risk1 != null
-          ? ` ${BRA_LABELS[official.risk1]?.fr ?? official.risk1} ${lieuLisible(official.loc1)}`
+          ? ` ${braLabel(official.risk1) ?? official.risk1} ${lieuLisible(official.loc1)}`
           : ""}
         {official?.loc2 && official.risk2 != null
-          ? ` · ${BRA_LABELS[official.risk2]?.fr ?? official.risk2} ${lieuLisible(official.loc2)}`
+          ? ` · ${braLabel(official.risk2) ?? official.risk2} ${lieuLisible(official.loc2)}`
           : ""}
-        {official?.altitude != null ? ` · bascule à ${fmt(official.altitude)} m` : ""}
+        {official?.altitude != null ? tr(" · bascule à {altitude} m", { altitude: fmt(official.altitude) }) : ""}
       </>
     );
   } else if (braData?.etat === "ok" && official?.message) {
-    titre = "Hors saison";
+    titre = tr("Hors saison");
     texte = (
       <>
-        {official.message} Massif Météo-France : {braData.massif}
+        {official.message} {tr("Massif Météo-France : {massif}", { massif: braData.massif ?? "" })}
         {voie}.
       </>
     );
   } else if (braData?.etat === "hors-zone") {
-    titre = "Pas de bulletin pour ce massif";
-    texte = braData.cause;
+    titre = tr("Pas de bulletin pour ce massif");
+    // La cause vient du serveur, en français : elle se réécrit ici, dans la
+    // langue de l'écran, avec le massif de la station.
+    texte = massifStation
+      ? tr("Météo-France ne publie pas de bulletin d’avalanche pour le massif « {massif} ».", { massif: massifStation })
+      : braData.cause;
   } else if (braData?.etat === "non-rattache") {
-    titre = "Station non rattachée à un massif Météo-France";
-    texte = <>{braData.cause} Consultez le bulletin du secteur sur le site de Météo-France.</>;
+    titre = tr("Station non rattachée à un massif Météo-France");
+    texte = (
+      <>
+        {tr("Aucun massif Météo-France ne couvre cette station.")}{" "}
+        {tr("Consultez le bulletin du secteur sur le site de Météo-France.")}
+      </>
+    );
   } else {
-    titre = "Bulletin non obtenu";
+    titre = tr("Bulletin non obtenu");
     action = (
       <button type="button" className="lien-doux" onClick={bra.reessayer}>
-        Réessayer
+        {tr("Réessayer")}
       </button>
     );
     texte = (
       <>
-        Massif Météo-France : {braData?.massif ?? "non rattaché"}
-        {voie}. Dernière tentative : {heureLisible(braData?.releveA) ?? "à l’instant"}.
+        {tr("Massif Météo-France : {massif}", { massif: braData?.massif ?? tr("non rattaché") })}
+        {voie}. {tr("Dernière tentative : {heure}.", { heure: heureLisible(braData?.releveA) ?? tr("à l’instant") })}
         {/* La cause technique vit dans un détail repliable, jamais dans le
             libellé principal. */}
         {braData?.cause || bra.etat.status === "echec" ? (
           <details className="bra7__detail">
-            <summary>Détail technique</summary>
+            <summary>{tr("Détail technique")}</summary>
             <code>{bra.etat.status === "echec" ? bra.etat.cause : braData?.cause}</code>
           </details>
         ) : null}
@@ -439,7 +463,7 @@ function BulletinAvalanche({ bra }: { bra: ReturnType<typeof useBra> }) {
               className="bra7__plus"
               aria-expanded={ouvert}
               aria-controls={idTexte}
-              aria-label={ouvert ? "Masquer le texte du bulletin" : "Afficher le texte du bulletin"}
+              aria-label={ouvert ? tr("Masquer le texte du bulletin") : tr("Afficher le texte du bulletin")}
               onClick={() => setOuvert((o) => !o)}
             >
               <Icon name={ouvert ? "moins" : "plus"} taille={14} />
@@ -465,7 +489,7 @@ function BulletinAvalanche({ bra }: { bra: ReturnType<typeof useBra> }) {
         rel="noopener"
         className="btn7 btn7--fantome"
       >
-        {braData?.massif ? `Bulletin ${braData.massif}` : "Trouver le bulletin"}
+        {braData?.massif ? tr("Bulletin {massif}", { massif: braData.massif }) : tr("Trouver le bulletin")}
         <Icon name="externe" taille={12} />
       </a>
     </section>
@@ -480,14 +504,14 @@ function FicheInconnue({ id }: { id: string }) {
     <Coquille>
       <main className="v7main" id="s-fiche" data-screen-label="Fiche station">
         <Vide
-          titre="Station inconnue"
+          titre={tr("Station inconnue")}
           actions={
             <button type="button" className="btn7" onClick={() => void go("compare")}>
-              Voir toutes les stations
+              {tr("Voir toutes les stations")}
             </button>
           }
         >
-          « {id} » ne correspond à aucune des {STATIONS.length} stations de la liste.
+          {tr("« {id} » ne correspond à aucune des {total} stations de la liste.", { id, total: STATIONS.length })}
         </Vide>
       </main>
     </Coquille>
@@ -522,14 +546,14 @@ function FicheBody({ s }: { s: Station }) {
   // reste à faire côté dépôt.
   const photoNote = photo
     ? pret?.fromName
-      ? `Photo Skiinfo de la station ${pret.fromName}, même domaine`
-      : "Photo Skiinfo"
+      ? tr("Photo Skiinfo de la station {station}, même domaine", { station: pret.fromName })
+      : tr("Photo Skiinfo")
     : stationPhotoAbsence(s);
   const adulte = prix.forfaits?.adulte.statut === "resolu" ? prix.forfaits.adulte : null;
   const enfant = prix.forfaits?.enfant ?? null;
   const lib = adulte ? libellesForfait(adulte) : null;
   const pass = prix.budget;
-  const joursLbl = prix.jours != null ? `${prix.jours} jour${prix.jours > 1 ? "s" : ""}` : "Séjour";
+  const joursLbl = prix.jours != null ? trN(prix.jours, "{n} jour", "{n} jours") : tr("Séjour");
   // Ce que le catalogue estime sans l'avoir relevé : affiché « estimé », hors
   // du coût.
   const estimeJ1 = prix.journee?.statut !== "resolu" && !!prix.journee?.estimation;
@@ -548,7 +572,7 @@ function FicheBody({ s }: { s: Station }) {
           }}
         >
           <Icon name="chevron-gauche" taille={14} />
-          Comparer les stations
+          {tr("Comparer les stations")}
         </a>
 
         <OngletsStation s={s} actif="fiche" />
@@ -564,7 +588,7 @@ function FicheBody({ s }: { s: Station }) {
             <span className="fhero7__crumb">{crumb(s)}</span>
             <h1>{s.name}</h1>
             <div className="fhero7__faits">
-              <span>{altLbl(s) ?? "altitudes non relevées"}</span>
+              <span>{altLbl(s) ?? tr("altitudes non relevées")}</span>
               <i>·</i>
               {/* Sans valeur, le complément ne suit pas : « km non publié de
                   pistes, domaine » ne voulait rien dire. */}
@@ -572,10 +596,10 @@ function FicheBody({ s }: { s: Station }) {
                 {kmLbl(s) ? (
                   <>
                     {kmLbl(s)}
-                    <small> de pistes, domaine</small>
+                    <small>{tr(" de pistes, domaine")}</small>
                   </>
                 ) : (
-                  "kilomètres de pistes non publiés"
+                  tr("kilomètres de pistes non publiés")
                 )}
               </span>
               <i>·</i>
@@ -583,14 +607,14 @@ function FicheBody({ s }: { s: Station }) {
                 {liftsLbl(s) ? (
                   <>
                     {liftsLbl(s)}
-                    <small> remontée{(s.lifts ?? 0) > 1 ? "s" : ""}, domaine</small>
+                    <small>{trN(s.lifts ?? 0, " remontée, domaine", " remontées, domaine")}</small>
                   </>
                 ) : (
-                  "remontées non relevées"
+                  tr("remontées non relevées")
                 )}
               </span>
               <i>·</i>
-              <span>Village {villageLbl(s) ?? "non relevé"}</span>
+              <span>{tr("Village {altitude}", { altitude: villageLbl(s) ?? tr("non relevé") })}</span>
             </div>
           </div>
           <span className="fhero7__note">{photoNote}</span>
@@ -601,20 +625,23 @@ function FicheBody({ s }: { s: Station }) {
             {/* ── Forfaits ─────────────────────────────────────────── */}
             <section className="carte7-sect">
               <div className="carte7-sect__tete">
-                <h2>Forfaits{adulte ? ` · ${adulte.perimetre.nom}` : ""}</h2>
+                <h2>
+                  {tr("Forfaits")}
+                  {adulte ? ` · ${adulte.perimetre.nom}` : ""}
+                </h2>
                 {/* D'où vient le prix, en clair : la page officielle et sa
                     date, le catalogue et la sienne, ou l'agrégateur. */}
-                <span>{lib ? lib.source : prix.pret ? "Aucun relevé" : "Lecture des tarifs…"}</span>
+                <span>{lib ? lib.source : prix.pret ? tr("Aucun relevé") : tr("Lecture des tarifs…")}</span>
               </div>
               {adulte && lib ? (
                 <>
                   <div className="forfaits7">
                     <div>
-                      <span>Journée adulte</span>
+                      <span>{tr("Journée adulte")}</span>
                       <CaseForfait r={prix.journee} />
                     </div>
                     <div>
-                      <span>{joursLbl} adulte</span>
+                      <span>{tr("{duree} adulte", { duree: joursLbl })}</span>
                       <b className="forfaits7__grand">{lib.prix}</b>
                       {/* La durée du forfait retenu, quand ce n'est pas celle
                           du séjour : six journées additionnées, ou le 6 jours
@@ -625,23 +652,25 @@ function FicheBody({ s }: { s: Station }) {
                       ) : adulte.grille.source.origine === "officiel" ? (
                         <span className="forfaits7__releve">
                           <Icon name="coche" taille={12} />
-                          Page officielle
+                          {tr("Page officielle")}
                         </span>
                       ) : null}
                     </div>
                     <div>
-                      <span>{joursLbl} enfant</span>
+                      <span>{tr("{duree} enfant", { duree: joursLbl })}</span>
                       <CaseForfait r={enfant} />
                       {enfant?.statut === "resolu" && enfant.drapeaux.categorieRepli ? (
-                        <span className="forfaits7__herite">tarif « {enfant.categorie.libelle} »</span>
+                        <span className="forfaits7__herite">
+                          {tr("tarif « {categorie} »", { categorie: enfant.categorie.libelle })}
+                        </span>
                       ) : null}
                     </div>
                     <div>
-                      <span>Saison adulte</span>
+                      <span>{tr("Saison adulte")}</span>
                       {prix.saison ? (
                         <b>{montantCents(prix.saison.prix, prix.saison.devise)}</b>
                       ) : (
-                        <b className="absent">non relevé</b>
+                        <b className="absent">{tr("non relevé")}</b>
                       )}
                     </div>
                   </div>
@@ -656,8 +685,12 @@ function FicheBody({ s }: { s: Station }) {
               {prix.pret && !adulte ? (
                 <p className="carte7-sect__texte">
                   {prix.forfaits?.adulte.statut === "grille-ancienne"
-                    ? "Forfait non publié : le dernier tarif connu a plus de trois saisons. Le coût du séjour n’inclura pas de forfait tant qu’un prix récent n’a pas été relevé ou saisi."
-                    : "Aucun tarif relevé pour ce domaine. Le coût du séjour n’inclura pas de forfait tant qu’un prix n’a pas été relevé ou saisi."}
+                    ? tr(
+                        "Forfait non publié : le dernier tarif connu a plus de trois saisons. Le coût du séjour n’inclura pas de forfait tant qu’un prix récent n’a pas été relevé ou saisi.",
+                      )
+                    : tr(
+                        "Aucun tarif relevé pour ce domaine. Le coût du séjour n’inclura pas de forfait tant qu’un prix n’a pas été relevé ou saisi.",
+                      )}
                 </p>
               ) : null}
             </section>
@@ -665,20 +698,20 @@ function FicheBody({ s }: { s: Station }) {
             {/* ── Aujourd'hui ──────────────────────────────────────── */}
             <section className="sect7">
               <div className="carte7-sect__tete">
-                <h2>Aujourd’hui, aux deux altitudes</h2>
+                <h2>{tr("Aujourd’hui, aux deux altitudes")}</h2>
                 {wx.status === "ok" ? <span>{meteoEnDateDu(wx.at, fuseauStation(s.country))}</span> : null}
               </div>
               <div className="wx7">
                 <Niveau
-                  titre="Bas des pistes"
-                  alt={loMesure != null ? `${fmt(loMesure)} m` : "altitude non relevée"}
+                  titre={tr("Bas des pistes")}
+                  alt={loMesure != null ? `${fmt(loMesure)} m` : tr("altitude non relevée")}
                   wx={wx}
                   lvl={wx.status === "ok" ? wx.data.low : null}
                   haut={false}
                 />
                 <Niveau
-                  titre="Point culminant"
-                  alt={hiMesure != null ? `${fmt(hiMesure)} m` : "altitude non relevée"}
+                  titre={tr("Point culminant")}
+                  alt={hiMesure != null ? `${fmt(hiMesure)} m` : tr("altitude non relevée")}
                   wx={wx}
                   lvl={wx.status === "ok" ? wx.data.high : null}
                   haut
@@ -688,13 +721,13 @@ function FicheBody({ s }: { s: Station }) {
 
             {wx.status === "ok" && wx.data.low.days.length ? (
               <section className="carte7-sect">
-                <h2>14 jours</h2>
+                <h2>{tr("14 jours")}</h2>
                 <Bande
-                  titre={`Bas des pistes · ${loMesure != null ? `${fmt(loMesure)} m` : "altitude non relevée"}`}
+                  titre={`${tr("Bas des pistes")} · ${loMesure != null ? `${fmt(loMesure)} m` : tr("altitude non relevée")}`}
                   lvl={wx.data.low}
                 />
                 <Bande
-                  titre={`Point culminant · ${hiMesure != null ? `${fmt(hiMesure)} m` : "altitude non relevée"}`}
+                  titre={`${tr("Point culminant")} · ${hiMesure != null ? `${fmt(hiMesure)} m` : tr("altitude non relevée")}`}
                   lvl={wx.data.high}
                 />
               </section>
@@ -709,30 +742,30 @@ function FicheBody({ s }: { s: Station }) {
             <Webcams key={`webcams-${s.id}`} cams={cams} />
 
             {/* ── Bulletin d'avalanche ─────────────────────────────── */}
-            <BulletinAvalanche key={`bra-${s.id}`} bra={bra} />
+            <BulletinAvalanche key={`bra-${s.id}`} bra={bra} massifStation={s.massif} />
           </div>
 
           <aside className="aside7">
-            <span className="v7surtitre">Votre séjour ici</span>
+            <span className="v7surtitre">{tr("Votre séjour ici")}</span>
             <dl className="aside7__faits">
               <div>
-                <dt>Dates</dt>
+                <dt>{tr("Dates")}</dt>
                 <dd>{datesLbl(checkIn, checkOut, nights)}</dd>
               </div>
               <div>
-                <dt>Voyageurs</dt>
+                <dt>{tr("Voyageurs")}</dt>
                 <dd>{groupLbl(trav, rooms, enfants)}</dd>
               </div>
               <div>
-                <dt>{pass?.libelle ?? "Forfaits"}</dt>
+                <dt>{pass?.libelle ?? tr("Forfaits")}</dt>
                 <dd className={pass?.total == null ? "absent" : undefined}>
-                  {pass?.total != null ? montantCents(pass.total, pass.devise) : (pass?.manque ?? "non relevés")}
+                  {pass?.total != null ? montantCents(pass.total, pass.devise) : (pass?.manque ?? tr("non relevés"))}
                   {/* Le détail et la période du forfait ; un enfant compté au
                       tarif adulte, faute de tarif enfant publié, porte sa
                       mention dans le détail. */}
                   {pass ? (
                     <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
-                      {pass.total == null ? "aucun tarif pour ce domaine" : pass.detail}
+                      {pass.total == null ? tr("aucun tarif pour ce domaine") : pass.detail}
                     </span>
                   ) : null}
                   {pass?.periode ? <span>{pass.periode}</span> : null}
@@ -747,7 +780,9 @@ function FicheBody({ s }: { s: Station }) {
                 void go("lodging");
               }}
             >
-              {retained ? `Voir les logements ${aStation(s.name)}` : "Retenir et voir les logements"}
+              {retained
+                ? tr("Voir les logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })
+                : tr("Retenir et voir les logements")}
               <Icon name="fleche-droite" taille={16} />
             </button>
             <div>
@@ -757,11 +792,11 @@ function FicheBody({ s }: { s: Station }) {
                 aria-pressed={inCmp}
                 onClick={() => toggleCmp(s.id)}
               >
-                {inCmp ? "Dans la comparaison" : "Comparer"}
+                {inCmp ? tr("Dans la comparaison") : tr("Comparer")}
               </button>
             </div>
             <p className="aside7__note">
-              Dates et voyageurs se changent dans la barre du haut et suivent jusqu’à la réservation.
+              {tr("Dates et voyageurs se changent dans la barre du haut et suivent jusqu’à la réservation.")}
             </p>
           </aside>
         </div>

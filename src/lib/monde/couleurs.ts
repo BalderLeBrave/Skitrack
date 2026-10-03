@@ -30,6 +30,7 @@
  */
 
 import { decimal } from "../nombres.ts";
+import { tr } from "../i18n/tr.ts";
 import partVerte from "./data/partVerte.json" with { type: "json" };
 
 export type QuatreCouleurs = { vert: number; bleu: number; rouge: number; noir: number };
@@ -151,10 +152,13 @@ export function repartition(entrees: {
  *  lise sans aller ouvrir le code. */
 export function mentionSource(r: Repartition | null): string | null {
   if (!r) return null;
-  if (r.source === "openskimap") return "relevé OpenSkiMap";
-  if (r.source === "skiinfo") return "publié par la station (Skiinfo)";
+  if (r.source === "openskimap") return tr("relevé OpenSkiMap");
+  if (r.source === "skiinfo") return tr("publié par la station (Skiinfo)");
   const pct = Math.round((r.partVerte ?? 0) * 100);
-  return `skiresort.fr : vert et bleu séparés à ${pct} %, part mesurée sur ${r.partVerteDomaines} domaines du pays`;
+  return tr("skiresort.fr : vert et bleu séparés à {pct} %, part mesurée sur {n} domaines du pays", {
+    pct,
+    n: r.partVerteDomaines ?? 0,
+  });
 }
 
 // ─── Le recours, pour les domaines qu'OpenSkiMap ne mesure pas ───────────────
@@ -272,6 +276,6 @@ export async function repartitionsDesDomaines(
 export function mentionRattachement(r: Rattachement | undefined): string | null {
   if (!r) return null;
   const site = r.s === "skiinfo" ? "Skiinfo" : "skiresort.fr";
-  const d = r.km < 0.1 ? "au même point" : `à ${decimal(r.km, 1)} km`;
-  return `rapproché de la fiche ${site} « ${r.nom} », ${d}`;
+  const d = r.km < 0.1 ? tr("au même point") : tr("à {km} km", { km: decimal(r.km, 1) });
+  return tr("rapproché de la fiche {site} « {nom} », {distance}", { site, nom: r.nom, distance: d });
 }

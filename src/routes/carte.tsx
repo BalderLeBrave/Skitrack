@@ -34,6 +34,9 @@ import { plageTexte, poserBorne } from "@/lib/plage";
 import { formatAlt, STATIONS, type Station } from "@/lib/stations";
 import { sensLbl, type Sens } from "@/lib/tri";
 import { maxM, minM, sansDomaineLbl } from "@/lib/v7";
+import { langueIntl } from "@/lib/i18n/langue";
+import { aTraduire, tr, trN } from "@/lib/i18n";
+import { decimal } from "@/lib/nombres";
 
 export const Route = createFileRoute("/carte")({ component: PageCarte });
 
@@ -42,25 +45,27 @@ const DOMAINS = stationDomains(STATIONS);
 
 /** Les fourchettes du panneau, dans l'ordre de lecture. */
 const FOURCHETTES: { k: CarteFourchette; label: string; unite: string; format: (v: number) => string }[] = [
-  { k: "villageM", label: "Village", unite: "m", format: formatAlt },
-  { k: "loM", label: "Bas des pistes", unite: "m", format: formatAlt },
-  { k: "hiM", label: "Sommet", unite: "m", format: formatAlt },
-  { k: "km", label: "Kilomètres de pistes", unite: "km", format: (v) => `${v.toLocaleString("fr-FR")} km` },
-  { k: "lifts", label: "Remontées", unite: "", format: (v) => v.toLocaleString("fr-FR") },
+  { k: "villageM", label: aTraduire("Village"), unite: "m", format: formatAlt },
+  { k: "loM", label: aTraduire("Bas des pistes"), unite: "m", format: formatAlt },
+  { k: "hiM", label: aTraduire("Sommet"), unite: "m", format: formatAlt },
+  { k: "km", label: aTraduire("Kilomètres de pistes"), unite: "km", format: (v) => `${v.toLocaleString(langueIntl())} km` },
+  { k: "lifts", label: aTraduire("Remontées"), unite: "", format: (v) => v.toLocaleString(langueIntl()) },
 ];
 
 function PisteBar({ station }: { station: Station }) {
   const share = station.colorShare;
-  if (!share) return <span className="carte-row__pistes">Répartition des pistes non relevée</span>;
+  if (!share) return <span className="carte-row__pistes">{tr("Répartition des pistes non relevée")}</span>;
   const counts = station.colorCounts;
   const title = [
     counts
       ? COLOR_KEYS.map(
-          (c) => `${COLOR_LABELS[c]} ${counts[c]} tronçon${counts[c] > 1 ? "s" : ""}`,
+          (c) => `${tr(COLOR_LABELS[c])} ${trN(counts[c], "{n} tronçon", "{n} tronçons")}`,
         ).join(" · ")
-      : "Répartition du domaine",
+      : tr("Répartition du domaine"),
     station.skiinfoPct
-      ? `Fiche Skiinfo : ${COLOR_KEYS.map((c) => `${COLOR_LABELS[c]} ${station.skiinfoPct![c]} %`).join(", ")}`
+      ? tr("Fiche Skiinfo : {repartition}", {
+          repartition: COLOR_KEYS.map((c) => `${tr(COLOR_LABELS[c])} ${station.skiinfoPct![c]} %`).join(", "),
+        })
       : null,
   ]
     .filter(Boolean)
@@ -111,29 +116,29 @@ function StationRow({
         <span className="carte-row__facts">
           {bas != null && haut != null ? (
             <span className="num">
-              {bas.toLocaleString("fr-FR")}–{formatAlt(haut)}
+              {bas.toLocaleString(langueIntl())}–{formatAlt(haut)}
             </span>
           ) : (
             <span className="text-texte-2">
-              {sansDomaineLbl(station) ?? "altitude des pistes non relevée"}
+              {sansDomaineLbl(station) ?? tr("altitude des pistes non relevée")}
             </span>
           )}
           <span className="text-texte-2">
-            village <span className="num text-ink">{formatAlt(station.villageM)}</span>
+            {tr("village")} <span className="num text-ink">{formatAlt(station.villageM)}</span>
           </span>
           {station.lifts != null ? (
             <span className="text-texte-2">
-              <span className="num text-ink">{station.lifts}</span> remontée
-              {station.lifts > 1 ? "s" : ""}
+              <span className="num text-ink">{station.lifts}</span>{" "}
+              {trN(station.lifts, "remontée", "remontées")}
             </span>
           ) : null}
           {dist != null ? (
             <span className="text-texte-2">
-              piste à{" "}
+              {tr("piste à")}{" "}
               <span className="num text-ink">
                 {dist < 1
                   ? `${Math.round(dist * 1000)} m`
-                  : `${dist.toFixed(1).replace(".", ",")} km`}
+                  : `${decimal(dist)} km`}
               </span>
             </span>
           ) : null}
@@ -146,7 +151,7 @@ function StationRow({
           params={{ id: station.id }}
           className="carte-row__link block px-5 pb-3"
         >
-          Fiche station
+          {tr("Fiche station")}
           <Icon name="fleche-droite" taille={14} />
         </Link>
       ) : null}
@@ -222,14 +227,15 @@ function PageCarte() {
       <main className="carte" data-testid="carte">
         <aside className="carte__panel">
           <div className="carte__head">
-            <span className="carte__eyebrow">Étape 1 · Station</span>
-            <h1 className="carte__title">Toutes les stations</h1>
+            <span className="carte__eyebrow">{tr("Étape 1 · Station")}</span>
+            <h1 className="carte__title">{tr("Toutes les stations")}</h1>
             <p className="carte__lead">
-              Cliquez sur une station pour la centrer ; survolez une épingle pour retrouver la
-              station dans la liste.
+              {tr(
+                "Cliquez sur une station pour la centrer ; survolez une épingle pour retrouver la station dans la liste.",
+              )}
             </p>
             <label className="carte__search">
-              <span className="sr-only">Rechercher une station ou un domaine</span>
+              <span className="sr-only">{tr("Rechercher une station ou un domaine")}</span>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="M16 16l4.5 4.5" />
@@ -242,14 +248,14 @@ function PageCarte() {
                 onChange={(e) => setQuery(e.target.value)}
               />
             </label>
-            <div className="carte__massifs" role="group" aria-label="Massif">
+            <div className="carte__massifs" role="group" aria-label={tr("Massif")}>
               <button
                 type="button"
                 className={`chip chip--sm${massif === null ? " chip--on" : ""}`}
                 aria-pressed={massif === null}
                 onClick={() => setMassif(null)}
               >
-                Tous
+                {tr("Tous")}
               </button>
               {MASSIFS.map((m) => (
                 <button
@@ -273,11 +279,11 @@ function PageCarte() {
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M4 6h16M7 12h10M10 18h4" />
                 </svg>
-                Filtres
+                {tr("Filtres")}
                 {nFilters ? <span className="fbadge">{nFilters}</span> : null}
               </button>
               <label>
-                <span className="sr-only">Tri des stations</span>
+                <span className="sr-only">{tr("Tri des stations")}</span>
                 <select
                   className="carte__sort"
                   value={order}
@@ -289,7 +295,7 @@ function PageCarte() {
                 >
                   {CARTE_ORDERS.map(([id, label]) => (
                     <option key={id} value={id}>
-                      Tri : {label}
+                      {tr("Tri : {critere}", { critere: tr(label) })}
                     </option>
                   ))}
                 </select>
@@ -309,7 +315,7 @@ function PageCarte() {
                     {FOURCHETTES.map((r) => (
                       <Fourchette
                         key={r.k}
-                        lbl={r.label}
+                        lbl={tr(r.label)}
                         bornes={CARTE_ECHELLES[r.k].b}
                         valeur={filters[r.k]}
                         pas={CARTE_ECHELLES[r.k].pas}
@@ -320,14 +326,14 @@ function PageCarte() {
                     ))}
                     <div className="f">
                       <span className="f__lab">
-                        <span>Type</span>
+                        <span>{tr("Type")}</span>
                       </span>
-                      <span className="seg" role="group" aria-label="Type de station">
+                      <span className="seg" role="group" aria-label={tr("Type de station")}>
                         {(
                           [
-                            ["", "Tous"],
-                            ["station", "Station"],
-                            ["village-station", "Village-station"],
+                            ["", tr("Tous")],
+                            ["station", tr("Station")],
+                            ["village-station", tr("Village-station")],
                           ] as const
                         ).map(([v, label]) => (
                           <button
@@ -346,12 +352,12 @@ function PageCarte() {
 
                   <div className="f">
                     <span className="f__lab">
-                      <span>Répartition par couleur</span>
-                      <span className="seg" role="group" aria-label="Unité">
+                      <span>{tr("Répartition par couleur")}</span>
+                      <span className="seg" role="group" aria-label={tr("Unité")}>
                         {(
                           [
                             ["pct", "%"],
-                            ["n", "tronçons"],
+                            ["n", tr("tronçons")],
                             ["km", "km"],
                           ] as const
                         ).map(([v, label]) => (
@@ -374,33 +380,34 @@ function PageCarte() {
                       {COLOR_KEYS.map((c) => (
                         <Fourchette
                           key={c}
-                          lbl={COLOR_LABELS[c]}
+                          lbl={tr(COLOR_LABELS[c])}
                           pastille={COLOR_HEX[c]}
                           bornes={range.b}
                           valeur={filters.colors[c]}
                           pas={range.pas}
-                          unite={range.unite}
-                          resume={plageTexte(filters.colors[c], range.b, (v) => `${v.toLocaleString("fr-FR")}${range.suffix}`)}
+                          unite={tr(range.unite)}
+                          resume={plageTexte(filters.colors[c], range.b, (v) => `${v.toLocaleString(langueIntl())}${tr(range.suffix)}`)}
                           onPoser={(which, v, exact) => poserCouleur(c, which, v, exact)}
                         />
                       ))}
                     </div>
                     <p className="carte__note">
-                      Tronçons par couleur : OpenSkiMap, à l’échelle du domaine skiable. Les km par
-                      couleur sont estimés à partir du total du domaine.
+                      {tr(
+                        "Tronçons par couleur : OpenSkiMap, à l’échelle du domaine skiable. Les km par couleur sont estimés à partir du total du domaine.",
+                      )}
                     </p>
                   </div>
 
                   <label className="f">
                     <span className="f__lab">
-                      <span>Domaine skiable</span>
+                      <span>{tr("Domaine skiable")}</span>
                     </span>
                     <select
                       value={filters.domain}
                       onChange={(e) => patch({ domain: e.target.value })}
                     >
-                      <option value="">Tous</option>
-                      <option value="__none">Non renseigné</option>
+                      <option value="">{tr("Tous")}</option>
+                      <option value="__none">{tr("Non renseigné")}</option>
                       {DOMAINS.map((d) => (
                         <option key={d} value={d}>
                           {d}
@@ -410,14 +417,14 @@ function PageCarte() {
                   </label>
 
                   <p className="carte__note">
-                    Sources : France Montagnes (référentiel), OpenSkiMap (pistes, remontées). Une
-                    station absente de France Montagnes n’affiche ni domaine, ni remontées, ni
-                    répartition : ces données ne sont pas estimées.
+                    {tr(
+                      "Sources : France Montagnes (référentiel), OpenSkiMap (pistes, remontées). Une station absente de France Montagnes n’affiche ni domaine, ni remontées, ni répartition : ces données ne sont pas estimées.",
+                    )}
                   </p>
                 </div>
                 <div className="filters__foot">
                   <button type="button" className="reset" onClick={() => setFilters(NO_FILTERS)}>
-                    Réinitialiser
+                    {tr("Réinitialiser")}
                   </button>
                   <button
                     type="button"
@@ -426,8 +433,8 @@ function PageCarte() {
                     onClick={() => setOpen(false)}
                   >
                     {rows.length
-                      ? `Voir ${rows.length} station${rows.length > 1 ? "s" : ""}`
-                      : "Aucune station"}
+                      ? trN(rows.length, "Voir {n} station", "Voir {n} stations")
+                      : tr("Aucune station")}
                   </button>
                 </div>
               </div>
@@ -435,17 +442,18 @@ function PageCarte() {
 
             <div className="carte__count">
               <span>
-                {rows.length} station{rows.length > 1 ? "s" : ""} sur {STATIONS.length}
+                {trN(rows.length, "{n} station sur {total}", "{n} stations sur {total}", { total: STATIONS.length })}
               </span>
               <span>
-                Trié par {CARTE_SORT_LABELS[order]},{" "}
-                {order === "n" ? sensLbl(sens, true) : sensLbl(sens).toLowerCase()}
+                {tr("Trié par {critere}, {sens}", {
+                  critere: tr(CARTE_SORT_LABELS[order]),
+                  sens: order === "n" ? sensLbl(sens, true) : tr(sensLbl(sens)).toLowerCase(),
+                })}
               </span>
             </div>
             {rows.length === 0 ? (
               <p className="carte__empty">
-                Aucune station ne remplit tous les critères. Assouplissez un filtre ou
-                réinitialisez.
+                {tr("Aucune station ne remplit tous les critères. Assouplissez un filtre ou réinitialisez.")}
               </p>
             ) : (
               <ul className="carte__list">
@@ -480,9 +488,9 @@ function PageCarte() {
             ajuster
             legende={
               <>
-                <b>Épingles</b>
-                <span>Une épingle par station de la liste. L’anneau suit le survol.</span>
-                <span>Fonds IGN et OpenSkiMap ; pistes et remontées OpenSkiMap.</span>
+                <b>{tr("Épingles")}</b>
+                <span>{tr("Une épingle par station de la liste. L’anneau suit le survol.")}</span>
+                <span>{tr("Fonds IGN et OpenSkiMap ; pistes et remontées OpenSkiMap.")}</span>
               </>
             }
           />

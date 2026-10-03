@@ -17,6 +17,8 @@
  * des trois fonctions qui s'écrivaient dans les composants.
  */
 
+import { aTraduire, tr, trN } from "../i18n/tr.ts";
+
 export const PARTY_LIMITS = {
   /** Voyageurs : au moins un, au plus vingt. */
   travelers: { min: 1, max: 20 },
@@ -28,9 +30,10 @@ export const PARTY_LIMITS = {
  * L'âge du forfait enfant, tel que les domaines français le publient : le
  * tarif « enfant » couvre 5 à 12 ans révolus chez la plupart d'entre eux. Ce
  * n'est pas une borne technique mais la définition du tarif que le catalogue
- * relve sous `enf6` : l'écrire ici évite que l'écran l'invente.
+ * relve sous `enf6` : l'écrire ici évite que l'écran l'invente. En français :
+ * l'écran l'affiche par `tr(AGE_ENFANT)`.
  */
-export const AGE_ENFANT = "5 à 12 ans";
+export const AGE_ENFANT = aTraduire("5 à 12 ans");
 
 function clamp(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
@@ -71,13 +74,13 @@ export function adults(travelers: number, children: number): number {
  */
 export function roomsLabel(rooms: number): string {
   const n = clampRooms(rooms);
-  if (n === 0) return "studio accepté";
-  return n === 1 ? "1 chambre" : `${n} chambres`;
+  if (n === 0) return tr("studio accepté");
+  return trN(n, "{n} chambre", "{n} chambres");
 }
 
 export function travelersLabel(travelers: number): string {
   const n = clampTravelers(travelers);
-  return n === 1 ? "1 voyageur" : `${n} voyageurs`;
+  return trN(n, "{n} voyageur", "{n} voyageurs");
 }
 
 /** « 6 adultes, 2 enfants », ou les seuls voyageurs quand aucun enfant. */
@@ -85,5 +88,5 @@ export function partyLabel(travelers: number, children: number): string {
   const enf = clampChildren(children, travelers);
   if (!enf) return travelersLabel(travelers);
   const ad = adults(travelers, children);
-  return `${ad} adulte${ad > 1 ? "s" : ""}, ${enf} enfant${enf > 1 ? "s" : ""}`;
+  return `${trN(ad, "{n} adulte", "{n} adultes")}, ${trN(enf, "{n} enfant", "{n} enfants")}`;
 }

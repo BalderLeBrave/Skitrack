@@ -7,6 +7,7 @@
 
 import { COLS } from "@/lib/parcours";
 import type { ColorShare } from "@/lib/classeur";
+import { tr } from "@/lib/i18n";
 
 export function PartPistes({
   share,
@@ -21,12 +22,14 @@ export function PartPistes({
     <div
       className={["parts", className].filter(Boolean).join(" ")}
       style={{ height: hauteur, borderRadius: hauteur / 2 }}
-      title={share ? undefined : "Répartition des pistes non relevée"}
+      title={share ? undefined : tr("Répartition des pistes non relevée")}
       role="img"
       aria-label={
         share
-          ? `Pistes : ${COLS.map((c) => `${c.label} ${share[c.key]} %`).join(", ")}`
-          : "Répartition des pistes non relevée"
+          ? tr("Pistes : {repartition}", {
+              repartition: COLS.map((c) => `${tr(c.label)} ${share[c.key]} %`).join(", "),
+            })
+          : tr("Répartition des pistes non relevée")
       }
     >
       {share

@@ -10,6 +10,7 @@
  *  mesure : elle se lit « non relevée ». */
 
 import { domaineNomme, sansDomaineAlpin } from "./classeur.ts";
+import { aTraduire, tr, trN } from "./i18n/tr.ts";
 import { stationHasGlacier } from "./forfaits/catalog.ts";
 import type { Listing } from "./listings.ts";
 import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
@@ -89,12 +90,12 @@ export function crumbDomaine(s: Station): string {
  * pas une mesure non plus.
  */
 export function sansDomaineLbl(s: Station): string | null {
-  return sansDomaineAlpin(s.id) ? "sans domaine alpin" : null;
+  return sansDomaineAlpin(s.id) ? tr("sans domaine alpin") : null;
 }
 
 /** Sous-titre d'une carte : massif et domaine. */
 export function sub(s: Station): string {
-  return `${s.massif} · ${s.domain ?? sansDomaineLbl(s) ?? "domaine non renseigné"}`;
+  return `${s.massif} · ${s.domain ?? sansDomaineLbl(s) ?? tr("domaine non renseigné")}`;
 }
 
 /** « aux 2 Alpes », « au Corbier », « à l'Alpe d'Huez », « à Tignes ».
@@ -121,16 +122,16 @@ export const SHARE_VIDE = { green: 0, blue: 0, red: 0, black: 0 } as const;
 
 /** Prédicats des raccourcis de la maquette (`CH`). */
 export const CHIPS = {
-  big: { label: "Grands domaines · 300 km", fn: (s: Station) => (s.pistesKm ?? 0) >= 300 },
-  high: { label: "Sommet 3 000 m", fn: (s: Station) => (maxM(s) ?? 0) >= 3000 },
-  glacier: { label: "Glacier", fn: (s: Station) => glacier(s) },
-  linked: { label: "Domaine relié", fn: (s: Station) => linked(s) },
+  big: { label: aTraduire("Grands domaines · 300 km"), fn: (s: Station) => (s.pistesKm ?? 0) >= 300 },
+  high: { label: aTraduire("Sommet 3 000 m"), fn: (s: Station) => (maxM(s) ?? 0) >= 3000 },
+  glacier: { label: aTraduire("Glacier"), fn: (s: Station) => glacier(s) },
+  linked: { label: aTraduire("Domaine relié"), fn: (s: Station) => linked(s) },
   family: {
-    label: "Famille · 60 % faciles",
+    label: aTraduire("Famille · 60 % faciles"),
     fn: (s: Station) => !!s.colorShare && s.colorShare.green + s.colorShare.blue >= 60,
   },
   steep: {
-    label: "Engagé · 40 % rouges ou noires",
+    label: aTraduire("Engagé · 40 % rouges ou noires"),
     fn: (s: Station) => !!s.colorShare && s.colorShare.red + s.colorShare.black >= 40,
   },
 } as const;
@@ -139,19 +140,23 @@ export const CHIPS = {
 
 export type DistKind = "measured" | "no_lifts" | "no_coords" | "other_domain";
 
-/** Trois messages de distance, qui ne veulent pas dire la même chose. */
+/** Trois messages de distance, qui ne veulent pas dire la même chose. En
+ *  français dans la table ; `distanceOf` les traduit au rendu. */
 export const DIST_MSG: Record<Exclude<DistKind, "measured">, string> = {
-  no_lifts: "Pas de données de remontées pour cette station",
-  no_coords: "Distance non communiquée",
-  other_domain: "Autre domaine",
+  no_lifts: aTraduire("Pas de données de remontées pour cette station"),
+  no_coords: aTraduire("Distance non communiquée"),
+  other_domain: aTraduire("Autre domaine"),
 };
 
 export function distanceOf(l: Listing): { kind: DistKind; text: string } {
-  if (l.domainFit === "other") return { kind: "other_domain", text: DIST_MSG.other_domain };
-  if (l.lat == null || l.lon == null) return { kind: "no_coords", text: DIST_MSG.no_coords };
+  if (l.domainFit === "other") return { kind: "other_domain", text: tr(DIST_MSG.other_domain) };
+  if (l.lat == null || l.lon == null) return { kind: "no_coords", text: tr(DIST_MSG.no_coords) };
   if (l.distToLiftM != null)
-    return { kind: "measured", text: `${mLbl(l.distToLiftM)} de ${l.liftName ?? "la remontée"}` };
-  return { kind: "no_lifts", text: DIST_MSG.no_lifts };
+    return {
+      kind: "measured",
+      text: tr("{distance} de {remontee}", { distance: mLbl(l.distToLiftM) ?? "", remontee: l.liftName ?? tr("la remontée") }),
+    };
+  return { kind: "no_lifts", text: tr(DIST_MSG.no_lifts) };
 }
 
 /** Prix relevé pour exactement ces dates : la seule preuve de disponibilité. */
@@ -160,17 +165,24 @@ export function firmOf(l: Listing, stay: Stay): boolean {
 }
 
 /** Ce qu'aucune source, aucune fiche ni aucun texte n'a dit. L'annonce reste
- *  affichée ; seuls les filtres chiffrés l'écartent (`dansPlage`). */
-export const NON_RENSEIGNE = "Non renseigné";
+ *  affichée ; seuls les filtres chiffrés l'écartent (`dansPlage`). En français :
+ *  les libellés le rendent par `tr(NON_RENSEIGNE)`, à comparer de même. */
+export const NON_RENSEIGNE = aTraduire("Non renseigné");
 
 /** La capacité maximale, et la standard quand la source la distingue ou
  *  donne une fourchette : « 4/6 pers. » pour « 4 à 6 personnes ». */
 export function capLbl(l: Listing): string {
-  if (l.capacity == null) return NON_RENSEIGNE;
+  if (l.capacity == null) return tr(NON_RENSEIGNE);
   if (l.capacityStandard != null && l.capacityStandard > 0 && l.capacityStandard < l.capacity) {
-    return `${l.capacityStandard}/${l.capacity} pers.`;
+    return tr("{standard}/{max} pers.", { standard: l.capacityStandard, max: l.capacity });
   }
-  return `${l.capacity} pers.`;
+  return persLbl(l.capacity);
+}
+
+/** « 8 pers. » : un nombre de personnes, capacité ou voyageurs. L'anglais
+ *  accorde (« 1 person », « 8 people »), d'où la clé à part pour un. */
+export function persLbl(n: number): string {
+  return n === 1 ? tr("1 pers.") : tr("{n} pers.", { n });
 }
 
 export function bedLbl(l: Listing): string {
@@ -178,37 +190,37 @@ export function bedLbl(l: Listing): string {
   // (« 3 pièces » : 2 chambres supposées) s'affichent en pièces : on ne dit
   // pas « 2 ch. » d'un logement qui ne l'a pas annoncé. Un studio se dit
   // « Studio », jamais « 0 ch. » ; la cabine ne compte pas comme chambre.
-  const cabine = l.cabin ? " + cabine" : "";
+  const cabine = l.cabin ? tr(" + cabine") : "";
   const pieces =
-    l.rooms != null && l.rooms > 0 ? (l.rooms === 1 ? "1 pièce" : `${l.rooms} pièces`) : null;
+    l.rooms != null && l.rooms > 0 ? trN(l.rooms, "{n} pièce", "{n} pièces") : null;
   if (
     l.isStudio === true ||
     l.bedrooms === 0 ||
     (l.bedrooms == null && l.lodgingType === "studio")
   ) {
-    return `Studio${cabine}`;
+    return `${tr("Studio")}${cabine}`;
   }
-  if (l.bedrooms == null) return pieces ? `${pieces}${cabine}` : NON_RENSEIGNE;
+  if (l.bedrooms == null) return pieces ? `${pieces}${cabine}` : tr(NON_RENSEIGNE);
   if (pieces && chambresDesPieces(l)) return `${pieces}${cabine}`;
-  return `${l.bedrooms} ch.${cabine}`;
+  return `${l.bedrooms === 1 ? tr("1 ch.") : tr("{n} ch.", { n: l.bedrooms })}${cabine}`;
 }
 
 /** Hors d'une case titrée (carte, épingle, ligne de fiche), « Non renseigné »
  *  dit de quoi il parle : « Capacité : Non renseigné ». */
 export function capNomme(l: Listing): string {
   const v = capLbl(l);
-  return v === NON_RENSEIGNE ? `Capacité : ${v}` : v;
+  return v === tr(NON_RENSEIGNE) ? tr("Capacité : {v}", { v }) : v;
 }
 
 export function bedNomme(l: Listing): string {
   const v = bedLbl(l);
-  return v === NON_RENSEIGNE ? `Chambres : ${v}` : v;
+  return v === tr(NON_RENSEIGNE) ? tr("Chambres : {v}", { v }) : v;
 }
 
 /** Un total à 0 n'est pas un prix : c'est « non publié ». Rien d'autre que le montant. */
 export function prixLbl(l: Listing): string {
-  if (!(l.total > 0)) return "prix non publié";
-  return eurCents(l.total) ?? "prix non publié";
+  if (!(l.total > 0)) return tr("prix non publié");
+  return eurCents(l.total) ?? tr("prix non publié");
 }
 
 /** Par personne, seulement quand un total a été publié. */
@@ -219,7 +231,7 @@ export function prixPersLbl(l: Listing, trav: number): string | null {
 
 /** Texte de pastille : jamais « 0 € ». */
 export function prixPin(l: Listing): string {
-  return l.total > 0 ? eur(l.total) : "sans prix";
+  return l.total > 0 ? eur(l.total) : tr("sans prix");
 }
 
 /** Fond du cadre photo vide, par source : la maquette teinte à peine. */

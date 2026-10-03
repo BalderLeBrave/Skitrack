@@ -6,6 +6,8 @@
  * `null` n'est pas zéro personne, un GPS absent n'est pas « loin des pistes ».
  */
 
+import { tr } from "../i18n/tr.ts";
+
 export const TROUS = ["prix", "capacite", "chambres", "gps", "photo", "url"] as const;
 export type Trou = (typeof TROUS)[number];
 
@@ -40,17 +42,17 @@ export function completudeOf(l: SujetCompletude): Completude {
 export function trouLbl(t: Trou): string {
   switch (t) {
     case "prix":
-      return "prix non publié";
+      return tr("prix non publié");
     case "capacite":
-      return "capacité non renseignée";
+      return tr("capacité non renseignée");
     case "chambres":
-      return "chambres non renseignées";
+      return tr("chambres non renseignées");
     case "gps":
-      return "GPS manquant";
+      return tr("GPS manquant");
     case "photo":
-      return "photo manquante";
+      return tr("photo manquante");
     case "url":
-      return "lien manquant";
+      return tr("lien manquant");
   }
 }
 
@@ -69,17 +71,17 @@ export function galerieOf(l: { photo: string | null; photos?: string[] | null })
 export function trouCourt(t: Trou): string {
   switch (t) {
     case "prix":
-      return "sans prix";
+      return tr("sans prix");
     case "capacite":
-      return "sans capacité";
+      return tr("sans capacité");
     case "chambres":
-      return "sans nombre de chambres";
+      return tr("sans nombre de chambres");
     case "gps":
-      return "sans GPS";
+      return tr("sans GPS");
     case "photo":
-      return "sans photo";
+      return tr("sans photo");
     case "url":
-      return "sans lien";
+      return tr("sans lien");
   }
 }
 

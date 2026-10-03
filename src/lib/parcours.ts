@@ -25,6 +25,8 @@ import { useStay } from "./stay.ts";
 import { entier, montant, montantCents, montantN } from "./devises.ts";
 import { plageDepuisSeuil, poserBorne, type Echelle, type Plage } from "./plage.ts";
 import { sensLu, type Sens } from "./tri.ts";
+import { langue } from "./i18n/langue.ts";
+import { aTraduire, tr, trN } from "./i18n/tr.ts";
 
 /** Photo de la station : **la copie locale, ou rien**.
  *
@@ -44,7 +46,7 @@ export function stationPhoto(s: Station): string | null {
 /** Ce que l'écran écrit à la place d'une photo absente. Nommer la station évite
  *  qu'un cadre vide se lise comme une erreur de chargement. */
 export function stationPhotoAbsence(s: Station): string {
-  return `Aucune photo relevée pour ${s.name}`;
+  return tr("Aucune photo relevée pour {station}", { station: s.name });
 }
 
 export type PisteColor = "green" | "blue" | "red" | "black";
@@ -62,10 +64,10 @@ export type ChipKey = "big" | "high" | "glacier" | "linked" | "family" | "steep"
 /** `COLS` de la maquette : clé, libellé, couleur. La couleur est un jeton du
  *  système, jamais une valeur brute. */
 export const COLS: { key: PisteColor; label: string; token: string }[] = [
-  { key: "green", label: "Vertes", token: "var(--color-piste-verte)" },
-  { key: "blue", label: "Bleues", token: "var(--color-piste-bleue)" },
-  { key: "red", label: "Rouges", token: "var(--color-piste-rouge)" },
-  { key: "black", label: "Noires", token: "var(--color-piste-noire)" },
+  { key: "green", label: aTraduire("Vertes"), token: "var(--color-piste-verte)" },
+  { key: "blue", label: aTraduire("Bleues"), token: "var(--color-piste-bleue)" },
+  { key: "red", label: aTraduire("Rouges"), token: "var(--color-piste-rouge)" },
+  { key: "black", label: aTraduire("Noires"), token: "var(--color-piste-noire)" },
 ];
 
 /** Les critères chiffrés de la recherche : chacun est une fourchette. */
@@ -327,7 +329,11 @@ export const useParcours = create<Parcours>()(
         const cmp = get().cmp;
         if (cmp.includes(id)) return set({ cmp: cmp.filter((x) => x !== id) });
         if (cmp.length >= CMP_MAX)
-          return get().say(`${CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations au plus dans la comparaison.`);
+          return get().say(
+            CMP_MAX === 4
+              ? tr("Quatre stations au plus dans la comparaison.")
+              : tr("{n} stations au plus dans la comparaison.", { n: CMP_MAX }),
+          );
         set({ cmp: [...cmp, id] });
       },
       clearCmp: () => set({ cmp: [], pick: null }),
@@ -469,25 +475,31 @@ export function eurCents(n: number | null | undefined): string | null {
   return montantCents(n, "EUR");
 }
 
+/** Une décimale, avec la virgule en français et le point en anglais. */
+function uneDecimale(n: number): string {
+  const s = n.toFixed(1);
+  return langue() === "en" ? s : s.replace(".", ",");
+}
+
 /** `distLbl` : mètres sous 1 km, sinon km à une décimale, virgule. */
 export function distLbl(d: number | null | undefined): string {
   return d == null
     ? "–"
     : d < 1
       ? Math.round(d * 1000) + " m"
-      : d.toFixed(1).replace(".", ",") + " km";
+      : uneDecimale(d) + " km";
 }
 
 /** `mLbl` de la maquette : une distance en mètres, en m ou en km. */
 export function mLbl(m: number | null | undefined): string | null {
   if (m == null) return null;
-  return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
+  return m < 1000 ? `${Math.round(m)} m` : `${uneDecimale(m / 1000)} km`;
 }
 
 /** `subLbl` : type, domaine, statut hors « En activité ». */
 export function subLbl(s: Station): string {
-  const kind = s.kind === "village-station" ? "Village-station · " : "";
-  const dom = s.domain ?? (sansDomaineAlpin(s.id) ? "Sans domaine alpin" : "Domaine non renseigné");
+  const kind = s.kind === "village-station" ? `${tr("Village-station")} · ` : "";
+  const dom = s.domain ?? (sansDomaineAlpin(s.id) ? tr("Sans domaine alpin") : tr("Domaine non renseigné"));
   const st =
     s.status && s.status !== "En activité"
       ? " · " + s.status.replace("En activité", "").replace(/^[,( ]+|\)$/g, "")
@@ -553,11 +565,16 @@ const MOIS_COURTS = [
   "déc.",
 ];
 const JOURS_COURTS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+/** Les mêmes en anglais britannique : « Sat 6 Feb ». */
+const MOIS_COURTS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const JOURS_COURTS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const moisCourt = (i: number) => (langue() === "en" ? MOIS_COURTS_EN : MOIS_COURTS)[i];
+const jourCourt = (i: number) => (langue() === "en" ? JOURS_COURTS_EN : JOURS_COURTS)[i];
 
 /** `dm` de la maquette : « 6 févr. ». Tables fixes, pas d'ICU. */
 export function dm(iso: string): string {
   const d = parseDay(iso);
-  return `${d.getUTCDate()} ${MOIS_COURTS[d.getUTCMonth()]}`;
+  return `${d.getUTCDate()} ${moisCourt(d.getUTCMonth())}`;
 }
 
 /** `stayDatesLbl` : « 6 → 13 févr. · 7 nuits ». Le mois n'est nommé deux fois
@@ -565,12 +582,12 @@ export function dm(iso: string): string {
 /** « 1 nuit », « 7 nuits ». L'accord était recopié à sept endroits, et quatre
  *  d'entre eux l'avaient figé au pluriel : le séjour descend à une nuit. */
 export function nuitsLbl(nights: number): string {
-  return `${nights} nuit${nights > 1 ? "s" : ""}`;
+  return trN(nights, "{n} nuit", "{n} nuits");
 }
 
 /** « 1 voyageur », « 8 voyageurs ». */
 export function travLbl(trav: number): string {
-  return `${trav} voyageur${trav > 1 ? "s" : ""}`;
+  return trN(trav, "{n} voyageur", "{n} voyageurs");
 }
 
 /** Les dates seules, sans le compte de nuits : « 6 → 13 févr. ». La pilule de
@@ -590,30 +607,30 @@ export function datesLbl(checkIn: string, checkOut: string, nights: number): str
     a.getUTCMonth() === b.getUTCMonth() && a.getUTCFullYear() === b.getUTCFullYear()
       ? `${a.getUTCDate()} → ${dm(checkOut)}`
       : `${dm(checkIn)} → ${dm(checkOut)}`;
-  if (nights <= 0) return `${span} · départ avant l’arrivée`;
+  if (nights <= 0) return tr("{dates} · départ avant l’arrivée", { dates: span });
   return `${span} · ${nuitsLbl(nights)}`;
 }
 
 /** `arrivalLbl` : « sam. 6 févr. 2027 ». */
 export function arrivalLbl(iso: string): string {
   const d = parseDay(iso);
-  return `${JOURS_COURTS[d.getUTCDay()]} ${dm(iso)} ${d.getUTCFullYear()}`;
+  return `${jourCourt(d.getUTCDay())} ${dm(iso)} ${d.getUTCFullYear()}`;
 }
 
 /** `departLbl` : « sam. 13 févr. ». */
 export function departLbl(iso: string): string {
   const d = parseDay(iso);
-  return `${JOURS_COURTS[d.getUTCDay()]} ${dm(iso)}`;
+  return `${jourCourt(d.getUTCDay())} ${dm(iso)}`;
 }
 
 /** `guestsLbl` (barre de recherche) : « 6 adultes, 2 enfants · 2 ch. ». */
 export function guestsLbl(trav: number, rooms: number, enfants = 0): string {
-  return `${partyLabel(trav, enfants)}${rooms ? ` · ${rooms} ch.` : ""}`;
+  return `${partyLabel(trav, enfants)}${rooms ? ` · ${tr("{n} ch.", { n: rooms })}` : ""}`;
 }
 
 /** `stayGroupLbl` : « 8 voyageurs · studio accepté ». */
 export function groupLbl(trav: number, rooms: number, enfants = 0): string {
-  return `${partyLabel(trav, enfants)} · ${rooms ? `${rooms} ch.` : "studio accepté"}`;
+  return `${partyLabel(trav, enfants)} · ${rooms ? tr("{n} ch.", { n: rooms }) : tr("studio accepté")}`;
 }
 
 /** Sélecteur de séjour : `S[k] = clamp(S[k] + d)`, sur l'état réel. */

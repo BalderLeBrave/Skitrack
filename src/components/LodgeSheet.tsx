@@ -8,11 +8,13 @@ import { provenancePhrase, sourcePhrase } from "@/lib/provenance";
 import { datesCourtes, nuitsLbl } from "@/lib/parcours";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { bedNomme, capLbl, prixLbl } from "@/lib/v7";
+import { bedNomme, capLbl, persLbl, prixLbl } from "@/lib/v7";
 import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
+import { langue, langueIntl } from "@/lib/i18n/langue";
+import { tr, trN } from "@/lib/i18n";
 
 /**
  * « de Tignes », « d’Avoriaz », « des Gets », « du Corbier », « de l’Alpe
@@ -29,6 +31,11 @@ function deStation(nom: string): string {
   return `de ${n}`;
 }
 
+/** « de Tignes », « d’Avoriaz » en français ; « from Tignes » en anglais. */
+function depuisStation(nom: string): string {
+  return langue() === "en" ? tr("de {lieu}", { lieu: nom.trim() }) : deStation(nom);
+}
+
 export function GalerieAnnonce({
   urls,
   index,
@@ -40,7 +47,7 @@ export function GalerieAnnonce({
 }) {
   if (urls.length < 2) return null;
   return (
-    <div className="galerie7" role="tablist" aria-label="Photos de l’annonce">
+    <div className="galerie7" role="tablist" aria-label={tr("Photos de l’annonce")}>
       {urls.map((u, i) => (
         <button
           type="button"
@@ -136,7 +143,7 @@ export function LodgeSheet({
 
   return (
     <div className="fixed inset-0 z-40 grid place-items-center p-4" data-testid="lodge-sheet">
-      <button type="button" className="absolute inset-0 bg-ink/55 backdrop-blur-md" aria-label="Fermer" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-ink/55 backdrop-blur-md" aria-label={tr("Fermer")} onClick={onClose} />
       <aside
         role="dialog"
         aria-modal="true"
@@ -149,14 +156,14 @@ export function LodgeSheet({
             {listing.title}
           </h2>
           <p className="mt-1 text-corps text-muted">
-            {station?.name ?? listing.stationId} · {datesCourtes(stay.checkIn, stay.checkOut)} · {stay.guests} pers.
+            {station?.name ?? listing.stationId} · {datesCourtes(stay.checkIn, stay.checkOut)} · {persLbl(stay.guests)}
           </p>
           <button
             type="button"
             onClick={onClose}
             className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full border border-line"
             data-testid="lodge-sheet-close"
-            aria-label="Fermer"
+            aria-label={tr("Fermer")}
           >
             ×
           </button>
@@ -166,149 +173,184 @@ export function LodgeSheet({
             {shown ? (
               <img src={shown} alt="" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex items-end p-6 text-muted">Pas de photo dans l’annonce {listing.source}</div>
+              <div className="flex items-end p-6 text-muted">{tr("Pas de photo dans l’annonce {source}", { source: listing.source })}</div>
             )}
             <div className="grid gap-2 border-t border-line bg-panel p-5">
               <GalerieAnnonce urls={galerie} index={photoI} onIndex={setPhotoI} />
               <p className="font-display text-titre">{prixLbl(listing)}</p>
               <p className="text-corps text-muted">
-                {nuitsLbl(nights)} · {stay.guests} pers.
-                {ppNuit != null ? ` · ${formatEuro(ppNuit)} par personne et par nuit` : " · prix non publié"}
+                {nuitsLbl(nights)} · {persLbl(stay.guests)}
+                {ppNuit != null
+                  ? ` · ${tr("{prix} par personne et par nuit", { prix: formatEuro(ppNuit) })}`
+                  : ` · ${tr("prix non publié")}`}
               </p>
               {listing.priceIndicative ? (
-                <p className="text-note text-muted">Annoncé « à partir de » : ce n’est pas un total de séjour.</p>
+                <p className="text-note text-muted">{tr("Annoncé « à partir de » : ce n’est pas un total de séjour.")}</p>
               ) : null}
               <p className="text-note font-medium text-ink">{availabilityLabel(dispo)}</p>
             </div>
           </div>
           <div className="overflow-auto p-6">
-            <p className="text-note text-muted">Vérifications</p>
+            <p className="text-note text-muted">{tr("Vérifications")}</p>
             <ul className="mt-3 grid gap-2 text-corps">
               <li>
-                <strong>Dates du relevé</strong> : {datesCourtes(stay.checkIn, stay.checkOut)}
-                <span>, alignées sur votre séjour</span>
+                <strong>{tr("Dates du relevé")}</strong>
+                {tr(" : ")}
+                {datesCourtes(stay.checkIn, stay.checkOut)}
+                <span>{tr(", alignées sur votre séjour")}</span>
               </li>
               <li>
-                <strong>Prix</strong> :{" "}
-                {listing.total > 0 ? formatEuro(listing.total) : "non publié par la source"}
+                <strong>{tr("Prix")}</strong>
+                {tr(" : ")}
+                {listing.total > 0 ? formatEuro(listing.total) : tr("non publié par la source")}
                 {" · "}
                 {availabilityLabel(dispo).toLowerCase()}
-                {listing.priceIndicative ? " · annoncé « à partir de », ce n’est pas un total de séjour" : ""}
+                {listing.priceIndicative ? ` · ${tr("annoncé « à partir de », ce n’est pas un total de séjour")}` : ""}
               </li>
               {listing.priceLabel ? (
                 <li>
-                  <strong>Libellé de la source</strong> : « {listing.priceLabel} »
+                  <strong>{tr("Libellé de la source")}</strong>
+                  {tr(" : ")}« {listing.priceLabel} »
                 </li>
               ) : null}
               <li>{sourcePhrase(listing)}</li>
               {listing.rating != null ? (
                 <li>
-                  <strong>Note publiée</strong> : {listing.rating.toLocaleString("fr-FR")}
-                  {listing.reviewCount != null ? ` (${listing.reviewCount} avis)` : ""}
-                  {", telle que la source l’affiche, jamais recalculée."}
+                  <strong>{tr("Note publiée")}</strong>
+                  {tr(" : ")}
+                  {listing.rating.toLocaleString(langueIntl())}
+                  {listing.reviewCount != null ? ` (${listing.reviewCount === 1 ? tr("1 avis") : tr("{n} avis", { n: listing.reviewCount })})` : ""}
+                  {tr(", telle que la source l’affiche, jamais recalculée.")}
                 </li>
               ) : null}
               <li>
-                <strong>Capacité</strong> : {capLbl(listing)} · {bedNomme(listing)}
-                {listing.beds != null ? ` · ${listing.beds} lit${listing.beds > 1 ? "s" : ""}` : ""}
+                <strong>{tr("Capacité")}</strong>
+                {tr(" : ")}
+                {capLbl(listing)} · {bedNomme(listing)}
+                {listing.beds != null ? ` · ${trN(listing.beds, "{n} lit", "{n} lits")}` : ""}
                 {listing.baths != null
-                  ? ` · ${listing.baths} salle${listing.baths > 1 ? "s" : ""} de bain`
+                  ? ` · ${trN(listing.baths, "{n} salle de bain", "{n} salles de bain")}`
                   : ""}
               </li>
               {!complet.ok ? (
                 <li>
-                  <strong>Fiche incomplète</strong> : {complet.trous.map(trouLbl).join(" · ")}
+                  <strong>{tr("Fiche incomplète")}</strong>
+                  {tr(" : ")}
+                  {complet.trous.map(trouLbl).join(" · ")}
                 </li>
               ) : null}
               <li>
-                <strong>Lieu</strong> : {sectorOf(listing) ?? "non publié"}
+                <strong>{tr("Lieu")}</strong>
+                {tr(" : ")}
+                {sectorOf(listing) ?? tr("non publié")}{" "}
                 {listing.locality
-                  ? " (commune de l’annonce)."
+                  ? tr("(commune de l’annonce).")
                   : listing.placeName
-                    ? " (lieu le plus proche de la position GPS, d’après OpenStreetMap)."
-                    : " (pas de position GPS publiée)."}
+                    ? tr("(lieu le plus proche de la position GPS, d’après OpenStreetMap).")
+                    : tr("(pas de position GPS publiée).")}
               </li>
               {other ? (
                 <li data-testid="other-domain">
-                  <strong>Domaine</strong> : {other}
+                  <strong>{tr("Domaine")}</strong>
+                  {tr(" : ")}
+                  {other}
                 </li>
               ) : null}
               {other && listing.distToNearestDomainM != null ? (
                 <li>
-                  <strong>Station la plus proche</strong> :{" "}
+                  <strong>{tr("Station la plus proche")}</strong>
+                  {tr(" : ")}
                   {formatDistFrom(
                     listing.distToNearestDomainM,
-                    listing.nearestDomainName ? deStation(listing.nearestDomainName) : "de la station",
-                  )}
-                  {" (repère de la station, pas une piste)."}
+                    listing.nearestDomainName ? depuisStation(listing.nearestDomainName) : tr("de la station"),
+                  )}{" "}
+                  {tr("(repère de la station, pas une piste).")}
                 </li>
               ) : null}
               {other && listing.searchedLiftM != null ? (
                 <li>
-                  <strong>À vol d’oiseau vers {station?.name}</strong> :{" "}
-                  {formatDistFrom(listing.searchedLiftM, listing.searchedLiftName ? `de ${listing.searchedLiftName}` : "des remontées du domaine recherché")}
-                  {" (hors domaine, ne compte pas comme accès ski)."}
+                  <strong>{tr("À vol d’oiseau vers {station}", { station: station?.name ?? "" })}</strong>
+                  {tr(" : ")}
+                  {formatDistFrom(
+                    listing.searchedLiftM,
+                    listing.searchedLiftName
+                      ? tr("de {lieu}", { lieu: listing.searchedLiftName })
+                      : tr("des remontées du domaine recherché"),
+                  )}{" "}
+                  {tr("(hors domaine, ne compte pas comme accès ski).")}
                 </li>
               ) : null}
               {!other ? (
                 <li>
-                  <strong>Accès ski</strong> : {ski ?? "non classé"}
+                  <strong>{tr("Accès ski")}</strong>
+                  {tr(" : ")}
+                  {ski ?? tr("non classé")}{" "}
                   {listing.distToLiftM != null
-                    ? " (d’après la distance mesurée sur OpenStreetMap, pas un temps de trajet)."
-                    : " (pas de position GPS, ou aucune remontée OpenStreetMap autour de la station)."}
+                    ? tr("(d’après la distance mesurée sur OpenStreetMap, pas un temps de trajet).")
+                    : tr("(pas de position GPS, ou aucune remontée OpenStreetMap autour de la station).")}
                 </li>
               ) : null}
               {!other ? (
                 <li>
-                  <strong>Distance aux remontées mécaniques</strong> : {formatLift(listing)}
+                  <strong>{tr("Distance aux remontées mécaniques")}</strong>
+                  {tr(" : ")}
+                  {formatLift(listing)}{" "}
                   {listing.distToLiftM != null
-                    ? " (gare OpenStreetMap la plus proche de la position GPS, dans le domaine recherché)."
-                    : " (pas de position GPS, ou aucune remontée OpenStreetMap autour de la station)."}
+                    ? tr("(gare OpenStreetMap la plus proche de la position GPS, dans le domaine recherché).")
+                    : tr("(pas de position GPS, ou aucune remontée OpenStreetMap autour de la station).")}
                 </li>
               ) : null}
               <li>
-                <strong>Arrivée de la remontée</strong> : {span ?? "non mesurée"}
+                <strong>{tr("Arrivée de la remontée")}</strong>
+                {tr(" : ")}
+                {span ?? tr("non mesurée")}{" "}
                 {span
-                  ? " (altitudes calculées des deux gares OpenStreetMap ; la plus haute est l’arrivée)."
-                  : " (les deux gares n’ont pas encore d’altitude calculée)."}
+                  ? tr("(altitudes calculées des deux gares OpenStreetMap ; la plus haute est l’arrivée).")
+                  : tr("(les deux gares n’ont pas encore d’altitude calculée).")}
               </li>
               <li>
-                <strong>Station recherchée</strong> :{" "}
+                <strong>{tr("Station recherchée")}</strong>
+                {tr(" : ")}
                 {formatDistFrom(
                   listing.distToSlopesM,
-                  station ? `du repère ${deStation(station.name)}` : "du repère de la station",
-                )}
+                  station
+                    ? tr("du repère {station}", { station: langue() === "en" ? station.name : deStation(station.name) })
+                    : tr("du repère de la station"),
+                )}{" "}
                 {listing.lat == null || listing.lon == null
-                  ? " (pas de position GPS publiée)."
-                  : " (de la position GPS de l’annonce au repère, qui n’est ni une piste ni un domaine)."}
+                  ? tr("(pas de position GPS publiée).")
+                  : tr("(de la position GPS de l’annonce au repère, qui n’est ni une piste ni un domaine).")}
               </li>
               <li>
-                <strong>Trace GPX</strong> :{" "}
+                <strong>{tr("Trace GPX")}</strong>
+                {tr(" : ")}
                 {hasTrack
-                  ? formatDistFrom(gpxM, "du point le plus proche")
-                  : "distance non mesurée, aucune trace chargée"}
+                  ? formatDistFrom(gpxM, tr("du point le plus proche"))
+                  : tr("distance non mesurée, aucune trace chargée")}
               </li>
               <li>
-                <strong>Départ GPX</strong> :{" "}
+                <strong>{tr("Départ GPX")}</strong>
+                {tr(" : ")}
                 {start
-                  ? formatDistFrom(gpxStartM, "du départ")
-                  : "distance non mesurée, aucune trace chargée"}
+                  ? formatDistFrom(gpxStartM, tr("du départ"))
+                  : tr("distance non mesurée, aucune trace chargée")}
               </li>
               <li>
-                <strong>Altitude du logement</strong> :{" "}
+                <strong>{tr("Altitude du logement")}</strong>
+                {tr(" : ")}
                 {altitude === "no-gps"
-                  ? "non mesurée, pas de position GPS publiée"
+                  ? tr("non mesurée, pas de position GPS publiée")
                   : altitude === undefined
-                    ? "calcul en cours…"
+                    ? tr("calcul en cours…")
                     : altitude == null
-                      ? "non mesurée, service d’altitude injoignable"
-                      : `${formatAlt(altitude)} (modèle Open-Meteo / Copernicus)`}
+                      ? tr("non mesurée, service d’altitude injoignable")
+                      : tr("{altitude} (modèle Open-Meteo / Copernicus)", { altitude: formatAlt(altitude) })}
               </li>
             </ul>
             <p className="mt-6 text-corps text-muted">{provenancePhrase(listing)}</p>
             {listing.proven ? (
               <details className="mt-2 text-note text-muted">
-                <summary className="cursor-pointer">Détail technique</summary>
+                <summary className="cursor-pointer">{tr("Détail technique")}</summary>
                 <p className="mt-1 font-mono">{listing.proven}</p>
               </details>
             ) : null}
@@ -319,7 +361,7 @@ export function LodgeSheet({
                 rel="noreferrer"
                 className="mt-6 inline-flex text-corps font-semibold text-ink underline"
               >
-                Ouvrir sur {listing.source}
+                {tr("Ouvrir sur {source}", { source: listing.source })}
                 <Icon name="externe" taille={12} />
               </a>
             )}
@@ -327,14 +369,14 @@ export function LodgeSheet({
         </div>
         <footer className="flex flex-wrap items-center gap-3 border-t border-line px-5 py-3">
           <button type="button" onClick={onClose} className="rounded-full border border-line px-4 py-2 text-corps">
-            Fermer
+            {tr("Fermer")}
           </button>
           <span className="flex-1" />
           <a
             href={`/reservation/${listing.id}`}
             className="inline-flex h-11 items-center rounded-surface bg-cta px-5 text-corps font-semibold text-cta-ink"
           >
-            Réserver
+            {tr("Réserver")}
           </a>
         </footer>
       </aside>

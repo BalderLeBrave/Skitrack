@@ -19,13 +19,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { ForfaitRow } from "./types.ts";
 import { deviseDuDomaine, domainBySlug, estimationDuDomaine } from "./catalog.ts";
+import { aTraduire } from "../i18n/tr.ts";
 
 /** Les catégories de tarif. Une constante, partagée ; d'autres peuvent s'y
  *  ajouter sans qu'aucun écran change. */
 export const CATEGORIES = [
-  { cle: "enfant", label: "Enfant" },
-  { cle: "adulte", label: "Adulte" },
-  { cle: "senior", label: "Senior" },
+  { cle: "enfant", label: aTraduire("Enfant") },
+  { cle: "adulte", label: aTraduire("Adulte") },
+  { cle: "senior", label: aTraduire("Senior") },
 ] as const;
 
 export type Categorie = (typeof CATEGORIES)[number]["cle"];
@@ -39,10 +40,10 @@ export const DUREE_MAX = 21;
 export type Statut = "releve" | "manuel" | "estime" | "absent";
 
 export const STATUT_LBL: Record<Statut, string> = {
-  releve: "relevé",
-  manuel: "saisi à la main",
-  estime: "estimé",
-  absent: "non relevé",
+  releve: aTraduire("relevé"),
+  manuel: aTraduire("saisi à la main"),
+  estime: aTraduire("estimé"),
+  absent: aTraduire("non relevé"),
 };
 
 export type Tarif = {
@@ -104,7 +105,7 @@ export function saisonDe(d: Date): string {
 
 /** La source écrite dans une case estimée, en infobulle : ce n'est pas une
  *  page relevée. */
-export const SOURCE_ESTIMATION = "Estimé d’après le 6 jours adulte, faute de relevé.";
+export const SOURCE_ESTIMATION = aTraduire("Estimé d’après le 6 jours adulte, faute de relevé.");
 
 /**
  * Les cases que le catalogue estime pour ce domaine, faute de les relever.

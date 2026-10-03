@@ -12,11 +12,12 @@
  */
 
 import { Icon } from "@/components/Icon";
+import { tr } from "@/lib/i18n";
 import { setStayRange, STAY_BOUNDS } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
 import type { Plage } from "./plage";
 import {
-  JOURS_COURTS,
+  joursCourts,
   monthGrid,
   monthLabel,
   shiftMonth,
@@ -67,13 +68,15 @@ export function Calendrier({
 
   const mois2 = shiftMonth(mois, 1);
   const hint =
-    phase === "to" ? "Choisissez la date de départ." : "Choisissez la date d’arrivée. 21 nuits au plus.";
+    phase === "to"
+      ? tr("Choisissez la date de départ.")
+      : tr("Choisissez la date d’arrivée. 21 nuits au plus.");
 
   const Mois = ({ ym }: { ym: YearMonth }) => (
     <div className="cal__mois">
       <span className="cal__titre">{monthLabel(ym)}</span>
       <div className="cal__jours">
-        {JOURS_COURTS.map((j, i) => (
+        {joursCourts().map((j, i) => (
           <span key={i}>{j}</span>
         ))}
       </div>
@@ -120,7 +123,7 @@ export function Calendrier({
         <button
           type="button"
           className="cal__nav cal__nav--prec"
-          title="Mois précédent"
+          title={tr("Mois précédent")}
           onClick={() => plage.setMois(shiftMonth(mois, -1))}
         >
           <Icon name="chevron-gauche" taille={12} />
@@ -128,7 +131,7 @@ export function Calendrier({
         <button
           type="button"
           className="cal__nav cal__nav--suiv"
-          title="Mois suivant"
+          title={tr("Mois suivant")}
           onClick={() => plage.setMois(shiftMonth(mois, 1))}
         >
           <Icon name="chevron-droite" taille={12} />

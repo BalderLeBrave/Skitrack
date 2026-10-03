@@ -7,6 +7,8 @@
  *  était OpenTopoMap, un rendu raster d'OpenStreetMap ; il est devenu la carte
  *  d'OpenSkiMap — même donnée de fond, mais avec ses pistes et son ombrage. */
 
+import { aTraduire } from "./i18n/tr.ts";
+
 export type BasemapKey = "ign" | "ortho" | "pistes";
 
 export const DEFAULT_BASEMAP: BasemapKey = "ign";
@@ -78,19 +80,19 @@ export const BASEMAPS: readonly BasemapDef[] = [
   {
     key: "ign",
     label: "Plan IGN",
-    sub: "topographie française",
+    sub: aTraduire("topographie française"),
     ...IGN_PLAN,
   },
   {
     key: "pistes",
-    label: "Relief",
-    sub: "OpenSkiMap : pistes, remontées, ombrage",
+    label: aTraduire("Relief"),
+    sub: aTraduire("OpenSkiMap : pistes, remontées, ombrage"),
     ...OPENSKIMAP,
   },
   {
     key: "ortho",
-    label: "Photo aérienne",
-    sub: "orthophoto IGN",
+    label: aTraduire("Photo aérienne"),
+    sub: aTraduire("orthophoto IGN"),
     ...IGN_ORTHO,
   },
 ];

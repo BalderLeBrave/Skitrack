@@ -56,16 +56,17 @@ import {
   villageLbl,
   villageM,
 } from "@/lib/v7";
+import { aTraduire, langue, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/comparer")({ component: Comparer });
 
 const SORTS: { key: SortKey; label: string }[] = [
-  { key: "km", label: "Tri : km de pistes" },
-  { key: "hi", label: "Tri : sommet" },
-  { key: "lo", label: "Tri : bas des pistes" },
-  { key: "v", label: "Tri : altitude du village" },
-  { key: "pass", label: "Tri : forfait adulte" },
-  { key: "n", label: "Tri : nom" },
+  { key: "km", label: aTraduire("Tri : km de pistes") },
+  { key: "hi", label: aTraduire("Tri : sommet") },
+  { key: "lo", label: aTraduire("Tri : bas des pistes") },
+  { key: "v", label: aTraduire("Tri : altitude du village") },
+  { key: "pass", label: aTraduire("Tri : forfait adulte") },
+  { key: "n", label: aTraduire("Tri : nom") },
 ];
 
 /** La valeur que le tri compare ; `null` quand elle n'est pas relevée, et la
@@ -78,7 +79,8 @@ function sortVal(s: Station, k: Exclude<SortKey, "n">, ctx: ContexteSejour): num
   return prixAdulteSejour(s.id, ctx)?.prix ?? null;
 }
 
-/** `crit` de la maquette : libellé, texte, valeur comparable, note d'échelle. */
+/** `crit` de la maquette : libellé, texte, valeur comparable, note d'échelle.
+ *  Le libellé et la note sont marqués `aTraduire` et se traduisent au rendu. */
 type Crit = {
   label: string;
   txt: (s: Station) => string | null;
@@ -108,7 +110,7 @@ const forfaitAbsent = (s: Station) => {
 
 const CRIT: Crit[] = [
   {
-    label: "Altitude des pistes",
+    label: aTraduire("Altitude des pistes"),
     txt: (s) => altLbl(s),
     num: (s) => maxM(s),
     // La Bourboule, détachée de Super Besse, porte 0 m en bas et en haut des
@@ -122,34 +124,34 @@ const CRIT: Crit[] = [
        annonce 1 100 – 2 738 m et Le Praz 1 110 – 3 223 m sur le même domaine :
        deux fiches, deux façons de compter. Sans la mention, cela se lisait
        comme une contradiction. */
-    note: "valeur de la station",
+    note: aTraduire("valeur de la station"),
   },
-  { label: "Village", txt: (s) => villageLbl(s), num: (s) => villageM(s), note: null },
+  { label: aTraduire("Village"), txt: (s) => villageLbl(s), num: (s) => villageM(s), note: null },
   {
-    label: "Kilomètres de pistes",
+    label: aTraduire("Kilomètres de pistes"),
     txt: (s) => kmLbl(s),
     num: (s) => s.pistesKm,
-    note: "valeur du domaine",
+    note: aTraduire("valeur du domaine"),
     absent: sansDomaineLbl,
   },
   {
-    label: "Remontées",
+    label: aTraduire("Remontées"),
     txt: (s) => liftsLbl(s),
     num: (s) => s.lifts,
-    note: "valeur du domaine",
+    note: aTraduire("valeur du domaine"),
     absent: sansDomaineLbl,
   },
   {
     // Le forfait du séjour : ses dates fixent la durée et la période. La
     // source varie d'une station à l'autre (page officielle, catalogue,
     // agrégateur) : elle se lit dans la fiche, la fiabilité ici.
-    label: "Forfait adulte",
+    label: aTraduire("Forfait adulte"),
     txt: forfaitTxt,
     num: (s) => {
       const r = prixAdulteSejour(s.id);
       return r ? -r.prix : null;
     },
-    note: "pour les dates du séjour",
+    note: aTraduire("pour les dates du séjour"),
     sous: (s) => {
       const r = prixAdulteSejour(s.id);
       return r ? mentionForfait(r) : null;
@@ -161,20 +163,20 @@ const CRIT: Crit[] = [
       return l?.faible ? l.raisons : null;
     },
   },
-  { label: "Glacier", txt: (s) => (glacier(s) ? "Oui" : "Non"), num: null, note: null },
+  { label: aTraduire("Glacier"), txt: (s) => (glacier(s) ? tr("Oui") : tr("Non")), num: null, note: null },
   {
-    label: "Domaine relié",
+    label: aTraduire("Domaine relié"),
     // Une station dont le domaine porte son nom n'est reliée à aucune autre :
     // « non relevé » disait faux, la donnée est connue. Le libellé sans nom
     // d'OpenStreetMap non plus (`linked`) : Névache, 0,4 km, dit « Non ».
     // Une station sans domaine alpin (La Bourboule) n'est reliée à rien, et on
     // le sait : « Non » aussi, pas « non relevé ».
-    txt: (s) => (!s.domain ? (sansDomaineLbl(s) ? "Non" : null) : linked(s) ? s.domain : "Non"),
+    txt: (s) => (!s.domain ? (sansDomaineLbl(s) ? tr("Non") : null) : linked(s) ? s.domain : tr("Non")),
     num: null,
     note: null,
   },
   {
-    label: "Massif · département",
+    label: aTraduire("Massif · département"),
     txt: (s) => [s.massif, s.dept].filter(Boolean).join(" · "),
     num: null,
     note: null,
@@ -268,16 +270,21 @@ function Comparer() {
    *  plus sous la barre. Il dit ce que la liste montre, ce que le cadre laisse
    *  dehors, et ce qui n'a pas de position. */
   const cqLbl = P.q
-    ? `${visible.length} station${visible.length > 1 ? "s" : ""} où « ${P.q.trim()} » apparaît dans le nom, le domaine ou le massif${preds.length > 1 ? ", les autres filtres compris" : ""}.`
+    ? trN(
+        visible.length,
+        "{n} station où « {texte} » apparaît dans le nom, le domaine ou le massif{autres}.",
+        "{n} stations où « {texte} » apparaît dans le nom, le domaine ou le massif{autres}.",
+        { texte: P.q.trim(), autres: preds.length > 1 ? tr(", les autres filtres compris") : "" },
+      )
     : [
         dansCadre.length === 0
           ? visible.length
-            ? "Aucune station dans le cadre : dézoomez pour en voir."
-            : "Aucune station ne remplit ces critères."
-          : `${dansCadre.length} station${dansCadre.length > 1 ? "s" : ""} sur ${visible.length}.`,
-        parCadre.horsCadre.length ? `${parCadre.horsCadre.length} hors du cadre.` : null,
+            ? tr("Aucune station dans le cadre : dézoomez pour en voir.")
+            : tr("Aucune station ne remplit ces critères.")
+          : trN(dansCadre.length, "{n} station sur {total}.", "{n} stations sur {total}.", { total: visible.length }),
+        parCadre.horsCadre.length ? tr("{n} hors du cadre.", { n: parCadre.horsCadre.length }) : null,
         sansPos ? `${sansPos}.` : null,
-        "Nom de la station, domaine skiable ou massif.",
+        tr("Nom de la station, domaine skiable ou massif."),
       ]
         .filter(Boolean)
         .join(" ");
@@ -289,13 +296,20 @@ function Comparer() {
     : preds.length
       ? bloquant
         ? {
-            title: `Le filtre « ${bloquant.pred.label} » ne laisse aucune station`,
-            hint: `Sans lui, ${bloquant.restantes} station${bloquant.restantes > 1 ? "s" : ""} rest${bloquant.restantes > 1 ? "ent" : "e"} avec les autres critères.`,
+            title: tr("Le filtre « {filtre} » ne laisse aucune station", { filtre: bloquant.pred.label }),
+            hint: trN(
+              bloquant.restantes,
+              "Sans lui, {n} station reste avec les autres critères.",
+              "Sans lui, {n} stations restent avec les autres critères.",
+            ),
             fix: bloquant.pred.retirer,
           }
         : {
-            title: "Aucune station ne remplit ces critères",
-            hint: `La liste complète compte ${all.length} stations françaises. Retirer un seul filtre ne suffit pas : réinitialisez tout.`,
+            title: tr("Aucune station ne remplit ces critères"),
+            hint: tr(
+              "La liste complète compte {total} stations françaises. Retirer un seul filtre ne suffit pas : réinitialisez tout.",
+              { total: all.length },
+            ),
             fix: null,
           }
       : null;
@@ -342,12 +356,12 @@ function Comparer() {
 
   const chips = (Object.keys(CHIPS) as ChipKey[]).map((k) => ({
     k,
-    label: CHIPS[k].label,
+    label: tr(CHIPS[k].label),
     on: !!F.chips[k],
   }));
   const seeLbl = visible.length
-    ? `Voir ${visible.length} station${visible.length > 1 ? "s" : ""}`
-    : "Aucune station : assouplir les filtres";
+    ? trN(visible.length, "Voir {n} station", "Voir {n} stations")
+    : tr("Aucune station : assouplir les filtres");
 
   /**
    * **La carte porte toutes les stations du cadre, la liste en montre quarante.**
@@ -376,7 +390,7 @@ function Comparer() {
           // Priorité d'arbitrage des noms : la station cochée gagne, puis
           // l'ordre du tri courant. Une seule table, celle de `sorted`.
           priorite: comparee ? 0 : 1,
-          note: s.posRelevee ? undefined : "Position approximative : centre de la commune.",
+          note: s.posRelevee ? undefined : tr("Position approximative : centre de la commune."),
         };
       }),
     // Le contenu change quand les identifiants ou la comparaison changent.
@@ -400,8 +414,8 @@ function Comparer() {
         data-screen-label="1 Comparer"
       >
         <header className="v7tete v7tete--titre">
-          <span className="v7surtitre">Étape 1</span>
-          <h1>Stations</h1>
+          <span className="v7surtitre">{tr("Étape 1")}</span>
+          <h1>{tr("Stations")}</h1>
         </header>
 
         {cmp.length && tableauOuvert ? (
@@ -411,18 +425,15 @@ function Comparer() {
               className="cmp7 cmp7--volet"
               role="dialog"
               aria-modal="true"
-              aria-label="Comparaison des stations"
+              aria-label={tr("Comparaison des stations")}
               ref={volet}
             >
               <div className="cmp7__tete">
-                <strong>
-                  {cmp.length} station{cmp.length > 1 ? "s" : ""} comparée
-                  {cmp.length > 1 ? "s" : ""}
-                </strong>
+                <strong>{trN(cmp.length, "{n} station comparée", "{n} stations comparées")}</strong>
                 <button
                   type="button"
                   className="v7fermer"
-                  aria-label="Fermer la comparaison"
+                  aria-label={tr("Fermer la comparaison")}
                   onClick={() => setTableauOuvert(false)}
                 >
                   <Icon name="croix" taille={14} />
@@ -433,11 +444,11 @@ function Comparer() {
                 <thead>
                   <tr>
                     <th className="cmp7__critere-tete">
-                      Critère
+                      {tr("Critère")}
                       {/* Le bouton rond en tête de colonne n'annonçait rien :
                           on ne comprenait qu'après l'avoir essayé qu'il
                           désigne la station qui mène aux logements. */}
-                      <span>Le rond retient la station pour les logements</span>
+                      <span>{tr("Le rond retient la station pour les logements")}</span>
                     </th>
                     {cmp.map((s) => (
                       <th
@@ -450,8 +461,8 @@ function Comparer() {
                             name="pick"
                             checked={s.id === pickId}
                             onChange={() => P.setPick(s.id)}
-                            aria-label={`Retenir ${s.name} pour les logements`}
-                            title={`Retenir ${s.name} pour les logements`}
+                            aria-label={tr("Retenir {station} pour les logements", { station: s.name })}
+                            title={tr("Retenir {station} pour les logements", { station: s.name })}
                           />
                           <span>{s.name}</span>
                         </label>
@@ -463,7 +474,7 @@ function Comparer() {
                               void go("fiche", { id: s.id });
                             }}
                           >
-                            Fiche
+                            {tr("Fiche")}
                           </a>
                           <a
                             href="#"
@@ -473,7 +484,7 @@ function Comparer() {
                               P.toggleCmp(s.id);
                             }}
                           >
-                            Retirer
+                            {tr("Retirer")}
                           </a>
                         </div>
                       </th>
@@ -498,8 +509,8 @@ function Comparer() {
                     return (
                       <tr key={c.label}>
                         <th className="cmp7__critere">
-                          {c.label}
-                          {c.note ? <span>{c.note}</span> : null}
+                          {tr(c.label)}
+                          {c.note ? <span>{tr(c.note)}</span> : null}
                         </th>
                         {cmp.map((s, i) => {
                           const v = textes[i];
@@ -510,7 +521,7 @@ function Comparer() {
                               key={s.id}
                               className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}${v == null ? " cmp7__cell--absent" : ""}${gagne ? " cmp7__cell--best" : ""}`}
                             >
-                              {v ?? c.absent?.(s) ?? "non relevé"}
+                              {v ?? c.absent?.(s) ?? tr("non relevé")}
                               {v != null && c.faible?.(s) ? (
                                 <>
                                   {" "}
@@ -526,7 +537,8 @@ function Comparer() {
                   })}
                   <tr>
                     <th className="cmp7__critere">
-                      Pistes par couleur<span>OpenSkiMap, à l’échelle du domaine</span>
+                      {tr("Pistes par couleur")}
+                      <span>{tr("OpenSkiMap, à l’échelle du domaine")}</span>
                     </th>
                     {cmp.map((s) => (
                       <td key={s.id} className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}`}>
@@ -549,9 +561,10 @@ function Comparer() {
             </div>
             <div className="cmp7__pied">
               <span>
-                Une valeur manquante est marquée « non relevé ». En gras : la meilleure valeur, quand les
-                stations en annoncent de différentes. {CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations
-                au plus.
+                {tr(
+                  "Une valeur manquante est marquée « non relevé ». En gras : la meilleure valeur, quand les stations en annoncent de différentes.",
+                )}{" "}
+                {CMP_MAX === 4 ? tr("Quatre stations au plus.") : tr("{n} stations au plus.", { n: CMP_MAX })}
               </span>
               {nIdentiques ? (
                 <label className="cmp7__bascule">
@@ -560,7 +573,7 @@ function Comparer() {
                     checked={masquerIdentiques}
                     onChange={() => setMasquerIdentiques((v) => !v)}
                   />
-                  Masquer les critères identiques ({nIdentiques})
+                  {tr("Masquer les critères identiques ({n})", { n: nIdentiques })}
                 </label>
               ) : null}
               <button
@@ -568,7 +581,7 @@ function Comparer() {
                 className="btn7 btn7--grand"
                 onClick={() => pickId && retain(pickId)}
               >
-                Voir les logements {aStation(pickName)}
+                {tr("Voir les logements {lieu}", { lieu: langue() === "en" ? (pickName ?? "") : aStation(pickName) })}
                 <Icon name="fleche-droite" taille={16} />
               </button>
             </div>
@@ -587,16 +600,16 @@ function Comparer() {
               <input
                 value={P.q}
                 onChange={(e) => P.setQ(e.target.value)}
-                placeholder="Station, domaine skiable ou massif"
+                placeholder={tr("Station, domaine skiable ou massif")}
                 title={cqLbl}
-                aria-label="Chercher une station, un domaine skiable ou un massif"
+                aria-label={tr("Chercher une station, un domaine skiable ou un massif")}
               />
               {P.q ? (
                 <button
                   type="button"
                   className="filtres7__vider"
-                  title="Effacer la recherche"
-                  aria-label="Effacer la recherche"
+                  title={tr("Effacer la recherche")}
+                  aria-label={tr("Effacer la recherche")}
                   onClick={() => P.setQ("")}
                 >
                   <Icon name="croix" taille={11} />
@@ -615,14 +628,14 @@ function Comparer() {
               onClick={() => setFiltersOpen((v) => !v)}
             >
               <Icon name="filtres" taille={14} />
-              Filtres
+              {tr("Filtres")}
               {preds.length ? <span className="puce__badge">{preds.length}</span> : null}
             </button>
             {filtersOpen ? (
               <div className="pop7 pop7--filtres" ref={panneau}>
                 <div className="pop7__tete pop7__tete--ligne">
-                  <strong>Filtres</strong>
-                  <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setFiltersOpen(false)}>
+                  <strong>{tr("Filtres")}</strong>
+                  <button type="button" className="v7fermer" aria-label={tr("Fermer")} onClick={() => setFiltersOpen(false)}>
                     <Icon name="croix" taille={14} />
                   </button>
                 </div>
@@ -630,7 +643,7 @@ function Comparer() {
                     porte déjà le champ, le bouton Filtres, le compteur et le
                     tri, et six pastilles de plus la mettaient sur deux lignes. */}
                 <div className="pop7__bloc pop7__bloc--tete">
-                  <span className="v7surtitre">Raccourcis</span>
+                  <span className="v7surtitre">{tr("Raccourcis")}</span>
                   <div className="pop7__puces">
                     {chips.map((ch) => (
                       <button
@@ -652,7 +665,7 @@ function Comparer() {
                   ))}
                 </div>
                 <label className="champ7">
-                  <span>Massif</span>
+                  <span>{tr("Massif")}</span>
                   <select
                     className="select7 select7--champ"
                     value={P.massif ?? ""}
@@ -661,7 +674,7 @@ function Comparer() {
                       P.setFilters({ dom: "" });
                     }}
                   >
-                    <option value="">Tous</option>
+                    <option value="">{tr("Tous")}</option>
                     {massifs.map((m) => (
                       <option key={m} value={m}>
                         {m}
@@ -670,14 +683,14 @@ function Comparer() {
                   </select>
                 </label>
                 <label className="champ7">
-                  <span>Domaine skiable</span>
+                  <span>{tr("Domaine skiable")}</span>
                   <select
                     className="select7 select7--champ"
                     value={F.dom}
                     onChange={(e) => P.setFilters({ dom: e.target.value })}
                   >
-                    <option value="">Tous</option>
-                    <option value="__none">Non renseigné</option>
+                    <option value="">{tr("Tous")}</option>
+                    <option value="__none">{tr("Non renseigné")}</option>
                     {doms.map((d) => (
                       <option key={d} value={d}>
                         {d}
@@ -687,7 +700,7 @@ function Comparer() {
                 </label>
                 <div className="pop7__bloc">
                   <div className="pop7__ligne">
-                    <span className="pop7__stitre">Répartition par couleur</span>
+                    <span className="pop7__stitre">{tr("Répartition par couleur")}</span>
                     <span className="segments">
                       {(Object.keys(UNITES) as ColorUnit[]).map((u) => (
                         <button
@@ -696,7 +709,7 @@ function Comparer() {
                           className={P.unit === u ? "on" : undefined}
                           onClick={() => P.setUnit(u)}
                         >
-                          {UNITES[u].lbl}
+                          {tr(UNITES[u].lbl)}
                         </button>
                       ))}
                     </span>
@@ -716,7 +729,7 @@ function Comparer() {
                       P.resetFilters();
                     }}
                   >
-                    Réinitialiser
+                    {tr("Réinitialiser")}
                   </a>
                   <button type="button" className="btn7" onClick={() => setFiltersOpen(false)}>
                     {seeLbl}
@@ -731,7 +744,7 @@ function Comparer() {
               >
                 {SORTS.map((s) => (
                   <option key={s.key} value={s.key}>
-                    {s.label}
+                    {tr(s.label)}
                   </option>
                 ))}
               </select>
@@ -741,13 +754,13 @@ function Comparer() {
 
           {preds.length ? (
             <div className="jetons7">
-              <span className="jetons7__label">Actifs</span>
+              <span className="jetons7__label">{tr("Actifs")}</span>
               {preds.map((p) => {
                 const bloque = empty?.fix === p.retirer;
                 return (
                   <span key={p.id} className={`jeton${bloque ? " jeton--bloque" : ""}`}>
                     {p.label}
-                    <button type="button" aria-label={`Retirer le critère ${p.label}`} onClick={p.retirer}>
+                    <button type="button" aria-label={tr("Retirer le critère {critere}", { critere: p.label })} onClick={p.retirer}>
                       <Icon name="croix" taille={11} />
                     </button>
                   </span>
@@ -761,7 +774,7 @@ function Comparer() {
                   P.resetFilters();
                 }}
               >
-                Tout réinitialiser
+                {tr("Tout réinitialiser")}
               </a>
             </div>
           ) : null}
@@ -790,27 +803,24 @@ function Comparer() {
                       className="btn7 btn7--fantome"
                       onClick={() => setLimite((n) => n + LISTE_PAS)}
                     >
-                      Afficher {pasSuivant} station{pasSuivant > 1 ? "s" : ""} de plus
+                      {trN(pasSuivant, "Afficher {n} station de plus", "Afficher {n} stations de plus")}
                     </button>
                     <span>
-                      {reste > 1
-                        ? `${reste} autres stations sont dans ce cadrage.`
-                        : "1 autre station est dans ce cadrage."}
+                      {trN(reste, "{n} autre station est dans ce cadrage.", "{n} autres stations sont dans ce cadrage.")}
                     </span>
                   </div>
                 ) : null}
               </>
             ) : visible.length ? (
               <Vide
-                titre="Aucune station dans ce cadrage"
+                titre={tr("Aucune station dans ce cadrage")}
                 actions={
                   <button type="button" className="btn7" onClick={revoirTout}>
-                    Revoir tous les résultats
+                    {tr("Revoir tous les résultats")}
                   </button>
                 }
               >
-                La liste suit la carte. Dézoomez, déplacez-la, ou revenez au cadrage des
-                résultats.
+                {tr("La liste suit la carte. Dézoomez, déplacez-la, ou revenez au cadrage des résultats.")}
               </Vide>
             ) : empty ? (
               <Vide
@@ -819,11 +829,11 @@ function Comparer() {
                   <>
                     {empty.fix ? (
                       <button type="button" className="btn7" onClick={empty.fix}>
-                        Retirer ce filtre
+                        {tr("Retirer ce filtre")}
                       </button>
                     ) : null}
                     <button type="button" className="btn7 btn7--fantome" onClick={() => P.resetFilters()}>
-                      Tout réinitialiser
+                      {tr("Tout réinitialiser")}
                     </button>
                   </>
                 }
@@ -848,32 +858,32 @@ function Comparer() {
                     <span className="fc__ligne">{sub(st)}</span>
                     <div className="fc__faits">
                       <div>
-                        <span>Village</span>
+                        <span>{tr("Village")}</span>
                         <b className={villageLbl(st) ? undefined : "absent"}>
-                          {villageLbl(st) ?? "non relevé"}
+                          {villageLbl(st) ?? tr("non relevé")}
                         </b>
                       </div>
                       <div>
-                        <span>Sommet</span>
+                        <span>{tr("Sommet")}</span>
                         <b className={maxM(st) != null ? undefined : "absent"}>
                           {maxM(st) != null
                             ? `${fmt(maxM(st))} m`
-                            : (sansDomaineLbl(st) ?? "non relevé")}
+                            : (sansDomaineLbl(st) ?? tr("non relevé"))}
                         </b>
                       </div>
                       <div>
-                        <span>Pistes, domaine</span>
+                        <span>{tr("Pistes, domaine")}</span>
                         <b className={kmLbl(st) ? undefined : "absent"}>
-                          {kmLbl(st) ?? sansDomaineLbl(st) ?? "km non publié"}
+                          {kmLbl(st) ?? sansDomaineLbl(st) ?? tr("km non publié")}
                         </b>
                       </div>
                       <div>
-                        <span>Forfait {prixStations.jours ?? 6} j</span>
+                        <span>{tr("Forfait {jours} j", { jours: prixStations.jours ?? 6 })}</span>
                         <b
                           className={forfaitTxt(st) ? undefined : "absent"}
                           title={prixAdulteSejour(st.id) ? mentionForfait(prixAdulteSejour(st.id)!) : undefined}
                         >
-                          {forfaitTxt(st) ?? forfaitAbsent(st) ?? "non relevé"}
+                          {forfaitTxt(st) ?? forfaitAbsent(st) ?? tr("non relevé")}
                         </b>
                       </div>
                     </div>
@@ -886,7 +896,7 @@ function Comparer() {
                         lequel. */}
                     {st.posRelevee ? null : (
                       <span className="fc__ligne absent">
-                        Position approximative : centre de la commune.
+                        {tr("Position approximative : centre de la commune.")}
                       </span>
                     )}
                   </div>
@@ -905,7 +915,7 @@ function Comparer() {
                       className="btn7 btn7--fantome"
                       onClick={() => void go("fiche", { id: st.id })}
                     >
-                      Voir la fiche station
+                      {tr("Voir la fiche station")}
                     </button>
                     <button
                       type="button"
@@ -913,19 +923,17 @@ function Comparer() {
                       aria-pressed={dedans}
                       onClick={() => P.toggleCmp(st.id)}
                     >
-                      {dedans ? "Retirer de la comparaison" : "Ajouter à la comparaison"}
+                      {dedans ? tr("Retirer de la comparaison") : tr("Ajouter à la comparaison")}
                     </button>
                   </>
                 );
               }}
               legende={
                 <>
-                  <b>
-                    {dansCadre.length} station{dansCadre.length > 1 ? "s" : ""} dans le cadrage
-                  </b>
+                  <b>{trN(dansCadre.length, "{n} station dans le cadrage", "{n} stations dans le cadrage")}</b>
                   {parCadre.horsCadre.length ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                      {visible.length > 1 ? `Revoir les ${visible.length} résultats` : "Revoir le résultat"}
+                      {visible.length > 1 ? tr("Revoir les {n} résultats", { n: visible.length }) : tr("Revoir le résultat")}
                       <Icon name="fleche-droite" taille={14} />
                     </button>
                   ) : null}
@@ -939,18 +947,16 @@ function Comparer() {
       {/* Le tiroir : il dit ce qui est coché et ouvre le tableau, sans rien
           pousser. Il ne paraît que lorsqu'il y a quelque chose à comparer. */}
       {cmp.length ? (
-        <div className="tiroir7" role="region" aria-label="Stations à comparer">
+        <div className="tiroir7" role="region" aria-label={tr("Stations à comparer")}>
           <div className="tiroir7__dit">
-            <strong>
-              {cmp.length} station{cmp.length > 1 ? "s" : ""} sur {CMP_MAX}
-            </strong>
+            <strong>{trN(cmp.length, "{n} station sur {max}", "{n} stations sur {max}", { max: CMP_MAX })}</strong>
             <span>{cmp.map((s) => s.name).join(" · ")}</span>
           </div>
           <button type="button" className="lien-doux" onClick={() => P.clearCmp()}>
-            Tout retirer
+            {tr("Tout retirer")}
           </button>
           <button type="button" className="btn7" onClick={() => setTableauOuvert(true)}>
-            Comparer
+            {tr("Comparer")}
           </button>
         </div>
       ) : null}

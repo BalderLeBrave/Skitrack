@@ -18,6 +18,7 @@ import {
   type PositionSource,
 } from "./stay/statut.ts";
 import { convertir, dansLeSysteme, mesure, type Systeme } from "./unites.ts";
+import { tr } from "./i18n/tr.ts";
 
 export { metresBetween };
 export { LIFT_FOOT_M, LIFT_NEAR_M, LIFT_KM_M, skiAccessLabel } from "./skiAccess.ts";
@@ -136,7 +137,7 @@ export function formatDistFrom(
   place: string,
   systeme: Systeme = "metrique",
 ): string {
-  if (m == null) return `Distance ${place} non mesurée`;
+  if (m == null) return tr("Distance {lieu} non mesurée", { lieu: place });
   // Sous le kilomètre on reste dans la petite unité du système — le mètre ou
   // le pied —, au-delà on passe à la grande. Le seuil est de lisibilité :
   // « 1 240 m des remontées » se lit moins bien que « 1,2 km ».
@@ -149,8 +150,8 @@ export function formatDistFrom(
 }
 
 export function formatDist(m: number | null | undefined): string {
-  if (m == null) return "Distance aux remontées mécaniques non mesurée";
-  return formatDistFrom(m, "des remontées mécaniques");
+  if (m == null) return tr("Distance aux remontées mécaniques non mesurée");
+  return formatDistFrom(m, tr("des remontées mécaniques"));
 }
 
 export function sectorOf(listing: Listing): string | null {
@@ -158,7 +159,7 @@ export function sectorOf(listing: Listing): string | null {
 }
 
 export function formatLift(listing: Listing): string {
-  if (listing.distToLiftM == null) return "Remontée non mesurée";
+  if (listing.distToLiftM == null) return tr("Remontée non mesurée");
   return formatDistFrom(listing.distToLiftM, liftKindPhrase(listing.liftKind, listing.liftName));
 }
 

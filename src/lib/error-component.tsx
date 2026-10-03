@@ -1,5 +1,6 @@
 import { Link, type ErrorComponentProps } from "@tanstack/react-router";
 import { Icon } from "@/components/Icon";
+import { tr } from "@/lib/i18n";
 
 export function AppErrorComponent({ error }: ErrorComponentProps) {
   return (
@@ -12,9 +13,9 @@ export function AppErrorComponent({ error }: ErrorComponentProps) {
       <span className="text-piste-rouge" aria-hidden="true">
         <Icon name="alerte" className="size-10" />
       </span>
-      <h1 className="text-lg font-semibold">Cette page n’a pas pu s’afficher</h1>
+      <h1 className="text-lg font-semibold">{tr("Cette page n’a pas pu s’afficher")}</h1>
       <p className="max-w-md text-sm break-words text-muted">
-        {error.message || "Erreur inattendue. Rechargez la page."}
+        {error.message || tr("Erreur inattendue. Rechargez la page.")}
       </p>
     </main>
   );
@@ -36,10 +37,10 @@ export function AppNotFoundComponent() {
       <span className="text-muted" aria-hidden="true">
         <Icon name="montagne" className="size-10" />
       </span>
-      <h1 className="text-lg font-semibold">Page introuvable</h1>
-      <p className="max-w-md text-sm text-muted">Cette adresse ne mène à aucun écran de Skitrack.</p>
+      <h1 className="text-lg font-semibold">{tr("Page introuvable")}</h1>
+      <p className="max-w-md text-sm text-muted">{tr("Cette adresse ne mène à aucun écran de Skitrack.")}</p>
       <Link to="/" className="btn7">
-        Retour à l’accueil
+        {tr("Retour à l’accueil")}
       </Link>
     </main>
   );

@@ -15,6 +15,7 @@
  */
 
 import { foldName } from "../carte.ts";
+import { aTraduire } from "../i18n/tr.ts";
 import { dansPlage, type Echelle, type Plage } from "../plage.ts";
 import { parMesure, parTexte, type Sens } from "../tri.ts";
 import type { Repartition } from "./couleurs.ts";
@@ -61,11 +62,11 @@ export const SEUILS_MONDE: {
   pas: number;
   unite: string;
 }[] = [
-  { k: "km", label: "Kilomètres de pistes", court: "km", b: [0, 300], pas: 10, unite: "km" },
-  { k: "sommetM", label: "Sommet", court: "sommet", b: [0, 4000], pas: 100, unite: "m" },
-  { k: "denivM", label: "Dénivelé", court: "dénivelé", b: [0, 2000], pas: 100, unite: "m" },
-  { k: "remontees", label: "Remontées", court: "remontées", b: [0, 60], pas: 5, unite: "" },
-  { k: "noirPct", label: "Part de pistes noires", court: "noir", b: [0, 50], pas: 5, unite: "%" },
+  { k: "km", label: aTraduire("Kilomètres de pistes"), court: "km", b: [0, 300], pas: 10, unite: "km" },
+  { k: "sommetM", label: aTraduire("Sommet"), court: aTraduire("sommet"), b: [0, 4000], pas: 100, unite: "m" },
+  { k: "denivM", label: aTraduire("Dénivelé"), court: aTraduire("dénivelé"), b: [0, 2000], pas: 100, unite: "m" },
+  { k: "remontees", label: aTraduire("Remontées"), court: aTraduire("remontées"), b: [0, 60], pas: 5, unite: "" },
+  { k: "noirPct", label: aTraduire("Part de pistes noires"), court: aTraduire("noir"), b: [0, 50], pas: 5, unite: "%" },
 ];
 
 const ECHELLE_MONDE = Object.fromEntries(SEUILS_MONDE.map((s) => [s.k, s.b])) as Record<CleMonde, Echelle>;
@@ -131,11 +132,11 @@ export function chercher(domaines: readonly DomaineMonde[], q: string): DomaineM
 export type TriMonde = "nom" | "km" | "sommet" | "deniv" | "remontees";
 
 export const TRIS_MONDE: [TriMonde, string][] = [
-  ["km", "km de pistes"],
-  ["sommet", "sommet"],
-  ["deniv", "dénivelé"],
-  ["remontees", "remontées"],
-  ["nom", "nom"],
+  ["km", aTraduire("km de pistes")],
+  ["sommet", aTraduire("sommet")],
+  ["deniv", aTraduire("dénivelé")],
+  ["remontees", aTraduire("remontées")],
+  ["nom", aTraduire("nom")],
 ];
 
 /** Le sens de départ : le plus grand d'abord, le nom de A à Z. */

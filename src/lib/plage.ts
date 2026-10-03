@@ -16,6 +16,7 @@
  */
 
 import { entier } from "./nombres.ts";
+import { tr } from "./i18n/tr.ts";
 
 /** `null` : toute l'échelle, la plage ne filtre pas. */
 export type Plage = readonly [number, number] | null;
@@ -94,12 +95,12 @@ export function plageTexte(
   b: Echelle,
   f: (v: number) => string = entier,
 ): string {
-  if (!plageActive(pl, b)) return "Indifférent";
+  if (!plageActive(pl, b)) return tr("Indifférent");
   const [lo, hi] = pl as readonly [number, number];
-  if (hi >= b[1]) return `${f(lo)} et plus`;
+  if (hi >= b[1]) return tr("{min} et plus", { min: f(lo) });
   if (lo === hi) return f(lo);
-  if (lo <= b[0]) return `jusqu’à ${f(hi)}`;
-  return `${f(lo)} à ${f(hi)}`;
+  if (lo <= b[0]) return tr("jusqu’à {max}", { max: f(hi) });
+  return tr("{min} à {max}", { min: f(lo), max: f(hi) });
 }
 
 /**

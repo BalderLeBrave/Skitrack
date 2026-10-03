@@ -13,6 +13,7 @@ import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
 import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement";
 import type { SourceGps } from "./stay/repliGps";
+import { langueIntl } from "./i18n/langue.ts";
 
 export type Listing = {
   id: string;
@@ -544,7 +545,7 @@ export function listingById(id: string): Listing | undefined {
 }
 
 export function formatEuro(n: number): string {
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(langueIntl(), {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: n % 1 === 0 ? 0 : 2,

@@ -46,18 +46,24 @@ import { TENTATIVE_LBL, VOIE_LBL, type EtatSource } from "@/lib/forfaits/sources
 import type { DomainForfait, ForfaitRow } from "@/lib/forfaits/types";
 import { foldName } from "@/lib/carte";
 import { stationsDuDomaine } from "@/lib/domaineStations";
+import { langueIntl } from "@/lib/i18n/langue";
+import { aTraduire, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/forfaits")({ component: ForfaitsPage });
 
-/** Ce qu'une actualisation a produit, domaine par domaine : singulier, pluriel. */
+/** Ce qu'une actualisation a produit, domaine par domaine : singulier, pluriel.
+ *  Traduit au rendu, par `trN`. */
 const ISSUE_LBL: Record<ResultatForfait["issue"], [string, string]> = {
-  maj: ["mis à jour", "mis à jour"],
-  inchange: ["inchangé", "inchangés"],
-  manuel: ["saisie manuelle conservée", "saisies manuelles conservées"],
-  refus: ["source non accessible automatiquement", "sources non accessibles automatiquement"],
-  echec: ["échec", "échecs"],
-  desactivee: ["source désactivée", "sources désactivées"],
-  ignore: ["source en saisie assistée", "sources en saisie assistée"],
+  maj: [aTraduire("{n} mis à jour"), aTraduire("{n} mis à jour")],
+  inchange: [aTraduire("{n} inchangé"), aTraduire("{n} inchangés")],
+  manuel: [aTraduire("{n} saisie manuelle conservée"), aTraduire("{n} saisies manuelles conservées")],
+  refus: [
+    aTraduire("{n} source non accessible automatiquement"),
+    aTraduire("{n} sources non accessibles automatiquement"),
+  ],
+  echec: [aTraduire("{n} échec"), aTraduire("{n} échecs")],
+  desactivee: [aTraduire("{n} source désactivée"), aTraduire("{n} sources désactivées")],
+  ignore: [aTraduire("{n} source en saisie assistée"), aTraduire("{n} sources en saisie assistée")],
 };
 
 /** Combien de domaines par aller-retour. Le serveur les mène de front, un
@@ -170,7 +176,11 @@ function ForfaitsPage() {
       const conflits = appliquerReleve(slug, saison, r.row);
       if (conflits) {
         setErreur(
-          `${conflits} valeur${conflits > 1 ? "s" : ""} saisie${conflits > 1 ? "s" : ""} à la main diffère${conflits > 1 ? "nt" : ""} du relevé. ${conflits > 1 ? "Elles sont conservées" : "Elle est conservée"} ; utilisez « Reprendre le relevé » pour ${conflits > 1 ? "les" : "la"} remplacer.`,
+          trN(
+            conflits,
+            "{n} valeur saisie à la main diffère du relevé. Elle est conservée ; utilisez « Reprendre le relevé » pour la remplacer.",
+            "{n} valeurs saisies à la main diffèrent du relevé. Elles sont conservées ; utilisez « Reprendre le relevé » pour les remplacer.",
+          ),
         );
       }
     } catch (e: unknown) {
@@ -230,7 +240,10 @@ function ForfaitsPage() {
     const parIssue = new Map<string, number>();
     for (const b of bilan) parIssue.set(b.issue, (parIssue.get(b.issue) ?? 0) + 1);
     return [...parIssue.entries()]
-      .map(([k, n]) => `${n} ${ISSUE_LBL[k as ResultatForfait["issue"]][n > 1 ? 1 : 0]}`)
+      .map(([k, n]) => {
+        const [un, plusieurs] = ISSUE_LBL[k as ResultatForfait["issue"]];
+        return trN(n, un, plusieurs);
+      })
       .join(" · ");
   }, [bilan]);
 
@@ -239,10 +252,11 @@ function ForfaitsPage() {
       <div className="forf">
         <header className="forf__tete">
           <div>
-            <h1 className="font-display text-affiche tracking-tight">Forfaits</h1>
+            <h1 className="font-display text-affiche tracking-tight">{tr("Forfaits")}</h1>
             <p className="forf__lead">
-              Tarifs des domaines français. Un tarif relevé porte sa date, un tarif estimé le dit ;
-              un tarif jamais obtenu se saisit à la main.
+              {tr(
+                "Tarifs des domaines français. Un tarif relevé porte sa date, un tarif estimé le dit ; un tarif jamais obtenu se saisit à la main.",
+              )}
             </p>
           </div>
           <div className="forf__actions">
@@ -254,10 +268,12 @@ function ForfaitsPage() {
               aria-busy={travail?.quoi === "tous"}
             >
               {travail?.quoi === "tous"
-                ? `Tous les domaines… ${travail.fait}/${travail.total}${travail.encours ? ` · ${travail.encours} en cours` : ""}`
-                : visible.length > 1
-                  ? `Mettre à jour les ${visible.length} domaines`
-                  : `Mettre à jour ${visible.length} domaine`}
+                ? tr("Tous les domaines… {fait}/{total}{encours}", {
+                    fait: travail.fait,
+                    total: travail.total,
+                    encours: travail.encours ? tr(" · {n} en cours", { n: travail.encours }) : "",
+                  })
+                : trN(visible.length, "Mettre à jour {n} domaine", "Mettre à jour les {n} domaines")}
             </button>
             {travail ? (
               <button
@@ -268,7 +284,7 @@ function ForfaitsPage() {
                   abandon.current?.abort();
                 }}
               >
-                Arrêter
+                {tr("Arrêter")}
               </button>
             ) : null}
           </div>
@@ -278,7 +294,7 @@ function ForfaitsPage() {
           <p className="forf__erreur" role="status">
             {erreur}
             <button type="button" className="lien-doux" onClick={() => setErreur(null)}>
-              Masquer
+              {tr("Masquer")}
             </button>
           </p>
         ) : null}
@@ -293,21 +309,21 @@ function ForfaitsPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Rechercher un domaine"
+              placeholder={tr("Rechercher un domaine")}
               className="forf__q"
-              aria-label="Rechercher un domaine"
+              aria-label={tr("Rechercher un domaine")}
             />
             {/* La liste défile : hauteur bornée ici, `min-height: 0` sur les
                 parents, `overflow-y: auto` sur elle. */}
             <ul className="forf__liste">
               {chargement ? (
-                <li className="forf__vide">Chargement du catalogue…</li>
+                <li className="forf__vide">{tr("Chargement du catalogue…")}</li>
               ) : !visible.length ? (
                 <li className="forf__vide">
                   {q.trim() ? (
-                    <>Aucun domaine ne correspond à «&nbsp;{q.trim()}&nbsp;».</>
+                    tr("Aucun domaine ne correspond à «\u00a0{q}\u00a0».", { q: q.trim() })
                   ) : (
-                    "Aucun domaine dans le catalogue."
+                    tr("Aucun domaine dans le catalogue.")
                   )}
                 </li>
               ) : (
@@ -329,10 +345,10 @@ function ForfaitsPage() {
                         </span>
                         <span className="forf__prix">
                           {formatEuroTarif(row?.j6 ?? d.seed?.j6)}
-                          <small>6 j adulte</small>
+                          <small>{tr("6 j adulte")}</small>
                         </span>
                         <span className={`forf__fiab forf__fiab--${e?.fiabilite ?? "jamais"}`}>
-                          {e?.fiabiliteLbl ?? "tarif à saisir"}
+                          {e?.fiabiliteLbl ?? tr("tarif à saisir")}
                         </span>
                       </button>
                     </li>
@@ -364,7 +380,7 @@ function ForfaitsPage() {
               />
             ) : (
               <p className="forf__vide forf__vide--panneau">
-                Choisissez un domaine dans la liste pour ouvrir sa grille tarifaire.
+                {tr("Choisissez un domaine dans la liste pour ouvrir sa grille tarifaire.")}
               </p>
             )}
           </div>
@@ -388,7 +404,7 @@ function StationsDuDomaine({ slug }: { slug: string }) {
   return (
     <div className="forfp__stations">
       <span className="forfp__stationsTitre">
-        {stations.length} station{stations.length > 1 ? "s" : ""} dans ce domaine
+        {trN(stations.length, "{n} station dans ce domaine", "{n} stations dans ce domaine")}
       </span>
       <ul className="forfp__stationsListe">
         {stations.map((s) => (
@@ -442,12 +458,12 @@ function PanneauDomaine({
         <div>
           <h2>{d.name}</h2>
           <p>
-            {d.massif} · saison {saison}
+            {d.massif} · {tr("saison {saison}", { saison })}
             {d.website ? (
               <>
                 {" · "}
                 <a href={d.website} target="_blank" rel="noopener">
-                  site officiel <Icon name="externe" taille={12} />
+                  {tr("site officiel")} <Icon name="externe" taille={12} />
                 </a>
               </>
             ) : null}
@@ -455,24 +471,24 @@ function PanneauDomaine({
         </div>
         <div className="forfp__actions">
           <button type="button" className="btn7" onClick={onActualiser} disabled={occupe} aria-busy={occupe}>
-            {occupe ? "Mise à jour…" : "Mettre à jour ce domaine"}
+            {occupe ? tr("Mise à jour…") : tr("Mettre à jour ce domaine")}
           </button>
         </div>
       </header>
 
       {/* Trois champs séparés : fraîcheur, fiabilité, cause repliée. */}
       <div className="forfp__etat">
-        <span className="forfp__fraicheur">{e?.fraicheur ?? "jamais relevé"}</span>
+        <span className="forfp__fraicheur">{e?.fraicheur ?? tr("jamais relevé")}</span>
         <span className={`forf__fiab forf__fiab--${e?.fiabilite ?? "jamais"}`}>
-          {e?.fiabiliteLbl ?? "tarif à saisir"}
+          {e?.fiabiliteLbl ?? tr("tarif à saisir")}
         </span>
         <span className="forfp__voie">
-          Voie retenue : {VOIE_LBL[source?.voie ?? "auto"]}
-          {source?.desactivee ? " · désactivée après trois échecs" : ""}
+          {tr("Voie retenue : {voie}", { voie: tr(VOIE_LBL[source?.voie ?? "auto"]) })}
+          {source?.desactivee ? tr(" · désactivée après trois échecs") : ""}
         </span>
         {source?.desactivee || source?.voie === "manuelle" ? (
           <button type="button" className="lien-doux" onClick={onReactiver}>
-            Réactiver la source
+            {tr("Réactiver la source")}
           </button>
         ) : null}
       </div>
@@ -483,16 +499,18 @@ function PanneauDomaine({
       {e?.cause || source?.cause || source?.journal.length ? (
         <details className="forfp__detail">
           <summary>
-            Détail technique
-            {source?.journal.length ? ` · ${source.journal.length} tentative${source.journal.length > 1 ? "s" : ""}` : ""}
+            {tr("Détail technique")}
+            {source?.journal.length
+              ? trN(source.journal.length, " · {n} tentative", " · {n} tentatives")
+              : ""}
           </summary>
           {e?.cause || source?.cause ? <code>{e?.cause ?? source?.cause}</code> : null}
           {source?.journal.length ? (
             <ol className="forfp__journal">
               {source.journal.map((t, i) => (
                 <li key={`${t.at}-${i}`}>
-                  <span>{new Date(t.at).toLocaleString("fr-FR")}</span>
-                  <span>{TENTATIVE_LBL[t.issue]}</span>
+                  <span>{new Date(t.at).toLocaleString(langueIntl())}</span>
+                  <span>{tr(TENTATIVE_LBL[t.issue])}</span>
                   <span>{t.message}</span>
                   <span className="forfp__journal-url">{t.url}</span>
                 </li>
@@ -503,13 +521,14 @@ function PanneauDomaine({
       ) : null}
       {source?.voie === "manuelle" ? (
         <p className="forfp__assiste">
-          Cette source n’est pas accessible automatiquement. Ouvrez la page officielle et reportez
-          les tarifs dans la grille : ils seront marqués comme saisis à la main.
+          {tr(
+            "Cette source n’est pas accessible automatiquement. Ouvrez la page officielle et reportez les tarifs dans la grille : ils seront marqués comme saisis à la main.",
+          )}
           {d.website ? (
             <>
               {" "}
               <a href={d.website} target="_blank" rel="noopener">
-                Ouvrir le site officiel <Icon name="externe" taille={12} />
+                {tr("Ouvrir le site officiel")} <Icon name="externe" taille={12} />
               </a>
             </>
           ) : null}
@@ -519,14 +538,14 @@ function PanneauDomaine({
       <div className="forfp__grille">
         <table className="forfp__table">
           <caption className="sr-only">
-            Grille tarifaire de {d.name}, saison {saison}
+            {tr("Grille tarifaire de {nom}, saison {saison}", { nom: d.name, saison })}
           </caption>
           <thead>
             <tr>
-              <th scope="col">Durée</th>
+              <th scope="col">{tr("Durée")}</th>
               {CATEGORIES.map((c) => (
                 <th key={c.cle} scope="col">
-                  {c.label}
+                  {tr(c.label)}
                 </th>
               ))}
             </tr>
@@ -534,7 +553,7 @@ function PanneauDomaine({
           <tbody>
             {lignes.map((j) => (
               <tr key={j}>
-                <th scope="row">{j === 0.5 ? "½ journée" : `${j} j`}</th>
+                <th scope="row">{j === 0.5 ? tr("½ journée") : tr("{n} j", { n: j })}</th>
                 {CATEGORIES.map((c) => {
                   const t = lire(grille, j, c.cle);
                   return (
@@ -545,14 +564,18 @@ function PanneauDomaine({
                         step={0.5}
                         inputMode="decimal"
                         value={t.prix ?? ""}
-                        aria-label={`${d.name}, ${j === 0.5 ? "demi-journée" : `${j} jour${j > 1 ? "s" : ""}`}, ${c.label}, prix en euros`}
+                        aria-label={tr("{nom}, {duree}, {categorie}, prix en euros", {
+                          nom: d.name,
+                          duree: j === 0.5 ? tr("demi-journée") : trN(j, "{n} jour", "{n} jours"),
+                          categorie: tr(c.label),
+                        })}
                         onChange={(ev) => {
                           const v = ev.target.value.trim();
                           onPoser(j, c.cle, v === "" ? null : Number(v));
                         }}
                       />
-                      <span className="forfp__statut" title={t.source ?? undefined}>
-                        {STATUT_LBL[t.statut]}
+                      <span className="forfp__statut" title={t.source ? tr(t.source) : undefined}>
+                        {tr(STATUT_LBL[t.statut])}
                       </span>
                     </td>
                   );
@@ -565,7 +588,7 @@ function PanneauDomaine({
 
       <div className="forfp__pied">
         <label className="forfp__etendre">
-          Durées jusqu’à
+          {tr("Durées jusqu’à")}
           <input
             type="number"
             min={7}
@@ -573,19 +596,19 @@ function PanneauDomaine({
             value={grille?.dureeMax ?? 7}
             onChange={(ev) => onEtendre(Number(ev.target.value))}
           />
-          jours
+          {tr("jours")}
         </label>
         <button type="button" className="lien-doux" onClick={onAnnuler} disabled={!peutAnnuler}>
-          Annuler la dernière saisie
+          {tr("Annuler la dernière saisie")}
         </button>
         <button type="button" className="lien-doux" onClick={onReprendre}>
-          Reprendre le relevé (remplace les saisies manuelles)
+          {tr("Reprendre le relevé (remplace les saisies manuelles)")}
         </button>
       </div>
       <p className="forfp__note">
-        Chaque valeur est enregistrée dès la frappe, sur cet appareil. Une valeur saisie à la main
-        est marquée comme telle et n’est jamais remplacée par un relevé automatique sans passer par
-        « Reprendre le relevé ».
+        {tr(
+          "Chaque valeur est enregistrée dès la frappe, sur cet appareil. Une valeur saisie à la main est marquée comme telle et n’est jamais remplacée par un relevé automatique sans passer par « Reprendre le relevé ».",
+        )}
       </p>
     </section>
   );

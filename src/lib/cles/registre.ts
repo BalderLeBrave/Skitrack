@@ -11,6 +11,8 @@
  * pour savoir quoi présenter. Ajouter une clé, c'est ajouter une entrée ici.
  */
 
+import { aTraduire } from "../i18n/tr.ts";
+
 export type Cle = {
   /** Identifiant stable, employé par l'écran et le magasin. */
   id: string;
@@ -47,24 +49,24 @@ export const CLES: readonly Cle[] = [
   {
     id: "meteofrance",
     env: ["METEOFRANCE_API_KEY", "SKITRACK_METEOFRANCE_API_KEY"],
-    label: "Clé API Météo-France",
-    sert: "Bulletins d’avalanche lus directement par l’API « Données Publiques BRA » de Météo-France.",
-    sans: "Les bulletins d’avalanche viennent de l’archive publique de Météo-France sur data.gouv.fr, en accès libre, sans compte ni clé. La clé n’est utile que pour les lire par l’API.",
+    label: aTraduire("Clé API Météo-France"),
+    sert: aTraduire("Bulletins d’avalanche lus directement par l’API « Données Publiques BRA » de Météo-France."),
+    sans: aTraduire("Les bulletins d’avalanche viennent de l’archive publique de Météo-France sur data.gouv.fr, en accès libre, sans compte ni clé. La clé n’est utile que pour les lire par l’API."),
     obtenir: {
-      texte: "Portail API Météo-France : souscrire à « Données Publiques BRA », puis copier la clé API de l’application",
+      texte: aTraduire("Portail API Météo-France : souscrire à « Données Publiques BRA », puis copier la clé API de l’application"),
       url: "https://portail-api.meteofrance.fr/",
     },
     secret: true,
-    exemple: "un jeton JWT, trois blocs séparés par des points",
+    exemple: aTraduire("un jeton JWT, trois blocs séparés par des points"),
     essayable: true,
     facultative: true,
   },
   {
     id: "pyairbnb",
     env: ["SKITRACK_PYAIRBNB_PYTHON", "SKITRACK_PYTHON"],
-    label: "Interpréteur Python des relevés Airbnb et Booking",
-    sert: "Chemin de l’exécutable Python qui lance les relevés directs d’Airbnb et de Booking.",
-    sans: "Les relevés cherchent eux-mêmes un Python 3 : l’environnement virtuel scrape/.venv (npm run scrape:python), puis py -3, python ou python3. S’ils n’en trouvent aucun avec curl_cffi et bs4, le relevé direct Airbnb se limite à une seule page de résultats, ce que le rapport de la source signale. Airbnb, Abritel et Booking restent relevés par CozyCozy.",
+    label: aTraduire("Interpréteur Python des relevés Airbnb et Booking"),
+    sert: aTraduire("Chemin de l’exécutable Python qui lance les relevés directs d’Airbnb et de Booking."),
+    sans: aTraduire("Les relevés cherchent eux-mêmes un Python 3 : l’environnement virtuel scrape/.venv (npm run scrape:python), puis py -3, python ou python3. S’ils n’en trouvent aucun avec curl_cffi et bs4, le relevé direct Airbnb se limite à une seule page de résultats, ce que le rapport de la source signale. Airbnb, Abritel et Booking restent relevés par CozyCozy."),
     obtenir: null,
     secret: false,
     exemple: "/usr/bin/python3",
@@ -73,15 +75,15 @@ export const CLES: readonly Cle[] = [
   {
     id: "apify",
     env: ["APIFY_TOKEN", "SKITRACK_APIFY_TOKEN"],
-    label: "Jeton API Apify",
-    sert: "Complète par Apify les annonces Airbnb auxquelles il manque encore capacité, chambres, photo, prix ou position, dans un plafond de 5 $ par recherche.",
-    sans: "Les annonces Airbnb restent complétées par leurs pages, lues directement ; celles qu’elles laissent incomplètes le restent.",
+    label: aTraduire("Jeton API Apify"),
+    sert: aTraduire("Complète par Apify les annonces Airbnb auxquelles il manque encore capacité, chambres, photo, prix ou position, dans un plafond de 5 $ par recherche."),
+    sans: aTraduire("Les annonces Airbnb restent complétées par leurs pages, lues directement ; celles qu’elles laissent incomplètes le restent."),
     obtenir: {
-      texte: "Console Apify : Settings → API & Integrations, copier le jeton personnel",
+      texte: aTraduire("Console Apify : Settings → API & Integrations, copier le jeton personnel"),
       url: "https://console.apify.com/settings/integrations",
     },
     secret: true,
-    exemple: "apify_api_ suivi d’une quarantaine de caractères",
+    exemple: aTraduire("apify_api_ suivi d’une quarantaine de caractères"),
     essayable: false,
     facultative: true,
   },

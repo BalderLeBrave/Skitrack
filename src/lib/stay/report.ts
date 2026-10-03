@@ -33,6 +33,8 @@
 
 import { nightsBetween } from "./calendar.ts";
 import type { ForfaitStatus } from "../forfaits/types.ts";
+import { langueIntl } from "../i18n/langue.ts";
+import { aTraduire, tr } from "../i18n/tr.ts";
 
 /**
  * Euros à la française.
@@ -43,7 +45,7 @@ import type { ForfaitStatus } from "../forfaits/types.ts";
  * « 4 031 € ».
  */
 function euros(n: number): string {
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(langueIntl(), {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: n % 1 === 0 ? 0 : 2,
@@ -127,12 +129,12 @@ export function origineForfait(status: ForfaitStatus | null | undefined): Origin
   }
 }
 
-/** Ce que l'écran écrit à côté d'un montant. */
+/** Ce que l'écran écrit à côté d'un montant, en français : `tr(ORIGINE_LABEL[o])` au rendu. */
 export const ORIGINE_LABEL: Record<Exclude<Origine, "inconnu">, string> = {
-  relevé: "relevé",
-  saisi: "saisi",
-  estimé: "estimé",
-  néant: "aucun",
+  relevé: aTraduire("relevé"),
+  saisi: aTraduire("saisi"),
+  estimé: aTraduire("estimé"),
+  néant: aTraduire("aucun"),
 };
 
 /**
@@ -149,14 +151,14 @@ export function buildReport(input: ReportInput): Report {
   const manques: string[] = [];
 
   if (nuits == null) {
-    manques.push("Les dates du séjour sont illisibles : la durée n’a pas pu être calculée.");
+    manques.push(tr("Les dates du séjour sont illisibles : la durée n’a pas pu être calculée."));
   } else if (nuits <= 0) {
-    manques.push("Le départ ne suit pas l’arrivée : la durée du séjour n’a pas de sens.");
+    manques.push(tr("Le départ ne suit pas l’arrivée : la durée du séjour n’a pas de sens."));
   }
 
   for (const p of input.postes) {
     if (p.origine === "inconnu" || p.montant == null) {
-      manques.push(`${p.label} : aucun montant relevé.`);
+      manques.push(tr("{poste} : aucun montant relevé.", { poste: p.label }));
       continue;
     }
     postes.push({
@@ -187,10 +189,10 @@ export function buildReport(input: ReportInput): Report {
  * lui accorde.
  */
 export function fiabiliteLabel(report: Report): string {
-  if (report.postes.length === 0) return "Aucun montant : ce récapitulatif ne chiffre rien.";
+  if (report.postes.length === 0) return tr("Aucun montant : ce récapitulatif ne chiffre rien.");
   if (report.totalEstime === 0) {
-    return "Aucune estimation : chaque montant de ce total a été relevé ou saisi.";
+    return tr("Aucune estimation : chaque montant de ce total a été relevé ou saisi.");
   }
   const part = report.total > 0 ? Math.round((report.totalEstime / report.total) * 100) : 0;
-  return `Dont ${euros(report.totalEstime)} estimés, soit ${part} % du total.`;
+  return tr("Dont {montant} estimés, soit {part} % du total.", { montant: euros(report.totalEstime), part });
 }

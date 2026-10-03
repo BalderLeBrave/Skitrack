@@ -23,12 +23,13 @@
  */
 
 import { paysByCode } from "./geo/pays.ts";
-import { decimal, entier, LANGUE_NOMBRES } from "./nombres.ts";
+import { decimal, entier, langueNombres } from "./nombres.ts";
+import { langue } from "./i18n/langue.ts";
 
 /** Le formatage des nombres a déménagé dans `nombres.ts` : `unites.ts` en a
  *  besoin aussi, et trois copies de la même règle auraient fini par diverger
  *  sur l'espace des milliers. Réexporté ici, où des appelants le cherchent. */
-export { entier, LANGUE_NOMBRES } from "./nombres.ts";
+export { entier, langueNombres } from "./nombres.ts";
 
 const SYMBOLES = new Map<string, string>();
 
@@ -39,11 +40,12 @@ const SYMBOLES = new Map<string, string>();
  */
 export function symboleDevise(devise: string): string {
   const code = devise.toUpperCase();
-  const connu = SYMBOLES.get(code);
+  const cle = `${langueNombres()}|${code}`;
+  const connu = SYMBOLES.get(cle);
   if (connu !== undefined) return connu;
   let symbole = code;
   try {
-    const part = new Intl.NumberFormat(LANGUE_NOMBRES, { style: "currency", currency: code })
+    const part = new Intl.NumberFormat(langueNombres(), { style: "currency", currency: code })
       .formatToParts(0)
       .find((p) => p.type === "currency");
     if (part) symbole = part.value;
@@ -51,13 +53,21 @@ export function symboleDevise(devise: string): string {
     // `Intl` refuse un code qui n'est pas de la forme ISO 4217. Le code brut
     // fait alors l'affaire, et l'écran n'affiche pas un prix nu.
   }
-  SYMBOLES.set(code, symbole);
+  SYMBOLES.set(cle, symbole);
   return symbole;
 }
 
 /** `montant(1234)` → « 1 234 € ». `montant(1234, "CHF")` → « 1 234 CHF ». */
 export function montant(n: number | null | undefined, devise = "EUR"): string {
-  return n == null ? "–" : `${entier(n)} ${symboleDevise(devise)}`;
+  return n == null ? "–" : avecSymbole(entier(n), devise);
+}
+
+/** « 1 234 € » en français ; « €1,234 » en anglais, où un symbole se met
+ *  devant (un code de devise, « CHF 1,234 », aussi, avec une espace). */
+function avecSymbole(nombre: string, devise: string): string {
+  const s = symboleDevise(devise);
+  if (langue() !== "en") return `${nombre} ${s}`;
+  return /^[A-Z]{2,}$/.test(s) ? `${s} ${nombre}` : `${s}${nombre}`;
 }
 
 /** Comme `montant`, mais rend `null` plutôt que « – » : l'écran écrit alors
@@ -70,8 +80,8 @@ export function montantN(n: number | null | undefined, devise = "EUR"): string |
 export function montantCents(n: number | null | undefined, devise = "EUR"): string | null {
   if (n == null) return null;
   // Les centimes ne s'écrivent que s'il y en a : « 12 € », mais « 12,50 € ».
-  const nombre = n % 1 ? decimal(n, 2).replace(/,(\d)$/, ",$10") : entier(n);
-  return `${nombre} ${symboleDevise(devise)}`;
+  const nombre = n % 1 ? decimal(n, 2).replace(/([,.])(\d)$/, "$1$20") : entier(n);
+  return avecSymbole(nombre, devise);
 }
 
 /**

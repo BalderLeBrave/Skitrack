@@ -18,6 +18,7 @@
  */
 
 import { MF_CODES } from "./massifs.ts";
+import { langueIntl } from "../i18n/langue.ts";
 
 export const ARCHIVE_BRA = "https://files.data.gouv.fr/meteofrance/data/BULLETIN/BRA";
 
@@ -113,5 +114,5 @@ export function jourLisible(chemin: string): string | null {
   const m = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(chemin);
   if (!m) return null;
   const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12));
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  return d.toLocaleDateString(langueIntl(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }

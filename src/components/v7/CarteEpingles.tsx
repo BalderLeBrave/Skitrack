@@ -27,6 +27,7 @@ import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
 import { poserOpenSkiMap } from "@/lib/carteOpenSkiMap";
 import type { Bornes } from "@/lib/carte";
 import { echappe, EPINGLE, ETAGE, type Epingle } from "./epingle";
+import { tr } from "@/lib/i18n";
 
 /**
  * La vue par défaut, **hors de la liste des paramètres**.
@@ -500,7 +501,7 @@ export function CarteEpingles({
       <div className="carte7__toile" ref={hote} />
       {tactile && !engagee ? (
         <button type="button" className="carte7__voile" onClick={engager}>
-          <span>Appuyez pour déplacer la carte</span>
+          <span>{tr("Appuyez pour déplacer la carte")}</span>
         </button>
       ) : null}
 
@@ -619,7 +620,7 @@ function FicheCarte({
       aria-live={epinglee ? undefined : "polite"}
     >
       {epinglee && surFermer ? (
-        <button type="button" className="fcarte__fermer" aria-label="Fermer" onClick={surFermer}>
+        <button type="button" className="fcarte__fermer" aria-label={tr("Fermer")} onClick={surFermer}>
           <svg
             width="16"
             height="16"

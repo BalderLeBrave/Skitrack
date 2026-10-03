@@ -6,6 +6,7 @@
  */
 
 import { Icon } from "@/components/Icon";
+import { tr } from "@/lib/i18n";
 
 /**
  * La pagination de la liste, comme sur Airbnb : la première page, la dernière,
@@ -21,13 +22,13 @@ export function Pages({ page, n, aller }: { page: number; n: number; aller: (p: 
     rendus.push(p);
   });
   return (
-    <nav className="pages7" aria-label="Pages de logements">
+    <nav className="pages7" aria-label={tr("Pages de logements")}>
       <button
         type="button"
         className="pages7__fleche"
         disabled={page === 0}
         onClick={() => aller(page - 1)}
-        aria-label="Page précédente"
+        aria-label={tr("Page précédente")}
       >
         <Icon name="chevron-gauche" taille={18} />
       </button>
@@ -53,7 +54,7 @@ export function Pages({ page, n, aller }: { page: number; n: number; aller: (p: 
         className="pages7__fleche"
         disabled={page >= n - 1}
         onClick={() => aller(page + 1)}
-        aria-label="Page suivante"
+        aria-label={tr("Page suivante")}
       >
         <Icon name="chevron-droite" taille={18} />
       </button>

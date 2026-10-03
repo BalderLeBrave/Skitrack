@@ -97,6 +97,8 @@ import {
   type DomaineMonde,
 } from "@/lib/monde/monde";
 import { altitude, mesureDans, type Systeme } from "@/lib/unites";
+import { langueIntl } from "@/lib/i18n/langue";
+import { aTraduire, langue, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/monde")({ component: PageMonde });
 
@@ -105,9 +107,21 @@ const NOM_SOURCE: Record<string, string> = {
   skiinfo: "Skiinfo",
   skiresort: "skiresort.fr",
   bergfex: "bergfex",
-  officiel: "site officiel",
-  proprietaire: "relevé à la main",
+  officiel: aTraduire("site officiel"),
+  proprietaire: aTraduire("relevé à la main"),
 };
+
+/** Les textes de `index.json` qui s'affichent tels quels : marqués ici pour
+ *  leur traduction, rendus par `tr`. Un texte nouveau du relevé reste en
+ *  français tant qu'il n'est pas ajouté. */
+const TEXTES_RELEVE = new Set([
+  aTraduire("en exploitation, mesuré, et nommé"),
+  aTraduire("écartée du référentiel le 21 septembre 2026, sur décision du propriétaire"),
+]);
+const texteReleve = (x: string) => (TEXTES_RELEVE.has(x) ? tr(x) : x);
+
+/** Le nom d'un continent ou d'un pays dans la langue de l'écran. */
+const nomLocal = (x: { nomFr: string; nomEn: string }) => (langue() === "en" ? x.nomEn : x.nomFr);
 
 /** Les pays du référentiel qu'aucun continent n'accueille, avec leurs domaines.
  *  Calculé une fois : ni `PAYS` ni l'index ne bougent au cours d'une session. */
@@ -119,7 +133,8 @@ const HORS_ONGLETS = PAYS_AVEC_DOMAINES.filter((cc) => !paysByCode(cc)).map((cc)
 /** Ce qu'un continent porte, sans ouvrir un seul fichier de pays. */
 type ResumeContinent = {
   id: ContinentId;
-  nom: string;
+  nomFr: string;
+  nomEn: string;
   pays: Pays[];
   domaines: number;
 };
@@ -128,7 +143,8 @@ const RESUMES: ResumeContinent[] = CONTINENTS.map((c) => {
   const pays = paysDuContinent(c.id).filter((p) => indexPays(p.code));
   return {
     id: c.id,
-    nom: c.nomFr,
+    nomFr: c.nomFr,
+    nomEn: c.nomEn,
     pays,
     domaines: pays.reduce((n, p) => n + (indexPays(p.code)?.domaines ?? 0), 0),
   };
@@ -140,7 +156,8 @@ const TOTAL_ONGLETS = RESUMES.reduce((n, r) => n + r.domaines, 0);
 
 /** La date du relevé, écrite en français. Midi, pour qu'un relevé fait tard le
  *  soir en temps universel ne bascule pas au lendemain. */
-const DATE_RELEVE = new Date(`${RELEVE_MONDE.slice(0, 10)}T12:00:00`).toLocaleDateString("fr-FR", {
+const dateReleve = () =>
+  new Date(`${RELEVE_MONDE.slice(0, 10)}T12:00:00`).toLocaleDateString(langueIntl(), {
   day: "numeric",
   month: "long",
   year: "numeric",
@@ -190,16 +207,21 @@ function NiveauMeteo({ titre, n, systeme }: { titre: string; n: ForecastLevel; s
         {titre} · {altitude(n.altitudeM, systeme)}
       </span>
       <span className="monde-meteo__creneaux">
-        {n.morning.temp != null ? `${n.morning.temp} °C` : "–"} le matin,{" "}
-        {SKY_FR[n.morning.sky]} · {n.afternoon.temp != null ? `${n.afternoon.temp} °C` : "–"}{" "}
-        l’après-midi, {SKY_FR[n.afternoon.sky]}
+        {tr("{matin} le matin, {cielMatin} · {apresMidi} l’après-midi, {cielApresMidi}", {
+          matin: n.morning.temp != null ? `${n.morning.temp} °C` : "–",
+          cielMatin: tr(SKY_FR[n.morning.sky]),
+          apresMidi: n.afternoon.temp != null ? `${n.afternoon.temp} °C` : "–",
+          cielApresMidi: tr(SKY_FR[n.afternoon.sky]),
+        })}
       </span>
       {jour ? (
         <span className="monde-meteo__jour">
-          Aujourd’hui {jour.tempMin != null ? `${jour.tempMin}` : "–"} à{" "}
-          {jour.tempMax != null ? `${jour.tempMax} °C` : "–"}
-          {jour.snowCm != null && jour.snowCm > 0 ? ` · ${decimal(jour.snowCm, 1)} cm de neige` : null}
-          {jour.depthCm != null ? ` · ${entier(jour.depthCm)} cm au sol` : null}
+          {tr("Aujourd’hui {min} à {max}", {
+            min: jour.tempMin != null ? `${jour.tempMin}` : "–",
+            max: jour.tempMax != null ? `${jour.tempMax} °C` : "–",
+          })}
+          {jour.snowCm != null && jour.snowCm > 0 ? tr(" · {cm} cm de neige", { cm: decimal(jour.snowCm, 1) }) : null}
+          {jour.depthCm != null ? tr(" · {cm} cm au sol", { cm: entier(jour.depthCm) }) : null}
         </span>
       ) : null}
     </div>
@@ -263,23 +285,26 @@ function MeteoDomaine({ d, systeme, vues }: { d: DomaineMonde; systeme: Systeme;
   if (etat.s === "aucun") {
     return (
       <p className="monde-row__absence">
-        Météo indisponible : ni altitude de piste ni point de terrain n’est relevé pour ce domaine.
+        {tr("Météo indisponible : ni altitude de piste ni point de terrain n’est relevé pour ce domaine.")}
       </p>
     );
   }
-  if (etat.s === "charge") return <p className="monde-row__lieu">Relevé de la météo…</p>;
+  if (etat.s === "charge") return <p className="monde-row__lieu">{tr("Relevé de la météo…")}</p>;
   if (etat.s === "panne")
-    return <p className="monde-row__absence">Le service de météo n’a pas répondu.</p>;
+    return <p className="monde-row__absence">{tr("Le service de météo n’a pas répondu.")}</p>;
 
   if (etat.niveaux.forme === "point") {
     return (
       <div className="monde-meteo">
-        <NiveauMeteo titre="Point de référence du domaine" n={etat.p.low} systeme={systeme} />
+        <NiveauMeteo titre={tr("Point de référence du domaine")} n={etat.p.low} systeme={systeme} />
         <span className="monde-meteo__iso">
-          Les altitudes des pistes ne sont pas relevées : cette prévision vaut pour le point de
-          terrain Copernicus du domaine, à {altitude(etat.niveaux.alt, systeme)}, pas pour le bas
-          ni le haut des pistes.
-          {etat.p.freezingLevelM != null ? ` Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}.` : ""}
+          {tr(
+            "Les altitudes des pistes ne sont pas relevées : cette prévision vaut pour le point de terrain Copernicus du domaine, à {altitude}, pas pour le bas ni le haut des pistes.",
+            { altitude: altitude(etat.niveaux.alt, systeme) },
+          )}
+          {etat.p.freezingLevelM != null
+            ? ` ${tr("Isotherme 0 °C à {altitude}", { altitude: altitude(etat.p.freezingLevelM, systeme) })}.`
+            : ""}
         </span>
       </div>
     );
@@ -287,15 +312,17 @@ function MeteoDomaine({ d, systeme, vues }: { d: DomaineMonde; systeme: Systeme;
 
   return (
     <div className="monde-meteo">
-      <NiveauMeteo titre="Bas des pistes" n={etat.p.low} systeme={systeme} />
-      <NiveauMeteo titre="Haut des pistes" n={etat.p.high} systeme={systeme} />
+      <NiveauMeteo titre={tr("Bas des pistes")} n={etat.p.low} systeme={systeme} />
+      <NiveauMeteo titre={tr("Haut des pistes")} n={etat.p.high} systeme={systeme} />
       <span className="monde-meteo__iso">
         {etat.p.freezingLevelM != null
-          ? `Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}`
-          : "Isotherme 0 °C non disponible"}
+          ? tr("Isotherme 0 °C à {altitude}", { altitude: altitude(etat.p.freezingLevelM, systeme) })
+          : tr("Isotherme 0 °C non disponible")}
         {" · Open-Meteo"}
         {etat.niveaux.forme === "pistes" && etat.niveaux.source !== "référentiel"
-          ? ` · altitudes publiées par ${etat.niveaux.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"}, le référentiel ne les a pas mesurées`
+          ? tr(" · altitudes publiées par {source}, le référentiel ne les a pas mesurées", {
+              source: etat.niveaux.source === "skiinfo" ? "Skiinfo" : "skiresort.fr",
+            })
           : ""}
       </span>
     </div>
@@ -337,7 +364,7 @@ function LigneDomaine({
   const matrice = forfait?.matrice ?? null;
   // Les sources réellement employées par la matrice, dans l'ordre d'apparition.
   const sourcesTarifs = matrice
-    ? [...new Set(POSTES.map((p) => matrice[p]?.source).filter(Boolean))].map((x) => NOM_SOURCE[x!])
+    ? [...new Set(POSTES.map((p) => matrice[p]?.source).filter(Boolean))].map((x) => tr(NOM_SOURCE[x!]))
     : [];
 
   const fourchette = forfait ? fourchetteJournee(forfait) : null;
@@ -365,7 +392,7 @@ function LigneDomaine({
     <li className="monde-row">
       {!vue ? (
         <span className="monde-row__photo monde-row__photo--absente" aria-hidden>
-          photo non relevée
+          {tr("photo non relevée")}
         </span>
       ) : null}
       {vue ? (
@@ -384,15 +411,15 @@ function LigneDomaine({
       {vue?.source.source === "commons" ? (
         <span className="monde-row__credit">
           <a href={vue.source.page} rel="noreferrer nofollow">
-            {vue.source.auteur || "auteur non nommé"}
+            {vue.source.auteur || tr("auteur non nommé")}
           </a>
           {vue.source.licence ? ` · ${vue.source.licence}` : null} · Wikimedia Commons
         </span>
       ) : null}
       <div className="monde-row__tete">
-        <span className="monde-row__nom">{d.nom || "Domaine sans nom"}</span>
+        <span className="monde-row__nom">{d.nom || tr("Domaine sans nom")}</span>
         {d.pays.length > 1 ? (
-          <span className="monde-row__frontiere" title="Domaine à cheval sur une frontière">
+          <span className="monde-row__frontiere" title={tr("Domaine à cheval sur une frontière")}>
             {d.pays.join(" / ")}
           </span>
         ) : null}
@@ -402,17 +429,20 @@ function LigneDomaine({
         <div
           title={
             pistesRepli?.km != null
-              ? `Kilomètres publiés par ${pistesRepli.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"} (fiche « ${pistesRepli.cle} ») : OpenSkiMap n’a cartographié aucune piste de ce domaine.`
+              ? tr("Kilomètres publiés par {source} (fiche « {fiche} ») : OpenSkiMap n’a cartographié aucune piste de ce domaine.", {
+                  source: pistesRepli.source === "skiinfo" ? "Skiinfo" : "skiresort.fr",
+                  fiche: pistesRepli.cle,
+                })
               : undefined
           }
         >
-          <dt>Pistes</dt>
+          <dt>{tr("Pistes")}</dt>
           <dd>
             {pistesRepli?.km != null
               ? mesureDans({ valeur: pistesRepli.km, unite: "km" }, systeme)
               : d.km != null && d.km > 0
                 ? mesureDans({ valeur: d.km, unite: "km" }, systeme)
-                : "non cartographiées"}
+                : tr("non cartographiées")}
             {pistesRepli?.km != null ? (
               <span className="monde-row__loin">
                 {" "}
@@ -422,16 +452,16 @@ function LigneDomaine({
           </dd>
         </div>
         <div>
-          <dt>Sommet</dt>
-          <dd>{d.maxM != null ? altitude(d.maxM, systeme) : "non relevé"}</dd>
+          <dt>{tr("Sommet")}</dt>
+          <dd>{d.maxM != null ? altitude(d.maxM, systeme) : tr("non relevé")}</dd>
         </div>
         <div>
-          <dt>Dénivelé</dt>
-          <dd>{dn != null ? altitude(dn, systeme) : "non relevé"}</dd>
+          <dt>{tr("Dénivelé")}</dt>
+          <dd>{dn != null ? altitude(dn, systeme) : tr("non relevé")}</dd>
         </div>
         <div>
-          <dt>Remontées</dt>
-          <dd>{d.lifts != null ? entier(d.lifts) : "non relevées"}</dd>
+          <dt>{tr("Remontées")}</dt>
+          <dd>{d.lifts != null ? entier(d.lifts) : tr("non relevées")}</dd>
         </div>
         {/* Décision du propriétaire, 22 septembre 2026 : garder les 2 780
             domaines et **afficher l'absence**. Un forfait manquant s'écrit
@@ -440,13 +470,13 @@ function LigneDomaine({
             source ne publie. */}
         {!adulte ? (
           <div>
-            <dt>Forfait jour</dt>
-            <dd>non relevé</dd>
+            <dt>{tr("Forfait jour")}</dt>
+            <dd>{tr("non relevé")}</dd>
           </div>
         ) : null}
         {adulte ? (
           <div title={forfait ? mentionForfait(forfait) : undefined}>
-            <dt>{jour?.libelle && /week/i.test(jour.libelle) ? "Forfait" : "Forfait jour"}</dt>
+            <dt>{jour?.libelle && /week/i.test(jour.libelle) ? tr("Forfait") : tr("Forfait jour")}</dt>
             {/* Dans la devise du pays, jamais convertie. Le site publie bien
                 un « env. € » ; il est dans le relevé et n'est pas un prix.
 
@@ -461,9 +491,9 @@ function LigneDomaine({
               {/* Quand le tarif dépend de la date, on écrit la fourchette et
                   non un montant seul : « 74 à 82 € » dit ce qu'un « 82 € »
                   cacherait, et c'est la distinction que la source publie. */}
-              {fourchette ? `${entier(fourchette.bas)} à ${adulte}` : adulte}
+              {fourchette ? tr("{bas} à {haut}", { bas: entier(fourchette.bas), haut: adulte }) : adulte}
               {forfait && forfait.km > 2 ? (
-                <span className="monde-row__loin"> · fiche à {decimal(forfait.km, 1)} km</span>
+                <span className="monde-row__loin">{tr(" · fiche à {km} km", { km: decimal(forfait.km, 1) })}</span>
               ) : null}
             </dd>
           </div>
@@ -476,11 +506,11 @@ function LigneDomaine({
             {r.pct.vert} · {r.pct.bleu} · {r.pct.rouge} · {r.pct.noir} %
           </span>
           {r.partage === "estime" ? (
-            <span className="monde-row__estime">vert et bleu estimés</span>
+            <span className="monde-row__estime">{tr("vert et bleu estimés")}</span>
           ) : null}
         </div>
       ) : (
-        <p className="monde-row__absence">Répartition par couleur non relevée</p>
+        <p className="monde-row__absence">{tr("Répartition par couleur non relevée")}</p>
       )}
       <button
         type="button"
@@ -488,23 +518,23 @@ function LigneDomaine({
         aria-expanded={ouvert}
         onClick={surOuvrir}
       >
-        {ouvert ? "Masquer le détail" : "Afficher le détail"}
+        {ouvert ? tr("Masquer le détail") : tr("Afficher le détail")}
       </button>
       {ouvert && forfait?.source === "proprietaire" ? (
         <p className="monde-row__preuve">
           {/* Un tarif relevé à la main : sa période telle qu'écrite, sa note,
               et la page d'où il sort — sans quoi il ne se juge pas. */}
-          Relevé à la main
+          {tr("Relevé à la main")}
           {forfait.releve?.periode ? (
             <>
-              , période <q>{forfait.releve.periode}</q>
+              {tr(", période")} <q>{forfait.releve.periode}</q>
             </>
           ) : null}
           {forfait.releve?.note ? ` ; ${forfait.releve.note}` : null}
           {forfait.pageTarifs ? (
             <>
               {" "}
-              (<a href={forfait.pageTarifs} rel="noreferrer">source</a>)
+              (<a href={forfait.pageTarifs} rel="noreferrer">{tr("source")}</a>)
             </>
           ) : null}
         </p>
@@ -513,12 +543,12 @@ function LigneDomaine({
         <p className="monde-row__preuve">
           {/* Un prix lu en texte libre ne se juge pas seul : la ligne du
               tableau, telle que le site l'écrit, paraît avec lui. */}
-          Lu sur le site officiel :{" "}
+          {tr("Lu sur le site officiel :")}{" "}
           <q>{forfait.preuve}</q>
           {forfait.pageTarifs ? (
             <>
               {" "}
-              (<a href={forfait.pageTarifs} rel="noreferrer">page des tarifs</a>)
+              (<a href={forfait.pageTarifs} rel="noreferrer">{tr("page des tarifs")}</a>)
             </>
           ) : null}
         </p>
@@ -526,7 +556,7 @@ function LigneDomaine({
       {ouvert && matrice && forfait ? (
         <table className="monde-tarifs">
           <caption>
-            Forfaits publiés, en {forfait.devise}
+            {tr("Forfaits publiés, en {devise}", { devise: forfait.devise ?? "" })}
             {/* Une case peut venir d'une autre source que le prix affiché en
                 tête — la première qui la publie, dans la même devise. Deux
                 cases d'une même ligne peuvent donc venir de deux sources, et
@@ -538,16 +568,17 @@ function LigneDomaine({
             {sourcesTarifs.length > 1 ? (
               <span className="monde-tarifs__melange">
                 {" "}
-                : montants de sources différentes ({sourcesTarifs.join(", ")}). Survolez un montant
-                pour voir sa source.
+                {tr(": montants de sources différentes ({sources}). Survolez un montant pour voir sa source.", {
+                  sources: sourcesTarifs.join(", "),
+                })}
               </span>
             ) : null}
           </caption>
           <thead>
             <tr>
-              <th scope="col">Durée</th>
-              <th scope="col">Adulte</th>
-              <th scope="col">Enfant</th>
+              <th scope="col">{tr("Durée")}</th>
+              <th scope="col">{tr("Adulte")}</th>
+              <th scope="col">{tr("Enfant")}</th>
             </tr>
           </thead>
           <tbody>
@@ -555,14 +586,14 @@ function LigneDomaine({
               const cases = [matrice[`${duree}Adulte`], matrice[`${duree}Enfant`]];
               return (
                 <tr key={duree}>
-                  <th scope="row">{LIBELLE_POSTE[`${duree}Adulte`].ligne}</th>
+                  <th scope="row">{tr(LIBELLE_POSTE[`${duree}Adulte`].ligne)}</th>
                   {cases.map((c, i) => (
                     <td
                       key={i}
                       className={c ? "monde-tarifs__prix" : "monde-tarifs__vide"}
                       title={c ? mentionCase(c) : undefined}
                     >
-                      {(c && prix(c.prix, forfait.devise)) || "non relevé"}
+                      {(c && prix(c.prix, forfait.devise)) || tr("non relevé")}
                     </td>
                   ))}
                 </tr>
@@ -573,16 +604,17 @@ function LigneDomaine({
       ) : null}
       {ouvert && periodes.length > 1 ? (
         <dl className="monde-periodes">
-          <dt>Forfait journée, adulte, selon la date</dt>
+          <dt>{tr("Forfait journée, adulte, selon la date")}</dt>
           {periodes.map((p) => (
             <dd key={p.dates}>
               <span className="monde-periodes__dates">{p.dates}</span>
-              <b>{prix(p.prix, forfait!.devise) ?? "non publié"}</b>
+              <b>{prix(p.prix, forfait!.devise) ?? tr("non publié")}</b>
             </dd>
           ))}
           <dd className="monde-periodes__source">
-            Périodes publiées par {forfait!.source === "bergfex" ? "bergfex" : forfait!.source}, et
-            reprises telles quelles.
+            {tr("Périodes publiées par {source}, et reprises telles quelles.", {
+              source: forfait!.source === "bergfex" ? "bergfex" : forfait!.source,
+            })}
           </dd>
         </dl>
       ) : null}
@@ -643,7 +675,7 @@ function PageMonde() {
         if (!vivant) return;
         // Une panne de chargement n'est pas un pays vide : l'écran dit laquelle
         // des deux il a rencontrée, au lieu d'afficher « aucun domaine ».
-        setPanne(e instanceof Error ? e.message : "chargement impossible");
+        setPanne(e instanceof Error ? e.message : tr("chargement impossible"));
         setDomaines([]);
       })
       .finally(() => {
@@ -677,13 +709,17 @@ function PageMonde() {
     <Coquille>
       <div className="monde">
         <header className="monde__tete">
-          <p className="monde__surtitre">Référentiel mondial · OpenSkiMap</p>
-          <h1 className="monde__titre">Le monde</h1>
+          <p className="monde__surtitre">{tr("Référentiel mondial · OpenSkiMap")}</p>
+          <h1 className="monde__titre">{tr("Le monde")}</h1>
           <p className="monde__intro">
-            {entier(DOMAINES_MONDE)} domaines de ski alpin, {PAYS_AVEC_DOMAINES.length} pays. Seuil
-            retenu : {SEUIL_MONDE}. Relevé du {DATE_RELEVE}.
+            {tr("{domaines} domaines de ski alpin, {pays} pays. Seuil retenu : {seuil}. Relevé du {date}.", {
+              domaines: entier(DOMAINES_MONDE),
+              pays: PAYS_AVEC_DOMAINES.length,
+              seuil: texteReleve(SEUIL_MONDE),
+              date: dateReleve(),
+            })}
           </p>
-          <div className="monde__systeme" role="group" aria-label="Unités">
+          <div className="monde__systeme" role="group" aria-label={tr("Unités")}>
             {(
               [
                 ["metrique", "km · m"],
@@ -703,7 +739,7 @@ function PageMonde() {
           </div>
         </header>
 
-        <nav className="monde__fil" aria-label="Où vous êtes">
+        <nav className="monde__fil" aria-label={tr("Où vous êtes")}>
           <button
             type="button"
             className="monde__miette"
@@ -712,20 +748,20 @@ function PageMonde() {
               setPays(null);
             }}
           >
-            Monde
+            {tr("Monde")}
           </button>
           {listeContinent ? (
             <>
               <span aria-hidden>›</span>
               <button type="button" className="monde__miette" onClick={() => setPays(null)}>
-                {listeContinent.nom}
+                {nomLocal(listeContinent)}
               </button>
             </>
           ) : null}
           {pays ? (
             <>
               <span aria-hidden>›</span>
-              <span className="monde__miette monde__miette--ici">{fiche?.nomFr ?? pays}</span>
+              <span className="monde__miette monde__miette--ici">{fiche ? nomLocal(fiche) : pays}</span>
             </>
           ) : null}
         </nav>
@@ -737,30 +773,36 @@ function PageMonde() {
               {RESUMES.map((r) => (
                 <li key={r.id}>
                   <button type="button" className="monde-carte" onClick={() => setContinent(r.id)}>
-                    <span className="monde-carte__nom">{r.nom}</span>
+                    <span className="monde-carte__nom">{nomLocal(r)}</span>
                     <span className="monde-carte__chiffre">{entier(r.domaines)}</span>
                     <span className="monde-carte__quoi">
-                      domaines · {r.pays.length} pays
+                      {tr("domaines · {n} pays", { n: r.pays.length })}
                     </span>
                   </button>
                 </li>
               ))}
             </ul>
             <p className="monde__note">
-              {entier(TOTAL_ONGLETS)} domaines sont rangés sous ces {RESUMES.length} continents.{" "}
+              {tr("{n} domaines sont rangés sous ces {continents} continents.", {
+                n: entier(TOTAL_ONGLETS),
+                continents: RESUMES.length,
+              })}{" "}
               {HORS_ONGLETS.length ? (
                 <>
-                  {HORS_ONGLETS.length === 1 ? "Un pays du référentiel n’y figure" : "Deux pays du référentiel n’y figurent"}{" "}
-                  pas :{" "}
+                  {HORS_ONGLETS.length === 1
+                    ? tr("Un pays du référentiel n’y figure pas :")
+                    : tr("Deux pays du référentiel n’y figurent pas :")}{" "}
                   {HORS_ONGLETS.map((p, i) => (
                     <span key={p.code}>
                       {i > 0 ? ", " : ""}
-                      <b>{p.code}</b> ({entier(p.domaines)} domaine{p.domaines > 1 ? "s" : ""})
+                      <b>{p.code}</b> {trN(p.domaines, "({n} domaine)", "({n} domaines)", { n: entier(p.domaines) })}
                     </span>
                   ))}
-                  . Le Kosovo n’a pas de fiche pays, faute de source pour sa devise et son fuseau
-                  horaire. {entier(SANS_PAYS)} domaines de plus ne sont rattachés à aucun
-                  pays par la source, et restent donc hors du référentiel.
+                  .{" "}
+                  {tr(
+                    "Le Kosovo n’a pas de fiche pays, faute de source pour sa devise et son fuseau horaire. {n} domaines de plus ne sont rattachés à aucun pays par la source, et restent donc hors du référentiel.",
+                    { n: entier(SANS_PAYS) },
+                  )}
                 </>
               ) : null}
             </p>
@@ -768,18 +810,17 @@ function PageMonde() {
               <p className="monde__note">
                 {PAYS_ECARTES.map((p) => (
                   <span key={p.code}>
-                    <b>{p.code}</b> ({entier(p.domaines)} domaine{p.domaines > 1 ? "s" : ""}) :{" "}
-                    {p.motif}.{" "}
+                    <b>{p.code}</b> {trN(p.domaines, "({n} domaine) :", "({n} domaines) :", { n: entier(p.domaines) })}{" "}
+                    {texteReleve(p.motif)}.{" "}
                   </span>
                 ))}
-                Ces domaines existent et sont mesurés, mais ils sont volontairement exclus du
-                référentiel.
+                {tr("Ces domaines existent et sont mesurés, mais ils sont volontairement exclus du référentiel.")}
               </p>
             ) : null}
             <p className="monde__renvoi">
-              Les 320 stations françaises ont leurs propres écrans :{" "}
-              <Link to="/carte">la carte</Link> et <Link to="/comparer">Comparer</Link>. Ici, la
-              France n’est décrite que par les données OpenSkiMap.
+              {tr("Les 320 stations françaises ont leurs propres écrans :")}{" "}
+              <Link to="/carte">{tr("la carte")}</Link> {tr("et")} <Link to="/comparer">{tr("Comparer")}</Link>.{" "}
+              {tr("Ici, la France n’est décrite que par les données OpenSkiMap.")}
             </p>
           </>
         ) : null}
@@ -795,13 +836,13 @@ function PageMonde() {
                 return (
                   <li key={p.code}>
                     <button type="button" className="monde-pays" onClick={() => setPays(p.code)}>
-                      <span className="monde-pays__nom">{p.nomFr}</span>
+                      <span className="monde-pays__nom">{nomLocal(p)}</span>
                       <span className="monde-pays__n">{entier(i?.domaines ?? 0)}</span>
                       <span className="monde-pays__detail">
                         {i?.kmTotal != null
                           ? mesureDans({ valeur: i.kmTotal, unite: "km" }, systeme)
-                          : "km non relevés"}
-                        {i?.maxM != null ? ` · jusqu’à ${altitude(i.maxM, systeme)}` : null}
+                          : tr("km non relevés")}
+                        {i?.maxM != null ? tr(" · jusqu’à {altitude}", { altitude: altitude(i.maxM, systeme) }) : null}
                       </span>
                       <span className="monde-pays__devise">{p.devise}</span>
                     </button>
@@ -816,7 +857,7 @@ function PageMonde() {
           <section className="monde__domaines">
             <div className="monde__barre">
               <label className="monde__recherche">
-                <span className="sr-only">Rechercher un domaine, une région</span>
+                <span className="sr-only">{tr("Rechercher un domaine, une région")}</span>
                 <input
                   type="search"
                   value={q}
@@ -831,11 +872,11 @@ function PageMonde() {
                 aria-expanded={ouvert}
                 onClick={() => setOuvert((v) => !v)}
               >
-                Filtres
+                {tr("Filtres")}
                 {nFiltres ? <span className="fbadge">{nFiltres}</span> : null}
               </button>
               <label>
-                <span className="sr-only">Tri des domaines</span>
+                <span className="sr-only">{tr("Tri des domaines")}</span>
                 <select
                   className="monde__tri"
                   value={tri}
@@ -847,7 +888,7 @@ function PageMonde() {
                 >
                   {TRIS_MONDE.map(([id, label]) => (
                     <option key={id} value={id}>
-                      Tri : {label}
+                      {tr("Tri : {critere}", { critere: tr(label) })}
                     </option>
                   ))}
                 </select>
@@ -860,7 +901,7 @@ function PageMonde() {
                 {SEUILS_MONDE.map((s) => (
                   <Fourchette
                     key={s.k}
-                    lbl={s.label}
+                    lbl={tr(s.label)}
                     bornes={s.b}
                     valeur={filtres[s.k]}
                     pas={s.pas}
@@ -875,42 +916,45 @@ function PageMonde() {
                     checked={filtres.avecCouleurs}
                     onChange={(e) => setFiltres({ ...filtres, avecCouleurs: e.target.checked })}
                   />
-                  Seulement les domaines dont la répartition par couleur est connue
+                  {tr("Seulement les domaines dont la répartition par couleur est connue")}
                 </label>
                 <button
                   type="button"
                   className="chip chip--sm"
                   onClick={() => setFiltres(AUCUN_FILTRE)}
                 >
-                  Tout remettre à zéro
+                  {tr("Tout remettre à zéro")}
                 </button>
               </div>
             ) : null}
 
             <p className="monde__compte">
               {chargement
-                ? "Chargement des domaines…"
+                ? tr("Chargement des domaines…")
                 : panne
-                  ? `Les domaines de ce pays n’ont pas pu être chargés : ${panne}`
-                  : `${entier(retenus.length)} domaine${retenus.length > 1 ? "s" : ""} sur ${entier(
-                      domaines?.length ?? 0,
-                    )}`}
+                  ? tr("Les domaines de ce pays n’ont pas pu être chargés : {panne}", { panne })
+                  : trN(retenus.length, "{n} domaine sur {total}", "{n} domaines sur {total}", {
+                      n: entier(retenus.length),
+                      total: entier(domaines?.length ?? 0),
+                    })}
             </p>
 
             {!chargement && !panne && frontaliers > 0 ? (
               <p className="monde__compte">
-                Dont {entier(frontaliers)} à cheval sur une frontière,{" "}
-                {frontaliers > 1 ? "qui figurent aussi sous leur" : "qui figure aussi sous son"} autre
-                pays. Dans la liste des pays, ce pays en compte {entier(idx?.domaines ?? 0)} :
-                seulement ceux qu’il héberge.
+                {trN(
+                  frontaliers,
+                  "Dont {n} à cheval sur une frontière, qui figure aussi sous son autre pays. Dans la liste des pays, ce pays en compte {total} : seulement ceux qu’il héberge.",
+                  "Dont {n} à cheval sur une frontière, qui figurent aussi sous leur autre pays. Dans la liste des pays, ce pays en compte {total} : seulement ceux qu’il héberge.",
+                  { n: entier(frontaliers), total: entier(idx?.domaines ?? 0) },
+                )}
               </p>
             ) : null}
 
             {!chargement && !panne && retenus.length === 0 ? (
               <p className="monde__vide">
-                Aucun domaine ne remplit tous les critères. Une fourchette active écarte aussi les
-                domaines dont la valeur n’est pas relevée : élargissez une fourchette ou modifiez la
-                recherche.
+                {tr(
+                  "Aucun domaine ne remplit tous les critères. Une fourchette active écarte aussi les domaines dont la valeur n’est pas relevée : élargissez une fourchette ou modifiez la recherche.",
+                )}
               </p>
             ) : null}
 

@@ -8,6 +8,7 @@
  */
 
 import { ImageSlot } from "@/components/v6/ImageSlot";
+import { tr } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
@@ -46,12 +47,12 @@ export function FicheEpingle({
           <ImageSlot
             shape="rect"
             id={`v7app-fc-${l.id}`}
-            placeholder="Photo de l’annonce"
+            placeholder={tr("Photo de l’annonce")}
             className="fc__slot"
             src={l.photo}
           />
           <span className="fc__source">{sources}</span>
-          {l.priceIndicative ? <span className="lodge7__indic">Prix « à partir de »</span> : null}
+          {l.priceIndicative ? <span className="lodge7__indic">{tr("Prix « à partir de »")}</span> : null}
         </div>
       ) : null}
       <div className="fc__texte">
@@ -59,19 +60,19 @@ export function FicheEpingle({
         <strong className="fc__titre">{l.title}</strong>
         <span className="fc__ligne">
           <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
-          <span className={bedLbl(l) === NON_RENSEIGNE ? "absent" : undefined}>{bedNomme(l)}</span>
+          <span className={bedLbl(l) === tr(NON_RENSEIGNE) ? "absent" : undefined}>{bedNomme(l)}</span>
         </span>
         <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>{d.text}</span>
         <span className="fc__prix">
           <b>{prixLbl(l)}</b>
           <span>
             {nuitsLbl(nights)}
-            {pers ? ` · ${pers} / pers.` : ""}
+            {pers ? ` · ${tr("{prix} / pers.", { prix: pers })}` : ""}
           </span>
         </span>
         <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
           <i />
-          {ferme ? "Prix relevé pour ces dates" : availabilityLabel(availabilityOf(l, stay))}
+          {ferme ? tr("Prix relevé pour ces dates") : availabilityLabel(availabilityOf(l, stay))}
         </span>
       </div>
     </>

@@ -25,6 +25,7 @@ import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
 import { poserOpenSkiMap, retirerOpenSkiMap } from "@/lib/carteOpenSkiMap";
 import { BASEMAPS, resolvedBasemap } from "@/lib/mapStyle";
 import { useMapPrefs } from "@/lib/mapPrefs";
+import { tr } from "@/lib/i18n";
 
 export type SorteEpingle = "station" | "station-haute" | "logement" | "remontee" | "depart";
 
@@ -290,7 +291,7 @@ export function Carte({
             setEngagee(true);
           }}
         >
-          <span>Appuyez pour déplacer la carte</span>
+          <span>{tr("Appuyez pour déplacer la carte")}</span>
         </button>
       ) : null}
       {outils && !statique ? (
@@ -301,7 +302,7 @@ export function Carte({
             aria-pressed={pistes}
             onClick={togglePistes}
           >
-            Pistes et remontées
+            {tr("Pistes et remontées")}
           </button>
           <div className="carte__fonds">
             <button
@@ -310,7 +311,7 @@ export function Carte({
               aria-expanded={ouvert}
               onClick={() => setOuvert((v) => !v)}
             >
-              Fond : {fondActif.label}
+              {tr("Fond : {fond}", { fond: tr(fondActif.label) })}
             </button>
             {ouvert ? (
               <div className="carte__choix" role="listbox">
@@ -326,8 +327,8 @@ export function Carte({
                       setOuvert(false);
                     }}
                   >
-                    <span>{b.label}</span>
-                    <span className="carte__choix-sub">{b.sub}</span>
+                    <span>{tr(b.label)}</span>
+                    <span className="carte__choix-sub">{tr(b.sub)}</span>
                   </button>
                 ))}
               </div>

@@ -8,12 +8,13 @@
  */
 
 import { Icon } from "@/components/Icon";
+import { tr } from "@/lib/i18n";
 
 export function FiabiliteFaible({ raisons, court = false }: { raisons: string; court?: boolean }) {
   return (
     <span className="fiab7" title={raisons}>
-      <Icon name="info" taille={12} titre={court ? "Fiabilité faible" : undefined} />
-      {court ? null : "fiabilité faible"}
+      <Icon name="info" taille={12} titre={court ? tr("Fiabilité faible") : undefined} />
+      {court ? null : tr("fiabilité faible")}
     </span>
   );
 }

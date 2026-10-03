@@ -11,12 +11,13 @@ import {
 import { SKIINFO, SKIINFO_AT, slopesFromRow } from "./skiinfo.ts";
 import type { SkiinfoLive } from "./skiinfoStore.ts";
 import { type PinKind, type Station } from "./stations.ts";
+import { aTraduire, tr } from "./i18n/tr.ts";
 
 const COLOR_FR: Record<(typeof PISTE_CLASSIC)[number], string> = {
-  green: "Verte",
-  blue: "Bleue",
-  red: "Rouge",
-  black: "Noire",
+  green: aTraduire("Verte"),
+  blue: aTraduire("Bleue"),
+  red: aTraduire("Rouge"),
+  black: aTraduire("Noire"),
 };
 
 export type FicheMixRow = {
@@ -64,7 +65,7 @@ export function stationFiche(station: Station, live?: SkiinfoLive | null): Stati
   const maxM = live?.maxM ?? station.maxM;
   const mix: FicheMixRow[] = PISTE_CLASSIC.map((color) => ({
     color,
-    label: COLOR_FR[color],
+    label: tr(COLOR_FR[color]),
     n: slopes.counts[color] ?? 0,
     pct: displayPct(slopes, color),
     km: split[color],
@@ -102,13 +103,13 @@ export function stationFiche(station: Station, live?: SkiinfoLive | null): Stati
 }
 
 export function pinKindLabel(kind: PinKind): string {
-  if (kind === "sommet") return "pin au sommet";
-  if (kind === "base") return "pin au village";
-  if (kind === "autre") return "pin IGN (entre base et sommet, ou hors station)";
-  return "pin non mesuré";
+  if (kind === "sommet") return tr("pin au sommet");
+  if (kind === "base") return tr("pin au village");
+  if (kind === "autre") return tr("pin IGN (entre base et sommet, ou hors station)");
+  return tr("pin non mesuré");
 }
 
 export function colorLabel(color: PisteColor): string {
-  if (color === "other") return "Autre";
-  return COLOR_FR[color];
+  if (color === "other") return tr("Autre");
+  return tr(COLOR_FR[color]);
 }

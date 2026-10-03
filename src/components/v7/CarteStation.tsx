@@ -33,6 +33,7 @@ import { SKIINFO } from "@/lib/skiinfo";
 import { stationPhoto, stationPhotoAbsence, useParcours } from "@/lib/parcours";
 import type { Station } from "@/lib/stations";
 import { altLbl, kmLbl, sub, villageLbl } from "@/lib/v7";
+import { tr } from "@/lib/i18n";
 
 export function CarteStation({
   s,
@@ -109,8 +110,8 @@ export function CarteStation({
           className="stc7__slot"
           src={stationPhoto(s)}
         />
-        {retenue ? <span className="stc7__retenue">Retenue</span> : null}
-        <span className="stc7__km">{kmLbl(s) ?? "km non publié"}</span>
+        {retenue ? <span className="stc7__retenue">{tr("Retenue")}</span> : null}
+        <span className="stc7__km">{kmLbl(s) ?? tr("km non publié")}</span>
       </div>
       <div className="stc7__corps">
         <div className="stc7__titre">
@@ -121,22 +122,22 @@ export function CarteStation({
         </div>
         <div className="stc7__faits">
           <div>
-            <span>Pistes</span>
-            <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? "altitudes non relevées"}</b>
+            <span>{tr("Pistes")}</span>
+            <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? tr("altitudes non relevées")}</b>
           </div>
           <div>
-            <span>Village</span>
-            <b className={villageLbl(s) ? undefined : "absent"}>{villageLbl(s) ?? "non relevé"}</b>
+            <span>{tr("Village")}</span>
+            <b className={villageLbl(s) ? undefined : "absent"}>{villageLbl(s) ?? tr("non relevé")}</b>
           </div>
           <div>
-            <span>Forfait {jours ?? 6} j</span>
+            <span>{tr("Forfait {jours} j", { jours: jours ?? 6 })}</span>
             {pass ? (
               <b title={mentionForfait(pass)}>
                 {montantCents(pass.prix, pass.devise)}{" "}
                 {libellesForfait(pass).faible ? <FiabiliteFaible court raisons={libellesForfait(pass).raisons} /> : null}
               </b>
             ) : (
-              <b className="absent">{forfait && forfait.statut !== "resolu" ? echecLbl(forfait) : pret ? "non relevé" : "…"}</b>
+              <b className="absent">{forfait && forfait.statut !== "resolu" ? echecLbl(forfait) : pret ? tr("non relevé") : "…"}</b>
             )}
           </div>
         </div>
@@ -146,7 +147,7 @@ export function CarteStation({
           <div className="stc7__parts">
             <PartPistes share={s.colorShare} />
             <span className={lignePistes(SKIINFO[s.id]) ? undefined : "absent"}>
-              {lignePistes(SKIINFO[s.id]) ?? "nombre de pistes non publié"}
+              {lignePistes(SKIINFO[s.id]) ?? tr("nombre de pistes non publié")}
             </span>
           </div>
         ) : (
@@ -159,10 +160,10 @@ export function CarteStation({
             aria-pressed={inCmp}
             onClick={comparer}
           >
-            {inCmp ? "Dans la comparaison" : "Comparer"}
+            {inCmp ? tr("Dans la comparaison") : tr("Comparer")}
           </button>
           <button type="button" className="stc7__lodg-btn" onClick={logements}>
-            Voir les logements
+            {tr("Voir les logements")}
           </button>
         </div>
       </div>

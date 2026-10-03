@@ -38,6 +38,7 @@ import { memeDevise, montant } from "./devises.ts";
 import { prixAdulteSejour, useGrillesForfaits, type ContexteSejour } from "./forfaits/prixStations.ts";
 import { useStay } from "./stay.ts";
 import { CHIPS, maxM, minM, villageM } from "./v7.ts";
+import { aTraduire, tr } from "./i18n/tr.ts";
 
 /** Un critère actif : son jeton, son prédicat, et la façon de le retirer. */
 export type Pred = {
@@ -59,13 +60,14 @@ export type DefFourchette = {
 
 /** Les fourchettes de station, dans l'ordre des panneaux. Les échelles
  *  viennent de `ECHELLES` (`parcours.ts`) : elles divergeaient entre
- *  l'accueil, Comparer et `/carte`. */
+ *  l'accueil, Comparer et `/carte`. Les libellés se traduisent au rendu,
+ *  `tr(r.label)`. */
 export const SEUILS: DefFourchette[] = [
-  { k: "v", label: "Altitude du village", court: "village", ...ECHELLES.v, unit: "m" },
-  { k: "lo", label: "Bas des pistes", court: "bas", ...ECHELLES.lo, unit: "m" },
-  { k: "hi", label: "Sommet", court: "sommet", ...ECHELLES.hi, unit: "m" },
-  { k: "km", label: "Kilomètres de pistes du domaine", court: "km", ...ECHELLES.km, unit: "km" },
-  { k: "pass", label: "Forfait adulte du séjour", court: "forfait", ...ECHELLES.pass, unit: "€" },
+  { k: "v", label: aTraduire("Altitude du village"), court: aTraduire("village"), ...ECHELLES.v, unit: "m" },
+  { k: "lo", label: aTraduire("Bas des pistes"), court: aTraduire("bas"), ...ECHELLES.lo, unit: "m" },
+  { k: "hi", label: aTraduire("Sommet"), court: aTraduire("sommet"), ...ECHELLES.hi, unit: "m" },
+  { k: "km", label: aTraduire("Kilomètres de pistes du domaine"), court: "km", ...ECHELLES.km, unit: "km" },
+  { k: "pass", label: aTraduire("Forfait adulte du séjour"), court: aTraduire("forfait"), ...ECHELLES.pass, unit: "€" },
 ];
 
 /** Ce que la fourchette dit, avec son unité : « 1 800 m et plus ». */
@@ -98,13 +100,13 @@ export const LECTURE: Record<"v" | "lo" | "hi" | "km", (s: Station) => number | 
 
 export const UNITES: Record<ColorUnit, { b: Echelle; pas: number; suf: string; lbl: string; unite: string }> = {
   pct: { ...ECHELLES_COULEUR.pct, suf: " %", lbl: "%", unite: "%" },
-  n: { ...ECHELLES_COULEUR.n, suf: " tronçons", lbl: "tronçons", unite: "tronç." },
+  n: { ...ECHELLES_COULEUR.n, suf: aTraduire(" tronçons"), lbl: aTraduire("tronçons"), unite: aTraduire("tronç.") },
   km: { ...ECHELLES_COULEUR.km, suf: " km", lbl: "km", unite: "km" },
 };
 
 /** Ce que la fourchette d'une couleur dit, dans l'unité choisie. */
 export function couleurLbl(u: ColorUnit, pl: Plage): string {
-  return plageTexte(pl, UNITES[u].b, (v) => `${fmt(v)}${UNITES[u].suf}`);
+  return plageTexte(pl, UNITES[u].b, (v) => `${fmt(v)}${tr(UNITES[u].suf)}`);
 }
 
 /** Part, tronçons, ou km estimés (part × km du domaine). */
@@ -167,7 +169,7 @@ export function predicats(e: EtatRecherche): Pred[] {
     if (r.k === "pass") {
       out.push({
         id: r.k,
-        label: `Forfait : ${fourchetteLbl(r, pl)}`,
+        label: tr("Forfait : {plage}", { plage: fourchetteLbl(r, pl) }),
         // Le forfait adulte résolu pour les dates du séjour, celui que la
         // carte de la station affiche.
         fn: (s) => {
@@ -183,7 +185,7 @@ export function predicats(e: EtatRecherche): Pred[] {
     const lire = LECTURE[r.k];
     out.push({
       id: r.k,
-      label: `${r.label} : ${fourchetteLbl(r, pl)}`,
+      label: tr("{critere} : {plage}", { critere: tr(r.label), plage: fourchetteLbl(r, pl) }),
       fn: (s) => dansPlage(lire(s), pl, r.b),
       retirer: () => P.setFilters({ [r.k]: null }),
     });
@@ -194,7 +196,7 @@ export function predicats(e: EtatRecherche): Pred[] {
     const b = UNITES[e.unit].b;
     out.push({
       id: "col-" + c.key,
-      label: `${c.label} : ${couleurLbl(e.unit, pl)}`,
+      label: tr("{critere} : {plage}", { critere: tr(c.label), plage: couleurLbl(e.unit, pl) }),
       fn: (s) => dansPlage(colVal(s, c.key, e.unit), pl, b),
       retirer: () => P.setColFilter(c.key, null),
     });
@@ -202,7 +204,7 @@ export function predicats(e: EtatRecherche): Pred[] {
   if (e.filters.dom)
     out.push({
       id: "dom",
-      label: e.filters.dom === "__none" ? "Domaine non renseigné" : e.filters.dom,
+      label: e.filters.dom === "__none" ? tr("Domaine non renseigné") : e.filters.dom,
       fn: (s) => (e.filters.dom === "__none" ? !s.domain : s.domain === e.filters.dom),
       retirer: () => P.setFilters({ dom: "" }),
     });
@@ -210,7 +212,7 @@ export function predicats(e: EtatRecherche): Pred[] {
     if (!e.filters.chips[k]) continue;
     out.push({
       id: "c-" + k,
-      label: CHIPS[k].label,
+      label: tr(CHIPS[k].label),
       fn: CHIPS[k].fn,
       retirer: () => P.setChip(k, false),
     });

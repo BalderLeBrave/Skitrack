@@ -14,6 +14,8 @@
  */
 
 import type { Listing } from "../listings.ts";
+import { langueIntl } from "../i18n/langue.ts";
+import { tr } from "../i18n/tr.ts";
 
 export type SourceAltitude = "ign" | "dem";
 export type Altitude = { m: number; source: SourceAltitude };
@@ -36,22 +38,22 @@ export function positionApprochee(l: Pick<Listing, "source" | "gpsSource">): boo
   return l.source === "Airbnb" || l.gpsSource === "ban";
 }
 
-const NOMBRE = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const nombre = (m: number) => new Intl.NumberFormat(langueIntl(), { maximumFractionDigits: 0 }).format(m);
 
 /** « 1 850 m », « env. 1 850 m » ; `null` : inconnue ; `undefined` : en cours de lecture. */
 export function altitudeLbl(a: Altitude | null | undefined, approchee: boolean): string {
-  if (a === undefined) return "Altitude en cours";
-  if (a === null) return "Altitude inconnue";
-  return `${approchee ? "env. " : ""}${NOMBRE.format(a.m)} m`;
+  if (a === undefined) return tr("Altitude en cours");
+  if (a === null) return tr("Altitude inconnue");
+  return approchee ? tr("env. {altitude} m", { altitude: nombre(a.m) }) : `${nombre(a.m)} m`;
 }
 
 /** Une phrase pour l'infobulle : d'où vient l'altitude, et ce qu'elle vaut. */
 export function altitudeAide(a: Altitude | null | undefined, approchee: boolean): string {
-  if (!a) return "Altitude lue au point de l’annonce, quand elle en a un.";
-  const source = a.source === "ign" ? "IGN, au mètre près" : "modèle de terrain Copernicus, à 90 m près";
+  if (!a) return tr("Altitude lue au point de l’annonce, quand elle en a un.");
+  const source = a.source === "ign" ? tr("IGN, au mètre près") : tr("modèle de terrain Copernicus, à 90 m près");
   return approchee
-    ? `Altitude au point approché de l’annonce (${source}) : elle peut s’écarter de quelques dizaines de mètres.`
-    : `Altitude au point de l’annonce (${source}).`;
+    ? tr("Altitude au point approché de l’annonce ({source}) : elle peut s’écarter de quelques dizaines de mètres.", { source })
+    : tr("Altitude au point de l’annonce ({source}).", { source });
 }
 
 /** Une altitude plausible dans les Alpes, les Pyrénées ou ailleurs : l'IGN rend -99999 hors de ses données. */

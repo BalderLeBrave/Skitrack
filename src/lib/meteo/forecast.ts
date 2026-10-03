@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { aTraduire } from "../i18n/tr.ts";
 
 export type SkyKind = "sun" | "cloud" | "snow" | "rain";
 
@@ -27,17 +28,18 @@ export type ForecastSlot = {
   sky: SkyLabel;
 };
 
-/** Ce que l'écran écrit pour chaque code. Rien n'est deviné : `unknown` se dit. */
+/** Ce que l'écran écrit pour chaque code. Rien n'est deviné : `unknown` se dit.
+ *  À traduire au rendu : `tr(SKY_FR[sky])`. */
 export const SKY_FR: Record<SkyLabel, string> = {
-  clear: "ciel clair",
-  fair: "peu nuageux",
-  overcast: "couvert",
-  fog: "brouillard",
-  rain: "pluie",
-  snow: "neige",
-  storm: "orage",
-  variable: "variable",
-  unknown: "ciel non précisé",
+  clear: aTraduire("ciel clair"),
+  fair: aTraduire("peu nuageux"),
+  overcast: aTraduire("couvert"),
+  fog: aTraduire("brouillard"),
+  rain: aTraduire("pluie"),
+  snow: aTraduire("neige"),
+  storm: aTraduire("orage"),
+  variable: aTraduire("variable"),
+  unknown: aTraduire("ciel non précisé"),
 };
 
 export type ForecastDay = {

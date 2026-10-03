@@ -1,4 +1,6 @@
 import { metresBetween } from "./access";
+import { langueIntl } from "./i18n/langue.ts";
+import { tr } from "./i18n/tr.ts";
 
 export type GpxPoint = {
   lat: number;
@@ -129,12 +131,12 @@ export function summarize(name: string, pts: GpxPoint[]): GpxStats {
 
 export function parseGpx(xml: string, fileName = "trace.gpx"): GpxTrack {
   const trimmed = xml.trim();
-  if (!trimmed) throw new Error("Fichier vide.");
+  if (!trimmed) throw new Error(tr("Fichier vide."));
   if (!/<gpx[\s>]|<trkpt[\s>]|<rtept[\s>]/i.test(trimmed)) {
-    throw new Error("Ce fichier n’est pas un GPX.");
+    throw new Error(tr("Ce fichier n’est pas un GPX."));
   }
   const pts = [...parsePts(trimmed, "trkpt"), ...parsePts(trimmed, "rtept")];
-  if (pts.length < 2) throw new Error("Pas assez de points GPS dans ce GPX.");
+  if (pts.length < 2) throw new Error(tr("Pas assez de points GPS dans ce GPX."));
   const kept = downsample(pts, MAX_POINTS);
   const trkName = inner(trimmed, "name");
   const name = (trkName && trkName.slice(0, 80)) || fileName.replace(/\.gpx$/i, "");
@@ -142,16 +144,16 @@ export function parseGpx(xml: string, fileName = "trace.gpx"): GpxTrack {
 }
 
 export function formatKm(km: number): string {
-  return `${km.toLocaleString("fr-FR", { maximumFractionDigits: km < 10 ? 2 : 1 })} km`;
+  return `${km.toLocaleString(langueIntl(), { maximumFractionDigits: km < 10 ? 2 : 1 })} km`;
 }
 
 export function formatEle(m: number | null | undefined): string {
-  if (m == null) return "non mesuré";
-  return `${m.toLocaleString("fr-FR")} m`;
+  if (m == null) return tr("non mesuré");
+  return `${m.toLocaleString(langueIntl())} m`;
 }
 
 export function formatDuration(sec: number | null | undefined): string {
-  if (sec == null || sec <= 0) return "non mesurée";
+  if (sec == null || sec <= 0) return tr("non mesurée");
   const h = Math.floor(sec / 3600);
   const min = Math.floor((sec % 3600) / 60);
   if (h === 0) return `${min} min`;

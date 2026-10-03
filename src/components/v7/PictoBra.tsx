@@ -11,7 +11,8 @@
  */
 
 import { useId } from "react";
-import { BRA_LABELS } from "@/lib/bra/parse";
+import { braLabel } from "@/lib/bra/parse";
+import { tr } from "@/lib/i18n";
 
 /** Le tracé de la montagne, deux sommets, dans une grille de 56 × 48. */
 const MONTAGNE = "M3 45 L21 13 L27.5 22 L35 6 L53 45 Z";
@@ -19,7 +20,10 @@ const MONTAGNE = "M3 45 L21 13 L27.5 22 L35 6 L53 45 Z";
 export function PictoBra({ niveau, taille = 56 }: { niveau: number | null; taille?: number }) {
   const damier = useId();
   const n = niveau != null && niveau >= 1 && niveau <= 5 ? niveau : null;
-  const libelle = n != null ? `Risque ${n} sur 5, ${BRA_LABELS[n]?.fr ?? ""}` : "Aucun niveau de risque publié";
+  const libelle =
+    n != null
+      ? tr("Risque {n} sur 5, {niveau}", { n, niveau: braLabel(n) ?? "" })
+      : tr("Aucun niveau de risque publié");
   const fond = n == null ? "var(--color-glacier)" : n === 5 ? `url(#${damier})` : `var(--color-bra-${n})`;
   return (
     <svg

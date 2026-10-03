@@ -5,6 +5,7 @@
  */
 
 import { inverser, sensLbl, type Sens } from "@/lib/tri";
+import { tr } from "@/lib/i18n";
 
 export function SensTri({
   sens,
@@ -24,8 +25,8 @@ export function SensTri({
     <button
       type="button"
       className={`sens7${className ? ` ${className}` : ""}`}
-      aria-label={`Ordre du tri : ${lbl}. Passer en ${autre}`}
-      title={`Passer en ${autre}`}
+      aria-label={tr("Ordre du tri : {sens}. Passer en {autre}", { sens: lbl, autre })}
+      title={tr("Passer en {autre}", { autre })}
       onClick={() => onChange(inverser(sens))}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" className={sens === 1 ? "sens7__fleche--haut" : undefined}>

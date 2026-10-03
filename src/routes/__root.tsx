@@ -3,6 +3,8 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ThemeSync } from "@/lib/theme";
 import { AppNotFoundComponent } from "@/lib/error-component";
+import { Langue } from "@/lib/i18n/LangueApp";
+import { tr } from "@/lib/i18n";
 import appCss from "../styles.css?url";
 import v6Css from "../design/v6.css?url";
 
@@ -23,7 +25,7 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       {
         name: "description",
-        content: "Logements au ski : dates, personnes, chambres. Prix ferme du séjour.",
+        content: tr("Logements au ski : dates, personnes, chambres. Prix ferme du séjour."),
       },
       { name: "theme-color", content: "#16191e" },
     ],
@@ -65,7 +67,9 @@ export const Route = createRootRoute({
         <PreviewHostBridge />
         <ThemeSync />
         <AuthProvider>
-          <Outlet />
+          <Langue>
+            <Outlet />
+          </Langue>
         </AuthProvider>
         <Scripts />
       </body>

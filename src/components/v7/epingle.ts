@@ -19,6 +19,8 @@
  * qui s'ouvre au survol ou au clic le donne à lire.
  */
 
+import { tr } from "@/lib/i18n";
+
 /** Géométrie du marqueur. Seule table de ces valeurs. */
 export const EPINGLE = {
   /** Côté de la boîte, en pixels. C'est aussi la cible du pointeur. */
@@ -87,7 +89,9 @@ export function epinglePrix(
   favori = false,
 ): Epingle {
   const classe = `epingle-prix epingle-prix--${etat}${favori ? " epingle-prix--favori" : ""}`;
-  const libelle = `${echappe(nom)}, ${echappe(prix)}${favori ? ", dans vos favoris" : ""}`;
+  const libelle = favori
+    ? tr("{nom}, {prix}, dans vos favoris", { nom: echappe(nom), prix: echappe(prix) })
+    : `${echappe(nom)}, ${echappe(prix)}`;
   return {
     html: `<div class="${classe}" aria-label="${libelle}">${echappe(prix)}</div>`,
     taille: [1, 1],

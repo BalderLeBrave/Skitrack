@@ -7,12 +7,15 @@
  * volet ne tient que l'index de la photo affichée.
  */
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Icon } from "@/components/Icon";
+import { BoutonFavori } from "@/components/v7/BoutonFavori";
 import { GalerieAnnonce } from "@/components/LodgeSheet";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useEchap } from "@/components/v7/fermeture";
 import { OffresLogement } from "@/components/v7/OffresLogement";
+import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee } from "@/lib/altitude/altitude";
+import { useAltitudes } from "@/lib/altitude/store";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { provenancePhrase } from "@/lib/provenance";
@@ -65,6 +68,8 @@ export function VoletAnnonce({
     setPhotoI(0);
   }
   const galerie = galerieOf(l);
+  const altDe = useAltitudes(useMemo(() => [l], [l]));
+  const altitude = altDe(l);
   const trous = completudeOf(l).trous;
   return (
     <>
@@ -85,6 +90,11 @@ export function VoletAnnonce({
           <button type="button" className="volet7__fermer" aria-label="Fermer" onClick={onFermer}>
             <Icon name="croix" taille={14} />
           </button>
+          <BoutonFavori
+            l={l}
+            sejour={{ checkIn: stay.checkIn, checkOut: stay.checkOut, trav }}
+            className="volet7__coeur"
+          />
         </div>
         <div className="volet7__corps">
           <div>
@@ -108,6 +118,12 @@ export function VoletAnnonce({
               <span>Distance aux remontées</span>
               <b className="volet7__doux">{distanceOf(l).text}</b>
             </div>
+            {pointAltitude(l) ? (
+              <div className="volet7__large" title={altitudeAide(altitude, positionApprochee(l))}>
+                <span>Altitude</span>
+                <b className={altitude ? undefined : "volet7__doux"}>{altitudeLbl(altitude, positionApprochee(l))}</b>
+              </div>
+            ) : null}
           </div>
           {trous.length ? <p className="lodge7__trous">{trous.map(trouLbl).join(" · ")}</p> : null}
           <div className="volet7__prix">

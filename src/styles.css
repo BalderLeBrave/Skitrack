@@ -84,6 +84,7 @@ html[data-theme="dark"] {
   --color-neige: #14293c;
   --color-neige-texte: #9ad2f7;
   --color-soleil: #e5b055;
+  --color-coeur: #ff5a7a;
 
   /* La photo ne bascule pas : `--color-photo-texte` et `--color-photo-voile`
      gardent leur valeur. L'ombre, elle, devient noire pour rester visible. */

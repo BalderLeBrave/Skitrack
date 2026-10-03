@@ -9,7 +9,7 @@ import { useParcours } from "@/lib/parcours";
 
 /** Les écrans v7 : les quatre étapes du parcours, la fiche station, et « Prix »,
  *  hors des étapes (ni numéro, ni verrou). */
-export type Screen = "home" | "compare" | "fiche" | "lodging" | "booking" | "prix";
+export type Screen = "home" | "compare" | "fiche" | "lodging" | "booking" | "prix" | "favoris";
 
 /** Les écrans de contrôle, rangés sous « Plus ». Seule table de ces chemins :
  *  `screenOf` et `horsParcours` en tenaient chacun la leur, et la première les
@@ -29,6 +29,7 @@ export function screenOf(pathname: string): Screen | null {
   if (pathname.startsWith("/stations/")) return "fiche";
   if (pathname.startsWith("/comparer")) return "compare";
   if (pathname.startsWith("/prix")) return "prix";
+  if (pathname.startsWith("/favoris")) return "favoris";
   return null;
 }
 
@@ -60,6 +61,7 @@ export function useGo() {
       if (screen === "booking") return navigate({ to: "/reservation" });
       // Hors des étapes, donc sans verrou (App.dc.html:526-528).
       if (screen === "prix") return navigate({ to: "/prix" });
+      if (screen === "favoris") return navigate({ to: "/favoris" });
     },
     [navigate, pathname],
   );

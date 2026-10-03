@@ -7,7 +7,9 @@
 
 import { memo } from "react";
 import { Icon } from "@/components/Icon";
+import { BoutonFavori } from "@/components/v7/BoutonFavori";
 import { ImageSlot } from "@/components/v6/ImageSlot";
+import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { completudeOf, trouLbl } from "@/lib/stay/completude";
@@ -52,6 +54,8 @@ export const CarteLogement = memo(function CarteLogement({
   sources,
   autres,
   retenuSource,
+  altitude,
+  avecAltitude = false,
 }: {
   l: Listing;
   /** « Abritel », ou « Airbnb + 2 » quand le logement est aussi ailleurs. */
@@ -70,6 +74,10 @@ export const CarteLogement = memo(function CarteLogement({
   ouvrir: (id: string) => void;
   retenir: (id: string) => void;
   designer: (id: string | null) => void;
+  /** L'altitude au point de l'annonce (`useAltitudes`) : `undefined` tant qu'elle se lit. */
+  altitude?: Altitude | null;
+  /** L'écran lit les altitudes : la carte les montre. */
+  avecAltitude?: boolean;
 }) {
   const isKept = retenu != null;
   const seen = vue && !isKept;
@@ -103,6 +111,11 @@ export const CarteLogement = memo(function CarteLogement({
         </span>
         {l.priceIndicative ? <span className="lodge7__indic">Prix « à partir de »</span> : null}
         {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
+        <BoutonFavori
+          l={l}
+          sejour={{ checkIn: stay.checkIn, checkOut: stay.checkOut, trav }}
+          className="lodge7__coeur"
+        />
         {seen ? <span className="lodge7__vue">déjà vue</span> : null}
       </div>
       <div className="lodge7__corps">
@@ -114,10 +127,21 @@ export const CarteLogement = memo(function CarteLogement({
         {complet.trous.length ? (
           <span className="lodge7__trous">{complet.trous.map(trouLbl).join(" · ")}</span>
         ) : null}
-        <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
-          <Icon name="epingle" taille={13} />
-          {d.text}
-        </span>
+        <div className="lodge7__lieu">
+          <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
+            <Icon name="epingle" taille={13} />
+            {d.text}
+          </span>
+          {avecAltitude && pointAltitude(l) ? (
+            <span
+              className={`lodge7__dist${altitude ? "" : " absent"}`}
+              title={altitudeAide(altitude, positionApprochee(l))}
+            >
+              <Icon name="montagne" taille={13} />
+              {altitudeLbl(altitude, positionApprochee(l))}
+            </span>
+          ) : null}
+        </div>
         <div className="lodge7__pied">
           <div className={`lodge7__prix${l.total > 0 ? "" : " lodge7__prix--muet"}`}>
             <b>{prixLbl(l)}</b>

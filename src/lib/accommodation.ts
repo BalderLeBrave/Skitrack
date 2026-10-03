@@ -4,6 +4,7 @@ import { annonceEnMemoire } from "./prix/annonces";
 import { useStay } from "./stay";
 import { useTrack } from "./track";
 import { montant } from "./devises.ts";
+import { useFavoris } from "./favoris/store";
 
 /** Prix par personne pour le séjour (total / voyageurs de la recherche). */
 export function pricePerPerson(total: number, guests: number): number | null {
@@ -26,7 +27,10 @@ export function resolveListing(id: string): Listing | undefined {
   const prix = annonceEnMemoire(id, { checkIn, checkOut });
   const pourCeSejour = (l: Listing | undefined) =>
     l && l.pricedCheckIn === checkIn && l.pricedCheckOut === checkOut ? l : undefined;
-  return pourCeSejour(direct) ?? pourCeSejour(prix) ?? direct ?? listingById(id) ?? prix;
+  // En dernier, la copie d'un favori : retenu depuis un dossier, le logement
+  // n'est peut-être plus dans aucun relevé du moment.
+  const favori = useFavoris.getState().favoris.find((f) => f.annonceId === id)?.annonce;
+  return pourCeSejour(direct) ?? pourCeSejour(prix) ?? direct ?? listingById(id) ?? prix ?? favori;
 }
 
 export function distToGpxStartM(listing: Listing): number | null {

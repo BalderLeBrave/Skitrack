@@ -225,6 +225,11 @@ function Barre() {
         <span className="v7nav__track">track</span>
         <i className="v7nav__point" aria-hidden />
       </a>
+      {/* Les étapes, puis « Prix » et « Favoris », hors des étapes (ni numéro ni
+          verrou), à la même distance les uns des autres : rangés à droite, le
+          vide entre « Réservation » et « Prix » variait avec la largeur de la
+          fenêtre (remarque du 3 octobre 2026). */}
+      <div className="v7nav__centre">
       <nav className="v7nav__parcours" aria-label="Parcours">
         {PARCOURS.map((j) => {
           // La fiche station allume « Comparer » : elle en est le détail.
@@ -254,9 +259,7 @@ function Barre() {
           );
         })}
       </nav>
-      <div className="v7nav__utils">
-        {/* « Prix » ouvre le groupe de droite, hors des étapes : ni numéro ni
-            verrou (V7Coquille.dc.html:96-97). La maquette annonçait « d'une
+        {/* « Prix » (V7Coquille.dc.html:96-97). La maquette annonçait « d'une
             semaine » ; l'écran compte de 1 à 21 nuits. */}
         <Link
           to="/prix"
@@ -274,7 +277,8 @@ function Barre() {
           {t("nav.prices")}
         </Link>
         <LienFavoris actif={ecran === "favoris"} libelle={t("nav.favorites")} />
-        <i className="v7nav__sep" aria-hidden />
+      </div>
+      <div className="v7nav__utils">
         {/* L'icône dit le thème en cours ; elle montrait un soleil dans les
             deux états, donc rien. */}
         <button

@@ -24,6 +24,7 @@ import {
 } from "react";
 import { Coquille } from "@/components/Coquille";
 import { Icon } from "@/components/Icon";
+import { useFermeture } from "@/components/v7/fermeture";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { CarteLogement, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
@@ -83,6 +84,7 @@ import {
   NUITS_MIN,
   logementsBudget,
   logementsReleves,
+  bascule,
   optionsDomaine,
   optionsStation,
   ordreMassifs,
@@ -159,8 +161,8 @@ const idVue = (o: Onglet) => `prix-vue-${o}`;
 
 /** Les départements du massif choisi, ou de tous, comptés dans ce même
  *  ensemble (Prix par station.dc.html:591). « Tous » n'a pas de compte. */
-function optionsDept(massif: string): { v: string; label: string }[] {
-  const pool = massif ? STATIONS.filter((s) => s.massif === massif) : STATIONS;
+function optionsDept(massifs: readonly string[]): { v: string; label: string }[] {
+  const pool = massifs.length > 0 ? STATIONS.filter((s) => massifs.includes(s.massif)) : STATIONS;
   const compte = new Map<string, number>();
   for (const s of pool) if (s.dept) compte.set(s.dept, (compte.get(s.dept) ?? 0) + 1);
   return [
@@ -426,7 +428,68 @@ function EcranPrix() {
   );
 }
 
-/** Massif et département, les mêmes dans les deux vues
+/**
+ * Un lieu qui se choisit à plusieurs (demande du propriétaire, 3 octobre
+ * 2026) : un bouton qui dit le choix (« Tous », le nom, ou « 2 massifs »), et
+ * une liste de cases à cocher, comptées comme les menus d'avant. La case
+ * « Tous » vide le choix.
+ */
+function ChoixMultiple({
+  titre,
+  vide,
+  pluriel,
+  options,
+  valeurs,
+  onChange,
+}: {
+  titre: string;
+  vide: string;
+  /** « massifs », « stations » : pour « 2 massifs ». */
+  pluriel: string;
+  options: readonly { v: string; label: string }[];
+  valeurs: readonly string[];
+  onChange: (valeurs: string[]) => void;
+}) {
+  const [ouvert, setOuvert] = useState(false);
+  const hote = useRef<HTMLDivElement>(null);
+  const fermer = useCallback(() => setOuvert(false), []);
+  useFermeture(ouvert, fermer, hote);
+  const choix = options.filter((o) => o.v !== "");
+  // Le nom seul, sans son compte (« Savoie · 23 »).
+  const nom = (v: string) => choix.find((o) => o.v === v)?.label.replace(/ · \d+$/, "") ?? v;
+  const resume = valeurs.length === 0 ? vide : valeurs.length === 1 ? nom(valeurs[0]) : `${valeurs.length} ${pluriel}`;
+  return (
+    <div className="prix7__champ prix7__multi" ref={hote}>
+      <span>{titre}</span>
+      <button
+        type="button"
+        className="prix7__select prix7__multi-bouton"
+        aria-haspopup="true"
+        aria-expanded={ouvert}
+        onClick={() => setOuvert((o) => !o)}
+      >
+        {resume}
+        <Icon name="chevron-bas" taille={12} />
+      </button>
+      {ouvert ? (
+        <div className="prix7__multi-liste" role="group" aria-label={titre}>
+          <label className="prix7__multi-option">
+            <input type="checkbox" checked={valeurs.length === 0} onChange={() => onChange([])} />
+            <span>{vide}</span>
+          </label>
+          {choix.map((o) => (
+            <label key={o.v} className="prix7__multi-option">
+              <input type="checkbox" checked={valeurs.includes(o.v)} onChange={() => onChange(bascule(valeurs, o.v))} />
+              <span>{o.label}</span>
+            </label>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Massifs et départements, les mêmes dans les deux vues
  *  (Prix par station.dc.html:58-59, 141-142). */
 function ChoixLieu() {
   const massif = usePrix((s) => s.fl.massif);
@@ -435,41 +498,23 @@ function ChoixLieu() {
   const deptOpts = useMemo(() => optionsDept(massif), [massif]);
   return (
     <>
-      <label className="prix7__champ">
-        <span>Massif</span>
-        <select
-          className="prix7__select"
-          value={massif}
-          // Un autre massif rend caducs département, domaine et station.
-          onChange={(e) => {
-            const v = e.target.value;
-            majFl((f) => choisirMassif(f, v));
-          }}
-        >
-          {OPTIONS_MASSIF.map((o) => (
-            <option key={o.v} value={o.v}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="prix7__champ">
-        <span>Département</span>
-        <select
-          className="prix7__select"
-          value={dept}
-          onChange={(e) => {
-            const v = e.target.value;
-            majFl((f) => choisirDept(f, v));
-          }}
-        >
-          {deptOpts.map((o) => (
-            <option key={o.v} value={o.v}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <ChoixMultiple
+        titre="Massif"
+        vide="Tous"
+        pluriel="massifs"
+        options={OPTIONS_MASSIF}
+        valeurs={massif}
+        // D'autres massifs : les départements, domaines et stations qui n'y tiennent plus s'en vont.
+        onChange={(v) => majFl((f) => choisirMassif(f, v))}
+      />
+      <ChoixMultiple
+        titre="Département"
+        vide="Tous"
+        pluriel="départements"
+        options={deptOpts}
+        valeurs={dept}
+        onChange={(v) => majFl((f) => choisirDept(f, v))}
+      />
     </>
   );
 }
@@ -493,41 +538,22 @@ function ChoixStation({ relevees }: { relevees: readonly Station[] }) {
   );
   return (
     <>
-      <label className="prix7__champ">
-        <span>Domaine skiable</span>
-        <select
-          className="prix7__select"
-          value={domaine}
-          // Un autre domaine rend la station caduque.
-          onChange={(e) => {
-            const v = e.target.value;
-            majFl((f) => choisirDomaine(f, v));
-          }}
-        >
-          {domaines.map((o) => (
-            <option key={o.v} value={o.v}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="prix7__champ">
-        <span>Station</span>
-        <select
-          className="prix7__select"
-          value={station}
-          onChange={(e) => {
-            const v = e.target.value;
-            majFl((f) => choisirStation(f, v));
-          }}
-        >
-          {stations.map((o) => (
-            <option key={o.v} value={o.v}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <ChoixMultiple
+        titre="Domaine skiable"
+        vide="Tous"
+        pluriel="domaines"
+        options={domaines}
+        valeurs={domaine}
+        onChange={(v) => majFl((f) => choisirDomaine(f, v))}
+      />
+      <ChoixMultiple
+        titre="Station"
+        vide="Toutes"
+        pluriel="stations"
+        options={stations}
+        valeurs={station}
+        onChange={(v) => majFl((f) => choisirStation(f, v))}
+      />
     </>
   );
 }
@@ -681,12 +707,12 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
           </span>
           {js.map((j) => (
             <button
-              key={j.k}
+              key={`${j.k}|${j.v ?? ""}`}
               type="button"
               className="prix7__jeton"
               title="Retirer ce critère"
               onClick={() => {
-                majFl((f) => retirerJeton(f, j.k));
+                majFl((f) => retirerJeton(f, j.k, j.v));
                 surCompte();
               }}
             >
@@ -1242,12 +1268,12 @@ function VueBudget({
           </span>
           {js.map((j) => (
             <button
-              key={j.k}
+              key={`${j.k}|${j.v ?? ""}`}
               type="button"
               className="prix7__jeton"
               title="Retirer ce critère"
               onClick={() => {
-                majFl((f) => retirerJeton(f, j.k));
+                majFl((f) => retirerJeton(f, j.k, j.v));
                 surCompte();
               }}
             >

@@ -6057,6 +6057,54 @@
   border-top: 1px solid var(--color-line-douce);
 }
 /* Compte et jetons (Prix par station.dc.html:76-79, 159-162). */
+/* Un lieu à plusieurs valeurs : le bouton tient la place du menu, la liste
+   de cases se déroule dessous. */
+.prix7__multi {
+  position: relative;
+}
+.prix7__multi-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  max-width: 260px;
+}
+.prix7__multi-bouton > :first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prix7__multi-liste {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  display: grid;
+  min-width: 260px;
+  max-height: 340px;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-champ);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-flottant);
+}
+.prix7__multi-option {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: var(--text-detail);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.prix7__multi-option:hover {
+  background: var(--color-glacier);
+}
+.prix7__multi-option input {
+  accent-color: var(--color-marque);
+}
 .prix7__jetons {
   display: flex;
   flex-wrap: wrap;

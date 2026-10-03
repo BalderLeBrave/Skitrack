@@ -963,8 +963,8 @@ describe("plages — échelle et poignées", () => {
 
   it("filtresActifs : le repos n'est pas un filtre", () => {
     assert.equal(filtresActifs(FL0), false);
-    assert.equal(filtresActifs({ ...FL0, massif: "Jura" }), true);
-    assert.equal(filtresActifs({ ...FL0, dept: "Isère" }), true);
+    assert.equal(filtresActifs({ ...FL0, massif: ["Jura"] }), true);
+    assert.equal(filtresActifs({ ...FL0, dept: ["Isère"] }), true);
     assert.equal(filtresActifs({ ...FL0, avecPrix: true }), true);
     for (const p of PLAGES) assert.equal(filtresActifs({ ...FL0, [p.k]: [0, 10] }), true);
   });
@@ -1019,10 +1019,10 @@ describe("lignes — état et filtres", () => {
 
   it("massif, département et « avec un prix »", () => {
     assert.equal(passe(prix, s, FL0, B), true);
-    assert.equal(passe(prix, s, f({ massif: "Jura" }), B), false);
-    assert.equal(passe(prix, s, f({ massif: "Alpes du Nord" }), B), true);
-    assert.equal(passe(prix, s, f({ dept: "Savoie" }), B), false);
-    assert.equal(passe(prix, s, f({ dept: "Isère" }), B), true);
+    assert.equal(passe(prix, s, f({ massif: ["Jura"] }), B), false);
+    assert.equal(passe(prix, s, f({ massif: ["Alpes du Nord"] }), B), true);
+    assert.equal(passe(prix, s, f({ dept: ["Savoie"] }), B), false);
+    assert.equal(passe(prix, s, f({ dept: ["Isère"] }), B), true);
     assert.equal(passe(prix, s, f({ avecPrix: true }), B), true);
     assert.equal(passe(peu, s, f({ avecPrix: true }), B), false);
   });
@@ -1213,9 +1213,9 @@ describe("libellés", () => {
 
   it("le nom d'une liste tient au massif et au département", () => {
     assert.equal(nomListe(FL0), "stations de la liste");
-    assert.equal(nomListe({ ...FL0, massif: "Alpes du Nord" }), "Alpes du Nord");
+    assert.equal(nomListe({ ...FL0, massif: ["Alpes du Nord"] }), "Alpes du Nord");
     assert.equal(
-      nomListe({ ...FL0, massif: "Alpes du Nord", dept: "Isère" }),
+      nomListe({ ...FL0, massif: ["Alpes du Nord"], dept: ["Isère"] }),
       "Alpes du Nord, Isère",
     );
     assert.equal(nomListe({ ...FL0, km: [100, 780], avecPrix: true }), "stations de la liste");
@@ -1224,8 +1224,8 @@ describe("libellés", () => {
   const B: Bornes = bornesPlages(STATIONS);
   const tout: Filtres = {
     ...FL0,
-    massif: "Alpes du Nord",
-    dept: "Isère",
+    massif: ["Alpes du Nord"],
+    dept: ["Isère"],
     avecPrix: true,
     prix: [0, 2000],
     km: [100, 780],
@@ -1236,8 +1236,8 @@ describe("libellés", () => {
 
   it("les jetons suivent l'ordre de la maquette", () => {
     assert.deepEqual(jetons(tout, B), [
-      { k: "massif", lbl: "Alpes du Nord" },
-      { k: "dept", lbl: "Isère" },
+      { k: "massif", lbl: "Alpes du Nord", v: "Alpes du Nord" },
+      { k: "dept", lbl: "Isère", v: "Isère" },
       { k: "avecPrix", lbl: "Avec un prix" },
       { k: "prix", lbl: "Médiane : jusqu’à 2 000 €" },
       { k: "km", lbl: "Kilomètres de pistes : 100 km et plus" },
@@ -1247,12 +1247,12 @@ describe("libellés", () => {
     assert.deepEqual(jetons(FL0, B), []);
   });
 
-  it("retirer un jeton ne retire que lui, sauf le massif qui emporte le département", () => {
-    assert.deepEqual(retirerJeton(tout, "massif"), { ...tout, massif: "", dept: "" });
-    assert.deepEqual(retirerJeton(tout, "dept"), { ...tout, dept: "" });
+  it("retirer un jeton ne retire que lui ; le département reste, il tient dans tous les massifs", () => {
+    assert.deepEqual(retirerJeton(tout, "massif"), { ...tout, massif: [] });
+    assert.deepEqual(retirerJeton(tout, "dept"), { ...tout, dept: [] });
     assert.deepEqual(retirerJeton(tout, "avecPrix"), { ...tout, avecPrix: false });
     for (const p of PLAGES) assert.deepEqual(retirerJeton(tout, p.k), { ...tout, [p.k]: null });
-    assert.equal(tout.massif, "Alpes du Nord", "le filtre reçu n'est pas modifié");
+    assert.deepEqual(tout.massif, ["Alpes du Nord"], "le filtre reçu n'est pas modifié");
   });
 
   it("annSub nomme ce que le relevé a écarté", () => {
@@ -1472,15 +1472,15 @@ describe("plage de budget", () => {
   });
 
   it("retirer le jeton de budget ne retire que lui", () => {
-    const fl = f({ budget: [1500, 3000], massif: "Jura", prix: [0, 2000] });
+    const fl = f({ budget: [1500, 3000], massif: ["Jura"], prix: [0, 2000] });
     assert.deepEqual(retirerJeton(fl, "budget"), { ...fl, budget: null });
   });
 
   it("filtresActifsBudget compte budget, massif, département et plages de station", () => {
     assert.equal(filtresActifsBudget(FL0), false);
     assert.equal(filtresActifsBudget(f({ budget: [0, 3000] })), true);
-    assert.equal(filtresActifsBudget(f({ massif: "Jura" })), true);
-    assert.equal(filtresActifsBudget(f({ dept: "Isère" })), true);
+    assert.equal(filtresActifsBudget(f({ massif: ["Jura"] })), true);
+    assert.equal(filtresActifsBudget(f({ dept: ["Isère"] })), true);
     for (const p of PLAGES_STATION) {
       assert.equal(filtresActifsBudget(f({ [p.k]: [0, 10] })), true, p.k);
     }
@@ -1491,8 +1491,8 @@ describe("plage de budget", () => {
   it("effacerBudget remet les six critères de l'onglet, garde prix et avecPrix", () => {
     const tout: Filtres = {
       ...FL0,
-      massif: "Alpes du Nord",
-      dept: "Isère",
+      massif: ["Alpes du Nord"],
+      dept: ["Isère"],
       avecPrix: true,
       prix: [0, 2000],
       km: [100, 780],
@@ -2272,9 +2272,9 @@ describe("filtres de l'onglet budget", () => {
   });
 
   it("passeStationSeule garde massif, département et plages de station", () => {
-    assert.equal(passeStationSeule(s, f({ massif: "Jura" }), B), false);
-    assert.equal(passeStationSeule(s, f({ dept: "Savoie" }), B), false);
-    assert.equal(passeStationSeule(s, f({ massif: "Alpes du Nord", dept: "Isère" }), B), true);
+    assert.equal(passeStationSeule(s, f({ massif: ["Jura"] }), B), false);
+    assert.equal(passeStationSeule(s, f({ dept: ["Savoie"] }), B), false);
+    assert.equal(passeStationSeule(s, f({ massif: ["Alpes du Nord"], dept: ["Isère"] }), B), true);
     assert.equal(passeStationSeule(s, f({ km: [100, 300] }), B), true);
     assert.equal(passeStationSeule(s, f({ km: [250, 300] }), B), false);
     assert.equal(passeStationSeule(s, f({ sommet: [900, 3000] }), B), false);
@@ -2306,8 +2306,8 @@ describe("filtres de l'onglet budget", () => {
   it("les jetons de budget : le budget, massif, département, puis les plages de station", () => {
     const tout: Filtres = {
       ...FL0,
-      massif: "Alpes du Nord",
-      dept: "Isère",
+      massif: ["Alpes du Nord"],
+      dept: ["Isère"],
       avecPrix: true,
       prix: [0, 2000],
       km: [100, 780],
@@ -2317,8 +2317,8 @@ describe("filtres de l'onglet budget", () => {
     };
     assert.deepEqual(jetonsBudget(tout, B), [
       { k: "budget", lbl: "Budget : 1 500 € à 3 000 €" },
-      { k: "massif", lbl: "Alpes du Nord" },
-      { k: "dept", lbl: "Isère" },
+      { k: "massif", lbl: "Alpes du Nord", v: "Alpes du Nord" },
+      { k: "dept", lbl: "Isère", v: "Isère" },
       { k: "km", lbl: "Kilomètres de pistes : 100 km et plus" },
       { k: "sommet", lbl: "Sommet : 1 000 m à 2 000 m" },
       { k: "village", lbl: "Altitude du village : 1 200 m à 1 800 m" },
@@ -2388,26 +2388,26 @@ describe("libellés de l'onglet budget", () => {
     const f = (over: Partial<Filtres>): Filtres => ({ ...FL0, ...over });
     // Ni domaine ni station : ce n'est pas le lieu qui manque.
     assert.equal(lieuSansReleve(FL0, []), false);
-    assert.equal(lieuSansReleve(f({ massif: "Alpes du Sud" }), [vt]), false);
+    assert.equal(lieuSansReleve(f({ massif: ["Alpes du Sud"] }), [vt]), false);
     // La station choisie.
-    assert.equal(lieuSansReleve(f({ station: "val-thorens" }), [lm, S2A]), true);
-    assert.equal(lieuSansReleve(f({ station: "val-thorens" }), [lm, vt]), false);
+    assert.equal(lieuSansReleve(f({ station: ["val-thorens"] }), [lm, S2A]), true);
+    assert.equal(lieuSansReleve(f({ station: ["val-thorens"] }), [lm, vt]), false);
     // Elle l'emporte sur son domaine, relevé ailleurs.
     assert.equal(
-      lieuSansReleve(f({ domaine: "Les Trois Vallées", station: "val-thorens" }), [lm]),
+      lieuSansReleve(f({ domaine: ["Les Trois Vallées"], station: ["val-thorens"] }), [lm]),
       true,
     );
     // Le domaine : une seule de ses stations relevée suffit.
-    assert.equal(lieuSansReleve(f({ domaine: "Les Trois Vallées" }), [S2A]), true);
-    assert.equal(lieuSansReleve(f({ domaine: "Les Trois Vallées" }), [S2A, lm]), false);
+    assert.equal(lieuSansReleve(f({ domaine: ["Les Trois Vallées"] }), [S2A]), true);
+    assert.equal(lieuSansReleve(f({ domaine: ["Les Trois Vallées"] }), [S2A, lm]), false);
     // Relevée, mais hors du département ou du massif choisis.
     const ailleurs: Station = { ...lm, dept: "Isère" };
     assert.equal(
-      lieuSansReleve(f({ domaine: "Les Trois Vallées", dept: "Savoie" }), [ailleurs]),
+      lieuSansReleve(f({ domaine: ["Les Trois Vallées"], dept: ["Savoie"] }), [ailleurs]),
       true,
     );
     assert.equal(
-      lieuSansReleve(f({ domaine: "Les Trois Vallées", massif: "Alpes du Sud" }), [lm]),
+      lieuSansReleve(f({ domaine: ["Les Trois Vallées"], massif: ["Alpes du Sud"] }), [lm]),
       true,
     );
   });
@@ -2445,8 +2445,8 @@ describe("libellés de l'onglet budget", () => {
     const tous: Filtres = {
       ...FL0,
       budget: [0, 3000],
-      domaine: "Les Trois Vallées",
-      station: "val-thorens",
+      domaine: ["Les Trois Vallées"],
+      station: ["val-thorens"],
       distance: [0, 1000],
       capacite: [4, 20],
       chambres: [0, 2],
@@ -2679,7 +2679,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
   it("au repos, seule la règle des 2 km écarte", () => {
     assert.deepEqual(
       [FL0.domaine, FL0.station, FL0.capacite, FL0.chambres, FL0.distance],
-      ["", "", null, null, null],
+      [[], [], null, null, null],
     );
     assert.equal(passeAnnonce(a(), FL0, B), true);
     assert.equal(passeAnnonce(a({ total: 50_000, capacity: null, bedrooms: null }), FL0, B), true);
@@ -2821,18 +2821,20 @@ describe("domaine et station, onglet budget", () => {
 
   it("passeStationSeule tient compte du domaine et de la station", () => {
     assert.equal(vt.domain, "Les Trois Vallées");
-    assert.equal(passeStationSeule(vt, f({ domaine: "Les Trois Vallées" }), B), true);
-    assert.equal(passeStationSeule(vt, f({ domaine: PARADISKI }), B), false);
+    assert.equal(passeStationSeule(vt, f({ domaine: ["Les Trois Vallées"] }), B), true);
+    assert.equal(passeStationSeule(vt, f({ domaine: [PARADISKI] }), B), false);
+    // Plusieurs domaines : l'un d'eux suffit.
+    assert.equal(passeStationSeule(vt, f({ domaine: [PARADISKI, "Les Trois Vallées"] }), B), true);
     const sansDomaine = { ...vt, domain: null };
-    assert.equal(passeStationSeule(sansDomaine, f({ domaine: "Les Trois Vallées" }), B), false);
-    assert.equal(passeStationSeule(vt, f({ station: "val-thorens" }), B), true);
-    assert.equal(passeStationSeule(vt, f({ station: "courchevel" }), B), false);
+    assert.equal(passeStationSeule(sansDomaine, f({ domaine: ["Les Trois Vallées"] }), B), false);
+    assert.equal(passeStationSeule(vt, f({ station: ["val-thorens"] }), B), true);
+    assert.equal(passeStationSeule(vt, f({ station: ["courchevel"] }), B), false);
     // Massif, département et plages valent toujours.
-    assert.equal(passeStationSeule(vt, f({ station: "val-thorens", massif: "Jura" }), B), false);
+    assert.equal(passeStationSeule(vt, f({ station: ["val-thorens"], massif: ["Jura"] }), B), false);
   });
 
   it("optionsDomaine : les domaines du massif et du département, comptés, triés", () => {
-    const opts = optionsDomaine(STATIONS, "Alpes du Nord", "Savoie");
+    const opts = optionsDomaine(STATIONS, ["Alpes du Nord"], ["Savoie"]);
     assert.deepEqual(opts[0], { v: "", label: "Tous" });
     assert.ok(opts.some((o) => o.label === "Les Trois Vallées · 14"));
     const valeurs = opts.slice(1).map((o) => o.v);
@@ -2848,14 +2850,17 @@ describe("domaine et station, onglet budget", () => {
     }
     // Aucun domaine d'un autre département.
     assert.ok(!valeurs.includes("Le Grand Massif"));
-    assert.ok(optionsDomaine(STATIONS, "", "").some((o) => o.v === "Le Grand Massif"));
+    assert.ok(optionsDomaine(STATIONS, [], []).some((o) => o.v === "Le Grand Massif"));
+    // Deux départements : les domaines des deux.
+    const deux = optionsDomaine(STATIONS, ["Alpes du Nord"], ["Savoie", "Haute-Savoie"]).map((o) => o.v);
+    assert.ok(deux.includes("Les Trois Vallées") && deux.includes("Le Grand Massif"));
   });
 
   it("optionsDomaine ne propose pas le libellé des domaines sans nom", () => {
     // Trois domaines distincts le portent, dont Saint-Colomban-des-Villards en Savoie.
-    const choix: [string, string][] = [
-      ["", ""],
-      ["Alpes du Nord", "Savoie"],
+    const choix: [string[], string[]][] = [
+      [[], []],
+      [["Alpes du Nord"], ["Savoie"]],
     ];
     for (const [m, d] of choix) {
       assert.ok(!optionsDomaine(STATIONS, m, d).some((o) => o.v.includes("non nommé")));
@@ -2874,13 +2879,13 @@ describe("domaine et station, onglet budget", () => {
   it("optionsStation : les relevées qui passent massif, département et domaine, par nom", () => {
     const ids = ["val-thorens", "tignes", "courchevel", "praloup"];
     const relevees = ids.map(stationReelle);
-    assert.deepEqual(optionsStation(relevees, f({ domaine: "Les Trois Vallées" }), noms), [
+    assert.deepEqual(optionsStation(relevees, f({ domaine: ["Les Trois Vallées"] }), noms), [
       { v: "", label: "Toutes" },
       { v: "courchevel", label: "Courchevel" },
       { v: "val-thorens", label: "Val Thorens" },
     ]);
     assert.deepEqual(
-      optionsStation(relevees, f({ massif: "Alpes du Sud" }), noms).map((o) => o.label),
+      optionsStation(relevees, f({ massif: ["Alpes du Sud"] }), noms).map((o) => o.label),
       ["Toutes", "Praloup"],
     );
     // Les plages de station n'y entrent pas.
@@ -2889,7 +2894,7 @@ describe("domaine et station, onglet budget", () => {
 
   it("optionsStation garde la station choisie, même sans relevé pour ces dates", () => {
     const relevees = [stationReelle("val-thorens")];
-    assert.deepEqual(optionsStation(relevees, f({ station: "chamrousse" }), noms), [
+    assert.deepEqual(optionsStation(relevees, f({ station: ["chamrousse"] }), noms), [
       { v: "", label: "Toutes" },
       { v: "chamrousse", label: "Chamrousse" },
       { v: "val-thorens", label: "Val Thorens" },
@@ -2900,10 +2905,10 @@ describe("domaine et station, onglet budget", () => {
 /** Tous les critères posés, ceux des deux onglets. */
 const TOUT_BUDGET: Filtres = {
   ...FL0,
-  massif: "Alpes du Nord",
-  dept: "Savoie",
-  domaine: "Les Trois Vallées",
-  station: "val-thorens",
+  massif: ["Alpes du Nord"],
+  dept: ["Savoie"],
+  domaine: ["Les Trois Vallées"],
+  station: ["val-thorens"],
   budget: [1500, 3000],
   capacite: [4, 20],
   chambres: [2, 3],
@@ -2916,55 +2921,70 @@ const TOUT_BUDGET: Filtres = {
 describe("cascade des choix de lieu", () => {
   const tout = TOUT_BUDGET;
 
-  it("un autre massif vide département, domaine et station", () => {
-    assert.deepEqual(choisirMassif(tout, "Pyrénées"), {
+  it("un autre massif retire le département, le domaine et la station qui n'y tiennent plus", () => {
+    assert.deepEqual(choisirMassif(tout, ["Pyrénées"]), {
       ...tout,
-      massif: "Pyrénées",
-      dept: "",
-      domaine: "",
-      station: "",
+      massif: ["Pyrénées"],
+      dept: [],
+      domaine: [],
+      station: [],
     });
   });
 
-  it("un autre département vide domaine et station", () => {
-    assert.deepEqual(choisirDept(tout, "Haute-Savoie"), {
+  it("un massif de plus garde ce qui tient encore", () => {
+    assert.deepEqual(choisirMassif(tout, ["Alpes du Nord", "Pyrénées"]), {
       ...tout,
-      dept: "Haute-Savoie",
-      domaine: "",
-      station: "",
+      massif: ["Alpes du Nord", "Pyrénées"],
     });
   });
 
-  it("un autre domaine vide la station", () => {
-    assert.deepEqual(choisirDomaine(tout, "Paradiski (Les Arcs – La Plagne)"), {
+  it("un autre département retire le domaine et la station qui n'y tiennent plus", () => {
+    assert.deepEqual(choisirDept(tout, ["Haute-Savoie"]), {
       ...tout,
-      domaine: "Paradiski (Les Arcs – La Plagne)",
-      station: "",
+      dept: ["Haute-Savoie"],
+      domaine: [],
+      station: [],
+    });
+    assert.deepEqual(choisirDept(tout, ["Savoie", "Haute-Savoie"]), { ...tout, dept: ["Savoie", "Haute-Savoie"] });
+  });
+
+  it("un autre domaine retire la station qui n'y tient plus", () => {
+    assert.deepEqual(choisirDomaine(tout, ["Paradiski (Les Arcs – La Plagne)"]), {
+      ...tout,
+      domaine: ["Paradiski (Les Arcs – La Plagne)"],
+      station: [],
     });
   });
 
-  it("une autre station ne change qu'elle", () => {
-    assert.deepEqual(choisirStation(tout, "courchevel"), { ...tout, station: "courchevel" });
+  it("d'autres stations ne changent qu'elles", () => {
+    assert.deepEqual(choisirStation(tout, ["courchevel", "val-thorens"]), {
+      ...tout,
+      station: ["courchevel", "val-thorens"],
+    });
   });
 
-  it("retirer un jeton de lieu retire ce qui en dépendait", () => {
-    assert.deepEqual(retirerJeton(tout, "massif"), {
+  it("retirer un lieu garde ce qui tient encore dans les autres", () => {
+    assert.deepEqual(retirerJeton(tout, "massif"), { ...tout, massif: [] });
+    assert.deepEqual(retirerJeton(tout, "dept"), { ...tout, dept: [] });
+    assert.deepEqual(retirerJeton(tout, "domaine"), { ...tout, domaine: [] });
+    assert.deepEqual(retirerJeton(tout, "station"), { ...tout, station: [] });
+    // Un seul des massifs choisis : ce qui ne tient que dans lui s'en va.
+    const deux = { ...tout, massif: ["Alpes du Nord", "Pyrénées"] };
+    assert.deepEqual(retirerJeton(deux, "massif", "Alpes du Nord"), {
       ...tout,
-      massif: "",
-      dept: "",
-      domaine: "",
-      station: "",
+      massif: ["Pyrénées"],
+      dept: [],
+      domaine: [],
+      station: [],
     });
-    assert.deepEqual(retirerJeton(tout, "dept"), { ...tout, dept: "", domaine: "", station: "" });
-    assert.deepEqual(retirerJeton(tout, "domaine"), { ...tout, domaine: "", station: "" });
-    assert.deepEqual(retirerJeton(tout, "station"), { ...tout, station: "" });
+    assert.deepEqual(retirerJeton(deux, "massif", "Pyrénées"), { ...tout });
   });
 
   it("retirer la distance la ramène à 2 km, une plage de logement à rien", () => {
     assert.deepEqual(retirerJeton(tout, "distance"), { ...tout, distance: null });
     assert.deepEqual(retirerJeton(tout, "capacite"), { ...tout, capacite: null });
     assert.deepEqual(retirerJeton(tout, "chambres"), { ...tout, chambres: null });
-    assert.equal(tout.station, "val-thorens", "le filtre reçu n'est pas modifié");
+    assert.deepEqual(tout.station, ["val-thorens"], "le filtre reçu n'est pas modifié");
   });
 });
 
@@ -2976,10 +2996,10 @@ describe("jetons et « Tout effacer » des nouveaux critères", () => {
   it("jetonsBudget : libellés exacts, dans l'ordre des critères à l'écran", () => {
     assert.deepEqual(jetonsBudget(TOUT_BUDGET, B, noms), [
       { k: "budget", lbl: "Budget : 1 500 € à 3 000 €" },
-      { k: "massif", lbl: "Alpes du Nord" },
-      { k: "dept", lbl: "Savoie" },
-      { k: "domaine", lbl: "Domaine : Les Trois Vallées" },
-      { k: "station", lbl: "Val Thorens" },
+      { k: "massif", lbl: "Alpes du Nord", v: "Alpes du Nord" },
+      { k: "dept", lbl: "Savoie", v: "Savoie" },
+      { k: "domaine", lbl: "Domaine : Les Trois Vallées", v: "Les Trois Vallées" },
+      { k: "station", lbl: "Val Thorens", v: "val-thorens" },
       { k: "capacite", lbl: "Personnes : 4 pers. et plus" },
       { k: "chambres", lbl: "Chambres : 2 ch. à 3 ch." },
       { k: "distance", lbl: "Distance aux remontées : jusqu’à 500 m" },
@@ -3000,15 +3020,15 @@ describe("jetons et « Tout effacer » des nouveaux critères", () => {
     assert.deepEqual(lbls({ chambres: [0, 1] }), ["Chambres : jusqu’à 1 ch."]);
     assert.deepEqual(lbls({ chambres: [8, 8] }), ["Chambres : 8 ch. et plus"]);
     assert.deepEqual(lbls({ capacite: [1, 6] }), ["Personnes : jusqu’à 6 pers."]);
-    assert.deepEqual(lbls({ station: "praloup" }), ["Praloup"]);
+    assert.deepEqual(lbls({ station: ["praloup"] }), ["Praloup"]);
     // Sans table des noms, l'identifiant plutôt qu'un jeton vide.
-    const brut = jetonsBudget(f({ station: "praloup" }), B).map((j) => j.lbl);
+    const brut = jetonsBudget(f({ station: ["praloup"] }), B).map((j) => j.lbl);
     assert.deepEqual(brut, ["praloup"]);
   });
 
   it("filtresActifsBudget compte chaque nouveau critère, la distance hors de ses 2 km", () => {
-    assert.equal(filtresActifsBudget(f({ domaine: "Les Trois Vallées" })), true);
-    assert.equal(filtresActifsBudget(f({ station: "val-thorens" })), true);
+    assert.equal(filtresActifsBudget(f({ domaine: ["Les Trois Vallées"] })), true);
+    assert.equal(filtresActifsBudget(f({ station: ["val-thorens"] })), true);
     assert.equal(filtresActifsBudget(f({ capacite: [4, 20] })), true);
     assert.equal(filtresActifsBudget(f({ chambres: [0, 1] })), true);
     assert.equal(filtresActifsBudget(f({ distance: [0, 1000] })), true);
@@ -3026,8 +3046,8 @@ describe("jetons et « Tout effacer » des nouveaux critères", () => {
     const s = { ...S2A, massif: "Alpes du Nord", dept: "Isère", pistesKm: 200 };
     const l = ligne(s, fait({ med: 2400 }), REPOS);
     const budget = f({
-      domaine: "Les Trois Vallées",
-      station: "val-thorens",
+      domaine: ["Les Trois Vallées"],
+      station: ["val-thorens"],
       capacite: [10, 20],
       chambres: [5, 8],
       distance: [0, 200],

@@ -1,6 +1,7 @@
 /** Overlay Skiinfo en mémoire. Le snapshot JSON reste le repli. */
 
 import type { SkiinfoRow } from "./skiinfo.ts";
+import { langueIntl } from "./i18n/langue.ts";
 
 export const SKIINFO_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -46,5 +47,5 @@ export function formatSkiinfoAge(row: SkiinfoLive, now = Date.now()): string {
   if (delta < 60_000) return "à l’instant";
   if (delta < 3_600_000) return `il y a ${Math.max(1, Math.round(delta / 60_000))} min`;
   if (delta < 36_000_000) return `il y a ${Math.max(1, Math.round(delta / 3_600_000))} h`;
-  return new Date(at).toLocaleDateString("fr-FR");
+  return new Date(at).toLocaleDateString(langueIntl());
 }

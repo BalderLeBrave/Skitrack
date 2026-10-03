@@ -17,6 +17,7 @@ import { Vide } from "@/components/v7/Vide";
 import { contenu, couverture, dossiersRecents, type Dossier, type EtatFavoris } from "@/lib/favoris/modele";
 import { useFavoris } from "@/lib/favoris/store";
 import { stationById } from "@/lib/stations";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/favoris/")({ component: Favoris });
 
@@ -62,7 +63,7 @@ function Dossiers() {
   );
 }
 
-const JOUR = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" });
+const jour = (d: Date) => new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "long" }).format(d);
 
 /** « Courchevel, La Plagne » : les stations du dossier, dans l'ordre des derniers ajouts. */
 function stationsDe(etat: EtatFavoris, id: string): string {
@@ -92,7 +93,7 @@ function CarteDossier({ d, etat }: { d: Dossier; etat: EtatFavoris }) {
         {n === 0 ? "Vide" : `${n} logement${n > 1 ? "s" : ""}`}
         {stations ? ` · ${stations}` : ""}
       </span>
-      <span className="favoris7__date">Modifié le {JOUR.format(new Date(d.majLe))}</span>
+      <span className="favoris7__date">Modifié le {jour(new Date(d.majLe))}</span>
     </Link>
   );
 }

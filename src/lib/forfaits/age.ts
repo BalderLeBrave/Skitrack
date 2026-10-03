@@ -23,6 +23,7 @@
 import { montant } from "../devises.ts";
 import { domainBySlug, estimationDuDomaine } from "./catalog.ts";
 import type { ForfaitRow } from "./types.ts";
+import { langueIntl } from "../i18n/langue.ts";
 
 /**
  * Un tarif de forfait, dans la devise de son domaine.
@@ -79,7 +80,7 @@ export function anciennete(atMs: number, now = Date.now()): string {
 }
 
 function dateFr(atMs: number): string {
-  return new Date(atMs).toLocaleDateString("fr-FR");
+  return new Date(atMs).toLocaleDateString(langueIntl());
 }
 
 /**

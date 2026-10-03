@@ -49,6 +49,7 @@ import {
 } from "@/lib/v7";
 import { webcamsForStation } from "@/lib/webcams";
 import { Webcams } from "@/components/v7/Webcams";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/stations/$id")({ component: Fiche });
 
@@ -319,7 +320,7 @@ function heureLisible(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleString("fr-FR", {
+  return d.toLocaleString(langueIntl(), {
     weekday: "short",
     day: "2-digit",
     month: "short",

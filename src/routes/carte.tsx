@@ -34,6 +34,7 @@ import { plageTexte, poserBorne } from "@/lib/plage";
 import { formatAlt, STATIONS, type Station } from "@/lib/stations";
 import { sensLbl, type Sens } from "@/lib/tri";
 import { maxM, minM, sansDomaineLbl } from "@/lib/v7";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/carte")({ component: PageCarte });
 
@@ -45,8 +46,8 @@ const FOURCHETTES: { k: CarteFourchette; label: string; unite: string; format: (
   { k: "villageM", label: "Village", unite: "m", format: formatAlt },
   { k: "loM", label: "Bas des pistes", unite: "m", format: formatAlt },
   { k: "hiM", label: "Sommet", unite: "m", format: formatAlt },
-  { k: "km", label: "Kilomètres de pistes", unite: "km", format: (v) => `${v.toLocaleString("fr-FR")} km` },
-  { k: "lifts", label: "Remontées", unite: "", format: (v) => v.toLocaleString("fr-FR") },
+  { k: "km", label: "Kilomètres de pistes", unite: "km", format: (v) => `${v.toLocaleString(langueIntl())} km` },
+  { k: "lifts", label: "Remontées", unite: "", format: (v) => v.toLocaleString(langueIntl()) },
 ];
 
 function PisteBar({ station }: { station: Station }) {
@@ -111,7 +112,7 @@ function StationRow({
         <span className="carte-row__facts">
           {bas != null && haut != null ? (
             <span className="num">
-              {bas.toLocaleString("fr-FR")}–{formatAlt(haut)}
+              {bas.toLocaleString(langueIntl())}–{formatAlt(haut)}
             </span>
           ) : (
             <span className="text-texte-2">
@@ -380,7 +381,7 @@ function PageCarte() {
                           valeur={filters.colors[c]}
                           pas={range.pas}
                           unite={range.unite}
-                          resume={plageTexte(filters.colors[c], range.b, (v) => `${v.toLocaleString("fr-FR")}${range.suffix}`)}
+                          resume={plageTexte(filters.colors[c], range.b, (v) => `${v.toLocaleString(langueIntl())}${range.suffix}`)}
                           onPoser={(which, v, exact) => poserCouleur(c, which, v, exact)}
                         />
                       ))}

@@ -25,6 +25,7 @@
 
 import { difficultyToColor, type PisteColor } from "./pistes.ts";
 import type { OsmVerdict } from "./openskimap.ts";
+import { langueIntl } from "./i18n/langue.ts";
 
 export type TronconDetail = {
   nom: string | null;
@@ -381,7 +382,7 @@ export function lignePistes(
   row: { n: number | null; km: number | null; grain: "station" | "valley" } | null | undefined,
 ): string | null {
   if (!row || (row.n == null && row.km == null)) return null;
-  const nb = (v: number, d = 0) => v.toLocaleString("fr-FR", { maximumFractionDigits: d });
+  const nb = (v: number, d = 0) => v.toLocaleString(langueIntl(), { maximumFractionDigits: d });
   const morceaux = [
     row.n != null ? `${nb(row.n)}\u00a0piste${row.n > 1 ? "s" : ""}` : null,
     row.km != null ? `${nb(row.km, 1)}\u00a0km` : null,

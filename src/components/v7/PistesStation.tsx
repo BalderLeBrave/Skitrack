@@ -39,6 +39,7 @@ import {
 import indexBrut from "@/lib/pistesDetail.index.json";
 import { SKIINFO, countsFromSkiinfo } from "@/lib/skiinfo";
 import { stationById, type Station } from "@/lib/stations";
+import { langueIntl } from "@/lib/i18n/langue";
 
 type Index = {
   le: string;
@@ -57,7 +58,7 @@ const TIRET = String.fromCharCode(0x2013);
 const INSEC = String.fromCharCode(0xa0);
 
 const m = (v: number | null | undefined) => (v != null ? `${fmt(v)}${INSEC}m` : null);
-const km = (v: number) => `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}${INSEC}km`;
+const km = (v: number) => `${v.toLocaleString(langueIntl(), { maximumFractionDigits: 1 })}${INSEC}km`;
 const longueur = (v: number | null) => (v == null ? null : v >= 1000 ? km(v / 1000) : m(v));
 const pluriel = (n: number, mot: string) => `${fmt(n)} ${mot}${n > 1 ? "s" : ""}`;
 
@@ -229,7 +230,7 @@ function Compteurs({ r }: { r: Regroupement }) {
       </div>
       <div>
         <dt>Km</dt>
-        <dd>{t.km.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}</dd>
+        <dd>{t.km.toLocaleString(langueIntl(), { maximumFractionDigits: 1 })}</dd>
       </div>
     </dl>
   );

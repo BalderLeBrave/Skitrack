@@ -1,3 +1,4 @@
+import { langueIntl } from "./i18n/langue.ts";
 export type LiftEnds = {
   liftLat?: number | null;
   liftLon?: number | null;
@@ -6,7 +7,7 @@ export type LiftEnds = {
 };
 
 function alt(n: number): string {
-  return `${n.toLocaleString("fr-FR")} m`;
+  return `${n.toLocaleString(langueIntl())} m`;
 }
 
 /** Altitude d’arrivée = gare OSM la plus haute. Les deux gares doivent être mesurées. */
@@ -44,5 +45,5 @@ export function formatLiftSpan(
   const bot = Math.min(a, b);
   const drop = top - bot;
   if (drop < 40) return `gares à ${alt(top)}`;
-  return `arrivée ${alt(top)} · +${drop.toLocaleString("fr-FR")} m`;
+  return `arrivée ${alt(top)} · +${drop.toLocaleString(langueIntl())} m`;
 }

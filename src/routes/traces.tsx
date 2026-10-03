@@ -18,6 +18,7 @@ import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
 import { parMesure, type Sens } from "@/lib/tri";
 import { bedNomme, capNomme } from "@/lib/v7";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/traces")({ component: Traces });
 
@@ -170,12 +171,12 @@ function Traces() {
                   <dd>
                     {stats.speedKmh == null
                       ? "non mesurée"
-                      : `${stats.speedKmh.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km/h`}
+                      : `${stats.speedKmh.toLocaleString(langueIntl(), { maximumFractionDigits: 1 })} km/h`}
                   </dd>
                 </div>
                 <div>
                   <dt>Points</dt>
-                  <dd>{stats.points.toLocaleString("fr-FR")}</dd>
+                  <dd>{stats.points.toLocaleString(langueIntl())}</dd>
                 </div>
               </dl>
             ) : (

@@ -5,6 +5,7 @@ import { SensTri } from "@/components/v7/SensTri";
 import { ignSkiinfoAll, ignSkiinfoSummary, VERDICT_FR, type IgnSkiVerdict } from "@/lib/ignSkiinfo";
 import { formatAlt } from "@/lib/stations";
 import { parMesure, type Sens } from "@/lib/tri";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/altitudes")({ component: Altitudes });
 
@@ -13,7 +14,7 @@ type Filter = "all" | IgnSkiVerdict;
 function delta(n: number | null): string {
   if (n == null) return "–";
   const sign = n > 0 ? "+" : "";
-  return `${sign}${n.toLocaleString("fr-FR")} m`;
+  return `${sign}${n.toLocaleString(langueIntl())} m`;
 }
 
 function Altitudes() {

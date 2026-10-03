@@ -97,6 +97,7 @@ import {
   type DomaineMonde,
 } from "@/lib/monde/monde";
 import { altitude, mesureDans, type Systeme } from "@/lib/unites";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/monde")({ component: PageMonde });
 
@@ -140,7 +141,8 @@ const TOTAL_ONGLETS = RESUMES.reduce((n, r) => n + r.domaines, 0);
 
 /** La date du relevé, écrite en français. Midi, pour qu'un relevé fait tard le
  *  soir en temps universel ne bascule pas au lendemain. */
-const DATE_RELEVE = new Date(`${RELEVE_MONDE.slice(0, 10)}T12:00:00`).toLocaleDateString("fr-FR", {
+const dateReleve = () =>
+  new Date(`${RELEVE_MONDE.slice(0, 10)}T12:00:00`).toLocaleDateString(langueIntl(), {
   day: "numeric",
   month: "long",
   year: "numeric",
@@ -681,7 +683,7 @@ function PageMonde() {
           <h1 className="monde__titre">Le monde</h1>
           <p className="monde__intro">
             {entier(DOMAINES_MONDE)} domaines de ski alpin, {PAYS_AVEC_DOMAINES.length} pays. Seuil
-            retenu : {SEUIL_MONDE}. Relevé du {DATE_RELEVE}.
+            retenu : {SEUIL_MONDE}. Relevé du {dateReleve()}.
           </p>
           <div className="monde__systeme" role="group" aria-label="Unités">
             {(

@@ -7,6 +7,7 @@
  */
 
 import { paysByCode } from "../geo/pays.ts";
+import { langueIntl } from "../i18n/langue.ts";
 
 /** Le fuseau de la station, celui de son pays ; Paris à défaut : les stations
  *  du référentiel sont toutes françaises. */
@@ -16,7 +17,7 @@ export function fuseauStation(pays: string | null | undefined): string {
 
 /** « Météo en date du 30/09/2026 à 16h50 », à l'heure du fuseau donné. */
 export function meteoEnDateDu(d: Date, fuseau: string): string {
-  const parts = new Intl.DateTimeFormat("fr-FR", {
+  const parts = new Intl.DateTimeFormat(langueIntl(), {
     timeZone: fuseau,
     day: "2-digit",
     month: "2-digit",

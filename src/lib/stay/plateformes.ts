@@ -11,6 +11,7 @@ import { availabilityOf, type Stay } from "./availability.ts";
 import { completudeOf } from "./completude.ts";
 import { estPauseApi } from "./deadline.ts";
 import { horsFraisSejour } from "./tarif.ts";
+import { langueIntl } from "../i18n/langue.ts";
 
 export const ORDRE_PLATEFORMES = [
   "Centrale",
@@ -87,7 +88,7 @@ function estTotalSejour(l: SujetPlateforme): boolean {
 function euros(n: number): string {
   return (
     n
-      .toLocaleString("fr-FR", {
+      .toLocaleString(langueIntl(), {
         minimumFractionDigits: n % 1 ? 2 : 0,
         maximumFractionDigits: 2,
       })

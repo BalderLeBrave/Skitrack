@@ -30,6 +30,7 @@ import { useStay } from "@/lib/stay";
 import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
 import { bedLbl, capLbl, distanceOf, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/favoris/$id")({ component: PageDossier });
 
@@ -51,9 +52,10 @@ function sejourDe(f: Favori, courant: SejourFavori): SejourFavori {
   return f.sejour ?? courant;
 }
 
-const DATE = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" });
+const dateCourte = (d: Date) =>
+  new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", timeZone: "UTC" }).format(d);
 function sejourLbl(s: SejourFavori): string {
-  const d = (iso: string) => DATE.format(new Date(`${iso}T12:00:00Z`));
+  const d = (iso: string) => dateCourte(new Date(`${iso}T12:00:00Z`));
   return `${d(s.checkIn)} → ${d(s.checkOut)} · ${s.trav} pers.`;
 }
 

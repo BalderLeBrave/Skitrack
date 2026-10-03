@@ -46,6 +46,7 @@ import { TENTATIVE_LBL, VOIE_LBL, type EtatSource } from "@/lib/forfaits/sources
 import type { DomainForfait, ForfaitRow } from "@/lib/forfaits/types";
 import { foldName } from "@/lib/carte";
 import { stationsDuDomaine } from "@/lib/domaineStations";
+import { langueIntl } from "@/lib/i18n/langue";
 
 export const Route = createFileRoute("/forfaits")({ component: ForfaitsPage });
 
@@ -491,7 +492,7 @@ function PanneauDomaine({
             <ol className="forfp__journal">
               {source.journal.map((t, i) => (
                 <li key={`${t.at}-${i}`}>
-                  <span>{new Date(t.at).toLocaleString("fr-FR")}</span>
+                  <span>{new Date(t.at).toLocaleString(langueIntl())}</span>
                   <span>{TENTATIVE_LBL[t.issue]}</span>
                   <span>{t.message}</span>
                   <span className="forfp__journal-url">{t.url}</span>

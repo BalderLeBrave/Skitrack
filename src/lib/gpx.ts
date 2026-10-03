@@ -1,4 +1,5 @@
 import { metresBetween } from "./access";
+import { langueIntl } from "./i18n/langue.ts";
 
 export type GpxPoint = {
   lat: number;
@@ -142,12 +143,12 @@ export function parseGpx(xml: string, fileName = "trace.gpx"): GpxTrack {
 }
 
 export function formatKm(km: number): string {
-  return `${km.toLocaleString("fr-FR", { maximumFractionDigits: km < 10 ? 2 : 1 })} km`;
+  return `${km.toLocaleString(langueIntl(), { maximumFractionDigits: km < 10 ? 2 : 1 })} km`;
 }
 
 export function formatEle(m: number | null | undefined): string {
   if (m == null) return "non mesuré";
-  return `${m.toLocaleString("fr-FR")} m`;
+  return `${m.toLocaleString(langueIntl())} m`;
 }
 
 export function formatDuration(sec: number | null | undefined): string {

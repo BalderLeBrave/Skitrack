@@ -3,6 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ThemeSync } from "@/lib/theme";
 import { AppNotFoundComponent } from "@/lib/error-component";
+import { Langue } from "@/lib/i18n/LangueApp";
 import appCss from "../styles.css?url";
 import v6Css from "../design/v6.css?url";
 
@@ -65,7 +66,9 @@ export const Route = createRootRoute({
         <PreviewHostBridge />
         <ThemeSync />
         <AuthProvider>
-          <Outlet />
+          <Langue>
+            <Outlet />
+          </Langue>
         </AuthProvider>
         <Scripts />
       </body>

@@ -33,6 +33,7 @@
 
 import { nightsBetween } from "./calendar.ts";
 import type { ForfaitStatus } from "../forfaits/types.ts";
+import { langueIntl } from "../i18n/langue.ts";
 
 /**
  * Euros à la française.
@@ -43,7 +44,7 @@ import type { ForfaitStatus } from "../forfaits/types.ts";
  * « 4 031 € ».
  */
 function euros(n: number): string {
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(langueIntl(), {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: n % 1 === 0 ? 0 : 2,

@@ -10,6 +10,7 @@ import { domainForStation } from "./forfaits/catalog.ts";
 import { dansPlage, type Echelle, type Plage } from "./plage.ts";
 import type { Station } from "./stations.ts";
 import { parMesure, parTexte, type Sens } from "./tri.ts";
+import { langueIntl } from "./i18n/langue.ts";
 
 export type CarteOrder = "km" | "v" | "lo" | "hi" | "np" | "lifts" | "n";
 
@@ -231,7 +232,7 @@ function sameDomainName(a: string, b: string | null): boolean {
 
 /** Km de pistes du domaine. Un tiret quand aucun domaine n'est rattaché. */
 export function formatKm(km: number | null): string {
-  return km != null && km > 0 ? `${Math.round(km).toLocaleString("fr-FR")} km` : "–";
+  return km != null && km > 0 ? `${Math.round(km).toLocaleString(langueIntl())} km` : "–";
 }
 
 /** Recherche sans accents ni casse : « megeve » trouve « Megève ». */

@@ -14,6 +14,7 @@
  */
 
 import type { Listing } from "../listings.ts";
+import { langueIntl } from "../i18n/langue.ts";
 
 export type SourceAltitude = "ign" | "dem";
 export type Altitude = { m: number; source: SourceAltitude };
@@ -36,13 +37,13 @@ export function positionApprochee(l: Pick<Listing, "source" | "gpsSource">): boo
   return l.source === "Airbnb" || l.gpsSource === "ban";
 }
 
-const NOMBRE = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const nombre = (m: number) => new Intl.NumberFormat(langueIntl(), { maximumFractionDigits: 0 }).format(m);
 
 /** « 1 850 m », « env. 1 850 m » ; `null` : inconnue ; `undefined` : en cours de lecture. */
 export function altitudeLbl(a: Altitude | null | undefined, approchee: boolean): string {
   if (a === undefined) return "Altitude en cours";
   if (a === null) return "Altitude inconnue";
-  return `${approchee ? "env. " : ""}${NOMBRE.format(a.m)} m`;
+  return `${approchee ? "env. " : ""}${nombre(a.m)} m`;
 }
 
 /** Une phrase pour l'infobulle : d'où vient l'altitude, et ce qu'elle vaut. */

@@ -9,6 +9,7 @@
  * de la trace est simplement tu.
  */
 import type { Listing } from "./listings.ts";
+import { langueIntl } from "./i18n/langue.ts";
 
 export type SujetProvenance = Pick<
   Listing,
@@ -62,7 +63,7 @@ export function periodeLbl(debut: string, fin: string): string | null {
 
 /** « le 24 septembre 2026 à 14 h 05 », à l'heure de Paris. */
 export function instantLbl(ms: number): string {
-  const parts = new Intl.DateTimeFormat("fr-FR", {
+  const parts = new Intl.DateTimeFormat(langueIntl(), {
     timeZone: "Europe/Paris",
     year: "numeric",
     month: "numeric",

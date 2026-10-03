@@ -1,3 +1,4 @@
+import { langueIntl } from "../i18n/langue.ts";
 /** Parseur XML du BRA Météo-France. Fixture uniquement dans les tests. */
 
 export type BraBulletin = {
@@ -115,7 +116,7 @@ export function lieuLisible(loc: string | null): string | null {
   if (!loc) return null;
   const m = /^\s*([<>])\s*(\d{3,4})\s*(?:m)?\s*$/.exec(loc);
   if (!m) return loc;
-  const alt = Number(m[2]).toLocaleString("fr-FR");
+  const alt = Number(m[2]).toLocaleString(langueIntl());
   return m[1] === "<" ? `sous ${alt} m` : `au-dessus de ${alt} m`;
 }
 

@@ -13,6 +13,7 @@ import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
+import { langueIntl } from "@/lib/i18n/langue";
 
 /**
  * « de Tignes », « d’Avoriaz », « des Gets », « du Corbier », « de l’Alpe
@@ -203,7 +204,7 @@ export function LodgeSheet({
               <li>{sourcePhrase(listing)}</li>
               {listing.rating != null ? (
                 <li>
-                  <strong>Note publiée</strong> : {listing.rating.toLocaleString("fr-FR")}
+                  <strong>Note publiée</strong> : {listing.rating.toLocaleString(langueIntl())}
                   {listing.reviewCount != null ? ` (${listing.reviewCount} avis)` : ""}
                   {", telle que la source l’affiche, jamais recalculée."}
                 </li>

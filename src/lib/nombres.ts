@@ -17,23 +17,25 @@ const ESPACES_ETROITES = new RegExp(
   "g",
 );
 
+import { langueIntl } from "./i18n/langue.ts";
+
 /**
- * La langue dans laquelle les nombres sont écrits.
- *
- * Elle suivra l'interface le jour où celle-ci parlera autre chose que le
- * français. Elle est isolée ici pour qu'il y ait **un** endroit à reprendre, et
+ * La langue dans laquelle les nombres sont écrits : celle de l'interface
+ * (`langueIntl`). Isolée ici pour qu'il y ait **un** endroit à reprendre, et
  * non onze `toLocaleString("fr-FR")` à retrouver dans le dépôt.
  */
-export const LANGUE_NOMBRES = "fr-FR";
+export function langueNombres(): string {
+  return langueIntl();
+}
 
 /** Entier arrondi, séparateur de milliers, espace simple. */
 export function entier(n: number): string {
-  return Math.round(n).toLocaleString(LANGUE_NOMBRES).replace(ESPACES_ETROITES, " ");
+  return Math.round(n).toLocaleString(langueNombres()).replace(ESPACES_ETROITES, " ");
 }
 
 /** Décimal, au plus `max` chiffres après la virgule, et aucun zéro inutile. */
 export function decimal(n: number, max = 1): string {
   return n
-    .toLocaleString(LANGUE_NOMBRES, { maximumFractionDigits: max })
+    .toLocaleString(langueNombres(), { maximumFractionDigits: max })
     .replace(ESPACES_ETROITES, " ");
 }

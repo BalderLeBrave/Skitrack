@@ -157,6 +157,17 @@
 .v7nav__track {
   font-weight: 800;
 }
+/* Les étapes, « Prix » et « Favoris » : un même écart entre les trois groupes,
+   pris sur le bord de la pastille des étapes (3 px de marge intérieure) pour
+   que les mots soient à égale distance. */
+.v7nav__centre {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5 - 3px);
+}
+.v7nav__centre > .v7nav__prix + .v7nav__prix {
+  margin-left: 3px;
+}
 .v7nav__parcours {
   display: flex;
   gap: 2px;
@@ -245,10 +256,10 @@
   justify-content: center;
   border-radius: 50%;
 }
-/* Le lien « Prix », premier du groupe de droite (V7Coquille.dc.html:96-97) :
-   36 px de haut comme ses voisins, mais 14 px de marge et 7 px entre l'icône
-   et le mot. Allumé, il passe à l'encre sur fond glacier ; `.v7nav__util--on`
-   ne pose que le fond. */
+/* Les liens « Prix » et « Favoris », à côté des étapes (V7Coquille.dc.html:96-97
+   plaçait « Prix » à droite) : 36 px de haut comme leurs voisins, mais 14 px de
+   marge et 7 px entre l'icône et le mot. Allumés, ils passent à l'encre sur
+   fond glacier ; `.v7nav__util--on` ne pose que le fond. */
 .v7nav__prix {
   padding: 0 calc(var(--spacing) * 3.5);
   gap: calc(var(--spacing) * 1.75);
@@ -276,16 +287,6 @@
   height: 6px;
   border-radius: 50%;
   background: var(--color-marque);
-}
-/* Le filet entre « Prix » et le thème : 1 × 20 px, 4 px de chaque côté en plus
-   de l'espacement du groupe. */
-.v7nav__sep {
-  display: block;
-  flex: none;
-  width: 1px;
-  height: calc(var(--spacing) * 5);
-  margin: 0 var(--spacing);
-  background: var(--color-line);
 }
 .v7nav__plus {
   position: relative;
@@ -6056,6 +6057,54 @@
   border-top: 1px solid var(--color-line-douce);
 }
 /* Compte et jetons (Prix par station.dc.html:76-79, 159-162). */
+/* Un lieu à plusieurs valeurs : le bouton tient la place du menu, la liste
+   de cases se déroule dessous. */
+.prix7__multi {
+  position: relative;
+}
+.prix7__multi-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  max-width: 260px;
+}
+.prix7__multi-bouton > :first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prix7__multi-liste {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  display: grid;
+  min-width: 260px;
+  max-height: 340px;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-champ);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-flottant);
+}
+.prix7__multi-option {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: var(--text-detail);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.prix7__multi-option:hover {
+  background: var(--color-glacier);
+}
+.prix7__multi-option input {
+  accent-color: var(--color-marque);
+}
 .prix7__jetons {
   display: flex;
   flex-wrap: wrap;

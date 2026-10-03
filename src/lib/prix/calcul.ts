@@ -44,7 +44,7 @@ import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
 
 /** Au-delà, une gare n'est plus la remontée d'un logement (`nearestLift`). */
 const GARE_LOINTAINE_M = 40_000;
-import { stationById } from "../stations.ts";
+import { STATIONS, stationById } from "../stations.ts";
 import { cleListing } from "../stay/poserReleve.ts";
 import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
 import { recopierSoeurs } from "../stay/recopie.ts";
@@ -802,18 +802,20 @@ export type PlageK = "prix" | PlageStationK | "budget" | PlageLogementK;
  *  `station`, `capacite`, `chambres` et `distance` ne servent qu'à « Par
  *  budget » : le tableau des médianes ne les lit pas. */
 export type Filtres = {
-  massif: string;
-  dept: string;
+  /** Les massifs choisis ; vide : tous. Même règle pour le département, le
+   *  domaine et la station (plusieurs à la fois, demande du 3 octobre 2026). */
+  massif: string[];
+  dept: string[];
   avecPrix: boolean;
   prix: Plage;
   km: Plage;
   sommet: Plage;
   village: Plage;
   budget: Plage;
-  /** Valeur de `Station.domain`, ou "" : tous les domaines. */
-  domaine: string;
-  /** Identifiant de station, ou "" : toutes les stations. */
-  station: string;
+  /** Valeurs de `Station.domain` ; vide : tous les domaines. */
+  domaine: string[];
+  /** Identifiants de station ; vide : toutes les stations. */
+  station: string[];
   /** Couchages annoncés. */
   capacite: Plage;
   /** Chambres, ou pièces moins une (`normalizedBedrooms`). */
@@ -823,16 +825,16 @@ export type Filtres = {
 };
 
 export const FL0: Filtres = {
-  massif: "",
-  dept: "",
+  massif: [],
+  dept: [],
   avecPrix: false,
   prix: null,
   km: null,
   sommet: null,
   village: null,
   budget: null,
-  domaine: "",
-  station: "",
+  domaine: [],
+  station: [],
   capacite: null,
   chambres: null,
   distance: null,
@@ -945,7 +947,7 @@ export function plageLbl(k: PlageK, pl: Plage, b: readonly [number, number]): st
 
 /** Les filtres de l'onglet « Par station » : ceux de « Par budget » n'y comptent pas. */
 export function filtresActifs(fl: Filtres): boolean {
-  return fl.massif !== "" || fl.dept !== "" || fl.avecPrix || PLAGES.some((p) => fl[p.k] != null);
+  return fl.massif.length > 0 || fl.dept.length > 0 || fl.avecPrix || PLAGES.some((p) => fl[p.k] != null);
 }
 
 /** Les filtres de l'onglet « Par budget » : ni la médiane ni « avec un prix ».
@@ -953,10 +955,10 @@ export function filtresActifs(fl: Filtres): boolean {
 export function filtresActifsBudget(fl: Filtres): boolean {
   return (
     fl.budget != null ||
-    fl.massif !== "" ||
-    fl.dept !== "" ||
-    fl.domaine !== "" ||
-    fl.station !== "" ||
+    fl.massif.length > 0 ||
+    fl.dept.length > 0 ||
+    fl.domaine.length > 0 ||
+    fl.station.length > 0 ||
     PLAGES_LOGEMENT.some((p) => fl[p.k] != null) ||
     PLAGES_STATION.some((p) => fl[p.k] != null)
   );
@@ -967,10 +969,10 @@ export function effacerBudget(fl: Filtres): Filtres {
   return {
     ...fl,
     budget: null,
-    massif: "",
-    dept: "",
-    domaine: "",
-    station: "",
+    massif: [],
+    dept: [],
+    domaine: [],
+    station: [],
     capacite: null,
     chambres: null,
     distance: null,
@@ -985,20 +987,59 @@ export function effacerBudget(fl: Filtres): Filtres {
 /** Chaque choix de lieu vide ceux qui en dépendaient : un autre massif rend
  *  caducs département, domaine et station ; un autre département, domaine et
  *  station ; un autre domaine, la station. */
-export function choisirMassif(fl: Filtres, massif: string): Filtres {
-  return { ...fl, massif, dept: "", domaine: "", station: "" };
+/** La valeur passe un choix : aucun choix, ou elle en fait partie. */
+export function dansChoix(choix: readonly string[], v: string | null | undefined): boolean {
+  return choix.length === 0 || (v != null && choix.includes(v));
 }
 
-export function choisirDept(fl: Filtres, dept: string): Filtres {
-  return { ...fl, dept, domaine: "", station: "" };
+/** Ajoute la valeur au choix, ou l'en retire si elle y est. */
+export function bascule(choix: readonly string[], v: string): string[] {
+  return choix.includes(v) ? choix.filter((x) => x !== v) : [...choix, v];
 }
 
-export function choisirDomaine(fl: Filtres, domaine: string): Filtres {
-  return { ...fl, domaine, station: "" };
+/**
+ * Les lieux se choisissent à plusieurs, du plus large au plus étroit : massifs,
+ * départements, domaines, stations. Changer un choix garde, dans les choix
+ * plus étroits, ce qui tient encore dedans, et retire le reste : un
+ * département hors des massifs choisis ne filtrerait plus rien de visible.
+ * `stations` dit ce qui tient dans quoi (le référentiel, par défaut).
+ */
+export function choisirMassif(
+  fl: Filtres,
+  massif: readonly string[],
+  stations: readonly Station[] = STATIONS,
+): Filtres {
+  return choisirDept({ ...fl, massif: [...massif] }, fl.dept, stations);
 }
 
-export function choisirStation(fl: Filtres, station: string): Filtres {
-  return { ...fl, station };
+export function choisirDept(fl: Filtres, dept: readonly string[], stations: readonly Station[] = STATIONS): Filtres {
+  const gardes = dept.filter((d) => stations.some((s) => s.dept === d && dansChoix(fl.massif, s.massif)));
+  return choisirDomaine({ ...fl, dept: gardes }, fl.domaine, stations);
+}
+
+export function choisirDomaine(
+  fl: Filtres,
+  domaine: readonly string[],
+  stations: readonly Station[] = STATIONS,
+): Filtres {
+  const gardes = domaine.filter((d) =>
+    stations.some((s) => s.domain === d && dansChoix(fl.massif, s.massif) && dansChoix(fl.dept, s.dept)),
+  );
+  return choisirStation({ ...fl, domaine: gardes }, fl.station, stations);
+}
+
+export function choisirStation(
+  fl: Filtres,
+  station: readonly string[],
+  stations: readonly Station[] = STATIONS,
+): Filtres {
+  const gardes = station.filter((id) => {
+    const s = stations.find((x) => x.id === id);
+    // Une station que le référentiel ne connaît pas reste choisie : le choix dit le filtre réel.
+    if (!s) return true;
+    return dansChoix(fl.massif, s.massif) && dansChoix(fl.dept, s.dept) && dansChoix(fl.domaine, s.domain);
+  });
+  return { ...fl, station: gardes };
 }
 
 export type Option = { v: string; label: string };
@@ -1009,13 +1050,12 @@ export type Option = { v: string; label: string };
  *  sans rapport entre eux, n'est pas proposé (`domaineNomme`). */
 export function optionsDomaine(
   stations: readonly Station[],
-  massif: string,
-  dept: string,
+  massif: readonly string[],
+  dept: readonly string[],
 ): Option[] {
   const compte = new Map<string, number>();
   for (const s of stations) {
-    if (massif && s.massif !== massif) continue;
-    if (dept && s.dept !== dept) continue;
+    if (!dansChoix(massif, s.massif) || !dansChoix(dept, s.dept)) continue;
     if (domaineNomme(s.domain)) compte.set(s.domain, (compte.get(s.domain) ?? 0) + 1);
   }
   return [
@@ -1051,14 +1091,9 @@ export function optionsStation(
 ): Option[] {
   const nom = (id: string) => noms.get(id) ?? id;
   const ids = relevees
-    .filter(
-      (s) =>
-        (!fl.massif || s.massif === fl.massif) &&
-        (!fl.dept || s.dept === fl.dept) &&
-        (!fl.domaine || s.domain === fl.domaine),
-    )
+    .filter((s) => dansChoix(fl.massif, s.massif) && dansChoix(fl.dept, s.dept) && dansChoix(fl.domaine, s.domain))
     .map((s) => s.id);
-  if (fl.station && !ids.includes(fl.station)) ids.push(fl.station);
+  for (const id of fl.station) if (!ids.includes(id)) ids.push(id);
   const opts = ids
     .map((id) => ({ v: id, label: nom(id) }))
     .sort((a, b) => a.label.localeCompare(b.label, "fr") || ordreTexte(a.v, b.v));
@@ -1114,16 +1149,14 @@ export function ligne(
 /** Massif, département et plages de station : ce que les deux onglets
  *  partagent. */
 function passeLieuCommun(s: Station, fl: Filtres, b: Bornes): boolean {
-  if (fl.massif && s.massif !== fl.massif) return false;
-  if (fl.dept && s.dept !== fl.dept) return false;
+  if (!dansChoix(fl.massif, s.massif) || !dansChoix(fl.dept, s.dept)) return false;
   return PLAGES_STATION.every((def) => dansPlage(valeurStation(def.k, s), fl[def.k], b[def.k]));
 }
 
 /** La station, vue de l'onglet budget : ce que les deux onglets partagent,
  *  plus le domaine et la station choisis. */
 export function passeStationSeule(s: Station, fl: Filtres, b: Bornes): boolean {
-  if (fl.domaine && s.domain !== fl.domaine) return false;
-  if (fl.station && s.id !== fl.station) return false;
+  if (!dansChoix(fl.domaine, s.domain) || !dansChoix(fl.station, s.id)) return false;
   return passeLieuCommun(s, fl, b);
 }
 
@@ -1319,10 +1352,20 @@ export function dureeReleveLbl(stations: number): string {
 
 /** Le nom d'une liste lancée : massif et département, les plages n'y entrent pas. */
 export function nomListe(fl: Filtres): string {
-  return [fl.massif, fl.dept].filter(Boolean).join(", ") || "stations de la liste";
+  return [...fl.massif, ...fl.dept].join(", ") || "stations de la liste";
 }
 
-export type Jeton = { k: keyof Filtres; lbl: string };
+/** `v` : la valeur d'un lieu choisi parmi d'autres, que son jeton retire seule. */
+export type Jeton = { k: keyof Filtres; lbl: string; v?: string };
+
+function jetonsLieu(fl: Filtres, noms: ReadonlyMap<string, string>): Jeton[] {
+  return [
+    ...fl.massif.map((v) => ({ k: "massif" as const, lbl: v, v })),
+    ...fl.dept.map((v) => ({ k: "dept" as const, lbl: v, v })),
+    ...fl.domaine.map((v) => ({ k: "domaine" as const, lbl: `Domaine : ${v}`, v })),
+    ...fl.station.map((v) => ({ k: "station" as const, lbl: noms.get(v) ?? v, v })),
+  ];
+}
 
 function jetonsPlages(defs: readonly DefPlage[], fl: Filtres, b: Bornes): Jeton[] {
   const out: Jeton[] = [];
@@ -1335,9 +1378,7 @@ function jetonsPlages(defs: readonly DefPlage[], fl: Filtres, b: Bornes): Jeton[
 
 /** Les jetons de l'onglet « Par station » : le budget n'y paraît pas. */
 export function jetons(fl: Filtres, b: Bornes): Jeton[] {
-  const out: Jeton[] = [];
-  if (fl.massif) out.push({ k: "massif", lbl: fl.massif });
-  if (fl.dept) out.push({ k: "dept", lbl: fl.dept });
+  const out: Jeton[] = jetonsLieu({ ...fl, domaine: [], station: [] }, new Map());
   if (fl.avecPrix) out.push({ k: "avecPrix", lbl: "Avec un prix" });
   return [...out, ...jetonsPlages(PLAGES, fl, b)];
 }
@@ -1354,20 +1395,18 @@ export function jetonsBudget(
   if (fl.budget != null) {
     out.push({ k: "budget", lbl: `Budget : ${plageLbl("budget", fl.budget, b.budget)}` });
   }
-  if (fl.massif) out.push({ k: "massif", lbl: fl.massif });
-  if (fl.dept) out.push({ k: "dept", lbl: fl.dept });
-  if (fl.domaine) out.push({ k: "domaine", lbl: `Domaine : ${fl.domaine}` });
-  if (fl.station) out.push({ k: "station", lbl: noms.get(fl.station) ?? fl.station });
+  out.push(...jetonsLieu(fl, noms));
   return [...out, ...jetonsPlages(PLAGES_LOGEMENT, fl, b), ...jetonsPlages(PLAGES_STATION, fl, b)];
 }
 
 /** Retirer un lieu retire ceux qui en dépendaient (voir `choisirMassif`) ; une
  *  plage revient à toute son échelle (la distance, à ses 2 km). */
-export function retirerJeton(fl: Filtres, k: keyof Filtres): Filtres {
-  if (k === "massif") return choisirMassif(fl, "");
-  if (k === "dept") return choisirDept(fl, "");
-  if (k === "domaine") return choisirDomaine(fl, "");
-  if (k === "station") return choisirStation(fl, "");
+export function retirerJeton(fl: Filtres, k: keyof Filtres, v?: string): Filtres {
+  const sans = (choix: readonly string[]) => (v == null ? [] : choix.filter((x) => x !== v));
+  if (k === "massif") return choisirMassif(fl, sans(fl.massif));
+  if (k === "dept") return choisirDept(fl, sans(fl.dept));
+  if (k === "domaine") return choisirDomaine(fl, sans(fl.domaine));
+  if (k === "station") return choisirStation(fl, sans(fl.station));
   if (k === "avecPrix") return { ...fl, avecPrix: false };
   const next = { ...fl };
   next[k] = null;
@@ -1701,13 +1740,10 @@ export function countBudget(nAnnonces: number, nStations: number): string {
  *  relevé, pas à cause des autres critères. La station choisie reste dans
  *  son menu même sans relevé (`optionsStation`), un domaine aussi. */
 export function lieuSansReleve(fl: Filtres, relevees: readonly Station[]): boolean {
-  if (fl.station) return !relevees.some((s) => s.id === fl.station);
-  if (fl.domaine) {
+  if (fl.station.length > 0) return !relevees.some((s) => fl.station.includes(s.id));
+  if (fl.domaine.length > 0) {
     return !relevees.some(
-      (s) =>
-        s.domain === fl.domaine &&
-        (!fl.massif || s.massif === fl.massif) &&
-        (!fl.dept || s.dept === fl.dept),
+      (s) => dansChoix(fl.domaine, s.domain) && dansChoix(fl.massif, s.massif) && dansChoix(fl.dept, s.dept),
     );
   }
   return false;

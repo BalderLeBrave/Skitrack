@@ -26,6 +26,8 @@
  */
 
 import { montant } from "../devises.ts";
+import { aTraduire, tr, trN } from "../i18n/tr.ts";
+import { decimal } from "../nombres.ts";
 import { POSTES, type CaseTarif, type MatriceForfait, type Poste } from "./matrice.ts";
 
 export type { CaseTarif, MatriceForfait, Poste };
@@ -233,12 +235,12 @@ export function prix(valeur: number | null | undefined, devise: string | null): 
 
 /** L'intitulé d'un poste de la matrice, pour l'en-tête du tableau. */
 export const LIBELLE_POSTE: Record<Poste, { ligne: string; colonne: string }> = {
-  jourAdulte: { ligne: "Journée", colonne: "Adulte" },
-  jourEnfant: { ligne: "Journée", colonne: "Enfant" },
-  sixJoursAdulte: { ligne: "6 jours", colonne: "Adulte" },
-  sixJoursEnfant: { ligne: "6 jours", colonne: "Enfant" },
-  saisonAdulte: { ligne: "Saison", colonne: "Adulte" },
-  saisonEnfant: { ligne: "Saison", colonne: "Enfant" },
+  jourAdulte: { ligne: aTraduire("Journée"), colonne: aTraduire("Adulte") },
+  jourEnfant: { ligne: aTraduire("Journée"), colonne: aTraduire("Enfant") },
+  sixJoursAdulte: { ligne: aTraduire("6 jours"), colonne: aTraduire("Adulte") },
+  sixJoursEnfant: { ligne: aTraduire("6 jours"), colonne: aTraduire("Enfant") },
+  saisonAdulte: { ligne: aTraduire("Saison"), colonne: aTraduire("Adulte") },
+  saisonEnfant: { ligne: aTraduire("Saison"), colonne: aTraduire("Enfant") },
 };
 
 /**
@@ -252,7 +254,12 @@ export const LIBELLE_POSTE: Record<Poste, { ligne: string; colonne: string }> = 
  */
 export function mentionCase(c: CaseTarif): string {
   const dates = c.dates ? `, ${c.dates}` : "";
-  return `« ${c.libelle} », colonne « ${c.categorie} » (${SITE[c.source]}${dates})`;
+  return tr("« {libelle} », colonne « {categorie} » ({site}{dates})", {
+    libelle: c.libelle,
+    categorie: c.categorie,
+    site: tr(SITE[c.source]),
+    dates,
+  });
 }
 
 /**
@@ -295,50 +302,66 @@ export function colonneAdulte(f: ForfaitVue): number {
  * seraient douteux, sept kilomètres avec le nom ne le sont pas.
  */
 const distance = (km: number, parLeNom?: true): string => {
-  if (km < 0.1) return "au même point";
-  const d = `à ${km.toFixed(1).replace(".", ",")} km`;
-  return parLeNom ? `${d}, rapprochée par le nom` : d;
+  if (km < 0.1) return tr("au même point");
+  const d = tr("à {km} km", { km: decimal(km, 1) });
+  return parLeNom ? tr("{distance}, rapprochée par le nom", { distance: d }) : d;
 };
 
 const SITE: Record<"skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire" | "commons", string> = {
   skiinfo: "Skiinfo",
   skiresort: "skiresort.fr",
   bergfex: "bergfex",
-  officiel: "le site officiel de la station",
-  proprietaire: "relevé à la main",
+  officiel: aTraduire("le site officiel de la station"),
+  proprietaire: aTraduire("relevé à la main"),
   commons: "Wikimedia Commons",
 };
 
 /** Pourquoi une photo relevée à la main a été crue, en clair. */
 const CORROBORATION: Record<NonNullable<PhotoVue["corroboration"]>, string> = {
-  "hote-officiel": "servie par le site officiel de la station",
-  nom: "le nom de la station est dans son adresse",
-  "office-du-pays": "servie par un office de tourisme du pays",
-  bergfex: "servie par bergfex",
+  "hote-officiel": aTraduire("servie par le site officiel de la station"),
+  nom: aTraduire("le nom de la station est dans son adresse"),
+  "office-du-pays": aTraduire("servie par un office de tourisme du pays"),
+  bergfex: aTraduire("servie par bergfex"),
 };
 
 /** Ce qu'on écrit sous une photo : d'où elle vient, et à quelle distance. */
 export function mentionPhoto(p: PhotoVue): string {
-  const legende = p.titre ? `, « ${p.titre} »` : "";
+  const legende = p.titre ? tr(", « {titre} »", { titre: p.titre }) : "";
   // Le site officiel *est* celui du domaine : il n'y a pas de fiche voisine à
   // nommer ni de distance à donner. Écrire « à 0 km » laisserait croire à une
   // mesure là où il y a une identité.
-  if (p.source === "officiel") return `Photo publiée par ${SITE.officiel} (${p.cle})${legende}`;
+  if (p.source === "officiel") {
+    return tr("Photo publiée par {site} ({cle}){legende}", { site: tr(SITE.officiel), cle: p.cle, legende });
+  }
   // Une photo libre se présente par son auteur et sa licence : c'est la
   // condition à laquelle elle peut être montrée, et ce qui permet de la
   // retrouver. S'y ajoute ce qu'un regard y a vu, puisqu'on l'a choisie à l'œil.
   if (p.source === "commons") {
-    const qui = p.auteur ? ` par ${p.auteur}` : "";
+    const qui = p.auteur ? tr(" par {auteur}", { auteur: p.auteur }) : "";
     const lic = p.licence ? `, ${p.licence}` : "";
-    return `Photo ${SITE.commons}${qui}${lic}${p.vu ? ` ; ${p.vu}` : ""}`;
+    return tr("Photo {site}{auteur}{licence}{vu}", {
+      site: SITE.commons,
+      auteur: qui,
+      licence: lic,
+      vu: p.vu ? ` ; ${p.vu}` : "",
+    });
   }
   // Relevée à la main, d'une recherche large : on dit qui la sert et pourquoi
   // on l'a crue. Elle n'a pas été vue ; c'est écrit.
   if (p.source === "proprietaire") {
-    const pourquoi = p.corroboration ? CORROBORATION[p.corroboration] : "sans corroboration";
-    return `Photo relevée à la main (${p.cle}) : ${pourquoi} ; non vérifiée à l’œil${legende}`;
+    const pourquoi = p.corroboration ? tr(CORROBORATION[p.corroboration]) : tr("sans corroboration");
+    return tr("Photo relevée à la main ({cle}) : {pourquoi} ; non vérifiée à l’œil{legende}", {
+      cle: p.cle,
+      pourquoi,
+      legende,
+    });
   }
-  return `Photo ${SITE[p.source]}${legende}, fiche « ${p.nom ?? p.cle} », ${distance(p.km, p.parLeNom)}`;
+  return tr("Photo {site}{legende}, fiche « {nom} », {distance}", {
+    site: tr(SITE[p.source]),
+    legende,
+    nom: p.nom ?? p.cle,
+    distance: distance(p.km, p.parLeNom),
+  });
 }
 
 /**
@@ -380,33 +403,53 @@ export function mentionForfait(f: ForfaitVue): string {
   const plages = f.periodes?.length ?? 0;
   const quoi =
     plages > 1
-      ? `${plages} périodes tarifaires datées`
+      ? tr("{n} périodes tarifaires datées", { n: plages })
       : f.source === "bergfex"
         ? // bergfex publie deux sortes de pages : des grilles datées, et une
           // grille unique sans dates. Écrire « datée » pour la seconde
           // annoncerait une variation saisonnière qu'elle ne porte pas.
           plages === 1
-          ? "une grille datée"
-          : `grille de ${f.lignes.length} forfait${f.lignes.length > 1 ? "s" : ""}`
+          ? tr("une grille datée")
+          : trN(f.lignes.length, "grille de {n} forfait", "grille de {n} forfaits")
         : f.source === "skiinfo"
-          ? `grille de ${f.lignes.length} forfait${f.lignes.length > 1 ? "s" : ""}`
-          : "un seul tarif publié";
-  const maj = f.misAJour ? `, mis à jour le ${f.misAJour}` : "";
-  const dev = f.deviseSource === "pays" ? " ; devise déduite du pays, le site n’écrit qu’un symbole" : "";
+          ? trN(f.lignes.length, "grille de {n} forfait", "grille de {n} forfaits")
+          : tr("un seul tarif publié");
+  const maj = f.misAJour ? tr(", mis à jour le {date}", { date: f.misAJour }) : "";
+  const dev = f.deviseSource === "pays" ? tr(" ; devise déduite du pays, le site n’écrit qu’un symbole") : "";
   // Une contradiction se dit, elle ne se corrige pas : on ne sait pas laquelle
   // des deux sources a tort, et trancher reviendrait à réécrire l'une d'elles.
   const ecart = f.deviseDuPays
-    ? ` ; le site publie en ${f.devise} alors que le pays est en ${f.deviseDuPays}`
+    ? tr(" ; le site publie en {devise} alors que le pays est en {devisePays}", {
+        devise: f.devise ?? "",
+        devisePays: f.deviseDuPays,
+      })
     : "";
   // Un tarif lu sur le site officiel se présente avec sa preuve : la ligne du
   // tableau, telle qu'écrite. Sans elle, « 33,50 € » ne se juge pas.
   if (f.source === "officiel") {
-    return `Lu sur ${SITE.officiel}${f.pageTarifs ? ` (${f.pageTarifs})` : ""} : « ${f.preuve ?? ""} »${dev}`;
+    return tr("Lu sur {site}{page} : « {preuve} »{devise}", {
+      site: tr(SITE.officiel),
+      page: f.pageTarifs ? ` (${f.pageTarifs})` : "",
+      preuve: f.preuve ?? "",
+      devise: dev,
+    });
   }
   // Relevé à la main : la source est nommée, la période telle qu'écrite.
   if (f.source === "proprietaire") {
-    const periode = f.releve?.periode ? `, période « ${f.releve.periode} »` : "";
-    return `Relevé à la main depuis ${f.pageTarifs ?? f.cle}${periode}${f.releve?.note ? ` ; ${f.releve.note}` : ""}`;
+    const periode = f.releve?.periode ? tr(", période « {periode} »", { periode: f.releve.periode }) : "";
+    return tr("Relevé à la main depuis {page}{periode}{note}", {
+      page: f.pageTarifs ?? f.cle,
+      periode,
+      note: f.releve?.note ? ` ; ${f.releve.note}` : "",
+    });
   }
-  return `${SITE[f.source]} : ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km, f.parLeNom)}${dev}${ecart}`;
+  return tr("{site} : {quoi}{maj}, fiche « {nom} », {distance}{devise}{ecart}", {
+    site: tr(SITE[f.source]),
+    quoi,
+    maj,
+    nom: f.nom ?? f.cle,
+    distance: distance(f.km, f.parLeNom),
+    devise: dev,
+    ecart,
+  });
 }

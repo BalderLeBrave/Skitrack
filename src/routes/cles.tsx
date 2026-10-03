@@ -17,6 +17,7 @@ import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { essayerCle, listerCles, poserCle, retirerCle, type Essai } from "@/lib/cles/api";
 import { CLES, type EtatCle } from "@/lib/cles/registre";
+import { aTraduire, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cles")({ component: ClesPage });
 
@@ -46,7 +47,7 @@ function ClesPage() {
       setEtats(await poserCle({ data: { id, valeur } }));
       // Le champ se vide : la valeur vit sur le serveur, pas dans cet écran.
       setSaisies((s) => ({ ...s, [id]: "" }));
-      setEssais((e) => ({ ...e, [id]: { ok: true, message: "Clé enregistrée sur cette machine." } }));
+      setEssais((e) => ({ ...e, [id]: { ok: true, message: aTraduire("Clé enregistrée sur cette machine.") } }));
     } catch (e: unknown) {
       console.warn(`[cles] ${id} : enregistrement en échec`, e);
       setErreur(e instanceof Error ? e.message : String(e));
@@ -60,7 +61,7 @@ function ClesPage() {
     setOccupe(id);
     try {
       setEtats(await retirerCle({ data: { id } }));
-      setEssais((e) => ({ ...e, [id]: { ok: true, message: "Clé retirée de cette machine." } }));
+      setEssais((e) => ({ ...e, [id]: { ok: true, message: aTraduire("Clé retirée de cette machine.") } }));
     } catch (e: unknown) {
       console.warn(`[cles] ${id} : retrait en échec`, e);
       setErreur(e instanceof Error ? e.message : String(e));
@@ -94,19 +95,19 @@ function ClesPage() {
     <Coquille>
       <div className="cles">
         <header className="cles__tete">
-          <h1 className="font-display text-affiche tracking-tight">Clés</h1>
+          <h1 className="font-display text-affiche tracking-tight">{tr("Clés")}</h1>
           <p className="cles__lead">
-            Les clés dont l’application a besoin pour fonctionner entièrement. Chaque clé est
-            gardée sur cette machine, en clair, dans votre dossier de configuration. Elle n’est
-            envoyée nulle part ailleurs.
+            {tr(
+              "Les clés dont l’application a besoin pour fonctionner entièrement. Chaque clé est gardée sur cette machine, en clair, dans votre dossier de configuration. Elle n’est envoyée nulle part ailleurs.",
+            )}
           </p>
           {etats ? (
             <p className="cles__compte" aria-live="polite">
               {manquantes > 0
-                ? `${manquantes} clé${manquantes > 1 ? "s" : ""} sur ${attendues.length} reste${manquantes > 1 ? "nt" : ""} à renseigner.`
+                ? trN(manquantes, "{n} clé sur {total} reste à renseigner.", "{n} clés sur {total} restent à renseigner.", { total: attendues.length })
                 : CLES.every((c) => etat(c.id)?.posee)
-                  ? `Les ${CLES.length} clés sont renseignées.`
-                  : "Rien ne reste à renseigner."}
+                  ? tr("Les {n} clés sont renseignées.", { n: CLES.length })
+                  : tr("Rien ne reste à renseigner.")}
             </p>
           ) : null}
         </header>
@@ -115,7 +116,7 @@ function ClesPage() {
           <p className="cles__erreur" role="status">
             {erreur}
             <button type="button" className="lien-doux" onClick={() => setErreur(null)}>
-              Masquer
+              {tr("Masquer")}
             </button>
           </p>
         ) : null}
@@ -128,8 +129,8 @@ function ClesPage() {
               <li key={c.id} className="cle">
                 <div className="cle__tete">
                   <div>
-                    <h2>{c.label}</h2>
-                    <p className="cle__sert">{c.sert}</p>
+                    <h2>{tr(c.label)}</h2>
+                    <p className="cle__sert">{tr(c.sert)}</p>
                   </div>
                   <span
                     className={`cle__etat cle__etat--${e?.posee ? "posee" : c.facultative ? "facultative" : "absente"}`}
@@ -138,32 +139,32 @@ function ClesPage() {
                       ? "…"
                       : e?.posee
                         ? e.origine === "environnement"
-                          ? "définie par une variable d’environnement"
-                          : "enregistrée sur cette machine"
+                          ? tr("définie par une variable d’environnement")
+                          : tr("enregistrée sur cette machine")
                         : c.facultative
-                          ? "facultative"
-                          : "absente"}
+                          ? tr("facultative")
+                          : tr("absente")}
                   </span>
                 </div>
 
                 <p className={`cle__sans${e?.posee || c.facultative ? " cle__sans--tenue" : ""}`}>
-                  {e?.posee || c.facultative ? "Sans elle : " : "Ce qui ne marche pas sans elle : "}
-                  {c.sans}
+                  {e?.posee || c.facultative ? tr("Sans elle : ") : tr("Ce qui ne marche pas sans elle : ")}
+                  {tr(c.sans)}
                 </p>
 
                 {e?.origine === "environnement" ? (
                   <p className="cle__note">
-                    Elle vient de la variable <code>{c.env[0]}</code>, définie au lancement. C’est
-                    elle qui fait foi ; une clé saisie ici ne la remplacerait pas.
+                    {tr("Elle vient de la variable")} <code>{c.env[0]}</code>
+                    {tr(", définie au lancement. C’est elle qui fait foi ; une clé saisie ici ne la remplacerait pas.")}
                   </p>
                 ) : (
                   <div className="cle__saisie">
                     <label className="cle__champ">
-                      <span>{c.secret ? "Coller la clé" : "Valeur"}</span>
+                      <span>{c.secret ? tr("Coller la clé") : tr("Valeur")}</span>
                       <input
                         type={c.secret ? "password" : "text"}
                         value={saisies[c.id] ?? ""}
-                        placeholder={c.exemple ?? ""}
+                        placeholder={c.exemple ? tr(c.exemple) : ""}
                         autoComplete="off"
                         spellCheck={false}
                         onChange={(ev) => setSaisies((s) => ({ ...s, [c.id]: ev.target.value }))}
@@ -178,21 +179,21 @@ function ClesPage() {
                       disabled={!!occupe || !(saisies[c.id] ?? "").trim()}
                       onClick={() => void poser(c.id)}
                     >
-                      {occupe === c.id ? "…" : "Enregistrer"}
+                      {occupe === c.id ? "…" : tr("Enregistrer")}
                     </button>
                   </div>
                 )}
 
                 {e?.valeur && !c.secret ? (
                   <p className="cle__note">
-                    Valeur retenue : <code>{e.valeur}</code>
+                    {tr("Valeur retenue :")} <code>{e.valeur}</code>
                   </p>
                 ) : null}
 
                 <div className="cle__pied">
                   {c.obtenir ? (
                     <a href={c.obtenir.url} target="_blank" rel="noopener" className="cle__lien">
-                      {c.obtenir.texte}
+                      {tr(c.obtenir.texte)}
                       <Icon name="externe" taille={12} />
                     </a>
                   ) : null}
@@ -203,7 +204,7 @@ function ClesPage() {
                       disabled={!!occupe}
                       onClick={() => void essayer(c.id)}
                     >
-                      {occupe === c.id ? "Essai en cours…" : "Essayer la clé"}
+                      {occupe === c.id ? tr("Essai en cours…") : tr("Essayer la clé")}
                     </button>
                   ) : null}
                   {e?.origine === "saisie" ? (
@@ -213,14 +214,14 @@ function ClesPage() {
                       disabled={!!occupe}
                       onClick={() => void retirer(c.id)}
                     >
-                      Retirer de cette machine
+                      {tr("Retirer de cette machine")}
                     </button>
                   ) : null}
                 </div>
 
                 {essai ? (
                   <p className={`cle__essai cle__essai--${essai.ok ? "ok" : "ko"}`} role="status">
-                    {essai.message}
+                    {tr(essai.message, essai.vars)}
                   </p>
                 ) : null}
               </li>
@@ -229,8 +230,9 @@ function ClesPage() {
         </ul>
 
         <p className="cles__note">
-          Une clé définie par une variable d’environnement au lancement l’emporte toujours sur une
-          clé saisie ici.
+          {tr(
+            "Une clé définie par une variable d’environnement au lancement l’emporte toujours sur une clé saisie ici.",
+          )}
         </p>
       </div>
     </Coquille>

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useTrack } from "@/lib/track";
+import { tr } from "@/lib/i18n";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -14,7 +15,7 @@ export function GpxDrop() {
     async (file: File | undefined) => {
       if (!file) return;
       if (file.size > MAX_BYTES) {
-        setLocalErr("Fichier trop lourd (8 Mo max).");
+        setLocalErr(tr("Fichier trop lourd (8 Mo max)."));
         return;
       }
       const text = await file.text();
@@ -40,8 +41,8 @@ export function GpxDrop() {
     >
       <Icon name="televerser" className="size-5" />
       <span>
-        <strong>Déposez un GPX</strong>
-        <span className="block text-corps text-muted">ou cliquez pour choisir un fichier.</span>
+        <strong>{tr("Déposez un GPX")}</strong>
+        <span className="block text-corps text-muted">{tr("ou cliquez pour choisir un fichier.")}</span>
       </span>
       <input
         type="file"

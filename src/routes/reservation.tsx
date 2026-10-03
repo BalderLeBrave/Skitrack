@@ -18,7 +18,7 @@ import { resolveListing } from "@/lib/accommodation";
 import { libellesForfait, mentionForfait } from "@/lib/forfaits/prixSejour";
 import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { dire } from "@/lib/i18n";
+import { dire, langue, tr } from "@/lib/i18n";
 import {
   datesLbl,
   eurCents,
@@ -94,33 +94,33 @@ function Reservation() {
     [
       `Skitrack – ${s.name}`,
       `${datesLbl(checkIn, checkOut, nights)} · ${groupLbl(trav, rooms, enfants)}`,
-      `Logement : ${l.title} (${l.source}) ${prixLbl(l)}`,
-      `Forfaits : ${
-        forfaitsCompris
-          ? "compris dans le prix du logement"
+      tr("Logement : {titre} ({source}) {prix}", { titre: l.title, source: l.source, prix: prixLbl(l) }),
+      tr("Forfaits : {forfaits}", {
+        forfaits: forfaitsCompris
+          ? tr("compris dans le prix du logement")
           : pass?.total != null && adulte && lib
-            ? `${montantCents(passGroupN, pass.devise)} (${pass.libelle.toLowerCase()} : ${pass.detail} ; ${mentionForfait(adulte)}${lib.faible ? " ; fiabilité faible" : ""})`
-            : (pass?.manque ?? "non relevés")
-      }`,
-      `Total : ${l.total > 0 ? eurCents(totalN) : "logement non tarifé"}`,
+            ? `${montantCents(passGroupN, pass.devise)} (${pass.libelle.toLowerCase()}${tr(" : ")}${pass.detail} ; ${mentionForfait(adulte)}${lib.faible ? ` ; ${tr("fiabilité faible")}` : ""})`
+            : (pass?.manque ?? tr("non relevés")),
+      }),
+      tr("Total : {total}", { total: l.total > 0 ? (eurCents(totalN) ?? "") : tr("logement non tarifé") }),
     ].join("\n");
 
   const copyRecap = () => {
     void navigator.clipboard?.writeText(recap());
-    P.say("Récapitulatif copié.");
+    P.say(tr("Récapitulatif copié."));
   };
   const copyLink = () => {
     const link = `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&e=${enfants}&r=${rooms}`;
     void navigator.clipboard?.writeText(link);
-    P.say("Lien de partage copié.");
+    P.say(tr("Lien de partage copié."));
   };
   const reserver = () => {
     if (l.url) {
       window.open(l.url, "_blank", "noopener");
       P.setBooked(true);
-      P.say(`Ouverture de l’annonce sur ${l.source}. Le récapitulatif est marqué « réservé ».`);
+      P.say(tr("Ouverture de l’annonce sur {source}. Le récapitulatif est marqué « réservé ».", { source: l.source }));
     } else {
-      P.say("Annonce sans lien : la réservation se fait à la main, puis se marque ici.");
+      P.say(tr("Annonce sans lien : la réservation se fait à la main, puis se marque ici."));
     }
   };
 
@@ -136,20 +136,20 @@ function Reservation() {
           }}
         >
           <Icon name="chevron-gauche" taille={14} />
-          Logements {aStation(s.name)}
+          {tr("Logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })}
         </a>
         <header className="v7tete">
-          <span className="v7surtitre">Étape 3 · Réservation</span>
-          <h1>Récapitulatif du séjour</h1>
+          <span className="v7surtitre">{tr("Étape 3 · Réservation")}</span>
+          <h1>{tr("Récapitulatif du séjour")}</h1>
         </header>
 
         {P.shared ? (
           <div className="bandeau7 bandeau7--partage">
             <span>
-              <b>Récapitulatif partagé.</b> Station, logement, dates et voyageurs viennent du lien ;
-              ils remplacent votre séjour en cours.
+              <b>{tr("Récapitulatif partagé.")}</b>{" "}
+              {tr("Station, logement, dates et voyageurs viennent du lien ; ils remplacent votre séjour en cours.")}
             </span>
-            <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => P.setShared(false)}>
+            <button type="button" className="v7fermer" aria-label={tr("Fermer")} onClick={() => P.setShared(false)}>
               <Icon name="croix" taille={12} />
             </button>
           </div>
@@ -161,10 +161,11 @@ function Reservation() {
               <Icon name="coche" taille={18} />
             </span>
             <div>
-              <strong>Séjour marqué comme réservé</strong>
+              <strong>{tr("Séjour marqué comme réservé")}</strong>
               <span>
-                La confirmation et le paiement sont chez {l.source}. Le récapitulatif garde le prix
-                relevé.
+                {tr("La confirmation et le paiement sont chez {source}. Le récapitulatif garde le prix relevé.", {
+                  source: l.source,
+                })}
               </span>
             </div>
             <a
@@ -175,7 +176,7 @@ function Reservation() {
                 void go("home");
               }}
             >
-              Préparer un autre séjour
+              {tr("Préparer un autre séjour")}
               <Icon name="fleche-droite" taille={14} />
             </a>
           </div>
@@ -186,16 +187,16 @@ function Reservation() {
             <section className="bk7">
               <div className={`bk7__media lodge7__media--${mediaTon(l)}`}>
                 {l.photo ? (
-                  <ImageSlot shape="rect" id={`v7app-bk-${l.id}`} placeholder="Photo de l’annonce" className="lodge7__slot" src={l.photo} />
+                  <ImageSlot shape="rect" id={`v7app-bk-${l.id}`} placeholder={tr("Photo de l’annonce")} className="lodge7__slot" src={l.photo} />
                 ) : (
-                  <span>Pas de photo dans l’annonce</span>
+                  <span>{tr("Pas de photo dans l’annonce")}</span>
                 )}
               </div>
               <div className="bk7__corps">
                 <div className="bk7__tete">
                   <div>
                     <span className="bk7__ref">
-                      Logement · {l.source} · réf. {l.id}
+                      {tr("Logement")} · {l.source} · {tr("réf. {ref}", { ref: l.id })}
                     </span>
                     <h2>{l.title}</h2>
                   </div>
@@ -206,7 +207,7 @@ function Reservation() {
                       void go("lodging");
                     }}
                   >
-                    Changer
+                    {tr("Changer")}
                   </a>
                 </div>
                 <div className="bk7__faits">
@@ -218,16 +219,16 @@ function Reservation() {
                   <div className="bk7__ok">
                     <Icon name="coche" taille={16} />
                     <span>
-                      <b>Prix relevé pour vos dates.</b> La source a tarifé cette annonce pour ce séjour. La
-                      source fera foi.
+                      <b>{tr("Prix relevé pour vos dates.")}</b>{" "}
+                      {tr("La source a tarifé cette annonce pour ce séjour. La source fera foi.")}
                     </span>
                   </div>
                 ) : (
                   <div className="bk7__alerte">
                     <Icon name="alerte" taille={16} />
                     <span>
-                      <b>Disponibilité non confirmée.</b> {availabilityLabel(availabilityOf(l, stay))}. La
-                      source fera foi.
+                      <b>{tr("Disponibilité non confirmée.")}</b> {availabilityLabel(availabilityOf(l, stay))}.{" "}
+                      {tr("La source fera foi.")}
                     </span>
                   </div>
                 )}
@@ -237,7 +238,7 @@ function Reservation() {
             <div className="bgrid7__deux">
               <section className="carte7-sect carte7-sect--serre">
                 <div className="carte7-sect__ligne">
-                  <span>Station</span>
+                  <span>{tr("Station")}</span>
                   <a
                     href={`/stations/${s.id}`}
                     onClick={(e) => {
@@ -245,7 +246,7 @@ function Reservation() {
                       void go("fiche", { id: s.id });
                     }}
                   >
-                    Fiche
+                    {tr("Fiche")}
                   </a>
                 </div>
                 <strong className="carte7-sect__grand">{s.name}</strong>
@@ -253,19 +254,19 @@ function Reservation() {
                   {crumbDomaine(s)}
                 </span>
                 <span className="carte7-sect__chiffres">
-                  {altLbl(s) ?? "altitudes non relevées"} ·{" "}
+                  {altLbl(s) ?? tr("altitudes non relevées")} ·{" "}
                   {kmLbl(s) ? (
                     <>
-                      {kmLbl(s)} <small>de pistes, domaine</small>
+                      {kmLbl(s)} <small>{tr("de pistes, domaine")}</small>
                     </>
                   ) : (
-                    "kilomètres de pistes non publiés"
+                    tr("kilomètres de pistes non publiés")
                   )}
                 </span>
               </section>
               <section className="carte7-sect carte7-sect--serre">
                 <div className="carte7-sect__ligne">
-                  <span>Séjour</span>
+                  <span>{tr("Séjour")}</span>
                   <a
                     href="#"
                     data-sejour-ouvre
@@ -274,7 +275,7 @@ function Reservation() {
                       P.setStayOpen(!P.stayOpen);
                     }}
                   >
-                    Modifier
+                    {tr("Modifier")}
                   </a>
                 </div>
                 <strong className="carte7-sect__grand">{datesLbl(checkIn, checkOut, nights)}</strong>
@@ -285,16 +286,16 @@ function Reservation() {
                   {/* Le prix, sa période, ses bornes, son forfait et sa
                       source ; l'indicateur discret quand il est peu fiable. */}
                   {forfaitsCompris ? (
-                    "Forfaits compris dans le prix du logement"
+                    tr("Forfaits compris dans le prix du logement")
                   ) : pass?.total != null && adulte && lib ? (
                     <>
-                      {`${pass.libelle} : ${pass.detail}. ${mentionForfait(adulte)}. ${lib.source}. `}
+                      {`${pass.libelle}${tr(" : ")}${pass.detail}. ${mentionForfait(adulte)}. ${lib.source}. `}
                       {lib.faible ? <FiabiliteFaible raisons={lib.raisons} /> : null}
                     </>
-                  ) : pass?.manque === "non publié" ? (
-                    "Forfait non publié : le dernier tarif connu a plus de trois saisons"
+                  ) : prix.forfaits?.adulte.statut === "grille-ancienne" ? (
+                    tr("Forfait non publié : le dernier tarif connu a plus de trois saisons")
                   ) : (
-                    "Forfaits non relevés pour ce domaine"
+                    tr("Forfaits non relevés pour ce domaine")
                   )}
                 </span>
               </section>
@@ -303,13 +304,13 @@ function Reservation() {
           </div>
 
           <aside className="aside7 aside7--large">
-            <span className="v7surtitre">Coût du séjour, poste par poste</span>
+            <span className="v7surtitre">{tr("Coût du séjour, poste par poste")}</span>
             <table className="cout7">
               <tbody>
                 <tr>
                   <th>
-                    Logement · {nuitsLbl(nights)}
-                    <span className="cout7__ok">relevé chez la source</span>
+                    {tr("Logement")} · {nuitsLbl(nights)}
+                    <span className="cout7__ok">{tr("relevé chez la source")}</span>
                   </th>
                   <td className={l.total > 0 ? undefined : "absent"}>{prixLbl(l)}</td>
                 </tr>
@@ -317,37 +318,38 @@ function Reservation() {
                   {forfaitsCompris ? (
                     <>
                       <th>
-                        Forfaits
-                        <span>compris dans le prix du logement</span>
+                        {tr("Forfaits")}
+                        <span>{tr("compris dans le prix du logement")}</span>
                       </th>
-                      <td>compris</td>
+                      <td>{tr("compris")}</td>
                     </>
                   ) : (
                     <>
                       <th>
-                        Forfaits{pass?.duree ? ` · ${pass.duree}` : ""}
+                        {tr("Forfaits")}
+                        {pass?.duree ? ` · ${pass.duree}` : ""}
                         <span className={pass?.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
-                          {pass?.detail ?? "aucun tarif relevé"}
+                          {pass?.detail ?? tr("aucun tarif relevé")}
                         </span>
                         {pass?.periode ? <span>{pass.periode}</span> : null}
                         {lib?.faible ? <FiabiliteFaible raisons={lib.raisons} /> : null}
                       </th>
                       <td className={pass?.total != null ? undefined : "absent"}>
-                        {pass?.total != null ? montantCents(passGroupN, pass.devise) : (pass?.manque ?? "non relevés")}
+                        {pass?.total != null ? montantCents(passGroupN, pass.devise) : (pass?.manque ?? tr("non relevés"))}
                       </td>
                     </>
                   )}
                 </tr>
                 <tr className="cout7__total">
-                  <th>Total</th>
+                  <th>{tr("Total")}</th>
                   <td className={l.total > 0 ? undefined : "absent"}>
                     {l.total > 0
                       ? eurCents(totalN)
-                      : "logement non tarifé"}
+                      : tr("logement non tarifé")}
                   </td>
                 </tr>
                 <tr className="cout7__pp">
-                  <th>Par personne, sur {travLbl(trav)}</th>
+                  <th>{tr("Par personne, sur {voyageurs}", { voyageurs: travLbl(trav) })}</th>
                   <td className={l.total > 0 ? undefined : "absent"}>
                     {l.total > 0 ? eurCents(Math.round((totalN / trav) * 100) / 100) : "–"}
                   </td>
@@ -359,23 +361,24 @@ function Reservation() {
               className={`btn7 btn7--grand btn7--pleine${l.url ? "" : " btn7--inerte"}`}
               onClick={reserver}
             >
-              {l.url ? `Réserver sur ${l.source}` : "Annonce sans lien : réserver à la main"}
+              {l.url ? tr("Réserver sur {source}", { source: l.source }) : tr("Annonce sans lien : réserver à la main")}
             </button>
             <label className="cocher7">
               <input type="checkbox" checked={P.booked} onChange={() => P.setBooked(!P.booked)} />
-              {P.booked ? "Réservé chez la source" : "Marquer comme réservé"}
+              {P.booked ? tr("Réservé chez la source") : tr("Marquer comme réservé")}
             </label>
             <div className="aside7__deux">
               <button type="button" className="btn7 btn7--fantome" onClick={copyRecap}>
-                Copier le récapitulatif
+                {tr("Copier le récapitulatif")}
               </button>
               <button type="button" className="btn7 btn7--fantome" onClick={copyLink}>
-                Copier le lien
+                {tr("Copier le lien")}
               </button>
             </div>
             <p className="aside7__note">
-              Le lien de partage reprend station, logement, dates et voyageurs : les autres
-              voyageurs voient le même récapitulatif.
+              {tr(
+                "Le lien de partage reprend station, logement, dates et voyageurs : les autres voyageurs voient le même récapitulatif.",
+              )}
             </p>
           </aside>
         </div>

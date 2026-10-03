@@ -79,7 +79,7 @@ export const STRINGS = {
     "nav.prices": "Prices",
     "nav.favorites": "Saved",
     "nav.more": "More",
-    "nav.stay": "Your trip",
+    "nav.stay": "Your stay",
     "nav.elsewhere": "Elsewhere in Skitrack",
     "nav.tools": "Tools",
     "nav.control": "Data checks",

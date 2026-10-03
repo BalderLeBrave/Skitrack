@@ -34,6 +34,7 @@ import { inRange, rangeOpen } from "./range.ts";
 import type { DomainVerdict } from "../domainFit.ts";
 import { ficheDementieParLeTitre } from "./occupancy.ts";
 import { LIMITE_TERRITOIRE_M, territoireReasonFor } from "./territoire.ts";
+import { aTraduire, tr, trN } from "../i18n/tr.ts";
 
 
 /**
@@ -449,16 +450,17 @@ export function applyFilter<T extends FilterSubject>(
   return { kept, dropped: { total: rows.length, byReason, rows } };
 }
 
+/** Singulier et pluriel de chaque motif, en français : `droppedLabel` les traduit. */
 const REASON_LABEL: Record<DropReason, [string, string]> = {
-  groupe: ["gîte de groupe", "gîtes de groupe"],
-  "autre-domaine": ["sur un autre domaine", "sur d’autres domaines"],
-  "hors-zone": ["hors de la zone", "hors de la zone"],
-  capacite: ["trop petit", "trop petits"],
+  groupe: [aTraduire("gîte de groupe"), aTraduire("gîtes de groupe")],
+  "autre-domaine": [aTraduire("sur un autre domaine"), aTraduire("sur d’autres domaines")],
+  "hors-zone": [aTraduire("hors de la zone"), aTraduire("hors de la zone")],
+  capacite: [aTraduire("trop petit"), aTraduire("trop petits")],
   // Ni « trop petit » ni « convient » : la source s'est tue, et on le dit.
-  "capacite-muette": ["sans capacité annoncée", "sans capacité annoncée"],
-  prix: ["hors budget", "hors budget"],
-  source: ["issu d’une source décochée", "issus de sources décochées"],
-  disponibilite: ["sans prix à ces dates", "sans prix à ces dates"],
+  "capacite-muette": [aTraduire("sans capacité annoncée"), aTraduire("sans capacité annoncée")],
+  prix: [aTraduire("hors budget"), aTraduire("hors budget")],
+  source: [aTraduire("issu d’une source décochée"), aTraduire("issus de sources décochées")],
+  disponibilite: [aTraduire("sans prix à ces dates"), aTraduire("sans prix à ces dates")],
 };
 
 /** Motif venu d'ailleurs que du filtre : la distance aux pistes, par exemple,
@@ -485,8 +487,11 @@ export function droppedLabel(
   ];
   const total = reasons.reduce((sum, r) => sum + r.n, 0);
   if (total === 0) return "";
-  const bien = total > 1 ? "biens masqués" : "bien masqué";
-  if (reasons.length === 1) return `${total} ${bien} : ${reasons[0].label[total > 1 ? 1 : 0]}`;
-  const parts = reasons.map((r) => `${r.n} ${r.label[r.n > 1 ? 1 : 0]}`);
-  return `${total} ${bien} : ${parts.join(", ")}`;
+  // `trN` choisit le singulier ou le pluriel selon la langue, et traduit.
+  const masques = trN(total, "{n} bien masqué", "{n} biens masqués");
+  if (reasons.length === 1) {
+    return tr("{masques} : {motifs}", { masques, motifs: trN(total, reasons[0].label[0], reasons[0].label[1]) });
+  }
+  const parts = reasons.map((r) => `${r.n} ${trN(r.n, r.label[0], r.label[1])}`);
+  return tr("{masques} : {motifs}", { masques, motifs: parts.join(", ") });
 }

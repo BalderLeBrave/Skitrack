@@ -8,6 +8,7 @@
  */
 
 import { Icon } from "@/components/Icon";
+import { tr } from "@/lib/i18n";
 import { STAY_BOUNDS, stepStay, useSejour } from "@/lib/parcours";
 
 export function Compteur({
@@ -28,7 +29,8 @@ export function Compteur({
   // monde est déjà compté enfant, plutôt que de rester actif et muet.
   const b = k === "enfants" ? { min: 0, max: trav } : STAY_BOUNDS[k];
   // « Chambres, une de moins » : le pronom s'accorde avec ce qu'on compte.
-  const un = k === "rooms" ? "une" : "un";
+  const moins = k === "rooms" ? tr("{titre}, une de moins", { titre }) : tr("{titre}, un de moins", { titre });
+  const plus = k === "rooms" ? tr("{titre}, une de plus", { titre }) : tr("{titre}, un de plus", { titre });
   return (
     <div className={`compteur${encadre ? " compteur--encadre" : ""}`}>
       <div className="compteur__texte">
@@ -38,7 +40,7 @@ export function Compteur({
       <span className="compteur__pas">
         <button
           type="button"
-          aria-label={`${titre}, ${un} de moins`}
+          aria-label={moins}
           disabled={value <= b.min}
           onClick={() => stepStay(k, -1)}
         >
@@ -47,7 +49,7 @@ export function Compteur({
         <b>{value}</b>
         <button
           type="button"
-          aria-label={`${titre}, ${un} de plus`}
+          aria-label={plus}
           disabled={value >= b.max}
           onClick={() => stepStay(k, 1)}
         >

@@ -29,12 +29,14 @@ function appels(): { texte: string; fichier: string }[] {
   const out: { texte: string; fichier: string }[] = [];
   const litteral = String.raw`"((?:[^"\\]|\\.)*)"`;
   const reTr = new RegExp(String.raw`\b(?:tr|aTraduire)\(\s*${litteral}`, "g");
+  const reTrC = new RegExp(String.raw`\btrC\(\s*${litteral}\s*,\s*${litteral}`, "g"); // trC("contexte", "texte")
   const reTrN = new RegExp(String.raw`\btrN\(\s*[^,]+,\s*${litteral}\s*,\s*${litteral}`, "g");
   for (const f of fichiers(SRC)) {
     if (f.includes(join("lib", "i18n"))) continue;
     const src = readFileSync(f, "utf8");
     const fichier = relative(SRC, f);
     for (const m of src.matchAll(reTr)) out.push({ texte: JSON.parse(`"${m[1]}"`), fichier });
+    for (const m of src.matchAll(reTrC)) out.push({ texte: `${JSON.parse(`"${m[1]}"`)}|${JSON.parse(`"${m[2]}"`)}`, fichier });
     for (const m of src.matchAll(reTrN)) {
       out.push({ texte: JSON.parse(`"${m[1]}"`), fichier });
       out.push({ texte: JSON.parse(`"${m[2]}"`), fichier });

@@ -1,5 +1,6 @@
 import { OSM_ACCESS, OSM_LIFTS, type OsmPt } from "./osmAccess.data.ts";
 import { asHit, mateOf, metresBetween } from "./remontees.ts";
+import { aTraduire, tr, trN } from "./i18n/tr.ts";
 
 export { metresBetween };
 
@@ -15,20 +16,22 @@ export type OsmHit = {
 
 export const CABIN_KINDS = new Set(["gondola", "cable_car", "mixed_lift", "funicular"]);
 
-const KIND_FR: Record<string, { de: string; label: string }> = {
-  gondola: { de: "de la", label: "télécabine" },
-  cable_car: { de: "du", label: "téléphérique" },
-  chair_lift: { de: "du", label: "télésiège" },
-  mixed_lift: { de: "du", label: "télémixte" },
-  funicular: { de: "du", label: "funiculaire" },
+/** « de la télécabine », puis avec son nom : le complément d'une distance (« 300 m de la télécabine »). */
+const KIND_FR: Record<string, { label: string; seul: string; nomme: string }> = {
+  gondola: { label: aTraduire("télécabine"), seul: aTraduire("de la télécabine"), nomme: aTraduire("de la télécabine {nom}") },
+  cable_car: { label: aTraduire("téléphérique"), seul: aTraduire("du téléphérique"), nomme: aTraduire("du téléphérique {nom}") },
+  chair_lift: { label: aTraduire("télésiège"), seul: aTraduire("du télésiège"), nomme: aTraduire("du télésiège {nom}") },
+  mixed_lift: { label: aTraduire("télémixte"), seul: aTraduire("du télémixte"), nomme: aTraduire("du télémixte {nom}") },
+  funicular: { label: aTraduire("funiculaire"), seul: aTraduire("du funiculaire"), nomme: aTraduire("du funiculaire {nom}") },
 };
+const KIND_AUTRE = { label: aTraduire("remontée"), seul: aTraduire("de la remontée"), nomme: aTraduire("de la remontée {nom}") };
 
-const KIND_PLURAL: Record<string, string> = {
-  gondola: "télécabines",
-  cable_car: "téléphériques",
-  mixed_lift: "télémixte",
-  chair_lift: "télésièges",
-  funicular: "funiculaires",
+const KIND_PLURAL: Record<string, readonly [string, string]> = {
+  gondola: [aTraduire("{n} télécabine"), aTraduire("{n} télécabines")],
+  cable_car: [aTraduire("{n} téléphérique"), aTraduire("{n} téléphériques")],
+  mixed_lift: [aTraduire("{n} télémixte"), aTraduire("{n} télémixtes")],
+  chair_lift: [aTraduire("{n} télésiège"), aTraduire("{n} télésièges")],
+  funicular: [aTraduire("{n} funiculaire"), aTraduire("{n} funiculaires")],
 };
 
 function nearest(pts: OsmPt[] | undefined, lat: number, lon: number): OsmHit | null {
@@ -85,7 +88,7 @@ export function isCabinLift(kind: string | null | undefined): boolean {
 }
 
 export function liftKindLabel(kind: string | null | undefined): string {
-  return KIND_FR[kind ?? ""]?.label ?? "remontée";
+  return tr((KIND_FR[kind ?? ""] ?? KIND_AUTRE).label);
 }
 
 export type StationLift = {
@@ -156,26 +159,27 @@ export function formatFleet(f: LiftFleet): string {
   const bits: string[] = [];
   const push = (n: number, kind: string) => {
     if (n <= 0) return;
-    const label = KIND_PLURAL[kind] ?? "remontées";
-    bits.push(`${n} ${label}`);
+    const [un, plusieurs] = KIND_PLURAL[kind] ?? [aTraduire("{n} remontée"), aTraduire("{n} remontées")];
+    bits.push(trN(n, un, plusieurs));
   };
   push(f.cable_car, "cable_car");
   push(f.gondola, "gondola");
   push(f.mixed_lift, "mixed_lift");
   push(f.chair_lift, "chair_lift");
   push(f.funicular, "funicular");
-  if (bits.length === 0) return `${f.unique} remontées OSM`;
-  return `${f.unique} remontées OSM : ${bits.join(" · ")}`;
+  const total = trN(f.unique, "{n} remontée OSM", "{n} remontées OSM");
+  if (bits.length === 0) return total;
+  return tr("{total} : {detail}", { total, detail: bits.join(" · ") });
 }
 
 export function liftKindPhrase(kind: string | null | undefined, name: string | null | undefined): string {
-  const fr = KIND_FR[kind ?? ""] ?? { de: "de la", label: "remontée" };
+  const fr = KIND_FR[kind ?? ""] ?? KIND_AUTRE;
   const nom = (name ?? "").trim();
-  if (!nom) return `${fr.de} ${fr.label}`;
+  if (!nom) return tr(fr.seul);
   if (new RegExp(`^(ts|tc|tph|tcd|tél[ée]|super\\s)`, "i").test(nom)) {
-    return `de ${nom}`;
+    return tr("de {remontee}", { remontee: nom });
   }
-  return `${fr.de} ${fr.label} ${nom}`;
+  return tr(fr.nomme, { nom });
 }
 
 /** Titre de lieu publié, sans inventer de toponyme. */

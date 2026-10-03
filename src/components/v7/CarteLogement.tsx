@@ -10,6 +10,7 @@ import { Icon } from "@/components/Icon";
 import { BoutonFavori } from "@/components/v7/BoutonFavori";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
+import { tr } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { completudeOf, trouLbl } from "@/lib/stay/completude";
@@ -98,31 +99,31 @@ export const CarteLogement = memo(function CarteLogement({
           <ImageSlot
             shape="rect"
             id={`v7app-l-${l.id}`}
-            placeholder="Photo de l’annonce"
+            placeholder={tr("Photo de l’annonce")}
             className="lodge7__slot"
             src={l.photo}
           />
         ) : (
-          <span className="lodge7__sansphoto">Pas de photo dans l’annonce {l.source}</span>
+          <span className="lodge7__sansphoto">{tr("Pas de photo dans l’annonce {source}", { source: l.source })}</span>
         )}
         <span className="lodge7__source" title={autres ?? undefined}>
           {sources}
           {autres ? <span className="lecteur7">. {autres}</span> : null}
         </span>
-        {l.priceIndicative ? <span className="lodge7__indic">Prix « à partir de »</span> : null}
-        {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
+        {l.priceIndicative ? <span className="lodge7__indic">{tr("Prix « à partir de »")}</span> : null}
+        {isKept ? <span className="lodge7__retenu">{tr("Retenu")}</span> : null}
         <BoutonFavori
           l={l}
           sejour={{ checkIn: stay.checkIn, checkOut: stay.checkOut, trav }}
           className="lodge7__coeur"
         />
-        {seen ? <span className="lodge7__vue">déjà vue</span> : null}
+        {seen ? <span className="lodge7__vue">{tr("déjà vue")}</span> : null}
       </div>
       <div className="lodge7__corps">
         <strong className="lodge7__titre">{l.title}</strong>
         <div className="lodge7__meta">
           <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
-          <span className={bedLbl(l) === NON_RENSEIGNE ? "absent" : undefined}>{bedNomme(l)}</span>
+          <span className={bedLbl(l) === tr(NON_RENSEIGNE) ? "absent" : undefined}>{bedNomme(l)}</span>
         </div>
         {complet.trous.length ? (
           <span className="lodge7__trous">{complet.trous.map(trouLbl).join(" · ")}</span>
@@ -147,11 +148,11 @@ export const CarteLogement = memo(function CarteLogement({
             <b>{prixLbl(l)}</b>
             <span>
               {nuitsLbl(nights)}
-              {pers ? ` · ${pers} / pers.` : ""}
+              {pers ? ` · ${tr("{prix} / pers.", { prix: pers })}` : ""}
             </span>
             <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
               <i />
-              {firm ? "Prix relevé pour ces dates" : "Disponibilité non confirmée"}
+              {firm ? tr("Prix relevé pour ces dates") : tr("Disponibilité non confirmée")}
             </span>
           </div>
           <button
@@ -162,7 +163,7 @@ export const CarteLogement = memo(function CarteLogement({
               retenir(retenu ?? l.id);
             }}
           >
-            {isKept ? (retenuSource ? `Retenu · ${retenuSource}` : "Retenu") : "Retenir"}
+            {isKept ? (retenuSource ? tr("Retenu · {source}", { source: retenuSource }) : tr("Retenu")) : tr("Retenir")}
           </button>
         </div>
       </div>

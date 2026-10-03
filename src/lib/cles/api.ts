@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { aTraduire, type Variables } from "../i18n/tr.ts";
 import type { EtatCle } from "./registre.ts";
 
 /** L'état des clés. Aucune valeur secrète ne franchit cette frontière. */
@@ -41,7 +42,8 @@ export const retirerCle = createServerFn({ method: "POST" })
     return etats;
   });
 
-export type Essai = { ok: boolean; message: string };
+/** `message` reste en français (le serveur ne connaît pas la langue) : l'écran le passe à `tr` avec `vars`. */
+export type Essai = { ok: boolean; message: string; vars?: Variables };
 
 /**
  * Un essai réel, pas une vérification de forme.
@@ -52,12 +54,12 @@ export type Essai = { ok: boolean; message: string };
 export const essayerCle = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().min(1) }))
   .handler(async ({ data }): Promise<Essai> => {
-    if (data.id !== "meteofrance") return { ok: false, message: "Cette clé ne peut pas être essayée." };
+    if (data.id !== "meteofrance") return { ok: false, message: aTraduire("Cette clé ne peut pas être essayée.") };
     const { valeurCle } = await import("./store.server");
-    if (!valeurCle("meteofrance")) return { ok: false, message: "Aucune clé enregistrée." };
+    if (!valeurCle("meteofrance")) return { ok: false, message: aTraduire("Aucune clé enregistrée.") };
     const { fetchBraApi, loadMeteofranceKey } = await import("../bra/fetch.server");
     const cle = loadMeteofranceKey();
-    if (!cle) return { ok: false, message: "Aucune clé enregistrée." };
+    if (!cle) return { ok: false, message: aTraduire("Aucune clé enregistrée.") };
     // Massif 10 (Vanoise), par l'API seule : `fetchBra` se replie sur
     // l'archive publique, et une clé refusée y aurait paru bonne.
     const bra = await fetchBraApi(10, cle);
@@ -65,9 +67,10 @@ export const essayerCle = createServerFn({ method: "POST" })
       return {
         ok: true,
         message: bra.risk != null
-          ? `Météo-France répond : risque ${bra.risk} en Vanoise.`
-          : "Météo-France répond. Aucun risque publié aujourd’hui sur ce massif.",
+          ? aTraduire("Météo-France répond : risque {risque} en Vanoise.")
+          : aTraduire("Météo-France répond. Aucun risque publié aujourd’hui sur ce massif."),
+        vars: bra.risk != null ? { risque: bra.risk } : undefined,
       };
     }
-    return { ok: false, message: bra.error ?? "Météo-France n’a pas répondu." };
+    return { ok: false, message: bra.error ?? aTraduire("Météo-France n’a pas répondu.") };
   });

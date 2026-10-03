@@ -12,6 +12,7 @@ import { completudeOf } from "./completude.ts";
 import { estPauseApi } from "./deadline.ts";
 import { horsFraisSejour } from "./tarif.ts";
 import { langueIntl } from "../i18n/langue.ts";
+import { aTraduire, tr, trN } from "../i18n/tr.ts";
 
 export const ORDRE_PLATEFORMES = [
   "Centrale",
@@ -98,70 +99,71 @@ function euros(n: number): string {
 
 export function libelleCouverture(rows: SujetPlateforme[]): string {
   const priced = rows.filter(estTotalSejour);
-  if (priced.length === 0) return "prix non publié";
+  if (priced.length === 0) return tr("prix non publié");
   const hors = priced.filter((l) => horsFraisSejour(l));
-  if (hors.length === priced.length) return "loyer, hors frais de séjour";
-  if (hors.length > 0) return "loyer ; taxe de séjour quand la centrale la publie";
+  if (hors.length === priced.length) return tr("loyer, hors frais de séjour");
+  if (hors.length > 0) return tr("loyer ; taxe de séjour quand la centrale la publie");
   const avecTaxe = priced.every(
     (l) =>
       (l.proven && /taxe de s[ée]jour/i.test(l.proven)) ||
       (l.priceLabel && /taxe de s[ée]jour/i.test(l.priceLabel)),
   );
-  if (avecTaxe) return "loyer et taxe de séjour";
-  return "total relevé chez la source";
+  if (avecTaxe) return tr("loyer et taxe de séjour");
+  return tr("total relevé chez la source");
 }
 
 export function libelleReleve(report: RapportSource | undefined): string {
-  if (!report) return "relevé figé";
-  if (estPauseApi(report.error)) return "pause : relevé précédent conservé";
-  if (!report.ok) return report.error?.trim() || "relevé en échec";
-  return "relevé en direct";
+  if (!report) return tr("relevé figé");
+  if (estPauseApi(report.error)) return tr("pause : relevé précédent conservé");
+  if (!report.ok) return report.error?.trim() || tr("relevé en échec");
+  return tr("relevé en direct");
 }
 
+/** Libellés et notes en français : `tr(c.label)`, `tr(c.note)` au rendu. */
 export const CRITERES_PLATEFORME: CriterePlateforme[] = [
   {
     id: "n",
-    label: "Annonces",
-    note: "relevées pour ce séjour",
+    label: aTraduire("Annonces"),
+    note: aTraduire("relevées pour ce séjour"),
     num: (c) => c.n,
     txt: (c) => String(c.n),
     max: true,
   },
   {
     id: "nPrix",
-    label: "Avec un total",
-    note: "publié par la source, pas « à partir de »",
+    label: aTraduire("Avec un total"),
+    note: aTraduire("publié par la source, pas « à partir de »"),
     num: (c) => (c.nPrix > 0 ? c.nPrix : null),
-    txt: (c) => (c.nPrix > 0 ? String(c.nPrix) : "prix non publié"),
+    txt: (c) => (c.nPrix > 0 ? String(c.nPrix) : tr("prix non publié")),
     max: true,
   },
   {
     id: "nConfirmes",
-    label: "Disponibilité confirmée",
-    note: "prix relevé pour ces dates il y a moins de 6 h",
+    label: aTraduire("Disponibilité confirmée"),
+    note: aTraduire("prix relevé pour ces dates il y a moins de 6 h"),
     num: (c) => (c.nConfirmes > 0 ? c.nConfirmes : null),
-    txt: (c) => (c.nConfirmes > 0 ? String(c.nConfirmes) : "non confirmée"),
+    txt: (c) => (c.nConfirmes > 0 ? String(c.nConfirmes) : tr("non confirmée")),
     max: true,
   },
   {
     id: "nCompletes",
-    label: "Fiches complètes",
-    note: "prix, capacité, chambres, GPS, photo, lien",
+    label: aTraduire("Fiches complètes"),
+    note: aTraduire("prix, capacité, chambres, GPS, photo, lien"),
     num: (c) => (c.nCompletes > 0 ? c.nCompletes : null),
-    txt: (c) => (c.nCompletes > 0 ? String(c.nCompletes) : "aucune"),
+    txt: (c) => (c.nCompletes > 0 ? String(c.nCompletes) : tr("aucune")),
     max: true,
   },
   {
     id: "moinsCher",
-    label: "Moins cher",
-    note: "plus bas total publié",
+    label: aTraduire("Moins cher"),
+    note: aTraduire("plus bas total publié"),
     num: (c) => c.moinsCher,
     txt: (c) => (c.moinsCher != null ? euros(c.moinsCher) : null),
     max: false,
   },
   {
     id: "couverture",
-    label: "Ce que le montant couvre",
+    label: aTraduire("Ce que le montant couvre"),
     note: null,
     num: () => null,
     txt: (c) => c.couverture,
@@ -169,7 +171,7 @@ export const CRITERES_PLATEFORME: CriterePlateforme[] = [
   },
   {
     id: "releve",
-    label: "Provenance",
+    label: aTraduire("Provenance"),
     note: null,
     num: () => null,
     txt: (c) => c.releve,
@@ -262,13 +264,17 @@ export function valeurGagne(
   return v === best;
 }
 
-/** « de Booking », mais « d’Airbnb » : élision devant une voyelle. */
-function deSource(source: string): string {
-  return /^[aeiouàâäéèêëîïôöùûü]/i.test(source) ? `d’${source}` : `de ${source}`;
+/** « de Booking », mais « d’Airbnb » : élision devant une voyelle. L'anglais
+ *  place la source devant : « See the 3 Booking listings ». */
+function elision(source: string): boolean {
+  return /^[aeiouàâäéèêëîïôöùûü]/i.test(source);
 }
 
 export function voirAnnoncesLbl(n: number, source: string): string {
-  if (n <= 0) return `Aucune annonce ${deSource(source)}`;
-  if (n === 1) return `Voir l’annonce ${deSource(source)}`;
-  return `Voir les ${n} annonces ${deSource(source)}`;
+  const e = elision(source);
+  if (n <= 0) return e ? tr("Aucune annonce d’{source}", { source }) : tr("Aucune annonce de {source}", { source });
+  if (n === 1) return e ? tr("Voir l’annonce d’{source}", { source }) : tr("Voir l’annonce de {source}", { source });
+  return e
+    ? trN(n, "Voir l’annonce d’{source}", "Voir les {n} annonces d’{source}", { source })
+    : trN(n, "Voir l’annonce de {source}", "Voir les {n} annonces de {source}", { source });
 }

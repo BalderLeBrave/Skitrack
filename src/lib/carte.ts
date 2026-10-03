@@ -11,17 +11,18 @@ import { dansPlage, type Echelle, type Plage } from "./plage.ts";
 import type { Station } from "./stations.ts";
 import { parMesure, parTexte, type Sens } from "./tri.ts";
 import { langueIntl } from "./i18n/langue.ts";
+import { aTraduire, tr, trN } from "./i18n/tr.ts";
 
 export type CarteOrder = "km" | "v" | "lo" | "hi" | "np" | "lifts" | "n";
 
 export const CARTE_ORDERS: readonly [CarteOrder, string][] = [
-  ["km", "km de pistes"],
-  ["v", "altitude du village"],
-  ["lo", "bas des pistes"],
-  ["hi", "sommet"],
-  ["np", "tronçons de pistes"],
-  ["lifts", "remontées"],
-  ["n", "nom"],
+  ["km", aTraduire("km de pistes")],
+  ["v", aTraduire("altitude du village")],
+  ["lo", aTraduire("bas des pistes")],
+  ["hi", aTraduire("sommet")],
+  ["np", aTraduire("tronçons de pistes")],
+  ["lifts", aTraduire("remontées")],
+  ["n", aTraduire("nom")],
 ];
 
 export const CARTE_SORT_LABELS: Record<CarteOrder, string> = Object.fromEntries(
@@ -42,10 +43,10 @@ export const CARTE_SENS: Record<CarteOrder, Sens> = {
 export type ColorKey = keyof ColorShare;
 export const COLOR_KEYS: readonly ColorKey[] = ["green", "blue", "red", "black"];
 export const COLOR_LABELS: Record<ColorKey, string> = {
-  green: "Vertes",
-  blue: "Bleues",
-  red: "Rouges",
-  black: "Noires",
+  green: aTraduire("Vertes"),
+  blue: aTraduire("Bleues"),
+  red: aTraduire("Rouges"),
+  black: aTraduire("Noires"),
 };
 export const COLOR_HEX: Record<ColorKey, string> = {
   green: "#2e9e5b",
@@ -61,7 +62,7 @@ export type ColorUnit = "pct" | "n" | "km";
 /** L'échelle des fourchettes par couleur, selon l'unité. */
 export const COLOR_RANGE: Record<ColorUnit, { b: Echelle; pas: number; suffix: string; unite: string }> = {
   pct: { b: [0, 60], pas: 5, suffix: " %", unite: "%" },
-  n: { b: [0, 200], pas: 5, suffix: " tronçons", unite: "tronç." },
+  n: { b: [0, 200], pas: 5, suffix: aTraduire(" tronçons"), unite: aTraduire("tronç.") },
   km: { b: [0, 200], pas: 10, suffix: " km", unite: "km" },
 };
 
@@ -172,17 +173,17 @@ export function filterMassif(rows: readonly Station[], massif: string | null): S
 /** Ligne secondaire : ce que la station est, et d'où viennent ses chiffres. */
 export function stationTags(station: Station): string {
   const bits: string[] = [];
-  if (station.kind === "village-station") bits.push("Village-station");
+  if (station.kind === "village-station") bits.push(tr("Village-station"));
   // Sans domaine alpin, c'est une donnée : La Bourboule n'a plus de ski alpin.
   // « non renseigné » la confondait avec un relevé manquant.
   bits.push(
     station.domain ??
-      (sansDomaineAlpin(station.id) ? "Sans domaine alpin" : "Domaine non renseigné"),
+      (sansDomaineAlpin(station.id) ? tr("Sans domaine alpin") : tr("Domaine non renseigné")),
   );
   if (station.status && station.status !== "En activité") {
     bits.push(station.status.replace(/^En activité[,( ]*/, "").replace(/\)$/, ""));
   }
-  if (!station.inClasseur) bits.push("fiche Skiinfo, absente de France Montagnes");
+  if (!station.inClasseur) bits.push(tr("fiche Skiinfo, absente de France Montagnes"));
   // Le forfait n'apparaît que s'il nomme autre chose que le domaine : le
   // classeur dit « Les Trois Vallées », le catalogue « Les 3 Vallées ».
   const pass = domainForStation(station.id)?.pass;
@@ -354,5 +355,5 @@ export function partagerParBornes<T extends PointCarte>(
 /** « 3 sans localisation », ou rien du tout. */
 export function sansPositionLabel(n: number): string {
   if (n <= 0) return "";
-  return `${n} sans localisation`;
+  return trN(n, "{n} sans localisation", "{n} sans localisation");
 }

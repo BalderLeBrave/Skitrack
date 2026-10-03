@@ -28,6 +28,16 @@ export function tr(fr: string, vars?: Variables): string {
 }
 
 /**
+ * Le même mot français, deux sens : « Départ » d'un séjour (Departure) et
+ * « Départ » d'une piste (Top). `trC("piste", "Départ")` cherche d'abord la
+ * clé `piste|Départ` dans le dictionnaire.
+ */
+export function trC(contexte: string, fr: string, vars?: Variables): string {
+  const modele = langue() === "en" ? (EN[`${contexte}|${fr}`] ?? EN[fr] ?? fr) : fr;
+  return remplir(modele, vars);
+}
+
+/**
  * Marque un texte à traduire **plus tard**, sans le traduire : pour une table
  * de libellés posée au chargement du module (options de tri, en-têtes de
  * colonnes). La langue n'est connue qu'au rendu ; un `tr` appelé au

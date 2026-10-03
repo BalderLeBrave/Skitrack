@@ -27,7 +27,7 @@ import { FourchetteRecherche } from "@/components/v7/FourchettesRecherche";
 import { SensTri } from "@/components/v7/SensTri";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
 import { partagerParBornes, type Bornes } from "@/lib/carte";
-import { dire } from "@/lib/i18n";
+import { aTraduire, dire, langue, tr, trN } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
@@ -106,13 +106,13 @@ type LodgeSort = "pp" | "total" | "cap" | "dist" | "alt" | "trous";
  *  de départ : le moins cher, le plus grand, le plus près d'abord, et les
  *  fiches qui ont le plus de trous d'abord. */
 const TRIS_LOGEMENT: { k: LodgeSort; label: string; sens: Sens }[] = [
-  { k: "pp", label: "Tri : prix par personne", sens: 1 },
-  { k: "total", label: "Tri : prix total", sens: 1 },
-  { k: "dist", label: "Tri : distance", sens: 1 },
+  { k: "pp", label: aTraduire("Tri : prix par personne"), sens: 1 },
+  { k: "total", label: aTraduire("Tri : prix total"), sens: 1 },
+  { k: "dist", label: aTraduire("Tri : distance"), sens: 1 },
   // Le plus haut d'abord : la neige y tient mieux.
-  { k: "alt", label: "Tri : altitude", sens: -1 },
-  { k: "cap", label: "Tri : capacité", sens: -1 },
-  { k: "trous", label: "Tri : trous dans la fiche", sens: -1 },
+  { k: "alt", label: aTraduire("Tri : altitude"), sens: -1 },
+  { k: "cap", label: aTraduire("Tri : capacité"), sens: -1 },
+  { k: "trous", label: aTraduire("Tri : trous dans la fiche"), sens: -1 },
 ];
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
@@ -159,24 +159,24 @@ const LF0: LF = {
 };
 
 /** Le budget est à part : il est lu et écrit sur le magasin partagé. */
-const BUDGET = { k: "budget" as const, label: "Total du séjour", ...ECHELLES.budget, unit: "€" };
+const BUDGET = { k: "budget" as const, label: aTraduire("Total du séjour"), ...ECHELLES.budget, unit: "€" };
 
 /** Les fourchettes propres à cet écran. Chacune était un seuil — « au plus »
  *  pour le prix et la distance, « au moins » pour la capacité et les
  *  chambres — dont elle garde l'échelle ; la borne haute au bout veut dire
  *  « et plus ». */
 const RANGES: { k: "pp" | "cap" | "rooms" | "dist"; label: string; b: Echelle; pas: number; unit: string }[] = [
-  { k: "pp", label: "Prix par personne", b: [0, 800], pas: 25, unit: "€" },
-  { k: "cap", label: "Capacité annoncée", b: [1, 16], pas: 1, unit: "pers." },
-  { k: "rooms", label: "Chambres annoncées", b: [0, 7], pas: 1, unit: "ch." },
-  { k: "dist", label: "Distance à une remontée", b: [0, 2000], pas: 100, unit: "m" },
+  { k: "pp", label: aTraduire("Prix par personne"), b: [0, 800], pas: 25, unit: "€" },
+  { k: "cap", label: aTraduire("Capacité annoncée"), b: [1, 16], pas: 1, unit: aTraduire("pers.") },
+  { k: "rooms", label: aTraduire("Chambres annoncées"), b: [0, 7], pas: 1, unit: aTraduire("ch.") },
+  { k: "dist", label: aTraduire("Distance à une remontée"), b: [0, 2000], pas: 100, unit: "m" },
 ];
 const RANGE = Object.fromEntries(RANGES.map((r) => [r.k, r])) as Record<(typeof RANGES)[number]["k"], (typeof RANGES)[number]>;
 
 /** Une borne de fourchette en toutes lettres : « 6 pers. », « 2 ch. ». Zéro
  *  chambre se dit « Studio », jamais « 0 ch. », comme sur les cartes. */
 function borneLbl(k: (typeof RANGES)[number]["k"]): (v: number) => string {
-  return (v) => (k === "rooms" && v === 0 ? "Studio" : `${fmt(v)} ${RANGE[k].unit}`);
+  return (v) => (k === "rooms" && v === 0 ? tr("Studio") : `${fmt(v)} ${tr(RANGE[k].unit)}`);
 }
 
 /** L'échelle du périmètre : du centre de la station à 50 km. */
@@ -184,7 +184,7 @@ const ECHELLE_RAYON: Echelle = [0, RAYON_MAX_KM];
 
 /** « jusqu'à 12 km », « de 2 à 12 km » : le périmètre n'est jamais indifférent. */
 function rayonLbl([lo, hi]: readonly [number, number]): string {
-  return lo > 0 ? `de ${fmt(lo)} à ${fmt(hi)} km` : `jusqu’à ${fmt(hi)} km`;
+  return lo > 0 ? tr("de {min} à {max} km", { min: fmt(lo), max: fmt(hi) }) : tr("jusqu’à {max} km", { max: fmt(hi) });
 }
 
 /** Un palier de distance posé depuis la barre : de 0 à `m`. */
@@ -193,7 +193,7 @@ function palierPose(pl: Plage, m: number): boolean {
 }
 
 function palierDistLbl(m: number): string {
-  if (m <= 200) return "Pied des pistes";
+  if (m <= 200) return tr("Pied des pistes");
   if (m >= 1000 && m % 1000 === 0) return `≤ ${m / 1000} km`;
   return `≤ ${m} m`;
 }
@@ -504,7 +504,7 @@ function LigneReleve({ sources }: { sources: string[] }) {
         <i />
       </span>
       <span className="rech7__texte" role="status" aria-live="polite">
-        Recherche de logements disponibles…
+        {tr("Recherche de logements disponibles…")}
       </span>
       {sources.length ? <span className="rech7__sources">{sources.join(" · ")}</span> : null}
     </div>
@@ -683,7 +683,7 @@ function LogementsStation({ s }: { s: Station }) {
   const relancer = () => setStay({ searchNonce: Date.now() });
   /* ---------- Prédicats ---------- */
   const lp: Pred[] = [];
-  lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.capacity == null || l.capacity >= trav, fixed: true });
+  lp.push({ id: "cap", label: tr("Capacité ≥ {n}", { n: trav }), fn: (l) => l.capacity == null || l.capacity >= trav, fixed: true });
   // Les pièces comptent, comme dans `lodgingFilter`. Les deux règles de
   // chambres ne lisaient que `bedrooms` : une annonce de centrale publiant
   // « 2 pièces » sans chambres traversait en silence « Chambres ≥ 4 » — elle en
@@ -694,7 +694,7 @@ function LogementsStation({ s }: { s: Station }) {
   if (rooms)
     lp.push({
       id: "rooms",
-      label: `Chambres ≥ ${rooms}`,
+      label: tr("Chambres ≥ {n}", { n: rooms }),
       fn: (l) => {
         const n = normalizedBedrooms(l);
         return n == null || n >= rooms;
@@ -708,7 +708,10 @@ function LogementsStation({ s }: { s: Station }) {
   const [rayonMin, rayonMax] = lf.rayon;
   lp.push({
     id: "zone",
-    label: rayonMin > 0 ? `Entre ${fmt(rayonMin)} et ${fmt(rayonMax)} km` : `Rayon de ${fmt(rayonMax)} km`,
+    label:
+      rayonMin > 0
+        ? tr("Entre {min} et {max} km", { min: fmt(rayonMin), max: fmt(rayonMax) })
+        : tr("Rayon de {max} km", { max: fmt(rayonMax) }),
     fn: (l) =>
       geoReasonFor(l, rayonMax, s.dept) == null &&
       (rayonMin <= 0 || (l.distToSlopesM != null && l.distToSlopesM >= rayonMin * 1000)),
@@ -716,13 +719,13 @@ function LogementsStation({ s }: { s: Station }) {
   });
   lp.push({
     id: "gps",
-    label: "Position GPS",
+    label: tr("Position GPS"),
     fn: (l) => gpsPrecis(l),
     fixed: true,
   });
   lp.push({
     id: "dispo",
-    label: "Disponible à ces dates",
+    label: tr("Disponible à ces dates"),
     fn: (l) => firmOf(l, stay),
     fixed: true,
   });
@@ -734,12 +737,12 @@ function LogementsStation({ s }: { s: Station }) {
   if (budget != null)
     lp.push({
       id: "budget",
-      label: `Total : ${fourchetteLbl(BUDGET, budget)}`,
+      label: tr("Total : {plage}", { plage: fourchetteLbl(BUDGET, budget) }),
       fn: (l) => sansPrix(l) || dansPlage(l.total, budget, BUDGET.b),
       remove: () => P.setFilters({ budget: null }),
     });
   const lfLbl = (k: (typeof RANGES)[number]["k"], pl: Plage) =>
-    `${RANGE[k].label} : ${plageTexte(pl, RANGE[k].b, borneLbl(k))}`;
+    tr("{critere} : {plage}", { critere: tr(RANGE[k].label), plage: plageTexte(pl, RANGE[k].b, borneLbl(k)) });
   const { pp, cap: lcap, rooms: lrooms, dist } = lf;
   if (pp != null)
     lp.push({
@@ -772,22 +775,22 @@ function LogementsStation({ s }: { s: Station }) {
     });
   const srcOn = Object.keys(lf.src).filter((k) => lf.src[k]);
   if (srcOn.length) lp.push({ id: "src", label: srcOn.join(" · "), fn: (l) => srcOn.includes(l.source), remove: () => patchLf({ src: {} }) });
-  if (lf.measured) lp.push({ id: "measured", label: "Distance mesurée", fn: (l) => distanceOf(l).kind === "measured", remove: () => patchLf({ measured: false }) });
-  if (lf.link) lp.push({ id: "link", label: "Lien de réservation", fn: (l) => !!l.url, remove: () => patchLf({ link: false }) });
-  if (lf.photo) lp.push({ id: "photo", label: "Avec photo", fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
-  if (lf.firm) lp.push({ id: "firm", label: "Prix relevé pour ces dates", fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
-  if (lf.pos) lp.push({ id: "pos", label: "Position connue", fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
+  if (lf.measured) lp.push({ id: "measured", label: tr("Distance mesurée"), fn: (l) => distanceOf(l).kind === "measured", remove: () => patchLf({ measured: false }) });
+  if (lf.link) lp.push({ id: "link", label: tr("Lien de réservation"), fn: (l) => !!l.url, remove: () => patchLf({ link: false }) });
+  if (lf.photo) lp.push({ id: "photo", label: tr("Avec photo"), fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
+  if (lf.firm) lp.push({ id: "firm", label: tr("Prix relevé pour ces dates"), fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
+  if (lf.pos) lp.push({ id: "pos", label: tr("Position connue"), fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
   if (lf.full)
     lp.push({
       id: "full",
-      label: "Fiche complète",
+      label: tr("Fiche complète"),
       fn: (l) => completudeOf(l).ok,
       remove: () => patchLf({ full: false }),
     });
   if (lf.holes)
     lp.push({
       id: "holes",
-      label: "Fiche incomplète",
+      label: tr("Fiche incomplète"),
       fn: (l) => !completudeOf(l).ok,
       remove: () => patchLf({ holes: false }),
     });
@@ -910,29 +913,53 @@ function LogementsStation({ s }: { s: Station }) {
     // Seul le rayon est dans le panneau ; capacité, chambres et dates viennent
     // du séjour, et la position GPS ne se règle nulle part.
     const reglage: Record<string, string> = {
-      zone: " Élargissez le rayon dans les filtres.",
-      cap: " Réduisez le nombre de voyageurs du séjour.",
-      rooms: " Réduisez le nombre de chambres du séjour.",
-      dispo: " Relancez le relevé ou changez les dates du séjour.",
-      gps: " Les annonces sans position GPS sont toujours écartées.",
+      zone: tr("Élargissez le rayon dans les filtres."),
+      cap: tr("Réduisez le nombre de voyageurs du séjour."),
+      rooms: tr("Réduisez le nombre de chambres du séjour."),
+      dispo: tr("Relancez le relevé ou changez les dates du séjour."),
+      gps: tr("Les annonces sans position GPS sont toujours écartées."),
     };
+    const annonces = trN(raw.length, "{n} annonce", "{n} annonces");
+    const personnes = trN(trav, "{n} personne", "{n} personnes");
     lempty =
       best && best.n > 0
         ? {
-            title: `Le filtre « ${best.p.label} » ne laisse aucune annonce`,
+            title: tr("Le filtre « {filtre} » ne laisse aucune annonce", { filtre: best.p.label }),
             hint: `${
               raw.length > 1
-                ? `Sans lui, ${best.n} annonce${best.n > 1 ? "s" : ""} rest${best.n > 1 ? "ent" : "e"} sur les ${raw.length} du relevé.`
-                : "Sans lui, l’annonce du relevé reste."
-            }${best.p.remove ? "" : (reglage[best.p.id] ?? "")}`,
+                ? trN(
+                    best.n,
+                    "Sans lui, {n} annonce reste sur les {total} du relevé.",
+                    "Sans lui, {n} annonces restent sur les {total} du relevé.",
+                    { total: raw.length },
+                  )
+                : tr("Sans lui, l’annonce du relevé reste.")
+            }${best.p.remove || !reglage[best.p.id] ? "" : ` ${reglage[best.p.id]}`}`,
             fix: best.p.remove ?? null,
           }
         : {
-            title: `Aucune annonce pour ${trav} personne${trav > 1 ? "s" : ""}${rooms ? ` et ${rooms} chambre${rooms > 1 ? "s" : ""}` : ""}`,
+            title: rooms
+              ? tr("Aucune annonce pour {personnes} et {chambres}", {
+                  personnes,
+                  chambres: trN(rooms, "{n} chambre", "{n} chambres"),
+                })
+              : tr("Aucune annonce pour {personnes}", { personnes }),
             hint:
               plusGrande != null
-                ? `Le relevé compte ${raw.length} annonce${raw.length > 1 ? "s" : ""} ; la plus grande de celles qui publient leur capacité annonce ${plusGrande} personne${plusGrande > 1 ? "s" : ""}${muettes ? `, et ${muettes} n’en publie${muettes > 1 ? "nt" : ""} aucune` : ""}. Réduisez le groupe ou attendez un nouveau relevé.`
-                : `Le relevé compte ${raw.length} annonce${raw.length > 1 ? "s" : ""} et aucune ne publie sa capacité. Réinitialisez les filtres ou attendez un nouveau relevé.`,
+                ? tr(
+                    "Le relevé compte {annonces} ; la plus grande de celles qui publient leur capacité annonce {capacite}{muettes}. Réduisez le groupe ou attendez un nouveau relevé.",
+                    {
+                      annonces,
+                      capacite: trN(plusGrande, "{n} personne", "{n} personnes"),
+                      muettes: muettes
+                        ? trN(muettes, ", et {n} n’en publie aucune", ", et {n} n’en publient aucune")
+                        : "",
+                    },
+                  )
+                : tr(
+                    "Le relevé compte {annonces} et aucune ne publie sa capacité. Réinitialisez les filtres ou attendez un nouveau relevé.",
+                    { annonces },
+                  ),
             fix: null,
           };
   }
@@ -942,13 +969,13 @@ function LogementsStation({ s }: { s: Station }) {
   const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
   const nIncompletes = raw.length - nCompletes;
   const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
-    { k: "measured", label: "Distance mesurée", n: raw.filter((l) => distanceOf(l).kind === "measured").length },
-    { k: "pos", label: "Position connue", n: raw.filter((l) => l.lat != null).length },
-    { k: "link", label: "Lien de réservation", n: raw.filter((l) => l.url).length },
-    { k: "photo", label: "Avec photo", n: raw.filter((l) => l.photo).length },
-    { k: "firm", label: "Prix relevé pour ces dates", n: raw.filter((l) => firmOf(l, stay)).length },
-    { k: "full", label: "Fiche complète", n: nCompletes },
-    { k: "holes", label: "Fiche incomplète", n: nIncompletes },
+    { k: "measured", label: tr("Distance mesurée"), n: raw.filter((l) => distanceOf(l).kind === "measured").length },
+    { k: "pos", label: tr("Position connue"), n: raw.filter((l) => l.lat != null).length },
+    { k: "link", label: tr("Lien de réservation"), n: raw.filter((l) => l.url).length },
+    { k: "photo", label: tr("Avec photo"), n: raw.filter((l) => l.photo).length },
+    { k: "firm", label: tr("Prix relevé pour ces dates"), n: raw.filter((l) => firmOf(l, stay)).length },
+    { k: "full", label: tr("Fiche complète"), n: nCompletes },
+    { k: "holes", label: tr("Fiche incomplète"), n: nIncompletes },
   ];
 
   // Stables d'un rendu à l'autre : sans cela `memo` sur la carte d'annonce ne
@@ -1012,10 +1039,12 @@ function LogementsStation({ s }: { s: Station }) {
   const autresLbl = (l: Listing) => {
     const g = logementDe.get(l.id);
     if (!g || g.offres.length < 2) return null;
-    return `Aussi sur ${g.offres
-      .filter((o) => o.id !== l.id)
-      .map((o) => `${o.source} (${prixLbl(o)})`)
-      .join(", ")}`;
+    return tr("Aussi sur {offres}", {
+      offres: g.offres
+        .filter((o) => o.id !== l.id)
+        .map((o) => `${o.source} (${prixLbl(o)})`)
+        .join(", "),
+    });
   };
 
   // Sur la carte, comme sur Airbnb : les logements de la page en cours, et eux
@@ -1058,7 +1087,7 @@ function LogementsStation({ s }: { s: Station }) {
         id: "__station",
         lat: s.lat,
         lon: s.lon,
-        nom: `${s.name}, repère de la station`,
+        nom: tr("{station}, repère de la station", { station: s.name }),
         epingle: epingleRepere(s.name),
         zIndex: ETAGE.repere,
         inerte: true,
@@ -1105,15 +1134,15 @@ function LogementsStation({ s }: { s: Station }) {
               droite. La barre du haut n'en porte pas sur cet écran. */}
           <header className="bloc7__tete">
             <div className="v7tete v7tete--titre">
-              <span className="v7surtitre">Étape 2</span>
-              <h1>Logements {aStation(s.name)}</h1>
+              <span className="v7surtitre">{tr("Étape 2")}</span>
+              <h1>{tr("Logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })}</h1>
             </div>
             <div className="sejour7">
               <button
                 type="button"
                 className="sejour7__pilule"
                 data-sejour-ouvre
-                title="Changer la station, les dates ou le nombre de voyageurs"
+                title={tr("Changer la station, les dates ou le nombre de voyageurs")}
                 aria-expanded={P.stayOpen}
                 onClick={() => P.setStayOpen(!P.stayOpen)}
               >
@@ -1127,8 +1156,8 @@ function LogementsStation({ s }: { s: Station }) {
               <button
                 type="button"
                 className="sejour7__loupe"
-                title="Relancer le relevé pour ces dates"
-                aria-label="Relancer le relevé pour ces dates"
+                title={tr("Relancer le relevé pour ces dates")}
+                aria-label={tr("Relancer le relevé pour ces dates")}
                 onClick={relancer}
                 disabled={searching}
               >
@@ -1145,25 +1174,25 @@ function LogementsStation({ s }: { s: Station }) {
               <span className="ruban7__crumb">{crumbDomaine(s)}</span>
               <div className="ruban7__faits">
                 <span>
-                  <span>Altitude des pistes</span>
-                  <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? "non relevée"}</b>
+                  <span>{tr("Altitude des pistes")}</span>
+                  <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? tr("non relevée")}</b>
                 </span>
                 <span>
-                  <span>Pistes, domaine</span>
-                  <b className={kmLbl(s) ? undefined : "absent"}>{kmLbl(s) ?? "km non publié"}</b>
+                  <span>{tr("Pistes, domaine")}</span>
+                  <b className={kmLbl(s) ? undefined : "absent"}>{kmLbl(s) ?? tr("km non publié")}</b>
                 </span>
                 <span>
-                  <span>Remontées, domaine</span>
-                  <b className={liftsLbl(s) ? undefined : "absent"}>{liftsLbl(s) ?? "non relevées"}</b>
+                  <span>{tr("Remontées, domaine")}</span>
+                  <b className={liftsLbl(s) ? undefined : "absent"}>{liftsLbl(s) ?? tr("non relevées")}</b>
                 </span>
                 <span>
-                  <span>Forfait {prix.jours ?? 6} j</span>
+                  <span>{tr("Forfait {n} j", { n: prix.jours ?? 6 })}</span>
                   {adulteForfait?.statut === "resolu" ? (
                     <b title={mentionForfait(adulteForfait)}>
                       {montantCents(adulteForfait.prix, adulteForfait.devise)}
                     </b>
                   ) : (
-                    <b className="absent">{adulteForfait ? echecLbl(adulteForfait) : "non relevé"}</b>
+                    <b className="absent">{adulteForfait ? echecLbl(adulteForfait) : tr("non relevé")}</b>
                   )}
                 </span>
               </div>
@@ -1177,7 +1206,7 @@ function LogementsStation({ s }: { s: Station }) {
               }}
             >
               <Icon name="chevron-gauche" taille={14} />
-              Fiche station
+              {tr("Fiche station")}
             </a>
           </section>
 
@@ -1192,7 +1221,7 @@ function LogementsStation({ s }: { s: Station }) {
                   onClick={() => setLfOpen((v) => !v)}
                 >
                   <Icon name="filtres" taille={14} />
-                  Filtres
+                  {tr("Filtres")}
                   {lfree.length ? <span className="puce__badge">{lfree.length}</span> : null}
                 </button>
                 {DIST_PALIERS_M.map((m) => (
@@ -1212,7 +1241,7 @@ function LogementsStation({ s }: { s: Station }) {
                       {p.label}
                       <button
                         type="button"
-                        aria-label={`Retirer le critère ${p.label}`}
+                        aria-label={tr("Retirer le critère {critere}", { critere: p.label })}
                         onClick={p.remove}
                       >
                         <Icon name="croix" taille={11} />
@@ -1229,7 +1258,7 @@ function LogementsStation({ s }: { s: Station }) {
                       reinitialiser();
                     }}
                   >
-                    Tout réinitialiser
+                    {tr("Tout réinitialiser")}
                   </a>
                 ) : null}
                 <span className="filtres7__espace" />
@@ -1238,16 +1267,16 @@ function LogementsStation({ s }: { s: Station }) {
                 ) : (
                 <span className="filtres7__compte">
                   {logements.length === 0
-                    ? "Aucun logement disponible"
-                    : `${logements.length} logement${logements.length > 1 ? "s" : ""} disponible${logements.length > 1 ? "s" : ""}${
-                        lvis.length > logements.length ? ` · ${lvis.length} offres` : ""
+                    ? tr("Aucun logement disponible")
+                    : `${trN(logements.length, "{n} logement disponible", "{n} logements disponibles")}${
+                        lvis.length > logements.length ? ` · ${trN(lvis.length, "{n} offre", "{n} offres")}` : ""
                       }`}
                 </span>
                 )}
                 <select className="select7" value={lsort} onChange={(e) => choisirTri(e.target.value as LodgeSort)}>
                   {TRIS_LOGEMENT.map((t) => (
                     <option key={t.k} value={t.k}>
-                      {t.label}
+                      {tr(t.label)}
                     </option>
                   ))}
                 </select>
@@ -1258,15 +1287,15 @@ function LogementsStation({ s }: { s: Station }) {
                 <div className="bloc7__ancre">
                   <div className="pop7 pop7--filtres pop7--large" ref={panneauFiltres}>
                     <div className="pop7__tete pop7__tete--ligne">
-                      <strong>Filtres</strong>
-                      <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setLfOpen(false)}>
+                      <strong>{tr("Filtres")}</strong>
+                      <button type="button" className="v7fermer" aria-label={tr("Fermer")} onClick={() => setLfOpen(false)}>
                         <Icon name="croix" taille={14} />
                       </button>
                     </div>
                     <div className="pop7__bloc pop7__bloc--premier">
-                      <span className="v7surtitre">Périmètre de recherche</span>
+                      <span className="v7surtitre">{tr("Périmètre de recherche")}</span>
                       <span className="pop7__note">
-                        Distance au centre de la station. Une annonce sans position GPS est écartée.
+                        {tr("Distance au centre de la station. Une annonce sans position GPS est écartée.")}
                       </span>
                       <div className="pop7__puces">
                         {RAYONS_KM.map((km) => (
@@ -1281,7 +1310,7 @@ function LogementsStation({ s }: { s: Station }) {
                         ))}
                       </div>
                       <Fourchette
-                        lbl="Distance au centre"
+                        lbl={tr("Distance au centre")}
                         bornes={ECHELLE_RAYON}
                         valeur={lf.rayon}
                         pas={1}
@@ -1291,10 +1320,12 @@ function LogementsStation({ s }: { s: Station }) {
                       />
                     </div>
                     <div className="pop7__bloc pop7__bloc--serre">
-                      <span className="v7surtitre">Prix et taille</span>
+                      <span className="v7surtitre">{tr("Prix et taille")}</span>
                       <span className="pop7__note">
-                        Le filtre « Capacité ≥ {trav} » est toujours appliqué ; ces fourchettes s’y ajoutent. Hors
-                        prix, elles écartent les annonces qui ne publient pas la valeur. Chaque borne se tape.
+                        {tr(
+                          "Le filtre « Capacité ≥ {n} » est toujours appliqué ; ces fourchettes s’y ajoutent. Hors prix, elles écartent les annonces qui ne publient pas la valeur. Chaque borne se tape.",
+                          { n: trav },
+                        )}
                       </span>
                     </div>
                     <div className="fourchettes7 fourchettes7--deux">
@@ -1302,7 +1333,7 @@ function LogementsStation({ s }: { s: Station }) {
                       {RANGES.map((r) => (
                         <Fourchette
                           key={r.k}
-                          lbl={r.label}
+                          lbl={tr(r.label)}
                           bornes={r.b}
                           valeur={lf[r.k]}
                           pas={r.pas}
@@ -1313,7 +1344,7 @@ function LogementsStation({ s }: { s: Station }) {
                       ))}
                     </div>
                     <div className="pop7__bloc">
-                      <span className="v7surtitre">Source</span>
+                      <span className="v7surtitre">{tr("Source")}</span>
                       <div className="pop7__sources">
                         {sources.map((src) => (
                           <label key={src} className={`puce puce--case${lf.src[src] ? " puce--on" : ""}`}>
@@ -1329,7 +1360,7 @@ function LogementsStation({ s }: { s: Station }) {
                       </div>
                     </div>
                     <div className="pop7__bloc">
-                      <span className="v7surtitre">Qualité du relevé</span>
+                      <span className="v7surtitre">{tr("Qualité du relevé")}</span>
                       <div className="pop7__toggles">
                         {toggles.map((tg) => (
                           <label key={tg.k}>
@@ -1346,7 +1377,7 @@ function LogementsStation({ s }: { s: Station }) {
                               {tg.label}
                             </span>
                             <span className="pop7__n">
-                              {tg.n} annonce{tg.n > 1 ? "s" : ""}
+                              {trN(tg.n, "{n} annonce", "{n} annonces")}
                             </span>
                           </label>
                         ))}
@@ -1361,10 +1392,10 @@ function LogementsStation({ s }: { s: Station }) {
                           reinitialiser();
                         }}
                       >
-                        Réinitialiser
+                        {tr("Réinitialiser")}
                       </a>
                       <button type="button" className="btn7" onClick={() => setLfOpen(false)}>
-                        Voir {affichees.length} logement{affichees.length > 1 ? "s" : ""}
+                        {trN(affichees.length, "Voir {n} logement", "Voir {n} logements")}
                       </button>
                     </div>
                   </div>
@@ -1383,7 +1414,7 @@ function LogementsStation({ s }: { s: Station }) {
 
         {raw.length || enReleve ? (
           <div className="v7deux">
-            <div className="v7deux__liste" ref={listeRef} tabIndex={-1} aria-label="Logements de la page">
+            <div className="v7deux__liste" ref={listeRef} tabIndex={-1} aria-label={tr("Logements de la page")}>
               {enReleve ? (
                 <SquelettesLogements />
               ) : affichees.length ? (
@@ -1417,15 +1448,14 @@ function LogementsStation({ s }: { s: Station }) {
                 </>
               ) : lvis.length ? (
                 <Vide
-                  titre="Aucune annonce dans ce cadrage"
+                  titre={tr("Aucune annonce dans ce cadrage")}
                   actions={
                     <button type="button" className="btn7" onClick={revoirTout}>
-                      Revoir toutes les annonces
+                      {tr("Revoir toutes les annonces")}
                     </button>
                   }
                 >
-                  La liste suit la carte. Déplacez-la, dézoomez ou revenez au cadrage des
-                  résultats.
+                  {tr("La liste suit la carte. Déplacez-la, dézoomez ou revenez au cadrage des résultats.")}
                 </Vide>
               ) : lempty ? (
                 <Vide
@@ -1434,11 +1464,11 @@ function LogementsStation({ s }: { s: Station }) {
                     <>
                       {lempty.fix ? (
                         <button type="button" className="btn7" onClick={lempty.fix}>
-                          Retirer ce filtre
+                          {tr("Retirer ce filtre")}
                         </button>
                       ) : null}
                       <button type="button" className="btn7 btn7--fantome" onClick={reinitialiser}>
-                        Tout réinitialiser
+                        {tr("Tout réinitialiser")}
                       </button>
                     </>
                   }
@@ -1479,7 +1509,7 @@ function LogementsStation({ s }: { s: Station }) {
                   return (
                     <>
                       <button type="button" className="btn7" onClick={() => openSheet(id)}>
-                        Voir l’annonce
+                        {tr("Voir l’annonce")}
                       </button>
                       <button
                         type="button"
@@ -1487,7 +1517,7 @@ function LogementsStation({ s }: { s: Station }) {
                         aria-pressed={r != null}
                         onClick={() => keep(r?.id ?? l.id)}
                       >
-                        {r ? "Retenu" : "Retenir"}
+                        {r ? tr("Retenu") : tr("Retenir")}
                       </button>
                     </>
                   );
@@ -1496,16 +1526,16 @@ function LogementsStation({ s }: { s: Station }) {
                   enReleve ? (
                     /* La légende garde sa place et dit ce qui se passe, plutôt
                        que d'annoncer un compte encore faux. */
-                    <b>Les épingles se posent au fil du relevé.</b>
+                    <b>{tr("Les épingles se posent au fil du relevé.")}</b>
                   ) : (
                     <>
                       <b>
-                        {nPages > 1 ? `Page ${page + 1} sur ${nPages} · ` : ""}
-                        {affichees.length} logement{affichees.length > 1 ? "s" : ""} dans le cadre
+                        {nPages > 1 ? `${tr("Page {page} sur {n}", { page: page + 1, n: nPages })} · ` : ""}
+                        {trN(affichees.length, "{n} logement dans le cadre", "{n} logements dans le cadre")}
                       </b>
                       {parCadre.horsCadre.length ? (
                         <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                          {logements.length > 1 ? `Revoir les ${logements.length} logements` : "Revoir le logement"}
+                          {logements.length > 1 ? tr("Revoir les {n} logements", { n: logements.length }) : tr("Revoir le logement")}
                           <Icon name="fleche-droite" taille={14} />
                         </button>
                       ) : null}
@@ -1518,17 +1548,16 @@ function LogementsStation({ s }: { s: Station }) {
           </div>
         ) : (
           <Vide
-            titre={`Aucune annonce relevée pour ${s.name}`}
+            titre={tr("Aucune annonce relevée pour {station}", { station: s.name })}
             actions={
               <>
                 <button type="button" className="btn7" onClick={relancer} disabled={searching}>
-                  {searching ? "Relevé en cours…" : "Lancer le relevé"}
+                  {searching ? tr("Relevé en cours…") : tr("Lancer le relevé")}
                 </button>
               </>
             }
           >
-            Aucune plateforme n’a renvoyé d’annonce pour ces dates. Relancez le relevé ou changez de
-            dates.
+            {tr("Aucune plateforme n’a renvoyé d’annonce pour ces dates. Relancez le relevé ou changez de dates.")}
           </Vide>
         )}
       </main>
@@ -1536,36 +1565,36 @@ function LogementsStation({ s }: { s: Station }) {
       {kept ? (
         <div className="pied7">
           <div className="pied7__retenu">
-            <span className="v7surtitre">Logement retenu</span>
+            <span className="v7surtitre">{tr("Logement retenu")}</span>
             <strong>
               {kept.title} · {kept.source}
             </strong>
           </div>
           <dl className="pied7__postes">
             <div>
-              <dt>Logement</dt>
+              <dt>{tr("Logement")}</dt>
               <dd className={kept.total > 0 ? undefined : "absent"}>
-                {kept.total > 0 ? eurCents(kept.total) : "non publié"}
+                {kept.total > 0 ? eurCents(kept.total) : tr("non publié")}
               </dd>
             </div>
             <div>
               <dt
                 title={
                   forfaitsCompris
-                    ? "compris dans le prix du logement"
+                    ? tr("compris dans le prix du logement")
                     : pass?.periode
                       ? `${pass.detail} ; ${pass.periode}`
                       : pass?.detail
                 }
               >
-                {forfaitsCompris ? "Forfaits" : (pass?.libelle ?? "Forfaits")}
+                {forfaitsCompris ? tr("Forfaits") : (pass?.libelle ?? tr("Forfaits"))}
               </dt>
               <dd className={forfaitsCompris || pass?.total != null ? undefined : "absent"}>
                 {forfaitsCompris
-                  ? "compris"
+                  ? tr("compris")
                   : pass?.total != null
                     ? montantCents(passGroupN, pass.devise)
-                    : (pass?.manque ?? "non relevés")}
+                    : (pass?.manque ?? tr("non relevés"))}
                 {/* La période du forfait compté : le total en dépend. */}
                 {!forfaitsCompris && pass?.periodeCourte ? (
                   <span className="pied7__periode">{pass.periodeCourte}</span>
@@ -1577,27 +1606,27 @@ function LogementsStation({ s }: { s: Station }) {
                     élargir le pied au détriment du logement retenu. */}
                 {!forfaitsCompris && pass?.enfantsAuTarifAdulte ? (
                   <span className="pied7__alerte">
-                    <span>enfants au tarif adulte,</span> <span>tarif enfant non communiqué</span>
+                    <span>{tr("enfants au tarif adulte,")}</span> <span>{tr("tarif enfant non communiqué")}</span>
                   </span>
                 ) : null}
               </dd>
             </div>
             <div>
-              <dt>Trajet</dt>
-              <dd className="absent">non calculé</dd>
+              <dt>{tr("Trajet")}</dt>
+              <dd className="absent">{tr("non calculé")}</dd>
             </div>
           </dl>
           <div className="pied7__total">
-            <span>Total du séjour</span>
-            <b>{kept.total > 0 ? eurCents(totalN) : "logement non tarifé"}</b>
+            <span>{tr("Total du séjour")}</span>
+            <b>{kept.total > 0 ? eurCents(totalN) : tr("logement non tarifé")}</b>
             <span>
               {kept.total > 0
-                ? `${eurCents(Math.round((totalN / trav) * 100) / 100)} par personne`
-                : "total incomplet"}
+                ? tr("{prix} par personne", { prix: eurCents(Math.round((totalN / trav) * 100) / 100) ?? "" })
+                : tr("total incomplet")}
             </span>
           </div>
           <button type="button" className="btn7 btn7--grand" onClick={() => void go("booking")}>
-            Passer à la réservation
+            {tr("Passer à la réservation")}
             <Icon name="fleche-droite" taille={16} />
           </button>
         </div>

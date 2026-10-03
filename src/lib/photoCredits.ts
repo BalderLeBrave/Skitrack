@@ -22,6 +22,7 @@
 import overridesRaw from "./photo-credits.overrides.json" with { type: "json" };
 import { SKIINFO_PHOTOS } from "./skiinfo.ts";
 import { resolveStationPhoto } from "./stationPhoto.ts";
+import { tr } from "./i18n/tr.ts";
 
 export type PhotoSource = {
   /** Nom affiché de la source qui publie la photo. */
@@ -102,7 +103,7 @@ export function photoCreditFor(stationId: string): PhotoCredit | null {
     source,
     author,
     borrowedFrom: resolved.fromName,
-    label: resolved.fromName ? `${base} · ${resolved.fromName}, même domaine` : base,
+    label: resolved.fromName ? tr("{credit} · {station}, même domaine", { credit: base, station: resolved.fromName }) : base,
   };
 }
 

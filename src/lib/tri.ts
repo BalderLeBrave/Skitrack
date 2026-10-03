@@ -14,6 +14,8 @@
 
 /** `1` : croissant (de la plus petite valeur à la plus grande, de A à Z) ;
  *  `-1` : décroissant. */
+import { tr } from "./i18n/tr.ts";
+
 export type Sens = 1 | -1;
 
 export function inverser(s: Sens): Sens {
@@ -44,5 +46,5 @@ export function parTexte(a: string, b: string, sens: Sens): number {
 /** Ce que le bouton dit du sens courant. Un tri par nom se lit « A → Z ». */
 export function sensLbl(s: Sens, alpha = false): string {
   if (alpha) return s === 1 ? "A → Z" : "Z → A";
-  return s === 1 ? "Croissant" : "Décroissant";
+  return s === 1 ? tr("Croissant") : tr("Décroissant");
 }

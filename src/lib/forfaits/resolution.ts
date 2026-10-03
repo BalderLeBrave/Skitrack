@@ -50,6 +50,7 @@
  */
 
 import { montantCents } from "../devises.ts";
+import { tr, trN } from "../i18n/tr.ts";
 import {
   saisonDeJour,
   type Canal,
@@ -504,29 +505,38 @@ function parJournees(ctx: Contexte, accepte: Accepte, categorieRepli: boolean): 
   const tarif = journee(principale);
   let fiabilite: Fiabilite = g.confiance;
   const notes = [
-    `${plusLongue > 1 ? `Forfaits publiés jusqu'à ${plusLongue} jours seulement` : "Aucun forfait de plusieurs jours publié"} : ${demandee} journées additionnées (${liste
-      .map(([p, n]) => `${n * facteur} × ${montant(journee(p).prix, journee(p).devise)}`)
-      .join(" + ")}).`,
+    tr("{debut} : {n} journées additionnées ({calcul}).", {
+      debut:
+        plusLongue > 1
+          ? tr("Forfaits publiés jusqu'à {n} jours seulement", { n: plusLongue })
+          : tr("Aucun forfait de plusieurs jours publié"),
+      n: demandee,
+      calcul: liste
+        .map(([p, n]) => `${n * facteur} × ${montant(journee(p).prix, journee(p).devise)}`)
+        .join(" + "),
+    }),
   ];
   if (horsPeriodes) {
     notes.push(
-      "Des jours de ski tombent hors des périodes publiées : la période la plus proche a été prise.",
+      tr("Des jours de ski tombent hors des périodes publiées : la période la plus proche a été prise."),
     );
     fiabilite = ABAISSE[fiabilite];
   }
   if (ctx.saisonAnterieure) {
-    notes.push(`Grille de la saison ${g.saison}, antérieure au séjour : prix à confirmer.`);
+    notes.push(tr("Grille de la saison {saison}, antérieure au séjour : prix à confirmer.", { saison: g.saison }));
     fiabilite = "faible";
   }
   const saisonEntiere = liste.some(([p]) => p.saisonEntiere);
-  if (saisonEntiere) notes.push("Prix publié sans période : il vaut pour la saison entière.");
+  if (saisonEntiere) notes.push(tr("Prix publié sans période : il vaut pour la saison entière."));
   if (categorieRepli)
     notes.push(
-      `Pas de tarif enfant publié : tarif « ${tarif.libelleCategorie} » retenu pour l'enfant.`,
+      tr("Pas de tarif enfant publié : tarif « {categorie} » retenu pour l'enfant.", { categorie: tarif.libelleCategorie }),
     );
   if (ctx.perimetreRepli)
     notes.push(
-      `Forfait « ${g.perimetre.nom} » : aucune grille pour le forfait ${g.perimetre.type === "station" ? "du domaine" : "de la station seule"}.`,
+      g.perimetre.type === "station"
+        ? tr("Forfait « {nom} » : aucune grille pour le forfait du domaine.", { nom: g.perimetre.nom })
+        : tr("Forfait « {nom} » : aucune grille pour le forfait de la station seule.", { nom: g.perimetre.nom }),
     );
   return {
     statut: "resolu",
@@ -657,45 +667,66 @@ function resoudreSurGrille(ctx: Contexte): Resolution {
   let fiabilite: Fiabilite = g.confiance;
   if (ctx.sansDates)
     notes.push(
-      `Sans dates de séjour : forfait ${tarifPrincipal.libelleDuree} de la période « ${principale.libelle} ».`,
+      tr("Sans dates de séjour : forfait {duree} de la période « {periode} ».", {
+        duree: tarifPrincipal.libelleDuree,
+        periode: principale.libelle,
+      }),
     );
   if (calcul === "prorata")
     notes.push(
-      `Séjour sur ${liste.length} périodes : ${detail
-        .map(
-          (x) =>
-            `${x.jours} j en « ${x.periode.libelle} » (${montant(x.tarif!.prix, x.tarif!.devise)})`,
-        )
-        .join(", ")}, au prorata des jours de ski.`,
+      tr("Séjour sur {n} périodes : {detail}, au prorata des jours de ski.", {
+        n: liste.length,
+        detail: detail
+          .map((x) =>
+            tr("{n} j en « {periode} » ({prix})", {
+              n: x.jours,
+              periode: x.periode.libelle,
+              prix: montant(x.tarif!.prix, x.tarif!.devise),
+            }),
+          )
+          .join(", "),
+      }),
     );
   if (calcul === "periode-majoritaire") {
     notes.push(
-      `Séjour sur ${liste.length} périodes qui ne publient pas le même forfait : prix de « ${principale.libelle} », qui compte le plus de jours de ski.`,
+      tr(
+        "Séjour sur {n} périodes qui ne publient pas le même forfait : prix de « {periode} », qui compte le plus de jours de ski.",
+        { n: liste.length, periode: principale.libelle },
+      ),
     );
     fiabilite = ABAISSE[fiabilite];
   }
   if (dureeSuperieure)
     notes.push(
-      `Pas de forfait ${demandee} jour${demandee > 1 ? "s" : ""} publié : forfait ${tarifPrincipal.libelleDuree} retenu.`,
+      trN(
+        demandee,
+        "Pas de forfait {n} jour publié : forfait {duree} retenu.",
+        "Pas de forfait {n} jours publié : forfait {duree} retenu.",
+        { duree: tarifPrincipal.libelleDuree },
+      ),
     );
   if (horsPeriodes) {
     notes.push(
-      "Des jours de ski tombent hors des périodes publiées : la période la plus proche a été prise.",
+      tr("Des jours de ski tombent hors des périodes publiées : la période la plus proche a été prise."),
     );
     fiabilite = ABAISSE[fiabilite];
   }
   if (ctx.saisonAnterieure) {
-    notes.push(`Grille de la saison ${g.saison}, antérieure au séjour : prix à confirmer.`);
+    notes.push(tr("Grille de la saison {saison}, antérieure au séjour : prix à confirmer.", { saison: g.saison }));
     fiabilite = "faible";
   }
-  if (saisonEntiere) notes.push("Prix publié sans période : il vaut pour la saison entière.");
+  if (saisonEntiere) notes.push(tr("Prix publié sans période : il vaut pour la saison entière."));
   if (categorieRepli)
     notes.push(
-      `Pas de tarif enfant publié : tarif « ${tarifPrincipal.libelleCategorie} » retenu pour l'enfant.`,
+      tr("Pas de tarif enfant publié : tarif « {categorie} » retenu pour l'enfant.", {
+        categorie: tarifPrincipal.libelleCategorie,
+      }),
     );
   if (ctx.perimetreRepli)
     notes.push(
-      `Forfait « ${g.perimetre.nom} » : aucune grille pour le forfait ${g.perimetre.type === "station" ? "du domaine" : "de la station seule"}.`,
+      g.perimetre.type === "station"
+        ? tr("Forfait « {nom} » : aucune grille pour le forfait du domaine.", { nom: g.perimetre.nom })
+        : tr("Forfait « {nom} » : aucune grille pour le forfait de la station seule.", { nom: g.perimetre.nom }),
     );
 
   return {

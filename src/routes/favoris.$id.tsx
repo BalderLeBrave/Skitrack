@@ -31,6 +31,7 @@ import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
 import { bedLbl, capLbl, distanceOf, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 import { langueIntl } from "@/lib/i18n/langue";
+import { aTraduire, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/favoris/$id")({ component: PageDossier });
 
@@ -56,7 +57,9 @@ const dateCourte = (d: Date) =>
   new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", timeZone: "UTC" }).format(d);
 function sejourLbl(s: SejourFavori): string {
   const d = (iso: string) => dateCourte(new Date(`${iso}T12:00:00Z`));
-  return `${d(s.checkIn)} → ${d(s.checkOut)} · ${s.trav} pers.`;
+  const dates = { du: d(s.checkIn), au: d(s.checkOut) };
+  // « 1 pers. » à part : l'anglais dit « 1 person », « 4 people ».
+  return s.trav === 1 ? tr("{du} → {au} · 1 pers.", dates) : tr("{du} → {au} · {n} pers.", { ...dates, n: s.trav });
 }
 
 function Dossier({ id }: { id: string }) {
@@ -89,14 +92,14 @@ function Dossier({ id }: { id: string }) {
   if (!dossier) {
     return (
       <Vide
-        titre="Ce dossier n’existe plus"
+        titre={tr("Ce dossier n’existe plus")}
         actions={
           <Link to="/favoris" className="btn7 btn7--encre">
-            Revoir les dossiers
+            {tr("Revoir les dossiers")}
           </Link>
         }
       >
-        Il a été supprimé, ou il a été créé dans un autre navigateur. Vos dossiers restent dans Favoris.
+        {tr("Il a été supprimé, ou il a été créé dans un autre navigateur. Vos dossiers restent dans Favoris.")}
       </Vide>
     );
   }
@@ -123,20 +126,20 @@ function Dossier({ id }: { id: string }) {
       <EnTete id={id} nom={dossier.nom} n={favoris.length} sansPoint={favoris.length - situes.length} vue={vue} setVue={setVue} />
       {favoris.length === 0 ? (
         <Vide
-          titre="Ce dossier est vide"
+          titre={tr("Ce dossier est vide")}
           actions={
             <button type="button" className="btn7 btn7--encre" onClick={() => go("lodging")}>
-              Voir les logements
+              {tr("Voir les logements")}
             </button>
           }
         >
-          Le cœur, en haut à droite de chaque annonce, l’enregistre ici.
+          {tr("Le cœur, en haut à droite de chaque annonce, l’enregistre ici.")}
         </Vide>
       ) : vue === "comparer" ? (
         <Comparaison favoris={favoris} courant={courant} altDe={altDe} ouvrir={setOuvert} />
       ) : (
         <div className="v7deux">
-          <div className="v7deux__liste" aria-label="Logements du dossier">
+          <div className="v7deux__liste" aria-label={tr("Logements du dossier")}>
             <div className="grille7-2">
               {favoris.map((f) => {
                 const s = sejourDe(f, courant);
@@ -159,7 +162,7 @@ function Dossier({ id }: { id: string }) {
                       altitude={altDe(f.annonce)}
                       avecAltitude
                     />
-                    <span className="favoris7__sejour">Prix pour {sejourLbl(s)}</span>
+                    <span className="favoris7__sejour">{tr("Prix pour {sejour}", { sejour: sejourLbl(s) })}</span>
                   </div>
                 );
               })}
@@ -189,14 +192,16 @@ function Dossier({ id }: { id: string }) {
               actionsDe={(mid) =>
                 parId.has(mid) ? (
                   <button type="button" className="btn7" onClick={() => setOuvert(mid)}>
-                    Voir l’annonce
+                    {tr("Voir l’annonce")}
                   </button>
                 ) : null
               }
               legende={
                 <b>
-                  {situes.length} logement{situes.length > 1 ? "s" : ""} sur la carte
-                  {favoris.length > situes.length ? ` · ${favoris.length - situes.length} sans position` : ""}
+                  {trN(situes.length, "{n} logement sur la carte", "{n} logements sur la carte")}
+                  {favoris.length > situes.length
+                    ? ` · ${tr("{n} sans position", { n: favoris.length - situes.length })}`
+                    : ""}
                 </b>
               }
             />
@@ -217,7 +222,7 @@ function Dossier({ id }: { id: string }) {
           suite={
             P.lodgeId === fOuvert.annonceId ? (
               <button type="button" className="btn7 btn7--grand btn7--pleine" onClick={() => void go("booking")}>
-                Passer à la réservation
+                {tr("Passer à la réservation")}
                 <Icon name="fleche-droite" taille={16} />
               </button>
             ) : null
@@ -251,7 +256,7 @@ function EnTete({
     <div className="favoris7__tete">
       <Link to="/favoris" className="favoris7__retour">
         <Icon name="chevron-gauche" taille={14} />
-        Favoris
+        {tr("Favoris")}
       </Link>
       {edition ? (
         <form
@@ -262,12 +267,12 @@ function EnTete({
             setEdition(false);
           }}
         >
-          <input value={brouillon} maxLength={60} onChange={(e) => setBrouillon(e.target.value)} aria-label="Nom du dossier" autoFocus />
+          <input value={brouillon} maxLength={60} onChange={(e) => setBrouillon(e.target.value)} aria-label={tr("Nom du dossier")} autoFocus />
           <button type="submit" className="btn7 btn7--encre" disabled={!brouillon.trim()}>
-            Enregistrer
+            {tr("Enregistrer")}
           </button>
           <button type="button" className="btn7 btn7--fantome" onClick={() => setEdition(false)}>
-            Annuler
+            {tr("Annuler")}
           </button>
         </form>
       ) : (
@@ -275,15 +280,15 @@ function EnTete({
       )}
       <div className="favoris7__barre">
         <span className="favoris7__compte">
-          {n} logement{n > 1 ? "s" : ""}
-          {sansPoint > 0 ? ` · ${sansPoint} sans position sur la carte` : ""}
+          {trN(n, "{n} logement", "{n} logements")}
+          {sansPoint > 0 ? ` · ${tr("{n} sans position sur la carte", { n: sansPoint })}` : ""}
         </span>
-        <div className="favoris7__vues" role="tablist" aria-label="Affichage">
+        <div className="favoris7__vues" role="tablist" aria-label={tr("Affichage")}>
           <button type="button" role="tab" aria-selected={vue === "liste"} className={vue === "liste" ? "on" : undefined} onClick={() => setVue("liste")}>
-            Liste et carte
+            {tr("Liste et carte")}
           </button>
           <button type="button" role="tab" aria-selected={vue === "comparer"} className={vue === "comparer" ? "on" : undefined} onClick={() => setVue("comparer")}>
-            Comparer
+            {tr("Comparer")}
           </button>
         </div>
         {!edition ? (
@@ -295,12 +300,14 @@ function EnTete({
               setEdition(true);
             }}
           >
-            Renommer
+            {tr("Renommer")}
           </button>
         ) : null}
         {suppression ? (
           <span className="favoris7__confirmer" role="alert">
-            Supprimer ce dossier{n > 0 ? ` et ses ${n} logement${n > 1 ? "s" : ""}` : ""} ?
+            {n > 0
+              ? trN(n, "Supprimer ce dossier et son logement ?", "Supprimer ce dossier et ses {n} logements ?")
+              : tr("Supprimer ce dossier ?")}
             <button
               type="button"
               className="btn7 btn7--encre"
@@ -309,15 +316,15 @@ function EnTete({
                 void navigate({ to: "/favoris" });
               }}
             >
-              Supprimer
+              {tr("Supprimer")}
             </button>
             <button type="button" className="btn7 btn7--fantome" onClick={() => setSuppression(false)}>
-              Garder
+              {tr("Garder")}
             </button>
           </span>
         ) : (
           <button type="button" className="btn7 btn7--fantome" onClick={() => setSuppression(true)}>
-            Supprimer le dossier
+            {tr("Supprimer le dossier")}
           </button>
         )}
       </div>
@@ -329,12 +336,12 @@ type Colonne = "prix" | "pp" | "cap" | "ch" | "dist" | "alt";
 
 /** Les colonnes comparées : chacune part dans son sens de départ, le meilleur en tête. */
 const COLONNES: { k: Colonne; label: string; sens: Sens }[] = [
-  { k: "prix", label: "Prix total", sens: 1 },
-  { k: "pp", label: "Par personne", sens: 1 },
-  { k: "cap", label: "Capacité", sens: -1 },
-  { k: "ch", label: "Chambres", sens: -1 },
-  { k: "dist", label: "Remontées", sens: 1 },
-  { k: "alt", label: "Altitude", sens: -1 },
+  { k: "prix", label: aTraduire("Prix total"), sens: 1 },
+  { k: "pp", label: aTraduire("Par personne"), sens: 1 },
+  { k: "cap", label: aTraduire("Capacité"), sens: -1 },
+  { k: "ch", label: aTraduire("Chambres"), sens: -1 },
+  { k: "dist", label: aTraduire("Remontées"), sens: 1 },
+  { k: "alt", label: aTraduire("Altitude"), sens: -1 },
 ];
 
 function Comparaison({
@@ -382,16 +389,16 @@ function Comparaison({
     }
   };
   return (
-    <div className="favcmp7" role="region" aria-label="Comparaison des logements du dossier">
+    <div className="favcmp7" role="region" aria-label={tr("Comparaison des logements du dossier")}>
       <table>
         <thead>
           <tr>
-            <th scope="col">Logement</th>
-            <th scope="col">Séjour</th>
+            <th scope="col">{tr("Logement")}</th>
+            <th scope="col">{tr("Séjour")}</th>
             {COLONNES.map((c) => (
               <th key={c.k} scope="col" aria-sort={col === c.k ? (sens === 1 ? "ascending" : "descending") : undefined}>
                 <button type="button" onClick={() => trier(c.k, c.sens)}>
-                  {c.label}
+                  {tr(c.label)}
                   {col === c.k ? <Icon name={sens === 1 ? "chevron-bas" : "chevron-droite"} taille={12} /> : null}
                 </button>
               </th>
@@ -428,7 +435,7 @@ function Comparaison({
                   className={`favcmp7__nombre${marque(f, "alt")}`}
                   title={altitudeAide(alt, positionApprochee(l))}
                 >
-                  {pointAltitude(l) ? altitudeLbl(alt, positionApprochee(l)) : "sans position"}
+                  {pointAltitude(l) ? altitudeLbl(alt, positionApprochee(l)) : tr("sans position")}
                 </td>
               </tr>
             );
@@ -436,8 +443,9 @@ function Comparaison({
         </tbody>
       </table>
       <p className="favcmp7__note">
-        En gras, la meilleure valeur de chaque colonne. Les prix valent pour le séjour de chaque ligne : deux logements
-        enregistrés pour des dates différentes ne se comparent qu’à titre indicatif.
+        {tr(
+          "En gras, la meilleure valeur de chaque colonne. Les prix valent pour le séjour de chaque ligne : deux logements enregistrés pour des dates différentes ne se comparent qu’à titre indicatif.",
+        )}
       </p>
     </div>
   );

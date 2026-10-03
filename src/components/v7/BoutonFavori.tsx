@@ -15,10 +15,7 @@ import { nomPropose } from "@/lib/favoris/nom";
 import { useEstFavori, useFavoris } from "@/lib/favoris/store";
 import type { Listing } from "@/lib/listings";
 import { useParcours } from "@/lib/parcours";
-
-function pluriel(n: number, un: string, plusieurs: string): string {
-  return `${n} ${n > 1 ? plusieurs : un}`;
-}
+import { tr, trN } from "@/lib/i18n";
 
 export function BoutonFavori({
   l,
@@ -42,14 +39,14 @@ export function BoutonFavori({
         type="button"
         className={`coeur7${favori ? " coeur7--on" : ""} ${className}`}
         aria-pressed={favori}
-        aria-label={favori ? "Retirer des favoris" : "Enregistrer dans un dossier"}
-        title={favori ? "Retirer des favoris" : "Enregistrer dans un dossier"}
+        aria-label={favori ? tr("Retirer des favoris") : tr("Enregistrer dans un dossier")}
+        title={favori ? tr("Retirer des favoris") : tr("Enregistrer dans un dossier")}
         onClick={(e) => {
           e.stopPropagation();
           if (!favori) return setChoix(true);
-          const noms = dossiersDe(useFavoris.getState(), l.id).map((d) => `« ${d.nom} »`);
+          const noms = dossiersDe(useFavoris.getState(), l.id).map((d) => d.nom);
           useFavoris.getState().retirer(l.id);
-          useParcours.getState().say(noms.length === 1 ? `Retiré de ${noms[0]}.` : "Retiré des favoris.");
+          useParcours.getState().say(noms.length === 1 ? tr("Retiré de « {nom} ».", { nom: noms[0] }) : tr("Retiré des favoris."));
         }}
       >
         <Icon name="coeur" taille={18} />
@@ -93,7 +90,7 @@ export function ChoixDossier({
 
   const ranger = (dossierId: string, nomDossier: string) => {
     useFavoris.getState().enregistrer(l, dossierId, sejour);
-    useParcours.getState().say(`Enregistré dans « ${nomDossier} ».`);
+    useParcours.getState().say(tr("Enregistré dans « {nom} ».", { nom: nomDossier }));
     onFermer();
   };
 
@@ -109,7 +106,7 @@ export function ChoixDossier({
       className="dossiers7"
       role="dialog"
       aria-modal="true"
-      aria-label={creation ? "Créer un dossier" : "Enregistrer dans un dossier"}
+      aria-label={creation ? tr("Créer un dossier") : tr("Enregistrer dans un dossier")}
       onClick={(e) => {
         e.stopPropagation();
         if (e.target === e.currentTarget) onFermer();
@@ -118,14 +115,14 @@ export function ChoixDossier({
       <div className="dossiers7__boite">
         <div className="dossiers7__tete">
           {creation && dossiers.length > 0 ? (
-            <button type="button" className="dossiers7__rond" aria-label="Revenir aux dossiers" onClick={() => setCreation(false)}>
+            <button type="button" className="dossiers7__rond" aria-label={tr("Revenir aux dossiers")} onClick={() => setCreation(false)}>
               <Icon name="chevron-gauche" taille={16} />
             </button>
           ) : (
             <span className="dossiers7__rond dossiers7__rond--vide" aria-hidden />
           )}
-          <h2>{creation ? "Créer un dossier" : "Enregistrer dans un dossier"}</h2>
-          <button type="button" className="dossiers7__rond" aria-label="Fermer" onClick={onFermer}>
+          <h2>{creation ? tr("Créer un dossier") : tr("Enregistrer dans un dossier")}</h2>
+          <button type="button" className="dossiers7__rond" aria-label={tr("Fermer")} onClick={onFermer}>
             <Icon name="croix" taille={14} />
           </button>
         </div>
@@ -138,23 +135,23 @@ export function ChoixDossier({
             }}
           >
             <label>
-              <span>Nom du dossier</span>
+              <span>{tr("Nom du dossier")}</span>
               <input
                 ref={champ}
                 value={nom}
                 maxLength={60}
                 onChange={(e) => setNom(e.target.value)}
-                placeholder="Courchevel, février 2027"
+                placeholder={tr("Courchevel, février 2027")}
                 autoFocus
               />
             </label>
-            <span className="dossiers7__compte">{nom.trim().length}/60 caractères</span>
+            <span className="dossiers7__compte">{tr("{n}/60 caractères", { n: nom.trim().length })}</span>
             <div className="dossiers7__pied">
               <button type="button" className="btn7 btn7--fantome" onClick={onFermer}>
-                Annuler
+                {tr("Annuler")}
               </button>
               <button type="submit" className="btn7 btn7--encre" disabled={!nom.trim()}>
-                Créer
+                {tr("Créer")}
               </button>
             </div>
           </form>
@@ -175,7 +172,7 @@ export function ChoixDossier({
                         )}
                       </span>
                       <b>{d.nom}</b>
-                      <span>{n === 0 ? "Vide" : pluriel(n, "logement", "logements")}</span>
+                      <span>{n === 0 ? tr("Vide") : trN(n, "{n} logement", "{n} logements")}</span>
                     </button>
                   </li>
                 );
@@ -183,7 +180,7 @@ export function ChoixDossier({
             </ul>
             <div className="dossiers7__pied">
               <button type="button" className="btn7 btn7--encre btn7--pleine" onClick={() => setCreation(true)}>
-                Créer un dossier
+                {tr("Créer un dossier")}
               </button>
             </div>
           </>

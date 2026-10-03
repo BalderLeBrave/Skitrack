@@ -19,6 +19,7 @@ import { useTrack } from "@/lib/track";
 import { parMesure, type Sens } from "@/lib/tri";
 import { bedNomme, capNomme } from "@/lib/v7";
 import { langueIntl } from "@/lib/i18n/langue";
+import { tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/traces")({ component: Traces });
 
@@ -74,7 +75,7 @@ function Traces() {
       chips={
         <>
           <span className="rounded-full bg-glacier px-3 py-1">
-            {station?.name ?? "Aucune station retenue"}
+            {station?.name ?? tr("Aucune station retenue")}
           </span>
           {stats ? (
             <>
@@ -85,7 +86,7 @@ function Traces() {
               </span>
             </>
           ) : (
-            <span className="text-muted">Aucune trace chargée</span>
+            <span className="text-muted">{tr("Aucune trace chargée")}</span>
           )}
         </>
       }
@@ -93,9 +94,9 @@ function Traces() {
       <div className="flex gap-2 border-b border-line px-4 py-2 lg:hidden">
         {(
           [
-            ["trace", "Trace", "montagne"],
-            ["carte", "Carte", "carte"],
-            ["logements", "Logements", "tableau"],
+            ["trace", tr("Trace"), "montagne"],
+            ["carte", tr("Carte"), "carte"],
+            ["logements", tr("Logements"), "tableau"],
           ] as const
         ).map(([id, label, icone]) => (
           <button
@@ -117,9 +118,9 @@ function Traces() {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h1 className="font-display text-titre tracking-tight">Trace GPX</h1>
+                <h1 className="font-display text-titre tracking-tight">{tr("Trace GPX")}</h1>
                 <p className="mt-1 text-corps text-muted">
-                  Distance, D+ / D− et profil : uniquement ce que le fichier contient.
+                  {tr("Distance, D+ / D− et profil : uniquement ce que le fichier contient.")}
                 </p>
               </div>
               {stats ? (
@@ -129,7 +130,7 @@ function Traces() {
                   onClick={clear}
                 >
                   <Icon name="corbeille" className="size-4" aria-hidden />
-                  Retirer
+                  {tr("Retirer")}
                 </button>
               ) : null}
             </div>
@@ -139,11 +140,11 @@ function Traces() {
             {stats ? (
               <dl className="gpx-stats mt-4" data-testid="gpx-stats">
                 <div>
-                  <dt>Fichier</dt>
+                  <dt>{tr("Fichier")}</dt>
                   <dd>{fileName}</dd>
                 </div>
                 <div>
-                  <dt>Distance</dt>
+                  <dt>{tr("Distance")}</dt>
                   <dd>{formatKm(stats.km)}</dd>
                 </div>
                 <div>
@@ -155,39 +156,40 @@ function Traces() {
                   <dd>{formatEle(stats.dMinusM)}</dd>
                 </div>
                 <div>
-                  <dt>Altitude</dt>
+                  <dt>{tr("Altitude")}</dt>
                   <dd>
                     {stats.eleMin == null
-                      ? "non mesurée"
+                      ? tr("non mesurée")
                       : `${formatEle(stats.eleMin)} → ${formatEle(stats.eleMax)}`}
                   </dd>
                 </div>
                 <div>
-                  <dt>Durée</dt>
+                  <dt>{tr("Durée")}</dt>
                   <dd>{formatDuration(stats.durationSec)}</dd>
                 </div>
                 <div>
-                  <dt>Vitesse moy.</dt>
+                  <dt>{tr("Vitesse moy.")}</dt>
                   <dd>
                     {stats.speedKmh == null
-                      ? "non mesurée"
+                      ? tr("non mesurée")
                       : `${stats.speedKmh.toLocaleString(langueIntl(), { maximumFractionDigits: 1 })} km/h`}
                   </dd>
                 </div>
                 <div>
-                  <dt>Points</dt>
+                  <dt>{tr("Points")}</dt>
                   <dd>{stats.points.toLocaleString(langueIntl())}</dd>
                 </div>
               </dl>
             ) : (
               <p className="mt-4 text-corps text-muted">
-                Aucune trace chargée. Déposez un fichier GPX pour classer les logements par distance
-                à la trace.
+                {tr(
+                  "Aucune trace chargée. Déposez un fichier GPX pour classer les logements par distance à la trace.",
+                )}
               </p>
             )}
             {points.length > 0 ? (
               <div className="mt-4">
-                <p className="mb-2 text-note text-muted">Profil d’altitude</p>
+                <p className="mb-2 text-note text-muted">{tr("Profil d’altitude")}</p>
                 <ElevationProfile points={points} />
               </div>
             ) : null}
@@ -197,21 +199,21 @@ function Traces() {
             className={`rounded-surface bg-panel p-4 ${tab === "trace" ? "hidden lg:block" : ""}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-display text-section">Logements et départ</h2>
+              <h2 className="font-display text-section">{tr("Logements et départ")}</h2>
               <p className="text-corps text-muted">
                 {raw.length === 0
-                  ? "Aucun logement dans ce relevé."
-                  : `${raw.length} logement${raw.length > 1 ? "s" : ""}`}
+                  ? tr("Aucun logement dans ce relevé.")
+                  : trN(raw.length, "{n} logement", "{n} logements")}
               </p>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {(
                 [
-                  ["gpx", "Trace GPX"],
-                  ["lift", "Remontée"],
-                  ["pistes", "Pistes"],
-                  ["total", "Prix du séjour"],
-                  ["pp", "Prix / pers."],
+                  ["gpx", tr("Trace GPX")],
+                  ["lift", tr("Remontée")],
+                  ["pistes", tr("Pistes")],
+                  ["total", tr("Prix du séjour")],
+                  ["pp", tr("Prix / pers.")],
                 ] as const
               ).map(([id, label]) => (
                 <button
@@ -227,9 +229,9 @@ function Traces() {
             </div>
             {rows.length === 0 ? (
               <p className="mt-4 text-corps text-muted">
-                Pas de relevé pour ces dates. Lancez une recherche de logements ou{" "}
+                {tr("Pas de relevé pour ces dates. Lancez une recherche de logements ou")}{" "}
                 <Link to="/logements" className="underline">
-                  ouvrez la liste
+                  {tr("ouvrez la liste")}
                 </Link>
                 .
               </p>
@@ -238,12 +240,12 @@ function Traces() {
                 <table className="gpx-table">
                   <thead>
                     <tr>
-                      <th>Logement</th>
-                      <th>Séjour</th>
-                      <th>/ pers.</th>
-                      <th>Lieu</th>
-                      <th>Remontée</th>
-                      <th>Trace</th>
+                      <th>{tr("Logement")}</th>
+                      <th>{tr("Séjour")}</th>
+                      <th>{tr("/ pers.")}</th>
+                      <th>{tr("Lieu")}</th>
+                      <th>{tr("Remontée")}</th>
+                      <th>{tr("Trace")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -276,8 +278,8 @@ function Traces() {
                         <td>
                           {stats
                             ? gpxM == null
-                              ? "Position du logement inconnue"
-                              : formatDistFrom(gpxM, "de la trace")
+                              ? tr("Position du logement inconnue")
+                              : formatDistFrom(gpxM, tr("de la trace"))
                             : "–"}
                         </td>
                       </tr>

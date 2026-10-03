@@ -100,7 +100,6 @@ import {
   PLAGES_LOGEMENT,
   PLAGES_STATION,
   plageLbl,
-  plur,
   poserBorne,
   relLbl,
   relToutesLbl,
@@ -132,6 +131,7 @@ import { STATIONS, type Station } from "@/lib/stations";
 import { prixPin } from "@/lib/v7";
 import { useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
+import { aTraduire, dire, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/prix")({ component: Prix });
 
@@ -153,8 +153,8 @@ const OPTIONS_MASSIF = [
 
 /* (Prix par station.dc.html:544) */
 const ONGLETS: readonly { v: Onglet; lbl: string }[] = [
-  { v: "station", lbl: "Par station" },
-  { v: "budget", lbl: "Par budget" },
+  { v: "station", lbl: aTraduire("Par station") },
+  { v: "budget", lbl: aTraduire("Par budget") },
 ];
 const idOnglet = (o: Onglet) => `prix-onglet-${o}`;
 const idVue = (o: Onglet) => `prix-vue-${o}`;
@@ -166,7 +166,7 @@ function optionsDept(massifs: readonly string[]): { v: string; label: string }[]
   const compte = new Map<string, number>();
   for (const s of pool) if (s.dept) compte.set(s.dept, (compte.get(s.dept) ?? 0) + 1);
   return [
-    { v: "", label: "Tous" },
+    { v: "", label: tr("Tous") },
     ...[...compte.keys()]
       .sort((a, b) => a.localeCompare(b, "fr"))
       .map((d) => ({ v: d, label: `${d} · ${compte.get(d)}` })),
@@ -179,9 +179,9 @@ type Colonne = { id: string; k: Tri["k"] | null; lbl: string; droite?: boolean }
 
 function colonnes(nights: number): Colonne[] {
   return [
-    { id: "station", k: "nom", lbl: "Station" },
-    { id: "logements", k: "n", lbl: "Logements" },
-    { id: "releve", k: null, lbl: "Relevé" },
+    { id: "station", k: "nom", lbl: tr("Station") },
+    { id: "logements", k: "n", lbl: tr("Logements") },
+    { id: "releve", k: null, lbl: tr("Relevé") },
     { id: "mediane", k: "med", lbl: medHead(nights), droite: true },
   ];
 }
@@ -201,7 +201,7 @@ function Prix() {
         <main className="v7main prix7" id="s-prix" data-screen-label="Prix">
           <div className="prix7__tete">
             <div className="prix7__titre">
-              <h1>Prix</h1>
+              <h1>{dire("nav.prices")}</h1>
             </div>
           </div>
         </main>
@@ -271,18 +271,18 @@ function EcranPrix() {
     <main className="v7main prix7" id="s-prix" data-screen-label="Prix">
       <div className="prix7__tete">
         <div className="prix7__titre">
-          <h1>Prix</h1>
+          <h1>{dire("nav.prices")}</h1>
           <p>
             {onglet === "budget" ? sousTitreBudget(per.nights, trav) : sousTitre(per.nights, trav)}
           </p>
         </div>
-        <div className="prix7__groupe" title="Le groupe se change dans votre séjour">
-          <span className="prix7__groupe-lbl">Groupe</span>
+        <div className="prix7__groupe" title={tr("Le groupe se change dans votre séjour")}>
+          <span className="prix7__groupe-lbl">{tr("Groupe")}</span>
           <span className="prix7__groupe-val">{groupLbl(trav, rooms, enfants)}</span>
         </div>
       </div>
 
-      <div role="tablist" aria-label="Vue" className="prix7__onglets">
+      <div role="tablist" aria-label={tr("Vue")} className="prix7__onglets">
         {ONGLETS.map((o, i) => {
           const on = o.v === onglet;
           return (
@@ -301,7 +301,7 @@ function EcranPrix() {
               onClick={() => setOnglet(o.v)}
               onKeyDown={(e) => clavierOnglets(e, i)}
             >
-              {o.lbl}
+              {tr(o.lbl)}
             </button>
           );
         })}
@@ -312,15 +312,15 @@ function EcranPrix() {
       <div className="prix7__carte prix7__periode">
         <div className="prix7__arrivee">
           <label className="prix7__lbl" htmlFor="prix-arrivee">
-            Arrivée
+            {tr("Arrivée")}
           </label>
           {/* Pas de relevé pour des dates passées : l'arrivée ne descend pas
                 sous aujourd'hui, comme dans le calendrier du séjour. */}
           <button
             type="button"
             className="prix7__rond"
-            title="Un jour plus tôt"
-            aria-label="Un jour plus tôt"
+            title={tr("Un jour plus tôt")}
+            aria-label={tr("Un jour plus tôt")}
             disabled={per.from <= auj}
             onClick={() => poserPer(decaler(per, -1))}
           >
@@ -348,8 +348,8 @@ function EcranPrix() {
           <button
             type="button"
             className="prix7__rond"
-            title="Un jour plus tard"
-            aria-label="Un jour plus tard"
+            title={tr("Un jour plus tard")}
+            aria-label={tr("Un jour plus tard")}
             onClick={() => poserPer(decaler(per, 1))}
           >
             <Icon name="chevron-droite" taille={14} />
@@ -357,13 +357,13 @@ function EcranPrix() {
         </div>
         <div className="prix7__nuits" role="group" aria-labelledby="prix-nuits">
           <span className="prix7__lbl" id="prix-nuits">
-            Nuits
+            {tr("Nuits")}
           </span>
           <button
             type="button"
             className="prix7__rond"
-            title="Une nuit de moins"
-            aria-label="Une nuit de moins"
+            title={tr("Une nuit de moins")}
+            aria-label={tr("Une nuit de moins")}
             disabled={per.nights <= NUITS_MIN}
             onClick={() => poserPer(avecNuits(per, per.nights - 1))}
           >
@@ -375,14 +375,14 @@ function EcranPrix() {
           <button
             type="button"
             className="prix7__rond"
-            title="Une nuit de plus"
-            aria-label="Une nuit de plus"
+            title={tr("Une nuit de plus")}
+            aria-label={tr("Une nuit de plus")}
             disabled={per.nights >= NUITS_MAX}
             onClick={() => poserPer(avecNuits(per, per.nights + 1))}
           >
             <Icon name="plus" taille={14} />
           </button>
-          <span className="prix7__depart">départ le {departLbl(per)}</span>
+          <span className="prix7__depart">{tr("départ le {date}", { date: departLbl(per) })}</span>
         </div>
       </div>
 
@@ -398,7 +398,7 @@ function EcranPrix() {
               refDate.current?.focus();
             }}
           >
-            Revenir à votre séjour
+            {tr("Revenir à votre séjour")}
           </button>
         </div>
       ) : null}
@@ -444,7 +444,7 @@ function ChoixMultiple({
 }: {
   titre: string;
   vide: string;
-  /** « massifs », « stations » : pour « 2 massifs ». */
+  /** « 2 massifs », « 3 stations » : le compte des choix, déjà écrit. */
   pluriel: string;
   options: readonly { v: string; label: string }[];
   valeurs: readonly string[];
@@ -457,7 +457,7 @@ function ChoixMultiple({
   const choix = options.filter((o) => o.v !== "");
   // Le nom seul, sans son compte (« Savoie · 23 »).
   const nom = (v: string) => choix.find((o) => o.v === v)?.label.replace(/ · \d+$/, "") ?? v;
-  const resume = valeurs.length === 0 ? vide : valeurs.length === 1 ? nom(valeurs[0]) : `${valeurs.length} ${pluriel}`;
+  const resume = valeurs.length === 0 ? vide : valeurs.length === 1 ? nom(valeurs[0]) : pluriel;
   return (
     <div className="prix7__champ prix7__multi" ref={hote}>
       <span>{titre}</span>
@@ -499,18 +499,18 @@ function ChoixLieu() {
   return (
     <>
       <ChoixMultiple
-        titre="Massif"
-        vide="Tous"
-        pluriel="massifs"
+        titre={tr("Massif")}
+        vide={tr("Tous")}
+        pluriel={tr("{n} massifs", { n: massif.length })}
         options={OPTIONS_MASSIF}
         valeurs={massif}
         // D'autres massifs : les départements, domaines et stations qui n'y tiennent plus s'en vont.
         onChange={(v) => majFl((f) => choisirMassif(f, v))}
       />
       <ChoixMultiple
-        titre="Département"
-        vide="Tous"
-        pluriel="départements"
+        titre={tr("Département")}
+        vide={tr("Tous")}
+        pluriel={tr("{n} départements", { n: dept.length })}
         options={deptOpts}
         valeurs={dept}
         onChange={(v) => majFl((f) => choisirDept(f, v))}
@@ -539,17 +539,17 @@ function ChoixStation({ relevees }: { relevees: readonly Station[] }) {
   return (
     <>
       <ChoixMultiple
-        titre="Domaine skiable"
-        vide="Tous"
-        pluriel="domaines"
+        titre={tr("Domaine skiable")}
+        vide={tr("Tous")}
+        pluriel={tr("{n} domaines", { n: domaine.length })}
         options={domaines}
         valeurs={domaine}
         onChange={(v) => majFl((f) => choisirDomaine(f, v))}
       />
       <ChoixMultiple
-        titre="Station"
-        vide="Toutes"
-        pluriel="stations"
+        titre={tr("Station")}
+        vide={tr("Toutes")}
+        pluriel={tr("{n} stations", { n: station.length })}
         options={stations}
         valeurs={station}
         onChange={(v) => majFl((f) => choisirStation(f, v))}
@@ -567,11 +567,11 @@ function PlageFiltre({ p }: { p: DefPlage }) {
   const b = BORNES[p.k];
   return (
     <Fourchette
-      lbl={p.lbl}
+      lbl={tr(p.lbl)}
       bornes={b}
       valeur={valeur}
       pas={p.pas}
-      unite={p.unite}
+      unite={p.unite === "pers." ? tr("pers.") : p.unite === "ch." ? tr("ch.") : p.unite}
       resume={plageLbl(p.k, valeur, b)}
       onPoser={(which, v, exact) =>
         majFl((f) => ({ ...f, [p.k]: poserBorne(f[p.k], b, p.pas, which, v, exact) }))
@@ -652,7 +652,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
       memePeriode(course.per, per) &&
       grpKey(course.groupe) === kGrp &&
       course.ids.some((id) => vues.has(id));
-    return enCours ? "Relevé de cette liste en cours." : "Relevé de cette liste en attente.";
+    return enCours ? tr("Relevé de cette liste en cours.") : tr("Relevé de cette liste en attente.");
   }, [aLancer, ids, course, per, kGrp]);
   const listeFaite = filtrees.every((l) => l.res?.etat === "fait");
 
@@ -664,10 +664,10 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
 
   return (
     <>
-      <section className="prix7__carte prix7__filtres" aria-label="Critères">
+      <section className="prix7__carte prix7__filtres" aria-label={tr("Critères")}>
         <div className="prix7__choix">
           <label className="prix7__champ">
-            <span>Trier</span>
+            <span>{tr("Trier")}</span>
             <select
               className="prix7__select"
               value={tri.k}
@@ -675,7 +675,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
             >
               {TRIS.map((o) => (
                 <option key={o.k} value={o.k}>
-                  {o.label}
+                  {tr(o.label)}
                 </option>
               ))}
             </select>
@@ -693,7 +693,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
               checked={fl.avecPrix}
               onChange={(e) => setFl({ avecPrix: e.target.checked })}
             />
-            Avec un prix seulement
+            {tr("Avec un prix seulement")}
           </label>
         </div>
         <div className="prix7__plages">
@@ -710,7 +710,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
               key={`${j.k}|${j.v ?? ""}`}
               type="button"
               className="prix7__jeton"
-              title="Retirer ce critère"
+              title={tr("Retirer ce critère")}
               onClick={() => {
                 majFl((f) => retirerJeton(f, j.k, j.v));
                 surCompte();
@@ -729,7 +729,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
                 surCompte();
               }}
             >
-              Tout effacer
+              {tr("Tout effacer")}
             </button>
           ) : null}
         </div>
@@ -738,13 +738,13 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
       <div className="prix7__actions" ref={refActions} tabIndex={-1}>
         {passee ? (
           <span className="prix7__indice" role="status">
-            Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.
+            {tr("Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.")}
           </span>
         ) : aLancer.length > 0 ? (
           <button
             type="button"
             className="prix7__relever"
-            title="Une station prend environ une minute."
+            title={tr("Une station prend environ une minute.")}
             onClick={() => {
               lancer({ nom: nomListe(fl), ids: aLancer, per, groupe });
               // Le bouton cède la place à l'indice : le focus reste dans la rangée.
@@ -772,8 +772,8 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
         />
       ) : null}
 
-      <section className="prix7__carte prix7__table" aria-label="Stations">
-        <div role="table" aria-label="Prix par station">
+      <section className="prix7__carte prix7__table" aria-label={tr("Stations")}>
+        <div role="table" aria-label={tr("Prix par station")}>
           <div role="rowgroup">
             <div role="row" className="prix7__rang prix7__entete">
               {colonnes(per.nights).map(({ id, k, lbl, droite }) => {
@@ -820,8 +820,8 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
         </div>
         {triees.length === 0 ? (
           <div className="prix7__vide">
-            <strong>Aucune station ne correspond à ces critères</strong>
-            <span>Retirez un critère, ou effacez-les tous.</span>
+            <strong>{tr("Aucune station ne correspond à ces critères")}</strong>
+            <span>{tr("Retirez un critère, ou effacez-les tous.")}</span>
           </div>
         ) : null}
         <div className="prix7__pied">
@@ -839,11 +839,9 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
       </section>
 
       <p className="prix7__note">
-        Le total est celui que l’annonce publie pour ces dates exactes. Depuis le 25 septembre 2026,
-        un relevé ne compte que les logements à 2 km au plus d’une remontée ; relevez à nouveau une
-        station pour l’appliquer à ses résultats plus anciens. Une annonce sans capacité annoncée
-        est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe en fin
-        de liste, dans les deux sens du tri.
+        {tr(
+          "Le total est celui que l’annonce publie pour ces dates exactes. Depuis le 25 septembre 2026, un relevé ne compte que les logements à 2 km au plus d’une remontée ; relevez à nouveau une station pour l’appliquer à ses résultats plus anciens. Une annonce sans capacité annoncée est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe en fin de liste, dans les deux sens du tri.",
+        )}
       </p>
     </>
   );
@@ -1021,8 +1019,8 @@ function VueBudget({
   // Rien à lancer : toutes sont déjà prévues par un relevé de ces dates.
   const toutesPrevues =
     course != null && memePeriode(course.per, per) && grpKey(course.groupe) === grpKey(groupe)
-      ? "Relevé de toutes les stations en cours."
-      : "Relevé de toutes les stations en attente.";
+      ? tr("Relevé de toutes les stations en cours.")
+      : tr("Relevé de toutes les stations en attente.");
 
   // Annonce ouverte, cadre de la carte, fiche épinglée et annonce désignée
   // restent à l'écran : ils ne valent que tant qu'on le regarde.
@@ -1224,12 +1222,12 @@ function VueBudget({
 
   return (
     <>
-      <section className="prix7__carte prix7__filtres" aria-label="Critères">
+      <section className="prix7__carte prix7__filtres" aria-label={tr("Critères")}>
         <div className="prix7__budget">
           <PlageFiltre p={PLAGE_BUDGET} />
           <div className="prix7__choix prix7__choix--budget">
             <label className="prix7__champ">
-              <span>Trier</span>
+              <span>{tr("Trier")}</span>
               <select
                 className="prix7__select"
                 value={triB.k}
@@ -1237,7 +1235,7 @@ function VueBudget({
               >
                 {TRIS_B.map((o) => (
                   <option key={o.k} value={o.k}>
-                    {o.label}
+                    {tr(o.label)}
                   </option>
                 ))}
               </select>
@@ -1271,7 +1269,7 @@ function VueBudget({
               key={`${j.k}|${j.v ?? ""}`}
               type="button"
               className="prix7__jeton"
-              title="Retirer ce critère"
+              title={tr("Retirer ce critère")}
               onClick={() => {
                 majFl((f) => retirerJeton(f, j.k, j.v));
                 surCompte();
@@ -1290,7 +1288,7 @@ function VueBudget({
                 surCompte();
               }}
             >
-              Tout effacer
+              {tr("Tout effacer")}
             </button>
           ) : null}
         </div>
@@ -1299,15 +1297,19 @@ function VueBudget({
       <div className="prix7__actions">
         {passee ? (
           <span className="prix7__indice" role="status">
-            Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.
+            {tr("Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.")}
           </span>
         ) : toutes.ids.length > 0 ? (
           <button
             type="button"
             className="prix7__relever"
-            title={`Une station prend environ une minute : ${dureeReleveLbl(toutes.ids.length)} pour celles-ci. Le relevé continue quand on quitte l’écran.`}
+            title={tr(
+              "Une station prend environ une minute : {duree} pour celles-ci. Le relevé continue quand on quitte l’écran.",
+              { duree: dureeReleveLbl(toutes.ids.length) },
+            )}
             onClick={() => {
-              lancer({ nom: "toutes les stations", ids: toutes.ids, per, groupe });
+              // Le nom du relevé reste en français dans le magasin ; le bandeau le traduit.
+              lancer({ nom: aTraduire("toutes les stations"), ids: toutes.ids, per, groupe });
               // Le bouton cède la place à l'indice : le focus va au compte.
               refCompte.current?.focus();
             }}
@@ -1344,29 +1346,47 @@ function VueBudget({
         <div className="prix7__avis">
           <p className="prix7__note">
             {sansPosition.length > 1
-              ? `${sansPosition.length} stations ont été relevées sans la position de leurs logements : ceux-ci n’ont pas de pastille sur la carte.`
-              : `${NOMS.get(sansPosition[0]?.id ?? "") ?? "Une station"} a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.`}
-            {passee ? "" : " Un nouveau relevé les y place."}
+              ? tr(
+                  "{n} stations ont été relevées sans la position de leurs logements : ceux-ci n’ont pas de pastille sur la carte.",
+                  { n: sansPosition.length },
+                )
+              : NOMS.get(sansPosition[0]?.id ?? "")
+                ? tr(
+                    "{station} a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.",
+                    { station: NOMS.get(sansPosition[0]?.id ?? "") ?? "" },
+                  )
+                : tr(
+                    "Une station a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.",
+                  )}
+            {passee ? "" : ` ${tr("Un nouveau relevé les y place.")}`}
           </p>
           {passee ? null : aRepositionner.length > 0 ? (
             <button
               type="button"
               className="prix7__pilule"
-              title="Une station prend environ une minute."
+              title={tr("Une station prend environ une minute.")}
               onClick={() => {
-                lancer({ nom: "logements sans position", ids: aRepositionner, per, groupe });
+                lancer({ nom: aTraduire("logements sans position"), ids: aRepositionner, per, groupe });
                 refCompte.current?.focus();
               }}
             >
               {aRepositionner.length === 1
-                ? `Relever ${NOMS.get(aRepositionner[0] ?? "") ?? "cette station"}`
+                ? NOMS.get(aRepositionner[0] ?? "")
+                  ? tr("Relever {station}", { station: NOMS.get(aRepositionner[0] ?? "") ?? "" })
+                  : tr("Relever cette station")
                 : aRepositionner.length < sansPosition.length
-                  ? `Relever les ${aRepositionner.length} stations restantes`
-                  : `Relever ces ${aRepositionner.length} stations`}
+                  ? tr("Relever les {n} stations restantes", { n: aRepositionner.length })
+                  : tr("Relever ces {n} stations", { n: aRepositionner.length })}
             </button>
           ) : (
             <span className="prix7__indice" role="status">
-              {`Relevé de ${sansPosition.length > 1 ? "ces stations" : "cette station"} ${repositionEnCours ? "en cours" : "en attente"}.`}
+              {sansPosition.length > 1
+                ? repositionEnCours
+                  ? tr("Relevé de ces stations en cours.")
+                  : tr("Relevé de ces stations en attente.")
+                : repositionEnCours
+                  ? tr("Relevé de cette station en cours.")
+                  : tr("Relevé de cette station en attente.")}
             </span>
           )}
         </div>
@@ -1378,7 +1398,7 @@ function VueBudget({
             className="v7deux__liste"
             ref={listeRef}
             tabIndex={-1}
-            aria-label="Logements de la page"
+            aria-label={tr("Logements de la page")}
           >
             {affichees.length > 0 ? (
               <>
@@ -1412,14 +1432,14 @@ function VueBudget({
               </>
             ) : (
               <Vide
-                titre="Aucune annonce dans ce cadrage"
+                titre={tr("Aucune annonce dans ce cadrage")}
                 actions={
                   <button type="button" className="btn7" onClick={revoirTout}>
-                    Revoir toutes les annonces
+                    {tr("Revoir toutes les annonces")}
                   </button>
                 }
               >
-                La liste suit la carte. Déplacez-la, dézoomez ou revenez au cadrage des résultats.
+                {tr("La liste suit la carte. Déplacez-la, dézoomez ou revenez au cadrage des résultats.")}
               </Vide>
             )}
           </div>
@@ -1453,7 +1473,7 @@ function VueBudget({
                 return (
                   <>
                     <button type="button" className="btn7" onClick={() => ouvrirAnnonce(id)}>
-                      Voir l’annonce
+                      {tr("Voir l’annonce")}
                     </button>
                     <button
                       type="button"
@@ -1461,7 +1481,7 @@ function VueBudget({
                       aria-pressed={r != null}
                       onClick={() => retenir(r?.a.id ?? id)}
                     >
-                      {r ? "Retenu" : "Retenir"}
+                      {r ? tr("Retenu") : tr("Retenir")}
                     </button>
                   </>
                 );
@@ -1469,15 +1489,17 @@ function VueBudget({
               legende={
                 <>
                   <b>
-                    {nPages > 1 ? `Page ${page + 1} sur ${nPages} · ` : ""}
-                    {plur(affichees.length, "logement", "logements")} dans le cadre
-                    {pageSansPosition > 0 ? ` · ${pageSansPosition} sans position sur cette page` : ""}
+                    {nPages > 1 ? `${tr("Page {page} sur {n}", { page: page + 1, n: nPages })} · ` : ""}
+                    {trN(affichees.length, "{n} logement dans le cadre", "{n} logements dans le cadre")}
+                    {pageSansPosition > 0
+                      ? ` · ${tr("{n} sans position sur cette page", { n: pageSansPosition })}`
+                      : ""}
                   </b>
                   {horsCadre > 0 ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
                       {cartes.length > 1
-                        ? `Revoir les ${cartes.length} logements`
-                        : "Revoir le logement"}
+                        ? tr("Revoir les {n} logements", { n: cartes.length })
+                        : tr("Revoir le logement")}
                       <Icon name="fleche-droite" taille={14} />
                     </button>
                   ) : null}
@@ -1496,7 +1518,7 @@ function VueBudget({
               className="prix7__pilule prix7__pilule--grande"
               onClick={() => ouvrir("station")}
             >
-              Ouvrir l’onglet Par station
+              {tr("Ouvrir l’onglet Par station")}
             </button>
           ) : null}
         </div>
@@ -1523,7 +1545,7 @@ function VueBudget({
                 className="btn7 btn7--grand btn7--pleine"
                 onClick={() => void go("booking")}
               >
-                Passer à la réservation
+                {tr("Passer à la réservation")}
                 <Icon name="fleche-droite" taille={16} />
               </button>
             ) : null
@@ -1543,13 +1565,13 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
   const ecartees = annSub(l.res);
   const partiel = l.res?.etat === "fait" ? l.res.partiel : [];
   const releve =
-    l.etat === "en-cours" ? "en cours" : l.etat === "attente" ? "en attente" : releveLbl(l.res);
+    l.etat === "en-cours" ? tr("en cours") : l.etat === "attente" ? tr("en attente") : releveLbl(l.res);
   const boutonRelever =
     relever && (l.etat === "non-releve" || l.etat === "echec") ? (
       <button
         type="button"
         className="prix7__pilule prix7__pilule--ligne"
-        aria-label={`Relever ${l.nom}`}
+        aria-label={tr("Relever {station}", { station: l.nom })}
         onClick={() => {
           relever();
           // Le bouton disparaît : le focus passe à l'état du relevé, qui
@@ -1557,7 +1579,7 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
           refReleve.current?.focus();
         }}
       >
-        Relever
+        {tr("Relever")}
       </button>
     ) : null;
   return (
@@ -1568,7 +1590,7 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
       </div>
       <div role="cell" className="prix7__annonces">
         <span className={`prix7__n${l.n == null ? " prix7__n--absent" : ""}`}>
-          {l.n == null ? "" : plur(l.n, "logement", "logements")}
+          {l.n == null ? "" : trN(l.n, "{n} logement", "{n} logements")}
         </span>
         <span className="prix7__ecartes" title={ecartees || undefined}>
           {ecartees}
@@ -1577,7 +1599,7 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
       <div role="cell" className="prix7__releve" ref={refReleve} tabIndex={-1}>
         <span>{releve}</span>
         {partiel.length > 0 ? (
-          <span className="prix7__partiel" title={`Sans réponse : ${partiel.join(", ")}.`}>
+          <span className="prix7__partiel" title={tr("Sans réponse : {sources}.", { sources: partiel.join(", ") })}>
             {partielLbl(partiel)}
           </span>
         ) : null}
@@ -1586,23 +1608,24 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
         {l.etat === "prix" ? (
           <span className="prix7__prix">{eur(l.med)}</span>
         ) : l.etat === "en-cours" ? (
-          <span className="prix7__etat prix7__etat--encours">Relevé en cours</span>
+          <span className="prix7__etat prix7__etat--encours">{tr("Relevé en cours")}</span>
         ) : l.etat === "attente" ? (
-          <span className="prix7__etat">En attente</span>
+          <span className="prix7__etat">{tr("En attente")}</span>
         ) : l.etat === "peu" ? (
           <>
-            <span className="prix7__etat">Pas assez d’annonces</span>
-            <span className="prix7__sous">Il en faut {MIN_ANNONCES} pour une médiane</span>
+            <span className="prix7__etat">{tr("Pas assez d’annonces")}</span>
+            <span className="prix7__sous">{tr("Il en faut {n} pour une médiane", { n: MIN_ANNONCES })}</span>
           </>
         ) : l.etat === "echec" ? (
           <>
-            <span className="prix7__etat">Relevé impossible</span>
-            {l.res?.etat === "echec" ? <span className="prix7__sous">{l.res.raison}</span> : null}
+            <span className="prix7__etat">{tr("Relevé impossible")}</span>
+            {/* La raison est gardée en français dans le relevé (`aTraduire`). */}
+            {l.res?.etat === "echec" ? <span className="prix7__sous">{tr(l.res.raison)}</span> : null}
             {boutonRelever}
           </>
         ) : (
           <>
-            <span className="prix7__etat">Non relevé</span>
+            <span className="prix7__etat">{tr("Non relevé")}</span>
             {boutonRelever}
           </>
         )}
@@ -1617,14 +1640,18 @@ function suiteAttente(a: NonNullable<Course["attente"]>, nom: string | null, now
   switch (a.motif) {
     case "refus":
       return reste
-        ? ` · Airbnb demande une pause, reprise dans ${reste}`
-        : " · Airbnb demande une pause";
+        ? ` · ${tr("Airbnb demande une pause, reprise dans {duree}", { duree: reste })}`
+        : ` · ${tr("Airbnb demande une pause")}`;
     case "arret":
-      return nom ? ` · ${nom} après la fin du relevé arrêté` : "";
+      return nom ? ` · ${tr("{station} après la fin du relevé arrêté", { station: nom })}` : "";
     case "logements":
-      return nom ? ` · ${nom} après la recherche en cours dans Logements` : "";
+      return nom ? ` · ${tr("{station} après la recherche en cours dans Logements", { station: nom })}` : "";
     case "rythme":
-      return nom ? (reste ? ` · ${nom} dans ${reste}` : ` · ${nom} en attente`) : "";
+      return nom
+        ? reste
+          ? ` · ${tr("{station} dans {duree}", { station: nom, duree: reste })}`
+          : ` · ${tr("{station} en attente", { station: nom })}`
+        : "";
   }
 }
 
@@ -1638,10 +1665,10 @@ function suiteFiches(
   nom: string,
   now: number,
 ): string {
-  const base = ` · ${nom} : fiches ${f.faites} sur ${f.total}`;
-  if (a?.motif === "logements") return `${base}, reprise après la recherche en cours dans Logements`;
+  const base = ` · ${tr("{station} : fiches {faites} sur {total}", { station: nom, faites: f.faites, total: f.total })}`;
+  if (a?.motif === "logements") return `${base}, ${tr("reprise après la recherche en cours dans Logements")}`;
   if (a?.motif === "rythme" && a.jusqua != null) {
-    return `${base}, suite dans ${dureeLbl(Math.max(0, a.jusqua - now))}`;
+    return `${base}, ${tr("suite dans {duree}", { duree: dureeLbl(Math.max(0, a.jusqua - now)) })}`;
   }
   return base;
 }
@@ -1678,7 +1705,7 @@ function BandeauCourse({
       : course.attente
         ? suiteAttente(course.attente, nom, now)
         : nom
-          ? ` · ${nom} en cours`
+          ? ` · ${tr("{station} en cours", { station: nom })}`
           : "";
 
   return (
@@ -1686,17 +1713,17 @@ function BandeauCourse({
       <div className="prix7__course-corps">
         <div className="prix7__course-tete">
           <strong className="prix7__course-titre">
-            Relevé : {course.nom}, {perLbl(course.per)}
+            {tr("Relevé : {nom}, {periode}", { nom: tr(course.nom), periode: perLbl(course.per) })}
           </strong>
           <span className="prix7__course-sous">
-            {course.i} sur {total}
+            {tr("{i} sur {total}", { i: course.i, total })}
             {suite}
           </span>
         </div>
         <div
           className="prix7__jauge"
           role="progressbar"
-          aria-label="Stations relevées"
+          aria-label={tr("Stations relevées")}
           aria-valuemin={0}
           aria-valuemax={total}
           aria-valuenow={course.i}
@@ -1705,17 +1732,17 @@ function BandeauCourse({
         </div>
         {course.airbnbRefus ? (
           <span className="prix7__course-file">
-            Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.
+            {tr("Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.")}
           </span>
         ) : null}
         {file.length > 0 ? (
           <span className="prix7__course-file">
-            Ensuite : {file.map((j) => `${j.nom} (${perLbl(j.per)})`).join(", ")}.
+            {tr("Ensuite : {releves}.", { releves: file.map((j) => `${tr(j.nom)} (${perLbl(j.per)})`).join(", ") })}
           </span>
         ) : null}
       </div>
       <button type="button" className="prix7__arreter" onClick={onArreter}>
-        Arrêter
+        {tr("Arrêter")}
       </button>
     </div>
   );

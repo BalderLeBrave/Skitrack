@@ -39,6 +39,8 @@
  * confirmé », ce qui est exact. On ne compense pas par un défaut optimiste.
  */
 
+import { tr } from "../i18n/tr.ts";
+
 /** Libellé de source réservé à ce que l'utilisateur a saisi lui-même. */
 export const MANUAL_SOURCE = "Import manuel";
 
@@ -168,16 +170,16 @@ export function isBookable(listing: AvailabilitySubject, stay: Stay, now?: numbe
 export function availabilityLabel(verdict: AvailabilityVerdict): string {
   switch (verdict.reason) {
     case "gone":
-      return "Absente du dernier relevé à ces dates";
+      return tr("Absente du dernier relevé à ces dates");
     case "unpriced":
-      return "En ligne, sans prix à ces dates";
+      return tr("En ligne, sans prix à ces dates");
     case "other_dates":
-      return "Prix relevé pour d’autres dates";
+      return tr("Prix relevé pour d’autres dates");
     case "stale":
-      return "Prix relevé il y a plus de six heures";
+      return tr("Prix relevé il y a plus de six heures");
     case "undated":
-      return "Prix pour ces dates, relevé non daté";
+      return tr("Prix pour ces dates, relevé non daté");
     default:
-      return verdict.status === "confirmed" ? "Prix relevé pour ces dates" : "Non vérifiable";
+      return verdict.status === "confirmed" ? tr("Prix relevé pour ces dates") : tr("Non vérifiable");
   }
 }

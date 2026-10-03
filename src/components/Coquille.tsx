@@ -28,7 +28,7 @@ import { usePlage } from "./v7/plage";
 import { Compteur } from "./v7/Compteur";
 import { useFermeture } from "./v7/fermeture";
 import { useCriteresUrl } from "@/lib/criteres";
-import { useLocale, useT, type MsgId } from "@/lib/i18n";
+import { tr, trN, useLocale, useT, type MsgId } from "@/lib/i18n";
 import {
   arrivalLbl,
   datesLbl,
@@ -119,7 +119,7 @@ function MenuPlus() {
       <button
         type="button"
         className={`v7nav__util${ouvert ? " v7nav__util--on" : ""}`}
-        title="Outils, contrôle des données et mises à jour"
+        title={tr("Outils, contrôle des données et mises à jour")}
         aria-expanded={ouvert}
         aria-haspopup="dialog"
         onClick={() => setOuvert((v) => !v)}
@@ -188,7 +188,11 @@ function LienFavoris({ actif, libelle }: { actif: boolean; libelle: string }) {
       to="/favoris"
       className={`v7nav__util v7nav__prix${actif ? " v7nav__prix--on" : ""}`}
       aria-current={actif ? "page" : undefined}
-      title={compte > 0 ? `${compte} logement${compte > 1 ? "s" : ""} enregistré${compte > 1 ? "s" : ""}` : "Logements enregistrés dans vos dossiers"}
+      title={
+        compte > 0
+          ? trN(compte, "{n} logement enregistré", "{n} logements enregistrés")
+          : tr("Logements enregistrés dans vos dossiers")
+      }
     >
       <Icon name="coeur" taille={15} />
       {libelle}
@@ -230,7 +234,7 @@ function Barre() {
           vide entre « Réservation » et « Prix » variait avec la largeur de la
           fenêtre (remarque du 3 octobre 2026). */}
       <div className="v7nav__centre">
-      <nav className="v7nav__parcours" aria-label="Parcours">
+      <nav className="v7nav__parcours" aria-label={tr("Parcours")}>
         {PARCOURS.map((j) => {
           // La fiche station allume « Comparer » : elle en est le détail.
           const actif = ecran !== null && (j.go === ecran || (ecran === "fiche" && j.go === "compare"));
@@ -269,8 +273,8 @@ function Barre() {
           aria-current={ecran === "prix" ? "page" : undefined}
           title={
             enCourse
-              ? "Relevé des prix en cours"
-              : "Médiane d’un séjour par station, et logements dans votre budget"
+              ? tr("Relevé des prix en cours")
+              : tr("Médiane d’un séjour par station, et logements dans votre budget")
           }
         >
           <Icon name="barres" taille={15} />
@@ -284,10 +288,10 @@ function Barre() {
         <button
           type="button"
           className="v7nav__util v7nav__util--rond"
-          title={theme === "dark" ? "Thème sombre : passer au clair" : "Thème clair : passer au sombre"}
+          title={theme === "dark" ? tr("Thème sombre : passer au clair") : tr("Thème clair : passer au sombre")}
           role="switch"
           aria-checked={theme === "dark"}
-          aria-label="Thème"
+          aria-label={tr("Thème")}
           onClick={bascule}
           data-testid="theme-toggle"
         >
@@ -296,7 +300,7 @@ function Barre() {
         <button
           type="button"
           className="v7nav__util v7nav__util--langue"
-          title="Langue"
+          title={tr("Langue")}
           aria-label={locale === "fr" ? "English" : "Français"}
           onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
         >
@@ -331,7 +335,7 @@ function PiluleSejour() {
         aria-expanded={stayOpen}
         onClick={() => setStayOpen(!stayOpen)}
       >
-        <span className="v7sejour__station">{station?.name ?? "Station à choisir"}</span>
+        <span className="v7sejour__station">{station?.name ?? tr("Station à choisir")}</span>
         <span className="v7sejour__dates">{datesLbl(checkIn, checkOut, nights)}</span>
         <span className="v7sejour__groupe">{groupLbl(trav, rooms, enfants)}</span>
         <span className="v7sejour__loupe">
@@ -350,29 +354,32 @@ function PanneauSejour() {
   const hote = useRef<HTMLDivElement>(null);
   useFermeture(true, () => setStayOpen(false), hote, "[data-sejour-ouvre]");
   return (
-    <div className="v7panneau" ref={hote} role="dialog" aria-label="Votre séjour">
+    <div className="v7panneau" ref={hote} role="dialog" aria-label={tr("Votre séjour")}>
       <div className="v7panneau__tete">
         <div>
-          <strong>Votre séjour</strong>
+          <strong>{tr("Votre séjour")}</strong>
           <span>
-            Arrivée {arrivalLbl(checkIn)} · départ {departLbl(checkOut)} · {nights} nuit
-            {nights > 1 ? "s" : ""}
+            {tr("Arrivée {arrivee} · départ {depart}", {
+              arrivee: arrivalLbl(checkIn),
+              depart: departLbl(checkOut),
+            })}{" "}
+            · {trN(nights, "{n} nuit", "{n} nuits")}
           </span>
         </div>
-        <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setStayOpen(false)}>
+        <button type="button" className="v7fermer" aria-label={tr("Fermer")} onClick={() => setStayOpen(false)}>
           <Icon name="croix" taille={14} />
         </button>
       </div>
       <Calendrier plage={plage} hauteur={38} />
       <div className="v7panneau__compteurs">
-        <Compteur k="trav" titre="Voyageurs" regle="1 à 20" encadre />
+        <Compteur k="trav" titre={tr("Voyageurs")} regle={tr("1 à 20")} encadre />
         {/* Les enfants, parce que le coût des forfaits comptait huit adultes
             quand le domaine publie aussi son tarif enfant. */}
-        <Compteur k="enfants" titre="dont enfants" regle={AGE_ENFANT} encadre />
-        <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" encadre />
+        <Compteur k="enfants" titre={tr("dont enfants")} regle={tr(AGE_ENFANT)} encadre />
+        <Compteur k="rooms" titre={tr("Chambres")} regle={tr("0 = studio accepté")} encadre />
       </div>
       <span className="v7panneau__note">
-        Dates et voyageurs sont conservés d’un écran à l’autre.
+        {tr("Dates et voyageurs sont conservés d’un écran à l’autre.")}
       </span>
     </div>
   );

@@ -37,4 +37,4 @@ export function useT(): (id: MsgId) => string {
 }
 
 export { langue, langueIntl } from "./langue";
-export { aTraduire, tr, trN } from "./tr";
+export { aTraduire, tr, trC, trN } from "./tr";

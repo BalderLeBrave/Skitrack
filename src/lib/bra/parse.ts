@@ -1,4 +1,5 @@
-import { langueIntl } from "../i18n/langue.ts";
+import { langue, langueIntl } from "../i18n/langue.ts";
+import { tr } from "../i18n/tr.ts";
 /** Parseur XML du BRA Météo-France. Fixture uniquement dans les tests. */
 
 export type BraBulletin = {
@@ -117,7 +118,7 @@ export function lieuLisible(loc: string | null): string | null {
   const m = /^\s*([<>])\s*(\d{3,4})\s*(?:m)?\s*$/.exec(loc);
   if (!m) return loc;
   const alt = Number(m[2]).toLocaleString(langueIntl());
-  return m[1] === "<" ? `sous ${alt} m` : `au-dessus de ${alt} m`;
+  return m[1] === "<" ? tr("sous {altitude} m", { altitude: alt }) : tr("au-dessus de {altitude} m", { altitude: alt });
 }
 
 export const BRA_LABELS: Record<number, { fr: string; en: string }> = {
@@ -127,3 +128,11 @@ export const BRA_LABELS: Record<number, { fr: string; en: string }> = {
   4: { fr: "fort", en: "high" },
   5: { fr: "très fort", en: "very high" },
 };
+
+/** Le nom d'un niveau de risque dans la langue de l'interface, ou rien. */
+export function braLabel(n: number | null | undefined): string | null {
+  if (n == null) return null;
+  const l = BRA_LABELS[n];
+  if (!l) return null;
+  return langue() === "en" ? l.en : l.fr;
+}

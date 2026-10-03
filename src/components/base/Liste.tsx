@@ -10,6 +10,7 @@
  */
 
 import type { ReactNode } from "react";
+import { tr } from "@/lib/i18n";
 
 export type Fait = {
   cle: string;
@@ -23,7 +24,7 @@ export function Liste({
   faits,
   colonnes = 1,
   taille = "normale",
-  absence = "non communiqué",
+  absence = tr("non communiqué"),
   className,
 }: {
   faits: readonly Fait[];

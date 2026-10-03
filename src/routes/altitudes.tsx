@@ -6,6 +6,7 @@ import { ignSkiinfoAll, ignSkiinfoSummary, VERDICT_FR, type IgnSkiVerdict } from
 import { formatAlt } from "@/lib/stations";
 import { parMesure, type Sens } from "@/lib/tri";
 import { langueIntl } from "@/lib/i18n/langue";
+import { tr } from "@/lib/i18n";
 
 export const Route = createFileRoute("/altitudes")({ component: Altitudes });
 
@@ -33,10 +34,10 @@ function Altitudes() {
 
   const chips: [Filter, string][] = [
     ["all", `France · ${sum.n}`],
-    ["village", `≈ village · ${sum.village}`],
-    ["domaine", `dans le domaine · ${sum.domaine}`],
-    ["sous_base", `sous la base · ${sum.sous_base}`],
-    ["sommet", `≈ sommet · ${sum.sommet}`],
+    ["village", tr("≈ village · {n}", { n: sum.village })],
+    ["domaine", tr("dans le domaine · {n}", { n: sum.domaine })],
+    ["sous_base", tr("sous la base · {n}", { n: sum.sous_base })],
+    ["sommet", tr("≈ sommet · {n}", { n: sum.sommet })],
   ];
 
   return (
@@ -53,7 +54,7 @@ function Altitudes() {
               {label}
             </button>
           ))}
-          <span className="shrink-0 pl-2 text-note text-muted">Tri : écart à la base</span>
+          <span className="shrink-0 pl-2 text-note text-muted">{tr("Tri : écart à la base")}</span>
           <SensTri className="sens7--petit shrink-0" sens={sens} onChange={setSens} />
         </>
       }
@@ -61,21 +62,20 @@ function Altitudes() {
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
         <h1 className="font-display text-affiche tracking-tight">IGN × Skiinfo</h1>
         <p className="mt-2 max-w-2xl text-corps text-muted">
-          L’IGN donne l’altitude du repère GPS de la station (RGE ALTI). Skiinfo publie une plage
-          d’altitudes, de la base au sommet. Écart médian entre l’IGN et la base Skiinfo :{" "}
-          {sum.medianAbsBase != null ? `${sum.medianAbsBase} m` : "–"}. Deux repères restent au
-          centre de la commune, pas au front de neige : Lans-en-Vercors et Goulier. L’IGN ne donne
-          ni répartition des pistes ni kilomètres : ils ne sont pas comparés.
+          {tr(
+            "L’IGN donne l’altitude du repère GPS de la station (RGE ALTI). Skiinfo publie une plage d’altitudes, de la base au sommet. Écart médian entre l’IGN et la base Skiinfo : {ecart}. Deux repères restent au centre de la commune, pas au front de neige : Lans-en-Vercors et Goulier. L’IGN ne donne ni répartition des pistes ni kilomètres : ils ne sont pas comparés.",
+            { ecart: sum.medianAbsBase != null ? `${sum.medianAbsBase} m` : "–" },
+          )}
         </p>
         <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
           <table className="w-full min-w-[40rem] text-left text-corps">
             <thead>
               <tr className="border-b border-line text-note text-muted">
-                <th className="px-3 py-2 font-medium">Station</th>
+                <th className="px-3 py-2 font-medium">{tr("Station")}</th>
                 <th className="px-3 py-2 font-medium">Skiinfo</th>
                 <th className="px-3 py-2 font-medium">IGN</th>
                 <th className="px-3 py-2 font-medium">Δ base</th>
-                <th className="px-3 py-2 font-medium">Verdict</th>
+                <th className="px-3 py-2 font-medium">{tr("Verdict")}</th>
               </tr>
             </thead>
             <tbody>
@@ -100,7 +100,7 @@ function Altitudes() {
                     {r.ignM != null ? formatAlt(r.ignM) : "–"}
                   </td>
                   <td className="px-3 py-2 tabular-nums">{delta(r.dBase)}</td>
-                  <td className="px-3 py-2 text-muted">{VERDICT_FR[r.verdict]}</td>
+                  <td className="px-3 py-2 text-muted">{tr(VERDICT_FR[r.verdict])}</td>
                 </tr>
               ))}
             </tbody>

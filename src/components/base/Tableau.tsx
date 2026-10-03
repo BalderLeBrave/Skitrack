@@ -10,6 +10,7 @@
  */
 
 import type { ReactNode } from "react";
+import { tr } from "@/lib/i18n";
 
 export type Colonne<C extends string> = {
   cle: C;
@@ -31,7 +32,7 @@ export function Tableau<C extends string>({
   colonnes,
   lignes,
   legende,
-  absence = "non communiqué",
+  absence = tr("non communiqué"),
   className,
 }: {
   colonnes: readonly Colonne<C>[];

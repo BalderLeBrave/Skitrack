@@ -17,6 +17,8 @@
  * C'est une règle pure, testée sans réseau.
  */
 
+import { aTraduire } from "../i18n/tr.ts";
+
 export type Voie = "auto" | "ouverte" | "manuelle";
 
 /** Une tentative, telle que le journal la garde. */
@@ -93,16 +95,16 @@ export function tentable(e: EtatSource): boolean {
 /** L'issue d'une tentative, en toutes lettres : le journal affichait les
  *  valeurs internes (« panne », « illisible »). */
 export const TENTATIVE_LBL: Record<Tentative["issue"], string> = {
-  ok: "tarif lu",
-  refus: "accès refusé par le site",
-  robots: "page interdite par le site (robots.txt)",
-  panne: "page injoignable",
-  illisible: "tarif introuvable dans la page",
+  ok: aTraduire("tarif lu"),
+  refus: aTraduire("accès refusé par le site"),
+  robots: aTraduire("page interdite par le site (robots.txt)"),
+  panne: aTraduire("page injoignable"),
+  illisible: aTraduire("tarif introuvable dans la page"),
 };
 
 /** Ce que l'écran écrit pour la voie retenue. */
 export const VOIE_LBL: Record<Voie, string> = {
-  auto: "relevé automatique",
-  ouverte: "données ouvertes",
-  manuelle: "saisie assistée",
+  auto: aTraduire("relevé automatique"),
+  ouverte: aTraduire("données ouvertes"),
+  manuelle: aTraduire("saisie assistée"),
 };

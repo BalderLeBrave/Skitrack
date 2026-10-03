@@ -12,6 +12,7 @@
  */
 
 import { useId } from "react";
+import { tr } from "@/lib/i18n";
 
 export type PointProfil = { x: number; y: number };
 
@@ -36,7 +37,7 @@ export function ProfilAltitude({
   description,
   legende,
   bornes,
-  vide = "Profil non traçable : pas d’altitude relevée.",
+  vide = tr("Profil non traçable : pas d’altitude relevée."),
 }: {
   points: readonly PointProfil[];
   reperes?: readonly Repere[];
@@ -126,8 +127,9 @@ export function ProfilAltitude({
       {legende ? <p className="mt-2 text-note text-muted">{legende}</p> : null}
       {!mesure ? (
         <p className="mt-2 text-note text-muted">
-          Silhouette indicative : seules les altitudes ci-dessus sont relevées, le tracé qui les
-          relie est dessiné.
+          {tr(
+            "Silhouette indicative : seules les altitudes ci-dessus sont relevées, le tracé qui les relie est dessiné.",
+          )}
         </p>
       ) : null}
     </div>

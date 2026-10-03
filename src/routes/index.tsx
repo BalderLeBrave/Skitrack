@@ -51,6 +51,7 @@ import {
 import { AGE_ENFANT } from "@/lib/stay/party";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
+import { aTraduire, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -99,16 +100,16 @@ const ALT_RANGES = SEUILS.filter((r): r is (typeof SEUILS)[number] & { k: "v" | 
 
 /** Un repère pose « au moins » : la borne basse, la haute au bout de l'échelle. */
 const ALT_PRESETS: { label: string; p: Partial<Record<"v" | "lo" | "hi", number>> }[] = [
-  { label: "Village 1 800 m", p: { v: 1800 } },
-  { label: "Sommet 3 000 m", p: { hi: 3000 } },
-  { label: "Bas des pistes 1 500 m", p: { lo: 1500 } },
+  { label: aTraduire("Village 1 800 m"), p: { v: 1800 } },
+  { label: aTraduire("Sommet 3 000 m"), p: { hi: 3000 } },
+  { label: aTraduire("Bas des pistes 1 500 m"), p: { lo: 1500 } },
 ];
 
 const SHORTCUTS: { k: ChipKey; label: string }[] = [
-  { k: "big", label: "Grands domaines · 300 km et plus" },
-  { k: "high", label: "Haute altitude · sommet 3 000 m" },
-  { k: "glacier", label: "Glacier" },
-  { k: "family", label: "Au moins 60 % de pistes faciles" },
+  { k: "big", label: aTraduire("Grands domaines · 300 km et plus") },
+  { k: "high", label: aTraduire("Haute altitude · sommet 3 000 m") },
+  { k: "glacier", label: aTraduire("Glacier") },
+  { k: "family", label: aTraduire("Au moins 60 % de pistes faciles") },
 ];
 
 /**
@@ -350,12 +351,17 @@ function Home() {
   const nuitsLues = nightsBetween(checkIn, checkOut);
   const datesInversees = nuitsLues == null || nuitsLues <= 0;
   const dira = retenue
-    ? `Rechercher ouvrira la fiche de la station ${retenue.name}.`
+    ? tr("Rechercher ouvrira la fiche de la station {station}.", { station: retenue.name })
     : preds.length
-      ? `Rechercher affichera ${retenues} station${retenues > 1 ? "s" : ""} sur ${all.length}, selon vos critères.`
-      : `Rechercher affichera les ${all.length} stations, classées par kilomètres de pistes.`;
+      ? trN(
+          retenues,
+          "Rechercher affichera {n} station sur {total}, selon vos critères.",
+          "Rechercher affichera {n} stations sur {total}, selon vos critères.",
+          { total: all.length },
+        )
+      : tr("Rechercher affichera les {total} stations, classées par kilomètres de pistes.", { total: all.length });
   const avertissement = datesInversees
-    ? "Le départ précède l’arrivée : la recherche portera sur une nuit, à partir de l’arrivée."
+    ? tr("Le départ précède l’arrivée : la recherche portera sur une nuit, à partir de l’arrivée.")
     : null;
 
   const search = () => {
@@ -433,8 +439,8 @@ function Home() {
 
   const altActive = ALT_RANGES.filter((r) => F[r.k] != null);
   const altSegLbl = altActive.length
-    ? altActive.map((r) => `${r.court} ${plageCourte(F[r.k], r.b)}`).join(" · ") + " m"
-    : "Indifférent";
+    ? altActive.map((r) => `${tr(r.court)} ${plageCourte(F[r.k], r.b)}`).join(" · ") + " m"
+    : tr("Indifférent");
   /** La fourchette qu'un repère pose : de sa valeur au haut de l'échelle. */
   const repere = (k: "v" | "lo" | "hi", v: number) =>
     [v, ALT_RANGES.find((r) => r.k === k)!.b[1]] as const;
@@ -447,7 +453,7 @@ function Home() {
         <div className={`hero7${entree === "anime" ? " hero7--entree" : ""}`} ref={hero}>
           <ImageSlot shape="rect"
             id="v7app-cover"
-            placeholder="Photo de couverture : un domaine en février, au petit matin. Crédit obligatoire."
+            placeholder={tr("Photo de couverture : un domaine en février, au petit matin. Crédit obligatoire.")}
             className="hero7__slot"
             src="/hero.jpg"
           />
@@ -465,18 +471,19 @@ function Home() {
           />
           <div className="hero7__in">
             <h1>
-              <span className="hero7__t1">Comparez les stations,</span>
-              <span className="hero7__t2">puis les logements.</span>
+              <span className="hero7__t1">{tr("Comparez les stations,")}</span>
+              <span className="hero7__t2">{tr("puis les logements.")}</span>
             </h1>
             <p className="hero7__lead">
-              Altitude des pistes, forfait 6 jours et total du séjour, station par station. Ce qui
-              n’est pas relevé est signalé comme tel.
+              {tr(
+                "Altitude des pistes, forfait 6 jours et total du séjour, station par station. Ce qui n’est pas relevé est signalé comme tel.",
+              )}
             </p>
             {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
             <div className="sbar7__hote hero7__barre">
               <div className={`sbar7${hp ? " sbar7--ouverte" : ""}`}>
                 <label className={seg(hp === "q")} onClick={() => setHp("q")}>
-                  <span className="sbar7__k">Destination</span>
+                  <span className="sbar7__k">{tr("Destination")}</span>
                   <input
                     id="hq"
                     value={q}
@@ -487,7 +494,7 @@ function Home() {
                     }}
                     onKeyDown={onKey}
                     onFocus={() => setHp("q")}
-                    placeholder="Station, massif, domaine"
+                    placeholder={tr("Station, massif, domaine")}
                     autoComplete="off"
                     role="combobox"
                     aria-expanded={hp === "q" && !!ql}
@@ -497,7 +504,7 @@ function Home() {
                   />
                 </label>
                 <button type="button" className={seg(hp === "alt")} onClick={() => ouvrir("alt")}>
-                  <span className="sbar7__k">Altitude</span>
+                  <span className="sbar7__k">{tr("Altitude")}</span>
                   <span className="sbar7__v">{altSegLbl}</span>
                 </button>
                 <button
@@ -505,7 +512,7 @@ function Home() {
                   className={seg(hp === "dates" && plage.phase === "from")}
                   onClick={() => ouvrir("dates")}
                 >
-                  <span className="sbar7__k">Arrivée</span>
+                  <span className="sbar7__k">{tr("Arrivée")}</span>
                   <span className="sbar7__v">{dm(checkIn)}</span>
                 </button>
                 <button
@@ -513,12 +520,12 @@ function Home() {
                   className={seg(hp === "dates" && plage.phase === "to")}
                   onClick={ouvrirDepart}
                 >
-                  <span className="sbar7__k">Départ</span>
+                  <span className="sbar7__k">{tr("Départ")}</span>
                   <span className="sbar7__v">{dm(checkOut)}</span>
                 </button>
                 <div className={`sbar7__fin ${seg(hp === "guests")}`}>
                   <button type="button" className="sbar7__seg sbar7__seg--nu" onClick={() => ouvrir("guests")}>
-                    <span className="sbar7__k">Voyageurs</span>
+                    <span className="sbar7__k">{tr("Voyageurs")}</span>
                     <span className="sbar7__v">{guestsLbl(trav, rooms, enfants)}</span>
                   </button>
                   {/* La loupe ne se désactive pas. Elle l'était dès que la
@@ -539,7 +546,7 @@ function Home() {
                 <div className="pop7 pop7--sugg" id="hq-sugg" role="listbox">
                   {sugg.length ? (
                     <>
-                      <span className="pop7__label">Suggestions</span>
+                      <span className="pop7__label">{tr("Suggestions")}</span>
                       {sugg.map((sg, i) => (
                         <button
                           key={sg.key}
@@ -561,9 +568,10 @@ function Home() {
                        « pas de station », et l'écran le dit plutôt que de
                        laisser un panneau vide. */
                     <span className="pop7__vide">
-                      Aucun nom de station ni de massif ne contient «&nbsp;{q.trim()}&nbsp;». La liste
-                      complète compte {all.length} stations françaises ; la loupe l’ouvrira filtrée sur
-                      ce texte.
+                      {tr(
+                        "Aucun nom de station ni de massif ne contient «\u00a0{texte}\u00a0». La liste complète compte {total} stations françaises ; la loupe l’ouvrira filtrée sur ce texte.",
+                        { texte: q.trim(), total: all.length },
+                      )}
                     </span>
                   )}
                 </div>
@@ -575,7 +583,7 @@ function Home() {
                   <div className="pop7__pied">
                     <span />
                     <span className="pop7__recap">
-                      {nights} nuit{nights > 1 ? "s" : ""} · {arrivalLbl(checkIn)} → {departLbl(checkOut)}
+                      {trN(nights, "{n} nuit", "{n} nuits")} · {arrivalLbl(checkIn)} → {departLbl(checkOut)}
                     </span>
                   </div>
                 </div>
@@ -584,10 +592,11 @@ function Home() {
               {hp === "alt" ? (
                 <div className="pop7 pop7--alt">
                   <div className="pop7__tete">
-                    <strong>Altitude</strong>
+                    <strong>{tr("Altitude")}</strong>
                     <span>
-                      Trois fourchettes indépendantes ; faites glisser les poignées ou tapez les
-                      bornes, et laissez sur « Indifférent » ce qui ne compte pas.
+                      {tr(
+                        "Trois fourchettes indépendantes ; faites glisser les poignées ou tapez les bornes, et laissez sur « Indifférent » ce qui ne compte pas.",
+                      )}
                     </span>
                   </div>
                   <div className="fourchettes7">
@@ -616,7 +625,7 @@ function Home() {
                             )
                           }
                         >
-                          {ap.label}
+                          {tr(ap.label)}
                         </button>
                       );
                     })}
@@ -630,10 +639,10 @@ function Home() {
                         P.setFilters({ v: null, lo: null, hi: null });
                       }}
                     >
-                      Réinitialiser
+                      {tr("Réinitialiser")}
                     </a>
                     <button type="button" className="btn7 btn7--encre" onClick={() => ouvrir("dates")}>
-                      Choisir les dates
+                      {tr("Choisir les dates")}
                     </button>
                   </div>
                 </div>
@@ -641,11 +650,11 @@ function Home() {
 
               {hp === "guests" ? (
                 <div className="pop7 pop7--guests">
-                  <Compteur k="trav" titre="Voyageurs" regle="1 à 20 personnes" />
+                  <Compteur k="trav" titre={tr("Voyageurs")} regle={tr("1 à 20 personnes")} />
                   {/* Séparés parce que le coût des forfaits comptait tout le
                       monde au tarif adulte, tarif enfant relevé ou non. */}
-                  <Compteur k="enfants" titre="dont enfants" regle={AGE_ENFANT} />
-                  <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" />
+                  <Compteur k="enfants" titre={tr("dont enfants")} regle={tr(AGE_ENFANT)} />
+                  <Compteur k="rooms" titre={tr("Chambres")} regle={tr("0 = studio accepté")} />
                 </div>
               ) : null}
             </div>
@@ -660,12 +669,12 @@ function Home() {
             {preds.length ? (
               <div className="hero7__jetons" aria-live="polite">
                 <span className="hero7__jetons-label">
-                  {retenues} station{retenues > 1 ? "s" : ""} retenue{retenues > 1 ? "s" : ""}
+                  {trN(retenues, "{n} station retenue", "{n} stations retenues")}
                 </span>
                 {preds.map((pr) => (
                   <span key={pr.id} className="jeton jeton--photo">
                     {pr.label}
-                    <button type="button" aria-label={`Retirer le critère ${pr.label}`} onClick={pr.retirer}>
+                    <button type="button" aria-label={tr("Retirer le critère {critere}", { critere: pr.label })} onClick={pr.retirer}>
                       <Icon name="croix" taille={11} />
                     </button>
                   </span>
@@ -675,7 +684,7 @@ function Home() {
                   className="hero7__jetons-tout"
                   onClick={() => P.resetFilters()}
                 >
-                  Tout retirer
+                  {tr("Tout retirer")}
                 </button>
               </div>
             ) : null}
@@ -689,7 +698,7 @@ function Home() {
                   aria-pressed={!!F.chips[sc.k]}
                   onClick={() => shortcut(sc.k)}
                 >
-                  {sc.label}
+                  {tr(sc.label)}
                 </button>
               ))}
             </div>
@@ -700,7 +709,7 @@ function Home() {
             onClick={descendre}
             tabIndex={cueCache ? -1 : undefined}
           >
-            <span>Plus bas : grands domaines et massifs</span>
+            <span>{tr("Plus bas : grands domaines et massifs")}</span>
             <svg
               width="18"
               height="18"
@@ -720,10 +729,11 @@ function Home() {
           <section className="home7__section">
             <header className="home7__tete">
               <div>
-                <h2>Plus grands domaines</h2>
+                <h2>{tr("Plus grands domaines")}</h2>
                 <p>
-                  Une station par domaine relié, classement par kilomètres de pistes. Kilomètres et
-                  remontées sont ceux de tout le domaine.
+                  {tr(
+                    "Une station par domaine relié, classement par kilomètres de pistes. Kilomètres et remontées sont ceux de tout le domaine.",
+                  )}
                 </p>
               </div>
               {/* Un lien de vue, pas une remise à zéro : il emmenait les
@@ -735,7 +745,7 @@ function Home() {
                   void go("compare");
                 }}
               >
-                Toutes les stations
+                {tr("Toutes les stations")}
                 <Icon name="fleche-droite" taille={14} />
               </a>
             </header>
@@ -748,8 +758,8 @@ function Home() {
           <section className="home7__section">
             <header className="home7__tete">
               <div>
-                <h2>Par massif</h2>
-                <p>Choisissez un massif, puis cliquez sur la loupe pour voir la liste.</p>
+                <h2>{tr("Par massif")}</h2>
+                <p>{tr("Choisissez un massif, puis cliquez sur la loupe pour voir la liste.")}</p>
               </div>
             </header>
             <div className="home7__massifs">
@@ -763,7 +773,8 @@ function Home() {
                 >
                   <strong>{x.m}</strong>
                   <span>
-                    {x.n} station{x.n > 1 ? "s" : ""} · sommet jusqu’à {fmt(x.hi)} m
+                    {trN(x.n, "{n} station", "{n} stations")} ·{" "}
+                    {tr("sommet jusqu’à {altitude} m", { altitude: fmt(x.hi) })}
                   </span>
                 </button>
               ))}

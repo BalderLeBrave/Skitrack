@@ -11,6 +11,7 @@ import {
 import { formatKm } from "@/lib/pistes";
 import { formatAlt } from "@/lib/stations";
 import { parMesure, type Sens } from "@/lib/tri";
+import { tr } from "@/lib/i18n";
 
 export const Route = createFileRoute("/openskimap")({ component: OpenSkiMapPage });
 
@@ -32,13 +33,13 @@ function OpenSkiMapPage() {
 
   const chips: [Filter, string][] = [
     ["all", `France · ${sum.n}`],
-    ["segments", `tronçons · ${sum.segments}`],
-    ["km_court", `km OSM inférieurs · ${sum.km_court}`],
+    ["segments", tr("tronçons · {n}", { n: sum.segments })],
+    ["km_court", tr("km OSM inférieurs · {n}", { n: sum.km_court })],
     ["ok", `≈ Skiinfo · ${sum.ok}`],
-    ["ecart_n", `nombre de pistes différent · ${sum.ecart_n}`],
-    ["grain_domaine", `domaine OSM · ${sum.grain_domaine}`],
-    ["osm_vide", `OSM sans piste · ${sum.osm_vide}`],
-    ["osm_absent", `sans domaine OSM · ${sum.osm_absent}`],
+    ["ecart_n", tr("nombre de pistes différent · {n}", { n: sum.ecart_n })],
+    ["grain_domaine", tr("domaine OSM · {n}", { n: sum.grain_domaine })],
+    ["osm_vide", tr("OSM sans piste · {n}", { n: sum.osm_vide })],
+    ["osm_absent", tr("sans domaine OSM · {n}", { n: sum.osm_absent })],
   ];
 
   return (
@@ -55,7 +56,7 @@ function OpenSkiMapPage() {
               {label}
             </button>
           ))}
-          <span className="shrink-0 pl-2 text-note text-muted">Tri : tronçons OSM par piste Skiinfo</span>
+          <span className="shrink-0 pl-2 text-note text-muted">{tr("Tri : tronçons OSM par piste Skiinfo")}</span>
           <SensTri className="sens7--petit shrink-0" sens={sens} onChange={setSens} />
         </>
       }
@@ -63,20 +64,19 @@ function OpenSkiMapPage() {
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
         <h1 className="font-display text-affiche tracking-tight">OpenSkiMap × Skiinfo</h1>
         <p className="mt-2 max-w-2xl text-corps text-muted">
-          OpenSkiMap reprend les pistes d’OpenStreetMap (OSM), comme OpenSnowMap. À ne pas confondre
-          avec OpenSnow.com, un service américain de prévisions. OSM compte des tracés ; Skiinfo
-          publie les pistes annoncées par la station. La répartition par couleur de Skiinfo n’est
-          jamais remplacée par celle d’OSM.
+          {tr(
+            "OpenSkiMap reprend les pistes d’OpenStreetMap (OSM), comme OpenSnowMap. À ne pas confondre avec OpenSnow.com, un service américain de prévisions. OSM compte des tracés ; Skiinfo publie les pistes annoncées par la station. La répartition par couleur de Skiinfo n’est jamais remplacée par celle d’OSM.",
+          )}
         </p>
         <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
           <table className="w-full min-w-[44rem] text-left text-corps">
             <thead>
               <tr className="border-b border-line text-note text-muted">
-                <th className="px-3 py-2 font-medium">Station</th>
-                <th className="px-3 py-2 font-medium">Pistes Skiinfo / OSM</th>
+                <th className="px-3 py-2 font-medium">{tr("Station")}</th>
+                <th className="px-3 py-2 font-medium">{tr("Pistes Skiinfo / OSM")}</th>
                 <th className="px-3 py-2 font-medium">km Skiinfo / OSM</th>
-                <th className="px-3 py-2 font-medium">Alt. OSM</th>
-                <th className="px-3 py-2 font-medium">Verdict</th>
+                <th className="px-3 py-2 font-medium">{tr("Alt. OSM")}</th>
+                <th className="px-3 py-2 font-medium">{tr("Verdict")}</th>
               </tr>
             </thead>
             <tbody>
@@ -104,7 +104,7 @@ function OpenSkiMapPage() {
                       ? `${formatAlt(r.minOsm)} – ${formatAlt(r.maxOsm)}`
                       : "–"}
                   </td>
-                  <td className="px-3 py-2 text-muted">{OSM_VERDICT_FR[r.verdict]}</td>
+                  <td className="px-3 py-2 text-muted">{tr(OSM_VERDICT_FR[r.verdict])}</td>
                 </tr>
               ))}
             </tbody>

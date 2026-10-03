@@ -10,6 +10,7 @@
 import { Fourchette } from "@/components/v7/Fourchette";
 import { couleurLbl, fourchetteLbl, UNITES, type DefFourchette } from "@/lib/filtres";
 import { COLS, ECHELLES, useParcours, type CleFourchette, type PisteColor } from "@/lib/parcours";
+import { tr } from "@/lib/i18n";
 
 /** Une fourchette de station (`SEUILS`), ou le budget, sous son libellé. */
 export function FourchetteRecherche({
@@ -22,7 +23,7 @@ export function FourchetteRecherche({
   const { b, pas } = ECHELLES[r.k];
   return (
     <Fourchette
-      lbl={r.label}
+      lbl={tr(r.label)}
       bornes={b}
       valeur={valeur}
       pas={pas}
@@ -42,7 +43,7 @@ export function FourchetteCouleur({ c }: { c: PisteColor }) {
   const u = UNITES[unit];
   return (
     <Fourchette
-      lbl={def.label}
+      lbl={tr(def.label)}
       pastille={def.token}
       bornes={u.b}
       valeur={valeur}

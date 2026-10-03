@@ -24,6 +24,7 @@ import { montant } from "../devises.ts";
 import { domainBySlug, estimationDuDomaine } from "./catalog.ts";
 import type { ForfaitRow } from "./types.ts";
 import { langueIntl } from "../i18n/langue.ts";
+import { aTraduire, tr } from "../i18n/tr.ts";
 
 /**
  * Un tarif de forfait, dans la devise de son domaine.
@@ -44,12 +45,12 @@ export function formatEuroTarif(n: number | null | undefined): string {
 export type Fiabilite = "confirme" | "partiel" | "a-confirmer" | "manuel" | "estime" | "jamais";
 
 export const FIABILITE_LBL: Record<Fiabilite, string> = {
-  confirme: "tarif confirmé",
-  partiel: "6 jours relevé, journée et enfant estimés",
-  "a-confirmer": "tarif à confirmer",
-  manuel: "tarif saisi manuellement",
-  estime: "estimation, hors coût officiel",
-  jamais: "tarif à saisir",
+  confirme: aTraduire("tarif confirmé"),
+  partiel: aTraduire("6 jours relevé, journée et enfant estimés"),
+  "a-confirmer": aTraduire("tarif à confirmer"),
+  manuel: aTraduire("tarif saisi manuellement"),
+  estime: aTraduire("estimation, hors coût officiel"),
+  jamais: aTraduire("tarif à saisir"),
 };
 
 export type EtatTarif = {
@@ -68,15 +69,15 @@ const JOUR_MS = 86_400_000;
 /** L'ancienneté, en clair, sans précision trompeuse. */
 export function anciennete(atMs: number, now = Date.now()): string {
   const d = Math.max(0, now - atMs);
-  if (d < 3_600_000) return "il y a moins d’une heure";
-  if (d < JOUR_MS) return `il y a ${Math.max(1, Math.round(d / 3_600_000))} h`;
+  if (d < 3_600_000) return tr("il y a moins d’une heure");
+  if (d < JOUR_MS) return tr("il y a {n} h", { n: Math.max(1, Math.round(d / 3_600_000)) });
   const jours = Math.round(d / JOUR_MS);
-  if (jours === 1) return "hier";
-  if (jours < 30) return `il y a ${jours} jours`;
+  if (jours === 1) return tr("hier");
+  if (jours < 30) return tr("il y a {n} jours", { n: jours });
   const mois = Math.round(jours / 30);
-  if (mois < 12) return `il y a ${mois} mois`;
+  if (mois < 12) return mois === 1 ? tr("il y a 1 mois") : tr("il y a {n} mois", { n: mois });
   const ans = Math.round(mois / 12);
-  return ans <= 1 ? "il y a un an" : `il y a ${ans} ans`;
+  return ans <= 1 ? tr("il y a un an") : tr("il y a {n} ans", { n: ans });
 }
 
 function dateFr(atMs: number): string {
@@ -103,28 +104,28 @@ export function etatTarif(row: ForfaitRow, now = Date.now()): EtatTarif {
   const chiffre = row.j1 != null || row.j6 != null;
   const at = row.fetchedAt ? Date.parse(row.fetchedAt) : NaN;
   const fraicheur = Number.isFinite(at)
-    ? `relevé le ${dateFr(at)} · ${anciennete(at, now)}`
+    ? tr("relevé le {date} · {anciennete}", { date: dateFr(at), anciennete: anciennete(at, now) })
     : null;
   const cause = row.lastError ?? null;
 
   if (row.status === "manuel" || row.locked) {
-    return { fraicheur, fiabilite: "manuel", fiabiliteLbl: FIABILITE_LBL.manuel, cause: null, chiffre };
+    return { fraicheur, fiabilite: "manuel", fiabiliteLbl: tr(FIABILITE_LBL.manuel), cause: null, chiffre };
   }
   if (row.status === "estimé") {
-    return { fraicheur: null, fiabilite: "estime", fiabiliteLbl: FIABILITE_LBL.estime, cause, chiffre };
+    return { fraicheur: null, fiabilite: "estime", fiabiliteLbl: tr(FIABILITE_LBL.estime), cause, chiffre };
   }
   if (!chiffre) {
     // Jamais obtenu : on invite à saisir. Le code HTTP part au détail.
-    return { fraicheur: null, fiabilite: "jamais", fiabiliteLbl: FIABILITE_LBL.jamais, cause, chiffre };
+    return { fraicheur: null, fiabilite: "jamais", fiabiliteLbl: tr(FIABILITE_LBL.jamais), cause, chiffre };
   }
   if (row.status === "ok" && partiel(row)) {
-    return { fraicheur, fiabilite: "partiel", fiabiliteLbl: FIABILITE_LBL.partiel, cause: null, chiffre };
+    return { fraicheur, fiabilite: "partiel", fiabiliteLbl: tr(FIABILITE_LBL.partiel), cause: null, chiffre };
   }
   if (row.status === "ok") {
-    return { fraicheur, fiabilite: "confirme", fiabiliteLbl: FIABILITE_LBL.confirme, cause: null, chiffre };
+    return { fraicheur, fiabilite: "confirme", fiabiliteLbl: tr(FIABILITE_LBL.confirme), cause: null, chiffre };
   }
   // « stale » ou « erreur » avec un montant : le montant reste, avec sa date.
-  return { fraicheur, fiabilite: "a-confirmer", fiabiliteLbl: FIABILITE_LBL["a-confirmer"], cause, chiffre };
+  return { fraicheur, fiabilite: "a-confirmer", fiabiliteLbl: tr(FIABILITE_LBL["a-confirmer"]), cause, chiffre };
 }
 
 /** La seule fraîcheur, pour les écrans qui n'ont la place que d'une ligne. */

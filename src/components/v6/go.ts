@@ -4,7 +4,7 @@
 
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useCallback } from "react";
-import { dire } from "@/lib/i18n";
+import { dire, tr } from "@/lib/i18n";
 import { useParcours } from "@/lib/parcours";
 
 /** Les écrans v7 : les quatre étapes du parcours, la fiche station, et « Prix »,
@@ -56,7 +56,7 @@ export function useGo() {
       if (screen === "fiche")
         return opts.id
           ? navigate({ to: "/stations/$id", params: { id: opts.id } })
-          : say("Station inconnue.");
+          : say(tr("Station inconnue."));
       if (screen === "lodging") return navigate({ to: "/logements" });
       if (screen === "booking") return navigate({ to: "/reservation" });
       // Hors des étapes, donc sans verrou (App.dc.html:526-528).

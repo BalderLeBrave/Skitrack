@@ -4,6 +4,7 @@
  */
 
 import { Icon } from "@/components/Icon";
+import { tr } from "@/lib/i18n";
 import { eurCents } from "@/lib/parcours";
 import { ecartAvecPrincipale, type Logement } from "@/lib/stay/regroupement";
 import { prixLbl } from "@/lib/v7";
@@ -25,21 +26,21 @@ export function OffresLogement({
   const base = g.principale;
   return (
     <div className="offres7">
-      <span className="offres7__titre">Ce logement sur {g.offres.length} plateformes</span>
+      <span className="offres7__titre">{tr("Ce logement sur {n} plateformes", { n: g.offres.length })}</span>
       <ul>
         {g.offres.map((o) => {
           const e = ecartAvecPrincipale(o, base);
           const pct = e != null && base.total > 0 ? (e / base.total) * 100 : null;
-          const pctLbl = pct != null && pct < 1 ? "moins de 1 %" : `+${Math.round(pct ?? 0)} %`;
+          const pctLbl = pct != null && pct < 1 ? tr("moins de 1 %") : `+${Math.round(pct ?? 0)} %`;
           const ecart =
             o.id === base.id
               ? base.total > 0
-                ? "la moins chère"
+                ? tr("la moins chère")
                 : ""
               : e == null
                 ? ""
                 : e === 0
-                  ? "même prix"
+                  ? tr("même prix")
                   : `+${eurCents(e) ?? e} (${pctLbl})`;
           const courante = o.id === ici;
           return (
@@ -48,7 +49,7 @@ export function OffresLogement({
                 type="button"
                 className="offres7__source"
                 aria-current={courante ? "true" : undefined}
-                aria-label={courante ? `${o.source}, offre affichée` : `Voir l’offre ${o.source}`}
+                aria-label={courante ? tr("{source}, offre affichée", { source: o.source }) : tr("Voir l’offre {source}", { source: o.source })}
                 onClick={() => {
                   if (!courante) voir(o.id);
                 }}
@@ -65,13 +66,13 @@ export function OffresLogement({
                   target="_blank"
                   rel="noopener"
                   className="offres7__lien"
-                  aria-label={`Ouvrir l’offre ${o.source} dans un nouvel onglet`}
+                  aria-label={tr("Ouvrir l’offre {source} dans un nouvel onglet", { source: o.source })}
                 >
-                  Ouvrir
+                  {tr("Ouvrir")}
                   <Icon name="externe" taille={12} />
                 </a>
               ) : (
-                <span className="offres7__lien absent">sans lien</span>
+                <span className="offres7__lien absent">{tr("sans lien")}</span>
               )}
             </li>
           );

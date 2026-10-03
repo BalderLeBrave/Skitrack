@@ -8,6 +8,7 @@
 import { ProfilAltitude } from "./ProfilAltitude";
 import { profileSeries, type GpxPoint } from "@/lib/gpx";
 import { decimal, entier } from "@/lib/nombres";
+import { tr } from "@/lib/i18n";
 
 export function ElevationProfile({ points }: { points: GpxPoint[] }) {
   const serie = profileSeries(points);
@@ -23,19 +24,23 @@ export function ElevationProfile({ points }: { points: GpxPoint[] }) {
         mesure
         description={
           bas != null && haut != null
-            ? `Profil de la trace, de ${entier(bas)} à ${entier(haut)} mètres sur ${decimal(km)} kilomètres`
-            : "Profil de la trace"
+            ? tr("Profil de la trace, de {bas} à {haut} mètres sur {km} kilomètres", {
+                bas: entier(bas),
+                haut: entier(haut),
+                km: decimal(km),
+              })
+            : tr("Profil de la trace")
         }
         bornes={
           bas != null && haut != null
             ? [
-                { cle: "bas", texte: `bas ${entier(bas)} m` },
+                { cle: "bas", texte: tr("bas {altitude} m", { altitude: entier(bas) }) },
                 { cle: "long", texte: `${decimal(km)} km` },
-                { cle: "haut", texte: `haut ${entier(haut)} m` },
+                { cle: "haut", texte: tr("haut {altitude} m", { altitude: entier(haut) }) },
               ]
             : undefined
         }
-        vide="Pas d’altitude dans ce fichier GPX : le profil n’est pas tracé."
+        vide={tr("Pas d’altitude dans ce fichier GPX : le profil n’est pas tracé.")}
       />
     </div>
   );

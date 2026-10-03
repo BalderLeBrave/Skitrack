@@ -26,6 +26,7 @@ import { Icon } from "@/components/Icon";
 import { useEchap } from "@/components/v7/fermeture";
 import { aStation } from "@/lib/v7";
 import type { Webcam } from "@/lib/webcams";
+import { langue, tr, trN } from "@/lib/i18n";
 
 const DELAI_MS = 10_000;
 
@@ -104,9 +105,9 @@ function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
       )}
       {etat === "echec" ? (
         <div className="webcam7__echec">
-          <span>Le flux ne s’affiche pas ici.</span>
+          <span>{tr("Le flux ne s’affiche pas ici.")}</span>
           <a href={cam.url} target="_blank" rel="noopener" className="btn7 btn7--fantome">
-            Ouvrir chez l’exploitant
+            {tr("Ouvrir chez l’exploitant")}
             <Icon name="externe" taille={12} />
           </a>
         </div>
@@ -115,11 +116,16 @@ function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
   );
 }
 
+/** « Caméra du domaine, située à Val Thorens. » L'anglais écrit « in » devant le nom. */
+function situee(station: string): string {
+  return tr("Caméra du domaine, située {lieu}.", { lieu: langue() === "en" ? station : aStation(station) });
+}
+
 /** Une caméra du domaine posée dans un autre village le dit. La fiche de
  *  Brides-les-Bains montrait celle de Val Thorens sans le préciser. */
 function NoteDomaine({ cam }: { cam: Webcam }) {
   if (!cam.duDomaine || !cam.station) return null;
-  return <span className="carte7-sect__texte carte7-sect__texte--petit">Caméra du domaine, située {aStation(cam.station)}.</span>;
+  return <span className="carte7-sect__texte carte7-sect__texte--petit">{situee(cam.station)}</span>;
 }
 
 export function Webcams({ cams }: { cams: Webcam[] }) {
@@ -140,7 +146,7 @@ export function Webcams({ cams }: { cams: Webcam[] }) {
       <div className="carte7-sect__tete">
         <h2>Webcams</h2>
         {cams.length > 1 ? (
-          <span className="carte7-sect__texte carte7-sect__texte--petit">{cams.length} caméras</span>
+          <span className="carte7-sect__texte carte7-sect__texte--petit">{trN(cams.length, "{n} caméra", "{n} caméras")}</span>
         ) : null}
       </div>
       {cam ? (
@@ -153,7 +159,7 @@ export function Webcams({ cams }: { cams: Webcam[] }) {
               value={cam.id}
               onChange={(e) => setCamId(e.target.value)}
               disabled={cams.length < 2}
-              aria-label="Choisir une webcam"
+              aria-label={tr("Choisir une webcam")}
             >
               {cams.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -163,7 +169,7 @@ export function Webcams({ cams }: { cams: Webcam[] }) {
             </select>
             <button ref={ouvrir} type="button" className="btn7 btn7--fantome" onClick={() => setGrand(true)}>
               <Icon name="agrandir" taille={14} />
-              Agrandir
+              {tr("Agrandir")}
             </button>
           </div>
           <NoteDomaine cam={cam} />
@@ -175,7 +181,7 @@ export function Webcams({ cams }: { cams: Webcam[] }) {
           ) : null}
         </>
       ) : (
-        <p className="carte7-sect__texte carte7-sect__texte--petit">Aucune webcam connue pour cette station.</p>
+        <p className="carte7-sect__texte carte7-sect__texte--petit">{tr("Aucune webcam connue pour cette station.")}</p>
       )}
     </section>
   );
@@ -230,7 +236,7 @@ function WebcamEnGrand({
       className="webcam7-grand"
       role="dialog"
       aria-modal="true"
-      aria-label={`Webcam : ${cam.label}`}
+      aria-label={tr("Webcam : {camera}", { camera: cam.label })}
       onClick={(e) => {
         if (e.target === e.currentTarget) onFermer();
       }}
@@ -240,9 +246,7 @@ function WebcamEnGrand({
           <div className="webcam7-grand__titre">
             <strong>{cam.label}</strong>
             {n > 1 ? (
-              <span>
-                {index + 1} sur {n}
-              </span>
+              <span>{tr("{rang} sur {n}", { rang: index + 1, n })}</span>
             ) : null}
           </div>
           <div className="webcam7-grand__actions">
@@ -251,7 +255,7 @@ function WebcamEnGrand({
                 <button
                   type="button"
                   className="webcam7-grand__bouton"
-                  aria-label="Caméra précédente"
+                  aria-label={tr("Caméra précédente")}
                   onClick={() => onIndex((index - 1 + n) % n)}
                 >
                   <Icon name="chevron-gauche" taille={18} />
@@ -259,7 +263,7 @@ function WebcamEnGrand({
                 <button
                   type="button"
                   className="webcam7-grand__bouton"
-                  aria-label="Caméra suivante"
+                  aria-label={tr("Caméra suivante")}
                   onClick={() => onIndex((index + 1) % n)}
                 >
                   <Icon name="chevron-droite" taille={18} />
@@ -267,17 +271,17 @@ function WebcamEnGrand({
               </>
             ) : null}
             <a href={cam.url} target="_blank" rel="noopener" className="webcam7-grand__lien">
-              Ouvrir chez l’exploitant
+              {tr("Ouvrir chez l’exploitant")}
               <Icon name="externe" taille={12} />
             </a>
-            <button ref={croix} type="button" className="webcam7-grand__bouton" aria-label="Fermer" onClick={onFermer}>
+            <button ref={croix} type="button" className="webcam7-grand__bouton" aria-label={tr("Fermer")} onClick={onFermer}>
               <Icon name="croix" taille={18} />
             </button>
           </div>
         </div>
         <Flux cam={cam} grand />
         {cam.duDomaine && cam.station ? (
-          <p className="webcam7-grand__note">Caméra du domaine, située {aStation(cam.station)}.</p>
+          <p className="webcam7-grand__note">{situee(cam.station)}</p>
         ) : null}
       </div>
     </div>,

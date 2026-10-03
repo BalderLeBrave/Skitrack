@@ -15,6 +15,7 @@
  *  référence. Le shadow DOM devient des classes `.islot__*` (v6.css). */
 
 import type { CSSProperties } from "react";
+import { tr } from "@/lib/i18n";
 
 type Shape = "rect" | "rounded" | "circle" | "pill";
 
@@ -104,7 +105,7 @@ const WarnIcon = () => (
 
 export function ImageSlot({
   id,
-  placeholder = "Aucune photo",
+  placeholder = tr("Aucune photo"),
   src,
   credit,
   creditHref,
@@ -162,7 +163,7 @@ export function ImageSlot({
         </div>
         <div className="islot__attr">
           <WarnIcon />
-          <div className="islot__cap">Photo sans crédit : elle ne s’affiche pas.</div>
+          <div className="islot__cap">{tr("Photo sans crédit : elle ne s’affiche pas.")}</div>
         </div>
         <div
           className="islot__ring"
@@ -173,9 +174,9 @@ export function ImageSlot({
         {showCredit
           ? unsplashForm
             ? [
-                "Photo de ",
+                tr("Photo de "),
                 href ? link(unsplashForm[1], href) : unsplashForm[1],
-                " sur ",
+                tr(" sur "),
                 link("Unsplash", UNSPLASH_HOMEPAGE_HREF),
               ]
             : href

@@ -9,6 +9,7 @@
  */
 
 import { anciennete } from "@/lib/forfaits/age";
+import { tr, trN } from "@/lib/i18n";
 import { useMaj } from "@/lib/maj";
 
 export function AutoSync() {
@@ -23,7 +24,7 @@ export function AutoSync() {
 
   const encours = etat === "encours";
   const quand = derniereA ? Date.parse(derniereA) : NaN;
-  const releves = `${faits} relevé${faits > 1 ? "s" : ""}`;
+  const releves = trN(faits, "{n} relevé", "{n} relevés");
 
   return (
     <div className="maj" data-testid="auto-sync" data-running={encours}>
@@ -35,11 +36,11 @@ export function AutoSync() {
           disabled={encours}
           aria-busy={encours}
         >
-          {encours ? "Vérification en cours…" : "Vérifier les mises à jour"}
+          {encours ? tr("Vérification en cours…") : tr("Vérifier les mises à jour")}
         </button>
         {encours ? (
           <button type="button" className="lien-doux" onClick={arreter}>
-            Arrêter
+            {tr("Arrêter")}
           </button>
         ) : null}
       </div>
@@ -48,17 +49,17 @@ export function AutoSync() {
           ? `${releves}${dernier ? ` · ${dernier}` : ""}`
           : etat === "fait"
             ? faits === 0 && !reste
-              ? "Tout est à jour"
-              : `${releves}${reste ? " · il en reste à mettre à jour" : " · rien d’autre à mettre à jour"}`
+              ? tr("Tout est à jour")
+              : `${releves} · ${reste ? tr("il en reste à mettre à jour") : tr("rien d’autre à mettre à jour")}`
             : etat === "echec"
-              ? "Vérification interrompue par une erreur"
+              ? tr("Vérification interrompue par une erreur")
               : Number.isFinite(quand)
-                ? `Dernière vérification ${anciennete(quand)}`
-                : "Jamais vérifié sur cet appareil"}
+                ? tr("Dernière vérification {quand}", { quand: anciennete(quand) })
+                : tr("Jamais vérifié sur cet appareil")}
       </span>
       {etat === "echec" && cause ? (
         <details className="maj__detail">
-          <summary>Détail technique</summary>
+          <summary>{tr("Détail technique")}</summary>
           <code>{cause}</code>
         </details>
       ) : null}

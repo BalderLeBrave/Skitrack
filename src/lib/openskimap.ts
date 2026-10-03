@@ -3,6 +3,7 @@
 import raw from "./openskimap.snapshot.json" with { type: "json" };
 import { SKIINFO } from "./skiinfo.ts";
 import { DEPOT_STATIONS, type Station } from "./stations.ts";
+import { aTraduire } from "./i18n/tr.ts";
 
 export type OsmVerdict =
   | "ok"
@@ -47,12 +48,12 @@ export function osmFor(id: string): OsmHit | null {
 
 export const OSM_VERDICT_FR: Record<OsmVerdict, string> = {
   ok: "OSM ≈ Skiinfo",
-  segments: "OSM compte des tronçons, pas les pistes annoncées",
-  km_court: "OSM mesure moins de km que Skiinfo n’en annonce",
-  grain_domaine: "OSM compte le domaine relié, pas la station seule",
-  ecart_n: "écart de plus de 25 % sur le nombre de pistes",
-  osm_vide: "domaine OSM trouvé, aucune piste de descente comptée",
-  osm_absent: "aucun domaine de ski alpin dans OpenSkiMap",
+  segments: aTraduire("OSM compte des tronçons, pas les pistes annoncées"),
+  km_court: aTraduire("OSM mesure moins de km que Skiinfo n’en annonce"),
+  grain_domaine: aTraduire("OSM compte le domaine relié, pas la station seule"),
+  ecart_n: aTraduire("écart de plus de 25 % sur le nombre de pistes"),
+  osm_vide: aTraduire("domaine OSM trouvé, aucune piste de descente comptée"),
+  osm_absent: aTraduire("aucun domaine de ski alpin dans OpenSkiMap"),
 };
 
 export type OsmSkiRow = {

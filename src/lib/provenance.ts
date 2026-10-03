@@ -9,7 +9,8 @@
  * de la trace est simplement tu.
  */
 import type { Listing } from "./listings.ts";
-import { langueIntl } from "./i18n/langue.ts";
+import { langue, langueIntl } from "./i18n/langue.ts";
+import { tr, trN } from "./i18n/tr.ts";
 
 export type SujetProvenance = Pick<
   Listing,
@@ -31,6 +32,25 @@ const MOIS = [
   "novembre",
   "décembre",
 ];
+/** Les mêmes en anglais : « 3 September 2026 ». */
+const MOIS_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+function mois(m: number): string | undefined {
+  return (langue() === "en" ? MOIS_EN : MOIS)[m - 1];
+}
 
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -41,14 +61,14 @@ function jourIso(iso: string): { j: number; m: number; a: number } | null {
 }
 
 function jourLbl(j: number): string {
-  return j === 1 ? "1er" : String(j);
+  return j === 1 && langue() !== "en" ? "1er" : String(j);
 }
 
 /** « 3 septembre 2026 ». */
 export function dateLbl(iso: string): string | null {
   const d = jourIso(iso);
   if (!d || d.m < 1 || d.m > 12) return null;
-  return `${jourLbl(d.j)} ${MOIS[d.m - 1]} ${d.a}`;
+  return `${jourLbl(d.j)} ${mois(d.m)} ${d.a}`;
 }
 
 /** « du 6 au 13 février 2027 », « du 27 février au 6 mars 2027 », « du 30 décembre 2026 au 6 janvier 2027 ». */
@@ -56,9 +76,9 @@ export function periodeLbl(debut: string, fin: string): string | null {
   const a = jourIso(debut);
   const b = jourIso(fin);
   if (!a || !b || a.m < 1 || a.m > 12 || b.m < 1 || b.m > 12) return null;
-  if (a.a !== b.a) return `du ${dateLbl(debut)} au ${dateLbl(fin)}`;
-  if (a.m !== b.m) return `du ${jourLbl(a.j)} ${MOIS[a.m - 1]} au ${dateLbl(fin)}`;
-  return `du ${jourLbl(a.j)} au ${dateLbl(fin)}`;
+  const de =
+    a.a !== b.a ? dateLbl(debut) : a.m !== b.m ? `${jourLbl(a.j)} ${mois(a.m)}` : jourLbl(a.j);
+  return tr("du {debut} au {fin}", { debut: de ?? "", fin: dateLbl(fin) ?? "" });
 }
 
 /** « le 24 septembre 2026 à 14 h 05 », à l'heure de Paris. */
@@ -74,16 +94,17 @@ export function instantLbl(ms: number): string {
   }).formatToParts(new Date(ms));
   const v = (t: string) => Number(parts.find((p) => p.type === t)?.value);
   const minutes = String(v("minute")).padStart(2, "0");
-  return `le ${jourLbl(v("day"))} ${MOIS[v("month") - 1]} ${v("year")} à ${v("hour")} h ${minutes}`;
+  const heure = langue() === "en" ? `${String(v("hour")).padStart(2, "0")}:${minutes}` : `${v("hour")} h ${minutes}`;
+  return tr("le {date} à {heure}", { date: `${jourLbl(v("day"))} ${mois(v("month"))} ${v("year")}`, heure });
 }
 
 const CENTRALE = /^(.+?) \((?:Arkiane|Deskline|Ingénie|MSEM|Open System|Orchestra|iResa)\b/;
 
 /** « sur Airbnb », « auprès de l'Office de tourisme de Tignes ». */
 function aupresDe(l: SujetProvenance): string {
-  if (l.source !== "Centrale") return `sur ${l.source}`;
+  if (l.source !== "Centrale") return tr("sur {source}", { source: l.source });
   const nom = CENTRALE.exec(l.proven)?.[1]?.trim();
-  return nom ? `auprès de la centrale ${nom}` : "auprès de la centrale de réservation de la station";
+  return nom ? tr("auprès de la centrale {nom}", { nom }) : tr("auprès de la centrale de réservation de la station");
 }
 
 /** Date du relevé écrite dans la trace : une date ISO qui n'est pas une date de séjour (pas collée à « → »). */
@@ -114,32 +135,39 @@ export function provenancePhrase(l: SujetProvenance): string {
   const repli = /repli/i.test(proven);
   const cozy = /CozyCozy/i.test(proven);
 
-  const quoi = l.total > 0 ? "Prix relevé" : "Annonce relevée";
-  const via = cozy ? " via le comparateur CozyCozy" : "";
+  const quoi = l.total > 0 ? tr("Prix relevé") : tr("Annonce relevée");
+  const via = cozy ? ` ${tr("via le comparateur CozyCozy")}` : "";
   const releve = dateReleve(proven);
   const quand =
-    l.scannedAt != null && !repli ? ` ${instantLbl(l.scannedAt)}` : releve ? ` le ${releve}` : "";
+    l.scannedAt != null && !repli ? ` ${instantLbl(l.scannedAt)}` : releve ? ` ${tr("le {date}", { date: releve })}` : "";
   const n = voyageurs(proven);
-  const pour = n != null ? `pour ${n} personne${n > 1 ? "s" : ""}` : null;
+  const pour = n != null ? trN(n, "pour {n} personne", "pour {n} personnes") : null;
   const dates = datesSejour(l);
   const cadre = [pour, dates].filter(Boolean).join(", ");
 
   const phrases: string[] = [];
   if (repli) {
-    const repris = l.total > 0 ? "ce prix est repris" : "cette annonce est reprise";
-    const deQuoi = releve ? `du relevé du ${releve}` : "d’un relevé antérieur";
-    phrases.push(`Pas de résultat en direct ${aupresDe(l)} : ${repris} ${deQuoi}${cadre ? `, ${cadre}` : ""}.`);
+    const repris = l.total > 0 ? tr("ce prix est repris") : tr("cette annonce est reprise");
+    const deQuoi = releve ? tr("du relevé du {date}", { date: releve }) : tr("d’un relevé antérieur");
+    phrases.push(
+      tr("Pas de résultat en direct {aupres} : {repris} {origine}{cadre}.", {
+        aupres: aupresDe(l),
+        repris,
+        origine: deQuoi,
+        cadre: cadre ? `, ${cadre}` : "",
+      }),
+    );
   } else {
     phrases.push(`${quoi} ${aupresDe(l)}${via}${quand}${cadre ? `, ${cadre}` : ""}.`);
   }
 
   if (/complété par le relevé direct/i.test(proven)) {
-    phrases.push(`Fiche complétée par un relevé direct sur ${l.source}.`);
+    phrases.push(tr("Fiche complétée par un relevé direct sur {source}.", { source: l.source }));
   }
   if (/GPS ITEA/.test(proven)) {
-    phrases.push("La position sur la carte est celle publiée par Gîtes de France.");
+    phrases.push(tr("La position sur la carte est celle publiée par Gîtes de France."));
   } else if (/GPS Booking/.test(proven)) {
-    phrases.push("La position sur la carte est celle publiée par Booking.");
+    phrases.push(tr("La position sur la carte est celle publiée par Booking."));
   }
   return phrases.join(" ");
 }
@@ -152,11 +180,12 @@ export function provenancePhrase(l: SujetProvenance): string {
  */
 export function sourcePhrase(l: SujetProvenance): string {
   const type = l.propertyType?.trim();
-  const sujet = type ? `Logement de type « ${type} »` : "Logement";
-  const ref = l.platformId ? ` (réf. ${l.platformId})` : "";
+  const sujet = type ? tr("Logement de type « {type} »", { type }) : tr("Logement");
+  const ref = l.platformId ? ` (${tr("réf. {ref}", { ref: l.platformId })})` : "";
   if (l.source === "Centrale") {
     const nom = CENTRALE.exec(l.proven ?? "")?.[1]?.trim();
-    return `${sujet} proposé par ${nom ? `la centrale ${nom}` : "la centrale de réservation de la station"}${ref}.`;
+    const qui = nom ? tr("la centrale {nom}", { nom }) : tr("la centrale de réservation de la station");
+    return tr("{sujet} proposé par {qui}{ref}.", { sujet, qui, ref });
   }
-  return `${sujet} proposé sur ${l.source}${ref}.`;
+  return tr("{sujet} proposé sur {source}{ref}.", { sujet, source: l.source, ref });
 }

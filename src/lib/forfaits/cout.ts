@@ -26,6 +26,7 @@
  */
 
 import { montantCents } from "../devises.ts";
+import { tr } from "../i18n/tr.ts";
 
 /** Un prix du détail, au centime quand il en a : « 118,20 € » (six journées
  *  à 19,70 €) ne s'arrondit pas en « 118 € » sous un total qui, lui, les
@@ -67,7 +68,7 @@ export function coutForfaits(
   devise = "EUR",
 ): CoutForfaits {
   if (j6 == null) {
-    return { total: null, detail: "aucun tarif relevé", enfantsAuTarifAdulte: false, devise };
+    return { total: null, detail: tr("aucun tarif relevé"), enfantsAuTarifAdulte: false, devise };
   }
   const ad = Math.max(0, Math.round(adultes));
   const enf = Math.max(0, Math.round(enfants));
@@ -75,20 +76,26 @@ export function coutForfaits(
     return {
       total: auCentime(j6 * ad),
       devise,
-      detail: `${ad} × ${formatTarif(j6, devise)} adulte`,
+      detail: tr("{n} × {prix} adulte", { n: ad, prix: formatTarif(j6, devise) }),
       enfantsAuTarifAdulte: false,
     };
   }
   if (enf6 == null) {
-    const enfants = `${enf} × ${formatTarif(j6, devise)} enfant au tarif adulte, tarif enfant non communiqué`;
+    const enfants = tr("{n} × {prix} enfant au tarif adulte, tarif enfant non communiqué", {
+      n: enf,
+      prix: formatTarif(j6, devise),
+    });
     return {
       total: auCentime(j6 * (ad + enf)),
       devise,
-      detail: ad ? `${ad} × ${formatTarif(j6, devise)} adulte + ${enfants}` : enfants,
+      detail: ad ? `${tr("{n} × {prix} adulte", { n: ad, prix: formatTarif(j6, devise) })} + ${enfants}` : enfants,
       enfantsAuTarifAdulte: true,
     };
   }
-  const pieces = [`${ad} × ${formatTarif(j6, devise)} adulte`, `${enf} × ${formatTarif(enf6, devise)} enfant`];
+  const pieces = [
+    tr("{n} × {prix} adulte", { n: ad, prix: formatTarif(j6, devise) }),
+    tr("{n} × {prix} enfant", { n: enf, prix: formatTarif(enf6, devise) }),
+  ];
   return {
     total: auCentime(j6 * ad + enf6 * enf),
     devise,

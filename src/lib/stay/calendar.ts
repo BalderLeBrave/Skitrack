@@ -18,6 +18,9 @@
  * de `nightsBetween` et `monthLabel`.
  */
 
+import { langue } from "../i18n/langue.ts";
+import { tr, trN } from "../i18n/tr.ts";
+
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 export type YearMonth = {
@@ -43,6 +46,29 @@ const MOIS = [
 
 /** Lundi en tête, comme les colonnes de la grille. */
 export const JOURS_COURTS = ["L", "M", "M", "J", "V", "S", "D"];
+
+/** Les mois et les jours en anglais britannique, mêmes tables fixes. */
+const MOIS_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const MOIS_COURTS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const JOURS_COURTS_EN = ["M", "T", "W", "T", "F", "S", "S"];
+
+/** Les initiales des jours dans la langue de l'interface, lundi en tête. */
+export function joursCourts(): string[] {
+  return langue() === "en" ? JOURS_COURTS_EN : JOURS_COURTS;
+}
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
@@ -92,7 +118,7 @@ export function shiftMonth(ym: YearMonth, delta: number): YearMonth {
 
 /** « février 2027 ». Table fixe : l'entête du calendrier ne dépend pas d'ICU. */
 export function monthLabel(ym: YearMonth): string {
-  const name = MOIS[((ym.month0 % 12) + 12) % 12];
+  const name = (langue() === "en" ? MOIS_EN : MOIS)[((ym.month0 % 12) + 12) % 12];
   return `${name} ${ym.year}`;
 }
 
@@ -161,11 +187,15 @@ const MOIS_COURTS = [
   "déc.",
 ];
 
+function moisCourt(m0: number): string | undefined {
+  return (langue() === "en" ? MOIS_COURTS_EN : MOIS_COURTS)[m0];
+}
+
 /** « 6 févr. 2027 ». Table fixe : la même chaîne partout, quel que soit l'hôte. */
 export function formatDayIso(iso: string): string {
   const p = parseIso(iso);
   if (!p) return iso;
-  return `${p.day} ${MOIS_COURTS[p.month0]} ${p.year}`;
+  return `${p.day} ${moisCourt(p.month0)} ${p.year}`;
 }
 
 /** « 6 – 13 févr. · 7 nuits ».
@@ -176,22 +206,22 @@ export function stayRangeShort(checkIn: string, checkOut: string): string {
   const a = parseIso(checkIn);
   const b = parseIso(checkOut);
   const n = nightsBetween(checkIn, checkOut);
-  if (!a || !b || n == null) return `${formatDayIso(checkIn)} au ${formatDayIso(checkOut)}`;
+  if (!a || !b || n == null) return tr("{debut} au {fin}", { debut: formatDayIso(checkIn), fin: formatDayIso(checkOut) });
   const span =
     a.month0 === b.month0 && a.year === b.year
-      ? `${a.day} – ${b.day} ${MOIS_COURTS[b.month0]}`
-      : `${a.day} ${MOIS_COURTS[a.month0]} – ${b.day} ${MOIS_COURTS[b.month0]}`;
-  if (n <= 0) return `${span} · départ avant l’arrivée`;
-  return `${span} · ${n} nuit${n > 1 ? "s" : ""}`;
+      ? `${a.day} – ${b.day} ${moisCourt(b.month0)}`
+      : `${a.day} ${moisCourt(a.month0)} – ${b.day} ${moisCourt(b.month0)}`;
+  if (n <= 0) return tr("{dates} · départ avant l’arrivée", { dates: span });
+  return `${span} · ${trN(n, "{n} nuit", "{n} nuits")}`;
 }
 
 /** « 6 févr. 2027 au 13 févr. 2027, 7 nuits », et le dit quand la plage cloche. */
 export function stayRangeLabel(checkIn: string, checkOut: string): string {
   const n = nightsBetween(checkIn, checkOut);
-  const plage = `${formatDayIso(checkIn)} au ${formatDayIso(checkOut)}`;
-  if (n == null) return `${plage} (dates illisibles)`;
-  if (n <= 0) return `${plage} (départ avant l’arrivée)`;
-  return `${plage}, ${n} nuit${n > 1 ? "s" : ""}`;
+  const plage = tr("{debut} au {fin}", { debut: formatDayIso(checkIn), fin: formatDayIso(checkOut) });
+  if (n == null) return tr("{plage} (dates illisibles)", { plage });
+  if (n <= 0) return tr("{plage} (départ avant l’arrivée)", { plage });
+  return `${plage}, ${trN(n, "{n} nuit", "{n} nuits")}`;
 }
 
 /** Aujourd'hui, en ISO UTC : la borne sous laquelle un séjour n'existe plus. */

@@ -3,6 +3,7 @@
 
 import { SKIINFO } from "./skiinfo.ts";
 import { DEPOT_STATIONS, type Station } from "./stations.ts";
+import { aTraduire } from "./i18n/tr.ts";
 
 export const PIN_NEAR_M = 150;
 
@@ -50,12 +51,12 @@ export function verdict(ign: number | null, lo: number | null, hi: number | null
 }
 
 export const VERDICT_FR: Record<IgnSkiVerdict, string> = {
-  village: "IGN ≈ village Skiinfo",
-  sommet: "IGN ≈ sommet Skiinfo",
-  domaine: "IGN dans le domaine, pas au village publié",
-  sous_base: "IGN sous la base Skiinfo (repère en vallée)",
-  sur_sommet: "IGN au-dessus du sommet Skiinfo",
-  manque: "donnée manquante",
+  village: aTraduire("IGN ≈ village Skiinfo"),
+  sommet: aTraduire("IGN ≈ sommet Skiinfo"),
+  domaine: aTraduire("IGN dans le domaine, pas au village publié"),
+  sous_base: aTraduire("IGN sous la base Skiinfo (repère en vallée)"),
+  sur_sommet: aTraduire("IGN au-dessus du sommet Skiinfo"),
+  manque: aTraduire("donnée manquante"),
 };
 
 /** Comparaison adossée à la fiche Skiinfo : seules les stations du dépôt

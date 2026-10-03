@@ -22,9 +22,10 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { fmt } from "@/lib/parcours";
 import { lireSaisie, poigneeProche } from "@/lib/plage";
+import { aTraduire, tr } from "@/lib/i18n";
 
 const COTES = [0, 1] as const;
-const NOMS = ["minimum", "maximum"] as const;
+const NOMS = [aTraduire("minimum"), aTraduire("maximum")] as const;
 
 /** L'écart, en pas, qu'une touche fait faire à une poignée. */
 function ecartTouche(key: string): number | null {
@@ -71,6 +72,9 @@ export function Fourchette({
 }) {
   const [b0, b1] = bornes;
   const cur = valeur ?? bornes;
+  // L'unité vient souvent d'une table posée au chargement (« tronç. ») : elle
+  // se traduit ici, au rendu.
+  const u = tr(unite);
   const part = (v: number) => ((v - b0) / (b1 - b0 || 1)) * 100;
   const bas = useRef<HTMLSpanElement>(null);
   const haut = useRef<HTMLSpanElement>(null);
@@ -157,13 +161,13 @@ export function Fourchette({
         type="text"
         inputMode="numeric"
         autoComplete="off"
-        aria-label={`${lbl}, ${NOMS[which]}`}
+        aria-label={`${lbl}, ${tr(NOMS[which])}`}
         value={brouillon[which] ?? String(cur[which])}
         onChange={(e) => brouiller(which, e.target.value)}
         onBlur={() => valider(which)}
         onKeyDown={touche(which)}
       />
-      <span className="fourchette7__unite">{unite}</span>
+      <span className="fourchette7__unite">{u}</span>
     </label>
   );
 
@@ -197,19 +201,19 @@ export function Fourchette({
             style={{ left: `${part(cur[which])}%` }}
             role="slider"
             tabIndex={0}
-            aria-label={`${lbl}, ${NOMS[which]}`}
+            aria-label={`${lbl}, ${tr(NOMS[which])}`}
             aria-orientation="horizontal"
             aria-valuemin={which === 0 ? b0 : cur[0]}
             aria-valuemax={which === 0 ? cur[1] : b1}
             aria-valuenow={cur[which]}
-            aria-valuetext={`${fmt(cur[which])} ${unite}`}
+            aria-valuetext={`${fmt(cur[which])} ${u}`}
             onKeyDown={clavier(which)}
           />
         ))}
       </div>
       <div className="fourchette7__champs">
         {champ(0)}
-        <span className="fourchette7__a">à</span>
+        <span className="fourchette7__a">{tr("à")}</span>
         {champ(1)}
       </div>
     </div>

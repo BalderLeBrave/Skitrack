@@ -13,6 +13,7 @@
 import { useGo } from "@/components/v6/go";
 import { useParcours } from "@/lib/parcours";
 import type { Station } from "@/lib/stations";
+import { tr } from "@/lib/i18n";
 
 export function OngletsStation({ s, actif }: { s: Station; actif: "fiche" | "logements" }) {
   const go = useGo();
@@ -26,7 +27,7 @@ export function OngletsStation({ s, actif }: { s: Station; actif: "fiche" | "log
   };
 
   return (
-    <nav className="ongletsst" aria-label={`Station ${s.name}`}>
+    <nav className="ongletsst" aria-label={tr("Station {nom}", { nom: s.name })}>
       <span className="ongletsst__nom">{s.name}</span>
       <span className="ongletsst__liste">
         {(["fiche", "logements"] as const).map((k) => (
@@ -37,7 +38,7 @@ export function OngletsStation({ s, actif }: { s: Station; actif: "fiche" | "log
             aria-current={k === actif ? "page" : undefined}
             onClick={() => aller(k)}
           >
-            {k === "fiche" ? "Fiche station" : "Logements"}
+            {k === "fiche" ? tr("Fiche station") : tr("Logements")}
           </button>
         ))}
       </span>

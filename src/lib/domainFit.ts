@@ -6,6 +6,8 @@ import { metresBetween } from "./osmAccess.ts";
 import { domainForStation, FORFAIT_CATALOG } from "./forfaits/catalog.ts";
 import { STATIONS, stationById, type Station } from "./stations.ts";
 import { aStation } from "./v7.ts";
+import { langue } from "./i18n/langue.ts";
+import { tr } from "./i18n/tr.ts";
 
 export type GeoHint = {
   lat?: number | null;
@@ -320,8 +322,16 @@ export function rejugerDomaine<L extends Listing>(l: L, searched: Station | unde
 
 export function otherDomainMessage(fit: DomainFit, searchedName: string): string | null {
   if (fit.verdict !== "other" || !fit.nearestStationName) return null;
+  // « à Tignes », « aux Arcs » en français ; l'anglais écrit « in » devant le nom.
+  const lieu = langue() === "en" ? searchedName : aStation(searchedName);
   if (fit.winterBarrier) {
-    return `Autre domaine : ${fit.nearestStationName}. Ce logement n’est pas ${aStation(searchedName)} : le ${fit.winterBarrier} est fermé l’hiver, et il n’y a ni liaison à ski ni route directe.`;
+    return tr(
+      "Autre domaine : {domaine}. Ce logement n’est pas {lieu} : le {col} est fermé l’hiver, et il n’y a ni liaison à ski ni route directe.",
+      { domaine: fit.nearestStationName, lieu, col: fit.winterBarrier },
+    );
   }
-  return `Autre domaine : ${fit.nearestStationName}. Ce logement n’est ni ${aStation(searchedName)} ni sur un domaine relié en saison.`;
+  return tr("Autre domaine : {domaine}. Ce logement n’est ni {lieu} ni sur un domaine relié en saison.", {
+    domaine: fit.nearestStationName,
+    lieu,
+  });
 }

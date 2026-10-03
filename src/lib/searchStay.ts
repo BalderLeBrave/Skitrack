@@ -240,6 +240,16 @@ async function completer(
 ): Promise<Listing[]> {
   // Copie : les remplisseurs mutent en place, et le relevé figé ne doit pas l'être.
   const rows = listings.map((l) => ({ ...enrichirListing(l) }));
+  // Logements : le séjour cherché, pour les relectures qui demandent à Apify
+  // les annonces Airbnb encore incomplètes (`completerApify.server.ts`).
+  if (stay && fiches.pour !== "prix") {
+    try {
+      const { noterSejourApify } = await import("./scrape/apify/airbnbApify.server");
+      noterSejourApify(stationId, stay);
+    } catch {
+      /* sans Apify, rien ne change */
+    }
+  }
   const extraDevis = stay && rows.some((l) => l.source === "Gîtes de France") ? DEVIS_MS : 0;
   const extraTarif = stay && rows.some((l) => l.source === "Centrale" && l.total > 0) ? TARIF_MS : 0;
   const budget = Math.max(budgetMs, extraDevis, extraTarif);

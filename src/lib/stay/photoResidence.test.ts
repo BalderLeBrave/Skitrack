@@ -63,6 +63,17 @@ describe("photo d'une résidence Ski-Planet reprise d'une autre source", () => {
     assert.equal(proches.get("sp-1")?.photo, "https://x/s.jpg");
   });
 
+  it("un nom d'un seul mot rare suffit (« Makalu »), pas un mot courant (« Chamois »)", () => {
+    const r = photosDeResidence([
+      sp("sp-1", "Résidence Le Makalu"),
+      sp("sp-2", "Résidence Les Chamois"),
+      annonce({ id: "c-1", source: "Centrale", title: "4 Pièces 8/9 pers - LE MAKALU -034MA- PLAGNE CENTRE", photo: "https://x/m.jpg", lat: 45.505, lon: 6.675 }),
+      annonce({ id: "c-2", source: "Centrale", title: "Les Chamois 2 pièces", photo: "https://x/c.jpg", lat: 45.5, lon: 6.67 }),
+    ]);
+    assert.equal(r.get("sp-1")?.photo, "https://x/m.jpg");
+    assert.equal(r.has("sp-2"), false);
+  });
+
   it("deux résidences du même nom, loin l'une de l'autre : rien", () => {
     const r = photosDeResidence([
       sp("sp-1", "Résidence Le Serro Torre"),

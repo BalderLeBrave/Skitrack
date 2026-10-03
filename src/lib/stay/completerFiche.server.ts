@@ -41,6 +41,8 @@ import {
 } from "./priseFiche.ts";
 import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
 import { NOTE_COUCHAGES } from "./couchages.ts";
+import { completerParApify } from "./completerApify.server.ts";
+import { demanderApify, ficheApify, sejourApify } from "../scrape/apify/airbnbApify.server.ts";
 import {
   estPageGitesIntrouvable,
   marquerFicheIntrouvable,
@@ -1181,6 +1183,8 @@ const REFUS_SUITE_MAX = 3;
 /** Les annonces Airbnb dont la page reste à lire, une fois chacune (clé de page). */
 const suiteAirbnb = new Map<string, Listing>();
 let suiteAirbnbEnCours = false;
+/** La dernière suite s'est arrêtée sur des refus d'Airbnb : ses pages non lues peuvent partir chez Apify. */
+let suiteArreteeParRefus = false;
 
 /**
  * Les pages Airbnb d'une recherche, toutes : la recherche ne les attend pas
@@ -1315,6 +1319,7 @@ function rythmeRepliPrix(): RythmeRooms {
 
 async function deroulerSuiteAirbnb(): Promise<void> {
   suiteAirbnbEnCours = true;
+  suiteArreteeParRefus = false;
   const fin = Date.now() + SUITE_AIRBNB_MAX_MS;
   const compte: Compte = { lues: 0 };
   const essais = new Map<string, number>();
@@ -1345,6 +1350,7 @@ async function deroulerSuiteAirbnb(): Promise<void> {
         refus += 1;
         if (refus > REFUS_SUITE_MAX) {
           arret = "refus répétés d'Airbnb, la recherche suivante reprendra";
+          suiteArreteeParRefus = true;
           break;
         }
         await dormir(Math.min(airbnbCircuitRestantMs() + 5_000, fin - Date.now()));
@@ -1619,6 +1625,23 @@ export async function fillFiches(
     !prix && (budgetMs > 0 || opts.relecture === true) && autresRestants.length > 0
       ? lancerSuiteAutres(autresRestants)
       : 0;
+  // Logements : ce qu'Apify a rendu pour les annonces Airbnb encore
+  // incomplètes, et la demande du reste, en tâche de fond.
+  if (!prix) {
+    try {
+      const apify = completerParApify(
+        listings,
+        { sejour: sejourApify, fiche: ficheApify, demander: demanderApify },
+        circuitOpen() || suiteArreteeParRefus,
+      );
+      filled += apify.posees;
+      if (apify.posees || apify.demandees) {
+        console.info(`[fiche] Apify : ${apify.posees} annonce(s) Airbnb complétée(s), ${apify.demandees} demandée(s)`);
+      }
+    } catch (err) {
+      console.warn("[fiche] Apify :", (err as Error).message);
+    }
+  }
   if (memoire.dejaLues.size > 0) laissees.set(PAGE_DEJA_LUE, memoire.dejaLues.size);
   console.info(
     `[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${compte.lues} lues${ecrireLaissees(laissees)}` +

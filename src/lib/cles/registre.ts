@@ -70,6 +70,21 @@ export const CLES: readonly Cle[] = [
     exemple: "/usr/bin/python3",
     essayable: false,
   },
+  {
+    id: "apify",
+    env: ["APIFY_TOKEN", "SKITRACK_APIFY_TOKEN"],
+    label: "Jeton API Apify",
+    sert: "Complète par Apify les annonces Airbnb auxquelles il manque encore capacité, chambres, photo, prix ou position, dans un plafond de 5 $ par recherche.",
+    sans: "Les annonces Airbnb restent complétées par leurs pages, lues directement ; celles qu’elles laissent incomplètes le restent.",
+    obtenir: {
+      texte: "Console Apify : Settings → API & Integrations, copier le jeton personnel",
+      url: "https://console.apify.com/settings/integrations",
+    },
+    secret: true,
+    exemple: "apify_api_ suivi d’une quarantaine de caractères",
+    essayable: false,
+    facultative: true,
+  },
 ];
 
 export function cleParId(id: string): Cle | undefined {

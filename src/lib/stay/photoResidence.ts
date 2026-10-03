@@ -28,8 +28,22 @@ import { distanceM } from "./regroupement.ts";
 export const SOURCE_SKIPLANET = "Ski-Planet";
 /** Deux annonces d'une même résidence : à 400 m au plus. */
 export const RAYON_RESIDENCE_M = 400;
-/** Un nom propre d'un seul mot plus court n'est pas assez rare pour se passer des points. */
-const MOT_RARE = 8;
+/**
+ * Un nom propre d'un seul mot court, ou courant en montagne, n'est pas assez
+ * rare pour se passer des points : « Soleil », « Chamois » nomment des
+ * résidences dans chaque station, « Makalu » une seule (La Plagne, 3 octobre
+ * 2026 : la photo de l'annonce Orchestra « LE MAKALU » pour Ski-Planet).
+ */
+const MOT_COURT = 5;
+const MOTS_COURANTS = new Set(
+  (
+    "soleil midi sud nord chamois marmotte marmottes edelweiss gentiane gentianes sapin sapins meleze melezes neige neiges " +
+    "piste pistes alpage alpages cret crets cime cimes sommet sommets glacier glaciers arolle arolles bouquetin bouquetins " +
+    "aiguille aiguilles montagne montagnes chalet chalets refuge lodge panorama belvedere horizon horizons village hameau " +
+    "plein soleil vallee lac lacs etoile etoiles cristal cristaux balcon balcons terrasse terrasses source sources foret " +
+    "pied pieds roc rocher rochers centre station"
+  ).split(" "),
+);
 
 /** Les mots qui ne nomment pas une résidence en propre. */
 const MOTS_VIDES = new Set(
@@ -128,7 +142,7 @@ function chercher(
   const points = trouvees.map((a) => a.pt).filter((p): p is Point => p != null);
   if (ici && points.some((p) => distanceM(ici, p) > RAYON_RESIDENCE_M)) return null;
   if (points.some((p, i) => points.some((q, j) => j > i && distanceM(p, q) > RAYON_RESIDENCE_M))) return null;
-  const rare = cle.length >= 2 || cle[0].length >= MOT_RARE;
+  const rare = cle.length >= 2 || (cle[0].length >= MOT_COURT && !MOTS_COURANTS.has(cle[0]));
   if (!rare && !(ici && points.length > 0)) return null;
   // La plus proche d'abord, puis l'ordre des sources et des identifiants : le même choix à chaque rendu.
   const choisie = [...trouvees].sort((a, b) => {

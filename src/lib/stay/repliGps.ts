@@ -26,8 +26,9 @@
 
 import { plier } from "./logement.ts";
 
-/** D'où vient un point qui n'est pas celui de la liste. */
-export type SourceGps = "pdp" | "page" | "ban" | "jumelage";
+/** D'où vient un point qui n'est pas celui de la liste. `apify` : la page
+ *  `rooms/` lue par Apify (`scrape/apify/airbnbApify.ts`). */
+export type SourceGps = "pdp" | "page" | "ban" | "jumelage" | "apify";
 
 /** Un point BAN plus loin de la station est écarté. */
 export const RAYON_BAN_KM = 15;

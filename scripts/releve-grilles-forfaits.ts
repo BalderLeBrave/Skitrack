@@ -225,7 +225,16 @@ const { grilles, rapport } = await releverGrilles(sources, acces, {
 const ouvert = navigateur as Promise<Navigateur> | null;
 if (ouvert) await ouvert.then((n) => n.fermer()).catch(() => undefined);
 
-const toutes = fusionnerAvecPrecedent(grilles, anciennes);
+// Une grille qu'un témoin contredit de plus de moitié a presque toujours été
+// mal lue (prix enfant, débutant ou assurance pris pour l'adulte) : elle est
+// mise de côté, écrite à part dans le fichier, et l'application garde la
+// grille précédente. Entre 30 et 50 %, elle est gardée et rapportée.
+const ECART_MIS_DE_COTE = 0.5;
+const contredite = (g: GrilleTarifaire) =>
+  verifierAvecTemoins(g, temoins).some((c) => c.comparaisons.some((x) => x.ecart > ECART_MIS_DE_COTE));
+const misesDeCote = grilles.filter(contredite);
+const retenues = grilles.filter((g) => !contredite(g));
+const toutes = fusionnerAvecPrecedent(retenues, anciennes);
 const entete = JSON.stringify({
   genere: maintenant.slice(0, 10),
   regle:
@@ -234,7 +243,7 @@ const entete = JSON.stringify({
 }).slice(0, -1);
 writeFileSync(
   SORTIE,
-  `${entete},"grilles":[\n${toutes.map((g) => JSON.stringify(g)).join(",\n")}\n]}\n`,
+  `${entete},"misesDeCote":${JSON.stringify(misesDeCote.map((g) => g.id))},"grilles":[\n${toutes.map((g) => JSON.stringify(g)).join(",\n")}\n]}\n`,
 );
 
 /* ---------- Rapport ---------- */
@@ -242,8 +251,12 @@ writeFileSync(
 console.log(`\nÉcrit ${SORTIE}`);
 console.log(`Pages : ${rapport.pagesLues} lues sur ${rapport.pages}`);
 console.log(
-  `Grilles relevées : ${rapport.grilles} (${rapport.periodes} périodes), ${toutes.length - grilles.length} gardée(s) d'un relevé précédent`,
+  `Grilles relevées : ${rapport.grilles} (${rapport.periodes} périodes), ${toutes.length - retenues.length} gardée(s) d'un relevé précédent`,
 );
+if (misesDeCote.length) {
+  console.log(`\nMises de côté, contredites de plus de ${ECART_MIS_DE_COTE * 100} % par un témoin (${misesDeCote.length})`);
+  for (const g of misesDeCote) console.log(`  ${g.id}`);
+}
 console.log(`Stations couvertes par ce relevé : ${rapport.stationsCouvertes}`);
 for (const [cause, liste] of Object.entries(rapport.echecs) as [CauseEchec, string[]][]) {
   console.log(`\nÉchecs : ${CAUSE_LBL[cause]} (${liste.length})`);

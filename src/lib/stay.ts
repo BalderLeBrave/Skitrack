@@ -2,6 +2,32 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Listing } from "./listings";
 import type { SourceReport } from "./scrape/types";
+import { CALENDRIER } from "./forfaits/vacancesScolaires.ts";
+
+const JOUR_MS = 86_400_000;
+const isoPlus = (iso: string, jours: number) =>
+  new Date(Date.parse(`${iso}T12:00:00Z`) + jours * JOUR_MS).toISOString().slice(0, 10);
+
+/** Le premier séjour d'une semaine qu'on propose à qui arrive sans dates : le
+ *  premier samedi des prochaines vacances scolaires de ski (Noël, hiver,
+ *  printemps, toutes zones), au moins une semaine devant soi. Hors calendrier,
+ *  le samedi qui suit dans quinze jours. */
+export function sejourParDefaut(aujourdhui = new Date().toISOString().slice(0, 10)): {
+  checkIn: string;
+  checkOut: string;
+} {
+  const seuil = isoPlus(aujourdhui, 7);
+  const departs = Object.values(CALENDRIER)
+    .flatMap((a) => [a.noel, a.hiver, a.printemps].map((v) => [v.A, v.B, v.C].map((z) => z.depart).sort()[0]))
+    .filter((d) => d >= seuil)
+    .sort();
+  let checkIn = departs[0];
+  if (!checkIn) {
+    const d = new Date(Date.parse(`${isoPlus(aujourdhui, 14)}T12:00:00Z`));
+    checkIn = isoPlus(d.toISOString().slice(0, 10), (6 - d.getUTCDay() + 7) % 7);
+  }
+  return { checkIn, checkOut: isoPlus(checkIn, 7) };
+}
 
 /** Le séjour : dates, groupe, sélection, et le relevé en cours.
  *
@@ -37,9 +63,8 @@ type StayStore = Stay & {
 export const useStay = create<StayStore>()(
   persist(
     (set) => ({
-      checkIn: "2027-02-06",
-      checkOut: "2027-02-13",
-      guests: 8,
+      ...sejourParDefaut(),
+      guests: 2,
       children: 0,
       bedrooms: 0,
       shortlist: [],

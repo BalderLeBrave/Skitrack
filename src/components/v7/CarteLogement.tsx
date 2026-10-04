@@ -12,7 +12,8 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
 import { tr } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
-import { fmt, nuitsLbl } from "@/lib/parcours";
+import { eurCents, fmt, nuitsLbl } from "@/lib/parcours";
+import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { completudeOf, trouLbl } from "@/lib/stay/completude";
 import {
   bedLbl,
@@ -36,7 +37,7 @@ export const PAGE_LOGEMENTS = 18;
 const TROUS_SEULS = new Set(["url"]);
 
 /** Écart d'altitude à partir duquel l'annonce est signalée sous le village. */
-const ECART_VILLAGE_M = 300;
+export const ECART_VILLAGE_M = 300;
 
 const PETITS_MOTS = new Set(["de", "du", "des", "la", "le", "les", "et", "d", "l", "au", "aux", "en", "sur"]);
 
@@ -81,6 +82,7 @@ export const CarteLogement = memo(function CarteLogement({
   altitude,
   avecAltitude = false,
   altVillage = null,
+  forfaitsGroupe = null,
 }: {
   l: Listing;
   /** « Abritel », ou « Airbnb + 2 » quand le logement est aussi ailleurs. */
@@ -105,6 +107,9 @@ export const CarteLogement = memo(function CarteLogement({
   avecAltitude?: boolean;
   /** L'altitude du village de la station, pour signaler une annonce bien plus bas. */
   altVillage?: number | null;
+  /** Les forfaits du groupe pour ce séjour, quand ils sont relevés : le coût
+   *  par personne de la carte les ajoute (sauf séjour vendu forfaits compris). */
+  forfaitsGroupe?: number | null;
 }) {
   const isKept = retenu != null;
   const seen = vue && !isKept;
@@ -114,6 +119,10 @@ export const CarteLogement = memo(function CarteLogement({
   const pers = prixPersLbl(l, trav);
   const trous = complet.trous.filter((t) => TROUS_SEULS.has(t));
   const ecart = altVillage != null && altitude ? altVillage - altitude.m : null;
+  const toutCompris =
+    l.total > 0 && forfaitsGroupe != null && forfaitsGroupe > 0 && trav > 0
+      ? eurCents(Math.round((forfaitInclus(l) ? l.total : l.total + forfaitsGroupe) / trav))
+      : null;
   const sousVillage = ecart != null && ecart >= ECART_VILLAGE_M ? Math.round(ecart / 50) * 50 : null;
   return (
     <article
@@ -194,6 +203,11 @@ export const CarteLogement = memo(function CarteLogement({
               {nuitsLbl(nights)}
               {pers ? ` · ${tr("{prix} / pers.", { prix: pers })}` : ""}
             </span>
+            {toutCompris ? (
+              <span className="lodge7__tout" data-testid="lodging-all-in-per-person">
+                {tr("{prix} / pers. avec les forfaits", { prix: toutCompris })}
+              </span>
+            ) : null}
             <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
               <i />
               {firm ? tr("Prix relevé pour ces dates") : tr("Disponibilité non confirmée")}

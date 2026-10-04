@@ -4128,6 +4128,12 @@
   font-size: 12px;
   font-weight: 600;
 }
+/* Le coût par personne avec les forfaits : ce qu'un vacancier compare. */
+.lodge7__tout {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-marque-texte);
+}
 .lodge7__pied {
   display: flex;
   align-items: flex-end;
@@ -6994,4 +7000,157 @@
   padding: 10px 12px;
   color: var(--color-muted);
   font-size: var(--text-note);
+}
+
+/* ── Téléphone ──────────────────────────────────────────────────────────────
+   Sous 760 px, une colonne : la barre passe sur deux rangs (marque et
+   réglages, puis les étapes qui défilent), la recherche s'empile, la carte
+   précède la liste sans coller, et le pied du logement retenu ne garde que
+   le nom, le total et l'action. */
+@media (max-width: 760px) {
+  .v7.app {
+    min-width: 0;
+  }
+  .v7nav {
+    grid-template-columns: minmax(0, 1fr) auto;
+    height: auto;
+    row-gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4);
+  }
+  .v7nav__centre {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .v7nav__centre::-webkit-scrollbar {
+    display: none;
+  }
+  .v7nav__parcours,
+  .v7nav__centre > * {
+    flex: none;
+  }
+  .v7nav__etape {
+    padding: 0 calc(var(--spacing) * 2.5);
+  }
+  .v7sejour {
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  }
+  .v7sejour__pilule {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .v7sejour__groupe {
+    display: none;
+  }
+  .app:has(.v7sejour) .aside7,
+  .aside7 {
+    position: static;
+  }
+  .v7main {
+    padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4) calc(var(--spacing) * 20);
+  }
+  .v7wrap {
+    padding: calc(var(--spacing) * 6) calc(var(--spacing) * 4) calc(var(--spacing) * 16);
+  }
+  .v7main--pleine {
+    padding: 0;
+  }
+  .hero7__in {
+    padding: calc(var(--spacing) * 12) calc(var(--spacing) * 4) calc(var(--spacing) * 18);
+  }
+  .hero7__in h1 {
+    font-size: 36px;
+    line-height: 1.08;
+  }
+  .sbar7 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: 24px;
+    row-gap: 2px;
+  }
+  .sbar7 > :first-child,
+  .sbar7__fin {
+    grid-column: 1 / -1;
+  }
+  .sbar7__seg {
+    height: 56px;
+    padding: 0 calc(var(--spacing) * 4);
+    min-width: 0;
+  }
+  .sbar7__fin.sbar7__seg {
+    padding: 0 6px 0 0;
+  }
+  .pop7 {
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: calc(var(--spacing) * 4);
+  }
+  .home7__grille3,
+  .home7__massifs,
+  .grille7-2,
+  .fgrid7,
+  .v7deux {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v7deux__carte,
+  .v7deux__carte--bas {
+    position: relative;
+    top: auto;
+    height: 300px;
+    order: -1;
+  }
+  .bloc7,
+  .filtres7 {
+    position: static;
+  }
+  .filtres7 {
+    margin: 0;
+  }
+  .filtres7__champ {
+    flex: 1 1 100%;
+    box-sizing: border-box;
+  }
+  .filtres7__groupe,
+  .v7tete--titre {
+    flex-wrap: wrap;
+  }
+  .v7deux > *,
+  .fgrid7 > * {
+    min-width: 0;
+  }
+  .bloc7__tete {
+    flex-wrap: wrap;
+  }
+  .sejour7 {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .ruban7 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ruban7__media {
+    display: none;
+  }
+  .ruban7__faits {
+    flex-wrap: wrap;
+  }
+  .pied7 {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4);
+  }
+  .pied7__postes {
+    display: none;
+  }
+  .pied7 > :last-child {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
 }

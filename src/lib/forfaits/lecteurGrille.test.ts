@@ -411,3 +411,66 @@ describe("cellules et en-têtes", () => {
     );
   });
 });
+
+describe("lecture d'un PDF bilingue : Les 3 Vallées, Saint-Martin", () => {
+  // La mise en page du PDF officiel : une catégorie par ligne, sa traduction,
+  // la durée doublée en anglais, et la ligne de dates de la page 2 après ses tarifs.
+  const lignes = [
+    "# Page 1",
+    "05/12/2026 - 18/12/2026 | 10/04/2027 - 18/04/2027",
+    "LES 3 VALLÉES SKI PASS 2026 - 2027",
+    "Adulte",
+    "18/74ans",
+    "Adult",
+    "18/74 years",
+    "Enfant",
+    "5/17 ans",
+    "Child",
+    "Vétéran",
+    "75 ans +",
+    "Veteran",
+    "1 jour | 1day 75,70 € 62,00 € 18,90 €",
+    "6 jours | 6 days 378,50 € 310,00 € 94,50 € 310,00 €",
+    "# Page 2",
+    "LES MENUIRES ST MARTIN SKI PASS 2026 - 2027",
+    "TARIFS",
+    "Consecutive days Adulte",
+    "18/74 ans",
+    "Enfant",
+    "5/17 ans",
+    "6 jours | 6 days 350,00 € 287,00 €",
+    "Insurance is payable even on free passes.",
+    "19/12/2026 - 09/04/2027",
+  ];
+  const l = lireGrille(lignes, {
+    saison: S,
+    perimetres: [
+      { cle: "3v", motif: /3 vallees/ },
+      { cle: "station", motif: /menuires|st martin/ },
+    ],
+  });
+
+  it("les catégories empilées ligne à ligne, âges compris", () => {
+    assert.deepEqual(l.problemes, []);
+    const p1 = l.tarifs.filter((t) => t.perimetre === "3v");
+    assert.deepEqual(p1.map(court), [
+      "1 jour|adulte|75.7",
+      "1 jour|enfant|62",
+      "1 jour|senior|18.9",
+      "6 jours|adulte|378.5",
+      "6 jours|enfant|310",
+      "6 jours|senior|94.5",
+    ]);
+    assert.deepEqual(p1[0].tarif.ages, { min: 18, max: 74 });
+    assert.deepEqual(p1[0].periode?.plages, [
+      { debut: "2026-12-05", fin: "2026-12-18" },
+      { debut: "2027-04-10", fin: "2027-04-18" },
+    ]);
+  });
+
+  it("le bandeau de page nomme le périmètre, la ligne de dates finale date la page", () => {
+    const p2 = l.tarifs.filter((t) => t.perimetre === "station");
+    assert.deepEqual(p2.map(court), ["6 jours|adulte|350", "6 jours|enfant|287"]);
+    assert.deepEqual(p2[0].periode?.plages, [{ debut: "2026-12-19", fin: "2027-04-09" }]);
+  });
+});

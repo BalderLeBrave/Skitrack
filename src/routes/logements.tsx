@@ -17,7 +17,7 @@ import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
-import { CarteLogement, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
+import { CarteLogement, ECART_VILLAGE_M, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
 import { useFermeture } from "@/components/v7/fermeture";
 import { FicheEpingle } from "@/components/v7/FicheEpingle";
@@ -101,12 +101,15 @@ import {
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap" | "dist" | "alt" | "trous";
+type LodgeSort = "station" | "pp" | "total" | "cap" | "dist" | "alt" | "trous";
 
 /** Les critères du tri ; le sens se choisit à côté. Chacun part dans son sens
  *  de départ : le moins cher, le plus grand, le plus près d'abord, et les
  *  fiches qui ont le plus de trous d'abord. */
 const TRIS_LOGEMENT: { k: LodgeSort; label: string; sens: Sens }[] = [
+  // Ceux qui dorment au niveau du village d'abord, puis du moins cher au plus
+  // cher : « Logements à Val Thorens » ne commence plus par Orelle.
+  { k: "station", label: aTraduire("Tri : dans la station d’abord"), sens: 1 },
   { k: "pp", label: aTraduire("Tri : prix par personne"), sens: 1 },
   { k: "total", label: aTraduire("Tri : prix total"), sens: 1 },
   { k: "dist", label: aTraduire("Tri : distance"), sens: 1 },
@@ -609,7 +612,7 @@ function LogementsStation({ s }: { s: Station }) {
   const altDe = useAltitudes(raw);
 
   const [lf, setLf] = useState<LF>(LF0);
-  const [lsort, setLsort] = useState<LodgeSort>("pp");
+  const [lsort, setLsort] = useState<LodgeSort>("station");
   const [lsens, setLsens] = useState<Sens>(1);
   /** Un autre critère part dans son sens de départ. */
   const choisirTri = (k: LodgeSort) => {
@@ -813,7 +816,16 @@ function LogementsStation({ s }: { s: Station }) {
    *  la plus petite de toutes, et un prix non annoncé comme le moins cher. */
   const apres = (v: number | null | undefined) => (v == null || !(v > 0) ? null : v);
   // Dans les deux sens, ce que la source n'a pas publié reste en queue.
+  const village = villageM(s);
+  /** 0 au niveau du village (ou plus haut), 1 altitude inconnue, 2 en contrebas. */
+  const rangStation = (l: Listing) => {
+    const a = altDe(l)?.m;
+    if (a == null || village == null) return 1;
+    return village - a >= ECART_VILLAGE_M ? 2 : 0;
+  };
   const tri: Record<LodgeSort, (a: Listing, b: Listing) => number> = {
+    station: (a, b) =>
+      lsens * (rangStation(a) - rangStation(b)) || parMesure(apres(a.total), apres(b.total), 1),
     pp: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     total: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     cap: (a, b) => parMesure(a.capacity ?? null, b.capacity ?? null, lsens),
@@ -845,7 +857,7 @@ function LogementsStation({ s }: { s: Station }) {
     // `tri` est reconstruit à chaque rendu ; son contenu ne dépend que de
     // `lsort` et `lsens`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupesBruts, lvisCle, lsort, lsens, lsort === "alt" ? altDe : null]);
+  }, [groupesBruts, lvisCle, lsort, lsens, lsort === "alt" || lsort === "station" ? altDe : null]);
   const logementDe = useMemo(() => {
     const m = new Map<string, Logement>();
     for (const g of logements) for (const o of g.offres) m.set(o.id, g);
@@ -1160,6 +1172,7 @@ function LogementsStation({ s }: { s: Station }) {
       altitude={altDe(l)}
       avecAltitude
       altVillage={altVillage}
+      forfaitsGroupe={pass && !pass.manque ? pass.total : null}
     />
   );
 

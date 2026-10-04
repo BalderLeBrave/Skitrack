@@ -56,6 +56,10 @@ export type FilterSubject = {
   bedrooms?: number | null;
   /** Pièces annoncées, convention des centrales. `null` = non annoncé. */
   rooms?: number | null;
+  /** Un studio, lu dans le titre ou le type (`qualifierLogement`). */
+  isStudio?: boolean | null;
+  /** Le type de logement ramené à sept (`TypeLogement`). */
+  lodgingType?: string | null;
   /**
    * Distance au repère de la station cherchée, en mètres.
    *
@@ -142,8 +146,16 @@ export function minRoomsFor(bedrooms: number): number {
  * - sinon `rooms` : convention française des centrales, « N pièces » = séjour
  *   plus N-1 chambres. Un studio est un 1 pièce, donc zéro chambre.
  * - sinon `null` : la source s'est tue. Ce n'est pas un zéro.
+ *
+ * Avant tout, **un studio compte zéro chambre**, avec la règle même qui écrit
+ * « Studio » sur sa carte (`bedLbl`) : `isStudio`, ou un type « studio » sans
+ * chambres publiées. Sans elle, un studio sans chambres chiffrées passait
+ * « Chambres ≥ 1 » comme une inconnue, et celui qu'une plateforme dit à
+ * « 1 chambre » le passait tout à fait, la carte affichant « Studio »
+ * (remarque du propriétaire du 4 octobre 2026).
  */
 export function normalizedBedrooms(listing: FilterSubject): number | null {
+  if (listing.isStudio === true || (listing.bedrooms == null && listing.lodgingType === "studio")) return 0;
   if (listing.bedrooms != null) return listing.bedrooms;
   if (listing.rooms != null && listing.rooms > 0) return Math.max(0, listing.rooms - 1);
   return null;
@@ -291,10 +303,11 @@ export function partyVerdict(listing: FilterSubject, criteria: PartyCriteria): P
   }
 
   if (criteria.rooms > 0) {
-    if (listing.bedrooms != null) {
-      if (listing.bedrooms < criteria.rooms) return "trop-petit";
-    } else if (listing.rooms != null && listing.rooms > 0) {
-      if (listing.rooms < minRoomsFor(criteria.rooms)) return "trop-petit";
+    // Chambres publiées, sinon pièces moins une, un studio comptant zéro
+    // (`normalizedBedrooms`) : « N pièces » contre `minRoomsFor` revient au même.
+    const chambres = normalizedBedrooms(listing);
+    if (chambres != null) {
+      if (chambres < criteria.rooms) return "trop-petit";
     } else {
       ignore = true;
     }

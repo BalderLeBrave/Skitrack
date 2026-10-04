@@ -1,0 +1,61 @@
+{
+  "summary": "Frontend-only review of SKITRACK iteration 2 (default stay, mobile 390px, lodging sort 'dans la station d'abord', all-in per-person, dated lift pass). 4 of 5 features fully validated against live preview URL. One real mobile overflow bug found on /stations/<id> at 390 width (40 px horizontal scroll on body) caused by the weather + perimeter cards section — all other mobile pages are clean. Lift pass by period is excellent: 421 € dated 19/12/2026-09/04/2027 on 19 déc stays, 378,50 € dated 05/12-18/12 | 10/04-18/04 on 5 déc stays, no 'fiabilité faible' badge on either. All-in per-person price is correct and matches the retained-lodging bottom bar to the euro.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Station page (/stations/val-thorens) at 390×844 mobile",
+        "issue": "Horizontal overflow of 40 px: document.body.scrollWidth = 430 vs viewport = 390. Culprit chain is <section class='sect7'> → <section class='carte7-sect'> which measures 414 px wide inside a 390 px viewport (26 px of inherent width + ~24 px of horizontal padding leaking past its grid cell). The weather widget .wx7 (grid-template-columns: 1fr 1fr) and the row-2 'carte7-sect' siblings next to it (perimeter cards) are the visible symptom; .wx7__niveau children are only 199 px each but the parent column is already 414 wide. Likely cause: the two-column grid holding these cards on the station page (around .carte7-sect pair) still uses `1fr 1fr` instead of `minmax(0, 1fr) minmax(0, 1fr)` or is not switched to a single column at <= 760 px (there is no `.carte7-sect` / `.wx7` rule inside the @media (max-width: 760px) block at line 7010 of v7.css). /, /comparer and /logements (even after Retenir) at 390 all stay at bodyScrollWidth==390.",
+        "selector": "section.sect7 > section.carte7-sect (station page weather + perimeter row)",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "Station page Les Menuires lift-pass block",
+        "issue": "Spec mentions a Les Menuires station-only pass (315/350 €) should exist alongside the 3 Vallées 421/345 €. On /stations/les-menuires only the 'Forfaits · Les 3 Vallées' card is rendered (84,20 € / 421 € / 345 € / Saison non relevé). No second card for the station-only Les Menuires pass is visible. May be an acceptable product choice (hide the cheaper domain-restricted pass when a wider domain pass is published), but it does not match the spec wording.",
+        "selector": "section 'Forfaits · Les 3 Vallées' on /stations/les-menuires",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Add a mobile breakpoint rule (inside the @media (max-width: 760px) block in src/design/v7.css near line 7010) that forces the weather/perimeter row on the station page to a single column — e.g. `.wx7 { grid-template-columns: 1fr; }` and switch the enclosing two-column grid holding .carte7-sect pairs to `grid-template-columns: minmax(0, 1fr)` so .carte7-sect no longer measures 414 px inside a 390 px viewport. Target: body.scrollWidth === 390 on /stations/val-thorens at 390×844.",
+    "Optionally restore a second lift-pass card for the Les Menuires station-only pass (315 / 350 €) on /stations/les-menuires, or clarify in copy that only the Les 3 Vallées pass is surfaced when its scope is wider."
+  ],
+  "critical_code_review_comments": [
+    "The @media (max-width: 760px) block in v7.css (around line 7010) overrides nav / hero / search-bar grids but doesn't touch `.wx7`, `.carte7-sect`, or their enclosing 1fr 1fr container — this is why the station page is the only route that still overflows at 390. One or two extra selectors would close the gap.",
+    "src/routes/logements.tsx is still 1675+ lines (noted in iteration_1). The new station-first sort (`rangStation`) and the all-in-per-person computation (`forfaitsGroupe`) add more responsibility to an already very large file; splitting into a `useLodgingSearch` hook + `LodgingList` + `LodgingSortSelect` component would help future reviewers.",
+    "Good practice spotted: the dated lift-pass block correctly drops the 'fiabilité faible' badge when a dated period from the official grid is found (`grillesOfficielles.json`). Both 19 déc → 421 € (period 19/12/2026-09/04/2027) and 5 déc → 378,50 € (05/12-18/12 | 10/04-18/04) show no fiabilité warning."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (no backend)", "frontend": "80% (4 of 5 targeted features fully pass; mobile station-page overflow is the only functional miss)"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://de5afb7e-1f92-41d0-9e66-dc4b70507559.preview.emergentagent.com . Use fresh localStorage to validate the new default stay (page.evaluate('()=>localStorage.clear()') then reload). The lodging search for Val Thorens / Les Menuires with 2 pers on 19→26 déc returns 18 real cards that happen to all be AT or ABOVE village altitude, so no amber below-village badges appear — within-group cheapest-first ordering is directly observable (prices strictly ascending from 735 € up at Les Menuires, 831 € up at Val Thorens), but the inter-group ordering (badged cards AFTER no-badge cards) cannot be observed with that data set. To force below-village cards, retest with 8 travellers (as iteration_1 did on Val Thorens, which did show 18 badges) or try /stations/avoriaz. All retests should wait past Cloudflare's 'Performing security verification' interstitial (10–40 s) when first hitting the preview URL. Weather widget overflow at 390 is a CSS-only miss; code pointers are already in action_items.",
+  "detailed_test_results": {
+    "1_default_stay_fresh_localstorage": {
+      "status": "PASS",
+      "evidence": "Fresh context (cookies cleared + localStorage cleared + reload) → home search bar shows 'Arrivée 19 déc.', 'Départ 26 déc.', 'Voyageurs 2 voyageurs' and the top stay band reads '19 → 26 déc. · 7 nuits'. Matches sejourParDefaut() returning first Saturday of Noël 2026 holidays (19/12/2026 → 26/12/2026) and default guests=2."
+    },
+    "2_mobile_overflow": {
+      "status": "PARTIAL (1 of 4 routes overflows)",
+      "evidence": "Mobile 390×844 body.scrollWidth: / = 390 (OK), /comparer = 390 (OK), /logements (with real cards + station=val-thorens) = 390 (OK), /logements after clicking Retenir (bottom bar visible) = 390 (OK, bottom bar is exactly 390 px wide, shows 'LOGEMENT RETENU / Appartement · Auvergne-Rhône-Alpes · Airbnb / Total 1 716 € / 858 € par personne / Passer à la réservation'). FAIL: /stations/val-thorens = 430 (40 px overflow). Culprit: section.sect7 > section.carte7-sect widths 414 px (weather + perimeter row). Desktop 1920×1080 is unchanged — 2-column lodging grid, sticky map on the right, station page sidebar on the right."
+    },
+    "3_lodging_sort_station_first": {
+      "status": "PASS (default + within-group ordering); PARTIAL (inter-group ordering not observable with current data)",
+      "evidence": "On /logements the sort select has 7 options, defaulted to 'Tri : dans la station d'abord' (value='station'). On Val Thorens 2 pers 19→26 déc the 18 all-in prices are strictly ascending (831, 858, 1 118, 1 120, 1 139, 1 154, 1 155, 1 185, 1 199, 1 231, 1 293, 1 331, 1 363, 1 459, 1 474, 1 016 [in badge group], 1 030, 1 042…) — same ascending pattern on Les Menuires (735, 784, 787, 821, 823, 886…). Switching to 'Tri : prix par personne' re-sorts without errors. Below-village cards were not present in the current 2-traveller result set at either station, so direct observation of badged-after-nobadge ordering was not possible this run (confirmed by iteration_1 at Val Thorens / 8 pers which showed 18 below-village badges)."
+    },
+    "4_all_in_per_person": {
+      "status": "PASS",
+      "evidence": "Every lodging card with a published price renders a [data-testid=lodging-all-in-per-person] line. First Val Thorens card (820 € · 7 nuits for 2 pers, lift pass 421 €/pers → total 820 + 2×421 = 1 662 €, per person 831 €): the card shows '831 € / pers. avec les forfaits'. After clicking Retenir on that card, the fixed bottom bar reads 'Total du séjour 1 662 € · 831 € par personne' — identical to the per-person value on the card."
+    },
+    "5_lift_pass_by_period": {
+      "status": "PASS",
+      "evidence": "On /stations/val-thorens with stay 19→26 déc 2026: 'Forfaits · Les 3 Vallées · Journée adulte 84,20 € · 6 jours adulte 421 € · 6 jours enfant 345 € · Saison adulte non relevé — 19/12/2026 - 09/04/2027, du 19 décembre 2026 au 9 avril 2027 · Forfait du domaine Les 3 Vallées', 'Page officielle' green badge, no 'fiabilité faible'. Changing stay to 5→12 déc 2026: '6 jours adulte 378,50 € · 6 jours enfant 310 € — 05/12/2026 - 18/12/2026 | 10/04/2027 - 18/04/2027, du 5 au 18 décembre 2026', also no 'fiabilité faible'. Les Menuires shows the Les 3 Vallées pass (421 € dated) but not the station-only Les Menuires pass (315/350 €) — minor spec miss."
+    }
+  }
+}

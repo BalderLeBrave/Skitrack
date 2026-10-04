@@ -7124,6 +7124,22 @@
   .fgrid7 > * {
     min-width: 0;
   }
+  .wx7 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .forfaits7 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .carte7-sect {
+    min-width: 0;
+    padding: calc(var(--spacing) * 4);
+  }
+  .wx7__mesures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bande7__jours {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
   .bloc7__tete {
     flex-wrap: wrap;
   }

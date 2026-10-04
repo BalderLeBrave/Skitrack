@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { GrilleARelire } from "./aRelire";
 import type { EtatSource } from "./sources";
 import type { DomainForfait, ForfaitRow } from "./types";
 
@@ -48,6 +49,22 @@ export const listForfaits = createServerFn({ method: "POST" })
       return { items: listStored(), sources: listSources(), lastSyncAt: lastSyncAt() };
     },
   );
+
+/** Les grilles que le relevé a mises de côté, contredites par un témoin. */
+export const listerGrillesARelire = createServerFn({ method: "POST" })
+  .validator(z.object({}).optional())
+  .handler(async (): Promise<GrilleARelire[]> => {
+    const { lister } = await import("./aRelire.server");
+    return lister();
+  });
+
+/** Valide ou écarte une grille mise de côté ; rend la liste qui reste. */
+export const deciderGrilleARelire = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().min(1), verdict: z.enum(["validee", "ecartee"]) }))
+  .handler(async ({ data }): Promise<GrilleARelire[]> => {
+    const { decider } = await import("./aRelire.server");
+    return decider(data.id, data.verdict);
+  });
 
 export const listForfaitDomains = createServerFn({ method: "POST" })
   .validator(z.object({}).optional())

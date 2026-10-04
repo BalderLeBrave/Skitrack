@@ -242,10 +242,14 @@ function Comparer() {
   const visible = useMemo(() => appliquer(all, preds), [all, preds]);
   const sorted = useMemo(() => {
     const k = P.sortKey;
+    // Les stations d'un même domaine relié annoncent toutes ses km : à
+    // égalité, la plus haute d'abord, plutôt que l'ordre alphabétique qui
+    // mettait Brides-les-Bains (585 m) en tête des 3 Vallées.
+    const egalite = (a: Station, b: Station) => (k === "km" ? parMesure(villageM(a), villageM(b), -1) : 0);
     return [...visible].sort((a, b) =>
       k === "n"
         ? parTexte(a.name, b.name, P.sortDir)
-        : parMesure(sortVal(a, k, prixStations.ctx), sortVal(b, k, prixStations.ctx), P.sortDir),
+        : parMesure(sortVal(a, k, prixStations.ctx), sortVal(b, k, prixStations.ctx), P.sortDir) || egalite(a, b),
     );
   }, [visible, P.sortKey, P.sortDir, prixStations.ctx]);
 

@@ -1,0 +1,58 @@
+{
+  "summary": "Frontend-only review of SKITRACK (TanStack Start + Vite) UX changes. All 7 targeted features validated against the live preview URL. The full journey (home → /comparer → /stations/:id → /logements → side sheet → Retenir → booking unlocked) works end-to-end. Progressive lodging search, below-village badge, title readability, sticky stay band, Pistes labels, Comparer tie-break sort, and EN translations are all live and correct.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Lodging cards (meta line)", "issues": ["When capacity/rooms are unknown, cards show the inline meta as 'Capacité : Non renseigné' / 'Chambres : Non renseigné' (visible on Tignes list). Cleaner wording like a single '— pers. · — ch.' placeholder, or dropping those two fields entirely when both are missing, would avoid repeating 'Non renseigné' twice on nearly every Centrale card. Not a regression of this change set, but worth polishing."]},
+      {"screen": "Lang toggle persistence", "issues": ["Clicking the FR/EN button in the top nav flips the language in the SPA, but the choice is NOT persisted across a hard reload / direct URL open — a fresh load always starts in FR regardless of the previous selection. Consider persisting it in localStorage so a user that chose EN keeps EN on refresh and on deep links."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optional: persist chosen language (FR/EN) in localStorage so it survives hard reloads and deep links.",
+    "Optional: suppress the inline 'Non renseigné' meta line entirely when both capacity and rooms are missing, to further reduce visual noise on Centrale cards."
+  ],
+  "critical_code_review_comments": [
+    "`src/routes/logements.tsx` is 1675 lines — exceeds the 700-line guideline. The LigneReleve / Squelettes / card renderer / list rendering / map / filters all live in one file. Splitting into `components/v7/LodgingList.tsx`, `components/v7/LodgingCard` (already exists), `components/v7/LodgingFilters.tsx`, and a `useLodgingSearch` hook would improve maintainability.",
+    "`useGo()` reads `useParcours.getState()` inside the callback (good for freshness) but the comment at line 46-48 shows this was a bug fix for a stale closure. Consider adding a quick unit test to prevent regressions."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (no backend)", "frontend": "100% (7/7 targeted features)"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://de5afb7e-1f92-41d0-9e66-dc4b70507559.preview.emergentagent.com . To exercise the retain CTA via Playwright, use locator('button:has-text(...)').scroll_into_view_if_needed() + .click() (plain .click() without scroll sometimes just appends ?du=&au=&pers= query params from the top stay bar instead of navigating — looks like a focus/overlay quirk). The language toggle (button.v7nav__util--langue) is only reliably triggered via `el.dispatchEvent(new MouseEvent('click',{bubbles:true}))` from a Playwright evaluate — a real user click works fine, so this is only a test-harness note. Lodging search for Val Thorens / Tignes takes 10-25 s on first hit then is cached ~15 min; use a fresh station if you need to observe skeletons again.",
+  "detailed_test_results": {
+    "1_progressive_lodging": {
+      "status": "PASS",
+      "evidence": "Tignes fresh search: within 2s of landing on /logements, [data-testid=lodging-search-status]='18 logements, recherche en cours…' and [data-testid=lodging-progressive-grid] had realCards=18 + skCards=2 simultaneously. At t=26s search ended, status disappeared, '123 logements disponibles' shown. Clicking a real card opens the .volet7 side sheet with full details. Clicking 'Retenir' inside the sheet unlocked step 3 'Réservation' (padlock removed, button enabled). No crashes, no React errors in console (only unrelated pmtiles 404 and WebGL perf warnings from map tiles)."
+    },
+    "2_below_village_badge": {
+      "status": "PASS",
+      "evidence": "Val Thorens (village 2 321 m) lodgings list produced 18 badges with data-testid=lodging-below-village-badge. Samples: '750 m sous le village', '1 450 m sous le village', '500 m sous le village', '1 350 m sous le village', '450 m sous le village' with tooltip 'Le village de la station est à 2 321 m : prévoyez une navette ou une remontée pour rejoindre les pistes.' Cards near village altitude correctly show no badge."
+    },
+    "3_card_readability": {
+      "status": "PASS",
+      "evidence": "First VT card title rendered as '4 pièces - Les Chalets du Doron' with title attribute = '4 pièces - LES CHALETS DU DORON ( CHDORA3 )'. Checked 18 first cards: 0 displayed as ALL CAPS, all in sentence case with internal ref codes stripped from visible text and preserved in title attribute. Body-wide regex scan: no 'capacité non renseignée' / 'chambres non renseignées' / 'prix non publié' / 'photo manquante' duplicate lines anywhere on the page."
+    },
+    "4_sticky_stay_pill": {
+      "status": "PASS",
+      "evidence": "On /stations/val-thorens scrolled to y=1500: .v7sejour band present, text='Val Thorens | 6 → 13 févr. · 7 nuits | 8 voyageurs · studio accepté', backgroundColor=rgba(242,243,245,0.92), backdrop-filter=blur(12px), height=65px, pinned at top=60 (under nav). .aside7 'VOTRE SÉJOUR ICI' sits at top=140 (strictly below the band, no overlap). Section titles are no longer overlapped."
+    },
+    "5_pistes_labels": {
+      "status": "PASS",
+      "evidence": "Val Thorens (Les 3 Vallées): hero shows '771 km de pistes, domaine' and '142 remontées, domaine'. Pistes section labels: 'Pistes, station' (86), 'Kilomètres, station' (150 km), 'Remontées, domaine' (142) — exactly as specified."
+    },
+    "6_comparer_sort": {
+      "status": "PASS",
+      "evidence": "/comparer with default sort 'Tri : km de pistes' décroissant: top 10 names in order = ['Val Thorens', 'Reberty', 'Méribel-Mottaret', 'Courchevel Moriond 1650', 'Courchevel Village 1550', 'Les Menuires', 'Méribel', 'Méribel Village', 'Saint-Martin-de-Belleville', 'La Tania'] — all 771 km, ordered by village altitude desc. Val Thorens is first, Brides-les-Bains appears far later in the list (index 2443 vs 230 in body text)."
+    },
+    "7_english_mode": {
+      "status": "PASS",
+      "evidence": "After toggling to EN on /stations/val-thorens, html lang='en', button text='EN'. Hero: '771 km of slopes, ski area', '142 lifts, ski area', 'Village 2,321 m'. Pistes section: 'Slopes, resort', 'Kilometres, resort'. Tabs: 'Resort page' / 'Places to stay'. Aside: 'YOUR STAY HERE', '8 travellers · studio accepted', CTA 'Shortlist and see places to stay'. Home: 'Compare resorts, then places to stay.' EN strings for '{n} places, still searching…' and '{m} m below the village' are present in /app/src/lib/i18n/en/logements.ts (lines 236-241)."
+    }
+  }
+}

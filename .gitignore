@@ -62,3 +62,9 @@ build/python/
 build/python-cache/
 # Tuiles de la carte, copiées pour l'installateur (scripts/release-win.mjs).
 build/carte/
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

@@ -271,6 +271,11 @@ const estTitre = (l: string) => /^#{1,6}\s/.test(l);
 
 /** Le niveau d'un intertitre écrit comme un paragraphe : sous tous les titres. */
 const NIVEAU_INTERTITRE = 7;
+/** Le bandeau d'une page de PDF (« LES MENUIRES ST MARTIN SKI PASS 2026 - 2027 ») :
+ *  il tient jusqu'à la page suivante, les intertitres « TARIFS » ne le referment pas. */
+const NIVEAU_BANDEAU = 6.5;
+/** Un bloc ouvert par `# Page N` : la page d'un PDF. */
+const PAGE_PDF = /^page \d+$/i;
 
 /**
  * Une ligne courte, sans chiffre ni prix, qui fait office de titre : précédée
@@ -338,6 +343,19 @@ export function lireGrille(lignes: readonly string[], options: OptionsLecture): 
   let enAttente: Section | null = null;
   let tableau: Tableau | null = null;
   let enteteTexte: CategorieLue[] | null = null;
+  // Un en-tête de PDF écrit une catégorie par ligne (« Adulte », « 18/74ans »,
+  // « Adult », « Enfant »…) : les catégories s'empilent jusqu'à la première
+  // ligne qui n'en est pas une.
+  let pileEntete: CategorieLue[] = [];
+  // La page de PDF en cours. Sa ligne de dates peut suivre les tarifs qu'elle
+  // date (mise en page en colonnes) : une page qui n'en porte qu'une la donne,
+  // à la fin de la page, aux tarifs restés sans période.
+  let bloc: { page: boolean; debut: number; periodes: PeriodeTexte[] } = { page: false, debut: 0, periodes: [] };
+  const finirBloc = () => {
+    if (!bloc.page || bloc.periodes.length !== 1) return;
+    const per = bloc.periodes[0];
+    for (let k = bloc.debut; k < tarifs.length; k++) tarifs[k].periode ??= { libelle: per.libelle, plages: per.plages };
+  };
 
   const periodeDe = (texte: string): PeriodeTexte | null => {
     const p = periodeDepuisTexte(texte, saison);
@@ -415,6 +433,8 @@ export function lireGrille(lignes: readonly string[], options: OptionsLecture): 
     if (estTitre(ligne)) {
       const niveau = niveauTitre(ligne);
       const texte = sansDieses(ligne);
+      finirBloc();
+      bloc = { page: PAGE_PDF.test(texte), debut: tarifs.length, periodes: [] };
       while (titres.length && titres[titres.length - 1].niveau >= niveau) titres.pop();
       titres.push({ niveau, texte });
       tableau = null;
@@ -562,6 +582,9 @@ export function lireGrille(lignes: readonly string[], options: OptionsLecture): 
       const repere = reperes.find((r) => r.motif.test(plie));
       if (repere) perimetre = { cle: repere.cle, niveau: NIVEAU_INTERTITRE };
       else if (perimetre?.niveau === NIVEAU_INTERTITRE) perimetre = null;
+    } else if (bloc.page && texte.length <= 60 && !/€/.test(texte) && !/\p{Ll}/u.test(texte)) {
+      const repere = reperes.find((r) => r.motif.test(plie));
+      if (repere) perimetre = { cle: repere.cle, niveau: NIVEAU_BANDEAU };
     }
 
     // Une définition : « Haute saison : du 19/12/26 au 02/01/27… ».
@@ -586,6 +609,7 @@ export function lireGrille(lignes: readonly string[], options: OptionsLecture): 
         ? { libelle: enAttente.texte, plages: perTexte.plages, niveau: enAttente.niveau }
         : { libelle: texte, plages: perTexte.plages, niveau };
       enAttente = null;
+      if (bloc.page) bloc.periodes.push(periode);
       return;
     }
 
@@ -593,8 +617,29 @@ export function lireGrille(lignes: readonly string[], options: OptionsLecture): 
     const catsTexte = categoriesEnLigne(texte);
     if (catsTexte.length >= 2 && !prixDans(texte).length) {
       enteteTexte = catsTexte;
+      pileEntete = [];
       return;
     }
+    if (bloc.page && !prixDans(texte).length && texte.length <= 30) {
+      const seule = catsTexte.length === 1 ? catsTexte[0] : null;
+      if (seule) {
+        // « Vétéran » puis sa traduction « Veteran » : une seule colonne.
+        const derniere = pileEntete[pileEntete.length - 1];
+        if (!derniere || derniere.categorie !== seule.categorie) pileEntete.push(seule);
+        if (pileEntete.length >= 2) enteteTexte = [...pileEntete];
+        return;
+      }
+      const derniere = pileEntete[pileEntete.length - 1];
+      // « 18/74ans », « 75 ans + », et sa traduction « 18/74 years ».
+      if (derniere && /^\d{1,2}\s*(?:[/-]\s*\d{1,2}\s*)?(?:ans|years?)\s*\+?$/i.test(texte.trim())) {
+        derniere.ages ??= agesDans(texte.replace(/years?/i, "ans"));
+        if (pileEntete.length >= 2) enteteTexte = [...pileEntete];
+        return;
+      }
+      // Une traduction courte (« Adult », « Child ») ne referme pas l'en-tête.
+      if (!/\d/.test(texte) && texte.length <= 15) return;
+    }
+    pileEntete = [];
 
     // Des suites « durée, prix… » (PDF, cartes, paragraphes).
     const ctx = contexte();
@@ -602,7 +647,9 @@ export function lireGrille(lignes: readonly string[], options: OptionsLecture): 
     const suite =
       /(?<![\d-]\s?)(?<!\d\s?x\s?)(\d{1,2}\s*(?:jours?|j)\b|\d{1,2}\s*heures?|(?:1\/2|demi-?)\s*journee|journee)\s*(?:(adultes?|enfants?|juniors?|seniors?|etudiants?)\s*)?[:=]?\s*((?:\d{1,3}(?:[ .]\d{3})?(?:[,.]\d{1,2})?\s*(?:€|eur\b)\s*){1,6})/g;
     let m: RegExpExecArray | null;
-    while ((m = suite.exec(plie))) {
+    // Les PDF bilingues doublent la durée : « 1 jour | 1day 75,70 € ».
+    const plieUni = plie.replace(/\s*\|\s*\d{1,2}\s*(?:days?|hours?)\b/g, "");
+    while ((m = suite.exec(plieUni))) {
       const p = produit(m[1], ctx.restriction);
       if (!p) continue;
       const valeurs = prixDans(m[3]).map((x) => x.valeur);
@@ -632,6 +679,7 @@ export function lireGrille(lignes: readonly string[], options: OptionsLecture): 
       });
     }
   });
+  finirBloc();
 
   return { tarifs, saisons: saisonsCitees(lignes.join("\n")), problemes };
 }

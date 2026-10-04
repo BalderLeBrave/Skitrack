@@ -1,0 +1,45 @@
+{
+  "summary": "Frontend-only validation of the new 'Grilles mises de côté' panel on /forfaits (SKITRACK). All 5 target behaviours pass against the live preview URL at 1920x1080 and 390x844. Server-fn writes to src/lib/forfaits/grillesMisesDeCote.json (decisions map) and src/lib/forfaits/grillesOfficielles.json (promotion into grilles, removal from misesDeCote, notes include 'validée à la main') are verified on disk. Pre-test data files restored after testing.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "GrillesARelire.tsx is tidy (~240 lines) and keeps a clean separation between presentation and server-fn calls. useEffect fetch has no cleanup/abort if the component unmounts mid-request — minor, non-blocking.",
+    "The 'Écarter' decision persists only in grillesMisesDeCote.json#decisions and leaves grillesOfficielles.json#misesDeCote unchanged for that id. That is intentional (relevé-level record vs. decision overlay) but worth documenting in a short comment on aRelire.server.ts to avoid future confusion.",
+    "Hot-reload after writing JSON on the server (Vite HMR touching imported JSON) causes a client-side remount; the current flow handles it fine because the server fn returns the fresh list and the page simply re-fetches on next mount."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (no backend)", "frontend": "100% (5/5 target behaviours pass)"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "None (used owner's current grillesMisesDeCote.json: 6 aRelire entries, decisions={}). Backup+restore via /app/travail/*.avant-test.json.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://de5afb7e-1f92-41d0-9e66-dc4b70507559.preview.emergentagent.com . The 6 cards on /forfaits are: Alpe d'Huez Grand Domaine, Evasion Mont-Blanc, Le Mont-Dore (saison 2025-26, not 2026-27 — note mismatch with spec wording but data is as owner supplied), Queyras, Savoie Grand Revard, Valberg - Beuil. data-testids follow pattern grille-a-relire-<id-with-non-alnum-to-dash>, valider-grille-<id>, ecarter-grille-<id>. Always backup both JSON files under src/lib/forfaits/ before testing and restore via `cp /app/travail/grillesMisesDeCote.avant-test.json /app/src/lib/forfaits/grillesMisesDeCote.json && cp /app/travail/grillesOfficielles.avant-test.json /app/src/lib/forfaits/grillesOfficielles.json` — the decisions belong to the owner.",
+  "detailed_test_results": {
+    "1_panel_rendered_at_1920_with_six_cards": {
+      "status": "PASS",
+      "evidence": "On /forfaits at 1920x1080: [data-testid=grilles-a-relire] present and open=true, [data-testid=grilles-a-relire-toggle] shows '6 grilles mises de côté à relire', 6 cards with correct data-testids and names (Alpe d'Huez Grand Domaine, Evasion Mont-Blanc, Le Mont-Dore, Queyras, Savoie Grand Revard, Valberg - Beuil). First card content snippet: 'Alpe d'Huez Grand Domaine · 5 stations · saison 2026-27 · lue le 2026-10-04 · Page lue · Journée adulte : lu 45 € · témoins 23 € – 66 € (Skiinfo) −32 % … +100 % · 6 jours adulte : lu 216 € · témoins 121 € – 330 € (Skiinfo) −35 % … +79 % · Voir la grille lue (1 période) · Valider la grille · Écarter, garder le prix précédent'. Panel is above the .forf__deux block as required."
+    },
+    "2_ecarter_valberg_persists": {
+      "status": "PASS",
+      "evidence": "Click [data-testid=ecarter-grille-officiel-valberg-valberg-beuil-2026-27] → card disappears, title becomes '5 grilles mises de côté à relire', [data-testid=grilles-a-relire-message] reads exactly 'Valberg - Beuil : grille écartée, le prix précédent reste.'. On-disk after click: grillesMisesDeCote.json has aRelire length 5 and decisions = { 'officiel:valberg:valberg-beuil:2026-27': { verdict: 'ecartee', empreinte: 'y1enuz', le: '2026-10-04' } }. After full page reload: still 5 cards, Valberg absent, title still '5 …'."
+    },
+    "3_valider_savoie_grand_revard_writes_grilles_officielles": {
+      "status": "PASS",
+      "evidence": "Click [data-testid=valider-grille-officiel-savoie-grand-revard-savoie-grand-revard-2026-27] → card disappears, title '4 grilles …', message 'Savoie Grand Revard : grille validée, ses prix sont servis.'. On disk after click: grillesOfficielles.json#grilles contains a new entry with id 'officiel:savoie-grand-revard:savoie-grand-revard:2026-27' and notes including 'validée à la main le 2026-10-04 malgré l'écart avec le témoin'; the same id is NO LONGER in grillesOfficielles.json#misesDeCote (reduced from 6 to 5, Valberg still there from step 2); grillesMisesDeCote.json#decisions now also contains SGR with verdict:'validee'. After reload: still 4 cards (Alpe d'Huez, Evasion Mont-Blanc, Le Mont-Dore, Queyras)."
+    },
+    "4_domain_list_and_grid_still_work": {
+      "status": "PASS",
+      "evidence": "Typing 'val thorens' in the .forf__q input filters the domain list to Val Thorens – Orelle (359 €, 6 j adulte) and Val Thorens. Clicking the first row opens the right-hand grid panel: h2 'Val Thorens – Orelle', Alpes du Nord · saison 2026-27, 14 stations in domain, grille table with Durée × Enfant/Adulte/Senior editable, 1 j adulte prefilled at 68 (estimé). No regression from the new panel."
+    },
+    "5_panel_collapsible_and_mobile_no_overflow": {
+      "status": "PASS",
+      "evidence": "Clicking [data-testid=grilles-a-relire-toggle] toggles the <details> open=false (verified via DOM .open property). At 390x844: body.scrollWidth === 390 (no horizontal overflow), window.innerWidth = 390, [data-testid=grilles-a-relire] width = 350px, first card width = 360px (as spec'd min). Panel stacks vertically; cards fit the viewport cleanly."
+    }
+  }
+}

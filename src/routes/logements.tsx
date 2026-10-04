@@ -17,7 +17,7 @@ import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
-import { CarteLogement, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
+import { CarteLogement, ECART_VILLAGE_M, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
 import { useFermeture } from "@/components/v7/fermeture";
 import { FicheEpingle } from "@/components/v7/FicheEpingle";
@@ -96,16 +96,20 @@ import {
   liftsLbl,
   prixLbl,
   prixPin,
+  villageM,
 } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap" | "dist" | "alt" | "trous";
+type LodgeSort = "station" | "pp" | "total" | "cap" | "dist" | "alt" | "trous";
 
 /** Les critères du tri ; le sens se choisit à côté. Chacun part dans son sens
  *  de départ : le moins cher, le plus grand, le plus près d'abord, et les
  *  fiches qui ont le plus de trous d'abord. */
 const TRIS_LOGEMENT: { k: LodgeSort; label: string; sens: Sens }[] = [
+  // Ceux qui dorment au niveau du village d'abord, puis du moins cher au plus
+  // cher : « Logements à Val Thorens » ne commence plus par Orelle.
+  { k: "station", label: aTraduire("Tri : dans la station d’abord"), sens: 1 },
   { k: "pp", label: aTraduire("Tri : prix par personne"), sens: 1 },
   { k: "total", label: aTraduire("Tri : prix total"), sens: 1 },
   { k: "dist", label: aTraduire("Tri : distance"), sens: 1 },
@@ -495,7 +499,7 @@ function useReleveVisible(searching: boolean): boolean {
 }
 
 /** La ligne d'état du bloc collant, à la place du compteur. */
-function LigneReleve({ sources }: { sources: string[] }) {
+function LigneReleve({ sources, trouves = 0 }: { sources: string[]; trouves?: number }) {
   return (
     <div className="rech7" aria-busy="true">
       <span className="rech7__points" aria-hidden="true">
@@ -503,8 +507,10 @@ function LigneReleve({ sources }: { sources: string[] }) {
         <i />
         <i />
       </span>
-      <span className="rech7__texte" role="status" aria-live="polite">
-        {tr("Recherche de logements disponibles…")}
+      <span className="rech7__texte" role="status" aria-live="polite" data-testid="lodging-search-status">
+        {trouves > 0
+          ? trN(trouves, "{n} logement, recherche en cours…", "{n} logements, recherche en cours…")
+          : tr("Recherche de logements disponibles…")}
       </span>
       {sources.length ? <span className="rech7__sources">{sources.join(" · ")}</span> : null}
     </div>
@@ -522,8 +528,17 @@ function LigneReleve({ sources }: { sources: string[] }) {
 function SquelettesLogements() {
   return (
     <div className="grille7-2" aria-hidden="true">
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="lodge7 sk7">
+      <Squelettes n={4} />
+    </div>
+  );
+}
+
+/** Les squelettes seuls, pour fermer une grille déjà en partie remplie. */
+function Squelettes({ n }: { n: number }) {
+  return (
+    <>
+      {Array.from({ length: n }, (_, i) => (
+        <div key={`sk-${i}`} className="lodge7 sk7" aria-hidden="true">
           <div className="sk7__media" />
           <div className="lodge7__corps">
             <span className="sk7__barre sk7__barre--titre" />
@@ -537,7 +552,7 @@ function SquelettesLogements() {
           </div>
         </div>
       ))}
-    </div>
+    </>
   );
 }
 
@@ -597,7 +612,7 @@ function LogementsStation({ s }: { s: Station }) {
   const altDe = useAltitudes(raw);
 
   const [lf, setLf] = useState<LF>(LF0);
-  const [lsort, setLsort] = useState<LodgeSort>("pp");
+  const [lsort, setLsort] = useState<LodgeSort>("station");
   const [lsens, setLsens] = useState<Sens>(1);
   /** Un autre critère part dans son sens de départ. */
   const choisirTri = (k: LodgeSort) => {
@@ -801,7 +816,16 @@ function LogementsStation({ s }: { s: Station }) {
    *  la plus petite de toutes, et un prix non annoncé comme le moins cher. */
   const apres = (v: number | null | undefined) => (v == null || !(v > 0) ? null : v);
   // Dans les deux sens, ce que la source n'a pas publié reste en queue.
+  const village = villageM(s);
+  /** 0 au niveau du village (ou plus haut), 1 altitude inconnue, 2 en contrebas. */
+  const rangStation = (l: Listing) => {
+    const a = altDe(l)?.m;
+    if (a == null || village == null) return 1;
+    return village - a >= ECART_VILLAGE_M ? 2 : 0;
+  };
   const tri: Record<LodgeSort, (a: Listing, b: Listing) => number> = {
+    station: (a, b) =>
+      lsens * (rangStation(a) - rangStation(b)) || parMesure(apres(a.total), apres(b.total), 1),
     pp: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     total: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     cap: (a, b) => parMesure(a.capacity ?? null, b.capacity ?? null, lsens),
@@ -833,7 +857,7 @@ function LogementsStation({ s }: { s: Station }) {
     // `tri` est reconstruit à chaque rendu ; son contenu ne dépend que de
     // `lsort` et `lsens`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupesBruts, lvisCle, lsort, lsens, lsort === "alt" ? altDe : null]);
+  }, [groupesBruts, lvisCle, lsort, lsens, lsort === "alt" || lsort === "station" ? altDe : null]);
   const logementDe = useMemo(() => {
     const m = new Map<string, Logement>();
     for (const g of logements) for (const o of g.offres) m.set(o.id, g);
@@ -850,6 +874,10 @@ function LogementsStation({ s }: { s: Station }) {
   const nPages = Math.max(1, Math.ceil(affichees.length / PAGE_LOGEMENTS));
   const page = Math.min(pageL, nPages - 1);
   const pageItems = affichees.slice(page * PAGE_LOGEMENTS, (page + 1) * PAGE_LOGEMENTS);
+  // Pendant le relevé, les annonces des sources qui ont déjà répondu se
+  // montrent tout de suite ; le relevé figé des autres attend leur réponse.
+  const reportees = new Set(liveSources.map((x) => x.source));
+  const dejaLus = enReleve ? affichees.filter((l) => reportees.has(l.source)).slice(0, PAGE_LOGEMENTS) : [];
   const sigListe = `${affichees.length}|${affichees[0]?.id ?? ""}|${affichees[affichees.length - 1]?.id ?? ""}|${lsort}|${lsens}`;
   useEffect(() => setPageL(0), [sigListe]);
   // Au changement de page, le focus passe à la liste — la flèche qu'on vient
@@ -1121,6 +1149,32 @@ function LogementsStation({ s }: { s: Station }) {
       `${recadrages}|${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
     [s.id, lvis, recadrages],
   );
+  const altVillage = villageM(s);
+  const carte = (l: Listing) => (
+    <CarteLogement
+      key={l.id}
+      l={l}
+      sources={groupeLbl(l)}
+      autres={autresLbl(l)}
+      retenu={offreDe(l, P.lodgeId)?.id ?? null}
+      retenuSource={(() => {
+        const r = offreDe(l, P.lodgeId);
+        return r && r.id !== l.id ? r.source : null;
+      })()}
+      vue={logementDe.get(l.id)?.offres.some((o) => P.seen[o.id]) ?? !!P.seen[l.id]}
+      vif={actifCarte === l.id}
+      stay={stay}
+      trav={trav}
+      nights={nights}
+      ouvrir={openSheet}
+      retenir={keep}
+      designer={setActifCarte}
+      altitude={altDe(l)}
+      avecAltitude
+      altVillage={altVillage}
+      forfaitsGroupe={pass && !pass.manque ? pass.total : null}
+    />
+  );
 
   return (
     <Coquille>
@@ -1263,7 +1317,7 @@ function LogementsStation({ s }: { s: Station }) {
                 ) : null}
                 <span className="filtres7__espace" />
                 {enReleve ? (
-                  <LigneReleve sources={liveSources.map((x) => x.source)} />
+                  <LigneReleve sources={liveSources.map((x) => x.source)} trouves={dejaLus.length} />
                 ) : (
                 <span className="filtres7__compte">
                   {logements.length === 0
@@ -1415,34 +1469,17 @@ function LogementsStation({ s }: { s: Station }) {
         {raw.length || enReleve ? (
           <div className="v7deux">
             <div className="v7deux__liste" ref={listeRef} tabIndex={-1} aria-label={tr("Logements de la page")}>
-              {enReleve ? (
+              {enReleve && !dejaLus.length ? (
                 <SquelettesLogements />
+              ) : enReleve ? (
+                <div className="grille7-2" data-testid="lodging-progressive-grid">
+                  {dejaLus.map(carte)}
+                  <Squelettes n={dejaLus.length % 2 ? 1 : 2} />
+                </div>
               ) : affichees.length ? (
                 <>
                 <div className="grille7-2">
-                  {pageItems.map((l) => (
-                    <CarteLogement
-                      key={l.id}
-                      l={l}
-                      sources={groupeLbl(l)}
-                      autres={autresLbl(l)}
-                      retenu={offreDe(l, P.lodgeId)?.id ?? null}
-                      retenuSource={(() => {
-                        const r = offreDe(l, P.lodgeId);
-                        return r && r.id !== l.id ? r.source : null;
-                      })()}
-                      vue={logementDe.get(l.id)?.offres.some((o) => P.seen[o.id]) ?? !!P.seen[l.id]}
-                      vif={actifCarte === l.id}
-                      stay={stay}
-                      trav={trav}
-                      nights={nights}
-                      ouvrir={openSheet}
-                      retenir={keep}
-                      designer={setActifCarte}
-                      altitude={altDe(l)}
-                      avecAltitude
-                    />
-                  ))}
+                  {pageItems.map(carte)}
                 </div>
                 {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
                 </>
@@ -1543,7 +1580,7 @@ function LogementsStation({ s }: { s: Station }) {
                   )
                 }
               />
-              {enReleve ? <span className="rech7__voile" aria-hidden="true" /> : null}
+              {enReleve && !dejaLus.length ? <span className="rech7__voile" aria-hidden="true" /> : null}
             </div>
           </div>
         ) : (

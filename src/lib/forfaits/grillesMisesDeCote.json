@@ -1,0 +1,2504 @@
+{
+ "aRelire": [
+  {
+   "grille": {
+    "id": "officiel:alpe-d-huez:alpe-d-huez-grand-domaine:2026-27",
+    "saison": "2026-27",
+    "perimetre": {
+     "type": "domaine",
+     "cle": "domaine:alpe-d-huez-grand-domaine",
+     "nom": "Alpe d'Huez Grand Domaine"
+    },
+    "stationIds": [
+     "alpe-d-huez",
+     "auris-en-oisans",
+     "oz-en-oisans",
+     "vaujany",
+     "villard-reculas"
+    ],
+    "periodes": [
+     {
+      "libelle": "Saison entière",
+      "debut": "2026-08-01",
+      "fin": "2027-07-31",
+      "saisonEntiere": true,
+      "tarifs": [
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte (13/64)",
+        "ages": {
+         "min": 13,
+         "max": 64
+        },
+        "prix": 45,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant (5/12)",
+        "ages": {
+         "min": 5,
+         "max": 12
+        },
+        "prix": 39.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 39.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "senior",
+        "libelleCategorie": "sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 62,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte (13/64)",
+        "ages": {
+         "min": 13,
+         "max": 64
+        },
+        "prix": 83,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant (5/12)",
+        "ages": {
+         "min": 5,
+         "max": 12
+        },
+        "prix": 64,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 64,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours",
+        "categorie": "senior",
+        "libelleCategorie": "sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 117,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte (13/64)",
+        "ages": {
+         "min": 13,
+         "max": 64
+        },
+        "prix": 124,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant (5/12)",
+        "ages": {
+         "min": 5,
+         "max": 12
+        },
+        "prix": 94,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 94,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "senior",
+        "libelleCategorie": "sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 167,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte (13/64)",
+        "ages": {
+         "min": 13,
+         "max": 64
+        },
+        "prix": 162,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant (5/12)",
+        "ages": {
+         "min": 5,
+         "max": 12
+        },
+        "prix": 123,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 123,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "senior",
+        "libelleCategorie": "sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 215,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte (13/64)",
+        "ages": {
+         "min": 13,
+         "max": 64
+        },
+        "prix": 199,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant (5/12)",
+        "ages": {
+         "min": 5,
+         "max": 12
+        },
+        "prix": 154,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 154,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "senior",
+        "libelleCategorie": "sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 259,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte (13/64)",
+        "ages": {
+         "min": 13,
+         "max": 64
+        },
+        "prix": 216,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant (5/12)",
+        "ages": {
+         "min": 5,
+         "max": 12
+        },
+        "prix": 176,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 176,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "senior",
+        "libelleCategorie": "sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 289,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte (13/64)",
+        "ages": {
+         "min": 13,
+         "max": 64
+        },
+        "prix": 252,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant (5/12)",
+        "ages": {
+         "min": 5,
+         "max": 12
+        },
+        "prix": 203,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 203,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "senior",
+        "libelleCategorie": "sénior (65/71)",
+        "ages": {
+         "min": 65,
+         "max": 71
+        },
+        "prix": 333,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       }
+      ]
+     }
+    ],
+    "source": {
+     "origine": "officiel",
+     "url": "https://skipass.auris-en-oisans.fr/tous-les-forfaits/ski-a-la-journee-promo-samedi/ski-a-la-journee/",
+     "libelle": "Page tarifs officielle, skipass.auris-en-oisans.fr"
+    },
+    "scrapeLe": "2026-10-04T12:36:27.925Z",
+    "confiance": "moyenne",
+    "notes": [
+     "Tarifs publiés sans période : une période « Saison entière ».",
+     "Écart de 32 % sur le 6 jours adulte avec la grille précédente (316 €, Catalogue des forfaits, relevé du 9 août 2026, saison 2026-27) : à vérifier"
+    ]
+   },
+   "confrontations": [
+    {
+     "grille": "officiel:alpe-d-huez:alpe-d-huez-grand-domaine:2026-27",
+     "perimetre": "Alpe d'Huez Grand Domaine",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Alpe d'Huez »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 45,
+        "max": 45
+       },
+       "temoin": 66,
+       "ecart": 0.3182
+      },
+      {
+       "jours": 6,
+       "notre": {
+        "min": 216,
+        "max": 216
+       },
+       "temoin": 330,
+       "ecart": 0.3455
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:alpe-d-huez:alpe-d-huez-grand-domaine:2026-27",
+     "perimetre": "Alpe d'Huez Grand Domaine",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « OZ 3300 »",
+     "saisonTemoin": "2024-25",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 45,
+        "max": 45
+       },
+       "temoin": 64,
+       "ecart": 0.2969
+      },
+      {
+       "jours": 6,
+       "notre": {
+        "min": 216,
+        "max": 216
+       },
+       "temoin": 320,
+       "ecart": 0.325
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:alpe-d-huez:alpe-d-huez-grand-domaine:2026-27",
+     "perimetre": "Alpe d'Huez Grand Domaine",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Villard Reculas »",
+     "saisonTemoin": "2024-25",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 45,
+        "max": 45
+       },
+       "temoin": 22.5,
+       "ecart": 1
+      },
+      {
+       "jours": 6,
+       "notre": {
+        "min": 216,
+        "max": 216
+       },
+       "temoin": 121,
+       "ecart": 0.7851
+      }
+     ],
+     "alerte": true
+    }
+   ],
+   "misDeCoteLe": "2026-10-04"
+  },
+  {
+   "grille": {
+    "id": "officiel:evasion-mont-blanc:evasion-mont-blanc:2026-27",
+    "saison": "2026-27",
+    "perimetre": {
+     "type": "domaine",
+     "cle": "domaine:evasion-mont-blanc",
+     "nom": "Evasion Mont-Blanc"
+    },
+    "stationIds": [
+     "combloux",
+     "hauteluce-val-joly",
+     "le-bettex",
+     "les-contamines-montjoie",
+     "megeve",
+     "saint-gervais-mont-blanc",
+     "saint-nicolas-de-veroce"
+    ],
+    "periodes": [
+     {
+      "libelle": "Saison jusqu'au 30 novembre (1) 890,00 756,50 801,00",
+      "debut": "2026-08-01",
+      "fin": "2026-11-30",
+      "saisonEntiere": false,
+      "tarifs": [
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": {
+         "min": 15,
+         "max": 64
+        },
+        "prix": 20.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       }
+      ]
+     }
+    ],
+    "source": {
+     "origine": "officiel",
+     "url": "https://www.lesportesdumontblanc.fr/hiver/wp-content/uploads/sites/2/2026/08/Tarifs-generaux-2026-2027-1.pdf",
+     "libelle": "Page tarifs officielle, www.lesportesdumontblanc.fr"
+    },
+    "scrapeLe": "2026-10-04T12:36:27.925Z",
+    "confiance": "haute",
+    "notes": [
+     "Périodes lues sur la page officielle, telles que publiées."
+    ]
+   },
+   "confrontations": [
+    {
+     "grille": "officiel:evasion-mont-blanc:evasion-mont-blanc:2026-27",
+     "perimetre": "Evasion Mont-Blanc",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Combloux »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 20.5,
+        "max": 20.5
+       },
+       "temoin": 51.5,
+       "ecart": 0.6019
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:evasion-mont-blanc:evasion-mont-blanc:2026-27",
+     "perimetre": "Evasion Mont-Blanc",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Megève »",
+     "saisonTemoin": "2026-27",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 20.5,
+        "max": 20.5
+       },
+       "temoin": 65,
+       "ecart": 0.6846
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:evasion-mont-blanc:evasion-mont-blanc:2026-27",
+     "perimetre": "Evasion Mont-Blanc",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Les Contamines Montjoie »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 20.5,
+        "max": 20.5
+       },
+       "temoin": 54.5,
+       "ecart": 0.6239
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:evasion-mont-blanc:evasion-mont-blanc:2026-27",
+     "perimetre": "Evasion Mont-Blanc",
+     "site": "skiresort.fr",
+     "fiche": "skiresort.fr, fiche « Megève/Saint-Gervais »",
+     "saisonTemoin": "2026-27",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 20.5,
+        "max": 20.5
+       },
+       "temoin": 63.5,
+       "ecart": 0.6772
+      }
+     ],
+     "alerte": true
+    }
+   ],
+   "misDeCoteLe": "2026-10-04"
+  },
+  {
+   "grille": {
+    "id": "officiel:le-mont-dore:le-mont-dore:2025-26",
+    "saison": "2025-26",
+    "perimetre": {
+     "type": "station",
+     "cle": "station:le-mont-dore",
+     "nom": "Le Mont-Dore"
+    },
+    "stationIds": [
+     "le-mont-dore"
+    ],
+    "periodes": [
+     {
+      "libelle": "Saison entière",
+      "debut": "2025-08-01",
+      "fin": "2026-07-31",
+      "saisonEntiere": true,
+      "tarifs": [
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 2,
+         "des": null
+        },
+        "libelleDuree": "2 heures",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 30,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 2,
+         "des": null
+        },
+        "libelleDuree": "2 heures",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 21.4,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 2,
+         "des": null
+        },
+        "libelleDuree": "2 heures",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 23.9,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 2,
+         "des": null
+        },
+        "libelleDuree": "2 heures",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 26.2,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 4,
+         "des": null
+        },
+        "libelleDuree": "4 heures",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 36.2,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 4,
+         "des": null
+        },
+        "libelleDuree": "4 heures",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 25.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 4,
+         "des": null
+        },
+        "libelleDuree": "4 heures",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 28.9,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 4,
+         "des": null
+        },
+        "libelleDuree": "4 heures",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 31.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée (9h - 17h)",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 42.7,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée (9h - 17h)",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 30.4,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée (9h - 17h)",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 34.1,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée (9h - 17h)",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 37.2,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 81.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 57.9,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 65.2,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 71.1,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jour de la semaine"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours consécutifs",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 231.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours consécutifs",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 163.9,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours consécutifs",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 185.2,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours consécutifs",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 201.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours consécutifs Famille +",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 208.4,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "tribu ou famille"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours consécutifs Famille +",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 147.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "tribu ou famille"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours consécutifs Famille +",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 166.7,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "tribu ou famille"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours non consécutifs",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 180.1,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours non consécutifs",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 128.2,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours non consécutifs",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 143.7,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours non consécutifs",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 156.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours non consécutifs",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 205.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours non consécutifs",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 145.8,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours non consécutifs",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 164.3,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours non consécutifs",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 179,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 10
+        },
+        "libelleDuree": "10 jours non consécutifs + 2 jours offerts",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 343.3,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 10
+        },
+        "libelleDuree": "10 jours non consécutifs + 2 jours offerts",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 243.7,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 10
+        },
+        "libelleDuree": "10 jours non consécutifs + 2 jours offerts",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 274.6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 10
+        },
+        "libelleDuree": "10 jours non consécutifs + 2 jours offerts",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 298.7,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": "jours non consécutifs"
+       }
+      ]
+     },
+     {
+      "libelle": "Profitez d'un tarif attractif basse saison !",
+      "debut": "2026-03-09",
+      "fin": "2026-03-22",
+      "saisonEntiere": false,
+      "tarifs": [
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 21,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 15,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 17,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "Journée",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 18,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 41,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 29,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "junior",
+        "libelleCategorie": "Jeune",
+        "ages": null,
+        "prix": 33,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours consécutifs",
+        "categorie": "senior",
+        "libelleCategorie": "Senior",
+        "ages": null,
+        "prix": 36,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       }
+      ]
+     }
+    ],
+    "source": {
+     "origine": "officiel",
+     "url": "https://lemontdore.fr/ski/les-forfaits-mont-dore",
+     "libelle": "Page tarifs officielle, lemontdore.fr"
+    },
+    "scrapeLe": "2026-10-04T12:36:27.925Z",
+    "confiance": "moyenne",
+    "notes": [
+     "Périodes lues sur la page officielle ; les tarifs publiés sans date forment une période « Saison entière »."
+    ]
+   },
+   "confrontations": [
+    {
+     "grille": "officiel:le-mont-dore:le-mont-dore:2025-26",
+     "perimetre": "Le Mont-Dore",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Le Mont Dore »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 21,
+        "max": 21
+       },
+       "temoin": 42.7,
+       "ecart": 0.5082
+      },
+      {
+       "jours": 6,
+       "notre": {
+        "min": 231.6,
+        "max": 231.6
+       },
+       "temoin": 231.6,
+       "ecart": 0
+      }
+     ],
+     "alerte": true
+    }
+   ],
+   "misDeCoteLe": "2026-10-04"
+  },
+  {
+   "grille": {
+    "id": "officiel:queyras:queyras:2026-27",
+    "saison": "2026-27",
+    "perimetre": {
+     "type": "domaine",
+     "cle": "domaine:queyras",
+     "nom": "Queyras"
+    },
+    "stationIds": [
+     "abries",
+     "aiguilles",
+     "arvieux",
+     "ceillac",
+     "le-queyras",
+     "molines-en-queyras",
+     "ristolas",
+     "saint-veran"
+    ],
+    "periodes": [
+     {
+      "libelle": "Saison entière",
+      "debut": "2026-08-01",
+      "fin": "2027-07-31",
+      "saisonEntiere": true,
+      "tarifs": [
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 13.7,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior",
+        "ages": null,
+        "prix": 22.2,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 13.7,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 3,
+         "des": null
+        },
+        "libelleDuree": "3 heures",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 9.4,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 3,
+         "des": null
+        },
+        "libelleDuree": "3 heures",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior",
+        "ages": null,
+        "prix": 18.4,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 3,
+         "des": null
+        },
+        "libelleDuree": "3 heures",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 9.4,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "enfant",
+        "libelleCategorie": "Enfant",
+        "ages": null,
+        "prix": 81.3,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Sénior",
+        "ages": null,
+        "prix": 130.4,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       }
+      ]
+     }
+    ],
+    "source": {
+     "origine": "officiel",
+     "url": "https://lequeyras.com/app/uploads/guillestrois-queyras/2026/09/STATIONS-QUEYRAS-TARIFS-FORFAITS-2026-2027.pdf",
+     "libelle": "Page tarifs officielle, lequeyras.com"
+    },
+    "scrapeLe": "2026-10-04T12:36:27.925Z",
+    "confiance": "moyenne",
+    "notes": [
+     "Tarifs publiés sans période : une période « Saison entière ».",
+     "Écart de 66 % sur le 1 jour adulte avec la grille précédente (39,9 €, Skiinfo, fiche « Saint Véran », saison 2025-26) : à vérifier"
+    ]
+   },
+   "confrontations": [
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Abriès en Queyras »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 38.9,
+       "ecart": 0.6478
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Arvieux en Queyras »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 35.3,
+       "ecart": 0.6119
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Ceillac en Queyras »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 37.7,
+       "ecart": 0.6366
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Molines en Queyras »",
+     "saisonTemoin": "2024-25",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 39.9,
+       "ecart": 0.6566
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Saint Véran »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 39.9,
+       "ecart": 0.6566
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "skiresort.fr",
+     "fiche": "skiresort.fr, fiche « Abriès »",
+     "saisonTemoin": "2026-27",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 38.9,
+       "ecart": 0.6478
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "skiresort.fr",
+     "fiche": "skiresort.fr, fiche « Aiguilles »",
+     "saisonTemoin": "2026-27",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 5,
+       "ecart": 1.74
+      }
+     ],
+     "alerte": true
+    },
+    {
+     "grille": "officiel:queyras:queyras:2026-27",
+     "perimetre": "Queyras",
+     "site": "skiresort.fr",
+     "fiche": "skiresort.fr, fiche « Arvieux »",
+     "saisonTemoin": "2026-27",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 13.7,
+        "max": 13.7
+       },
+       "temoin": 39.9,
+       "ecart": 0.6566
+      }
+     ],
+     "alerte": true
+    }
+   ],
+   "misDeCoteLe": "2026-10-04"
+  },
+  {
+   "grille": {
+    "id": "officiel:savoie-grand-revard:savoie-grand-revard:2026-27",
+    "saison": "2026-27",
+    "perimetre": {
+     "type": "station",
+     "cle": "station:savoie-grand-revard",
+     "nom": "Savoie Grand Revard"
+    },
+    "stationIds": [
+     "savoie-grand-revard"
+    ],
+    "periodes": [
+     {
+      "libelle": "Saison entière",
+      "debut": "2026-08-01",
+      "fin": "2027-07-31",
+      "saisonEntiere": true,
+      "tarifs": [
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 33,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 43,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 52.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 61.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 70,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Vermeil 70 ans et +",
+        "ages": {
+         "min": 70,
+         "max": null
+        },
+        "prix": 27.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Vermeil 70 ans et +",
+        "ages": {
+         "min": 70,
+         "max": null
+        },
+        "prix": 35.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Vermeil 70 ans et +",
+        "ages": {
+         "min": 70,
+         "max": null
+        },
+        "prix": 43,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Vermeil 70 ans et +",
+        "ages": {
+         "min": 70,
+         "max": null
+        },
+        "prix": 50.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Vermeil 70 ans et +",
+        "ages": {
+         "min": 70,
+         "max": null
+        },
+        "prix": 57.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 4,
+         "des": null
+        },
+        "libelleDuree": "4 heures",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 23.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "journee",
+        "categorie": "adulte",
+        "libelleCategorie": "Adulte",
+        "ages": null,
+        "prix": 25.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "partielle",
+         "heures": 4,
+         "des": null
+        },
+        "libelleDuree": "4 heures",
+        "categorie": "senior",
+        "libelleCategorie": "Vermeil 70 ans et +",
+        "ages": {
+         "min": 70,
+         "max": null
+        },
+        "prix": 22,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "journee",
+        "categorie": "senior",
+        "libelleCategorie": "Vermeil 70 ans et +",
+        "ages": {
+         "min": 70,
+         "max": null
+        },
+        "prix": 24,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       }
+      ]
+     }
+    ],
+    "source": {
+     "origine": "officiel",
+     "url": "https://forfaits.savoiegrandrevard.com/tarifs/",
+     "libelle": "Page tarifs officielle, forfaits.savoiegrandrevard.com"
+    },
+    "scrapeLe": "2026-10-04T12:36:27.925Z",
+    "confiance": "moyenne",
+    "notes": [
+     "Tarifs publiés sans période : une période « Saison entière ».",
+     "Écart de 67 % sur le 6 jours adulte avec la grille précédente (189 €, Catalogue des forfaits, relevé du 13 août 2026, saison 2026-27) : à vérifier"
+    ]
+   },
+   "confrontations": [
+    {
+     "grille": "officiel:savoie-grand-revard:savoie-grand-revard:2026-27",
+     "perimetre": "Savoie Grand Revard",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Savoie Grand Revard »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 25.5,
+        "max": 25.5
+       },
+       "temoin": 25.5,
+       "ecart": 0
+      },
+      {
+       "jours": 6,
+       "notre": {
+        "min": 61.5,
+        "max": 61.5
+       },
+       "temoin": 128.5,
+       "ecart": 0.5214
+      }
+     ],
+     "alerte": true
+    }
+   ],
+   "misDeCoteLe": "2026-10-04"
+  },
+  {
+   "grille": {
+    "id": "officiel:valberg:valberg-beuil:2026-27",
+    "saison": "2026-27",
+    "perimetre": {
+     "type": "domaine",
+     "cle": "domaine:valberg-beuil",
+     "nom": "Valberg - Beuil"
+    },
+    "stationIds": [
+     "beuil-les-launes",
+     "valberg"
+    ],
+    "periodes": [
+     {
+      "libelle": "Saison entière",
+      "debut": "2026-08-01",
+      "fin": "2027-07-31",
+      "saisonEntiere": true,
+      "tarifs": [
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "journee",
+        "categorie": "adulte",
+        "libelleCategorie": "Adultes",
+        "ages": {
+         "min": 6,
+         "max": 15
+        },
+        "prix": 8,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "journee",
+        "categorie": "junior",
+        "libelleCategorie": "Jeunes",
+        "ages": null,
+        "prix": 6,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 37,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 1
+        },
+        "libelleDuree": "1 jour",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 22,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 72,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 2
+        },
+        "libelleDuree": "2 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 43,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 99,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 3
+        },
+        "libelleDuree": "3 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 59,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 131,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 4
+        },
+        "libelleDuree": "4 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 78.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 163,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 5
+        },
+        "libelleDuree": "5 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 97.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 195,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 6
+        },
+        "libelleDuree": "6 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 117,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 227,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 7
+        },
+        "libelleDuree": "7 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 136,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 8
+        },
+        "libelleDuree": "8 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 259,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 8
+        },
+        "libelleDuree": "8 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 155,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 9
+        },
+        "libelleDuree": "9 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 291,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 9
+        },
+        "libelleDuree": "9 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 174.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 10
+        },
+        "libelleDuree": "10 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 323,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 10
+        },
+        "libelleDuree": "10 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 193.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 11
+        },
+        "libelleDuree": "11 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 355,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 11
+        },
+        "libelleDuree": "11 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 213,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 12
+        },
+        "libelleDuree": "12 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 387,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 12
+        },
+        "libelleDuree": "12 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 232,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 13
+        },
+        "libelleDuree": "13 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 419,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 13
+        },
+        "libelleDuree": "13 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 251,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 14
+        },
+        "libelleDuree": "14 jours",
+        "categorie": "etudiant",
+        "libelleCategorie": "Étudiants",
+        "ages": null,
+        "prix": 451,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       },
+       {
+        "duree": {
+         "type": "jours",
+         "jours": 14
+        },
+        "libelleDuree": "14 jours",
+        "categorie": "senior",
+        "libelleCategorie": "Séniors",
+        "ages": null,
+        "prix": 270.5,
+        "devise": "EUR",
+        "canal": "non-precise",
+        "restriction": null
+       }
+      ]
+     }
+    ],
+    "source": {
+     "origine": "officiel",
+     "url": "https://www.valberg.com/app/uploads/2024/03/valberg-tarifs-hiver-25-26-1.pdf",
+     "libelle": "Page tarifs officielle, www.valberg.com"
+    },
+    "scrapeLe": "2026-10-04T12:36:27.925Z",
+    "confiance": "moyenne",
+    "notes": [
+     "Tarifs publiés sans période : une période « Saison entière ».",
+     "Saison non écrite sur la page : rangée à la saison 2026-27."
+    ]
+   },
+   "confrontations": [
+    {
+     "grille": "officiel:valberg:valberg-beuil:2026-27",
+     "perimetre": "Valberg - Beuil",
+     "site": "Skiinfo",
+     "fiche": "Skiinfo, fiche « Valberg »",
+     "saisonTemoin": "2025-26",
+     "comparaisons": [
+      {
+       "jours": 1,
+       "notre": {
+        "min": 8,
+        "max": 8
+       },
+       "temoin": 37,
+       "ecart": 0.7838
+      }
+     ],
+     "alerte": true
+    }
+   ],
+   "misDeCoteLe": "2026-10-04"
+  }
+ ],
+ "decisions": {}
+}

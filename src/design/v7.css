@@ -378,7 +378,16 @@
 .v7sejour {
   display: flex;
   justify-content: center;
-  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 10) 0;
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 10);
+  /* Une bande, pas une pilule seule : le contenu qui défile passe dessous au
+     lieu de se lire au travers (titres de section, encadré collant). */
+  background: var(--color-barre-fond);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-line-coquille);
+}
+/* L'encadré collant se cale sous la bande de séjour quand elle est là. */
+.app:has(.v7sejour) .aside7 {
+  top: 140px;
 }
 .v7sejour__pilule {
   display: inline-flex;
@@ -4107,6 +4116,24 @@
   font-size: 13px;
   color: var(--color-ink);
 }
+/* Une annonce bien plus bas que le village : le vacancier doit le voir avant
+   d'ouvrir la fiche, pas en découvrant la navette sur place. */
+.lodge7__ecart {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+  font-size: 12px;
+  font-weight: 600;
+}
+/* Le coût par personne avec les forfaits : ce qu'un vacancier compare. */
+.lodge7__tout {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-marque-texte);
+}
 .lodge7__pied {
   display: flex;
   align-items: flex-end;
@@ -5059,6 +5086,104 @@
 .forf__bilan {
   background: var(--color-glacier);
   color: var(--color-muted);
+}
+/* Les grilles mises de côté par le relevé : un bandeau qui se replie, et sa
+   liste bornée pour laisser la liste des domaines à l'écran. */
+.arel7 {
+  flex: none;
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  border: 1px solid var(--color-bordure);
+}
+.arel7__tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  cursor: pointer;
+  color: var(--color-ink);
+}
+.arel7__tete > span {
+  color: var(--color-muted);
+  font-size: var(--text-detail);
+}
+.arel7 > .forf__bilan,
+.arel7 > .forf__erreur {
+  margin: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 3);
+}
+.arel7__liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: calc(var(--spacing) * 3);
+  max-height: 46vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 4);
+  list-style: none;
+}
+.arel7__item {
+  display: grid;
+  gap: calc(var(--spacing) * 2.5);
+  align-content: start;
+  padding: calc(var(--spacing) * 3.5);
+  border-radius: var(--radius-champ);
+  background: var(--color-bg);
+}
+.arel7__ligne {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+}
+.arel7__ligne > div {
+  display: grid;
+  gap: 2px;
+}
+.arel7__nom {
+  font-size: 15px;
+}
+.arel7__meta,
+.arel7__periode,
+.arel7__grille summary {
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+}
+.arel7__source {
+  flex: none;
+  font-size: var(--text-detail);
+}
+.arel7__ecarts {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+.arel7__pct {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+  font-weight: 700;
+  font-size: 12px;
+}
+.arel7__grille summary {
+  cursor: pointer;
+}
+.arel7__periode {
+  display: grid;
+  gap: 2px;
+  padding-top: calc(var(--spacing) * 2);
+}
+.arel7__plib {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.arel7__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
 }
 .forf__deux {
   flex: 1;
@@ -6973,4 +7098,173 @@
   padding: 10px 12px;
   color: var(--color-muted);
   font-size: var(--text-note);
+}
+
+/* ── Téléphone ──────────────────────────────────────────────────────────────
+   Sous 760 px, une colonne : la barre passe sur deux rangs (marque et
+   réglages, puis les étapes qui défilent), la recherche s'empile, la carte
+   précède la liste sans coller, et le pied du logement retenu ne garde que
+   le nom, le total et l'action. */
+@media (max-width: 760px) {
+  .v7.app {
+    min-width: 0;
+  }
+  .v7nav {
+    grid-template-columns: minmax(0, 1fr) auto;
+    height: auto;
+    row-gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4);
+  }
+  .v7nav__centre {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .v7nav__centre::-webkit-scrollbar {
+    display: none;
+  }
+  .v7nav__parcours,
+  .v7nav__centre > * {
+    flex: none;
+  }
+  .v7nav__etape {
+    padding: 0 calc(var(--spacing) * 2.5);
+  }
+  .v7sejour {
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  }
+  .v7sejour__pilule {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .v7sejour__groupe {
+    display: none;
+  }
+  .app:has(.v7sejour) .aside7,
+  .aside7 {
+    position: static;
+  }
+  .v7main {
+    padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4) calc(var(--spacing) * 20);
+  }
+  .v7wrap {
+    padding: calc(var(--spacing) * 6) calc(var(--spacing) * 4) calc(var(--spacing) * 16);
+  }
+  .v7main--pleine {
+    padding: 0;
+  }
+  .hero7__in {
+    padding: calc(var(--spacing) * 12) calc(var(--spacing) * 4) calc(var(--spacing) * 18);
+  }
+  .hero7__in h1 {
+    font-size: 36px;
+    line-height: 1.08;
+  }
+  .sbar7 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: 24px;
+    row-gap: 2px;
+  }
+  .sbar7 > :first-child,
+  .sbar7__fin {
+    grid-column: 1 / -1;
+  }
+  .sbar7__seg {
+    height: 56px;
+    padding: 0 calc(var(--spacing) * 4);
+    min-width: 0;
+  }
+  .sbar7__fin.sbar7__seg {
+    padding: 0 6px 0 0;
+  }
+  .pop7 {
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: calc(var(--spacing) * 4);
+  }
+  .home7__grille3,
+  .home7__massifs,
+  .grille7-2,
+  .fgrid7,
+  .v7deux {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v7deux__carte,
+  .v7deux__carte--bas {
+    position: relative;
+    top: auto;
+    height: 300px;
+    order: -1;
+  }
+  .bloc7,
+  .filtres7 {
+    position: static;
+  }
+  .filtres7 {
+    margin: 0;
+  }
+  .filtres7__champ {
+    flex: 1 1 100%;
+    box-sizing: border-box;
+  }
+  .filtres7__groupe,
+  .v7tete--titre {
+    flex-wrap: wrap;
+  }
+  .v7deux > *,
+  .fgrid7 > * {
+    min-width: 0;
+  }
+  .wx7 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .forfaits7 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .carte7-sect {
+    min-width: 0;
+    padding: calc(var(--spacing) * 4);
+  }
+  .wx7__mesures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bande7__jours {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .bloc7__tete {
+    flex-wrap: wrap;
+  }
+  .sejour7 {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .ruban7 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ruban7__media {
+    display: none;
+  }
+  .ruban7__faits {
+    flex-wrap: wrap;
+  }
+  .pied7 {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4);
+  }
+  .pied7__postes {
+    display: none;
+  }
+  .pied7 > :last-child {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
 }

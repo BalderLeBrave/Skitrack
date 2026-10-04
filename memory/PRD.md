@@ -32,3 +32,8 @@ Choix : rapport UX priorisé + implémentation ; priorités parcours station→l
 
 ## Backlog relevé forfaits
 - Pages refusées ou à rendre au navigateur (Playwright absent ici), PDF en colonnes (Orelle), pages en anglais, grilles en image.
+
+## Fait (2026-10-04, lot 3)
+- Plus › Forfaits : panneau « grilles mises de côté à relire » (GrillesARelire.tsx) — écarts regroupés par durée, grille lue dépliable, Valider / Écarter.
+- aRelire.ts (pur) + aRelire.server.ts (écrit grillesMisesDeCote.json et grillesOfficielles.json) ; décision gardée par empreinte des prix au relevé suivant.
+- Tests : aRelire.test.ts ; /app/test_reports/iteration_3.json (5/5). Fichiers de données restaurés après test (6 grilles en attente).

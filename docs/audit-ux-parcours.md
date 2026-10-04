@@ -28,7 +28,7 @@ Relevé sur l'aperçu, 1920 px et 390 px, parcours Accueil → Comparer → Fich
 - 24 pages refusées (403, défi anti-robot) ou qui demandent un navigateur : Playwright n'est pas installé ici ; lancer `npm run forfaits:releve` sur le poste avec Chromium.
 - 38 pages lues sans tarif reconnu, dont le PDF d'Orelle (prix en colonnes, une valeur par ligne) et les pages en anglais (« €84.20 », « 6 days »).
 - 5 grilles publiées en image.
-- Les grilles mises de côté sont à relire à la main.
+- Les grilles mises de côté se relisent dans Plus › Forfaits (bandeau en tête) : Valider les sert, Écarter garde le prix précédent ; le relevé suivant applique la décision tant que les prix lus ne changent pas.
 
 ## Reste à faire, par priorité
 

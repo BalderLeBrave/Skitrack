@@ -196,6 +196,20 @@ describe("filtre : « non annoncé » n'est pas « ne convient pas »", () => {
     assert.equal(normalizedBedrooms(bien({ bedrooms: null, rooms: null })), null);
   });
 
+  it("un studio compte zéro chambre, comme sa carte l'écrit « Studio » (4 octobre 2026)", () => {
+    // Studio reconnu au titre, sans chambres chiffrées : il passait « Chambres ≥ 1 ».
+    const sansChiffre = bien({ title: "Studio 4 pers pied des pistes", bedrooms: null, rooms: null, isStudio: true });
+    assert.equal(normalizedBedrooms(sansChiffre), 0);
+    assert.equal(partyVerdict(sansChiffre, { travelers: 2, rooms: 1 }), "trop-petit");
+    // Une plateforme qui dit « 1 chambre » d'un studio : la carte dit « Studio », le filtre aussi.
+    const uneChambre = bien({ title: "Studio cosy", bedrooms: 1, isStudio: true });
+    assert.equal(partyVerdict(uneChambre, { travelers: 2, rooms: 1 }), "trop-petit");
+    // Le type seul, sans chambres publiées.
+    assert.equal(normalizedBedrooms(bien({ bedrooms: null, rooms: null, lodgingType: "studio" })), 0);
+    // Un vrai deux-pièces n'est pas touché.
+    assert.equal(partyVerdict(bien({ bedrooms: 1, isStudio: false, lodgingType: "appartement" }), { travelers: 2, rooms: 1 }), "convient");
+  });
+
   it("une annonce en pièces est jugée en pièces", () => {
     // 4 pièces = 3 chambres : sous le seuil de 4 chambres demandées.
     assert.equal(

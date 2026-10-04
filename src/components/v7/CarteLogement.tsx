@@ -151,8 +151,14 @@ export const CarteLogement = memo(function CarteLogement({
       <div className="lodge7__corps">
         <strong className="lodge7__titre" title={l.title}>{titreLisible(l.title)}</strong>
         <div className="lodge7__meta">
-          <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
-          <span className={bedLbl(l) === tr(NON_RENSEIGNE) ? "absent" : undefined}>{bedNomme(l)}</span>
+          {l.capacity == null && bedLbl(l) === tr(NON_RENSEIGNE) ? (
+            <span className="absent">{tr("Capacité et chambres non renseignées")}</span>
+          ) : (
+            <>
+              <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
+              <span className={bedLbl(l) === tr(NON_RENSEIGNE) ? "absent" : undefined}>{bedNomme(l)}</span>
+            </>
+          )}
         </div>
         {trous.length ? (
           <span className="lodge7__trous">{trous.map(trouLbl).join(" · ")}</span>

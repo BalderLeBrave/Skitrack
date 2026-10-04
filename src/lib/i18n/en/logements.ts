@@ -238,6 +238,7 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "{m} m sous le village": "{m} m below the village",
   "Le village de la station est à {altitude} m : prévoyez une navette ou une remontée pour rejoindre les pistes.": "The resort village is at {altitude} m: plan on a shuttle or a lift to reach the slopes.",
   "Pistes, station": "Slopes, resort",
+  "Capacité et chambres non renseignées": "Capacity and bedrooms not given",
   "Kilomètres, station": "Kilometres, resort",
   "Forfait {n} j": "{n}-day ski pass",
   "Tout réinitialiser": "Reset all",

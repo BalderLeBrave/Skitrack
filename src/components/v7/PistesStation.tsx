@@ -132,14 +132,18 @@ export function PistesStation({ s }: { s: Station }) {
   const idDetail = useId();
   const etat = useDetail(entree?.fichier ?? null, ouvert);
 
+  // Dans un domaine relié, les pistes de Skiinfo sont celles de la station et
+  // les remontées celles du domaine : l'étiquette dit l'échelle, comme le
+  // bandeau de la fiche (« 771 km de pistes, domaine »).
+  const relie = s.domain != null && s.pistesKm != null && si?.km != null && si.km !== s.pistesKm;
   const chiffres: { t: string; v: string | null }[] = [
-    { t: tr("Pistes"), v: si?.n != null ? fmt(si.n) : null },
-    { t: tr("Kilomètres"), v: si?.km != null ? km(si.km) : null },
+    { t: relie ? tr("Pistes, station") : tr("Pistes"), v: si?.n != null ? fmt(si.n) : null },
+    { t: relie ? tr("Kilomètres, station") : tr("Kilomètres"), v: si?.km != null ? km(si.km) : null },
     {
       t: tr("Altitudes"),
       v: si?.minM != null && si.maxM != null ? `${fmt(si.minM)}${FINE}${TIRET}${FINE}${fmt(si.maxM)}${INSEC}m` : null,
     },
-    { t: tr("Remontées"), v: s.lifts != null ? fmt(s.lifts) : null },
+    { t: relie ? tr("Remontées, domaine") : tr("Remontées"), v: s.lifts != null ? fmt(s.lifts) : null },
     { t: tr("Piste la plus longue"), v: si?.longestKm != null ? km(si.longestKm) : null },
   ];
 

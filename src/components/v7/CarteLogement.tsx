@@ -12,7 +12,7 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
 import { tr } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
-import { nuitsLbl } from "@/lib/parcours";
+import { fmt, nuitsLbl } from "@/lib/parcours";
 import { completudeOf, trouLbl } from "@/lib/stay/completude";
 import {
   bedLbl,
@@ -31,6 +31,29 @@ import {
  * en cours : trois mille pastilles d'un coup la rendaient illisible.
  */
 export const PAGE_LOGEMENTS = 18;
+
+/** Les trous que la carte ne dit pas déjà ailleurs (capacité, prix, photo, position). */
+const TROUS_SEULS = new Set(["url"]);
+
+/** Écart d'altitude à partir duquel l'annonce est signalée sous le village. */
+const ECART_VILLAGE_M = 300;
+
+const PETITS_MOTS = new Set(["de", "du", "des", "la", "le", "les", "et", "d", "l", "au", "aux", "en", "sur"]);
+
+/** Un titre de source écrit en capitales, avec sa référence interne entre
+ *  parenthèses, se lit mal : la carte le remet en casse de phrase et laisse
+ *  la référence au volet de l'annonce. Aucun mot n'est ajouté ni retiré. */
+function titreLisible(t: string): string {
+  const sansRef = t.replace(/\s*\(\s*(?=[A-Z0-9 _-]*\d)[A-Z0-9][A-Z0-9 _-]{2,}\s*\)\s*$/, "");
+  return sansRef.replace(/\p{Lu}{2,}(?:[\s'’-]+\p{Lu}{1,})*\p{Lu}/gu, (bloc) => {
+    let premier = true;
+    return bloc.toLowerCase().replace(/\p{L}+/gu, (mot) => {
+      const garder = !premier && PETITS_MOTS.has(mot);
+      premier = false;
+      return garder ? mot : mot[0].toUpperCase() + mot.slice(1);
+    });
+  });
+}
 
 /**
  * Une annonce dans la liste.
@@ -57,6 +80,7 @@ export const CarteLogement = memo(function CarteLogement({
   retenuSource,
   altitude,
   avecAltitude = false,
+  altVillage = null,
 }: {
   l: Listing;
   /** « Abritel », ou « Airbnb + 2 » quand le logement est aussi ailleurs. */
@@ -79,6 +103,8 @@ export const CarteLogement = memo(function CarteLogement({
   altitude?: Altitude | null;
   /** L'écran lit les altitudes : la carte les montre. */
   avecAltitude?: boolean;
+  /** L'altitude du village de la station, pour signaler une annonce bien plus bas. */
+  altVillage?: number | null;
 }) {
   const isKept = retenu != null;
   const seen = vue && !isKept;
@@ -86,6 +112,9 @@ export const CarteLogement = memo(function CarteLogement({
   const firm = firmOf(l, stay);
   const complet = completudeOf(l);
   const pers = prixPersLbl(l, trav);
+  const trous = complet.trous.filter((t) => TROUS_SEULS.has(t));
+  const ecart = altVillage != null && altitude ? altVillage - altitude.m : null;
+  const sousVillage = ecart != null && ecart >= ECART_VILLAGE_M ? Math.round(ecart / 50) * 50 : null;
   return (
     <article
       className={`lodge7${isKept ? " lodge7--kept" : ""}${vif ? " lodge7--vif" : ""}`}
@@ -120,13 +149,13 @@ export const CarteLogement = memo(function CarteLogement({
         {seen ? <span className="lodge7__vue">{tr("déjà vue")}</span> : null}
       </div>
       <div className="lodge7__corps">
-        <strong className="lodge7__titre">{l.title}</strong>
+        <strong className="lodge7__titre" title={l.title}>{titreLisible(l.title)}</strong>
         <div className="lodge7__meta">
           <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
           <span className={bedLbl(l) === tr(NON_RENSEIGNE) ? "absent" : undefined}>{bedNomme(l)}</span>
         </div>
-        {complet.trous.length ? (
-          <span className="lodge7__trous">{complet.trous.map(trouLbl).join(" · ")}</span>
+        {trous.length ? (
+          <span className="lodge7__trous">{trous.map(trouLbl).join(" · ")}</span>
         ) : null}
         <div className="lodge7__lieu">
           <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
@@ -140,6 +169,15 @@ export const CarteLogement = memo(function CarteLogement({
             >
               <Icon name="montagne" taille={13} />
               {altitudeLbl(altitude, positionApprochee(l))}
+            </span>
+          ) : null}
+          {sousVillage != null ? (
+            <span
+              className="lodge7__ecart"
+              data-testid="lodging-below-village-badge"
+              title={tr("Le village de la station est à {altitude} m : prévoyez une navette ou une remontée pour rejoindre les pistes.", { altitude: fmt(altVillage ?? 0) })}
+            >
+              {tr("{m} m sous le village", { m: fmt(sousVillage) })}
             </span>
           ) : null}
         </div>

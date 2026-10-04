@@ -378,7 +378,16 @@
 .v7sejour {
   display: flex;
   justify-content: center;
-  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 10) 0;
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 10);
+  /* Une bande, pas une pilule seule : le contenu qui défile passe dessous au
+     lieu de se lire au travers (titres de section, encadré collant). */
+  background: var(--color-barre-fond);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-line-coquille);
+}
+/* L'encadré collant se cale sous la bande de séjour quand elle est là. */
+.app:has(.v7sejour) .aside7 {
+  top: 140px;
 }
 .v7sejour__pilule {
   display: inline-flex;
@@ -4106,6 +4115,18 @@
   gap: 6px;
   font-size: 13px;
   color: var(--color-ink);
+}
+/* Une annonce bien plus bas que le village : le vacancier doit le voir avant
+   d'ouvrir la fiche, pas en découvrant la navette sur place. */
+.lodge7__ecart {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+  font-size: 12px;
+  font-weight: 600;
 }
 .lodge7__pied {
   display: flex;

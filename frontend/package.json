@@ -1,0 +1,7 @@
+{
+  "name": "skitrack-preview-shim",
+  "private": true,
+  "scripts": {
+    "start": "cd /app && PATH=/root/node22/bin:$PATH SKITRACK_SANS_PYTHON=1 __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.preview.emergentagent.com,.emergentcf.cloud node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 3000"
+  }
+}

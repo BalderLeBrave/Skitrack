@@ -24,6 +24,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
+import { GrillesARelire } from "@/components/GrillesARelire";
 import { etatTarif, formatEuroTarif } from "@/lib/forfaits/age";
 import {
   getForfait,
@@ -303,6 +304,8 @@ function ForfaitsPage() {
             {bilanTexte}
           </p>
         ) : null}
+
+        <GrillesARelire />
 
         <div className="forf__deux">
           <div className="forf__col">

@@ -43,6 +43,11 @@ import {
 import { SOURCES_TARIFS, type PerimetreSource } from "../src/lib/forfaits/sourcesTarifs.ts";
 import { chargerTemoins, verifierAvecTemoins } from "./temoins-forfaits.ts";
 import {
+  decisionDe,
+  FICHIER_A_RELIRE_VIDE,
+  type FichierARelire,
+} from "../src/lib/forfaits/aRelire.ts";
+import {
   saisonDeJour,
   type FichierGrilles,
   type GrilleTarifaire,
@@ -58,6 +63,7 @@ import {
 
 const RACINE = resolve(import.meta.dirname, "..");
 const SORTIE = resolve(RACINE, "src/lib/forfaits/grillesOfficielles.json");
+const A_RELIRE = resolve(RACINE, "src/lib/forfaits/grillesMisesDeCote.json");
 const MIGREES = resolve(RACINE, "src/lib/forfaits/grillesMigrees.json");
 
 /* ---------- Options ---------- */
@@ -232,8 +238,35 @@ if (ouvert) await ouvert.then((n) => n.fermer()).catch(() => undefined);
 const ECART_MIS_DE_COTE = 0.5;
 const contredite = (g: GrilleTarifaire) =>
   verifierAvecTemoins(g, temoins).some((c) => c.comparaisons.some((x) => x.ecart > ECART_MIS_DE_COTE));
-const misesDeCote = grilles.filter(contredite);
-const retenues = grilles.filter((g) => !contredite(g));
+// Une grille déjà validée ou écartée à la main (écran Forfaits) garde sa
+// décision tant que ses prix n'ont pas changé.
+const dejaVu: FichierARelire = existsSync(A_RELIRE)
+  ? { ...FICHIER_A_RELIRE_VIDE, ...(JSON.parse(readFileSync(A_RELIRE, "utf8")) as FichierARelire) }
+  : FICHIER_A_RELIRE_VIDE;
+const contredites = grilles.filter(contredite);
+const misesDeCote = contredites.filter((g) => !decisionDe(dejaVu, g));
+const retenues = grilles.filter((g) => !contredite(g) || decisionDe(dejaVu, g) === "validee");
+const lues = new Set(grilles.map((g) => g.id));
+const misDeCoteLe = new Date().toISOString().slice(0, 10);
+writeFileSync(
+  A_RELIRE,
+  `${JSON.stringify(
+    {
+      aRelire: [
+        // Celles d'une source que ce relevé n'a pas relue attendent toujours.
+        ...dejaVu.aRelire.filter((x) => !lues.has(x.grille.id)),
+        ...misesDeCote.map((g) => ({
+          grille: g,
+          confrontations: verifierAvecTemoins(g, temoins).filter((c) => c.alerte),
+          misDeCoteLe,
+        })),
+      ],
+      decisions: dejaVu.decisions,
+    },
+    null,
+    1,
+  )}\n`,
+);
 const toutes = fusionnerAvecPrecedent(retenues, anciennes);
 const entete = JSON.stringify({
   genere: maintenant.slice(0, 10),
@@ -254,7 +287,9 @@ console.log(
   `Grilles relevées : ${rapport.grilles} (${rapport.periodes} périodes), ${toutes.length - retenues.length} gardée(s) d'un relevé précédent`,
 );
 if (misesDeCote.length) {
-  console.log(`\nMises de côté, contredites de plus de ${ECART_MIS_DE_COTE * 100} % par un témoin (${misesDeCote.length})`);
+  console.log(
+    `\nMises de côté, contredites de plus de ${ECART_MIS_DE_COTE * 100} % par un témoin (${misesDeCote.length}) : à relire dans Plus › Forfaits`,
+  );
   for (const g of misesDeCote) console.log(`  ${g.id}`);
 }
 console.log(`Stations couvertes par ce relevé : ${rapport.stationsCouvertes}`);

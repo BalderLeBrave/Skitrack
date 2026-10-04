@@ -5087,6 +5087,104 @@
   background: var(--color-glacier);
   color: var(--color-muted);
 }
+/* Les grilles mises de côté par le relevé : un bandeau qui se replie, et sa
+   liste bornée pour laisser la liste des domaines à l'écran. */
+.arel7 {
+  flex: none;
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  border: 1px solid var(--color-bordure);
+}
+.arel7__tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  cursor: pointer;
+  color: var(--color-ink);
+}
+.arel7__tete > span {
+  color: var(--color-muted);
+  font-size: var(--text-detail);
+}
+.arel7 > .forf__bilan,
+.arel7 > .forf__erreur {
+  margin: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 3);
+}
+.arel7__liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: calc(var(--spacing) * 3);
+  max-height: 46vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 4);
+  list-style: none;
+}
+.arel7__item {
+  display: grid;
+  gap: calc(var(--spacing) * 2.5);
+  align-content: start;
+  padding: calc(var(--spacing) * 3.5);
+  border-radius: var(--radius-champ);
+  background: var(--color-bg);
+}
+.arel7__ligne {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+}
+.arel7__ligne > div {
+  display: grid;
+  gap: 2px;
+}
+.arel7__nom {
+  font-size: 15px;
+}
+.arel7__meta,
+.arel7__periode,
+.arel7__grille summary {
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+}
+.arel7__source {
+  flex: none;
+  font-size: var(--text-detail);
+}
+.arel7__ecarts {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+.arel7__pct {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+  font-weight: 700;
+  font-size: 12px;
+}
+.arel7__grille summary {
+  cursor: pointer;
+}
+.arel7__periode {
+  display: grid;
+  gap: 2px;
+  padding-top: calc(var(--spacing) * 2);
+}
+.arel7__plib {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.arel7__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
 .forf__deux {
   flex: 1;
   min-height: 0;

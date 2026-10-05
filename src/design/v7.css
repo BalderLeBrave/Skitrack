@@ -4052,13 +4052,18 @@
   font-size: var(--text-note);
   font-weight: 700;
 }
+/* Posée sur la photo : un texte gris sans fond s'y perdait. Même pastille que
+   la source et le « à partir de ». */
 .lodge7__vue {
   position: absolute;
   right: 10px;
   bottom: 8px;
-  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  font-size: var(--text-note);
   font-weight: 700;
-  color: var(--color-muted);
+  color: var(--color-ink);
 }
 .lodge7__indic {
   position: absolute;

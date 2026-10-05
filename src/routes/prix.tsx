@@ -124,6 +124,7 @@ import {
   type Tri,
 } from "@/lib/prix/calcul";
 import { usePrix, type Course, type Onglet } from "@/lib/prix/releve";
+import { nomStationPropre, sourceEtLieu } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { todayIso } from "@/lib/stay/calendar";
 import { clampRooms, clampTravelers } from "@/lib/stay/party";
@@ -930,7 +931,7 @@ function VueBudget({
         (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
           a,
           stationId: s.id,
-          stationNom: s.name,
+          lieu: nomStationPropre(a),
         })),
       ),
     [relevees, cles, parCle],
@@ -1410,7 +1411,7 @@ function VueBudget({
                       <CarteLogement
                         key={`${c.stationId}|${c.a.id}`}
                         l={c.a}
-                        sources={g ? sourcesBudget(g) : `${c.a.source} · ${c.stationNom}`}
+                        sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
                         autres={g ? autresBudget(g) : null}
                         retenu={r?.a.id ?? null}
                         retenuSource={r && r.a.id !== c.a.id ? r.a.source : null}
@@ -1460,7 +1461,7 @@ function VueBudget({
                 return (
                   <FicheEpingle
                     l={c.a}
-                    sources={g ? sourcesBudget(g) : `${c.a.source} · ${c.stationNom}`}
+                    sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
                     stay={stay}
                     trav={trav}
                     nights={nights}

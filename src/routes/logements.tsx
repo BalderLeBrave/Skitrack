@@ -502,7 +502,7 @@ function useReleveVisible(searching: boolean): boolean {
 }
 
 /** La ligne d'état du bloc collant, à la place du compteur. */
-function LigneReleve({ sources, trouves = 0 }: { sources: string[]; trouves?: number }) {
+function LigneReleve({ trouves = 0 }: { trouves?: number }) {
   return (
     <div className="rech7" aria-busy="true">
       <span className="rech7__points" aria-hidden="true">
@@ -515,7 +515,6 @@ function LigneReleve({ sources, trouves = 0 }: { sources: string[]; trouves?: nu
           ? trN(trouves, "{n} logement, recherche en cours…", "{n} logements, recherche en cours…")
           : tr("Recherche de logements disponibles…")}
       </span>
-      {sources.length ? <span className="rech7__sources">{sources.join(" · ")}</span> : null}
     </div>
   );
 }
@@ -1339,7 +1338,7 @@ function LogementsStation({ s }: { s: Station }) {
                 ) : null}
                 <span className="filtres7__espace" />
                 {enReleve ? (
-                  <LigneReleve sources={liveSources.map((x) => x.source)} trouves={dejaLus.length} />
+                  <LigneReleve trouves={dejaLus.length} />
                 ) : (
                 <span className="filtres7__compte">
                   {logements.length === 0
@@ -1487,7 +1486,7 @@ function LogementsStation({ s }: { s: Station }) {
             /* Premier relevé : pas encore de barre de filtres, mais l'écran
                doit dire qu'il travaille. */
             <div className="filtres7__barre">
-              <LigneReleve sources={liveSources.map((x) => x.source)} />
+              <LigneReleve />
             </div>
           ) : null}
           {enReleve ? <span className="rech7__jauge" aria-hidden="true" /> : null}

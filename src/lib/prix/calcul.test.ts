@@ -2010,7 +2010,7 @@ describe("un logement par carte dans l'onglet budget", () => {
       sources: [] as SourceReport[],
       partsEchouees: [] as Part[],
       ...CTX,
-    }).map((a) => ({ a, stationId, stationNom: NOMS[stationId] ?? stationId }));
+    }).map((a) => ({ a, stationId, lieu: NOMS[stationId] ?? stationId }));
   /** Comme l'onglet : l'identité sur tout ce qui est relevé, les critères ensuite. */
   const logements = (tout: CarteAnnonce[], fl: Filtres = FL0) =>
     logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, BORNES));
@@ -2128,7 +2128,7 @@ describe("un logement par carte dans l'onglet budget", () => {
     const bkAilleurs: CarteAnnonce = {
       a: { ...bkIci.a, total: 1800, distToSlopesM: 1500 },
       stationId: "alpe-d-huez",
-      stationNom: "Alpe d'Huez",
+      lieu: "Alpe d'Huez",
     };
     const [g] = logements([bkAilleurs, bkIci, abnbIci]);
     assert.deepEqual(offres(g), ["abnb-777", "bk-777"]);
@@ -2169,7 +2169,7 @@ describe("un logement par carte dans l'onglet budget", () => {
     const tout = unBien.map((l) => ({
       a: compacter(l),
       stationId: "les-2-alpes",
-      stationNom: "Les 2 Alpes",
+      lieu: "Les 2 Alpes",
     }));
     assert.deepEqual(logements(tout).map(offres), [["abr-777"], ["bk-777"], ["abnb-777"]]);
   });
@@ -2184,7 +2184,7 @@ describe("tri des cartes", () => {
   ): CarteAnnonce => ({
     a: compacter(annonce({ id, total, capacity: guests })),
     stationId,
-    stationNom: stationId,
+    lieu: stationId,
   });
   /** L'id, suivi de la station quand ce n'est pas celle par défaut. */
   const ranger = (t: TriB, xs: CarteAnnonce[]) =>
@@ -2764,7 +2764,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     const carte = (id: string, stationId: string, over: Partial<Listing> = {}): CarteAnnonce => ({
       a: a({ id, ...over }),
       stationId,
-      stationNom: stationId,
+      lieu: stationId,
     });
     const cartes = [
       carte("a", "la-clusaz"),
@@ -2786,7 +2786,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     const carte = (id: string, stationId: string, over: Partial<Listing> = {}): CarteAnnonce => ({
       a: a({ id, ...over }),
       stationId,
-      stationNom: stationId,
+      lieu: stationId,
     });
     // Le même logement du village de Saint-Martin, relevé depuis Méribel
     // (333 m) puis depuis Méribel Village (27 m).
@@ -3072,7 +3072,7 @@ describe("tri des cartes : plus près des remontées", () => {
   ): CarteAnnonce => ({
     a: compacter(annonce({ id, total, distToLiftM, distToSlopesM })),
     stationId: "les-2-alpes",
-    stationNom: "Les 2 Alpes",
+    lieu: "Les 2 Alpes",
   });
 
   const xs = [
@@ -3445,7 +3445,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
     const cartes: CarteAnnonce[] = [...horsSujet, ...gardes].map((l) => ({
       a: compacter(l),
       stationId: "les-2-alpes",
-      stationNom: "Les 2 Alpes",
+      lieu: "Les 2 Alpes",
     }));
     const ls = logementsBudget(logementsReleves(cartes), filtrerCartes(cartes, FL0, B));
     assert.deepEqual(ids(ls.map((g) => g.principale.a)), ids(gardes));
@@ -3456,7 +3456,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
       annoncesDuReleve({ listings, sources: [], partsEchouees: [], ...CTX }).map((a) => ({
         a,
         stationId: "chatel",
-        stationNom: "Châtel",
+        lieu: "Châtel",
       }));
     const logements = (tout: CarteAnnonce[], fl: Filtres = FL0) =>
       logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, B)).map((g) =>
@@ -3516,7 +3516,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
           logement: "bk-8",
         },
         stationId: "chatel",
-        stationNom: "Châtel",
+        lieu: "Châtel",
       });
       // Une chambre d'hôtel à 2 000 € retirait la location à 7 000 €, puis
       // sortait elle-même : le logement n'avait plus d'offre.

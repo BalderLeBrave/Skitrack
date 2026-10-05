@@ -286,16 +286,15 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "{prix} par personne": "{prix} per person",
   "total incomplet": "incomplete total",
 
-  // Volet d'annonce
+  // Fiche d'annonce
   "Total du séjour · {nuits} · {pers}": "Stay total · {nuits} · {pers}",
-  "Prix relevé pour ces dates.": "Price checked for these dates.",
-  "La source a tarifé cette annonce pour ce séjour ; le prix sera revérifié à la réservation.":
-    "The source priced this listing for this stay; the price will be checked again at booking.",
   "Disponibilité non confirmée.": "Availability not confirmed.",
-  "La disponibilité sera vérifiée à la réservation.": "Availability will be checked at booking.",
   "Ouvrir sur {source}": "Open on {source}",
-  "L’annonce n’a pas de lien dans le relevé : la réservation se fera à la main.":
-    "The listing has no link in the price check: you will need to book it yourself.",
+  "Photo {n} sur {total}": "Photo {n} of {total}",
+  "{n} photo": "{n} photo",
+  "{n} photos": "{n} photos",
+  "Photos précédentes": "Previous photos",
+  "Photos suivantes": "Next photos",
 
   // Écran Réservation
   "Logement : {titre} ({source}) {prix}": "Place to stay: {titre} ({source}) {prix}",

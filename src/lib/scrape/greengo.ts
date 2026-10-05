@@ -55,6 +55,18 @@ export function emprise(lat: number, lon: number, rayonKm: number) {
   return { sw: { lat: lat - dLat, lng: lon - dLon }, ne: { lat: lat + dLat, lng: lon + dLon } };
 }
 
+/**
+ * L'emprise qui couvre `rayonKm` autour de chaque point : la station seule, ou
+ * chaque station d'un grand domaine relié (`domaine.ts`).
+ */
+export function empriseAutour(points: readonly { lat: number; lon: number }[], rayonKm: number) {
+  const bs = points.map((p) => emprise(p.lat, p.lon, rayonKm));
+  return {
+    sw: { lat: Math.min(...bs.map((b) => b.sw.lat)), lng: Math.min(...bs.map((b) => b.sw.lng)) },
+    ne: { lat: Math.max(...bs.map((b) => b.ne.lat)), lng: Math.max(...bs.map((b) => b.ne.lng)) },
+  };
+}
+
 /** La configuration de séjour, écrite en littéral GraphQL (dates et nombres vérifiés). */
 function sejour(input: LiveSearchInput): string {
   const date = /^\d{4}-\d{2}-\d{2}$/;
@@ -74,8 +86,13 @@ function nombre(n: number): string {
  * viennent avec : un camping, un hôtel ou des chambres d'hôtes seules sont
  * écartés sans que leur détail soit demandé.
  */
-export function requeteRecherche(input: LiveSearchInput, rayonKm: number, offset: number): string {
-  const b = emprise(input.lat, input.lon, rayonKm);
+export function requeteRecherche(
+  input: LiveSearchInput,
+  rayonKm: number,
+  offset: number,
+  autour: readonly { lat: number; lon: number }[] = [input],
+): string {
+  const b = empriseAutour(autour, rayonKm);
   const s = sejour(input);
   const dates = `{start:"${input.checkIn}",end:"${input.checkOut}"}`;
   return `query ${OPERATION_RECHERCHE} { publicAdverts { classicSearch(mapBounds:{sw:{lat:${nombre(b.sw.lat)},lng:${nombre(b.sw.lng)}},ne:{lat:${nombre(b.ne.lat)},lng:${nombre(b.ne.lng)}}}, baseBookingConfigWithOptionalCheckInOutDateRange:${s}, filters:{}, includeMultiAccommodationBookableHostingAdverts:true) { bookableHostingAdverts(first:42, offset:${Math.max(0, Math.trunc(offset))}) { totalCount edges { node { __typename ... on HostingAdvertPublicSliceInterface { id name currentProductSlug formattedLocation postalCode addressFromGmaps { city } coordinates { lat lng } orderedImageNormalizedPaths allHostingAdvertTypeTags { id } summary(optionalDateRange:${dates}) { numberOfAccommodationUnits minMaxNumberOfTravellersAllowed { min max } } coarseBookingInformation(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { minPricePerNightInformation { minPricePerNightRoundedToInt isTheOnlyPriceRounded } } } } } } } } }`;

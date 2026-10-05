@@ -66,7 +66,7 @@ import {
 import { echecLbl, mentionForfait } from "@/lib/forfaits/prixSejour";
 import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { agencesDe } from "@/lib/scrape/agences/couverture";
+import { agencesDuReleve } from "@/lib/scrape/domaine";
 import { partyLabel } from "@/lib/stay/party";
 import {
   searchStay,
@@ -373,7 +373,15 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           } else if (part === "agences") {
             mergeLive(
               [],
-              agencesDe(station.id).map((source) => ({ source, ok: false, count: 0, ms: 0, error })),
+              // Celles de la station et de ses stations reliées : l'écran
+              // relève tout le grand domaine (`scrape/domaine.ts`).
+              [...agencesDuReleve({ ...payload, domaine: true }).keys()].map((source) => ({
+                source,
+                ok: false,
+                count: 0,
+                ms: 0,
+                error,
+              })),
             );
           } else {
             mergeLive(

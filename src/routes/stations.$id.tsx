@@ -38,7 +38,6 @@ import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
   altLbl,
-  aStation,
   crumb,
   kmLbl,
   liftsLbl,
@@ -527,7 +526,6 @@ function Fiche() {
 
 function FicheBody({ s }: { s: Station }) {
   const go = useGo();
-  const stationId = useParcours((x) => x.stationId);
   const cmp = useParcours((x) => x.cmp);
   const retain = useParcours((x) => x.retain);
   const toggleCmp = useParcours((x) => x.toggleCmp);
@@ -537,7 +535,6 @@ function FicheBody({ s }: { s: Station }) {
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
 
-  const retained = stationId === s.id;
   const inCmp = cmp.includes(s.id);
   const photo = stationPhoto(s);
   const pret = resolveStationPhoto(s.id);
@@ -780,9 +777,7 @@ function FicheBody({ s }: { s: Station }) {
                 void go("lodging");
               }}
             >
-              {retained
-                ? tr("Voir les logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })
-                : tr("Retenir et voir les logements")}
+              {tr("Voir les logements")}
               <Icon name="fleche-droite" taille={16} />
             </button>
             <div>

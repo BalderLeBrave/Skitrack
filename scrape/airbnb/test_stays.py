@@ -23,6 +23,28 @@ def test_avec_coordonnees_l_emprise_proche_passe_avant_la_large():
     assert abs((proche["north"] + proche["south"]) / 2 - 45.2979) < 1e-9
 
 
+def test_sur_un_grand_domaine_chaque_station_reliee_a_son_emprise_sans_la_large():
+    relies = [{"lat": 45.4560, "lon": 6.6931}, {"lat": 45.5601, "lon": 6.7352}, {"lat": "x", "lon": 6}]
+    zones = emprises({"lat": 45.5075, "lon": 6.6769, "city": "La Plagne", "relies": relies})
+    assert [nom for nom, _ in zones] == ["proche", "reliee1", "reliee2"]
+    champagny = zones[1][1]["bounds"]
+    assert abs((champagny["north"] + champagny["south"]) / 2 - 45.4560) < 1e-9
+    assert champagny["north"] - champagny["south"] < zones[0][1]["bounds"]["north"] - zones[0][1]["bounds"]["south"]
+
+
+def test_la_proche_garde_la_moitie_du_budget_et_les_reliees_se_partagent_le_reste():
+    from stays import pages_de_zone
+
+    file = [("reliee1", {}), ("reliee2", {}), ("reliee3", {}), ("reliee4", {})]
+    assert pages_de_zone("proche", file, 12, 24) == 6
+    assert pages_de_zone("reliee1", file[1:], 6, 24) == 1
+    assert pages_de_zone("reliee3", file[3:], 4, 24) == 2
+    assert pages_de_zone("reliee4", [], 1, 24) == 1
+    # Hors grand domaine, rien ne change.
+    assert pages_de_zone("proche", [("large", {})], 12, 24) == 24
+    assert pages_de_zone("quart1", [], 5, 24) == 24
+
+
 def test_sans_coordonnees_une_seule_recherche_comme_avant():
     assert [nom for nom, _ in emprises({"city": "Val Thorens"})] == ["unique"]
     assert [nom for nom, _ in emprises({"url": "https://www.airbnb.fr/s/x/homes", "lat": 45, "lon": 6})] == ["unique"]

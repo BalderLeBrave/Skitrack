@@ -447,7 +447,6 @@ export const EN_PARCOURS: Record<string, string> = {
   "Dates": "Dates",
   "non relevés": "not surveyed",
   "aucun tarif pour ce domaine": "no prices for this ski area",
-  "Retenir et voir les logements": "Shortlist and see places to stay",
   "Dates et voyageurs se changent dans la barre du haut et suivent jusqu’à la réservation.": "Change dates and travellers in the top bar; they carry through to booking.",
   "télécabine": "gondola",
   "téléphérique": "cable car",

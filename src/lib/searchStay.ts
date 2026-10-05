@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { attachAccess } from "./access";
 import { listingsForStay, type Listing } from "./listings";
-import { agencesDe } from "./scrape/agences/couverture";
-import type { LiveSearchResult, SourceName } from "./scrape/types";
+import { agencesDuReleve } from "./scrape/domaine";
+import type { LiveSearchInput, LiveSearchResult, SourceName } from "./scrape/types";
 import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
 import { enrichirListing } from "./stay/enrichir";
@@ -38,22 +38,27 @@ export const DEVIS_MS = 18_000;
 export const TARIF_MS = 18_000;
 export const PAUSE_DELAI = "Délai dépassé : relevé précédent conservé.";
 
-/** Les sources d'une part. Les agences, seulement celles qui couvrent la station : les autres n'existent pas là. */
-function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>, stationId: string): SourceName[] {
+/**
+ * Les sources d'une part. Les agences, seulement celles qui couvrent la
+ * station ou, sur un grand domaine, une station reliée : les autres n'existent
+ * pas là.
+ */
+function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>, input: LiveSearchInput): SourceName[] {
+  const agences = [...agencesDuReleve(input).keys()];
   if (part === "airbnb") return ["Airbnb"];
   if (part === "gites") return ["Gîtes de France"];
   if (part === "centrales") return ["Centrale"];
   if (part === "greengo") return ["GreenGo"];
-  if (part === "agences") return agencesDe(stationId);
+  if (part === "agences") return agences;
   if (part === "cozy") return ["Abritel", "Booking"];
   if (part === "browser") return ["Airbnb", "Gîtes de France", "Abritel", "Booking"];
-  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo", ...agencesDe(stationId)];
+  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo", ...agences];
 }
 
-function timedOutResult(part: NonNullable<z.infer<typeof Input>["part"]>, stationId: string, ms: number): LiveSearchResult {
+function timedOutResult(part: NonNullable<z.infer<typeof Input>["part"]>, input: LiveSearchInput, ms: number): LiveSearchResult {
   return {
     listings: [],
-    sources: sourcesOf(part, stationId).map((source) => ({
+    sources: sourcesOf(part, input).map((source) => ({
       source,
       ok: false,
       count: 0,
@@ -67,6 +72,9 @@ export const searchStay = createServerFn({ method: "POST" })
   .validator(Input)
   .handler(async ({ data }): Promise<LiveSearchResult> => {
     const part = data.part ?? "all";
+    // L'écran Logements relève tout le grand domaine relié (`scrape/domaine.ts`) ;
+    // l'écran Prix compare des stations, chacune pour elle-même.
+    const input: LiveSearchInput = { ...data, domaine: data.pour !== "prix" };
     const t0 = Date.now();
     const [{ runLiveSearch }, { pendantReleveAirbnb, noterVue }] = await Promise.all([
       import("./scrape/run.server"),
@@ -79,7 +87,7 @@ export const searchStay = createServerFn({ method: "POST" })
     // Une part qui relève la liste Airbnb tient la tâche de fond des pages à
     // l'écart pendant le relevé : il garde ses créneaux du limiteur.
     const releveAirbnb = part === "airbnb" || part === "all" || part === "browser";
-    const relever = () => runLiveSearch(data, part, { relance: data.relance === true });
+    const relever = () => runLiveSearch(input, part, { relance: data.relance === true });
     let res: LiveSearchResult;
     try {
       res = await withDeadline(
@@ -90,7 +98,7 @@ export const searchStay = createServerFn({ method: "POST" })
     } catch (err) {
       if (!estTimeout(err)) throw err;
       console.warn(`[searchStay] ${part} délai dépassé`);
-      res = timedOutResult(part, data.stationId, Date.now() - t0);
+      res = timedOutResult(part, input, Date.now() - t0);
     }
     const remain = Math.max(0, SEARCH_PART_MS - (Date.now() - t0));
     return {

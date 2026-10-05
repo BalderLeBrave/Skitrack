@@ -18,6 +18,7 @@ import { CIRCUIT_COOLDOWN_MS, PAUSE_MAX_MS, estStatutRalenti, retryAfterMs } fro
 import { noterBlocage, paceTaux, pauseTauxMs } from "@/lib/stay/taux.server";
 import { UA_NAVIGATEUR } from "./navigateur";
 import { allowsPath } from "./robots";
+import { stationsDuReleve } from "./domaine";
 import type { LiveSearchInput } from "./types";
 import {
   ArretGreenGo,
@@ -116,9 +117,13 @@ export async function releverGreenGo(input: LiveSearchInput, opts: { echeance: n
   const hotes: HoteGreenGo[] = [];
   let publie: number | null = null;
   let raison: string | undefined;
+  // Sur un grand domaine, l'emprise couvre aussi chaque station reliée.
+  const autour = stationsDuReleve(input);
   try {
     for (let offset = 0; ; offset += 42) {
-      const page = lireRecherche(await graphql(OPERATION_RECHERCHE, requeteRecherche(input, RAYON_KM, offset), echeance));
+      const page = lireRecherche(
+        await graphql(OPERATION_RECHERCHE, requeteRecherche(input, RAYON_KM, offset, autour), echeance),
+      );
       publie = page.total ?? publie;
       hotes.push(...page.hotes);
       if (page.noeuds < 42 || (publie != null && offset + page.noeuds >= publie)) break;

@@ -11,7 +11,7 @@
  *  recherche. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
@@ -27,6 +27,9 @@ import { FourchetteRecherche } from "@/components/v7/FourchettesRecherche";
 import { SensTri } from "@/components/v7/SensTri";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
 import { partagerParBornes, type Bornes } from "@/lib/carte";
+import { grandDomaineDe } from "@/lib/grandsDomaines";
+import { RATTACHEMENT_MAX_KM } from "@/lib/villages";
+import { rangerParStation, stationDuLogement } from "@/lib/stay/parStation";
 import { aTraduire, dire, langue, tr, trN } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
@@ -868,7 +871,26 @@ function LogementsStation({ s }: { s: Station }) {
   // restent : ils n'ont pas de cadre, la carte ne peut ni les montrer ni les
   // cacher.
   const parCadre = partagerParBornes(principales, bornes);
-  const affichees = parCadre.visibles;
+  // Sur un grand domaine relié, les logements se rangent par station : la
+  // station cherchée d'abord, puis ses voisines (`parStation.ts`).
+  const domaineRelie = grandDomaineDe(s.id);
+  const nomStation = (id: string) => stationById(id)?.name ?? id;
+  const affichees = domaineRelie ? rangerParStation(parCadre.visibles, s.id, nomStation) : parCadre.visibles;
+  // Les logements rattachés à aucune station, et pourquoi (`rattachement.ts`).
+  // Ils ne sont pas dans la liste : rien ne prouve qu'ils soient ici.
+  const nonRattaches = raw.filter((l) => l.domainFit === "unknown" && l.nonRattache);
+  const nTropLoin = nonRattaches.filter((l) => l.nonRattache === "trop-loin").length;
+  const nSansLieu = nonRattaches.length - nTropLoin;
+  const motifsNonRattaches = [
+    nTropLoin
+      ? trN(nTropLoin, "{n} à plus de {km} km de toute station", "{n} à plus de {km} km de toute station", {
+          km: RATTACHEMENT_MAX_KM,
+        })
+      : null,
+    nSansLieu ? trN(nSansLieu, "{n} sans position ni lieu reconnu", "{n} sans position ni lieu reconnu") : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   // La page en cours. On revient à la première quand le cadre, les filtres ou
   // le tri changent : la page 7 d'une autre liste ne désigne rien.
   const nPages = Math.max(1, Math.ceil(affichees.length / PAGE_LOGEMENTS));
@@ -1325,6 +1347,11 @@ function LogementsStation({ s }: { s: Station }) {
                     : `${trN(logements.length, "{n} logement disponible", "{n} logements disponibles")}${
                         lvis.length > logements.length ? ` · ${trN(lvis.length, "{n} offre", "{n} offres")}` : ""
                       }`}
+                  {nonRattaches.length
+                    ? ` · ${trN(nonRattaches.length, "{n} non rattaché ({motifs})", "{n} non rattachés ({motifs})", {
+                        motifs: motifsNonRattaches,
+                      })}`
+                    : ""}
                 </span>
                 )}
                 <select className="select7" value={lsort} onChange={(e) => choisirTri(e.target.value as LodgeSort)}>
@@ -1479,7 +1506,24 @@ function LogementsStation({ s }: { s: Station }) {
               ) : affichees.length ? (
                 <>
                 <div className="grille7-2">
-                  {pageItems.map(carte)}
+                  {domaineRelie
+                    ? pageItems.map((l, i) => {
+                        const st = stationDuLogement(l, s.id);
+                        const avant = i > 0 ? stationDuLogement(pageItems[i - 1]!, s.id) : null;
+                        const n = affichees.filter((x) => stationDuLogement(x, s.id) === st).length;
+                        return (
+                          <Fragment key={l.id}>
+                            {st !== avant ? (
+                              <h3 className="grille7-2__station">
+                                {nomStation(st)}
+                                <span>{trN(n, "{n} logement", "{n} logements")}</span>
+                              </h3>
+                            ) : null}
+                            {carte(l)}
+                          </Fragment>
+                        );
+                      })
+                    : pageItems.map(carte)}
                 </div>
                 {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
                 </>

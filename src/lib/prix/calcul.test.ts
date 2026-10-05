@@ -852,13 +852,15 @@ describe("résultat d'un relevé", () => {
 
 describe("plages — échelle et poignées", () => {
   it("l'échelle du référentiel, arrondie au pas", () => {
-    // Relevé sur les 320 stations : km 0,1 à 771,4 ; sommet 970 à 3 600
-    // (0 non mesuré exclu) ; village 324 à 2 321.
+    // Relevé sur les 231 stations du référentiel Skiinfo (5 octobre 2026) :
+    // km 0,1 à 771,4 ; sommet 970 à 3 600 ; village 551 (Saint-Maurice-sur-
+    // Moselle) à 2 321. Le village de 324 m était une ligne sans fiche,
+    // sortie du référentiel.
     assert.deepEqual(bornesPlages(STATIONS), {
       prix: [0, 6000],
       km: [0, 780],
       sommet: [900, 3600],
-      village: [300, 2400],
+      village: [500, 2400],
       budget: [0, 10000],
       capacite: [1, 20],
       chambres: [0, 8],
@@ -867,8 +869,9 @@ describe("plages — échelle et poignées", () => {
   });
 
   it("une altitude à zéro ne fait pas descendre l'échelle du sommet", () => {
-    const pilat = stationReelle("les-monts-du-pilat");
-    assert.equal(pilat.maxM, 0);
+    // Les Monts du Pilat, sommet à 0, ont quitté le référentiel le 5 octobre
+    // 2026 (sans fiche Skiinfo) : le cas se fabrique.
+    const pilat = { ...S2A, maxM: 0 };
     assert.equal(valeurStation("sommet", pilat), null);
     assert.equal(valeurStation("km", S2A), S2A.pistesKm);
     assert.equal(valeurStation("village", S2A), S2A.villageM);
@@ -973,8 +976,9 @@ describe("plages — échelle et poignées", () => {
 describe("lignes — état et filtres", () => {
   it("le sous-titre de massif omet un département absent", () => {
     assert.equal(ligne(S2A, null, REPOS).subMassif, "Alpes du Nord · Isère");
-    const sansDept = stationReelle("le-granier-vallee-des-entremonts");
-    assert.equal(sansDept.dept, null);
+    // Toutes les stations ont un département depuis le 5 octobre 2026
+    // (`DEPARTEMENTS`, `villages.ts`) : le cas se fabrique.
+    const sansDept = { ...S2A, dept: null };
     assert.equal(ligne(sansDept, null, REPOS).subMassif, "Alpes du Nord");
   });
 
@@ -1052,7 +1056,7 @@ describe("lignes — état et filtres", () => {
     assert.equal(passe(prix, sansKm, FL0, B), true);
     // Une plage de prix active écarte toute station sans prix.
     assert.equal(passe(peu, s, f({ prix: [0, 6000] }), B), false);
-    const sansSommet = stationReelle("les-monts-du-pilat");
+    const sansSommet = { ...S2A, maxM: 0 };
     const l = ligne(sansSommet, null, REPOS);
     assert.equal(passe(l, sansSommet, f({ sommet: [900, 2000] }), B), false);
   });
@@ -1139,20 +1143,12 @@ describe("tri", () => {
     assert.deepEqual(trier({ k: "med", dir: -1 }, xs), attendu);
   });
 
-  it("nom : les homonymes du référentiel restent départagés par l'id", () => {
-    // `praloup-04226`, doublon de `praloup`, n'est plus au référentiel.
-    const ids = ["le-granier-vallee-des-entremonts", "praloup", "le-granier"];
-    const xs = ids.map((id) => ligne(stationReelle(id), null, REPOS));
-    assert.deepEqual(trier({ k: "nom", dir: 1 }, xs), [
-      "le-granier",
-      "le-granier-vallee-des-entremonts",
-      "praloup",
-    ]);
-    assert.deepEqual(trier({ k: "nom", dir: -1 }, xs), [
-      "praloup",
-      "le-granier",
-      "le-granier-vallee-des-entremonts",
-    ]);
+  it("nom : des homonymes restent départagés par l'id", () => {
+    // Le référentiel n'en a plus depuis que « Le Granier » du classeur est
+    // reconnu pour un doublon (5 octobre 2026) : le cas se fabrique.
+    const xs = [l("le-granier-b", "Le Granier"), l("praloup", "Praloup"), l("le-granier-a", "Le Granier")];
+    assert.deepEqual(trier({ k: "nom", dir: 1 }, xs), ["le-granier-a", "le-granier-b", "praloup"]);
+    assert.deepEqual(trier({ k: "nom", dir: -1 }, xs), ["praloup", "le-granier-a", "le-granier-b"]);
   });
 
   it("massif : rang du massif dans le sens demandé, puis prix croissant, sans prix en dernier", () => {
@@ -2836,7 +2832,9 @@ describe("domaine et station, onglet budget", () => {
   it("optionsDomaine : les domaines du massif et du département, comptés, triés", () => {
     const opts = optionsDomaine(STATIONS, ["Alpes du Nord"], ["Savoie"]);
     assert.deepEqual(opts[0], { v: "", label: "Tous" });
-    assert.ok(opts.some((o) => o.label === "Les Trois Vallées · 14"));
+    // Huit stations à fiche Skiinfo depuis le 5 octobre 2026 (quatorze avec
+    // les villages de Courchevel et de Méribel).
+    assert.ok(opts.some((o) => o.label === "Les Trois Vallées · 8"));
     const valeurs = opts.slice(1).map((o) => o.v);
     assert.deepEqual(
       valeurs,
@@ -2870,10 +2868,16 @@ describe("domaine et station, onglet budget", () => {
   it("nomsDistincts précise les homonymes, et eux seuls", () => {
     // Seule depuis le retrait de son doublon `praloup-04226` : rien à préciser.
     assert.equal(noms.get("praloup"), "Praloup");
-    assert.equal(noms.get("le-granier"), "Le Granier · Saint-Pierre-de-Chartreuse");
-    assert.equal(noms.get("le-granier-vallee-des-entremonts"), "Le Granier · Alpes du Nord");
+    // Le Granier aussi, depuis la fusion de son doublon (5 octobre 2026).
+    assert.equal(noms.get("le-granier"), undefined);
+    assert.equal(noms.get("le-granier-vallee-des-entremonts"), "Le Granier");
     assert.equal(noms.get("val-thorens"), "Val Thorens");
     assert.equal(new Set(noms.values()).size, STATIONS.length);
+    // Deux homonymes se précisent par leur domaine, ou leur département.
+    const sansDomaine = { ...S2A, id: "homonyme", domain: null, dept: "Savoie" };
+    const deux = nomsDistincts([S2A, sansDomaine]);
+    assert.equal(deux.get(S2A.id), `${S2A.name} · ${S2A.domain}`);
+    assert.equal(deux.get("homonyme"), `${S2A.name} · Savoie`);
   });
 
   it("optionsStation : les relevées qui passent massif, département et domaine, par nom", () => {

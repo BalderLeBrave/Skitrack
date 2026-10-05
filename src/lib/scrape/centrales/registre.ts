@@ -25,6 +25,7 @@
  */
 
 import { centraleFor } from "@/lib/centrales";
+import { villageById } from "@/lib/villages";
 import data from "./moteurs.data.json" with { type: "json" };
 import type { MoteurCentrale } from "./types";
 
@@ -58,11 +59,24 @@ function moteurDe(brut: string | undefined): MoteurCentrale {
   return m ?? "inconnu";
 }
 
-/** Station vers hôte, tel que l'audit l'a découvert. Le premier hôte cité gagne. */
+/**
+ * Station vers hôte, tel que l'audit l'a découvert. Le premier hôte cité gagne.
+ *
+ * L'audit date du référentiel où Val Claret ou Reberty étaient des stations.
+ * Depuis le 5 octobre 2026, un village est sa station (`villages.ts`) : l'hôte
+ * d'un village vaut pour elle, mais seulement si la station n'en a pas
+ * elle-même — celui de la station reste le plus précis.
+ */
 const PAR_STATION = new Map<string, { host: string; nom: string }>();
 for (const [host, f] of Object.entries(FICHIER.hotes)) {
   for (const s of f.stations) {
-    if (!PAR_STATION.has(s)) PAR_STATION.set(s, { host, nom: f.nom });
+    if (!villageById(s) && !PAR_STATION.has(s)) PAR_STATION.set(s, { host, nom: f.nom });
+  }
+}
+for (const [host, f] of Object.entries(FICHIER.hotes)) {
+  for (const s of f.stations) {
+    const station = villageById(s)?.station;
+    if (station && !PAR_STATION.has(station)) PAR_STATION.set(station, { host, nom: f.nom });
   }
 }
 

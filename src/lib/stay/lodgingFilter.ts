@@ -32,6 +32,7 @@
 import { isBookable, type Stay } from "./availability.ts";
 import { inRange, rangeOpen } from "./range.ts";
 import type { DomainVerdict } from "../domainFit.ts";
+import type { MotifNonRattache } from "../rattachement.ts";
 import { ficheDementieParLeTitre } from "./occupancy.ts";
 import { LIMITE_TERRITOIRE_M, territoireReasonFor } from "./territoire.ts";
 import { aTraduire, tr, trN } from "../i18n/tr.ts";
@@ -86,6 +87,8 @@ export type FilterSubject = {
    * : rien dans le dépôt n'écartait une annonce sur la foi de ce verdict.
    */
   domainFit?: DomainVerdict;
+  /** Pourquoi le logement n'est rattaché à aucune station (`rattachement.ts`). */
+  nonRattache?: MotifNonRattache | null;
   pricedCheckIn?: string | null;
   pricedCheckOut?: string | null;
   scannedAt?: number | null;
@@ -224,8 +227,9 @@ export function distFiltrableM(listing: Pick<FilterSubject, "distToSlopesM" | "d
 /** Paliers du filtre distance, du pied des pistes à deux kilomètres. */
 export const DIST_PALIERS_M = [200, 500, 1000, 2000] as const;
 
-/** Motif géographique d'écart : le domaine, ou la distance. */
-export type GeoReason = "autre-domaine" | "hors-zone";
+/** Motif géographique d'écart : le domaine, la station introuvable, ou la
+ *  distance. */
+export type GeoReason = "autre-domaine" | "non-rattache" | "hors-zone";
 
 /**
  * La géographie écarte-t-elle cette annonce ?
@@ -241,6 +245,10 @@ export function geoReasonFor(
   searchedDept?: string | null,
 ): GeoReason | null {
   if (listing.domainFit === "other") return "autre-domaine";
+  // Rattaché à aucune station (`rattachement.ts`) : trop loin de toute
+  // station, ou sans position ni lieu reconnu. Rien ne prouve qu'il soit à
+  // celle qu'on cherche.
+  if (listing.domainFit === "unknown" && listing.nonRattache) return "non-rattache";
 
   const territoire = territoireReasonFor(listing, searchedDept);
   if (territoire) return territoire;
@@ -349,6 +357,7 @@ export function fitsParty(
 export type DropReason =
   | "groupe"
   | "autre-domaine"
+  | "non-rattache"
   | "hors-zone"
   | "capacite"
   | "capacite-muette"
@@ -443,6 +452,7 @@ export function applyFilter<T extends FilterSubject>(
   const byReason: Record<DropReason, number> = {
     groupe: 0,
     "autre-domaine": 0,
+    "non-rattache": 0,
     "hors-zone": 0,
     capacite: 0,
     "capacite-muette": 0,
@@ -467,6 +477,7 @@ export function applyFilter<T extends FilterSubject>(
 const REASON_LABEL: Record<DropReason, [string, string]> = {
   groupe: [aTraduire("gîte de groupe"), aTraduire("gîtes de groupe")],
   "autre-domaine": [aTraduire("sur un autre domaine"), aTraduire("sur d’autres domaines")],
+  "non-rattache": [aTraduire("rattaché à aucune station"), aTraduire("rattachés à aucune station")],
   "hors-zone": [aTraduire("hors de la zone"), aTraduire("hors de la zone")],
   capacite: [aTraduire("trop petit"), aTraduire("trop petits")],
   // Ni « trop petit » ni « convient » : la source s'est tue, et on le dit.

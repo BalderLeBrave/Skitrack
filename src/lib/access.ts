@@ -7,7 +7,7 @@ import {
   nearestLift,
   nearestPlace,
 } from "./osmAccess.ts";
-import { domainFit, inSearchedDomain, otherDomainMessage } from "./domainFit.ts";
+import { champsDuVerdict, domainFit, inSearchedDomain, otherDomainMessage } from "./domainFit.ts";
 import { nearestStationLift } from "./remontees.ts";
 import { stationById, type Station } from "./stations.ts";
 import { withinLiftM as withinM } from "./skiAccess.ts";
@@ -83,11 +83,7 @@ export function attachAccess(
       liftOtherLon: null,
       placeName: listing.placeName ?? null,
       distToPlaceM: null,
-      domainFit: fit.verdict,
-      nearestDomainId: fit.nearestStationId,
-      nearestDomainName: fit.nearestStationName,
-      distToNearestDomainM: fit.distToNearestPinM,
-      winterBarrier: fit.winterBarrier,
+      ...champsDuVerdict(fit),
       searchedLiftM: null,
       searchedLiftName: null,
       completude,
@@ -116,11 +112,7 @@ export function attachAccess(
     liftOtherLon: near?.otherLon ?? null,
     placeName: place?.name ?? listing.placeName ?? null,
     distToPlaceM: place?.m ?? null,
-    domainFit: fit.verdict,
-    nearestDomainId: fit.nearestStationId,
-    nearestDomainName: fit.nearestStationName,
-    distToNearestDomainM: fit.distToNearestPinM,
-    winterBarrier: fit.winterBarrier,
+    ...champsDuVerdict(fit),
     searchedLiftM: lift?.m ?? null,
     searchedLiftName: lift?.name ?? null,
     completude,

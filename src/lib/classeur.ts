@@ -161,8 +161,9 @@ export function sansDomaineAlpin(id: string): boolean {
  * Ce qui n'y est pas, exprès : Chamrousse 1750 (Roche Béranger, un autre
  * village, avec ses remontées et son forfait), les paires station et village
  * (Tignes et Tignes-le-Lac, Chamrousse et 1650, Les 7 Laux et Prapoutel), et
- * « Le Granier », dont l'identité avec la station du dépôt n'est pas prouvée
- * (voir `NAME_MATCH_EXCEPTIONS`).
+ * « Le Granier » (voir `NAME_MATCH_EXCEPTIONS`). Depuis le 5 octobre 2026,
+ * ces villages et ce doublon se résolvent vers leur station dans
+ * `villages.ts`, qui lit le classeur sans le corriger.
  */
 const LIGNES_EN_DOUBLE: { ligne: string; retire: string; garde: string }[] = [
   { ligne: "Sainte-Foy Station", retire: "sainte-foy-station", garde: "sainte-foy-tarentaise" },
@@ -377,10 +378,12 @@ export type DomainMeasure = {
  *  n'est là que pour attraper une dérive future des données. */
 const NAME_MATCH_MAX_KM = 15;
 
-/** Stations du dépôt dont le nom existe au classeur sans désigner le même lieu.
- *  Le classeur nomme « Le Granier » une station de Saint-Pierre-de-Chartreuse ;
- *  le dépôt nomme « Le Granier » le domaine de la vallée des Entremonts, à
- *  9,2 km. Deux lieux, deux domaines. */
+/** Stations du dépôt que l'appariement par le nom ne doit pas toucher.
+ *  Le classeur place « Le Granier » à Saint-Pierre-de-Chartreuse, à 9,2 km du
+ *  « Le Granier » du dépôt, avec les mesures du Planolet : apparier la ligne
+ *  donnerait ces mesures à la station du dépôt. La ligne reste donc à part
+ *  ici, et c'est `FUSIONS` (`villages.ts`, 5 octobre 2026) qui la reconnaît
+ *  pour un doublon et la résout vers la station du dépôt. */
 const NAME_MATCH_EXCEPTIONS = new Set<string>(["le-granier-vallee-des-entremonts"]);
 
 /** Correspondances qu'aucune règle ne trouve : graphie différente, station

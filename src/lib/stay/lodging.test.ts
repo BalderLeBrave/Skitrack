@@ -371,6 +371,7 @@ describe("filtre : ce qui sort, et pourquoi", () => {
     assert.deepEqual(out.dropped.byReason, {
       groupe: 1,
       "autre-domaine": 0,
+      "non-rattache": 0,
       "hors-zone": 0,
       capacite: 2,
       "capacite-muette": 0,
@@ -502,10 +503,12 @@ describe("filtre : la zone de recherche", () => {
 
     // La distance est mesurée, et elle est énorme.
     assert.ok((situe.distToSlopesM ?? 0) > 250_000);
-    // Le rattachement tranche avant elle, et il est plus précis : ce logement
-    // n'est pas « trop loin », il est sur un autre domaine.
-    assert.equal(situe.domainFit, "other");
-    assert.equal(dropReasonFor(situe, criteres), "autre-domaine");
+    // Le rattachement tranche avant elle, et il est plus précis : à plus de
+    // 12 km de toute station (`RATTACHEMENT_MAX_KM`), ce logement n'est
+    // rattaché à aucune, et le motif le dit.
+    assert.equal(situe.domainFit, "unknown");
+    assert.equal(situe.nonRattache, "trop-loin");
+    assert.equal(dropReasonFor(situe, criteres), "non-rattache");
 
     // Dans la même vallée, à sept kilomètres, le logement reste.
     const proche = attachAccess({ ...brut, id: "aime", lat: 45.5547, lon: 6.6486 }, plagne!);

@@ -52,7 +52,7 @@ describe("état persisté : migration", () => {
   it("version 2 → 3 : station, comparaison et colonne cochée passent par les identifiants retirés", () => {
     // Sous Node, sans `localStorage`, zustand n'attache pas l'API `persist` :
     // on éprouve la fonction que le magasin lui passe.
-    assert.equal(PARCOURS_VERSION, 4);
+    assert.equal(PARCOURS_VERSION, 5);
     // Une comparaison enregistrée avant le 26 septembre 2026. Sans migration,
     // « praloup-04226 » montrait une colonne Praloup que la liste ne cochait
     // pas, et la cocher en ajoutait une seconde.
@@ -99,6 +99,27 @@ describe("état persisté : migration", () => {
     assert.deepEqual(migrerParcours({ cmp: ["station-inventee"] }, 2).cmp, ["station-inventee"]);
     // Un état vide ou absent reste lisible.
     assert.deepEqual(migrerParcours(undefined, 3), { sortDir: -1 });
+  });
+
+  it("version 4 → 5 : un village de la table se lit sous sa station", () => {
+    // Le 5 octobre 2026, les villages sans fiche Skiinfo cessent d'être des
+    // stations (`villages.ts`). Une comparaison qui cochait Plagne Centre et
+    // La Plagne aurait montré deux colonnes La Plagne.
+    const v4 = {
+      stationId: "plagne-centre",
+      q: "Plagne Centre",
+      cmp: ["plagne-centre", "la-plagne", "tignes-val-claret", "le-granier"],
+      pick: "lanslebourg",
+      sortDir: 1,
+    };
+    const v5 = migrerParcours(v4, 4);
+    assert.equal(v5.stationId, "la-plagne");
+    assert.equal(v5.q, "La Plagne");
+    assert.deepEqual(v5.cmp, ["la-plagne", "tignes", "le-granier-vallee-des-entremonts"]);
+    assert.equal(v5.pick, "val-cenis");
+    // Une station retirée faute de fiche reste telle quelle : elle ne résout
+    // plus rien, la migration n'en invente pas une autre.
+    assert.deepEqual(migrerParcours({ cmp: ["la-bourboule"] }, 4).cmp, ["la-bourboule"]);
   });
 
   it("version 1 → 3 : la station retenue est relâchée, la comparaison est réécrite", () => {

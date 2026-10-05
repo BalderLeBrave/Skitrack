@@ -17,10 +17,10 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { IDS_RETIRES, sansDomaineAlpin } from "./classeur.ts";
+import { sansDomaineAlpin } from "./classeur.ts";
 import { resolveStationPhoto } from "./stationPhoto.ts";
 import { adults, clampChildren, PARTY_LIMITS, partyLabel } from "./stay/party.ts";
-import { stationById, type Station } from "./stations.ts";
+import { idStation, stationById, type Station } from "./stations.ts";
 import { useStay } from "./stay.ts";
 import { entier, montant, montantCents, montantN } from "./devises.ts";
 import { plageDepuisSeuil, poserBorne, type Echelle, type Plage } from "./plage.ts";
@@ -221,13 +221,29 @@ type Parcours = {
 };
 
 /** Version de l'état persisté. Voir `migrerParcours`. */
-export const PARCOURS_VERSION = 4;
+export const PARCOURS_VERSION = 5;
 
 /** L'identifiant courant d'une station : un identifiant retiré du référentiel
- *  (`IDS_RETIRES`) rend celui de la station qui le remplace ; tout autre reste
- *  tel quel. */
+ *  (`IDS_RETIRES`), un village, un doublon fusionné ou un alias Skiinfo
+ *  (`villages.ts`) rend celui de la station qui le porte (`idStation`) ; tout
+ *  autre reste tel quel. */
 function idCourant(id: string): string {
-  return IDS_RETIRES[id] ?? id;
+  return idStation(id) ?? id;
+}
+
+/** Station retenue, comparaison et colonne cochée, ramenées aux identifiants
+ *  courants ; la comparaison perd ses doublons, dans son ordre. */
+function ramenerAuxIdsCourants(p: Record<string, unknown>): Record<string, unknown> {
+  if (typeof p.stationId === "string") {
+    const id = idCourant(p.stationId);
+    if (id !== p.stationId) p = { ...p, stationId: id, q: stationById(id)?.name ?? p.q };
+  }
+  if (Array.isArray(p.cmp)) {
+    const ids = p.cmp.filter((x): x is string => typeof x === "string").map(idCourant);
+    p = { ...p, cmp: [...new Set(ids)] };
+  }
+  if (typeof p.pick === "string") p = { ...p, pick: idCourant(p.pick) };
+  return p;
 }
 
 /**
@@ -252,6 +268,12 @@ function idCourant(id: string): string {
  * la loupe ouvrira. `seen` et `lodgeId` ne bougent pas : ils portent des
  * identifiants d'annonce, pas de station.
  *
+ * **Version 5** : le 5 octobre 2026, les villages sans fiche Skiinfo cessent
+ * d'être des stations (`villages.ts`) : « plagne-centre » est La Plagne. Même
+ * traitement qu'en version 3, pour la même raison (le doublon fantôme). Les
+ * relevés et les annonces, eux, ne sont pas réécrits : ils se relisent sous
+ * leur station.
+ *
  * **Version 4** : chaque seuil devient une fourchette. « Au moins n » (les
  * altitudes, les kilomètres, les couleurs) se relit `[n, max]`, « au plus n »
  * (le forfait, le budget) `[0, n]`, et zéro reste « indifférent ». La recherche
@@ -261,17 +283,7 @@ function idCourant(id: string): string {
 export function migrerParcours(persisted: unknown, version: number): Record<string, unknown> {
   let p = { ...((persisted ?? {}) as Record<string, unknown>) };
   if (version < 2) p = { ...p, stationId: null, lodgeId: null, booked: false };
-  if (version < 3) {
-    if (typeof p.stationId === "string") {
-      const id = idCourant(p.stationId);
-      if (id !== p.stationId) p = { ...p, stationId: id, q: stationById(id)?.name ?? p.q };
-    }
-    if (Array.isArray(p.cmp)) {
-      const ids = p.cmp.filter((x): x is string => typeof x === "string").map(idCourant);
-      p = { ...p, cmp: [...new Set(ids)] };
-    }
-    if (typeof p.pick === "string") p = { ...p, pick: idCourant(p.pick) };
-  }
+  if (version < 3) p = ramenerAuxIdsCourants(p);
   if (version < 4) {
     const f = (p.filters ?? null) as Record<string, unknown> | null;
     if (f && typeof f === "object") {
@@ -297,6 +309,7 @@ export function migrerParcours(persisted: unknown, version: number): Record<stri
     const k = p.sortKey as SortKey;
     p = { ...p, sortDir: k in SENS_TRI ? SENS_TRI[k] : SENS_TRI.km };
   }
+  if (version < 5) p = ramenerAuxIdsCourants(p);
   return p;
 }
 

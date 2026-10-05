@@ -455,4 +455,6 @@ export const EN_PARCOURS: Record<string, string> = {
   "télémixte": "mixed lift",
   "funiculaire": "funicular",
   "remontée": "lift",
+  // Accueil : un village de la table renvoie à sa station (`villages.ts`)
+  "{village} ({station})": "{village} ({station})",
 };

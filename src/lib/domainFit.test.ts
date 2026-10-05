@@ -4,12 +4,10 @@ import { attachAccess, formatLift } from "./access.ts";
 import {
   domainFit,
   linkedSkiStations,
-  memeLibelleNonReliees,
   nearestStationPin,
   otherDomainMessage,
   rejugerDomaine,
   stationIdFromText,
-  stationsDeliees,
   winterBarrier,
 } from "./domainFit.ts";
 import type { Listing } from "./listings.ts";
@@ -38,13 +36,12 @@ const pastourelle = {
 describe("domaine skiable ≠ rayon kilométrique", () => {
   it("Le Fornet est Val d’Isère, pas Bonneval", () => {
     assert.equal(stationIdFromText("Chalet au Fornet"), "val-disere");
-    // Le Fornet est une entrée du classeur depuis la bascule : son propre pin
-    // est à 55 m. Ce qui compte reste qu’il relève de Val d’Isère, pas de
-    // Bonneval, et que son domaine soit bien Tignes – Val d’Isère.
+    // Le Fornet a été une entrée du classeur ; depuis le 5 octobre 2026 c'est
+    // un village de Val d'Isère (`villages.ts`). Son repère, à 1,3 km, rattache
+    // à Val d'Isère, pas à Bonneval.
     const fornet = nearestStationPin(45.450318, 7.011062);
-    assert.equal(fornet.station.id, "le-fornet");
+    assert.equal(fornet.station.id, "val-disere");
     assert.equal(fornet.station.domain, "Tignes - Val d'Isère");
-    assert.notEqual(fornet.station.id, "bonneval-sur-arc");
     const fit = domainFit({ lat: 45.450318, lon: 7.011062, title: "Le Fornet" }, val());
     assert.equal(fit.verdict, "in");
   });
@@ -71,6 +68,9 @@ describe("domaine skiable ≠ rayon kilométrique", () => {
         searchedId: "les-arcs",
         nearestStationId: "valmorel",
         nearestStationName: "Valmorel",
+        villageId: null,
+        via: "coordonnees",
+        motif: null,
         distToSearchedPinM: null,
         distToNearestPinM: null,
         verdict: "other",
@@ -222,47 +222,42 @@ const capucine = enregistree({
 });
 
 describe("même libellé de domaine, pas le même domaine", () => {
-  it("Abondance n'est pas Morzine : le libellé Portes du Soleil ne suffit plus", () => {
+  it("Abondance est sur les Portes du Soleil : un logement de Morzine y est relié, et reste à Morzine", () => {
+    // Déliée le 26 septembre 2026, rendue aux Portes du Soleil par le
+    // propriétaire le 5 octobre (`grandsDomaines.ts`). Le domaine relié ne
+    // déplace pas le logement : il est à Morzine.
     const abondance = stationById("abondance")!;
-    assert.equal(abondance.domain, stationById("morzine")!.domain);
     const fit = domainFit(hermine, abondance);
     assert.equal(fit.nearestStationId, "morzine");
-    assert.equal(fit.verdict, "other");
-    // Dans les deux sens, et pour les cinq voisines de libellé.
+    assert.equal(fit.verdict, "linked");
+    // Dans les deux sens, et pour les autres stations du domaine.
     const auRepere = { lat: abondance.lat, lon: abondance.lon, title: "Chalet" };
-    for (const id of ["morzine", "montriond", "avoriaz", "les-gets", "saint-jean-daulps"]) {
-      assert.equal(memeLibelleNonReliees("abondance", id), true, id);
-      assert.equal(domainFit(auRepere, stationById(id)!).verdict, "other", id);
+    for (const id of ["morzine", "montriond", "avoriaz", "les-gets", "saint-jean-daulps", "chatel"]) {
+      assert.equal(domainFit(auRepere, stationById(id)!).verdict, "linked", id);
     }
   });
 
-  it("Abondance déliée de Châtel et de La Chapelle, Morzine–Avoriaz reliées par les pistes", () => {
-    // Décision du propriétaire, 26 septembre 2026 : le seul forfait des Portes
-    // du Soleil ne fait pas d'un logement de Châtel un logement d'Abondance.
-    assert.equal(domainFit(chatel, stationById("abondance")!).verdict, "other");
-    assert.equal(stationsDeliees("abondance", "chatel"), true);
-    assert.equal(stationsDeliees("la-chapelle-dabondance", "abondance"), true);
+  it("Châtel, La Chapelle et Abondance reliées, Morzine–Avoriaz aussi", () => {
+    assert.equal(domainFit(chatel, stationById("abondance")!).verdict, "linked");
     const chapelle = stationById("la-chapelle-dabondance")!;
     const auBourg = { lat: chapelle.lat, lon: chapelle.lon, title: "Chalet" };
-    assert.equal(domainFit(auBourg, stationById("abondance")!).verdict, "other");
-    // Entre elles, Châtel et La Chapelle restent reliées.
-    assert.notEqual(domainFit(auBourg, stationById("chatel")!).verdict, "other");
-    // La règle « même domaine » tient pour les autres stations du libellé.
+    assert.equal(domainFit(auBourg, stationById("abondance")!).verdict, "linked");
+    assert.equal(domainFit(auBourg, stationById("chatel")!).verdict, "linked");
+    // Avoriaz est une autre station que Morzine, sur le même grand domaine
+    // relié : le logement est d'Avoriaz, relié à Morzine.
     const avoriaz = stationById("avoriaz")!;
-    const fit = domainFit(
-      { lat: avoriaz.lat, lon: avoriaz.lon, title: "Studio" },
-      stationById("morzine")!,
-    );
-    assert.equal(fit.verdict, "in");
+    const fit = domainFit({ lat: avoriaz.lat, lon: avoriaz.lon, title: "Studio" }, stationById("morzine")!);
+    assert.equal(fit.nearestStationId, "avoriaz");
+    assert.equal(fit.verdict, "linked");
   });
 
-  it("La Bourboule, sans domaine, ne prend plus les logements du Mont-Dore", () => {
-    const bourboule = stationById("la-bourboule")!;
-    assert.equal(bourboule.domain, null);
-    const fit = domainFit(montDore, bourboule);
+  it("La Bourboule n'est plus une station : son identifiant ne résout plus rien", () => {
+    // Sans fiche Skiinfo, sortie du référentiel le 5 octobre 2026. Un
+    // logement du Mont-Dore est au Mont-Dore.
+    assert.equal(stationById("la-bourboule"), undefined);
+    const fit = domainFit(montDore, stationById("le-mont-dore")!);
     assert.equal(fit.nearestStationId, "le-mont-dore");
-    assert.equal(fit.verdict, "other");
-    assert.ok(!linkedSkiStations("la-bourboule").has("le-mont-dore"));
+    assert.equal(fit.verdict, "in");
   });
 
   it("Lispach ne prend plus Gérardmer, et garde les siens", () => {
@@ -271,54 +266,64 @@ describe("même libellé de domaine, pas le même domaine", () => {
     assert.equal(domainFit(capucine, lispach).verdict, "in");
   });
 
-  it("le libellé sans nom ne fait pas un domaine : Beille n'est pas Névache", () => {
-    // Même libellé « domaine non nommé (OpenStreetMap) », à 471 km.
-    const nevache = stationById("nevache")!;
+  it("le libellé sans nom ne fait pas un domaine : Beille n'est pas Saint-Colomban", () => {
+    // Même libellé « domaine non nommé (OpenStreetMap) », à 462 km.
+    const colomban = stationById("saint-colomban-villards")!;
     const fit = domainFit(
-      { lat: nevache.lat, lon: nevache.lon, title: "Gîte" },
+      { lat: colomban.lat, lon: colomban.lon, title: "Gîte" },
       stationById("plateau-de-beille")!,
     );
-    assert.equal(fit.nearestStationId, "nevache");
+    assert.equal(fit.nearestStationId, "saint-colomban-villards");
     assert.equal(fit.verdict, "other");
   });
 });
 
 describe("relevés déjà faits : le verdict est rejugé à la relecture", () => {
-  it("une annonce de Morzine relevée pour Abondance en sort, et perd sa remontée", () => {
-    // Enregistrée, elle passait : 718 m de Super-Morzine.
+  it("une annonce de Morzine relevée pour Abondance reste, reliée, et garde sa remontée", () => {
+    // Enregistrée « in » ; rejugée « linked » depuis le 5 octobre 2026, à sa
+    // station, Morzine : 718 m de Super-Morzine.
     assert.equal(dansLaStation(hermine), true);
     const l = remesurerRemontee(rejugerDomaine(hermine, stationById("abondance")));
+    assert.equal(l.domainFit, "linked");
+    assert.equal(l.nearestDomainId, "morzine");
+    assert.equal(l.rattachementVia, "coordonnees");
+    assert.equal(dansLaStation(l), true);
+  });
+
+  it("une annonce d'un autre domaine sort du relevé, et perd sa remontée", () => {
+    // Un logement de Morzine relevé pour Flaine (Grand Massif) n'y est pas.
+    const l = remesurerRemontee(rejugerDomaine({ ...hermine, stationId: "flaine" }, stationById("flaine")));
     assert.equal(l.domainFit, "other");
     assert.equal(l.nearestDomainId, "morzine");
     assert.equal(l.distToLiftM, null);
     assert.equal(l.liftName, null);
-    // La distance se rabat sur le repère d'Abondance, à 10,7 km : hors station.
-    assert.equal(l.distToSlopesM, 10737);
     assert.equal(dansLaStation(l), false);
   });
 
-  it("le Mont-Dore sort de La Bourboule, Gérardmer de Lispach", () => {
-    const mont = remesurerRemontee(rejugerDomaine(montDore, stationById("la-bourboule")));
-    assert.equal(mont.domainFit, "other");
-    assert.equal(dansLaStation(mont), false);
+  it("Gérardmer sort de Lispach", () => {
     const ger = remesurerRemontee(rejugerDomaine(gerardmer, stationById("la-bresse-lispach")));
     assert.equal(ger.domainFit, "other");
     assert.equal(dansLaStation(ger), false);
   });
 
-  it("Châtel sort d'un relevé d'Abondance, La Capucine reste à Lispach", () => {
-    // Abondance et Châtel sont déliées (26 septembre 2026) : un logement de
-    // Châtel relevé pour Abondance n'y compte plus.
+  it("Châtel reste dans un relevé d'Abondance, La Capucine reste à Lispach", () => {
     const c = remesurerRemontee(rejugerDomaine(chatel, stationById("abondance")));
-    assert.equal(c.domainFit, "other");
+    assert.equal(c.domainFit, "linked");
+    assert.equal(c.nearestDomainId, "chatel");
     const g = remesurerRemontee(rejugerDomaine(capucine, stationById("la-bresse-lispach")));
     assert.equal(g.domainFit, "in");
     assert.equal(dansLaStation(g), true);
   });
 
-  it("sans position ou sans station, rien n'est rejugé", () => {
+  it("sans position, le rattachement se refait par la localité et le texte ; sans station, rien", () => {
+    // Depuis le 5 octobre 2026, le rattachement se recalcule à chaque
+    // relecture, position ou pas : « Morzine est à 11 km de Abondance » est
+    // à Morzine.
     const sansGps = { ...hermine, lat: null, lon: null };
-    assert.equal(rejugerDomaine(sansGps, stationById("abondance")), sansGps);
+    const l = rejugerDomaine(sansGps, stationById("abondance"));
+    assert.equal(l.nearestDomainId, "morzine");
+    assert.equal(l.rattachementVia, "texte");
+    assert.equal(l.domainFit, "linked");
     assert.equal(rejugerDomaine(hermine, undefined), hermine);
   });
 });

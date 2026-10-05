@@ -35,19 +35,23 @@
  *
  *  ## `le-granier-vallee-des-entremonts`
  *
- *  Le classeur nomme « Le Granier » une station de Saint-Pierre-de-Chartreuse,
- *  à 9,2 km du « Le Granier » du dépôt, qui désigne le domaine de la vallée des
- *  Entremonts. Deux lieux, deux domaines : ce ne sont pas la même station.
+ *  Le classeur nomme « Le Granier » une ligne placée à Saint-Pierre-de-
+ *  Chartreuse, à 9,2 km du « Le Granier » du dépôt. On l'a longtemps tenue
+ *  pour une autre station. La relecture du 5 octobre 2026 a montré le
+ *  contraire : la ligne n'a aucune mesure propre (celles du Planolet, par vote
+ *  de proximité) et porte la même commune. C'est un doublon : `le-granier` se
+ *  résout vers `le-granier-vallee-des-entremonts` (`FUSIONS`, `villages.ts`).
+ *  L'identifiant du dépôt est inchangé.
  *
- *  Elle reste donc au référentiel comme station du dépôt seul. Son identifiant,
- *  sa fiche, sa photo, son mix Skiinfo et ses altitudes IGN sont inchangés ;
- *  tout ce qui pointe dessus continue de fonctionner. Ce qu'elle n'a pas, et
- *  n'aura pas tant que le classeur ne la décrira pas : domaine, remontées,
- *  tronçons par couleur, distance à la piste. L'écran affiche ces absences.
- *  Rien n'est supprimé. */
+ *  ## Référentiel Skiinfo (5 octobre 2026)
+ *
+ *  Une station est une fiche Skiinfo (`villages.ts`). Les 65 villages sans
+ *  fiche propre, tous d'origine classeur, se résolvent vers leur station ; les
+ *  17 lignes sans fiche ni station où les rattacher ne résolvent plus rien,
+ *  comme une station fermée. Aucun identifiant du dépôt n'est concerné : les
+ *  230 résolvent comme avant. */
 
-import { IDS_RETIRES } from "./classeur.ts";
-import { STATIONS, type Station } from "./stations.ts";
+import { STATIONS, stationById, type Station } from "./stations.ts";
 import depotRows from "./stations.data.json" with { type: "json" };
 
 type DepotRow = { id: string };
@@ -55,14 +59,13 @@ type DepotRow = { id: string };
 /** Les 231 identifiants du référentiel d'origine. */
 export const DEPOT_IDS: string[] = (depotRows as DepotRow[]).map((r) => r.id);
 
-const BY_ID = new Map(STATIONS.map((s) => [s.id, s]));
-
 /** Sens 1 — un identifiant enregistré avant la bascule vers la station d'après.
- *  Un identifiant retiré depuis (`IDS_RETIRES`) rend la station qui le
- *  remplace, qui porte son propre identifiant. Renvoie `null` si
- *  l'identifiant n'a jamais existé, jamais une station au hasard. */
+ *  Un identifiant retiré depuis (`IDS_RETIRES`), un village, un doublon ou un
+ *  alias (`villages.ts`) rend la station qui le porte, sous son propre
+ *  identifiant (`stationById`). Renvoie `null` si l'identifiant n'a jamais
+ *  existé ou ne résout plus rien, jamais une station au hasard. */
 export function stationFromStoredId(storedId: string): Station | null {
-  return BY_ID.get(storedId) ?? BY_ID.get(IDS_RETIRES[storedId] ?? "") ?? null;
+  return stationById(storedId) ?? null;
 }
 
 /** Sens 2 — la station d'après vers l'identifiant à réécrire dans les données

@@ -4,9 +4,10 @@
  * Ce module ne reprend rien : il n'existait pas. Les 231 photos du relevé sont
  * publiées par deux sources, et la seule information fiable dont l'application
  * dispose sur l'origine d'une image est **l'hôte de l'URL relevée** dans
- * `skiinfo.photos.json`. Le crédit s'en déduit, ce qui couvre les 231 sans
- * qu'aucune liste ne soit à tenir à jour, et sans qu'une station ajoutée
- * demain sorte sans crédit.
+ * `skiinfo.photos.json` — ou, pour une station ajoutée hors relevé, dans
+ * `STATIONS_AJOUTEES` (`villages.ts` : Val d'Ese, Haut Asco). Le crédit s'en
+ * déduit, ce qui couvre les 231 sans qu'aucune liste ne soit à tenir à jour,
+ * et sans qu'une station ajoutée demain sorte sans crédit.
  *
  * Ce que la dérivation ne sait pas dire, c'est le nom de l'auteur : l'hôte dit
  * qui publie, pas qui a pris la photo. `photo-credits.overrides.json` sert à
@@ -22,6 +23,8 @@
 import overridesRaw from "./photo-credits.overrides.json" with { type: "json" };
 import { SKIINFO_PHOTOS } from "./skiinfo.ts";
 import { resolveStationPhoto } from "./stationPhoto.ts";
+import { idStation } from "./stations.ts";
+import { STATIONS_AJOUTEES } from "./villages.ts";
 import { tr } from "./i18n/tr.ts";
 
 export type PhotoSource = {
@@ -53,7 +56,19 @@ export type PhotoOverride = {
 const HOSTS: Record<string, PhotoSource> = {
   "cdn.bfldr.com": { name: "Skiinfo", home: "https://www.skiinfo.fr/" },
   "img1.onthesnow.com": { name: "OnTheSnow", home: "https://www.onthesnow.fr/" },
+  // Photos des stations ajoutées le 5 octobre 2026, choisies par le propriétaire.
+  "france3-regions.franceinfo.fr": {
+    name: "France 3 Corse ViaStella",
+    home: "https://france3-regions.franceinfo.fr/corse/",
+  },
+  "ajaccio.media.tourinsoft.eu": { name: "Ajaccio Tourisme", home: "https://www.ajaccio-tourisme.com/" },
 };
+
+/** L'adresse d'origine de la photo d'une station : celle du relevé Skiinfo,
+ *  ou celle d'une station ajoutée hors relevé. */
+function adressePhoto(stationId: string): string | null {
+  return SKIINFO_PHOTOS[stationId] ?? STATIONS_AJOUTEES.find((a) => a.id === stationId)?.photoUrl ?? null;
+}
 
 const OVERRIDES: Record<string, PhotoOverride> = (
   overridesRaw as { rows: Record<string, PhotoOverride> }
@@ -93,9 +108,11 @@ export function photoCreditFor(stationId: string): PhotoCredit | null {
   // d'Aime 2000 serait faux, même si le domaine est le même.
   const resolved = resolveStationPhoto(stationId);
   if (!resolved) return null;
-  const creditedId = resolved.fromId ?? stationId;
+  // Un village (« aime-2000 ») montre la photo de sa station : on crédite
+  // celle-ci.
+  const creditedId = resolved.fromId ?? idStation(stationId) ?? stationId;
   if (isPhotoRemoved(creditedId)) return null;
-  const source = sourceForUrl(SKIINFO_PHOTOS[creditedId]);
+  const source = sourceForUrl(adressePhoto(creditedId));
   if (!source) return null;
   const author = OVERRIDES[creditedId]?.author ?? null;
   const base = author ? `Photo ${author} / ${source.name}` : `Photo ${source.name}`;

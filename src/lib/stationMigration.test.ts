@@ -23,9 +23,10 @@ import {
   storedIdOfStation,
 } from "./stationMigration.ts";
 import { DEPOT_STATIONS, STATIONS, stationById } from "./stations.ts";
+import { FUSIONS, IDS_SANS_FICHE, STATIONS_SANS_FICHE, VILLAGES } from "./villages.ts";
 
 describe("bascule vers le classeur", () => {
-  it("volumes : 279 lignes de classeur sur 284, 196 appariées, 34 hors classeur, 313 au total", () => {
+  it("volumes : 279 lignes de classeur sur 284, 196 appariées, 37 hors classeur, 233 au total", () => {
     // Jusqu'au 26 septembre 2026 : 284 lignes, 195 appariées, 36 hors
     // classeur, 320 stations. Quatre lignes doublaient une autre station, et
     // Lus-la-Croix-Haute est désormais appariée à `lus-la-jarjatte`. Le
@@ -47,10 +48,16 @@ describe("bascule vers le classeur", () => {
     // double de Praloup, elle ne collisionne plus avec personne.
     assert.deepEqual(CLASSEUR_ID_COLLISIONS, []);
     assert.equal(CLASSEUR.filter((e) => e.depotId).length, 196);
-    assert.equal(addedByClasseur().length, 83);
-    assert.equal(outsideClasseur().length, 34);
-    assert.equal(STATIONS.length, 313);
-    assert.equal(DEPOT_STATIONS.length, 230);
+    // Le 5 octobre 2026, une station devient une fiche Skiinfo (`villages.ts`) :
+    // les 83 que seul le classeur décrivait sont 65 villages rattachés à leur
+    // station, 17 lignes sans fiche retirées et le doublon du Granier.
+    // Sollières-Sardières, à fiche mais absente des deux sources, entre, avec
+    // Val d'Ese et Haut Asco, sans fiche, gardées par le propriétaire.
+    assert.equal(addedByClasseur().length, 0);
+    assert.equal(VILLAGES.length + STATIONS_SANS_FICHE.length + Object.keys(FUSIONS).length, 83);
+    assert.equal(outsideClasseur().length, 37);
+    assert.equal(STATIONS.length, 233);
+    assert.equal(DEPOT_STATIONS.length, 233);
   });
 
   it("les identifiants retirés résolvent vers la station gardée, jamais vers rien", () => {
@@ -100,8 +107,13 @@ describe("bascule vers le classeur", () => {
       assert.equal(stationById(id)!.distToPisteKm, null, id);
     }
     // Un repère corrigé à la main, loin du centre de la commune : même règle.
+    // Lanslebourg était l'exemple ; c'est un village de Val Cenis depuis le
+    // 5 octobre 2026, et ses corrections restent dans `GPS_FIXES`.
     assert.ok("lanslebourg" in GPS_FIXES);
-    assert.equal(stationById("lanslebourg")!.distToPisteKm, null);
+    // Un repère revu (`REPERES_REVUS`) qui rejoint celui du classeur reprend
+    // sa mesure : La Plagne, à Plagne Centre.
+    const plagne = CLASSEUR.find((e) => e.id === "la-plagne")!;
+    assert.equal(stationById("la-plagne")!.distToPisteKm, plagne.fm.slopeDistance);
     // Sous 500 m, la mesure est gardée telle quelle : Manigod, 467 m.
     const manigod = CLASSEUR.find((e) => e.id === "manigod")!;
     assert.equal(stationById("manigod")!.distToPisteKm, manigod.fm.slopeDistance);
@@ -113,9 +125,11 @@ describe("bascule vers le classeur", () => {
       const entry = CLASSEUR.find((e) => e.id === s.id)!;
       assert.equal(s.distToPisteKm, entry.fm.slopeDistance, s.id);
     }
-    // 278 lignes mesurées ; 151 le sont depuis le repère que la station garde.
+    // 278 lignes mesurées ; 84 stations le sont depuis le repère qu'elles
+    // gardent (151 avant le 5 octobre 2026, villages et lignes sans fiche
+    // compris).
     assert.equal(CLASSEUR.filter((e) => e.fm.slopeDistance != null).length, 278);
-    assert.equal(STATIONS.filter((s) => s.distToPisteKm != null).length, 151);
+    assert.equal(STATIONS.filter((s) => s.distToPisteKm != null).length, 84);
   });
 
   it("aucun identifiant du dépôt ne bouge : les 230 encore ouverts résolvent, le fermé ne résout plus rien", () => {
@@ -145,7 +159,7 @@ describe("bascule vers le classeur", () => {
     assert.equal(new Set(STATIONS.map((s) => s.id)).size, STATIONS.length);
   });
 
-  it("le-granier-vallee-des-entremonts survit, distinct du « Le Granier » du classeur", () => {
+  it("le-granier-vallee-des-entremonts survit, et le « Le Granier » du classeur s'y résout", () => {
     const granier = stationFromStoredId("le-granier-vallee-des-entremonts");
     assert.ok(granier, "la station a disparu du référentiel");
     assert.equal(granier.origin, "depot");
@@ -158,12 +172,16 @@ describe("bascule vers le classeur", () => {
     assert.equal(granier.lifts, null);
     assert.equal(granier.colorShare, null);
     assert.equal(granier.distToPisteKm, null);
-    // La ligne homonyme du classeur est une autre station, à 9,2 km.
-    const other = STATIONS.filter((s) => s.name === "Le Granier" && s.id !== granier.id);
-    assert.equal(other.length, 1);
-    assert.equal(other[0].origin, "classeur");
-    const km = Math.hypot((other[0].lat - granier.lat) * 111, (other[0].lon - granier.lon) * 78);
+    // La ligne homonyme du classeur, placée à 9,2 km avec les mesures du
+    // Planolet, est un doublon (5 octobre 2026, `FUSIONS`) : son identifiant
+    // ouvre la station du dépôt, et elle n'est plus une station.
+    assert.ok(!STATIONS.some((s) => s.id === "le-granier"));
+    assert.equal(stationFromStoredId("le-granier")?.id, granier.id);
+    const ligne = CLASSEUR.find((e) => e.id === "le-granier")!;
+    const km = Math.hypot((ligne.fm.lat - granier.lat) * 111, (ligne.fm.lon - granier.lon) * 78);
     assert.ok(km > 8 && km < 11, `${km.toFixed(1)} km`);
+    const planolet = CLASSEUR.find((e) => e.id === "saint-pierre-de-chartreuse")!;
+    assert.equal(ligne.measure.km, planolet.measure.km);
   });
 
   it("les rattachements corrigés avec leurs chiffres tiennent, et le classeur dit encore autre chose", () => {
@@ -174,21 +192,18 @@ describe("bascule vers le classeur", () => {
       assert.ok(entry, `${id} a disparu du classeur`);
       assert.equal(entry.domain, fix.domain, id);
       assert.notEqual(entry.fm.domain, fix.domain, `${id} : correction devenue inutile`);
+      // La Bourboule, sans fiche Skiinfo, a quitté le référentiel le
+      // 5 octobre 2026 : sa correction ne vaut plus que pour la ligne.
+      if (IDS_SANS_FICHE.has(id)) {
+        assert.equal(stationById(id), undefined, id);
+        continue;
+      }
       const s = stationById(id)!;
       assert.equal(s.domain, fix.domain, id);
       assert.equal(s.pistesKm, fix.chiffres?.km ?? null, id);
       assert.equal(s.lifts, fix.chiffres?.lifts ?? null, id);
       assert.equal(s.segments, fix.chiffres?.slopes ?? null, id);
     }
-    // La Bourboule : sans domaine ni chiffres, mais toujours là, à son repère.
-    const bourboule = stationById("la-bourboule")!;
-    assert.equal(bourboule.id, "la-bourboule");
-    assert.equal(bourboule.domain, null);
-    assert.equal(bourboule.colorShare, null);
-    assert.equal(bourboule.lat, 45.581374);
-    // Ni le bas ni le haut des pistes de Super Besse.
-    assert.equal(bourboule.minM, 0);
-    assert.equal(bourboule.maxM, 0);
     // Les chiffres de Lispach sont ceux que le classeur publiait sur la ligne
     // de Xonrupt ; ceux de Xonrupt, ceux qu'OpenSkiMap mesure sur sa zone.
     const x = FM_STATIONS.find((f) => f.fmName === "Xonrupt Longemer")!;

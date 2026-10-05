@@ -48,7 +48,7 @@ import {
   glacier,
   kmLbl,
   liftsLbl,
-  linked,
+  domaineRelieNom,
   maxM,
   minM,
   sansDomaineLbl,
@@ -166,12 +166,10 @@ const CRIT: Crit[] = [
   { label: aTraduire("Glacier"), txt: (s) => (glacier(s) ? tr("Oui") : tr("Non")), num: null, note: null },
   {
     label: aTraduire("Domaine relié"),
-    // Une station dont le domaine porte son nom n'est reliée à aucune autre :
-    // « non relevé » disait faux, la donnée est connue. Le libellé sans nom
-    // d'OpenStreetMap non plus (`linked`) : Névache, 0,4 km, dit « Non ».
-    // Une station sans domaine alpin (La Bourboule) n'est reliée à rien, et on
-    // le sait : « Non » aussi, pas « non relevé ».
-    txt: (s) => (!s.domain ? (sansDomaineLbl(s) ? tr("Non") : null) : linked(s) ? s.domain : tr("Non")),
+    // Le grand domaine relié de la table (`grandsDomaines.ts`), ou « Non » :
+    // la table est complète, une station qui n'y est pas n'est reliée à
+    // aucune autre, et on le sait.
+    txt: (s) => domaineRelieNom(s) ?? tr("Non"),
     num: null,
     note: null,
   },

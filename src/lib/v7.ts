@@ -9,9 +9,10 @@
  *  **Rien n'est estimé.** Une altitude à zéro dans le référentiel n'est pas une
  *  mesure : elle se lit « non relevée ». */
 
-import { domaineNomme, sansDomaineAlpin } from "./classeur.ts";
+import { sansDomaineAlpin } from "./classeur.ts";
 import { aTraduire, tr, trN } from "./i18n/tr.ts";
 import { stationHasGlacier } from "./forfaits/catalog.ts";
+import { grandDomaineDe } from "./grandsDomaines.ts";
 import type { Listing } from "./listings.ts";
 import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
 import { SKIINFO } from "./skiinfo.ts";
@@ -58,11 +59,18 @@ export function liftsLbl(s: Station): string | null {
 
 export const glacier = (s: Station) => stationHasGlacier(s.id);
 
-/** « Domaine relié » : le domaine porte un autre nom que la station. Le
- *  libellé « domaine non nommé (OpenStreetMap) » n'en est pas un : Névache et
- *  ses 0,4 km passaient la puce, et Comparer écrivait ce libellé au lieu de
- *  « Non ». */
-export const linked = (s: Station) => domaineNomme(s.domain) && s.domain !== s.name;
+/**
+ * « Domaine relié » : la station est sur un grand domaine relié de la table
+ * (`grandsDomaines.ts`), la même que lisent le verdict des logements et les
+ * voisines. Jusqu'au 5 octobre 2026, c'était le libellé OpenStreetMap quand il
+ * portait un autre nom que la station : Serre Chevalier, seule station de
+ * son domaine, passait la puce par son village de Chantemerle, et Val Cenis
+ * par le forfait Haute Maurienne Vanoise.
+ */
+export const linked = (s: Station) => grandDomaineDe(s.id) !== undefined;
+
+/** Le nom du grand domaine relié de la station, s'il en a un. */
+export const domaineRelieNom = (s: Station): string | null => grandDomaineDe(s.id)?.nom ?? null;
 
 /** Lien vers la fiche Skiinfo, quand la station en a une. */
 export function skiinfoUrl(s: Station): string | null {

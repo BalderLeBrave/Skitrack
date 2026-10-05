@@ -2,7 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { FORFAIT_CATALOG } from "./catalog.ts";
 import { SOURCES_TARIFS } from "./sourcesTarifs.ts";
-import { STATIONS } from "../stations.ts";
+import { stationById } from "../stations.ts";
+import { IDS_SANS_FICHE } from "../villages.ts";
 
 describe("table des pages de tarifs", () => {
   it("identifiants uniques, adresses lisibles, lecteurs connus", () => {
@@ -23,12 +24,16 @@ describe("table des pages de tarifs", () => {
 
   it("chaque domaine cité existe au catalogue, chaque station au référentiel", () => {
     const slugs = new Set(FORFAIT_CATALOG.map((d) => d.slug));
-    const stations = new Set(STATIONS.map((s) => s.id));
     for (const s of SOURCES_TARIFS) {
       for (const p of s.perimetres) {
         for (const slug of p.catalogue ?? [])
           assert.ok(slugs.has(slug), `${s.id} : domaine ${slug}`);
-        for (const id of p.stations ?? []) assert.ok(stations.has(id), `${s.id} : station ${id}`);
+        // Depuis le 5 octobre 2026, un village (« courchevel-le-praz ») se lit
+        // sous sa station (`stationById`), et une ligne retirée faute de fiche
+        // Skiinfo (« lullin ») ne désigne plus de station : sa page de tarifs
+        // reste citée, sans effet.
+        for (const id of p.stations ?? [])
+          assert.ok(stationById(id) || IDS_SANS_FICHE.has(id), `${s.id} : station ${id}`);
         if (p.motif) assert.doesNotThrow(() => new RegExp(p.motif!), `${s.id} : motif ${p.motif}`);
       }
     }

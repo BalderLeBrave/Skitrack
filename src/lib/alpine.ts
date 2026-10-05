@@ -1,6 +1,5 @@
 /** Carte France : pins GPS, altitude IGN au pin. Alpes + autres massifs. */
 
-import { skiinfoPhoto } from "./skiinfo.ts";
 import { STATIONS, type Station } from "./stations.ts";
 
 export const ALPINE_MASSIFS = ["Alpes du Nord", "Alpes du Sud"] as const;
@@ -60,7 +59,9 @@ export function alpineFeatureCollection(stations: readonly Station[]): GeoJSON.F
         maxM: s.maxM,
         demM: s.demM,
         pinKind: s.pinKind,
-        photo: skiinfoPhoto(s.id, 640),
+        // La photo de la station : celle du relevé Skiinfo, ou celle d'une
+        // station ajoutée hors relevé (Val d'Ese, Haut Asco).
+        photo: s.photo,
         haut: s.maxM >= 3000 ? 1 : 0,
         nord: s.massif === "Alpes du Nord" ? 1 : 0,
       },

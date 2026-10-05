@@ -64,6 +64,11 @@ PLAFOND_EMPRISE = 280
 # d'Huez) ; on le lit encore, mais après.
 RAYON_PROCHE_KM = 6.0
 RAYON_LARGE_KM = 12.0
+# L'emprise de chaque station d'un grand domaine relié (`relies`, la plus
+# proche d'abord) : plus serrée que la proche, les voisines se recouvrent déjà.
+# Elles remplacent la large, qui lisait surtout ce qu'elles couvrent, et
+# partagent le même budget de requêtes (`pages_de_zone`).
+RAYON_RELIEE_KM = 4.0
 CURRENCY = "EUR"
 LANGUAGE = "fr"
 PLACE_TYPE = "Entire home/apt"
@@ -349,7 +354,9 @@ def emprises(params: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
 
     Sans coordonnées (ou avec une URL ou une emprise données), une seule
     recherche, comme avant. Avec coordonnées : l'emprise proche, puis la large.
-    Les quarts de l'emprise proche s'intercalent à la demande (voir run_search).
+    Sur un grand domaine relié (`relies`) : l'emprise proche, puis celle de
+    chaque station reliée, sans la large. Les quarts de l'emprise proche
+    s'intercalent à la demande (voir run_search).
     """
     lat, lon = params.get("lat"), params.get("lon")
     if params.get("url") or isinstance(params.get("bounds"), dict) or not (
@@ -359,9 +366,37 @@ def emprises(params: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
     rayon = float(params.get("radiusKm") or RAYON_PROCHE_KM)
     proche = bounds_from_point(float(lat), float(lon), rayon)
     out: list[tuple[str, dict[str, Any]]] = [("proche", {**params, "bounds": proche})]
-    if rayon < RAYON_LARGE_KM:
+    relies = reperes_relies(params)
+    for i, (rlat, rlon) in enumerate(relies):
+        out.append((f"reliee{i + 1}", {**params, "bounds": bounds_from_point(rlat, rlon, RAYON_RELIEE_KM)}))
+    if not relies and rayon < RAYON_LARGE_KM:
         out.append(("large", {**params, "bounds": bounds_from_point(float(lat), float(lon), RAYON_LARGE_KM)}))
     return out
+
+
+def reperes_relies(params: dict[str, Any]) -> list[tuple[float, float]]:
+    """Les repères des stations reliées que Node envoie (`relies`), dans l'ordre."""
+    out: list[tuple[float, float]] = []
+    for r in params.get("relies") or []:
+        if isinstance(r, dict) and isinstance(r.get("lat"), (int, float)) and isinstance(r.get("lon"), (int, float)):
+            out.append((float(r["lat"]), float(r["lon"])))
+    return out
+
+
+def pages_de_zone(nom: str, file: list[tuple[str, dict[str, Any]]], budget: int, max_pages: int) -> int:
+    """Les pages qu'une emprise peut prendre, `file` étant ce qui reste à lire après elle.
+
+    Hors grand domaine, toutes. Sur un grand domaine, la proche garde la moitié
+    du budget, et chaque station reliée une part égale de ce qui reste : sans
+    ce partage, la proche et ses quarts prenaient les 12 requêtes, et aucune
+    voisine n'était lue.
+    """
+    restantes = sum(1 for n, _ in file if n.startswith("reliee"))
+    if nom == "proche" and restantes:
+        return min(max_pages, max(1, budget // 2))
+    if nom.startswith("reliee"):
+        return min(max_pages, max(1, budget // (1 + restantes)))
+    return max_pages
 
 
 def run_search(params: dict[str, Any]) -> dict[str, Any]:
@@ -410,8 +445,9 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             while file and not arret and budget[0] > 0 and _reste(fin) >= MARGE_REQUETE_S:
                 nom, zone = file.pop(0)
                 avant = len(seen)
+                pages_zone = pages_de_zone(nom, file, budget[0], max_pages)
                 try:
-                    lu = _search_pages(build_search_url(zone), proxy_url, max_pages, fin, seen, budget)
+                    lu = _search_pages(build_search_url(zone), proxy_url, pages_zone, fin, seen, budget)
                 except Exception as err:
                     # Une emprise suivante qui échoue ne jette pas ce que les
                     # précédentes ont lu ; la première, elle, remonte comme avant.
@@ -437,11 +473,16 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                     advertised = publie
                 # L'emprise proche publie plus qu'Airbnb ne laisse paginer : ses
                 # quarts passent avant l'emprise large, parce qu'ils sont dans
-                # le domaine et elle en partie non.
+                # le domaine et elle en partie non. Sur un grand domaine, ils
+                # passent après les stations reliées, avec le budget qui reste.
                 if nom == "proche" and epuisee and publie is not None and publie > PLAFOND_EMPRISE:
-                    file[0:0] = [
+                    quarts = [
                         (f"quart{i + 1}", {**zone, "bounds": q}) for i, q in enumerate(quadrants(zone["bounds"]))
                     ]
+                    if any(n.startswith("reliee") for n, _ in file):
+                        file.extend(quarts)
+                    else:
+                        file[0:0] = quarts
             if not arret and file and budget[0] > 0 and _reste(fin) < MARGE_REQUETE_S:
                 partiel = partiel or f"échéance atteinte, {len(file)} emprise(s) non lue(s)"
             print(f"[airbnb] emprises {' '.join(lues)} — {len(seen)} annonces", file=sys.stderr)

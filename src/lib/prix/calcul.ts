@@ -1522,8 +1522,12 @@ export function lireTriB(v: string): TriB {
   return cle ? { k: cle, dir: SENS_TRI_B[cle] } : TRIB0;
 }
 
-/** Une annonce de l'onglet budget, avec la station dont le relevé l'a retenue. */
-export type CarteAnnonce = { a: AnnonceRetenue; stationId: string; stationNom: string };
+/**
+ * Une annonce de l'onglet budget, avec la station dont le relevé l'a retenue
+ * (`stationId`, qui sert aux critères et à l'ordre) et le lieu du logement
+ * lui-même (`lieu`, `nomStationPropre`), qui s'affiche.
+ */
+export type CarteAnnonce = { a: AnnonceRetenue; stationId: string; lieu: string | null };
 
 function ordreTexte(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -1747,11 +1751,11 @@ export function versLogement(g: LogementBudget): Logement {
 
 /** L'étiquette de la carte : « Booking + 1 · Albiez-Montrond ». La liste mêle
  *  plusieurs stations, et la carte de Logements n'a pas d'autre place pour
- *  nommer celle du relevé. */
+ *  nommer celle du logement. */
 export function sourcesBudget(g: LogementBudget): string {
   const autres = g.offres.length - 1;
   const src = autres > 0 ? `${g.principale.a.source} + ${autres}` : g.principale.a.source;
-  return `${src} · ${g.principale.stationNom}`;
+  return g.principale.lieu ? `${src} · ${g.principale.lieu}` : src;
 }
 
 /** « Aussi sur Airbnb (3 061,00 €) », pour l'infobulle de l'étiquette, comme

@@ -25,7 +25,7 @@ import { contenu, type Favori, type SejourFavori } from "@/lib/favoris/modele";
 import { useFavoris } from "@/lib/favoris/store";
 import type { Listing } from "@/lib/listings";
 import { nightsBetween, useParcours } from "@/lib/parcours";
-import { stationById } from "@/lib/stations";
+import { sourceEtLieu } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
@@ -147,7 +147,7 @@ function Dossier({ id }: { id: string }) {
                   <div key={f.annonceId} className="favoris7__case">
                     <CarteLogement
                       l={f.annonce}
-                      sources={`${f.annonce.source} · ${stationById(f.annonce.stationId)?.name ?? f.annonce.stationId}`}
+                      sources={sourceEtLieu(f.annonce)}
                       autres={null}
                       retenu={P.lodgeId === f.annonceId ? f.annonceId : null}
                       retenuSource={null}
@@ -420,7 +420,7 @@ function Comparaison({
                     <span>
                       <b>{l.title}</b>
                       <small>
-                        {l.source} · {stationById(l.stationId)?.name ?? l.stationId}
+                        {sourceEtLieu(l)}
                       </small>
                     </span>
                   </button>

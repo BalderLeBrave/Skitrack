@@ -261,6 +261,38 @@ export function rattacher(h: IndicesLieu): Rattachement {
   return { stationId: null, villageId: null, via: null, distanceM: null, motif: "sans-lieu" };
 }
 
+/**
+ * La station du logement lui-même, et non celle de la recherche qui l'a
+ * relevé (`stationId`) : un logement de Lanslevillard trouvé en cherchant
+ * Aussois est à Val-Cenis. C'est elle qu'une étiquette doit nommer, quels que
+ * soient le logement et la station cherchée. Le rattachement se refait sur la
+ * table du jour, comme à chaque relecture d'un relevé.
+ *
+ * `null` quand rien ne situe le logement près d'une station : la station
+ * cherchée serait alors une supposition. Sur 43 516 annonces positionnées
+ * (relevés au 5 octobre 2026), 5 904 sont à plus de `RATTACHEMENT_MAX_KM` de
+ * tout repère, surtout des Booking en Suisse ou en Italie.
+ */
+export function stationPropre(l: IndicesLieu): string | null {
+  return rattacher(l).stationId;
+}
+
+/**
+ * Le lieu à écrire après la source : « Centrale · Val-Cenis ». Sans station,
+ * la localité publiée (« Booking · Champéry ») ; sans rien, `null`, et
+ * l'étiquette ne nomme que la source.
+ */
+export function nomStationPropre(l: IndicesLieu): string | null {
+  const id = stationPropre(l);
+  return (id ? stationById(id)?.name : null) ?? localiteNette(l.locality) ?? null;
+}
+
+/** « Centrale · Val-Cenis », ou « Centrale » seul quand rien ne situe le logement. */
+export function sourceEtLieu(l: IndicesLieu & { source: string }): string {
+  const lieu = nomStationPropre(l);
+  return lieu ? `${l.source} · ${lieu}` : l.source;
+}
+
 /** Deux stations reliées à ski : le même grand domaine relié (`grandsDomaines.ts`).
  *  Jamais par un forfait commercial. */
 export function stationsReliees(a: string, b: string): boolean {

@@ -4,17 +4,22 @@ import { ignSkiinfo, ignSkiinfoAll, ignSkiinfoSummary } from "./ignSkiinfo.ts";
 import { STATIONS } from "./stations.ts";
 
 describe("IGN × Skiinfo", () => {
-  it("230 stations : IGN ≈ village pour 216, 11 dans le domaine, 2 sous la base, 1 au sommet", () => {
+  it("233 stations : IGN ≈ village pour 213, 14 dans le domaine, 2 sous la base, 1 au sommet", () => {
     const rows = ignSkiinfoAll();
     const s = ignSkiinfoSummary(rows);
     // 231 et 217 jusqu'au 30 septembre 2026 : Le Grand Puy, fermé, est sorti.
-    assert.equal(s.n, 230);
-    assert.equal(s.village, 216);
-    assert.equal(s.domaine, 11);
+    // Le 5 octobre 2026, les repères de La Plagne, des Menuires et des Saisies
+    // quittent le village voisin où le dépôt les posait (Montchavin, Saint-
+    // Martin, Notre-Dame-de-Bellecombe) pour la station : leur IGN passe dans
+    // le domaine (`REPERES_REVUS`). Sollières-Sardières, Val d'Ese et Haut Asco
+    // entrent sans ligne Skiinfo.
+    assert.equal(s.n, 233);
+    assert.equal(s.village, 213);
+    assert.equal(s.domaine, 14);
     assert.equal(s.sous_base, 2);
     assert.equal(s.sommet, 1);
     assert.equal(s.sur_sommet, 0);
-    assert.equal(s.manque, 0);
+    assert.equal(s.manque, 3);
     assert.equal(s.medianAbsBase, 19);
   });
 

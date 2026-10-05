@@ -167,16 +167,20 @@ describe("La Giettaz : Portes du Mont-Blanc, pas l'Espace Diamant", () => {
 
   it("le pass ne relie plus La Giettaz aux stations de l'Espace Diamant", () => {
     const liees = linkedSkiStations("la-giettaz");
-    // Les quatre stations de l'Espace Diamant que le pass lui reliait : le
-    // relevé de La Giettaz gardait 53 de leurs annonces sur 102, à 5,7–7 km,
-    // et celui de Crest-Voland 5 annonces de La Giettaz.
-    for (const id of ["praz-sur-arly", "notre-dame-de-bellecombe", "crest-voland-cohennoz", "bisanne-1500"]) {
+    // Les stations de l'Espace Diamant que le pass lui reliait : le relevé de
+    // La Giettaz gardait 53 de leurs annonces sur 102, à 5,7–7 km, et celui de
+    // Crest-Voland 5 annonces de La Giettaz. Bisanne 1500 est un village des
+    // Saisies depuis le 5 octobre 2026.
+    for (const id of ["praz-sur-arly", "notre-dame-de-bellecombe", "crest-voland-cohennoz", "les-saisies"]) {
       assert.ok(!liees.has(id), id);
     }
-    for (const id of liees) {
-      const pass = domainForStation(id)?.pass;
-      assert.ok(pass !== "Espace Diamant" && pass !== "Evasion Mont-Blanc", `${id} : ${pass}`);
-    }
+    // Depuis le 5 octobre 2026, ce n'est plus un pass qui relie mais la table
+    // des grands domaines reliés (`grandsDomaines.ts`) : La Giettaz est sur
+    // Évasion Mont-Blanc, avec Combloux, Megève et Saint-Gervais (confirmé
+    // par le propriétaire le 5 octobre 2026). Aucune station de l'Espace
+    // Diamant n'y est.
+    assert.deepEqual([...liees].sort(), ["combloux", "la-giettaz", "megeve", "saint-gervais-mont-blanc"]);
+    for (const id of liees) assert.notEqual(domainForStation(id)?.pass, "Espace Diamant", id);
   });
 
   it("les relevés déjà faits suivent sans attendre : le verdict est rejugé à la relecture", () => {

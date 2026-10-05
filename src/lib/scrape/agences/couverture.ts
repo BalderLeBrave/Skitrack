@@ -21,6 +21,8 @@
  * Module pur, sans réseau : l'écran Prix le lit aussi (`prix/releve.ts`).
  */
 
+import { IDS_SANS_FICHE, villageById, villagesDe } from "../../villages.ts";
+
 export const SOURCES_AGENCES = [
   "Alpissime",
   "Cimalpes",
@@ -706,15 +708,45 @@ const TABLES: Readonly<Record<SourceAgence, Readonly<Record<string, readonly str
   Travelski: TRAVELSKI,
 };
 
-/** Les stations Skitrack qu'une source couvre : les clés de sa table. */
+/** Les stations Skitrack qu'une source couvre : les clés de sa table, un
+ *  village ramené à sa station, une ligne retirée faute de fiche Skiinfo
+ *  laissée de côté (`villages.ts`). */
 export function stationsDe(source: SourceAgence): string[] {
-  return Object.keys(TABLES[source]);
+  const ids = Object.keys(TABLES[source])
+    .filter((id) => !IDS_SANS_FICHE.has(id))
+    .map((id) => villageById(id)?.station ?? id);
+  return [...new Set(ids)];
 }
 
-/** Les lieux du site pour une station Skitrack, dans l'ordre de la table ; aucun si la source ne la couvre pas. */
+/**
+ * Les lieux du site pour une station Skitrack, dans l'ordre de la table ; aucun
+ * si la source ne la couvre pas.
+ *
+ * Les tables datent du référentiel où Plagne Centre ou Val Claret étaient des
+ * stations, et rangent des lieux sous ces identifiants. Depuis le 5 octobre
+ * 2026, un village est sa station (`villages.ts`). Les lieux de la station,
+ * quand la table en a, la couvrent déjà entière (Cimalpes « 1 » pour tout
+ * Courchevel, Travelski « parentStation:4 » pour tout Tignes) : on n'y ajoute
+ * pas ceux de ses villages, qui referaient les mêmes requêtes. Une station que
+ * la table ne connaît que par ses villages prend leurs lieux, sans doublon.
+ *
+ * Ski-Planet fait exception (`LIEUX_DISJOINTS`) : ses lieux sont des clés de
+ * résidences, et le site range Méribel-Mottaret, Montalbert ou La Joue du Loup
+ * à part de Méribel, La Plagne ou Superdévoluy. Leurs résidences s'ajoutent à
+ * celles de la station. Un identifiant de village se lit sous sa station.
+ */
 export function lieuxDe(source: SourceAgence, stationId: string): readonly string[] {
-  return TABLES[source][stationId] ?? [];
+  const station = villageById(stationId)?.station ?? stationId;
+  const propres = TABLES[source][station] ?? [];
+  if (propres.length && !LIEUX_DISJOINTS.has(source)) return propres;
+  return [
+    ...new Set([...propres, ...villagesDe(station).flatMap((v) => TABLES[source][v.id] ?? [])]),
+  ];
 }
+
+/** Les sources dont les lieux d'une station et de ses villages ne se
+ *  recouvrent pas : leurs lieux s'additionnent (`lieuxDe`). */
+const LIEUX_DISJOINTS: ReadonlySet<SourceAgence> = new Set(["Ski-Planet"]);
 
 /** Les sources qui couvrent la station, dans l'ordre de `SOURCES_AGENCES`. */
 export function agencesDe(stationId: string): SourceAgence[] {

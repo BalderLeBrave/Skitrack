@@ -32,7 +32,7 @@ import { usePlage } from "@/components/v7/plage";
 import { CarteStation } from "@/components/v7/CarteStation";
 import { Compteur } from "@/components/v7/Compteur";
 import { FourchetteRecherche } from "@/components/v7/FourchettesRecherche";
-import { foldName } from "@/lib/carte";
+import { foldName, nomCorrespond, villageCherche } from "@/lib/carte";
 import { appliquer, SEUILS, usePredicats } from "@/lib/filtres";
 import { plageCourte } from "@/lib/plage";
 import {
@@ -187,11 +187,19 @@ function Home() {
   // passer par une suggestion : la maquette fait ce repli (App.dc.html:881) et
   // sans lui, taper « Val Thorens » puis Entrée menait à une liste d'une ligne.
   // Comparaison sur le nom replié, pas sur `toLowerCase` : « megeve » doit
-  // trouver Megève.
+  // trouver Megève. Un nom de village de la table, tapé en entier, désigne sa
+  // station : « Plagne Centre » ouvre La Plagne.
   const retenue = useMemo(() => {
     if (retenueChoisie) return retenueChoisie;
     const cible = foldName(q);
-    return cible ? all.find((s) => foldName(s.name) === cible) : undefined;
+    if (!cible) return undefined;
+    return (
+      all.find((s) => foldName(s.name) === cible) ??
+      all.find((s) => {
+        const v = villageCherche(s.id, cible);
+        return v !== null && foldName(v) === cible;
+      })
+    );
   }, [retenueChoisie, q, all]);
   const [hp, setHp] = useState<Panneau>(null);
   // L'entrée désignée au clavier dans la liste de suggestions. -1 : aucune.
@@ -323,12 +331,18 @@ function Home() {
             setHp(null);
           },
         })),
+      // Un village renvoie à sa station : « Val Claret » propose Tignes, et
+      // la suggestion dit pourquoi.
       ...all
-        .filter((s) => foldName(s.name).includes(ql))
+        .filter((s) => nomCorrespond(s, ql))
         .slice(0, 6)
-        .map((s) => ({
+        .map((s) => {
+          const village = foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql);
+          return { s, village };
+        })
+        .map(({ s, village }) => ({
           key: "s:" + s.id,
-          label: s.name,
+          label: village ? tr("{village} ({station})", { village, station: s.name }) : s.name,
           kind: s.domain ?? s.massif,
           pick: () => {
             P.setDestination(s);

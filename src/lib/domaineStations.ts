@@ -4,8 +4,10 @@
  * Le catalogue de forfaits va dans un sens : d'une station à l'entrée qui
  * porte son tarif (`rattachementForfait`). Deux écrans ont besoin de l'autre —
  * Forfaits, où l'on choisit un domaine sans pouvoir ouvrir aucune de ses
- * stations, et « Plus », qui ne proposait rien pour passer d'une station à sa
- * voisine de forfait.
+ * stations (`stationsDuDomaine`), et « Plus », qui ne proposait rien pour
+ * passer d'une station à sa voisine. Depuis le 5 octobre 2026, les voisines
+ * ne sont plus celles du forfait mais celles du grand domaine relié
+ * (`stationsVoisines`, `grandsDomaines.ts`). Ce qui suit vaut pour Forfaits.
  *
  * Le rattachement se lit sur le **domaine skiable**, pas sur l'entrée du
  * catalogue : celui-ci décrit des stations — « Courchevel », « Méribel »,
@@ -22,7 +24,8 @@
 
 import { domaineNomme } from "./classeur.ts";
 import { cleDomaine, domainBySlug } from "./forfaits/catalog.ts";
-import { STATIONS, type Station } from "./stations.ts";
+import { grandDomaineDe } from "./grandsDomaines.ts";
+import { STATIONS, stationById, type Station } from "./stations.ts";
 
 let index: Map<string, Station[]> | null = null;
 
@@ -57,17 +60,31 @@ export function stationsDuDomaine(slug: string): Station[] {
   for (const s of cle ? (parDomaine().get(cle) ?? []) : []) vues.set(s.id, s);
   // Les seize stations que le catalogue nomme lui-même priment : elles sont
   // rattachées à la main, et n'ont pas besoin d'un nom de domaine pour l'être.
+  // Un village du catalogue (« termignon ») ouvre sa station (`stationById`).
   for (const id of d.stationIds) {
-    const s = STATIONS.find((x) => x.id === id);
+    const s = stationById(id);
     if (s) vues.set(s.id, s);
   }
   return [...vues.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
 
-/** Les autres stations du domaine skiable d'une station — ses voisines. */
-export function stationsVoisines(stationId: string, nomDomaine: string | null | undefined): Station[] {
-  if (!domaineNomme(nomDomaine)) return [];
-  const cle = cleDomaine(nomDomaine);
-  if (!cle) return [];
-  return (parDomaine().get(cle) ?? []).filter((s) => s.id !== stationId);
+/**
+ * Les autres stations du grand domaine relié d'une station — ses voisines.
+ *
+ * Elles se lisent dans la même table que le verdict de domaine des logements
+ * (`grandsDomaines.ts`, lue par `rattachement.ts`) : une voisine est une
+ * station où l'on va skis aux pieds, jamais une station du même forfait
+ * commercial ni du même libellé OpenStreetMap. Val Cenis n'a donc plus pour
+ * voisines Aussois, Bessans et La Norma (Espace Haute Maurienne Vanoise), et
+ * Lanslebourg n'est plus une voisine : c'est Val Cenis.
+ */
+export function stationsVoisines(stationId: string): Station[] {
+  const id = stationById(stationId)?.id;
+  const d = id ? grandDomaineDe(id) : undefined;
+  if (!d) return [];
+  return d.stations
+    .filter((s) => s !== id)
+    .map((s) => stationById(s))
+    .filter((s): s is Station => s !== undefined)
+    .sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }

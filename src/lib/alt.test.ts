@@ -2,24 +2,27 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { altBands, altBandsDomaine, altDeltaM } from "./alt.ts";
 import { domainesPays } from "./monde/monde.ts";
+import { STATIONS_AJOUTEES } from "./villages.ts";
 import { DEPOT_STATIONS, STATIONS } from "./stations.ts";
 import { SKIINFO } from "./skiinfo.ts";
 
 describe("altitudes par source", () => {
   it("chaque station du dépôt : IGN au pin, min/max = fiche Skiinfo, pas le domaine lié", () => {
     // Le Grand Puy, fermé, est sorti le 30 septembre 2026 (`STATIONS_FERMEES`).
-    assert.equal(STATIONS.length, 313);
-    assert.equal(DEPOT_STATIONS.length, 230);
-    // Les 84 du classeur n’ont ni relevé IGN au pin ni fiche Skiinfo.
-    assert.ok(
-      STATIONS.filter((s) => s.origin === "classeur").every(
-        (s) => s.demM == null && SKIINFO[s.id] == null,
-      ),
-    );
+    // Le 5 octobre 2026, une station devient une fiche Skiinfo : les 84 que
+    // seul le classeur décrivait ne sont plus des stations, et
+    // Sollières-Sardières entre (`villages.ts`).
+    // Val d'Ese et Haut Asco, gardées sans fiche Skiinfo, entrent aussi.
+    assert.equal(STATIONS.length, 233);
+    assert.equal(DEPOT_STATIONS.length, 233);
+    assert.ok(STATIONS.every((s) => s.origin === "depot"));
     for (const s of DEPOT_STATIONS) {
       assert.ok(s.demM != null && s.demM > 400 && s.demM < 4000, s.id);
-      assert.equal(s.minM, SKIINFO[s.id]?.minM, s.id);
-      assert.equal(s.maxM, SKIINFO[s.id]?.maxM, s.id);
+      // Sollières-Sardières n'a pas de ligne au relevé Skiinfo du 9 septembre :
+      // ses altitudes sont celles de sa fiche, posées à la main.
+      const fiche = STATIONS_AJOUTEES.find((a) => a.id === s.id) ?? SKIINFO[s.id];
+      assert.equal(s.minM, fiche?.minM, s.id);
+      assert.equal(s.maxM, fiche?.maxM, s.id);
       if (s.pinKind === "sommet") {
         assert.notEqual(s.villageM, s.demM, s.id);
         assert.ok(Math.abs(s.villageM - s.minM) <= 1 || s.fmVillageM != null, s.id);

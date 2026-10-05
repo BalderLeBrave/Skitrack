@@ -19,7 +19,7 @@
  *    et Comparer ne faisaient pas.
  */
 
-import { foldName } from "./carte.ts";
+import { foldName, nomCorrespond } from "./carte.ts";
 import {
   COLS,
   ECHELLES,
@@ -144,7 +144,7 @@ export function predicats(e: EtatRecherche): Pred[] {
       id: "q",
       label: `« ${e.q.trim()} »`,
       fn: (s) =>
-        foldName(s.name).includes(ql) ||
+        nomCorrespond(s, ql) ||
         foldName(s.massif).includes(ql) ||
         foldName(s.domain ?? "").includes(ql),
       retirer: () => P.setQ(""),

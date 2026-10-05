@@ -1336,6 +1336,30 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: calc(var(--spacing) * 4.5);
 }
+/* Sur un grand domaine relié, les logements se rangent par station : le nom
+   de la station barre toute la largeur de la grille, son compte à côté. */
+.grille7-2__station {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--spacing) * 2);
+  margin: calc(var(--spacing) * 2) 0 calc(var(--spacing) * -1);
+  font-size: var(--text-note);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-marque-texte);
+}
+.grille7-2__station:first-child {
+  margin-top: 0;
+}
+.grille7-2__station span {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
 
 /* Un texte pour les lecteurs d'écran seulement : l'étiquette « Airbnb + 2 »
    y dit quelles sont les autres plateformes, que l'infobulle ne donne qu'à la
@@ -4028,13 +4052,18 @@
   font-size: var(--text-note);
   font-weight: 700;
 }
+/* Posée sur la photo : un texte gris sans fond s'y perdait. Même pastille que
+   la source et le « à partir de ». */
 .lodge7__vue {
   position: absolute;
   right: 10px;
   bottom: 8px;
-  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  font-size: var(--text-note);
   font-weight: 700;
-  color: var(--color-muted);
+  color: var(--color-ink);
 }
 .lodge7__indic {
   position: absolute;

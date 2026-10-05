@@ -147,7 +147,11 @@ describe("Cimalpes : annonces", () => {
 describe("Cimalpes : couverture", () => {
   it("la station du site, ou un secteur pour une station plus fine", () => {
     assert.deepEqual(lieuxDe("Cimalpes", "val-thorens"), ["25"]);
-    assert.deepEqual(lieuxDe("Cimalpes", "courchevel-le-praz"), ["1:7"]);
+    // Le Praz est un village de Courchevel depuis le 5 octobre 2026
+    // (`villages.ts`) : il se lit sous sa station, que le lieu « 1 » couvre
+    // entière ; son secteur « 1:7 » n'est plus interrogé à part.
+    assert.deepEqual(lieuxDe("Cimalpes", "courchevel"), ["1"]);
+    assert.deepEqual(lieuxDe("Cimalpes", "courchevel-le-praz"), ["1"]);
     assert.ok(agencesDe("courchevel").includes("Cimalpes"));
     assert.ok(!agencesDe("avoriaz").includes("Cimalpes"));
   });

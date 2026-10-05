@@ -4,11 +4,13 @@ import { osmFor, osmSkiinfo, osmSkiinfoAll, osmSkiinfoSummary } from "./openskim
 import { STATIONS } from "./stations.ts";
 
 describe("OpenSkiMap × Skiinfo", () => {
-  it("228/230 domaines FR matchés ; 122 OSM = segments ; 2 absents", () => {
+  it("228/233 domaines FR matchés ; 122 OSM = segments ; 5 absents", () => {
     const s = osmSkiinfoSummary(osmSkiinfoAll());
     // 231 et 46 « km court » jusqu'au 30 septembre 2026 : Le Grand Puy, fermé,
-    // est sorti.
-    assert.equal(s.n, 230);
+    // est sorti. Le 5 octobre, Sollières-Sardières entre (fiche Skiinfo), sans
+    // zone OpenSkiMap : un troisième absent ; Val d'Ese et Haut Asco, deux de
+    // plus.
+    assert.equal(s.n, 233);
     assert.equal(s.segments, 122);
     assert.equal(s.km_court, 45);
     assert.equal(s.ok, 25);
@@ -19,10 +21,10 @@ describe("OpenSkiMap × Skiinfo", () => {
     // comptes » (4), deux verdicts qui décrivent un écart de mesure là où il
     // n'y a aucune mesure. Elles ont leur propre verdict.
     assert.equal(s.osm_vide, 23);
-    assert.equal(s.osm_absent, 2);
+    assert.equal(s.osm_absent, 5);
     assert.equal(
       s.segments + s.km_court + s.ok + s.ecart_n + s.grain_domaine + s.osm_vide + s.osm_absent,
-      230,
+      233,
     );
   });
 
@@ -35,7 +37,7 @@ describe("OpenSkiMap × Skiinfo", () => {
       assert.equal(r.kmOsm, 0);
     }
     // « absent » reste distinct : là, il n'y a pas de domaine du tout.
-    assert.equal(osmSkiinfoAll().filter((r) => r.verdict === "osm_absent").length, 2);
+    assert.equal(osmSkiinfoAll().filter((r) => r.verdict === "osm_absent").length, 5);
   });
 
   it("2 Alpes : OSM 225 tracés / 107 km vs Skiinfo 96 pistes / 220 km", () => {

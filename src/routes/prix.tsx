@@ -48,7 +48,7 @@ import {
   choisirDomaine,
   choisirMassif,
   choisirStation,
-  cleResultat,
+  cleDeLecture,
   comparateur,
   comparateurBudget,
   countBudget,
@@ -622,7 +622,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
     () =>
       STATIONS.map((s) => ({
         s,
-        l: ligne(s, res[cleResultat(per, groupe, s.id)] ?? null, {
+        l: ligne(s, res[cleDeLecture(res, per, groupe, s.id)] ?? null, {
           enCours: s.id === enCoursId,
           attente: enAttente.has(s.id),
         }),
@@ -903,12 +903,12 @@ function VueBudget({
   // stations retenues, élargir un critère faisait lire une clé neuve, et la
   // liste comme la carte disparaissaient le temps de la lecture.
   const relevees = useMemo(
-    () => STATIONS.filter((s) => res[cleResultat(per, groupe, s.id)]?.etat === "fait"),
+    () => STATIONS.filter((s) => res[cleDeLecture(res, per, groupe, s.id)]?.etat === "fait"),
     [res, per, groupe],
   );
   const cles = useMemo(
-    () => relevees.map((s) => cleResultat(per, groupe, s.id)),
-    [relevees, per, groupe],
+    () => relevees.map((s) => cleDeLecture(res, per, groupe, s.id)),
+    [relevees, res, per, groupe],
   );
   const { parCle, pret, anciennes } = useAnnonces(cles);
   // Une fois la première lecture faite pour ces dates et ce groupe, l'écran ne
@@ -1008,7 +1008,7 @@ function VueBudget({
     () =>
       toutesALancer(
         STATIONS.map((s) => s.id),
-        (id) => res[cleResultat(per, groupe, id)]?.etat === "fait",
+        (id) => res[cleDeLecture(res, per, groupe, id)]?.etat === "fait",
         per,
         groupe,
         course,

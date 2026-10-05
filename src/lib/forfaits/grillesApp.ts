@@ -22,6 +22,7 @@ import { grillesDuMagasin } from "./migration";
 import { useGrillesForfaits } from "./prixStations";
 import type { FichierGrilles, GrilleTarifaire } from "./tarifsPeriode";
 import type { ForfaitRow } from "./types";
+import { villageById } from "../villages";
 
 /** Les grilles migrées, chargées à la demande : un écran qui n'affiche aucun
  *  forfait n'en paie pas le poids (32 Ko compressés). Sans attribut
@@ -51,6 +52,35 @@ async function releveServeur(): Promise<ForfaitRow[]> {
   }
 }
 
+/**
+ * Les grilles avec les stations d'aujourd'hui.
+ *
+ * Une grille relevée pour un village (« espiaube », « saint-lary-pla-d-adet »)
+ * vaut pour sa station (`villages.ts`, 5 octobre 2026), **quand la station n'a
+ * aucune grille à elle** : Saint-Lary n'avait que celles de ses deux villages.
+ * Une station qui a la sienne la garde seule ; le tarif de Villaroger ne vient
+ * pas concurrencer celui des Arcs. Les fichiers ne sont pas réécrits, la
+ * lecture les ramène. Un doublon fusionné n'est pas ramené : la grille de
+ * « le-granier » est celle du Planolet, que le vote de proximité du classeur
+ * lui avait prêtée, pas celle du Granier.
+ */
+export function ramenerAuxStations(grilles: readonly GrilleTarifaire[]): GrilleTarifaire[] {
+  const couvertes = new Set(grilles.flatMap((g) => g.stationIds.filter((id) => !villageById(id))));
+  return grilles.map((g) => {
+    const ids = [
+      ...new Set(
+        g.stationIds.map((id) => {
+          const station = villageById(id)?.station;
+          return station && !couvertes.has(station) ? station : id;
+        }),
+      ),
+    ].sort();
+    return ids.length === g.stationIds.length && ids.every((id, i) => id === g.stationIds[i])
+      ? g
+      : { ...g, stationIds: ids };
+  });
+}
+
 let enCours: Promise<void> | null = null;
 
 /** Charge les grilles une fois ; les appels suivants attendent le même
@@ -58,10 +88,14 @@ let enCours: Promise<void> | null = null;
 export function chargerGrillesForfaits(): Promise<void> {
   enCours ??= (async () => {
     const [migrees, officielles] = await Promise.all([grillesMigrees(), grillesOfficielles()]);
-    useGrillesForfaits.setState({ grilles: [...officielles, ...migrees] });
+    // Ramenées ensemble : une station couverte par l'un des lots ne prend pas
+    // la grille d'un village dans un autre.
+    useGrillesForfaits.setState({ grilles: ramenerAuxStations([...officielles, ...migrees]) });
     const magasin = grillesDuMagasin(await releveServeur(), migrees);
     if (magasin.length)
-      useGrillesForfaits.setState({ grilles: [...officielles, ...magasin, ...migrees] });
+      useGrillesForfaits.setState({
+        grilles: ramenerAuxStations([...officielles, ...magasin, ...migrees]),
+      });
   })().catch((e: unknown) => {
     console.warn("[forfaits] grilles illisibles", e);
     enCours = null;

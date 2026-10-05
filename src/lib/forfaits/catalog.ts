@@ -101,6 +101,14 @@ export function deviseDuDomaine(slug: string | null | undefined): string | null 
   return slug ? deviseDuPays(domainBySlug(slug)?.country) : null;
 }
 
+/**
+ * L'entrée du catalogue d'une station.
+ *
+ * Le catalogue décrit encore des villages sous leur ancien identifiant
+ * (« villaroger », « termignon »). Ils ne prêtent pas leur entrée à leur
+ * station : le tarif de Villaroger n'est pas celui des Arcs, qui hérite de
+ * Paradiski (`rattachementForfait`).
+ */
 export function domainForStation(stationId: string): DomainForfait | undefined {
   const preferred = STATION_FORFAIT_SLUG[stationId];
   if (preferred) return domainBySlug(preferred);

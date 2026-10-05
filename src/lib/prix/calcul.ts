@@ -44,7 +44,7 @@ import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
 
 /** Au-delà, une gare n'est plus la remontée d'un logement (`nearestLift`). */
 const GARE_LOINTAINE_M = 40_000;
-import { STATIONS, stationById } from "../stations.ts";
+import { anciensIds, STATIONS, stationById } from "../stations.ts";
 import { cleListing } from "../stay/poserReleve.ts";
 import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
 import { recopierSoeurs } from "../stay/recopie.ts";
@@ -95,6 +95,28 @@ export function grpKey(g: Groupe): string {
  *  rien pour dix, et la maquette l'oubliait. */
 export function cleResultat(p: Periode, g: Groupe, stationId: string): string {
   return `${perKey(p)}|${grpKey(g)}|${stationId}`;
+}
+
+/**
+ * La clé sous laquelle lire le relevé d'une station : la sienne ; faute de
+ * relevé fait sous elle, celle d'un identifiant qui la désigne aujourd'hui
+ * (`anciensIds` : un village comme « plagne-centre », un doublon). Un relevé
+ * enregistré avant le référentiel Skiinfo du 5 octobre 2026 se relit ainsi
+ * sous sa station, sans migration ; ses annonces sont rejugées à la lecture.
+ */
+export function cleDeLecture(
+  res: Readonly<Record<string, { etat: string } | undefined>>,
+  p: Periode,
+  g: Groupe,
+  stationId: string,
+): string {
+  const propre = cleResultat(p, g, stationId);
+  if (res[propre]?.etat === "fait") return propre;
+  for (const id of anciensIds(stationId)) {
+    const cle = cleResultat(p, g, id);
+    if (res[cle]?.etat === "fait") return cle;
+  }
+  return propre;
 }
 
 /** La station d'une clé de résultat : ce qui suit le quatrième « | ». */

@@ -158,9 +158,15 @@ const HEURE = 60 * 60 * 1000;
 
 /** Une annonce qui passe tout : Airbnb, en euros, à 800 m de la station,
  *  géolocalisée, tarifée il y a une minute pour exactement ce séjour, huit
- *  couchages annoncés. Chaque cas n'en change qu'un champ. */
+ *  couchages annoncés. Chaque cas n'en change qu'un champ.
+ *
+ *  Un autre identifiant d'annonce est un autre bien : son lien Airbnb en
+ *  dérive, sauf lien donné. Le même lien ferait de deux annonces le même
+ *  logement relevé deux fois (`cleBien`), que la médiane ne compte qu'une fois. */
 function annonce(over: Partial<Listing> = {}): Listing {
+  const id = over.id ?? "airbnb-1";
   return {
+    url: id === "airbnb-1" ? "https://www.airbnb.fr/rooms/12345678" : `https://www.airbnb.fr/rooms/${chambreDe(id)}`,
     id: "airbnb-1",
     stationId: "les-2-alpes",
     title: "Appartement plein sud",
@@ -171,7 +177,6 @@ function annonce(over: Partial<Listing> = {}): Listing {
     bedrooms: 3,
     available: true,
     photo: null,
-    url: "https://www.airbnb.fr/rooms/12345678",
     lat: S2A.lat + 0.002,
     lon: S2A.lon + 0.002,
     distToSlopesM: 800,
@@ -181,6 +186,13 @@ function annonce(over: Partial<Listing> = {}): Listing {
     scannedAt: NOW - 60_000,
     ...over,
   };
+}
+
+/** Un numéro de logement Airbnb stable pour un identifiant d'annonce de test. */
+function chambreDe(id: string): number {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 9_000_000;
+  return 10_000_000 + h;
 }
 
 /** Un gîte avec devis ITEA live, en Isère comme la station. */
@@ -2016,6 +2028,21 @@ describe("un logement par carte dans l'onglet budget", () => {
     logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, BORNES));
   const offres = (g: LogementBudget) => g.offres.map((o) => o.a.id);
 
+  it("les deux formules d'un bien, seul et forfaits compris, font une carte", () => {
+    const mc = {
+      source: "Mountain Collection" as const,
+      platformId: "2338",
+      url: "https://www.mountain-collection.com/fr/location/2338",
+    };
+    const seul = annonce({ id: "mc-2338", ...mc, total: 1500, skiPassIncluded: false });
+    const forfait = annonce({ id: "mc-2338-forfait", ...mc, total: 2100, skiPassIncluded: true });
+    const cartes = releve([seul, forfait]);
+    assert.deepEqual(logements(cartes).map(offres), [["mc-2338", "mc-2338-forfait"]]);
+    // Un relevé d'avant les marques de logement : de même.
+    const sansMarque = cartes.map((c) => ({ ...c, a: { ...c.a, logement: undefined } }));
+    assert.deepEqual(logements(sansMarque).map(offres), [["mc-2338", "mc-2338-forfait"]]);
+  });
+
   it("le relevé marque chaque offre du logement que sa médiane compte", () => {
     const [bk, abnb, abr, seule] = releve([...unBien, annonce()]).map((c) => c.a);
     assert.deepEqual(
@@ -3177,7 +3204,8 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
   it("les annonces complètes vont à la mémoire, une par clé, jamais un repli", () => {
     const xs = connuesDuReleve([
       annonce(),
-      annonce({ id: "airbnb-2" }),
+      // Une autre annonce du même logement Airbnb : une seule entrée par clé.
+      annonce({ id: "airbnb-2", url: "https://www.airbnb.fr/rooms/12345678" }),
       annonce({ id: "x", url: "https://www.airbnb.fr/rooms/999999", capacity: null }),
       annonce({ id: "y", url: "https://www.airbnb.fr/rooms/888888", proven: "repli relevé" }),
     ]);

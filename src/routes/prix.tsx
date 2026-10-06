@@ -39,6 +39,7 @@ import { dansLesBornes, type Bornes as Cadre } from "@/lib/carte";
 import type { Listing } from "@/lib/listings";
 import { eur, groupLbl, useParcours, useSejour } from "@/lib/parcours";
 import { useAnnonces } from "@/lib/prix/annonces";
+import { resultatsALaLecture } from "@/lib/prix/recompte";
 import {
   annSub,
   autresBudget,
@@ -121,6 +122,7 @@ import {
   type Ligne,
   type LogementBudget,
   type Periode,
+  type Resultat,
   type Tri,
 } from "@/lib/prix/calcul";
 import { usePrix, type Course, type Onglet } from "@/lib/prix/releve";
@@ -584,9 +586,26 @@ function PlageFiltre({ p }: { p: DefPlage }) {
   );
 }
 
+/**
+ * Les résultats de ces dates et de ce groupe, **recomptés à la lecture**
+ * (`resultatsALaLecture`), sans rien écrire : chaque relevé sur ses seules
+ * annonces, celles que l'onglet « Par budget » montre sous la même clé. Le
+ * temps de la lecture, les résultats enregistrés.
+ */
+function useResultatsRecomptes(per: Periode, groupe: Groupe): Record<string, Resultat> {
+  const res = usePrix((s) => s.res);
+  const prefixe = `${perKey(per)}|${grpKey(groupe)}|`;
+  const cles = useMemo(
+    () => Object.keys(res).filter((k) => k.startsWith(prefixe) && res[k]?.etat === "fait"),
+    [res, prefixe],
+  );
+  const { parCle } = useAnnonces(cles);
+  return useMemo(() => resultatsALaLecture(parCle, res), [parCle, res]);
+}
+
 /** « Par station » : critères, relevé, tableau (Prix par station.dc.html:54-125). */
 function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
-  const res = usePrix((s) => s.res);
+  const res = useResultatsRecomptes(per, groupe);
   const course = usePrix((s) => s.course);
   const file = usePrix((s) => s.file);
   const lancer = usePrix((s) => s.lancer);
@@ -946,8 +965,9 @@ function VueBudget({
     return tout.filter((c) => passent.has(c.stationId));
   }, [tout, relevees, fl]);
   // Dans l'ordre du référentiel : la carte se cadre sur elles, et un autre tri
-  // ne la recadre pas. Une annonce sortie des relevés de deux stations voisines
-  // n'y figure qu'une fois, sous celle qui la mesure le plus près des remontées
+  // ne la recadre pas. Une annonce située ne passe que sous sa station
+  // (`passeAnnonce`) ; une annonce non située sortie de deux relevés n'y figure
+  // qu'une fois, sous celle qui la mesure le plus près des remontées
   // (`filtrerCartes`).
   const filtrees = useMemo(() => filtrerCartes(avant, fl, BORNES), [avant, fl]);
   // Un logement par carte, comme dans Logements : ses offres des autres

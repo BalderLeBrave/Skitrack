@@ -1,4 +1,5 @@
 import type { Listing } from "@/lib/listings";
+import { cleDuLogement, estFormuleForfait } from "./poserReleve.ts";
 
 /**
  * Un même logement, vendu sur plusieurs plateformes.
@@ -9,7 +10,14 @@ import type { Listing } from "@/lib/listings";
  * en un logement, avec ses offres ; la moins chère se montre, les autres se
  * listent dans la fiche avec leur écart.
  *
- * **Deux preuves, et seulement deux.**
+ * **Trois preuves, et seulement trois.**
+ *
+ * 0. Les deux formules d'une même offre : l'hébergement seul et l'offre
+ *    forfaits compris d'un même bien, que Mountain Collection, Maeva et
+ *    Travelski publient sous un même identifiant (`cleDuLogement`). C'est un
+ *    logement, et deux prix : la moins chère se montre et compte dans la
+ *    médiane, comme pour deux plateformes. Seule exception à « une offre par
+ *    plateforme ».
  *
  * 1. CozyCozy regroupe lui-même les offres d'un logement sous un identifiant
  *    (`accommodationId`), que le collecteur écrit dans l'identifiant de
@@ -24,7 +32,8 @@ import type { Listing } from "@/lib/listings";
  * **Ce qui n'est jamais regroupé.** Un titre qu'une même plateforme porte deux
  * fois : c'est un type de logement (« Studio 2 personnes confort » dans une
  * résidence), pas un logement, et 154 titres l'étaient à Avoriaz. Deux offres
- * d'une même plateforme dans un même logement : ce sont deux logements. Et
+ * d'une même plateforme dans un même logement : ce sont deux logements, sauf
+ * les deux formules d'un même bien (preuve 0). Et
  * rien sur la seule proximité : les lots d'une résidence partagent un point.
  * Mieux vaut un doublon visible qu'un logement perdu dans un autre.
  */
@@ -147,6 +156,24 @@ export function regrouper(listings: readonly Listing[]): Logement[] {
     for (const s of sources[bas]) sources[haut].add(s);
   };
 
+  // 0. Les deux formules d'une même offre, même plateforme : un logement.
+  const parLogement = new Map<string, number>();
+  listings.forEach((l, i) => {
+    const k = cleDuLogement(l);
+    const j = parLogement.get(k);
+    if (j == null) {
+      parLogement.set(k, i);
+      return;
+    }
+    if (estFormuleForfait(listings[j]) === estFormuleForfait(l)) return;
+    const a = racine(j);
+    const b = racine(i);
+    if (a === b) return;
+    const [haut, bas] = a < b ? [a, b] : [b, a];
+    parent[bas] = haut;
+    for (const s of sources[bas]) sources[haut].add(s);
+  });
+
   // 1. Les groupes que CozyCozy a formés.
   const parCle = new Map<string, number>();
   listings.forEach((l, i) => {
@@ -169,13 +196,17 @@ export function regrouper(listings: readonly Listing[]): Logement[] {
   });
   for (const idx of parTitre.values()) {
     if (idx.length < 2) continue;
-    // Un titre qu'une plateforme porte deux fois désigne un type, pas un bien.
-    const vus = new Set<string>();
+    // Un titre qu'une plateforme porte pour deux biens désigne un type, pas un
+    // bien. Les deux formules d'un même bien (seul, forfaits compris) sont
+    // un bien (`cleDuLogement`) : elles ne rendent pas le titre ambigu.
+    const biensDe = new Map<string, string>();
     let ambigu = false;
     for (const i of idx) {
       const s = listings[i].source;
-      if (vus.has(s)) ambigu = true;
-      vus.add(s);
+      const bien = cleDuLogement(listings[i]);
+      const deja = biensDe.get(s);
+      if (deja != null && deja !== bien) ambigu = true;
+      biensDe.set(s, bien);
     }
     if (ambigu) continue;
     for (let a = 0; a < idx.length; a += 1) {

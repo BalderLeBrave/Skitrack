@@ -10,6 +10,7 @@ import {
 import { domainFit, inSearchedDomain, otherDomainMessage } from "./domainFit.ts";
 import { nearestStationLift } from "./remontees.ts";
 import { stationById, type Station } from "./stations.ts";
+import { distanceAuRepere, verdictDomaineAccorde } from "./stay/rattachement.ts";
 import { withinLiftM as withinM } from "./skiAccess.ts";
 import {
   remonteeInconnue,
@@ -65,7 +66,14 @@ export function attachAccess(
   listing: Listing & AvecCompletude,
   station: Station,
 ): Listing & AvecCompletude {
-  const fit = domainFit(listing, station);
+  const brut = domainFit(listing, station);
+  // Un logement rattaché à la station cherchée est dans son domaine, quoi que
+  // dise le libellé (`verdictDomaineAccorde`) : sa remontée se mesure.
+  const fit = { ...brut, verdict: verdictDomaineAccorde(brut.verdict, listing, station.id) };
+  // La distance au repère de la station du logement, village compris : un
+  // logement de Belle Plagne se mesure depuis Belle Plagne, pas depuis le
+  // repère de La Plagne, posé à Montchavin (`distanceAuRepere`).
+  const auRepere = distanceAuRepere(listing, station.id) ?? fit.distToSearchedPinM;
   const keepLift = inSearchedDomain(fit);
   // La remontée structurée se pose dans les deux branches : sans position,
   // elle dit pourquoi elle manque, et le reste de la completude est gardé.
@@ -73,7 +81,7 @@ export function attachAccess(
   if (listing.lat == null || listing.lon == null) {
     return {
       ...listing,
-      distToSlopesM: fit.distToSearchedPinM,
+      distToSlopesM: auRepere,
       distToLiftM: null,
       liftName: null,
       liftKind: null,
@@ -106,7 +114,7 @@ export function attachAccess(
   if (world && (!near || world.m < near.m)) near = world;
   return {
     ...listing,
-    distToSlopesM: fit.distToSearchedPinM,
+    distToSlopesM: auRepere,
     distToLiftM: near?.m ?? null,
     liftName: near?.name ?? null,
     liftKind: near?.kind ?? null,

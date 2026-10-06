@@ -17,6 +17,14 @@ import { langueIntl } from "./i18n/langue.ts";
 
 export type Listing = {
   id: string;
+  /**
+   * La station **du relevé** : celle que la recherche a interrogée, et sous
+   * laquelle l'annonce est rangée (clé du relevé, cache). Ce n'est pas la
+   * station du logement : celle-là se calcule, toujours à jour, par
+   * `rattacher` (`stay/rattachement.ts`), et l'annonce n'est montrée que si
+   * les deux concordent (`geoReasonFor`). Elle n'est pas stockée, pour ne pas
+   * vieillir quand la position change.
+   */
   stationId: string;
   title: string;
   /** Les plateformes, la centrale, GreenGo, puis les agences de montagne (`scrape/agences/couverture.ts`). */
@@ -106,6 +114,10 @@ export type Listing = {
   liftLon?: number | null;
   liftOtherLat?: number | null;
   liftOtherLon?: number | null;
+  /**
+   * Information seulement : le domaine de la station cherchée contient-il le
+   * logement (`domainFit.ts`) ? Il ne décide plus de l'appartenance.
+   */
   domainFit?: DomainVerdict;
   nearestDomainId?: string | null;
   nearestDomainName?: string | null;

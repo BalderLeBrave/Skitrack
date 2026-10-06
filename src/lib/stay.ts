@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { Listing } from "./listings";
 import type { SourceReport } from "./scrape/types";
 import { CALENDRIER } from "./forfaits/vacancesScolaires.ts";
+import { dedoublonnerParBien } from "./stay/poserReleve.ts";
 
 const JOUR_MS = 86_400_000;
 const isoPlus = (iso: string, jours: number) =>
@@ -86,9 +87,11 @@ export const useStay = create<StayStore>()(
       mergeLive: (rows, sources) =>
         set((s) => {
           const replaced = new Set(sources.map((x) => x.source));
-          const listings = [...(s.liveListings ?? []).filter((l) => !replaced.has(l.source)), ...rows].sort(
-            (a, b) => a.total - b.total,
-          );
+          // Deux parts peuvent rapporter le même bien : il n'est gardé qu'une fois.
+          const listings = dedoublonnerParBien([
+            ...(s.liveListings ?? []).filter((l) => !replaced.has(l.source)),
+            ...rows,
+          ]).sort((a, b) => a.total - b.total);
           return {
             liveListings: listings,
             liveSources: [...s.liveSources.filter((r) => !replaced.has(r.source)), ...sources],

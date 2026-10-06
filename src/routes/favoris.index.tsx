@@ -17,6 +17,7 @@ import { Vide } from "@/components/v7/Vide";
 import { contenu, couverture, dossiersRecents, type Dossier, type EtatFavoris } from "@/lib/favoris/modele";
 import { useFavoris } from "@/lib/favoris/store";
 import { stationById } from "@/lib/stations";
+import { stationDuLogement } from "@/lib/stay/rattachement";
 import { langueIntl } from "@/lib/i18n/langue";
 import { tr, trN } from "@/lib/i18n";
 
@@ -68,7 +69,9 @@ const jour = (d: Date) => new Intl.DateTimeFormat(langueIntl(), { day: "numeric"
 
 /** « Courchevel, La Plagne » : les stations du dossier, dans l'ordre des derniers ajouts. */
 function stationsDe(etat: EtatFavoris, id: string): string {
-  const noms = [...new Set(contenu(etat, id).map((f) => stationById(f.annonce.stationId)?.name).filter(Boolean))];
+  const noms = [
+    ...new Set(contenu(etat, id).map((f) => stationById(stationDuLogement(f.annonce))?.name).filter(Boolean)),
+  ];
   return noms.length > 2
     ? trN(noms.length - 2, "{noms} et {n} autre", "{noms} et {n} autres", { noms: noms.slice(0, 2).join(", ") })
     : noms.join(", ");

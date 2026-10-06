@@ -38,9 +38,11 @@ import { completudeOf } from "@/lib/stay/completude";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
   distFiltrableM,
+  distanceRayonM,
   DIST_PALIERS_M,
-  geoReasonFor,
   gpsPrecis,
+  horsRayon,
+  lieuReasonFor,
   normalizedBedrooms,
   RAYON_DEFAUT_KM,
   RAYON_MAX_KM,
@@ -76,6 +78,7 @@ import {
 } from "@/lib/searchStay";
 import { airbnbComplet, plausible } from "@/lib/stay/priseFiche";
 import { stationById, type Station } from "@/lib/stations";
+import { stationDeRattachement } from "@/lib/villages";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
@@ -86,6 +89,7 @@ import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
+import { dedoublonnerParBien } from "@/lib/stay/poserReleve";
 import {
   altLbl,
   aStation,
@@ -183,7 +187,7 @@ function borneLbl(k: (typeof RANGES)[number]["k"]): (v: number) => string {
   return (v) => (k === "rooms" && v === 0 ? tr("Studio") : `${fmt(v)} ${tr(RANGE[k].unit)}`);
 }
 
-/** L'échelle du périmètre : du centre de la station à 50 km. */
+/** L'échelle du périmètre : du centre de la station à 12 km (`RAYON_MAX_KM`). */
 const ECHELLE_RAYON: Echelle = [0, RAYON_MAX_KM];
 
 /** « jusqu'à 12 km », « de 2 à 12 km » : le périmètre n'est jamais indifférent. */
@@ -455,7 +459,12 @@ type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: bo
 function Logements() {
   const go = useGo();
   const P = useParcours();
-  const s = P.stationId ? stationById(P.stationId) : undefined;
+  // Un village de station (Lanslebourg, Plagne Centre…) n'a pas de logements
+  // à lui : ils sont ceux de sa station, listés une seule fois, sous elle
+  // (`villages.ts`, `stay/rattachement.ts`). L'écran cherche et liste donc
+  // ceux de la station, et le dit.
+  const retenue = P.stationId ? stationById(P.stationId) : undefined;
+  const s = retenue ? stationById(stationDeRattachement(retenue.id)) : undefined;
 
   // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
   // L'état est relu dans le magasin : au premier rendu du navigateur, le
@@ -475,7 +484,7 @@ function Logements() {
       </Coquille>
     );
   }
-  return <LogementsStation s={s} />;
+  return <LogementsStation s={s} villageDe={retenue && retenue.id !== s.id ? retenue : undefined} />;
 }
 
 /**
@@ -556,7 +565,7 @@ function Squelettes({ n }: { n: number }) {
   );
 }
 
-function LogementsStation({ s }: { s: Station }) {
+function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station }) {
   const go = useGo();
   const P = useParcours();
   const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
@@ -568,11 +577,8 @@ function LogementsStation({ s }: { s: Station }) {
   const setStay = useStay((x) => x.setStay);
   // Le relevé entier de la station : la capacité s'applique plus bas, en
   // toutes lettres, pour que l'état vide puisse dire ce qu'elle a écarté.
-  const frozen = useMemo(
-    () => (P.stationId ? listingsForStay(P.stationId, 1, 0) : []).map(enrichirListing),
-    [P.stationId],
-  );
-  const dumpGps = useDumpComplet(P.stationId ?? undefined, checkIn, checkOut, trav);
+  const frozen = useMemo(() => listingsForStay(s.id, 1, 0).map(enrichirListing), [s.id]);
+  const dumpGps = useDumpComplet(s.id, checkIn, checkOut, trav);
   useLiveSearch(s, dumpGps ?? frozen);
   const raw = useMemo(() => {
     const dump = dumpGps ?? frozen;
@@ -582,7 +588,10 @@ function LogementsStation({ s }: { s: Station }) {
       rows = [...dump.filter((l) => !reported.has(l.source)), ...liveListings];
       if (reported.has("Gîtes de France")) rows = conserverDevisGites(dump, rows);
     }
-    const lignes = rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
+    // Le relevé figé et le direct peuvent porter le même bien : une fois.
+    const lignes = dedoublonnerParBien(
+      rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l)),
+    );
     // Airbnb dont la page a été lue sans point : celui du même logement relevé
     // sur une autre source, repris tel quel (`jumelageGpsAirbnb`), et son
     // accès aux pistes mesuré depuis ce point.
@@ -651,7 +660,7 @@ function LogementsStation({ s }: { s: Station }) {
   /** Pose une borne d'une fourchette de l'écran, depuis l'état courant. */
   const poserLf = (k: (typeof RANGES)[number]["k"], which: 0 | 1, v: number, exact: boolean) =>
     setLf((x) => ({ ...x, [k]: poserBorne(x[k], RANGE[k].b, RANGE[k].pas, which, v, exact) }));
-  /** Le périmètre ne se retire pas : couvrir toute l'échelle, c'est 50 km, et
+  /** Le périmètre ne se retire pas : couvrir toute l'échelle, c'est 12 km, et
    *  sa borne haute ne descend pas sous le kilomètre. */
   const poserRayon = (which: 0 | 1, v: number, exact: boolean) =>
     setLf((x) => {
@@ -716,6 +725,17 @@ function LogementsStation({ s }: { s: Station }) {
       },
       fixed: true,
     });
+  // Un logement n'est listé que sous sa station (`lieuReasonFor`,
+  // `stay/rattachement.ts`) : ceux d'une station voisine, reliée ou non, sont
+  // sous elle ; ceux à plus de 12 km de toute station, nulle part. Il écarte
+  // aussi un gîte que son département dit ailleurs. Toujours appliqué, il ne
+  // se règle pas. Le rayon, lui, ne juge que la distance.
+  lp.push({
+    id: "station",
+    label: tr("Dans la station"),
+    fn: (l) => lieuReasonFor(l, s.dept, s.id) == null,
+    fixed: true,
+  });
   // La zone est toujours appliquée : une recherche de logements a toujours un
   // périmètre. Son rayon se règle dans le panneau, il ne se retire pas. Une
   // borne basse écarte aussi ce qui est trop près du centre, et ce dont la
@@ -727,9 +747,12 @@ function LogementsStation({ s }: { s: Station }) {
       rayonMin > 0
         ? tr("Entre {min} et {max} km", { min: fmt(rayonMin), max: fmt(rayonMax) })
         : tr("Rayon de {max} km", { max: fmt(rayonMax) }),
-    fn: (l) =>
-      geoReasonFor(l, rayonMax, s.dept) == null &&
-      (rayonMin <= 0 || (l.distToSlopesM != null && l.distToSlopesM >= rayonMin * 1000)),
+    fn: (l) => {
+      if (horsRayon(l, rayonMax)) return false;
+      if (rayonMin <= 0) return true;
+      const m = distanceRayonM(l);
+      return m != null && m >= rayonMin * 1000;
+    },
     fixed: true,
   });
   lp.push({
@@ -941,6 +964,9 @@ function LogementsStation({ s }: { s: Station }) {
     // Seul le rayon est dans le panneau ; capacité, chambres et dates viennent
     // du séjour, et la position GPS ne se règle nulle part.
     const reglage: Record<string, string> = {
+      station: tr(
+        "Les logements d’une station voisine sont listés sous leur propre station ; ceux à plus de 12 km de toute station ne le sont nulle part.",
+      ),
       zone: tr("Élargissez le rayon dans les filtres."),
       cap: tr("Réduisez le nombre de voyageurs du séjour."),
       rooms: tr("Réduisez le nombre de chambres du séjour."),
@@ -1190,6 +1216,14 @@ function LogementsStation({ s }: { s: Station }) {
             <div className="v7tete v7tete--titre">
               <span className="v7surtitre">{tr("Étape 2")}</span>
               <h1>{tr("Logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })}</h1>
+              {villageDe && (
+                <p>
+                  {tr("{village} est un village de {station} : ses logements sont ceux de la station.", {
+                    village: villageDe.name,
+                    station: s.name,
+                  })}
+                </p>
+              )}
             </div>
             <div className="sejour7">
               <button

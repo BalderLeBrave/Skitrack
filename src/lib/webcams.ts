@@ -18,7 +18,7 @@
  * elles.
  */
 
-import { stationsVoisines } from "./domaineStations.ts";
+import { stationsDuLibelle } from "./domaineStations.ts";
 import { stationById } from "./stations.ts";
 import { CAMERAS, type Camera } from "./webcams.data.ts";
 
@@ -68,7 +68,7 @@ export function webcamsForStation(stationId: string): Webcam[] {
     propres.push(versWebcam(c, null, false));
   }
   const partagees: Webcam[] = [];
-  for (const voisine of stationsVoisines(stationId, station.domain)) {
+  for (const voisine of stationsDuLibelle(stationId, station.domain)) {
     for (const c of CAMERAS[voisine.id] ?? []) {
       if (vues.has(c.url)) continue;
       vues.add(c.url);

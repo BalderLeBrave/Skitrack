@@ -60,8 +60,10 @@ describe("aStation — la préposition suit l'article du nom", () => {
 });
 
 describe("positions relevées à la main", () => {
-  it("les vingt-deux corrections sont posées", () => {
-    assert.equal(Object.keys(GPS_FIXES).length, 22);
+  it("les vingt-six corrections sont posées", () => {
+    // Vingt-deux le 15 septembre 2026, quatre repères du dépôt le 6 octobre
+    // (Les Menuires, Les Saisies, Le Corbier, Saint-Jean-d'Arves).
+    assert.equal(Object.keys(GPS_FIXES).length, 26);
     for (const [id, [lat, lon]] of Object.entries(GPS_FIXES)) {
       const s = STATIONS.find((x) => x.id === id);
       assert.ok(s, `${id} absente du référentiel`);

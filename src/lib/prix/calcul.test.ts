@@ -158,9 +158,15 @@ const HEURE = 60 * 60 * 1000;
 
 /** Une annonce qui passe tout : Airbnb, en euros, à 800 m de la station,
  *  géolocalisée, tarifée il y a une minute pour exactement ce séjour, huit
- *  couchages annoncés. Chaque cas n'en change qu'un champ. */
+ *  couchages annoncés. Chaque cas n'en change qu'un champ.
+ *
+ *  Un autre identifiant d'annonce est un autre bien : son lien Airbnb en
+ *  dérive, sauf lien donné. Le même lien ferait de deux annonces le même
+ *  logement relevé deux fois (`cleBien`), que la médiane ne compte qu'une fois. */
 function annonce(over: Partial<Listing> = {}): Listing {
+  const id = over.id ?? "airbnb-1";
   return {
+    url: id === "airbnb-1" ? "https://www.airbnb.fr/rooms/12345678" : `https://www.airbnb.fr/rooms/${chambreDe(id)}`,
     id: "airbnb-1",
     stationId: "les-2-alpes",
     title: "Appartement plein sud",
@@ -171,7 +177,6 @@ function annonce(over: Partial<Listing> = {}): Listing {
     bedrooms: 3,
     available: true,
     photo: null,
-    url: "https://www.airbnb.fr/rooms/12345678",
     lat: S2A.lat + 0.002,
     lon: S2A.lon + 0.002,
     distToSlopesM: 800,
@@ -181,6 +186,13 @@ function annonce(over: Partial<Listing> = {}): Listing {
     scannedAt: NOW - 60_000,
     ...over,
   };
+}
+
+/** Un numéro de logement Airbnb stable pour un identifiant d'annonce de test. */
+function chambreDe(id: string): number {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 9_000_000;
+  return 10_000_000 + h;
 }
 
 /** Un gîte avec devis ITEA live, en Isère comme la station. */
@@ -364,8 +376,15 @@ describe("agreger — ce qui entre dans la médiane", () => {
   const exclues: [string, Listing][] = [
     ["un repli sur le relevé figé", annonce({ proven: "Relevé Airbnb, repli relevé 3 sept." })],
     ["une devise autre que l’euro", annonce({ currency: "CHF" })],
-    ["un logement à plus de 12 km", annonce({ distToSlopesM: 20_000 })],
-    ["un logement d’un autre domaine", annonce({ domainFit: "other" })],
+    // À Marseille : à plus de 12 km de toute station, quelle que soit la
+    // distance enregistrée.
+    ["un logement à plus de 12 km", annonce({ lat: 43.2965, lon: 5.3698, distToSlopesM: 20_000 })],
+    // Une autre station, sur un autre domaine : l'Alpe d'Huez, à 12 km des 2
+    // Alpes. Le rattachement l'écarte (« autre-station »), pas le domaine.
+    [
+      "un logement d’une autre station",
+      annonce({ domainFit: "other", lat: stationReelle("alpe-d-huez").lat, lon: stationReelle("alpe-d-huez").lon }),
+    ],
     [
       "un gîte d’un autre département",
       gite({
@@ -2020,6 +2039,21 @@ describe("un logement par carte dans l'onglet budget", () => {
     logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, BORNES));
   const offres = (g: LogementBudget) => g.offres.map((o) => o.a.id);
 
+  it("les deux formules d'un bien, seul et forfaits compris, font une carte", () => {
+    const mc = {
+      source: "Mountain Collection" as const,
+      platformId: "2338",
+      url: "https://www.mountain-collection.com/fr/location/2338",
+    };
+    const seul = annonce({ id: "mc-2338", ...mc, total: 1500, skiPassIncluded: false });
+    const forfait = annonce({ id: "mc-2338-forfait", ...mc, total: 2100, skiPassIncluded: true });
+    const cartes = releve([seul, forfait]);
+    assert.deepEqual(logements(cartes).map(offres), [["mc-2338", "mc-2338-forfait"]]);
+    // Un relevé d'avant les marques de logement : de même.
+    const sansMarque = cartes.map((c) => ({ ...c, a: { ...c.a, logement: undefined } }));
+    assert.deepEqual(logements(sansMarque).map(offres), [["mc-2338", "mc-2338-forfait"]]);
+  });
+
   it("le relevé marque chaque offre du logement que sa médiane compte", () => {
     const [bk, abnb, abr, seule] = releve([...unBien, annonce()]).map((c) => c.a);
     assert.deepEqual(
@@ -3099,6 +3133,10 @@ describe("complétion : les annonces à compléter", () => {
   const sansRien = (over: Partial<Listing> = {}) =>
     annonce({ capacity: null, bedrooms: null, lat: null, lon: null, distToSlopesM: null, ...over });
 
+  it("une annonce non située qu'un nom lu dit « autre domaine » reste à compléter : le texte n'exclut pas", () => {
+    assert.equal(aCompleter([sansRien({ domainFit: "other", title: "Chalet vue sur l'Alpe d'Huez" })], CTX).length, 1);
+  });
+
   it("une annonce sans position, capacité ni chambres, qui passe le reste, est à compléter", () => {
     const xs = aCompleter([sansRien()], CTX);
     assert.deepEqual(
@@ -3122,8 +3160,12 @@ describe("complétion : les annonces à compléter", () => {
     ["un « à partir de »", sansRien({ priceIndicative: true })],
     ["un total à zéro", sansRien({ total: 0 })],
     ["un prix d’autres dates", sansRien({ pricedCheckIn: "2027-02-13", pricedCheckOut: "2027-02-20" })],
-    ["un logement d’un autre domaine", sansRien({ domainFit: "other" })],
-    ["un logement à plus de 12 km", sansRien({ lat: 45.3, lon: 6.5, distToSlopesM: 20_000 })],
+    // Situé dans une autre station : sa fiche ne le ramènerait pas ici.
+    [
+      "un logement d’une autre station",
+      sansRien({ lat: stationReelle("alpe-d-huez").lat, lon: stationReelle("alpe-d-huez").lon }),
+    ],
+    ["un logement à plus de 12 km", sansRien({ lat: 43.2965, lon: 5.3698, distToSlopesM: 20_000 })],
     ["un gîte sans devis ITEA live", gite({ capacity: null, proven: "ITEA gites-web 2026-09-03" })],
   ];
   for (const [cas, l] of horsCrible) {
@@ -3173,7 +3215,8 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
   it("les annonces complètes vont à la mémoire, une par clé, jamais un repli", () => {
     const xs = connuesDuReleve([
       annonce(),
-      annonce({ id: "airbnb-2" }),
+      // Une autre annonce du même logement Airbnb : même clé.
+      annonce({ id: "airbnb-2", url: "https://www.airbnb.fr/rooms/12345678" }),
       annonce({ id: "x", url: "https://www.airbnb.fr/rooms/999999", capacity: null }),
       annonce({ id: "y", url: "https://www.airbnb.fr/rooms/888888", proven: "repli relevé" }),
     ]);

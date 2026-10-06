@@ -105,9 +105,10 @@ function MenuPlus() {
   const [ouvert, setOuvert] = useState(false);
   const hote = useRef<HTMLDivElement>(null);
   useFermeture(ouvert, () => setOuvert(false), hote);
-  // Les voisines de forfait : depuis Courchevel, passer à Méribel ou à Val
-  // Thorens sans repasser par Comparer. Le menu ne proposait rien de tel, et
-  // aucun autre écran ne fait ce saut.
+  // Les stations du domaine relié : depuis Courchevel, passer à Méribel ou à
+  // Val Thorens sans repasser par Comparer. Le menu ne proposait rien de tel,
+  // et aucun autre écran ne fait ce saut. Chacune a ses propres logements
+  // (`stay/rattachement.ts`) ; les villages d'une station n'y figurent pas.
   const station = useStationCourante();
   const voisines = useMemo(
     () => (station ? stationsVoisines(station.id, station.domain) : []),

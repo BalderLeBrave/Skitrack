@@ -113,9 +113,11 @@ describe("bascule vers le classeur", () => {
       const entry = CLASSEUR.find((e) => e.id === s.id)!;
       assert.equal(s.distToPisteKm, entry.fm.slopeDistance, s.id);
     }
-    // 278 lignes mesurées ; 151 le sont depuis le repère que la station garde.
+    // 278 lignes mesurées ; 155 le sont depuis le repère que la station garde
+    // (151, plus les quatre stations replacées au repère du classeur le
+    // 6 octobre 2026 : Les Menuires, Les Saisies, Le Corbier, Saint-Jean-d'Arves).
     assert.equal(CLASSEUR.filter((e) => e.fm.slopeDistance != null).length, 278);
-    assert.equal(STATIONS.filter((s) => s.distToPisteKm != null).length, 151);
+    assert.equal(STATIONS.filter((s) => s.distToPisteKm != null).length, 155);
   });
 
   it("aucun identifiant du dépôt ne bouge : les 230 encore ouverts résolvent, le fermé ne résout plus rien", () => {

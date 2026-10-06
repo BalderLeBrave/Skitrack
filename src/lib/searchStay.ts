@@ -10,6 +10,7 @@ import { enrichirListing } from "./stay/enrichir";
 import { journalResidu, residuLogements } from "./stay/logement";
 import { estFicheGitesIntrouvable } from "./stay/ficheGites";
 import { estOffreGitesVerifiee, purgerTarifFigé } from "./stay/tarif";
+import { dedoublonnerParBien } from "./stay/poserReleve";
 
 const Input = z.object({
   stationId: z.string().min(1),
@@ -303,7 +304,9 @@ async function completer(
     if (!estTimeout(err)) throw err;
     console.warn("[searchStay] complément de fiches : délai dépassé, on rend ce qui est lu");
   }
-  const rendues = rows.filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
+  // Un même bien rendu deux fois (deux parts, deux pages d'une centrale) n'est
+  // qu'un logement : plateforme + identifiant (`dedoublonnerParBien`).
+  const rendues = dedoublonnerParBien(rows.filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l)));
   // Ce qui reste introuvable reste `null`, et se dit : jamais de valeur par défaut.
   for (const ligne of journalResidu(residuLogements(rendues), stationId)) console.info(ligne);
   return poserAcces(rendues, stationId);

@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { rattacher } from "./rattachement.ts";
 import { AVAILABILITY_TTL_MS, MANUAL_SOURCE, availabilityLabel, availabilityOf, isBookable, isDoorway, type AvailabilitySubject, type Stay } from "./availability.ts";
 import {
   applyFilter,
@@ -18,6 +19,7 @@ import {
   RAYON_DEFAUT_KM,
   RAYON_MAX_KM,
   RAYON_MIN_KM,
+  RAYONS_KM,
   type FilterSubject,
 } from "./lodgingFilter.ts";
 import { attachAccess } from "../access.ts";
@@ -370,6 +372,7 @@ describe("filtre : ce qui sort, et pourquoi", () => {
     assert.equal(out.dropped.total, 6);
     assert.deepEqual(out.dropped.byReason, {
       groupe: 1,
+      "autre-station": 0,
       "autre-domaine": 0,
       "hors-zone": 0,
       capacite: 2,
@@ -438,32 +441,37 @@ describe("filtre : la zone de recherche", () => {
     assert.equal(out.dropped.total, 0);
   });
 
-  it("hors de la station, seulement le même domaine skiable, dans le rayon", () => {
+  it("sans station de relevé : l'autre domaine sort, et le rayon ne s'ouvre pas au-delà de 12 km", () => {
     const voisinAutreDomaine = zone({ id: "voisin", distToSlopesM: 3_000, domainFit: "other" });
     assert.equal(geoReasonFor(voisinAutreDomaine), "autre-domaine");
     assert.equal(dropReasonFor(voisinAutreDomaine, criteres), "autre-domaine");
     assert.equal(geoReasonFor(voisinAutreDomaine, 30), "autre-domaine");
 
+    // Même domaine ou domaine relié, un logement à 18 ou 25 km n'est plus à
+    // la station : le rayon plafonne à 12 km (crans de 25 et 50 km retirés).
     const loinMemeDomaine = zone({ id: "loin-in", distToSlopesM: 18_000, domainFit: "in" });
     assert.equal(geoReasonFor(loinMemeDomaine), "hors-zone");
-    assert.equal(geoReasonFor(loinMemeDomaine, 25), null);
-    assert.equal(dropReasonFor(loinMemeDomaine, { ...criteres, rayonKm: 25 }), null);
+    assert.equal(geoReasonFor(loinMemeDomaine, 25), "hors-zone");
+    assert.equal(dropReasonFor(loinMemeDomaine, { ...criteres, rayonKm: 25 }), "hors-zone");
 
     const relie = zone({ id: "relie", distToSlopesM: 25_000, domainFit: "linked" });
     assert.equal(geoReasonFor(relie), "hors-zone");
-    assert.equal(geoReasonFor(relie, 25), null);
-    assert.equal(geoReasonFor(relie, 30), null);
+    assert.equal(geoReasonFor(relie, 30), "hors-zone");
 
     const procheMemeDomaine = zone({ id: "proche-in", distToSlopesM: 8_000, domainFit: "in" });
     assert.equal(geoReasonFor(procheMemeDomaine), null);
   });
 
-  it("le rayon vaut douze par défaut, cinquante au plus", () => {
+  it("le rayon vaut douze par défaut, et au plus", () => {
+    assert.deepEqual([...RAYONS_KM], [5, 12]);
+    assert.equal(RAYON_MAX_KM, RAYON_DEFAUT_KM);
     const a20 = zone({ id: "a20", distToSlopesM: 20_000, domainFit: "in" });
     assert.equal(geoReasonFor(a20, RAYON_DEFAUT_KM), "hors-zone");
-    assert.equal(geoReasonFor(a20, 25), null);
-    assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 25 }), null);
+    assert.equal(geoReasonFor(a20, 25), "hors-zone");
     assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 10 }), "hors-zone");
+    const a8 = zone({ id: "a8", distToSlopesM: 8_000, domainFit: "in" });
+    assert.equal(geoReasonFor(a8, 5), "hors-zone");
+    assert.equal(geoReasonFor(a8, 12), null);
 
     // La borne suit le cran par défaut de la maquette, qui vaut douze.
     assert.equal(geoReasonFor(zone({ id: "pile", distToSlopesM: 12_000, domainFit: "in" })), null);
@@ -502,18 +510,25 @@ describe("filtre : la zone de recherche", () => {
 
     // La distance est mesurée, et elle est énorme.
     assert.ok((situe.distToSlopesM ?? 0) > 250_000);
-    // Le rattachement tranche avant elle, et il est plus précis : ce logement
-    // n'est pas « trop loin », il est sur un autre domaine.
+    // Le rattachement tranche avant elle : à plus de 12 km de toute station,
+    // ce logement n'est dans aucune (`stay/rattachement.ts`).
     assert.equal(situe.domainFit, "other");
-    assert.equal(dropReasonFor(situe, criteres), "autre-domaine");
+    assert.equal(rattacher(situe).stationId, null);
+    assert.equal(dropReasonFor(situe, criteres), "hors-zone");
 
-    // Dans la même vallée, à sept kilomètres, le logement reste.
+    // Dans la même vallée, à sept kilomètres, le logement est à Montalbert :
+    // il n'est listé que là, pas sous La Plagne, même domaine ou non.
     const proche = attachAccess({ ...brut, id: "aime", lat: 45.5547, lon: 6.6486 }, plagne!);
-    assert.equal(proche.domainFit, "in");
-    assert.equal(dropReasonFor(proche, criteres), null);
+    assert.equal(rattacher(proche).stationId, "la-plagne-montalbert");
+    assert.equal(dropReasonFor(proche, criteres), "autre-station");
+    const aMontalbert = attachAccess(
+      { ...brut, id: "aime", stationId: "la-plagne-montalbert", lat: 45.5547, lon: 6.6486 },
+      stationById("la-plagne-montalbert")!,
+    );
+    assert.equal(dropReasonFor(aMontalbert, criteres), null);
   });
 
-  it("Flumet : Praz-sur-Arly (même domaine) reste, Les 2 Alpes sortent", () => {
+  it("Flumet : Praz-sur-Arly (même domaine) n'est listé que sous Praz, Les 2 Alpes sortent", () => {
     const flumet = stationById("flumet-st-nicolas-la-chapelle");
     const praz = stationById("praz-sur-arly");
     const deuxAlpes = stationById("les-2-alpes");
@@ -534,14 +549,17 @@ describe("filtre : la zone de recherche", () => {
       proven: "test",
     } as Listing;
 
+    // Le domaine relié (Espace Diamant) reste une information : le logement
+    // est à Praz-sur-Arly, et une recherche Flumet ne le liste pas.
     const voisin = attachAccess({ ...brut, id: "praz", lat: praz.lat, lon: praz.lon }, flumet);
     assert.ok(voisin.domainFit === "in" || voisin.domainFit === "linked", voisin.domainFit);
     assert.ok((voisin.distToSlopesM ?? 0) < 10_000);
-    assert.equal(dropReasonFor(voisin, criteres), null);
+    assert.equal(rattacher(voisin).stationId, "praz-sur-arly");
+    assert.equal(dropReasonFor(voisin, criteres), "autre-station");
 
     const ailleurs = attachAccess({ ...brut, id: "2a", lat: deuxAlpes.lat, lon: deuxAlpes.lon }, flumet);
     assert.equal(ailleurs.domainFit, "other");
-    assert.equal(dropReasonFor(ailleurs, { ...criteres, rayonKm: 30 }), "autre-domaine");
+    assert.equal(dropReasonFor(ailleurs, { ...criteres, rayonKm: 30 }), "autre-station");
   });
 
   it("un gîte de la Manche ne remonte pas dans une recherche Flumet", () => {

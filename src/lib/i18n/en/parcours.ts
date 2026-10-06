@@ -428,6 +428,10 @@ export const EN_PARCOURS: Record<string, string> = {
   " remontées, domaine": " lifts, ski area",
   "remontées non relevées": "lifts not surveyed",
   "Village {altitude}": "Village {altitude}",
+  "Village de {station} : ses logements sont listés sous la station":
+    "Village of {station}: its accommodation is listed under the resort",
+  "Villages : {villages}": "Villages: {villages}",
+  "Domaine relié avec {stations}": "Ski area linked with {stations}",
   "Forfaits": "Ski passes",
   "Aucun relevé": "No price check",
   "Lecture des tarifs…": "Reading prices…",

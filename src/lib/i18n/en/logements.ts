@@ -120,6 +120,8 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "sans photo": "no photo",
   "gîte de groupe": "group gîte",
   "gîtes de groupe": "group gîtes",
+  "dans une autre station": "in another resort",
+  "dans d’autres stations": "in other resorts",
   "sur un autre domaine": "on another ski area",
   "sur d’autres domaines": "on other ski areas",
   "hors de la zone": "outside the area",
@@ -227,6 +229,11 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "{station}, repère de la station": "{station}, resort marker",
   "Étape 2": "Step 2",
   "Logements {lieu}": "Accommodation in {lieu}",
+  "Dans la station": "In the resort",
+  "Les logements d’une station voisine sont listés sous leur propre station ; ceux à plus de 12 km de toute station ne le sont nulle part.":
+    "Accommodation in a neighbouring resort is listed under that resort; accommodation more than 12 km from any resort is not listed.",
+  "{village} est un village de {station} : ses logements sont ceux de la station.":
+    "{village} is a village of {station}: its accommodation is listed under the resort.",
   "Changer la station, les dates ou le nombre de voyageurs": "Change the resort, the dates or the number of travellers",
   "Relancer le relevé pour ces dates": "Run the price check again for these dates",
   "Altitude des pistes": "Slope altitude",

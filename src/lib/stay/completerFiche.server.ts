@@ -56,6 +56,7 @@ import type {
   PagesAirbnbProfond,
   PagesProfond,
 } from "../prix/completion.server.ts";
+import { exclueDeLaStation } from "./rattachement.ts";
 
 const MAX_FICHES = 160;
 const WORKERS = 10;
@@ -829,12 +830,21 @@ const DANS_LA_STATION_M = 2_000;
  * À Abondance, le 2 octobre 2026 : 325 annonces sur 413 de la liste directe
  * sont « autre domaine » ; la dernière annonce affichable passe du rang 408 au
  * rang 88 de la file.
+ *
+ * Depuis le 6 octobre 2026, une annonce que l'écran ne montre pas sous cette
+ * station passe après, comme un autre domaine : celle d'une autre station, ou
+ * à plus de 12 km de toute station (`exclueDeLaStation`), comme le filtre de
+ * l'écran (`lieuReasonFor`). Le verdict de domaine ne relègue plus que
+ * l'annonce sans station de relevé.
  */
-export function ordreDeLecture<T extends Pick<Listing, "total" | "distToLiftM" | "domainFit">>(
-  rows: readonly T[],
-): T[] {
+export function ordreDeLecture<
+  T extends Pick<Listing, "total" | "distToLiftM" | "domainFit"> &
+    Partial<Pick<Listing, "stationId" | "lat" | "lon" | "locality" | "title">>,
+>(rows: readonly T[]): T[] {
+  const ailleurs = (l: T) =>
+    l.stationId == null ? l.domainFit === "other" : exclueDeLaStation(l, l.stationId);
   const cle = (l: T): [number, number, number, number] => [
-    l.domainFit === "other" ? 1 : 0,
+    ailleurs(l) ? 1 : 0,
     l.distToLiftM != null && l.distToLiftM <= DANS_LA_STATION_M ? 0 : 1,
     l.total > 0 ? 0 : 1,
     l.total > 0 ? l.total : 0,

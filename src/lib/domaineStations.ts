@@ -21,8 +21,10 @@
  */
 
 import { domaineNomme } from "./classeur.ts";
+import { libelleSansLiaison, memeLibelleNonReliees } from "./domainFit.ts";
 import { cleDomaine, domainBySlug } from "./forfaits/catalog.ts";
-import { STATIONS, type Station } from "./stations.ts";
+import { STATIONS, stationById, type Station } from "./stations.ts";
+import { stationDeRattachement, villagesDe } from "./villages.ts";
 
 let index: Map<string, Station[]> | null = null;
 
@@ -64,10 +66,58 @@ export function stationsDuDomaine(slug: string): Station[] {
   return [...vues.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
 
-/** Les autres stations du domaine skiable d'une station — ses voisines. */
-export function stationsVoisines(stationId: string, nomDomaine: string | null | undefined): Station[] {
+/**
+ * Les autres stations qui portent le même libellé de domaine, villages
+ * compris, sans autre examen. C'est le partage des caméras (`webcams.ts`) :
+ * une caméra du domaine se montre sur chacune de ses fiches. Ce n'est pas
+ * « domaine relié » (`stationsVoisines`), et jamais un rattachement de
+ * logements.
+ */
+export function stationsDuLibelle(stationId: string, nomDomaine: string | null | undefined): Station[] {
   if (!domaineNomme(nomDomaine)) return [];
   const cle = cleDomaine(nomDomaine);
   if (!cle) return [];
   return (parDomaine().get(cle) ?? []).filter((s) => s.id !== stationId);
+}
+
+/**
+ * Les autres stations du domaine skiable relié d'une station — ses voisines :
+ * « domaine relié avec X ». Une information de la fiche station, jamais un
+ * rattachement : leurs logements restent les leurs (`stay/rattachement.ts`).
+ *
+ * Des stations, pas des villages : les villages de la station
+ * (`villages.ts`) sont elle-même, et ceux d'une voisine sont rendus par leur
+ * station. Un libellé de forfait commun (`libelleSansLiaison`, Haute
+ * Maurienne Vanoise) ne relie personne, ni une paire que le libellé réunit
+ * sans liaison à ski (`memeLibelleNonReliees`, Abondance–Morzine) : le menu
+ * proposait Aussois depuis Val Cenis, et Morzine depuis Abondance.
+ */
+export function stationsVoisines(stationId: string, nomDomaine: string | null | undefined): Station[] {
+  if (!domaineNomme(nomDomaine) || libelleSansLiaison(nomDomaine)) return [];
+  const cle = cleDomaine(nomDomaine);
+  if (!cle) return [];
+  const famille = stationDeRattachement(stationId);
+  const vues = new Map<string, Station>();
+  for (const s of parDomaine().get(cle) ?? []) {
+    const mere = stationDeRattachement(s.id);
+    if (mere === famille || vues.has(mere)) continue;
+    if (memeLibelleNonReliees(famille, mere) || memeLibelleNonReliees(stationId, s.id)) continue;
+    const station = stationById(mere);
+    if (station) vues.set(mere, station);
+  }
+  return [...vues.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+}
+
+/** La station dont celle-ci n'est qu'un village, ou rien. */
+export function stationMere(stationId: string): Station | undefined {
+  const mere = stationDeRattachement(stationId);
+  return mere === stationId ? undefined : stationById(mere);
+}
+
+/** Les villages d'une station, par ordre alphabétique. */
+export function villagesDeLaStation(stationId: string): Station[] {
+  return villagesDe(stationId)
+    .map((id) => stationById(id))
+    .filter((s): s is Station => s != null)
+    .sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }

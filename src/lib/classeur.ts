@@ -286,7 +286,7 @@ export function nomAffiche(
 /** Positions relevées à la main sur le centre de la station, le 15 septembre
  *  2026. Le classeur France Montagnes pose le pin au centre de la **commune** :
  *  Lanslebourg tombait à 5,7 km de ses pistes, Val Joly à 3,5 km, Arc 1600 à
- *  2,3 km. Vingt-deux stations sont concernées.
+ *  2,3 km. Vingt-deux stations sont concernées, et quatre de plus le 6 octobre (plus bas).
  *
  *  Corriger ici et non dans le fichier généré, qui serait écrasé au prochain
  *  import — même raison que `DOMAIN_FIXES`.
@@ -317,6 +317,19 @@ export const GPS_FIXES: Record<string, readonly [number, number]> = {
   "le-tour": [45.9997, 6.9473], // Le Tour
   "les-carroz": [46.0268, 6.6385], // Les Carroz d'Araches
   "les-coches": [45.5472, 6.743], // Les Coches
+  // Le 6 octobre 2026, validé par le propriétaire : les repères du dépôt de
+  // quatre stations tombaient chez une voisine — Les Menuires à
+  // Saint-Martin-de-Belleville (311 m de son repère), Les Saisies à
+  // Notre-Dame-de-Bellecombe, Le Corbier et Saint-Jean-d'Arves l'un sur
+  // l'autre (24 m), près de Saint-Colomban. Depuis que chaque logement est
+  // rattaché à la station la plus proche (`stay/rattachement.ts`), un
+  // logement des Menuires allait à Reberty. Ce sont les positions du classeur
+  // France Montagnes (`franceMontagnes.data.ts`), à 6,3 à 10,5 km des
+  // anciennes.
+  "le-corbier": [45.239662, 6.268214], // Le Corbier
+  "les-menuires": [45.324, 6.5385], // Les Menuires
+  "les-saisies": [45.7547, 6.5388], // Les Saisies
+  "st-jean-darves": [45.204531, 6.279153], // Saint-Jean-d'Arves
 };
 
 /** Vrai quand la position vient d'un relevé : une correction de `GPS_FIXES`,

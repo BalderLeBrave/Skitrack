@@ -1,4 +1,9 @@
-/** Un logement n’appartient à un domaine que s’il y est vraiment, pas s’il est « à 5 km à vol d’oiseau ». */
+/** Un logement n’appartient à un domaine que s’il y est vraiment, pas s’il est « à 5 km à vol d’oiseau ».
+ *
+ *  Depuis le 6 octobre 2026, ce verdict ne décide plus sous quelle station un
+ *  logement est listé : c'est `rattacher` (`stay/rattachement.ts`), une
+ *  station par logement, jamais le domaine. Le verdict reste une information
+ *  (fiche du logement, choix de la remontée mesurée). */
 
 import { domaineNomme } from "./classeur.ts";
 import type { Listing } from "./listings.ts";
@@ -40,6 +45,22 @@ const WINTER_BARRIERS: { a: string; b: string; col: string }[] = [
 ];
 
 /**
+ * Libellés de domaine qui sont ceux d'un forfait commun, pas d'une liaison à
+ * ski. « Espace Haute Maurienne Vanoise » réunit Aussois, Val Cenis, La Norma,
+ * Valfréjus, Bessans et Bonneval-sur-Arc sous un même pass ; le propriétaire
+ * l'a rappelé le 6 octobre 2026 : Aussois a son propre domaine, non relié à
+ * Val Cenis. Deux stations distinctes sous ce libellé ne sont pas du même
+ * domaine skiable. Que les autres paires (La Norma–Valfréjus, Bessans–Bonneval)
+ * ne soient pas reliées non plus n'est pas vérifié dans le dépôt.
+ */
+const LIBELLES_SANS_LIAISON = new Set(["Espace Haute Maurienne Vanoise"]);
+
+/** Le libellé ne nomme qu'un forfait commun (`LIBELLES_SANS_LIAISON`). */
+export function libelleSansLiaison(nom: string | null | undefined): boolean {
+  return nom != null && LIBELLES_SANS_LIAISON.has(nom);
+}
+
+/**
  * Stations qui portent le même libellé de domaine sans être reliées à ski.
  *
  * Le classeur range sous « Portes du Soleil (versant français) » tout le
@@ -79,6 +100,13 @@ const PLACE_ALIAS: Record<string, string> = {
   bonneval: "bonneval-sur-arc",
   "bonneval sur arc": "bonneval-sur-arc",
   "bonneval-sur-arc": "bonneval-sur-arc",
+  // Les altitudes de Courchevel : « Courchevel » seul est aussi la commune de
+  // La Tania (`stay/rattachement.ts`), « Courchevel 1850 » est la station.
+  "courchevel 1850": "courchevel",
+  "courchevel 1650": "courchevel-moriond-1650",
+  "courchevel moriond": "courchevel-moriond-1650",
+  "courchevel 1550": "courchevel-village-1550",
+  "courchevel village": "courchevel-village-1550",
 };
 
 const EXTRA_LINKED: string[][] = [
@@ -221,6 +249,30 @@ export function stationIdFromText(raw: string | null | undefined): string | null
   return null;
 }
 
+/**
+ * Toutes les stations qu'un texte nomme, le nom le plus long d'abord ; un nom
+ * lu masque ceux qu'il contient (« Courchevel 1850 » ne nomme pas aussi
+ * « Courchevel »). Sert à reconnaître un doute : un titre qui nomme deux
+ * stations n'en désigne aucune. Un nom qu'`ignorer` écarte (le nom nu d'une
+ * commune partagée) masque, mais ne nomme pas.
+ */
+export function stationsNommees(
+  raw: string | null | undefined,
+  ignorer: (nom: string) => boolean = () => false,
+): string[] {
+  if (!raw) return [];
+  let hay = ` ${fold(raw)} `;
+  const ids: string[] = [];
+  for (const row of NAME_IDS) {
+    if (row.needle.length < 5 && row.needle !== "fornet") continue;
+    const aiguille = ` ${row.needle} `;
+    if (!hay.includes(aiguille)) continue;
+    if (!ignorer(row.needle) && !ids.includes(row.id)) ids.push(row.id);
+    hay = hay.split(aiguille).join(" | ");
+  }
+  return ids;
+}
+
 export function domainFit(listing: GeoHint, searched: Station): DomainFit {
   const pinM =
     listing.lat != null && listing.lon != null
@@ -256,6 +308,7 @@ export function domainFit(listing: GeoHint, searched: Station): DomainFit {
     !col &&
     domaineNomme(nearest.domain) &&
     nearest.domain === searched.domain &&
+    !libelleSansLiaison(nearest.domain) &&
     !memeLibelleNonReliees(searched.id, nearest.id);
   let verdict: DomainVerdict;
   if (nearest.id === searched.id) verdict = "in";

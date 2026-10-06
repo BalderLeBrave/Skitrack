@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { stationsVoisines } from "./domaineStations.ts";
+import { stationsDuLibelle } from "./domaineStations.ts";
 import { STATIONS, stationById } from "./stations.ts";
 import { CAMERAS } from "./webcams.data.ts";
 import { webcamCoverage, webcamsForStation } from "./webcams.ts";
@@ -37,7 +37,7 @@ describe("webcams d'une station", () => {
   it("toutes les stations d'un même domaine proposent les mêmes caméras", () => {
     for (const s of STATIONS) {
       const attendu = [...urls(s.id)].sort();
-      for (const v of stationsVoisines(s.id, s.domain)) {
+      for (const v of stationsDuLibelle(s.id, s.domain)) {
         assert.deepEqual([...urls(v.id)].sort(), attendu, `${s.id} et ${v.id}`);
       }
     }

@@ -55,6 +55,8 @@
  *   `CAMPING`, `CHAMBRE_HOTE` (voir `KINDS_LOCATION_MSEM`).
  */
 
+import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
+
 /** Un hébergement du catalogue, réduit à ce dont on se sert. */
 export type HebergementMsem = {
   id: number | string;
@@ -91,11 +93,18 @@ export type HebergementMsem = {
     lat?: number | null;
     lng?: number | null;
   } | null;
+  /** La description publiée : `short` est un extrait de `long`. */
+  descriptions?: { short?: string | null; long?: string | null } | null;
+  /** Les codes d'options de l'hébergement, à lire dans `CatalogueMsem.options`. */
+  options?: readonly (string | number)[] | null;
 };
+
+/** Une option du catalogue : « Lave-vaisselle », « Local à ski », « Animaux acceptés ». */
+export type OptionMsem = { code?: string | number | null; kind?: string | null; label?: string | null };
 
 // Les tableaux sont en lecture seule : le gabarit de test est figé par `as
 // const`, et un relevé qu'on lit n'a aucune raison d'être modifiable.
-export type CatalogueMsem = { accomodations?: readonly HebergementMsem[] | null };
+export type CatalogueMsem = { accomodations?: readonly HebergementMsem[] | null; options?: readonly OptionMsem[] | null };
 
 /**
  * Une offre datée. La centrale n'en rend que pour ce qu'elle peut vendre.
@@ -144,7 +153,29 @@ export type FicheMsem = {
   lon: number | null;
   adresse: string | null;
   commune: string | null;
+  /** `descriptions.long` du catalogue, telle quelle. */
+  description?: string | null;
+  /** Les options du catalogue (équipements présents), puis ce que la
+   *  description nomme ; `null` sans l'un ni l'autre. */
+  equipements?: EquipementsLus | null;
 };
+
+/**
+ * Les équipements d'un hébergement : les libellés de ses options (une option
+ * listée vaut « oui », une option absente reste inconnue), puis la
+ * description (« Casier à skis n°25 », « Linge de lit… non inclus »).
+ */
+export function equipementsMsem(
+  h: Pick<HebergementMsem, "options">,
+  dictionnaire: readonly OptionMsem[] | null | undefined,
+  description: string | null,
+): EquipementsLus | null {
+  const libelles = new Map((dictionnaire ?? []).map((o) => [String(o.code), o.label ?? ""] as const));
+  const options = Array.isArray(h.options) ? h.options : null;
+  const items = (options ?? []).map((c) => ({ texte: libelles.get(String(c)) ?? "" })).filter((x) => x.texte);
+  if (options == null && description == null) return null;
+  return fusionner(depuisListe(items), description ? depuisTexte(description) : null);
+}
 
 /** L'URL du catalogue d'une centrale. Invariante : elle ne porte pas de dates. */
 export function urlCatalogueMsem(base: string, resort: number | string, canal: string): string {
@@ -354,6 +385,8 @@ export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem 
     const { lat, lon } = point(h);
     const { adresse: rue, commune } = adresse(h);
     const galerie = photos(h);
+    const long = typeof h.descriptions?.long === "string" ? h.descriptions.long.trim() : "";
+    const description = long || null;
     out.push({
       id,
       titre,
@@ -369,6 +402,8 @@ export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem 
       lon,
       adresse: rue,
       commune,
+      description,
+      equipements: equipementsMsem(h, catalogue?.options, description),
     });
   }
   return out;

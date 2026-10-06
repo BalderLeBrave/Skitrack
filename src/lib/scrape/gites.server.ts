@@ -5,6 +5,8 @@ import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer, type Occupancy } from "../stay/occupancy.ts";
 import { capaciteFormuleItea } from "../stay/lectureFiche.ts";
+import { depuisTexte, equipements } from "../stay/equipements.ts";
+import { texteDeHtml } from "../stay/texteHtml.ts";
 import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } from "./gitesGps.server.ts";
 import { communeGites } from "./gitesCommunes.ts";
 
@@ -470,7 +472,28 @@ export type Fiche = {
   lieu: LieuGites;
   /** `data-ident` ITEA (« 38G40102.G »), l'identifiant du bien chez l'hébergeur. */
   platformId: string | null;
+  /** La description publiée par le JSON-LD de la fiche, en texte. */
+  description?: string | null;
 };
+
+/**
+ * La description du JSON-LD de la fiche ITEA (`LodgingBusiness.description`),
+ * en texte : elle est écrite en entités (« am&eacute;nag&eacute; »). `null`
+ * sans JSON-LD ou sans texte.
+ */
+export function descriptionFromGitesHtml(html: string): string | null {
+  for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
+    let brut: unknown = null;
+    try {
+      brut = (JSON.parse(m[1] ?? "") as { description?: unknown }).description;
+    } catch {
+      brut = /"description"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(m[1] ?? "")?.[1] ?? null;
+    }
+    const texte = typeof brut === "string" ? texteDeHtml(brut) : null;
+    if (texte) return texte;
+  }
+  return null;
+}
 
 /**
  * La fiche ITEA d'un gîte : un seul téléchargement, tout ce qu'elle publie.
@@ -516,6 +539,7 @@ async function relever(
     occupancy,
     lieu,
     platformId: ident && ident !== code ? ident : null,
+    description: descriptionFromGitesHtml(html),
   };
   if (!ident || !instance || !exercice0) return sansDevis;
   if (!/\.G$/i.test(ident)) return null;
@@ -562,6 +586,7 @@ async function relever(
     occupancy,
     lieu,
     platformId: sansDevis.platformId,
+    description: sansDevis.description,
   };
 }
 
@@ -617,6 +642,8 @@ export function listingDeFiche(
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
     propertyType: tile.typeLabel || null,
+    // La description de la fiche, et les équipements qu'elle nomme.
+    ...(fiche.description ? { description: fiche.description, amenities: equipements(depuisTexte(fiche.description)) } : {}),
     priceLabel: fiche.priceLabel,
     platformId: fiche.platformId,
     available: true,

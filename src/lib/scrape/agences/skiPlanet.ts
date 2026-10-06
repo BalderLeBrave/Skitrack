@@ -32,6 +32,7 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
+import { depuisTexte, equipements } from "../../stay/equipements.ts";
 
 export const SKIPLANET_SITE = "https://www.ski-planet.com";
 export const SKIPLANET_AJAX = `${SKIPLANET_SITE}/fr/ajax`;
@@ -172,6 +173,22 @@ export function lirePhotosLogement(html: string): string[] {
   const toutes = [...new Set([...html.matchAll(/https:\/\/docs\.ski-planet\.com\/photo\/[\w-]+(?:\/[\w.-]+)+\.(?:jpe?g|webp)/gi)].map((m) => m[0]))];
   const grandes = toutes.filter((u) => /\/large\//.test(u));
   return grandes.length > 0 ? grandes : toutes;
+}
+
+/**
+ * La description du logement sur son panneau : le texte entre la croix de
+ * fermeture et le diaporama (« Superficie d'environ 33 m². 7ème étage… »).
+ * `null` sans diaporama, faute de borne sûre, ou sans texte.
+ */
+export function lireDescriptionLogement(html: string): string | null {
+  const i = html.indexOf('<div id="viewPhoto"');
+  if (i < 0) return null;
+  const avant = html.slice(0, i);
+  const croix = avant.lastIndexOf("</a>");
+  const texte = decoder(avant.slice(croix >= 0 ? croix + 4 : 0).replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+  return texte || null;
 }
 
 /** L'adresse d'une photo de la table (chemin sous `SKIPLANET_PHOTOS`), ou `null`. */
@@ -484,6 +501,8 @@ export function skiPlanetListings(
   seul?: CalendrierSkiPlanet | null,
   /** Les photos du logement lues sur son panneau (`lirePhotosLogement`), pour une résidence sans photo. */
   photosLogement?: (idLogement: string) => readonly string[] | null,
+  /** La description lue sur le même panneau (`lireDescriptionLogement`), quand il a été lu. */
+  descriptionLogement?: (idLogement: string) => string | null,
 ): Listing[] {
   if (!calendrier.disponible) return [];
   const nuits = nuitsEntre(input.checkIn, input.checkOut);
@@ -523,6 +542,9 @@ export function skiPlanetListings(
     }
     // La photo de la résidence (table), sinon celles du logement (son panneau).
     const photos = residence.photo ? [residence.photo] : [...(photosLogement?.(l.id) ?? [])];
+    // La description du panneau, et les équipements qu'elle nomme : jamais
+    // « non » d'un équipement qu'elle tait.
+    const description = descriptionLogement?.(l.id) ?? null;
     out.push({
       id: forfait === true ? `sp-${l.id}-forfait` : `sp-${l.id}`,
       stationId: input.stationId,
@@ -548,6 +570,7 @@ export function skiPlanetListings(
         ),
       ),
       propertyType: lib.type,
+      ...(description != null ? { description, amenities: equipements(depuisTexte(description)) } : {}),
       available: true,
       photo: photos[0] ?? null,
       photos: photos.length > 0 ? photos : null,

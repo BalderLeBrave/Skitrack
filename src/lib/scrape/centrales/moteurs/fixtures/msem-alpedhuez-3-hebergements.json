@@ -1,0 +1,559 @@
+{
+ "_": "Relevé réel du 6 octobre 2026 : catalogue MSEM de l’Alpe d’Huez (services.msem.tech, resort 125) réduit à trois hébergements vendus et à son dictionnaire d’options, et leurs offres datées du 6 au 13 février 2027 pour quatre personnes, telles quelles.",
+ "catalogue": {
+  "accomodations": [
+   {
+    "owner": "PROFESSIONAL",
+    "accommodation": {
+     "id": 192180,
+     "merchant": "AM-125-003-68",
+     "name": "MUSARDIERE - 1 pièce - 4 pers. - 25 m2 - Agence Giverdon Immobilier",
+     "slug": "musardiere1-piece4-pers25-m2agence-giverdon-immobilier",
+     "kind": "MEUBLE",
+     "meuble_kind": null,
+     "chalet_moniteur": 0,
+     "all_inclusive": 0,
+     "ranking_id": 225,
+     "max_age_infant": null,
+     "max_age_child": null,
+     "pets_allowed": null,
+     "pets_surcharge": null,
+     "stay_tax_city": "HUEZ",
+     "stay_tax_zipcode": "38750",
+     "uuid": null,
+     "agence": true,
+     "meuble_registration_number": null
+    },
+    "forceDetailsInWidget": false,
+    "location": {
+     "merchant": "AM-125-003-68",
+     "address1": null,
+     "address2": null,
+     "cp": "38750",
+     "city": "L'ALPE D'HUEZ",
+     "lat": 45.09163284301758,
+     "lng": 6.064248085021973
+    },
+    "descriptions": {
+     "merchant": "AM-125-003-68",
+     "short": "Appartement Alpe D'Huez Centre Station",
+     "long": "Studio + Hall Habitable dans Résidence LA MUSARDIERE / Quartier VIEL ALPE-COULET à 5 mins de l'Avenue des Jeux.\r\nProche Office du Tourisme/Télécentre (Accès Centre et Haut de Station)\r\nRetour Skieur proche de la résidence.\r\nREF PLAN STATION E6\r\nDESCRIPTION :\r\nHall Habitable : 2 Lits superposés 2X80\r\nSéjour : Canapé lit / TV\r\nÉquipement cuisine : Four, 2 plaques vitrocéramiques, Réfrigérateur, Lave-vaisselle, Micro-ondes.\r\nSalle de bain : Douche, wc\r\nBALCON SUD / Parking extérieur N°25\r\nCasier à Skis n°24\r\nLinge de lit, serviettes et ménage fin de séjour non inclus"
+    },
+    "options": [
+     "31"
+    ],
+    "image": "https://images.msem.tech/production/lodging/AM-125-003-68/11218009-medium.jpg",
+    "images": [
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218009-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218010-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218011-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218012-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218013-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218014-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218015-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218016-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218017-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218018-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218019-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218020-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218021-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218022-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218023-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218024-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218025-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218026-medium.jpg",
+      "merchant": "AM-125-003-68"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-68/11218027-medium.jpg",
+      "merchant": "AM-125-003-68"
+     }
+    ],
+    "sectors": [
+     12
+    ],
+    "labels": [],
+    "id": 192180,
+    "slug": "musardiere1-piece4-pers25-m2agence-giverdon-immobilier",
+    "name": "MUSARDIERE - 1 pièce - 4 pers. - 25 m2 - Agence Giverdon Immobilier",
+    "merchant": "AM-125-003-68",
+    "stars": 0,
+    "description": "Appartement Alpe D'Huez Centre Station",
+    "isChaletMoniteur": 0,
+    "isAllInclusive": 0,
+    "kind": "MEUBLE",
+    "meubleKind": null,
+    "agency": "AGENCE",
+    "nbRooms": 0,
+    "lat": 45.09163284301758,
+    "lng": 6.064248085021973,
+    "standing": 225,
+    "source": "ELLOHA",
+    "elloha": "20240e82-288b-40da-be09-ec8a914b84e3",
+    "unsyncGatewayData": "1",
+    "maxCapacity": 0,
+    "tags": []
+   },
+   {
+    "owner": "PROFESSIONAL",
+    "accommodation": {
+     "id": 192154,
+     "merchant": "AM-125-003-42",
+     "name": "HORIZON - 3 pièces - 8 pers. - 62 m2 - Agence Giverdon Immobilier",
+     "slug": "horizon3-pieces8-pers62-m2agence-giverdon-immobilier",
+     "kind": "MEUBLE",
+     "meuble_kind": null,
+     "chalet_moniteur": 0,
+     "all_inclusive": 0,
+     "ranking_id": 225,
+     "max_age_infant": null,
+     "max_age_child": null,
+     "pets_allowed": null,
+     "pets_surcharge": null,
+     "stay_tax_city": "HUEZ",
+     "stay_tax_zipcode": "38750",
+     "uuid": null,
+     "agence": true,
+     "meuble_registration_number": null
+    },
+    "forceDetailsInWidget": false,
+    "location": {
+     "merchant": "AM-125-003-42",
+     "address1": null,
+     "address2": null,
+     "cp": "38750",
+     "city": "L'ALPE D'HUEZ",
+     "lat": 45.09066390991211,
+     "lng": 6.0732879638671875
+    },
+    "descriptions": {
+     "merchant": "AM-125-003-42",
+     "short": "Appartement 3 Pièces Quartier Bergers",
+     "long": "Appartement C3 de 62m2 au 3ème étage de la Résidence « L’HORIZON » 27 Avenue du rif-nel\r\n38750 L’ALPE D’HUEZ\r\nDescriptif :\r\nSéjour : Canapé lit d’Angle 140x200/TV\r\nChambre : 1 lit double en 160x200\r\nCoin Chambre : 1 lit 140x200 en mezzanine + Lit gigogne 90x190\r\nEquipement cuisine : Combi Four + Micro-ondes, Lave-Vaisselle, 3 feux plaques induction,\r\nRéfrigérateur.\r\nSalle de Bain avec baignoire / WC Indépendant\r\nBalcon Exposé Sud\r\nPlacards à Skis n°C3 + 1 EMPLACEMENT DE PARKING N°C3\r\n"
+    },
+    "options": [
+     "31",
+     "3"
+    ],
+    "image": "https://images.msem.tech/production/lodging/AM-125-003-42/11217705-medium.jpg",
+    "images": [
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217705-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217706-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217707-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217708-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217709-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217710-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217711-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217712-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217713-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217714-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217715-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217716-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217717-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217718-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217719-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217720-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217721-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217722-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217723-medium.jpg",
+      "merchant": "AM-125-003-42"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-125-003-42/11217724-medium.jpg",
+      "merchant": "AM-125-003-42"
+     }
+    ],
+    "sectors": [
+     6
+    ],
+    "labels": [],
+    "id": 192154,
+    "slug": "horizon3-pieces8-pers62-m2agence-giverdon-immobilier",
+    "name": "HORIZON - 3 pièces - 8 pers. - 62 m2 - Agence Giverdon Immobilier",
+    "merchant": "AM-125-003-42",
+    "stars": 0,
+    "description": "Appartement 3 Pièces Quartier Bergers",
+    "isChaletMoniteur": 0,
+    "isAllInclusive": 0,
+    "kind": "MEUBLE",
+    "meubleKind": null,
+    "agency": "AGENCE",
+    "nbRooms": 0,
+    "lat": 45.09066390991211,
+    "lng": 6.0732879638671875,
+    "standing": 225,
+    "source": "ELLOHA",
+    "elloha": "1ffd52c2-2588-4118-86bb-616db221e4e5",
+    "unsyncGatewayData": "1",
+    "maxCapacity": 0,
+    "tags": []
+   },
+   {
+    "owner": "PROFESSIONAL",
+    "accommodation": {
+     "id": 224074,
+     "merchant": "AM-MAEVA-125-1662111",
+     "name": "Musardiere - 2 pièces - 6 personnes - 35 m² - MAEVA",
+     "slug": "residence-musardiere-musardiere-apt-25",
+     "kind": "MEUBLE",
+     "meuble_kind": null,
+     "chalet_moniteur": 0,
+     "all_inclusive": 0,
+     "ranking_id": 225,
+     "max_age_infant": null,
+     "max_age_child": null,
+     "pets_allowed": null,
+     "pets_surcharge": null,
+     "stay_tax_city": "HUEZ",
+     "stay_tax_zipcode": "38750",
+     "uuid": null,
+     "agence": false,
+     "meuble_registration_number": null
+    },
+    "forceDetailsInWidget": false,
+    "location": {
+     "merchant": "AM-MAEVA-125-1662111",
+     "address1": "La Musardière N°07, 94 route du coulet",
+     "address2": null,
+     "cp": "38750",
+     "city": "HUEZ",
+     "lat": 45.091689,
+     "lng": 6.064159
+    },
+    "descriptions": {
+     "merchant": "AM-MAEVA-125-1662111",
+     "short": "Appartement 2 Pièces+Hall dans Résidence LA MUSARDIERE / Quartier VIEL ALPE-COULET\nREF PLAN STATION E6\nDESCRIPTION :\nHall Habitable : 2 lits superposés 2X80\nSéjour : Canapé lit / TV\nMezzanine : 2 Lits simples (160)...",
+     "long": "Appartement 2 Pièces+Hall dans Résidence LA MUSARDIERE / Quartier VIEL ALPE-COULET\nREF PLAN STATION E6\nDESCRIPTION :\nHall Habitable : 2 lits superposés 2X80\nSéjour : Canapé lit / TV\nMezzanine : 2 Lits simples (160)\nÉquipement cuisine : Micro-ondes, Hotte, 4 plaques électriques, Réfrigérateur, Lave-vaisselle \nSalle de bain : Baignoire, lave-linge /Wc Indépendant\nCasier à skis n°25 : 3 EME EN PARTANT DU HAUT\nGARAGE: Place de Parking 1ER A GAUCHE DEVANT LE RADIATEUR N°K \n+ Parking extérieur 14 \nLinge de lit, serviettes et ménage fin de séjour non inclus \n\n  \n\n "
+    },
+    "image": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088018-medium.jpg",
+    "images": [
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088018-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088019-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088021-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088015-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088017-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088022-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088016-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13088020-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     },
+     {
+      "src": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1662111/13071109-medium.jpg",
+      "merchant": "AM-MAEVA-125-1662111"
+     }
+    ],
+    "sectors": [],
+    "labels": [],
+    "id": 224074,
+    "slug": "residence-musardiere-musardiere-apt-25",
+    "name": "Musardiere - 2 pièces - 6 personnes - 35 m² - MAEVA",
+    "merchant": "AM-MAEVA-125-1662111",
+    "stars": 0,
+    "description": "Appartement 2 Pièces+Hall dans Résidence LA MUSARDIERE / Quartier VIEL ALPE-COULET<br/>REF PLAN STATION E6<br/>DESCRIPTION :<br/>Hall Habitable : 2 lits superposés 2X80<br/>Séjour : Canapé lit / TV<br/>Mezzanine : 2 Lits simples (160)...",
+    "isChaletMoniteur": 0,
+    "isAllInclusive": 0,
+    "kind": "MEUBLE",
+    "meubleKind": null,
+    "agency": "NOAGENCE",
+    "nbRooms": 2,
+    "lat": 45.091689,
+    "lng": 6.064159,
+    "options": [],
+    "standing": 225,
+    "source": "DIRECT_MAEVA",
+    "direct_maeva": "1662111",
+    "unsyncGatewayData": "1",
+    "maxCapacity": 6,
+    "tags": []
+   }
+  ],
+  "options": [
+   {
+    "code": "1",
+    "kind": "comforts",
+    "label": "Internet"
+   },
+   {
+    "code": "2",
+    "kind": "comforts",
+    "label": "Enfant / Bébé"
+   },
+   {
+    "code": "3",
+    "kind": "comforts",
+    "label": "Balcon / Terrasse"
+   },
+   {
+    "code": "4",
+    "kind": "comforts",
+    "label": "Pied des pistes"
+   },
+   {
+    "code": "6",
+    "kind": "equipments",
+    "label": "Espace SPA"
+   },
+   {
+    "code": "7",
+    "kind": "equipments",
+    "label": "Borne de recharge pour voiture électrique"
+   },
+   {
+    "code": "8",
+    "kind": "equipments",
+    "label": "Garage / Parking"
+   },
+   {
+    "code": "9",
+    "kind": "equipments",
+    "label": "Hammam"
+   },
+   {
+    "code": "10",
+    "kind": "services",
+    "label": "Garderie"
+   },
+   {
+    "code": "11",
+    "kind": "equipments",
+    "label": "Piscine"
+   },
+   {
+    "code": "12",
+    "kind": "equipments",
+    "label": "Sauna"
+   },
+   {
+    "code": "13",
+    "kind": "services",
+    "label": "Animaux acceptés"
+   },
+   {
+    "code": "14",
+    "kind": "services",
+    "label": "Animaux avec supplément"
+   },
+   {
+    "code": "15",
+    "kind": "spokenLanguages",
+    "label": "Allemand"
+   },
+   {
+    "code": "16",
+    "kind": "spokenLanguages",
+    "label": "Anglais"
+   },
+   {
+    "code": "19",
+    "kind": "spokenLanguages",
+    "label": "Espagnol"
+   },
+   {
+    "code": "20",
+    "kind": "spokenLanguages",
+    "label": "Français"
+   },
+   {
+    "code": "22",
+    "kind": "spokenLanguages",
+    "label": "Italien"
+   },
+   {
+    "code": "23",
+    "kind": "spokenLanguages",
+    "label": "Néerlandais"
+   },
+   {
+    "code": "28",
+    "kind": "equipments",
+    "label": "Local à ski"
+   },
+   {
+    "code": "29",
+    "kind": "equipments",
+    "label": "Local à vélo"
+   },
+   {
+    "code": "30",
+    "kind": "equipments",
+    "label": "Lave-linge"
+   },
+   {
+    "code": "31",
+    "kind": "equipments",
+    "label": "Lave-vaisselle"
+   },
+   {
+    "code": "32",
+    "kind": "equipments",
+    "label": "Jardin privatif"
+   },
+   {
+    "code": "33",
+    "kind": "equipments",
+    "label": "Cheminée/ Poêle"
+   },
+   {
+    "code": "34",
+    "kind": "comforts",
+    "label": "Draps inclus"
+   },
+   {
+    "code": "35",
+    "kind": "comforts",
+    "label": "Linge inclus"
+   },
+   {
+    "code": "36",
+    "kind": "services",
+    "label": "Ménage fin de séjour"
+   },
+   {
+    "code": "37",
+    "kind": "accessibilities",
+    "label": "Accessible en fauteuil roulant"
+   }
+  ]
+ },
+ "offres": {
+  "192154": {
+   "price": 3611.7200000000003
+  },
+  "192180": {
+   "price": 1215.4099999999999
+  },
+  "224074": {
+   "price": 1678.8,
+   "publicPrice": null
+  }
+ }
+}

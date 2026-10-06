@@ -36,6 +36,8 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "./types";
 import { annoncer, champsLogement } from "../stay/occupancy.ts";
+import { depuisTexte, equipements, fusionner, type CleEquipement, type EquipementsLus } from "../stay/equipements.ts";
+import { texteDeHtml } from "../stay/texteHtml.ts";
 
 export const GREENGO_SITE = "https://www.greengo.voyage";
 export const GREENGO_API = "https://operations.greengo.voyage/graphql";
@@ -98,12 +100,29 @@ export function requeteRecherche(
   return `query ${OPERATION_RECHERCHE} { publicAdverts { classicSearch(mapBounds:{sw:{lat:${nombre(b.sw.lat)},lng:${nombre(b.sw.lng)}},ne:{lat:${nombre(b.ne.lat)},lng:${nombre(b.ne.lng)}}}, baseBookingConfigWithOptionalCheckInOutDateRange:${s}, filters:{}, includeMultiAccommodationBookableHostingAdverts:true) { bookableHostingAdverts(first:42, offset:${Math.max(0, Math.trunc(offset))}) { totalCount edges { node { __typename ... on HostingAdvertPublicSliceInterface { id name currentProductSlug formattedLocation postalCode addressFromGmaps { city } coordinates { lat lng } orderedImageNormalizedPaths allHostingAdvertTypeTags { id } summary(optionalDateRange:${dates}) { numberOfAccommodationUnits minMaxNumberOfTravellersAllowed { min max } } coarseBookingInformation(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { minPricePerNightInformation { minPricePerNightRoundedToInt isTheOnlyPriceRounded } } } } } } } } }`;
 }
 
+/**
+ * Les équipements d'un bloc, en codes fermés (`HostingEquipmentNameForDetailsPageChoices`,
+ * 207 valeurs) : ceux que l'hôte a, et ceux qu'il dit ne pas avoir. Champs
+ * vérifiés au schéma le 6 oct. 2026 ; un logement seul les porte dans
+ * `equipments`, un établissement dans `commonHostingEquipments` (les parties
+ * communes). Ils passent dans la requête de détail déjà faite, sans requête de
+ * plus.
+ *
+ * Les équipements propres à chaque logement d'un établissement
+ * (`privateEquipmentsIfAccommodationInEstablishment`) ne sont pas demandés :
+ * dans cette requête, le serveur répond par une erreur sur chacun
+ * (« 'Accommodation' object has no attribute
+ * 'sorted_highlighted_possessed_equipments' », 6 oct. 2026), et une erreur
+ * fait tomber tout le détail de l'hôte. Ce qu'ils diraient reste inconnu.
+ */
+const EQUIPEMENTS = "possessedEquipmentsGroupedBySortedCategories { sortedEquipments } sortedNonPossessedEquipments";
+
 /** Le détail d'un hôte : ses logements, leur type, leur total exact aux dates, et ce qui les rend non réservables. */
 export function requeteDetail(input: LiveSearchInput, slug: string): string {
   const s = sejour(input);
   const adultes = Math.max(1, Math.trunc(input.guests));
   const dates = `{start:"${input.checkIn}",end:"${input.checkOut}"}`;
-  return `query ${OPERATION_DETAIL} { publicAdverts { hostingAdvert(productSlug:${JSON.stringify(slug)}) { __typename ... on HostingAdvertPublicSliceInterface { id currentProductSlug } ... on HostingAdvertFromSingleAccommodationPublicSlice { singleAccommodation { ...Logement } } ... on HostingAdvertFromEstablishmentPublicSlice { accommodationsInEstablishment(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { ...Logement } } } } } fragment Logement on AccommodationPublicSlice { id currentProductSlug name accommodationType maxNumberOfTravellers numberOfBedrooms totalNumberOfBeds numberOfBathrooms orderedImageNormalizedPaths bookingPricing(checkInOutDateRange:${dates}, accommodationServicesSelected:[], numberOfChildren:0, numberOfAdults:${adultes}, promotionalVoucherIds:[], useGreengoCreditsIfPossible:false) { __typename ... on BookingPricing { totalPrice { forStayRounded forStayUnrounded } } } nonbookableReasons(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { __typename } }`;
+  return `query ${OPERATION_DETAIL} { publicAdverts { hostingAdvert(productSlug:${JSON.stringify(slug)}) { __typename ... on HostingAdvertPublicSliceInterface { id currentProductSlug } ... on HostingAdvertFromSingleAccommodationPublicSlice { equipments { ${EQUIPEMENTS} } singleAccommodation { ...Logement } } ... on HostingAdvertFromEstablishmentPublicSlice { commonHostingEquipments { ${EQUIPEMENTS} } accommodationsInEstablishment(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { ...Logement } } } } } fragment Logement on AccommodationPublicSlice { id currentProductSlug name description averageGlobalRating numberOfRatings accommodationType maxNumberOfTravellers numberOfBedrooms totalNumberOfBeds numberOfBathrooms orderedImageNormalizedPaths bookingPricing(checkInOutDateRange:${dates}, accommodationServicesSelected:[], numberOfChildren:0, numberOfAdults:${adultes}, promotionalVoucherIds:[], useGreengoCreditsIfPossible:false) { __typename ... on BookingPricing { totalPrice { forStayRounded forStayUnrounded } } } nonbookableReasons(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { __typename } }`;
 }
 
 export type HoteGreenGo = {
@@ -137,7 +156,62 @@ export type LogementGreenGo = {
   /** Total du séjour, tout compris, ou `null` s'il n'est pas publié. */
   total: number | null;
   reservable: boolean;
+  /** `description`, en texte. Champ vérifié au schéma le 6 oct. 2026. */
+  description?: string | null;
+  /** `averageGlobalRating` et `numberOfRatings`, seulement s'il y a des avis. */
+  note?: number | null;
+  avis?: number | null;
+  /** Les équipements publiés : ceux du logement seul, ou les parties communes de l'établissement ; absent si aucun code n'est publié. */
+  equipements?: EquipementsLus;
 };
+
+/**
+ * Les codes GreenGo de chacune des douze clés. Les animaux n'ont pas de code :
+ * ils restent inconnus.
+ */
+const CODES_EQUIPEMENT: Partial<Record<CleEquipement, readonly string[]>> = {
+  balcon: ["BALCONY", "TERRACE", "PATIO"],
+  cheminee: ["CHIMNEY", "WOOD_STOVE"],
+  wifi: ["WIFI"],
+  laveVaisselle: ["DISHWASHER"],
+  laveLinge: ["WASHING_MACHINE"],
+  linge: ["SHEETS", "TOWELS"],
+  parking: ["FREE_PARKING", "TOLL_PARKING"],
+  casierSkis: ["SKI_ROOM"],
+  saunaSpa: ["SPA", "SAUNA", "JACUZZI", "HAMMAM", "NORDIC_BATH"],
+  piscine: ["SWIMMING_POOL"],
+  ascenseur: ["ELEVATOR"],
+};
+
+/**
+ * Les équipements de blocs GreenGo réunis.
+ * Une clé vaut `oui` dès qu'un de ses codes est possédé, `non` seulement quand
+ * tous ses codes sont déclarés absents ; sinon elle n'est pas lue. `null` quand
+ * aucun bloc ne publie de code.
+ */
+export function equipementsGreenGo(...blocs: unknown[]): EquipementsLus | null {
+  const possedes = new Set<string>();
+  const absents = new Set<string>();
+  for (const b of blocs) {
+    const o = obj(b);
+    if (!o) continue;
+    const groupes = Array.isArray(o.possessedEquipmentsGroupedBySortedCategories) ? o.possessedEquipmentsGroupedBySortedCategories : [];
+    for (const g of groupes) for (const c of tableau(obj(g)?.sortedEquipments)) possedes.add(c);
+    for (const c of tableau(o.sortedNonPossessedEquipments)) absents.add(c);
+  }
+  if (possedes.size === 0 && absents.size === 0) return null;
+  const out: EquipementsLus = {};
+  for (const cle of Object.keys(CODES_EQUIPEMENT) as CleEquipement[]) {
+    const codes = CODES_EQUIPEMENT[cle] ?? [];
+    if (codes.some((c) => possedes.has(c))) out[cle] = "oui";
+    else if (codes.every((c) => absents.has(c))) out[cle] = "non";
+  }
+  return out;
+}
+
+function tableau(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+}
 
 function texte(v: unknown): string | null {
   return typeof v === "string" && v.trim() ? v.replace(/\s+/g, " ").trim() : null;
@@ -271,10 +345,29 @@ export function lireRecherche(json: unknown): { hotes: HoteGreenGo[]; total: num
 }
 
 /** Les logements d'un hôte, depuis son détail. */
+/** La description, la note et les avis d'un logement, seulement quand ils sont publiés. */
+function noteEtDescription(u: Record<string, unknown>): Pick<LogementGreenGo, "description" | "note" | "avis"> {
+  const out: Pick<LogementGreenGo, "description" | "note" | "avis"> = {};
+  const description = texteDeHtml(typeof u.description === "string" ? u.description : null);
+  if (description) out.description = description;
+  const avis = entier(u.numberOfRatings);
+  const note = typeof u.averageGlobalRating === "number" ? u.averageGlobalRating : typeof u.averageGlobalRating === "string" ? Number(u.averageGlobalRating) : Number.NaN;
+  if (avis != null && avis > 0 && Number.isFinite(note) && note > 0) {
+    out.note = note;
+    out.avis = avis;
+  }
+  return out;
+}
+
+function avecEquipements(e: EquipementsLus | null): Pick<LogementGreenGo, "equipements"> {
+  return e ? { equipements: e } : {};
+}
+
 export function lireDetail(json: unknown): LogementGreenGo[] {
   const h = obj(obj(obj(obj(json)?.data)?.publicAdverts)?.hostingAdvert);
   if (!h) return [];
   const bruts = h.singleAccommodation != null ? [h.singleAccommodation] : Array.isArray(h.accommodationsInEstablishment) ? h.accommodationsInEstablishment : [];
+  const communs = h.equipments ?? h.commonHostingEquipments;
   const out: LogementGreenGo[] = [];
   for (const b of bruts) {
     const u = obj(b);
@@ -295,6 +388,8 @@ export function lireDetail(json: unknown): LogementGreenGo[] {
       total,
       // Une liste de raisons vide : réservable aux dates et pour ces voyageurs.
       reservable: Array.isArray(u.nonbookableReasons) && u.nonbookableReasons.length === 0,
+      ...noteEtDescription(u),
+      ...avecEquipements(equipementsGreenGo(communs)),
     });
   }
   return out;
@@ -409,6 +504,10 @@ export function greengoListings(
         beds: u.lits,
         baths: u.sdb,
         propertyType: libelleType(u.type),
+        ...(u.description ? { description: u.description } : {}),
+        // La liste structurée d'abord, la description ensuite (`fusionner`).
+        ...(u.description || u.equipements ? { amenities: equipements(fusionner(u.equipements, depuisTexte(u.description))) } : {}),
+        ...(u.note != null ? { rating: u.note, reviewCount: u.avis ?? null } : {}),
         photo: photos[0] ?? null,
         photos: photos.length ? photos : null,
         platformId: u.id,

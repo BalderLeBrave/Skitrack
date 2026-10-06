@@ -50,6 +50,7 @@
  */
 
 import { jugerLogement } from "../regleTypes.ts";
+import { depuisTexte, fusionner, type CleEquipement, type EquipementsLus } from "../../../stay/equipements.ts";
 
 /** Une fiche telle que le moteur l'écrit, avant traduction en `Listing`. */
 export type FicheIresa = {
@@ -74,6 +75,16 @@ export type FicheIresa = {
    * « Appartments, studios ». `null` quand l'entrée manque ou porte un autre nom.
    */
   categorie: string | null;
+  /** `datas.description`, la description publiée, en texte (sauts de ligne gardés). */
+  description: string | null;
+  /**
+   * Les équipements : les cases `datas.filters` à « 1 », et ce que la
+   * description nomme (`stay/equipements.ts`). Une case à « 0 » n'est pas lue
+   * comme une absence : au relevé du 6 octobre 2026 aux Arcs, deux fiches sur
+   * vingt-quatre la contredisaient dans leur propre description (« accès
+   * wifi », « un lave-vaisselle »). `null` sans l'un ni l'autre.
+   */
+  equipements: EquipementsLus | null;
 };
 
 export type DemandeIresa = {
@@ -152,7 +163,52 @@ type Datas = {
   date_debut?: unknown;
   lieu?: unknown;
   photos?: unknown;
+  description?: unknown;
+  filters?: unknown;
 };
+
+/** Les cases d'équipement de `datas.filters`, et ce qu'elles désignent. */
+const CASES_IRESA: Record<string, CleEquipement> = {
+  rub_lv_hbgt: "laveVaisselle",
+  rub_ll_hbgt: "laveLinge",
+  rub_wifi_hbgt: "wifi",
+  rub_cheminee_hbgt: "cheminee",
+  rub_sauna_hbgt: "saunaSpa",
+  rub_hammam_hbgt: "saunaSpa",
+  rub_jacuzzi_hbgt: "saunaSpa",
+  rub_spa_hbgt: "saunaSpa",
+  rub_piscine_hbgt: "piscine",
+  rub_animaux_hbgt: "animaux",
+  rub_casier_skis_hbgt: "casierSkis",
+};
+
+/** La description publiée en texte : balises ôtées, `<br>` en sauts de ligne. */
+export function descriptionIresa(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const t = v
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return t || null;
+}
+
+/** Les équipements d'une fiche : les cases à « 1 », puis la description. */
+export function equipementsIresa(filters: unknown, description: string | null): EquipementsLus | null {
+  const cases: EquipementsLus = {};
+  if (filters && typeof filters === "object") {
+    for (const [k, v] of Object.entries(filters as Record<string, unknown>)) {
+      const cle = CASES_IRESA[k];
+      if (cle && (v === "1" || v === 1)) cases[cle] = "oui";
+    }
+  }
+  const lus = fusionner(cases, description ? depuisTexte(description) : null);
+  return filters == null && description == null ? null : lus;
+}
 
 /**
  * Le bloc JSON que la page porte, sous `script#__datasPrestations`.
@@ -283,6 +339,7 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
     // décalage entre les deux listes donnerait la catégorie d'un voisin.
     const produit = produits[i];
     const categorie = produit && produit.nom?.trim() === titre ? produit.categorie : null;
+    const description = descriptionIresa(x.description);
     par.set(id, {
       id,
       titre,
@@ -293,6 +350,8 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
       chemin: cheminDe(template),
       nuits,
       categorie,
+      description,
+      equipements: equipementsIresa(x.filters, description),
     });
   }
   return [...par.values()];

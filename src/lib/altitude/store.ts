@@ -60,9 +60,12 @@ async function demander(cles: string[], points: { lat: number; lon: number }[]):
 /**
  * L'altitude de chaque annonce : `Altitude`, `null` (aucune source), ou
  * `undefined` (pas encore lue, ou sans point). Demande au serveur celles qui
- * manquent.
+ * manquent. Tout point fait l'affaire (les gares d'une remontée, dans la
+ * fiche d'annonce) : seuls `lat` et `lon` sont lus.
  */
-export function useAltitudes(annonces: readonly Listing[]): (l: Listing) => Altitude | null | undefined {
+export function useAltitudes<T extends Pick<Listing, "lat" | "lon">>(
+  annonces: readonly T[],
+): (l: T) => Altitude | null | undefined {
   const parCle = useAltitudesStore((s) => s.parCle);
   const manquantes = useMemo(() => {
     const vus = new Map<string, { lat: number; lon: number }>();
@@ -85,7 +88,7 @@ export function useAltitudes(annonces: readonly Listing[]): (l: Listing) => Alti
     );
   }, [manquantes]);
   return useMemo(
-    () => (l: Listing) => {
+    () => (l: T) => {
       const p = pointAltitude(l);
       if (!p) return undefined;
       return parCle[cleAltitude(p.lat, p.lon)];

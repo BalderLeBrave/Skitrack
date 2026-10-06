@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   adresseDetailArkiane,
   ARKIANE_LOCATIONS,
@@ -385,5 +386,29 @@ describe("Arkiane : seulement des logements entiers de location", () => {
       assert.ok(typeEcarteArkiane(t), t);
     }
     assert.equal(typeEcarteArkiane("Gîte"), null);
+  });
+});
+
+describe("Arkiane : description et équipements du détail, sur un relevé réel de Pralognan", () => {
+  // Réponse réelle du 6 octobre 2026 au détail du lot « Le Colliouroe ».
+  const page = readFileSync(new URL("./fixtures/arkiane-pralognan-detail-colliouroe.html", import.meta.url), "utf8");
+  const d = lireDetailArkiane(page);
+
+  it("la description du lot, un paragraphe par ligne", () => {
+    assert.match(d.description ?? "", /^APPARTEMENT 2 PIECES - Capacité 4 personnes- 3\*\n36m2, rez de chaussée, terrasse de 16m2/);
+  });
+
+  it("les pictogrammes, présents comme refusés : « Animaux refusés » vaut non", () => {
+    const e = d.equipements!;
+    assert.equal(e.laveVaisselle, "oui");
+    assert.equal(e.laveLinge, "oui");
+    assert.equal(e.wifi, "oui");
+    assert.equal(e.parking, "oui");
+    assert.equal(e.animaux, "non");
+  });
+
+  it("la description complète : la terrasse, et « draps fournis, linge de toilette non fourni » vaut linge fourni", () => {
+    assert.equal(d.equipements!.balcon, "oui");
+    assert.equal(d.equipements!.linge, "oui");
   });
 });

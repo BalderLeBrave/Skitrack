@@ -101,3 +101,25 @@ export function usePrixForfait(s: Station | undefined): PrixForfait {
     };
   }, [grilles, s, checkIn, checkOut, adultes, enfants]);
 }
+
+/**
+ * Le budget des forfaits du groupe pour une station et des dates données,
+ * quand l'écran n'est pas sur le séjour en cours (Prix, Favoris) : la même
+ * résolution que `usePrixForfait`, sans le magasin de séjour. `undefined`
+ * tant que les grilles se chargent, `null` sans station ou sans grille.
+ */
+export function useBudgetForfaits(
+  stationId: string | null | undefined,
+  arrivee: string,
+  depart: string,
+  adultes: number,
+  enfants: number,
+): BudgetForfaits | null | undefined {
+  const grilles = useGrilles();
+  return useMemo(() => {
+    if (!grilles) return undefined;
+    if (!stationId) return null;
+    const forfaits = forfaitsStation(stationId, { grilles, arrivee, depart });
+    return forfaits ? budgetForfaits(forfaits, adultes, enfants) : null;
+  }, [grilles, stationId, arrivee, depart, adultes, enfants]);
+}

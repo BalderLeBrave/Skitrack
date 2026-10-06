@@ -129,7 +129,10 @@ import { usePrix, type Course, type Onglet } from "@/lib/prix/releve";
 import { nomStationPropre, sourceEtLieu } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { todayIso } from "@/lib/stay/calendar";
-import { clampRooms, clampTravelers } from "@/lib/stay/party";
+import { voisinDansListe } from "@/lib/stay/visionneuse";
+import { stationDuLogement } from "@/lib/stay/parStation";
+import { useBudgetForfaits } from "@/components/v7/usePrixForfait";
+import { adults, clampChildren, clampRooms, clampTravelers } from "@/lib/stay/party";
 import { STATIONS, type Station } from "@/lib/stations";
 import { prixPin } from "@/lib/v7";
 import { useIdsFavoris } from "@/lib/favoris/store";
@@ -1236,6 +1239,23 @@ function VueBudget({
   const ouverteRetenue = annonceOuverte != null && lodgeId === annonceOuverte.a.id;
   // Le logement de l'offre ouverte : le volet dit « Ce logement sur N
   // plateformes » et passe de l'une à l'autre, comme dans Logements.
+  // Les forfaits du groupe à la station du logement ouvert, aux dates de la
+  // liste : le tableau mêle plusieurs stations, chacune a les siens.
+  const { enfants: enfantsSejour } = useSejour();
+  const forfaitsOuverts = useBudgetForfaits(
+    annonceOuverte ? stationDuLogement(annonceOuverte.a, annonceOuverte.stationId) : null,
+    stay.checkIn,
+    stay.checkOut,
+    adults(trav, enfantsSejour),
+    clampChildren(enfantsSejour, trav),
+  );
+  /** Le logement voisin de l'annonce ouverte, dans la page affichée. */
+  const ouverteVoisine = (sens: 1 | -1) => {
+    if (!ouverte) return null;
+    const ici = [ouverte, ...(logementDe.get(ouverte)?.offres.map((o) => o.a.id) ?? [])];
+    const id = voisinDansListe(pageItems.map((c) => c.a.id), ici, sens);
+    return id ? () => ouvrirAnnonce(id) : null;
+  };
   const groupeOuvert = useMemo(() => {
     const g = ouverte ? logementDe.get(ouverte) : undefined;
     return g && g.offres.length > 1 ? versLogement(g) : null;
@@ -1556,6 +1576,9 @@ function VueBudget({
           onRetenir={() => retenir(annonceOuverte.a.id)}
           onFermer={fermerVolet}
           onVoirOffre={ouvrirAnnonce}
+          onPrecedent={ouverteVoisine(-1)}
+          onSuivant={ouverteVoisine(1)}
+          forfaits={forfaitsOuverts}
           suite={
             // Réservation retrouve ce logement par `resolveListing`, qui fait
             // passer devant la copie tarifée pour les dates du séjour : celle

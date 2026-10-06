@@ -13,6 +13,7 @@ import type { SourceAgence } from "./scrape/agences/couverture";
 import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
 import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement";
+import type { Equipement } from "./stay/equipements";
 import type { SourceGps } from "./stay/repliGps";
 import { langueIntl } from "./i18n/langue.ts";
 
@@ -89,6 +90,13 @@ export type Listing = {
   /** La description publiée, quand la source en donne une : lue comme le
    *  titre (`qualifierLogement`). */
   description?: string | null;
+  /**
+   * Les équipements, sur la liste fermée de `stay/equipements.ts` : `oui`,
+   * `non` quand la plateforme le dit, `inconnu` pour ce qu'elle tait.
+   * Absent ou `null` : aucune source d'équipements n'a été lue pour cette
+   * annonce, ce qui ne veut pas dire qu'elle n'en a pas.
+   */
+  amenities?: Equipement[] | null;
   available: true;
   photo: string | null;
   url: string | null;

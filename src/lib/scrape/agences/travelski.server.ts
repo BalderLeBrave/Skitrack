@@ -20,6 +20,7 @@
 
 import { createHash } from "node:crypto";
 import type { Listing } from "@/lib/listings";
+import { contenuFiches } from "@/lib/stay/contenuFiches.server";
 import { comblerDepuisMemoire, memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { cleListing } from "@/lib/stay/poserReleve";
 import { allowsPath } from "../robots";
@@ -31,6 +32,7 @@ import {
   corpsRecherche,
   groupesWiyp,
   lieuTravelski,
+  contenuTravelski,
   lireFiche,
   lireRecherche,
   offresRetenues,
@@ -139,10 +141,19 @@ function groupeDe(r: ResidenceTravelski, input: LiveSearchInput): PrixGroupe {
 /** Les annonces d'une résidence, avec les prix de groupe et la mémoire des fiches. */
 function annonces(r: ResidenceTravelski, input: LiveSearchInput): Listing[] {
   const memoire = memoireFiches();
+  const contenus = contenuFiches();
   const rows = travelskiListings(r, null, input, groupeDe(r, input));
   for (const row of rows) {
     const m = memoire.lire(cleListing(row));
     if (m) comblerDepuisMemoire(row, m);
+    // La description, la galerie et les équipements de la fiche déjà lue.
+    const c = contenus.lire(cleListing(row));
+    if (c?.description) row.description = c.description;
+    if (c?.amenities) row.amenities = c.amenities;
+    if (c?.photos?.length) {
+      row.photos = [...new Set([...(row.photo ? [row.photo] : []), ...c.photos])];
+      row.photo = row.photos[0] ?? null;
+    }
   }
   return rows;
 }
@@ -185,6 +196,13 @@ async function lireStation(tache: Tache, input: LiveSearchInput, residences: rea
             lon: fiche.lon,
             lue: true,
           })),
+        );
+        // La fiche n'est lue qu'une fois : ce qu'elle publie de plus se garde.
+        contenuFiches().noter(
+          [...fiche.logements.keys()].flatMap((id) => {
+            const contenu = contenuTravelski(fiche, id);
+            return contenu ? [{ cle: cleLogement(id), contenu }] : [];
+          }),
         );
       });
       if (!suite) return;

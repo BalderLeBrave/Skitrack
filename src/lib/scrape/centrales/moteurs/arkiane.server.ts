@@ -30,6 +30,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { aTourDeRole, noterFin } from "../cadence";
@@ -345,6 +346,8 @@ function enListing(
     lon: d?.lon ?? null,
     locality: f.commune,
     placeName: d?.quartier ?? null,
+    ...(d?.description ? { description: d.description } : {}),
+    ...(d?.equipements ? { amenities: equipements(d.equipements) } : {}),
     proven: `${r.nom} (Arkiane, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.reference ? ` — référence ${f.reference}` : ""
     }${barre ? ` — ${barre}` : ""}${

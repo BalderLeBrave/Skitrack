@@ -55,6 +55,7 @@
  */
 
 import { jugerLogement, plierType } from "../regleTypes.ts";
+import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
 
 /** Un logement du catalogue, avant d'avoir son prix. */
 export type CarteOrchestra = {
@@ -85,6 +86,11 @@ export type FicheOrchestra = {
   /** « Coordonnées », bornées à la France métropolitaine. */
   lat: number | null;
   lon: number | null;
+  /** Le bloc « Votre hébergement », en texte, une ligne par `<br>`. */
+  description?: string | null;
+  /** La liste « Caractéristiques » (« Lave-vaisselle », « Animaux refusés »),
+   *  puis ce que la description nomme ; `null` sans l'une ni l'autre. */
+  equipements?: EquipementsLus | null;
 };
 
 export type DemandeOrchestra = {
@@ -317,6 +323,36 @@ function lieuOrchestra(page: string): Pick<FicheOrchestra, "adresse" | "lat" | "
   };
 }
 
+/** Les lignes d'un bloc `<h3>titre</h3><div class="txt-content">…</div>` de la fiche, en texte. */
+function lignesBloc(page: string, titre: RegExp): string[] | null {
+  const re = new RegExp(`<h3[^>]*>\\s*${titre.source}\\s*<\\/h3>\\s*<div class="txt-content">([\\s\\S]*?)<\\/div>`, "i");
+  const m = re.exec(page);
+  if (!m) return null;
+  return (m[1] ?? "")
+    .split(/<br\s*\/?>/i)
+    .map((l) =>
+      desechapper(l.replace(/<[^>]+>/g, " "))
+        .replace(/\s+/g, " ")
+        .trim(),
+    );
+}
+
+/**
+ * La description (« Votre hébergement ») et les équipements (« Caractéristiques »)
+ * d'une fiche déjà lue. Montrés tels quels ; leurs nombres ne remplacent pas
+ * ceux du bloc « Information ».
+ */
+export function annonceOrchestra(page: string): Pick<FicheOrchestra, "description" | "equipements"> {
+  const desc = lignesBloc(page, /Votre h(?:é|&eacute;)bergement/);
+  const description = desc ? desc.join("\n").replace(/\n{3,}/g, "\n\n").trim() || null : null;
+  const caract = lignesBloc(page, /Caract(?:é|&eacute;)ristiques/);
+  const items = (caract ?? []).map((l) => ({ texte: l.replace(/^-\s*/, "") })).filter((x) => x.texte);
+  const out: Pick<FicheOrchestra, "description" | "equipements"> = {};
+  if (description) out.description = description;
+  if (caract || description) out.equipements = fusionner(depuisListe(items), description ? depuisTexte(description) : null);
+  return out;
+}
+
 /**
  * Lit les blocs « Information » et « Localisation » d'une fiche `/location/…`.
  *
@@ -340,7 +376,7 @@ function lieuOrchestra(page: string): Pick<FicheOrchestra, "adresse" | "lat" | "
  * égale la bande.
  */
 export function ficheOrchestra(page: string): FicheOrchestra {
-  const lieu = lieuOrchestra(page);
+  const lieu = { ...lieuOrchestra(page), ...annonceOrchestra(page) };
   const bloc = BLOC_INFORMATION.exec(page);
   if (!bloc) return { capacite: null, typeDeBien: null, pieces: null, chambres: null, village: null, ...lieu };
   const champs = new Map<string, string>();

@@ -771,3 +771,25 @@ describe("poserLecture : la capacité tirée des couchages le dit", () => {
     assert.match(row.proven, /capacité : somme des couchages décrits/);
   });
 });
+
+describe("la description et les équipements d'une fiche déjà ouverte", () => {
+  it("posés à la lecture, puis gardés : la recherche suivante les retrouve sans réseau", async () => {
+    const { readFileSync } = await import("node:fs");
+    const fiche = readFileSync(new URL("./fixtures/cimalpes-fiche-chalet-delta-36.html", import.meta.url), "utf8");
+    mock.timers.tick(10 * 60_000);
+    repondre = () => ({ html: `<html><body>${fiche}</body></html>` });
+    const url = "https://cimalpes.com/fr/location-alpe-d-huez/chalet-delta-36/?date_debut=06/02/2027&date_fin=13/02/2027";
+    // La recherche Cimalpes ne publie pas de position : la fiche s'ouvre pour elle.
+    const row = ligne(9201, "cimalpes.com", { source: "Cimalpes", url, capacity: 8, bedrooms: 4 });
+    await silence(() => jouer(fillFiches([row], 30_000)));
+    assert.equal(departs.filter((d) => d.url.includes("cimalpes.com")).length, 1);
+    assert.match(row.description ?? "", /^Niché dans un environnement exceptionnel/);
+    assert.equal(row.amenities?.find((e) => e.cle === "casierSkis")?.valeur, "oui");
+    const relue: Listing = { ...row, description: undefined, amenities: undefined };
+    const n = departs.length;
+    await silence(() => fillFiches([relue], 0, { relecture: true }));
+    assert.equal(departs.length, n, "aucune requête de plus");
+    assert.match(relue.description ?? "", /^Niché dans un environnement exceptionnel/);
+    assert.equal(relue.amenities?.find((e) => e.cle === "wifi")?.valeur, "oui");
+  });
+});

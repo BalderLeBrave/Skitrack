@@ -11,6 +11,7 @@ import {
   groupesWiyp,
   lieuTravelski,
   lienOffre,
+  contenuTravelski,
   lireFiche,
   lireNomLogement,
   lirePosition,
@@ -248,5 +249,30 @@ describe("Travelski, prix du groupe (/wiyp/price)", () => {
     assert.deepEqual(avecForfait, ["80136"]);
     // L'hébergement seul des autres reste en vente.
     assert.ok(retenues.some((x) => x.id === "80143" && x.seule));
+  });
+});
+describe("Travelski : description, galerie et équipements de la fiche réelle", () => {
+  // Fiche réelle du 6 octobre 2026 : Pierre & Vacances Atria-Crozats, Avoriaz.
+  const fiche = lireFiche(fx("travelski-fiche-8493-contenu.html"));
+
+  it("la galerie du logement puis celle de la résidence, à la plus grande taille publiée", () => {
+    const c = contenuTravelski(fiche, "910555")!;
+    assert.equal(c.photos?.length, 17);
+    assert.ok(c.photos!.every((u) => /\/O\//.test(u)));
+    assert.match(c.photos![0]!, /\/product\/8493\/910555\/O\//);
+  });
+
+  it("la description du logement, en texte", () => {
+    assert.match(contenuTravelski(fiche, "910555")!.description ?? "", /^Entre 52 et 62m²\. Avec balcon\.\nSéjour avec 1 canapé-lit double/);
+  });
+
+  it("les équipements que nomment la description et les services de la résidence", () => {
+    const oui = contenuTravelski(fiche, "910555")!.amenities!.filter((e) => e.valeur === "oui").map((e) => e.cle);
+    assert.deepEqual(oui.sort(), ["balcon", "casierSkis", "laveVaisselle", "linge", "saunaSpa", "wifi"]);
+  });
+
+  it("rien pour un logement que la fiche ne porte pas", () => {
+    assert.equal(contenuTravelski(fiche, "000"), null);
+    assert.equal(contenuTravelski(null, "910555"), null);
   });
 });

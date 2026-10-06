@@ -1,8 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   blocage,
   deviseFromGitesHtml,
+  descriptionFromGitesHtml,
   listingDeFiche,
   nombreDeResultats,
   occupancyFromGitesHtml,
@@ -348,5 +350,27 @@ describe("budget de fiches", () => {
       trierParDistance([inconnu1, loin, inconnu2, pres], pin).map((t) => t.title),
       ["Mont-de-Lans", "Auris", "Inconnu 1", "Inconnu 2"],
     );
+  });
+});
+
+describe("Gîtes de France : la description de la fiche ITEA et les équipements qu'elle nomme", () => {
+  // Fiche ITEA réelle du 6 octobre 2026 : Chalet les Copains, Les Deux Alpes.
+  const html = readFileSync(new URL("./fixtures/itea-fiche-38G253122.html", import.meta.url), "utf8");
+
+  it("la description du JSON-LD, entités décodées", () => {
+    const d = descriptionFromGitesHtml(html) ?? "";
+    assert.match(d, /^Sandrine et Jullien vous ouvrent les portes du Chalet les Copains : grand Gîte aménagé pour 14 personnes/);
+    assert.ok(!/&[a-z]+;/.test(d), d);
+  });
+
+  it("passe à l'annonce, avec les équipements nommés : sauna, terrasse, cheminée, lave-vaisselle, local skis", () => {
+    const description = descriptionFromGitesHtml(html);
+    const fiche = { total: 0, currency: "EUR", priceLabel: null, occupancy: { capacity: 14, bedrooms: 5, rooms: null }, lieu: { lat: null, lon: null, locality: null }, platformId: null, description };
+    const tile = { title: "Chalet les Copains", url: "https://www.gites-de-france.com/fr/x", photo: null, capacite: "14 personnes", typeLabel: "Gîte" };
+    const l = listingDeFiche(tile as never, fiche as never, "38G253122", { stationId: "les-2-alpes", stationName: "Les 2 Alpes", lat: 45, lon: 6, checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8, bedrooms: 0 });
+    assert.equal(l.description, description);
+    const oui = (l.amenities ?? []).filter((e) => e.valeur === "oui").map((e) => e.cle);
+    for (const c of ["saunaSpa", "balcon", "cheminee", "laveVaisselle", "casierSkis"]) assert.ok(oui.includes(c as never), c);
+    assert.equal(l.amenities?.some((e) => e.valeur === "non"), false);
   });
 });

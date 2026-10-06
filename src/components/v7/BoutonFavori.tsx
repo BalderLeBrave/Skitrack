@@ -21,10 +21,14 @@ export function BoutonFavori({
   l,
   sejour,
   className = "",
+  libelle = false,
 }: {
   l: Listing;
   sejour: SejourFavori | null;
   className?: string;
+  /** Écrit « Enregistrer » ou « Enregistré » à côté du cœur (en-tête de la
+   *  fiche d'annonce). */
+  libelle?: boolean;
 }) {
   // Les favoris vivent dans le navigateur : le rendu serveur ne les connaît
   // pas, le cœur ne dit son état qu'une fois la page montée.
@@ -50,6 +54,7 @@ export function BoutonFavori({
         }}
       >
         <Icon name="coeur" taille={18} />
+        {libelle ? <span>{favori ? tr("Enregistré") : tr("Enregistrer")}</span> : null}
       </button>
       {choix ? <ChoixDossier l={l} sejour={sejour} onFermer={fermer} /> : null}
     </>

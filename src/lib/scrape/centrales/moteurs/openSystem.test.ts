@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   appliquerRegleOpenSystem,
   fragmentsOpenSystem,
@@ -783,5 +784,25 @@ describe("Open System : le type et la capacité que la liste publie déjà", () 
       }),
       null,
     );
+  });
+});
+
+describe("Open System : extrait de description et pictogrammes, sur un relevé réel de Haute-Maurienne", () => {
+  // Réponse réelle du 6 octobre 2026 : trois blocs de résultat, tels quels.
+  const fiches = lireOpenSystem(readFileSync(new URL("./fixtures/opensystem-hautemaurienne-3-blocs.html", import.meta.url), "utf8"));
+  const bois = fiches.find((f) => f.titre === "Le Bois Joli 4 personnes")!;
+
+  it("l'extrait de description, sans le lien « + d'infos »", () => {
+    assert.match(bois.description ?? "", /^Romy et Aurélien seront heureux de vous accueillir/);
+    assert.ok(!/d'infos/.test(bois.description ?? ""));
+  });
+
+  it("les pictogrammes : « Linge de lit inclus », « Lave-linge », « Lave-vaisselle »", () => {
+    assert.deepEqual(bois.equipements, { linge: "oui", laveLinge: "oui", laveVaisselle: "oui" });
+  });
+
+  it("chaque bloc porte sa description et ses équipements", () => {
+    assert.equal(fiches.length, 3);
+    assert.ok(fiches.every((f) => f.description && f.equipements));
   });
 });

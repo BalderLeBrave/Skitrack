@@ -77,6 +77,8 @@
  * `capacity` reste vide, et l'écran dit « Non renseigné ».
  */
 
+import { depuisListe, type EquipementsLus } from "../../../stay/equipements.ts";
+
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheIngenie = {
   /** Identifiant de prestation, stable d'une requête à l'autre. */
@@ -117,6 +119,12 @@ export type FicheIngenie = {
   chambres: number | null;
   /** « 4 pièces » affiché comme critère. Le titre en porte souvent aussi. */
   pieces: number | null;
+  /**
+   * Les pictogrammes d'équipements de la fiche (`picto_zone_principale_fiche_presta`,
+   * « WiFi », « Lave vaisselle », « Animaux admis »), lus par
+   * `stay/equipements.ts`. `null` : la fiche n'a pas de zone de pictogrammes.
+   */
+  equipements: EquipementsLus | null;
 };
 
 export type DemandeIngenie = {
@@ -703,6 +711,18 @@ function tarifDe(fragment: string): TarifIngenie | null {
  * sur 11, `data-semaine-tarif` vide). Consigne du propriétaire : un logement
  * sans prix n'est pas gardé.
  */
+/**
+ * Les pictogrammes d'équipements d'une fiche, dans la page de résultats déjà
+ * lue. Un pictogramme présent vaut « oui » ; la centrale n'affiche pas les
+ * absents, qui restent inconnus. `null` sans zone de pictogrammes.
+ */
+export function equipementsIngenie(fragment: string): EquipementsLus | null {
+  const zone = /class="picto_zone_principale_fiche_presta"[^>]*>([\s\S]*?)<\/ul>/.exec(fragment)?.[1];
+  if (zone == null) return null;
+  const titres = [...zone.matchAll(/<li[^>]+data-title="([^"]+)"/g)].map((m) => ({ texte: desechapper(m[1] ?? "") }));
+  return depuisListe(titres);
+}
+
 export function lireIngenie(page: string): FicheIngenie[] {
   const par = new Map<string, FicheIngenie>();
   for (const fragment of fragmentsIngenie(page)) {
@@ -746,6 +766,7 @@ export function lireIngenie(page: string): FicheIngenie[] {
       chemin: lien ? desechapper(lien[1] ?? "") : null,
       ...lieuIngenie(fragment),
       ...occupationAfficheeIngenie(fragment),
+      equipements: equipementsIngenie(fragment),
     });
   }
   return [...par.values()];

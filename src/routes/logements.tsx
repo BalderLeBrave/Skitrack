@@ -83,6 +83,7 @@ import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
+import { voisinDansListe } from "@/lib/stay/visionneuse";
 import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
 import { photosDeResidence } from "@/lib/stay/photoResidence";
 import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
@@ -1048,6 +1049,14 @@ function LogementsStation({ s }: { s: Station }) {
   }, []);
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
   const sheetGroupe = sheet ? (logementDe.get(sheet.id) ?? null) : null;
+  /** Le logement voisin de celui de la fiche, dans la page affichée (pendant
+   *  un relevé, les annonces déjà reçues) : la fiche passe de l'un à l'autre. */
+  const ficheVoisine = (sens: 1 | -1) => {
+    if (!sheet) return null;
+    const liste = (enReleve ? dejaLus : pageItems).map((l) => l.id);
+    const id = voisinDansListe(liste, [sheet.id, ...(sheetGroupe?.offres.map((o) => o.id) ?? [])], sens);
+    return id ? () => openSheet(id) : null;
+  };
   // L'annonce Airbnb qu'on ouvre et à qui il manque capacité, chambres ou
   // position : elle passe en tête de la lecture (`completerAnnonces`, `lireMaintenant`),
   // puis l'écran la relit sans réseau toutes les `RELECTURE_OUVERTE_MS`, tant
@@ -1731,6 +1740,9 @@ function LogementsStation({ s }: { s: Station }) {
           onRetenir={() => keep(sheet.id)}
           onFermer={fermerVolet}
           onVoirOffre={openSheet}
+          onPrecedent={ficheVoisine(-1)}
+          onSuivant={ficheVoisine(1)}
+          forfaits={prix.pret ? pass : undefined}
         />
       ) : null}
     </Coquille>

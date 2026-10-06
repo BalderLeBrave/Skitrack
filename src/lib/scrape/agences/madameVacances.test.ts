@@ -157,6 +157,15 @@ describe("Madame Vacances : annonces", () => {
     assert.equal(l.proven, "Madame Vacances live 2027-02-06→2027-02-13");
   });
 
+  it("les équipements que nomme la composition du type : la terrasse, rien d'autre", () => {
+    const [l] = madameVacancesListings(ours, OURS, DEUX_ALPES);
+    assert.deepEqual(
+      (l.amenities ?? []).filter((e) => e.valeur !== "inconnu").map((e) => [e.cle, e.valeur]),
+      [["balcon", "oui"]],
+    );
+    assert.equal(l.amenities?.length, 12);
+  });
+
   it("un hôtel n'est jamais rendu, même avec une fiche", () => {
     const hotel = RECHERCHE.etablissements.find((x) => x.id === "14338")!;
     assert.equal(madameVacancesListings(hotel, OURS, DEUX_ALPES).length, 0);

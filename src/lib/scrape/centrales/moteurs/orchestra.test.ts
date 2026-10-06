@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   cartesOrchestra,
   dateOrchestra,
@@ -441,5 +442,32 @@ describe("Orchestra : le gabarit « Information » de La Plagne (2 octobre 2026)
     assert.deepEqual([f.capacite, f.typeDeBien, f.chambres, f.pieces], [10, "Chalet", 5, null]);
     const studio = ficheOrchestra(fiche.replace("<strong>Type</strong>: Chalet", "<strong>Type</strong>: Studio divisible"));
     assert.equal(studio.pieces, 1);
+  });
+});
+
+describe("Orchestra : description et équipements d'une fiche réelle de La Plagne", () => {
+  // Fiche réelle du 6 octobre 2026 : Le Chardonnet, 2 pièces cabine 6 personnes (Champagny).
+  const f = ficheOrchestra(readFileSync(new URL("./fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url), "utf8"));
+
+  it("le bloc « Votre hébergement », une ligne par saut", () => {
+    assert.match(f.description ?? "", /^Le Chardonnet - 2 pièces cabine 6 personnes\nAppartement de 35 m2 au 5ème étage/);
+  });
+
+  it("la liste « Caractéristiques » : présents, et « Animaux refusés » vaut non", () => {
+    const e = f.equipements!;
+    assert.equal(e.laveVaisselle, "oui");
+    assert.equal(e.wifi, "oui");
+    assert.equal(e.ascenseur, "oui");
+    assert.equal(e.balcon, "oui");
+    assert.equal(e.animaux, "non");
+  });
+
+  it("la description complète : « Local à skis », « Les draps de lit, les serviettes »", () => {
+    assert.equal(f.equipements!.casierSkis, "oui");
+    assert.equal(f.equipements!.linge, "oui");
+  });
+
+  it("les champs du bloc « Information » ne changent pas", () => {
+    assert.deepEqual([f.capacite, f.pieces, f.village], [6, 2, "CHAMPAGNY"]);
   });
 });

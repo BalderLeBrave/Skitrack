@@ -41,6 +41,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
@@ -314,6 +315,8 @@ function enListing(
     lon: fiche?.lon ?? null,
     locality: fiche?.village ?? null,
     placeName: fiche?.adresse ?? null,
+    ...(fiche?.description ? { description: fiche.description } : {}),
+    ...(fiche?.equipements ? { amenities: equipements(fiche.equipements) } : {}),
     priceLabel: libellePrix(o),
     // Un prix par personne n'est pas un total de séjour, et ne se compare pas à
     // un total. Le drapeau le dit à l'écran plutôt que de le laisser croire.

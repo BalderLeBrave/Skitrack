@@ -9,6 +9,7 @@ import {
   OPERATION_RECHERCHE,
   detailler,
   emprise,
+  equipementsGreenGo,
   greengoListings,
   hoteGarde,
   hotePur,
@@ -132,7 +133,10 @@ describe("GreenGo : requêtes", () => {
   });
 
   it("le détail demande le type de chaque logement", () => {
-    assert.match(requeteDetail(AVORIAZ, "neva"), /fragment Logement on AccommodationPublicSlice \{ id currentProductSlug name accommodationType /);
+    assert.match(
+      requeteDetail(AVORIAZ, "neva"),
+      /fragment Logement on AccommodationPublicSlice \{ id currentProductSlug name description averageGlobalRating numberOfRatings accommodationType /,
+    );
   });
 
   it("des dates illisibles n'entrent pas dans la requête", () => {
@@ -436,5 +440,101 @@ describe("GreenGo : détail de tous les hôtes", () => {
     });
     assert.deepEqual(lus, ["a", "b", "c"]);
     assert.match(r.raison ?? "", /2 hôtes de suite/);
+  });
+});
+
+describe("GreenGo : description et note du détail, sur une réponse réelle", () => {
+  // Réponse réelle du 6 octobre 2026 à la requête de détail (champs description,
+  // averageGlobalRating et numberOfRatings), Chalet Cannelle, telle quelle.
+  const DETAIL = JSON.parse(readFileSync(join(dir, "fixtures/greengo-detail-chalet-cannelle-contenu.json"), "utf8"));
+  const logements = lireDetail(DETAIL);
+
+  it("la description publiée de chaque logement", () => {
+    assert.equal(logements.length, 5);
+    assert.ok(logements.every((u) => u.description));
+    assert.match(logements.find((u) => u.nom === "Antler")!.description ?? "", /^La chambre romantique du Chalet Cannelle est inspirée du cerf/);
+  });
+
+  it("la note et les avis seulement quand il y a des avis", () => {
+    const antler = logements.find((u) => u.nom === "Antler")!;
+    assert.deepEqual([antler.note, antler.avis], [5, 1]);
+    const capra = logements.find((u) => u.nom === "Capra")!;
+    assert.deepEqual([capra.note, capra.avis], [undefined, undefined]);
+  });
+});
+
+describe("GreenGo : équipements du détail", () => {
+  // Réponse réelle du 6 octobre 2026 à la requête de détail, Balcons des Trois
+  // Cîmes (Morzine, un logement seul), telle quelle.
+  const DETAIL = JSON.parse(readFileSync(join(dir, "fixtures/greengo-detail-equipements.json"), "utf8"));
+  const bloc = (possedes: string[], absents: string[] = []) => ({
+    possessedEquipmentsGroupedBySortedCategories: [{ sortedEquipments: possedes }],
+    sortedNonPossessedEquipments: absents,
+  });
+
+  it("la requête demande les équipements du logement seul et les parties communes de l'établissement", () => {
+    const q = requeteDetail(AVORIAZ, "neva");
+    assert.match(q, /HostingAdvertFromSingleAccommodationPublicSlice \{ equipments \{ possessedEquipmentsGroupedBySortedCategories \{ sortedEquipments \} sortedNonPossessedEquipments \}/);
+    assert.match(q, /commonHostingEquipments \{ possessedEquipmentsGroupedBySortedCategories/);
+    // Le serveur répond par une erreur sur les équipements privés, et le détail tombe.
+    assert.doesNotMatch(q, /privateEquipmentsIfAccommodationInEstablishment/);
+  });
+
+  it("les codes possédés d'une réponse réelle, sans rien déduire des autres", () => {
+    const [u] = lireDetail(DETAIL);
+    assert.deepEqual(u.equipements, { balcon: "oui", wifi: "oui", laveVaisselle: "oui", laveLinge: "oui", parking: "oui" });
+  });
+
+  it("l'annonce réunit la liste et la description, la liste d'abord", () => {
+    const hote = lireRecherche(RECHERCHE).hotes[0];
+    const [l] = greengoListings(hote, lireDetail(DETAIL), AVORIAZ);
+    const v = Object.fromEntries((l.amenities ?? []).map((e) => [e.cle, e.valeur]));
+    // Wi-Fi, lave-vaisselle, lave-linge, balcon, parking : la liste.
+    // Casier à skis et linge : la description (« casiers à ski », « linge de maison sont inclus »).
+    assert.deepEqual(v, {
+      balcon: "oui",
+      cheminee: "inconnu",
+      wifi: "oui",
+      laveVaisselle: "oui",
+      laveLinge: "oui",
+      linge: "oui",
+      parking: "oui",
+      casierSkis: "oui",
+      saunaSpa: "inconnu",
+      piscine: "inconnu",
+      animaux: "inconnu",
+      ascenseur: "inconnu",
+    });
+  });
+
+  it("les parties communes d'un établissement valent pour chacun de ses logements", () => {
+    const etab = detail({
+      __typename: "HostingAdvertFromEstablishmentPublicSlice",
+      commonHostingEquipments: bloc(["WIFI", "SKI_ROOM"]),
+      accommodationsInEstablishment: [
+        { id: "a", name: "A", accommodationType: "FULL_FLAT", nonbookableReasons: [] },
+        { id: "b", name: "B", accommodationType: "CHALET", nonbookableReasons: [] },
+      ],
+    });
+    assert.deepEqual(
+      lireDetail(etab).map((u) => u.equipements),
+      [
+        { wifi: "oui", casierSkis: "oui" },
+        { wifi: "oui", casierSkis: "oui" },
+      ],
+    );
+  });
+
+  it("une clé à plusieurs codes : oui dès qu'un code est possédé, non seulement si tous sont déclarés absents", () => {
+    assert.deepEqual(equipementsGreenGo(bloc(["SAUNA"])), { saunaSpa: "oui" });
+    assert.deepEqual(equipementsGreenGo(bloc([], ["SPA", "SAUNA"])), {});
+    assert.deepEqual(equipementsGreenGo(bloc([], ["SPA", "SAUNA", "JACUZZI", "HAMMAM", "NORDIC_BATH", "ELEVATOR"])), { saunaSpa: "non", ascenseur: "non" });
+    assert.deepEqual(equipementsGreenGo(bloc(["ELEVATOR"], ["ELEVATOR"])), { ascenseur: "oui" });
+  });
+
+  it("aucun code publié : rien n'est lu", () => {
+    assert.equal(equipementsGreenGo(bloc([], [])), null);
+    assert.equal(equipementsGreenGo(undefined, null), null);
+    assert.equal(lireDetail(NEVA)[0].equipements, undefined);
   });
 });

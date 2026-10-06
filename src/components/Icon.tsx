@@ -44,6 +44,8 @@ export type IconName =
   | "lune"
   | "externe"
   | "agrandir"
+  | "partager"
+  | "question"
   | "info";
 
 /** Tracés du registre. Grille de 24, trait ouvert, jamais de remplissage. */
@@ -103,6 +105,15 @@ const TRACES: Record<IconName, ReactNode> = {
   externe: <path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />,
   // Les quatre coins d'un cadre qui s'ouvre : la webcam en grand.
   agrandir: <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />,
+  // Une flèche qui sort d'un plateau : le lien d'une annonce à partager.
+  partager: <path d="M12 15V4M8 8l4-4 4 4M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6" />,
+  // Un cercle et un point d'interrogation : ce que l'annonce ne dit pas.
+  question: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M9.6 9.6a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.7M12 17h.01" />
+    </>
+  ),
   // Un cercle et un « i » : l'indicateur discret d'un prix peu fiable, plus
   // doux que l'alerte.
   info: (

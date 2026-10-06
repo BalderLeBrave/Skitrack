@@ -28,6 +28,7 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
+import { depuisListe, equipements, type EquipementsLus } from "../../stay/equipements.ts";
 
 export const MV_SITE = "https://www.madamevacances.com";
 
@@ -290,6 +291,9 @@ export type LogementMV = {
   conditions: string | null;
   /** Photos 1000x1000 du type, adresses absolues. */
   photos: string[];
+  /** Les équipements que la composition du type nomme (« 1 Terrasse »),
+   *  lus par `stay/equipements.ts` ; `null` sans composition. */
+  equipements: EquipementsLus | null;
 };
 
 export type FicheMV = {
@@ -385,6 +389,9 @@ export function lireFiche(reponse: unknown): FicheMV {
       formule: texte(/data-base_product_code="([^"]*)"/.exec(radio)?.[1]),
       conditions: conditionsBrut ? texte(conditionsBrut.replace(/<[^>]*>/g, " ")) : null,
       photos,
+      // La composition publiée, élément par élément : « 2 Chambre(s), 1 Salle
+      // de douche, 1 Terrasse, 1 Cuisine ».
+      equipements: detail ? depuisListe(detail.split(",").map((x) => ({ texte: x }))) : null,
     });
   }
   return {
@@ -466,6 +473,7 @@ export function madameVacancesListings(e: EtablissementMV, fiche: FicheMV, input
           ),
         ),
         baths: l.sdb,
+        ...(l.equipements ? { amenities: equipements(l.equipements) } : {}),
         propertyType: typePublie(l.libelle, e.type),
         available: true as const,
         photo: photos[0] ?? null,

@@ -32,6 +32,10 @@ import { parMesure, type Sens } from "@/lib/tri";
 import { bedLbl, capLbl, distanceOf, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 import { langueIntl } from "@/lib/i18n/langue";
 import { aTraduire, tr, trN } from "@/lib/i18n";
+import { voisinDansListe } from "@/lib/stay/visionneuse";
+import { stationDuLogement } from "@/lib/stay/parStation";
+import { adults, clampChildren } from "@/lib/stay/party";
+import { useBudgetForfaits } from "@/components/v7/usePrixForfait";
 
 export const Route = createFileRoute("/favoris/$id")({ component: PageDossier });
 
@@ -68,13 +72,28 @@ function Dossier({ id }: { id: string }) {
   const favoris = useMemo(() => contenu(etat, id), [etat, id]);
   const annonces = useMemo(() => favoris.map((f) => f.annonce), [favoris]);
   const altDe = useAltitudes(annonces);
-  const { checkIn, checkOut, guests } = useStay();
+  const { checkIn, checkOut, guests, children } = useStay();
   const courant = useMemo<SejourFavori>(() => ({ checkIn, checkOut, trav: guests }), [checkIn, checkOut, guests]);
   const [vue, setVue] = useState<"liste" | "comparer">("liste");
   const [ouvert, setOuvert] = useState<string | null>(null);
   const [actif, setActif] = useState<string | null>(null);
   const P = useParcours();
   const go = useGo();
+
+  // Les forfaits du groupe pour le favori ouvert, à la station du logement et
+  // aux dates de son séjour. La composition du groupe (adultes, enfants) n'est
+  // connue que pour le séjour en cours : un favori enregistré pour un autre
+  // nombre de voyageurs ne les calcule pas.
+  const favOuvert = ouvert ? favoris.find((f) => f.annonceId === ouvert) : undefined;
+  const sejOuvert = favOuvert ? sejourDe(favOuvert, courant) : null;
+  const memeGroupe = sejOuvert != null && sejOuvert.trav === guests;
+  const forfaitsOuverts = useBudgetForfaits(
+    favOuvert && memeGroupe ? stationDuLogement(favOuvert.annonce, favOuvert.annonce.stationId) : null,
+    sejOuvert?.checkIn ?? checkIn,
+    sejOuvert?.checkOut ?? checkOut,
+    adults(guests, children),
+    clampChildren(children, guests),
+  );
 
   const retenir = useCallback(
     (annonceId: string) => {
@@ -106,6 +125,11 @@ function Dossier({ id }: { id: string }) {
 
   const parId = new Map(favoris.map((f) => [f.annonceId, f]));
   const fOuvert = ouvert ? parId.get(ouvert) : undefined;
+  /** Le logement voisin dans le dossier, dans l'ordre où il s'affiche. */
+  const favoriVoisin = (sens: 1 | -1) => {
+    const id = ouvert ? voisinDansListe(favoris.map((f) => f.annonceId), [ouvert], sens) : null;
+    return id ? () => setOuvert(id) : null;
+  };
   const situes = favoris.filter((f) => pointAltitude(f.annonce));
   const marqueurs: Marqueur[] = situes.map((f) => {
     const l = f.annonce;
@@ -219,6 +243,10 @@ function Dossier({ id }: { id: string }) {
           onRetenir={() => retenir(fOuvert.annonceId)}
           onFermer={() => setOuvert(null)}
           onVoirOffre={setOuvert}
+          onPrecedent={favoriVoisin(-1)}
+          onSuivant={favoriVoisin(1)}
+          forfaits={forfaitsOuverts}
+          forfaitsMotif={memeGroupe ? null : tr("non calculés : la composition du groupe de ce séjour n’est pas connue")}
           suite={
             P.lodgeId === fOuvert.annonceId ? (
               <button type="button" className="btn7 btn7--grand btn7--pleine" onClick={() => void go("booking")}>

@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   corpsOffresMsem,
   estLocationMsem,
@@ -521,5 +522,27 @@ describe("MSEM : camping, village club et maison, sur les autres catalogues", ()
     const studio = fiches.find((f) => f.id === "210234");
     assert.equal(studio?.capacite, 4);
     assert.equal(studio?.pieces, 1);
+  });
+});
+
+describe("MSEM : description et équipements, sur un relevé réel de l'Alpe d'Huez", () => {
+  // Relevé réel du 6 octobre 2026 : trois hébergements du catalogue, son dictionnaire d'options et leurs offres.
+  const fx = JSON.parse(readFileSync(new URL("./fixtures/msem-alpedhuez-3-hebergements.json", import.meta.url), "utf8"));
+  const fiches = joindreMsem(fx.catalogue, fx.offres);
+  const par = (id: string) => fiches.find((f) => f.id === id)!;
+
+  it("la description longue du catalogue, telle quelle", () => {
+    assert.match(par("224074").description ?? "", /^Appartement 2 Pièces\+Hall dans Résidence LA MUSARDIERE/);
+  });
+
+  it("les options listées valent oui : « Lave-vaisselle », « Balcon / Terrasse »", () => {
+    const e = par("192154").equipements!;
+    assert.equal(e.laveVaisselle, "oui");
+    assert.equal(e.balcon, "oui");
+  });
+
+  it("sans option, la description seule : casier à skis, parking, et « Linge de lit… non inclus » vaut non", () => {
+    const e = par("224074").equipements!;
+    assert.deepEqual(e, { laveVaisselle: "oui", laveLinge: "oui", linge: "non", parking: "oui", casierSkis: "oui" });
   });
 });

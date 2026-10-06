@@ -28,6 +28,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { phrasesRegle } from "../regleTypes";
@@ -140,6 +141,8 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
     propertyType: f.type,
+    ...(f.description ? { description: f.description } : {}),
+    ...(f.equipements ? { amenities: equipements(f.equipements) } : {}),
     available: true,
     photo: f.photo,
     url: `${base.replace(/\/+$/, "")}${f.chemin}?DateRecherche=${encodeURIComponent(`${ctx.checkIn}|${ctx.checkOut}`)}`,

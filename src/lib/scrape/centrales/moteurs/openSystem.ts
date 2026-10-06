@@ -49,6 +49,7 @@
  */
 
 import { jugerLogement, typeInconnu } from "../regleTypes.ts";
+import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheOpenSystem = {
@@ -111,7 +112,35 @@ export type FicheOpenSystem = {
   capacite: number | null;
   /** Les pièces que le type écrit : « Appartement 4 pièces » → 4. Un studio n'en écrit pas. */
   pieces: number | null;
+  /** L'extrait de description du bloc (`div.description`), sans le lien
+   *  « + d'infos » ; la centrale le coupe elle-même (« … »). */
+  description?: string | null;
+  /** Les pictogrammes `ul.list-services` (« Linge de lit inclus »,
+   *  « Lave-vaisselle »), puis ce que l'extrait nomme. */
+  equipements?: EquipementsLus | null;
 };
+
+/** L'extrait de description d'un bloc de résultat, en texte. */
+export function descriptionOpenSystem(fragment: string): string | null {
+  const bloc = /<div class="description">([\s\S]*?)<\/div>/.exec(fragment)?.[1];
+  if (!bloc) return null;
+  return texteOpenSystem(bloc.replace(/<p>\s*<a[\s\S]*?<\/a>\s*<\/p>/gi, " ")) || null;
+}
+
+/** Les pictogrammes du bloc, puis l'extrait de description. */
+export function equipementsOpenSystem(fragment: string, description: string | null): EquipementsLus | null {
+  const liste = /<ul class="list-services[^"]*">([\s\S]*?)<\/ul>/.exec(fragment)?.[1];
+  const pictos = liste ? [...liste.matchAll(/<img[^>]+alt="([^"]+)"/g)].map((m) => ({ texte: texteOpenSystem(m[1] ?? "") })) : null;
+  if (pictos == null && description == null) return null;
+  return fusionner(depuisListe(pictos ?? []), description ? depuisTexte(description) : null);
+}
+
+/** Description et équipements d'un bloc, seulement quand le bloc en porte. */
+function annonceOpenSystem(fragment: string): Pick<FicheOpenSystem, "description" | "equipements"> {
+  const description = descriptionOpenSystem(fragment);
+  const equipements = equipementsOpenSystem(fragment, description);
+  return { ...(description ? { description } : {}), ...(equipements ? { equipements } : {}) };
+}
 
 export type DemandeOpenSystem = {
   checkIn: string;
@@ -460,6 +489,7 @@ export function lireOpenSystem(page: string): FicheOpenSystem[] {
       commune,
       classement: classementDe(fragment),
       ...infoProduitOpenSystem(fragment),
+      ...annonceOpenSystem(fragment),
     });
   }
   return [...par.values()];

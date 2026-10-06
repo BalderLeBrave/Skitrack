@@ -34,6 +34,8 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
+import { depuisTexte, equipements, fusionner, type Equipement } from "../../stay/equipements.ts";
+import { texteDeHtml } from "../../stay/texteHtml.ts";
 
 export const TRAVELSKI_SITE = "https://www.travelski.com";
 export const TRAVELSKI_API = "https://api.travelski.com";
@@ -229,14 +231,59 @@ export function lireRecherche(json: unknown): {
   };
 }
 
-export type LogementFiche = { id: string; chambres: number | null; pieces: number | null; capacite: number | null };
+export type LogementFiche = {
+  id: string;
+  chambres: number | null;
+  pieces: number | null;
+  capacite: number | null;
+  /** `accomodationDescription`, en texte. */
+  description?: string | null;
+  /** `picturesAccomodation[].img`, la plus grande taille publiée (800 px). */
+  photos?: string[];
+};
 
 export type FicheTravelski = {
   liheId: string;
   lat: number | null;
   lon: number | null;
   logements: Map<string, LogementFiche>;
+  /** Les services de la résidence (« Linge de lit fourni… »), en texte. */
+  services?: string | null;
+  /** `picturesLodgingWinter[].img` (à défaut `picturesLodging`) : la résidence. */
+  photosResidence?: string[];
 };
+
+/** Les adresses `img` d'une liste de photos de la fiche. */
+function imagesFiche(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const x of v) {
+    const u = obj(x)?.img;
+    if (typeof u === "string" && /^https:\/\//.test(u) && !out.includes(u)) out.push(u);
+  }
+  return out;
+}
+
+/**
+ * Ce que la fiche apporte à une annonce : la description du logement, sa
+ * galerie puis celle de la résidence, et les équipements que la description
+ * et les services nomment. `null` sans fiche ou sans ce logement.
+ */
+export function contenuTravelski(
+  fiche: FicheTravelski | null,
+  id: string,
+): { description: string | null; photos: string[] | null; amenities: Equipement[] | null } | null {
+  const l = fiche?.logements.get(id);
+  if (!fiche || !l) return null;
+  const photos = [...new Set([...(l.photos ?? []), ...(fiche.photosResidence ?? [])])];
+  const description = l.description ?? null;
+  const textes = [description, fiche.services ?? null].filter((t): t is string => !!t);
+  return {
+    description,
+    photos: photos.length ? photos : null,
+    amenities: textes.length ? equipements(fusionner(...textes.map((t) => depuisTexte(t)))) : null,
+  };
+}
 
 /** « 46.188055, 6.775888 » → un point plausible, ou rien. */
 export function lirePosition(v: unknown): { lat: number; lon: number } | null {
@@ -270,9 +317,28 @@ export function lireFiche(html: string): FicheTravelski | null {
     const p = obj(v);
     const id = texte(p?.prestationId);
     if (!p || !id) continue;
-    logements.set(id, { id, chambres: entier(p.numberOfBedrooms), pieces: entier(p.numberOfRooms), capacite: entier(p.capacity) });
+    const description = texteDeHtml(typeof p.accomodationDescription === "string" ? p.accomodationDescription : null);
+    const photos = imagesFiche(p.picturesAccomodation);
+    logements.set(id, {
+      id,
+      chambres: entier(p.numberOfBedrooms),
+      pieces: entier(p.numberOfRooms),
+      capacite: entier(p.capacity),
+      ...(description ? { description } : {}),
+      ...(photos.length ? { photos } : {}),
+    });
   }
-  return { liheId, lat: point?.lat ?? null, lon: point?.lon ?? null, logements };
+  const hiver = imagesFiche(lihe.picturesLodgingWinter);
+  const photosResidence = hiver.length ? hiver : imagesFiche(lihe.picturesLodging);
+  const services = texteDeHtml(typeof lihe.services === "string" ? lihe.services : null);
+  return {
+    liheId,
+    lat: point?.lat ?? null,
+    lon: point?.lon ?? null,
+    logements,
+    ...(services ? { services } : {}),
+    ...(photosResidence.length ? { photosResidence } : {}),
+  };
 }
 
 /* ---------- Ce qui est gardé ---------- */

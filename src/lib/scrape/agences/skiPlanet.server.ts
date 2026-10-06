@@ -30,6 +30,7 @@ import {
   SKIPLANET_SITE,
   calendrierIllisible,
   lireCalendrier,
+  lireDescriptionLogement,
   lirePhotosLogement,
   logementGarde,
   nuitsEntre,
@@ -71,13 +72,15 @@ type Tache = {
 const g = globalThis as typeof globalThis & {
   __skitrackCalendriersSkiPlanet__?: Map<string, Lu>;
   __skitrackTacheSkiPlanet__?: Tache;
-  __skitrackPhotosSkiPlanet__?: Map<string, { a: number; photos: string[] }>;
+  __skitrackPhotosSkiPlanet__?: Map<string, PanneauLu>;
 };
+/** Ce que le panneau d'un logement a donné : ses photos, sa description. */
+type PanneauLu = { a: number; photos: string[]; description: string | null };
 /** Les photos d'un logement changent peu : une semaine. */
 const DUREE_PHOTOS_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Les photos lues sur le panneau de chaque logement (`infos-logement.php`), pour le processus. */
-function memoirePhotos(): Map<string, { a: number; photos: string[] }> {
+function memoirePhotos(): Map<string, PanneauLu> {
   return (g.__skitrackPhotosSkiPlanet__ ??= new Map());
 }
 
@@ -86,6 +89,13 @@ function photosConnues(idLogement: string, now = Date.now()): string[] | null {
   const e = memoirePhotos().get(idLogement);
   if (!e || now - e.a > DUREE_PHOTOS_MS) return null;
   return e.photos;
+}
+
+/** La description lue sur le même panneau, `null` s'il n'a pas été lu (ou plus depuis une semaine). */
+function descriptionConnue(idLogement: string, now = Date.now()): string | null {
+  const e = memoirePhotos().get(idLogement);
+  if (!e || now - e.a > DUREE_PHOTOS_MS) return null;
+  return e.description;
 }
 
 /** Les logements vendus des résidences sans photo dans la table, dont le panneau n'est pas lu. */
@@ -206,7 +216,11 @@ async function lirePhotos(tache: Tache, input: LiveSearchInput, residences: read
     try {
       const res = await demander({ hote: HOTE, url: urlInfosLogement(id), echeance, entetes: { ...ENTETES_AJAX } });
       // Un panneau sans photo se note aussi : il ne se relit pas à chaque relevé.
-      memoirePhotos().set(id, { a: Date.now(), photos: lirePhotosLogement(res.texte) });
+      memoirePhotos().set(id, {
+        a: Date.now(),
+        photos: lirePhotosLogement(res.texte),
+        description: lireDescriptionLogement(res.texte),
+      });
       suite = 0;
     } catch (err) {
       if (err instanceof ArretAgence) {
@@ -270,8 +284,8 @@ export async function releverSkiPlanet(input: LiveSearchInput, opts: OptionsRele
     }
     // Du calendrier forfaits compris, seules les offres qui le sont.
     const lot = [
-      ...(s ? skiPlanetListings(r, s, input, null, photosConnues) : []),
-      ...(f ? skiPlanetListings(r, f, input, s, photosConnues).filter((l) => l.skiPassIncluded === true) : []),
+      ...(s ? skiPlanetListings(r, s, input, null, photosConnues, descriptionConnue) : []),
+      ...(f ? skiPlanetListings(r, f, input, s, photosConnues, descriptionConnue).filter((l) => l.skiPassIncluded === true) : []),
     ];
     for (const l of lot) {
       if (vus.has(l.id)) continue;

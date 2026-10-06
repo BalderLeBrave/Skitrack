@@ -19,6 +19,7 @@
 
 import type { Listing } from "@/lib/listings";
 import { memoireFiches } from "@/lib/stay/memoireFiches.server";
+import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { centraleAutorise } from "../robots.server";
@@ -154,6 +155,8 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
     lon: f.lon,
     locality: f.commune,
     placeName: f.adresse,
+    ...(f.description ? { description: f.description } : {}),
+    ...(f.equipements ? { amenities: equipements(f.equipements) } : {}),
     proven: `${r.nom} (MSEM, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.pieces != null ? ` — ${f.pieces} pièce${f.pieces > 1 ? "s" : ""} annoncée${f.pieces > 1 ? "s" : ""}` : ""
     }${

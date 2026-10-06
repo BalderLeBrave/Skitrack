@@ -15,6 +15,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
@@ -129,6 +130,8 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
     propertyType: f.categorie,
+    description: f.description,
+    amenities: equipements(f.equipements),
     available: true,
     photo: f.photo ? new URL(f.photo, `${base}/`).toString() : null,
     // Le gabarit porte l'adresse de la fiche ; à défaut, la page de recherche.

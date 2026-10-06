@@ -54,6 +54,7 @@
  */
 
 import { jugerLogement, motifTypeHorsRegle } from "../regleTypes.ts";
+import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
 
 /** Une carte telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheArkiane = {
@@ -108,6 +109,12 @@ export type DetailArkiane = {
   capacite: number | null;
   /** Le quartier sous le titre : « Le Plan », « Centre - Pralognan La Vanoise ». */
   quartier: string | null;
+  /** La description publiée (`div.lot-desc`), en texte, sauts de ligne gardés.
+   *  Montrée telle quelle ; ses nombres ne remplacent pas ceux des pavés. */
+  description?: string | null;
+  /** Les pictogrammes « Equipements : » (« Lave-vaisselle », « Animaux
+   *  refusés »), puis ce que la description nomme ; `null` sans l'un ni l'autre. */
+  equipements?: EquipementsLus | null;
 };
 
 /**
@@ -409,6 +416,8 @@ export function lireDetailArkiane(page: string): DetailArkiane {
   }
 
   const ems = STATION_QUARTIER.exec(page);
+  const description = descriptionArkiane(page);
+  const equipements = equipementsArkiane(page, description);
   return {
     lat,
     lon,
@@ -416,5 +425,30 @@ export function lireDetailArkiane(page: string): DetailArkiane {
     pieces: pieces != null && pieces > 0 ? pieces : null,
     capacite: capacite != null && capacite > 0 ? capacite : null,
     quartier: ems ? texteArkiane(ems[2] ?? "") || null : null,
+    ...(description ? { description } : {}),
+    ...(equipements ? { equipements } : {}),
   };
+}
+
+/** La description du lot, `div.lot-desc`, en texte : un paragraphe ou un
+ *  `<br>` par ligne. `null` sans bloc ou sans texte. */
+export function descriptionArkiane(page: string): string | null {
+  const bloc = /<div class="lot-desc">([\s\S]*?)<\/div>/.exec(page)?.[1];
+  if (!bloc) return null;
+  const lignes = bloc
+    .replace(/<br\s*\/?>|<\/p>/gi, "\n")
+    .split("\n")
+    .map((l) => texteArkiane(l.replace(/<[^>]+>/g, " ")))
+    .filter(Boolean);
+  return lignes.length ? lignes.join("\n") : null;
+}
+
+/** Les pictogrammes d'équipements du détail, puis la description. */
+export function equipementsArkiane(page: string, description: string | null): EquipementsLus | null {
+  const zone = /Equipements\s*:\s*<\/div>([\s\S]*?)<\/div>/.exec(page)?.[1];
+  const pictos = zone
+    ? [...zone.matchAll(/<img[^>]+class="picto[^"]*"[^>]+alt="([^"]+)"/g)].map((m) => ({ texte: texteArkiane(m[1] ?? "") }))
+    : null;
+  if (pictos == null && description == null) return null;
+  return fusionner(depuisListe(pictos ?? []), description ? depuisTexte(description) : null);
 }

@@ -11,6 +11,7 @@ import {
   lireCalendrier,
   lireFicheArchivee,
   lireLibelle,
+  lireDescriptionLogement,
   lirePhotosLogement,
   logementGarde,
   nuitsEntre,
@@ -361,5 +362,23 @@ describe("Ski-Planet : le panneau d'un logement, pour une résidence sans photo"
     assert.equal(sans.photos?.length, 2);
     const [inconnu] = skiPlanetListings({ ...SNOW, photo: null }, SEUL, AVORIAZ);
     assert.deepEqual([inconnu.photo, inconnu.photos], [null, null]);
+  });
+
+  it("sa description, entre la croix et le diaporama", () => {
+    const d = lireDescriptionLogement(PANNEAU);
+    assert.ok(d?.startsWith("Superficie d'environ 33 m² . 7ème étage.") || d?.startsWith("Superficie d'environ 33 m²."), d ?? "");
+    assert.match(d ?? "", /Kitchenette avec lave-vaisselle.*Balcon\. Niveau 1 : Chambre mezzanine avec lit simple\. Chambre avec lit double\.$/);
+    assert.equal(lireDescriptionLogement("<p>rien</p>"), null);
+  });
+
+  it("la description et les équipements qu'elle nomme passent à l'annonce, les autres restent inconnus", () => {
+    const desc = (id: string) => (id === "69622" ? lireDescriptionLogement(PANNEAU) : null);
+    const [l] = skiPlanetListings(SNOW, SEUL, AVORIAZ, null, undefined, desc);
+    assert.match(l.description ?? "", /^Superficie/);
+    const oui = (l.amenities ?? []).filter((e) => e.valeur === "oui").map((e) => e.cle);
+    assert.deepEqual(oui, ["balcon", "laveVaisselle"]);
+    assert.equal(l.amenities?.some((e) => e.valeur === "non"), false);
+    const [sans] = skiPlanetListings(SNOW, SEUL, AVORIAZ);
+    assert.deepEqual([sans.description, sans.amenities], [undefined, undefined]);
   });
 });

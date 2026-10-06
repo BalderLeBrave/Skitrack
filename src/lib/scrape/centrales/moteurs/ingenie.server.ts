@@ -25,6 +25,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { centraleAutorise } from "../robots.server";
@@ -138,6 +139,8 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     lon: f.lon,
     locality: f.commune,
     placeName: f.adresse,
+    // Les pictogrammes de la page de résultats déjà lue : présents ou inconnus.
+    amenities: equipements(f.equipements),
     proven: `${r.nom} (Ingénie, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuit${
       nuits > 1 ? "s" : ""
     }, ${ctx.guests} pers.${f.etiquette ? ` — étiquette de la centrale : « ${f.etiquette} »` : ""}`,

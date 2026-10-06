@@ -13,6 +13,9 @@ import { prixLbl } from "@/lib/v7";
  * Les offres d'un même logement, de la moins chère à la plus chère, avec
  * l'écart de chacune à la moins chère. Un écart ne se calcule qu'entre deux
  * prix publiés dans la même devise : sinon on le tait.
+ *
+ * L'offre affichée s'ouvre sur sa plateforme (« Ouvrir ») ; les autres
+ * s'affichent dans la fiche (« Voir cette offre »).
  */
 export function OffresLogement({
   g,
@@ -45,22 +48,24 @@ export function OffresLogement({
           const courante = o.id === ici;
           return (
             <li key={o.id} className={courante ? "offres7__ici" : undefined}>
-              <button
-                type="button"
-                className="offres7__source"
-                aria-current={courante ? "true" : undefined}
-                aria-label={courante ? tr("{source}, offre affichée", { source: o.source }) : tr("Voir l’offre {source}", { source: o.source })}
-                onClick={() => {
-                  if (!courante) voir(o.id);
-                }}
-              >
+              <span className="offres7__source" aria-current={courante ? "true" : undefined}>
                 {o.source}
-              </button>
+                {courante ? <span className="lecteur7">, {tr("offre affichée")}</span> : null}
+              </span>
               <b className={o.total > 0 ? undefined : "absent"}>{prixLbl(o)}</b>
               <span className={`offres7__ecart${o.id === base.id ? " offres7__ecart--base" : ""}`}>
                 {ecart}
               </span>
-              {o.url ? (
+              {!courante ? (
+                <button
+                  type="button"
+                  className="offres7__lien"
+                  aria-label={tr("Voir l’offre {source}", { source: o.source })}
+                  onClick={() => voir(o.id)}
+                >
+                  {tr("Voir cette offre")}
+                </button>
+              ) : o.url ? (
                 <a
                   href={o.url}
                   target="_blank"

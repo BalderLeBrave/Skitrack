@@ -19,6 +19,8 @@ import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
 import { PAUSE_MAX_MS, estHoteAirbnb, estRefus, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureAirbnb, lectureFiche, pageAirbnbLisible, type LectureFiche } from "./lectureFiche.ts";
+import { contenuDeFiche, type ContenuDeFiche } from "./contenuFiche.ts";
+import { contenuFiches } from "./contenuFiches.server.ts";
 import { adressePourBan, BAN_URL, pointBan, requeteBan, type FeatureBan, type SourceGps } from "./repliGps.ts";
 import { stationById } from "../stations.ts";
 import { MARQUE_MEMOIRE, poserValeur, qualifierLogement, valeurDuTexte } from "./logement.ts";
@@ -577,6 +579,16 @@ function hotesEnPause(now = Date.now()): string[] {
  * coûtait jusqu'à `MAX_FICHES` requêtes à chaque recherche. Un ralentissement
  * (pause de `taux`) n'est pas compté : ce n'est pas le lecteur.
  */
+/**
+ * La description et les équipements qu'une fiche lue publie (`contenuFiche.ts`),
+ * posés sur l'annonce sans rien remplacer de ce que la recherche a donné.
+ */
+function poserContenu(row: Listing, c: ContenuDeFiche | null): void {
+  if (!c) return;
+  if (!row.description && c.description) row.description = c.description;
+  if (!row.amenities && c.amenities) row.amenities = c.amenities;
+}
+
 async function fillPool(
   targets: Listing[],
   until: number,
@@ -598,6 +610,9 @@ async function fillPool(
     const url = ficheUrlOf(row);
     return url ? (hoteDe(url) ?? url) : null;
   });
+  // Le contenu des pages lues, gardé en une écriture à la fin : la page ne
+  // se rouvre pas pour lui (`contenuFiches.server.ts`).
+  const contenus: { cle: string | null; contenu: ContenuDeFiche }[] = [];
   const lire = async (hote: string, file: Listing[]): Promise<void> => {
     for (let row = file.shift(); row; row = file.shift()) {
       if (Date.now() >= until) return;
@@ -646,6 +661,11 @@ async function fillPool(
           comble = poserLecture(row, lect, "fiche", { taxe: opts.taxe });
           if (comble) bilan.filled += 1;
           bilan.ouvertes.push({ row, lect });
+          const contenu = contenuDeFiche(url, got.html);
+          if (contenu) {
+            poserContenu(row, contenu);
+            contenus.push({ cle: cleListing(row), contenu });
+          }
         } else {
           bilan.ouvertes.push({ row, lect: null });
         }
@@ -667,6 +687,7 @@ async function fillPool(
     ),
   );
   for (const [hote, k] of laisses) console.info(`[fiche] ${hote} : ${k} fiches non ouvertes`);
+  if (contenus.length) contenuFiches().noter(contenus);
   return bilan;
 }
 
@@ -1496,6 +1517,9 @@ export async function fillFiches(
 ): Promise<number> {
   const prix = opts.pour === "prix";
   let filled = poserReleve(listings, RELEVE_2A);
+  // Le contenu des fiches lues lors des recherches précédentes, sans réseau.
+  const contenus = contenuFiches();
+  for (const row of listings) poserContenu(row, contenus.lire(cleListing(row)));
   const until = Date.now() + Math.max(0, budgetMs);
   // Une page que portent plusieurs annonces n'est la fiche d'aucune : ni
   // ouverte, ni lue dans le cache pour l'une d'elles (`priseFiche.ts`).

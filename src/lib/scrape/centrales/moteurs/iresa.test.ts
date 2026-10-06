@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   corpsIresa,
   dateIresa,
@@ -268,5 +269,39 @@ describe("iResa : la catégorie publiée, et la règle du propriétaire", () => 
     assert.equal(horsRegleIresa({ categorie: "Hôtels" }), "hôtel");
     // Une catégorie inconnue est gardée ; le connecteur la nomme au journal.
     assert.equal(horsRegleIresa({ categorie: "Lofts" }), null);
+  });
+});
+
+describe("iResa : description et équipements, sur un relevé réel des Arcs", () => {
+  // Relevé réel du 6 octobre 2026 : trois prestations de `__datasPrestations`, telles quelles.
+  const page = readFileSync(new URL("./fixtures/iresa-lesarcs-3-prestations.html", import.meta.url), "utf8");
+  const fiches = lireIresa(page, { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 4 });
+  const par = (n: string) => fiches.find((f) => f.titre.includes(n))!;
+
+  it("la description publiée, en texte, sauts de ligne gardés", () => {
+    const d = par("n°317").description ?? "";
+    assert.match(d, /^VOTRE APPARTEMENT\nRéservez ce studio qui dispose d'un balcon exposé ouest/);
+    assert.ok(!/<br|<\//.test(d));
+  });
+
+  it("une case à « 1 » vaut oui, une case à « 0 » ne vaut pas non", () => {
+    const e = par("n° 1120").equipements!;
+    assert.equal(e.wifi, "oui"); // case à 1
+    assert.equal(e.laveVaisselle, "oui"); // case à 0, mais la description nomme « un lave-vaisselle »
+    assert.equal(e.animaux, "oui");
+    assert.equal(e.cheminee, undefined); // case à 0 : inconnu
+  });
+
+  it("la description dit l'absence en toutes lettres : « Nos amis les animaux ne sont pas tolérés »", () => {
+    const e = par("n° 742").equipements!;
+    assert.equal(e.animaux, "non");
+    assert.equal(e.wifi, "oui"); // case à 0, « accès wifi » dans la description
+    assert.equal(e.laveVaisselle, "oui");
+  });
+
+  it("la description nomme balcon et ascenseur", () => {
+    const e = par("n°317").equipements!;
+    assert.equal(e.balcon, "oui");
+    assert.equal(e.ascenseur, "oui");
   });
 });

@@ -16,6 +16,7 @@ import {
   retirer,
   supprimerDossier,
 } from "./modele.ts";
+import { nomStationPropre, sourceEtLieu } from "../rattachement.ts";
 
 const T1 = "2026-10-03T10:00:00.000Z";
 const T2 = "2026-10-03T11:00:00.000Z";
@@ -145,5 +146,26 @@ describe("favoris : un état gardé illisible", () => {
     });
     assert.deepEqual([e.dossiers.length, e.favoris.length], [1, 1]);
     assert.deepEqual(etatLu(null), ETAT_VIDE);
+  });
+});
+
+describe("la station d'un favori", () => {
+  // DP7 La Coulée Douce, Lanslevillard : relevée par la centrale de Haute
+  // Maurienne en cherchant Aussois, l'étiquette disait « Centrale · Aussois ».
+  it("est celle du logement, pas celle de la recherche", () => {
+    const l = annonce("c1", { stationId: "aussois", source: "Centrale", lat: 45.291929, lon: 6.913571 });
+    assert.equal(nomStationPropre(l), "Val-Cenis");
+  });
+
+  it("ne suppose pas la station cherchée quand rien ne situe le logement", () => {
+    const l = annonce("c2", { stationId: "aussois", title: "Studio", lat: null, lon: null });
+    assert.equal(nomStationPropre(l), null);
+    assert.equal(sourceEtLieu(l), "Abritel");
+  });
+
+  it("nomme la localité d'un logement loin de toute station", () => {
+    // Booking relevé en cherchant Châtel, à 12 km de tout repère, en Suisse.
+    const l = annonce("c3", { stationId: "chatel", source: "Booking", lat: 46.360607, lon: 6.931287, locality: "Monthey" });
+    assert.equal(sourceEtLieu(l), "Booking · Monthey");
   });
 });

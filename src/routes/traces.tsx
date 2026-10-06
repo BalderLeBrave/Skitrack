@@ -13,9 +13,6 @@ import { formatEle, formatDuration, formatKm } from "@/lib/gpx";
 import { formatEuro, listingsForStay, type Listing } from "@/lib/listings";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import { stationById } from "@/lib/stations";
-import { gpsPrecis, lieuReasonFor } from "@/lib/stay/lodgingFilter";
-import { dedoublonnerParBien } from "@/lib/stay/poserReleve";
-import { stationDeRattachement } from "@/lib/villages";
 import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
@@ -47,27 +44,10 @@ function Traces() {
   const [ficheId, setFicheId] = useState<string | null>(null);
 
   const frozen = useMemo(
-    () =>
-      stationId
-        ? listingsForStay(stationDeRattachement(stationId), guests, bedrooms).map(enrichirListing)
-        : [],
+    () => (stationId ? listingsForStay(stationId, guests, bedrooms).map(enrichirListing) : []),
     [stationId, guests, bedrooms],
   );
-  // Comme Logements : un logement n'est montré que situé (`gpsPrecis`), sous
-  // la station de l'écran (`lieuReasonFor`, le filtre « Dans la station »),
-  // une seule fois (`dedoublonnerParBien`). Sans position, ni station ni
-  // distance au tracé.
-  const raw = useMemo(
-    () =>
-      stationId
-        ? dedoublonnerParBien(
-            (live ?? frozen).filter(
-              (l) => gpsPrecis(l) && lieuReasonFor(l, station?.dept, stationId) == null,
-            ),
-          )
-        : [],
-    [live, frozen, stationId, station],
-  );
+  const raw = live ?? frozen;
   const rows = useMemo(() => {
     const scored = raw.map((l) => ({ listing: l, gpxM: distToGpxM(l, points) }));
     // Un prix non publié (`total` à zéro) ou une distance inconnue reste en

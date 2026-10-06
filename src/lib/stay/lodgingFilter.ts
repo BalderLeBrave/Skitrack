@@ -32,9 +32,9 @@
 import { isBookable, type Stay } from "./availability.ts";
 import { inRange, rangeOpen } from "./range.ts";
 import type { DomainVerdict } from "../domainFit.ts";
+import type { MotifNonRattache } from "../rattachement.ts";
 import { ficheDementieParLeTitre } from "./occupancy.ts";
 import { LIMITE_TERRITOIRE_M, territoireReasonFor } from "./territoire.ts";
-import { distanceAuRepere, RATTACHEMENT_MAX_M, verdictStation } from "./rattachement.ts";
 import { aTraduire, tr, trN } from "../i18n/tr.ts";
 
 
@@ -47,14 +47,6 @@ import { aTraduire, tr, trN } from "../i18n/tr.ts";
  */
 export type FilterSubject = {
   id: string;
-  /**
-   * La station du relevé : celle que la recherche a interrogée, et sous
-   * laquelle l'annonce est proposée. Un logement n'y reste que s'il lui
-   * appartient (`rattacher`, `stay/rattachement.ts`).
-   */
-  stationId?: string;
-  /** La commune publiée par la source, lue par `rattacher`. */
-  locality?: string | null;
   title?: string;
   source?: string;
   url?: string | null;
@@ -89,11 +81,14 @@ export type FilterSubject = {
   /** Longitude publiée par la source. `null` : pas de GPS. */
   lon?: number | null;
   /**
-   * Rattachement au domaine cherché, posé par `attachAccess`. Information :
-   * l'appartenance se décide par station (`rattacher`) ; ce verdict n'écarte
-   * plus qu'une annonce sans station de relevé (`lieuReasonFor`).
+   * Rattachement au domaine cherché, posé par `attachAccess`.
+   *
+   * Il était calculé, affiché sur la fiche du logement, et **jamais appliqué**
+   * : rien dans le dépôt n'écartait une annonce sur la foi de ce verdict.
    */
   domainFit?: DomainVerdict;
+  /** Pourquoi le logement n'est rattaché à aucune station (`rattachement.ts`). */
+  nonRattache?: MotifNonRattache | null;
   pricedCheckIn?: string | null;
   pricedCheckOut?: string | null;
   scannedAt?: number | null;
@@ -185,22 +180,18 @@ export function isStudioListing(listing: FilterSubject): boolean {
 /**
  * Le rayon de recherche, en kilomètres.
  *
- * Douze par défaut, et au plus : c'est « à la station ». Au-delà de 12 km de
- * toute station, un logement n'est dans aucune (`RATTACHEMENT_MAX_M`), et les
- * villages d'une station voisine, reliée ou non, sont à elle. Les crans de
- * 25 et 50 km, qui ouvraient la recherche aux villages du même domaine
- * skiable, ne retenaient plus rien : retirés le 6 octobre 2026, sur décision
- * du propriétaire.
+ * Douze par défaut : c'est « à la station ». On peut l'ouvrir jusqu'à
+ * cinquante pour les villages du **même domaine skiable**. Au-delà, ce n'est
+ * plus une recherche de station.
  *
- * Des crans plutôt qu'un curseur au kilomètre près, comme la maquette
- * (App.dc.html:873) : un rayon de 17 km, personne ne sait le juger.
+ * Quatre valeurs proposées, celles de la maquette (App.dc.html:873) : un
+ * curseur au kilomètre près laissait choisir un rayon de 17 km, que personne
+ * ne sait juger.
  */
-export const RAYONS_KM = [5, 12] as const;
-/** Le rayon par défaut est celui du rattachement : au-delà, un logement
- *  n'est dans aucune station (`RATTACHEMENT_MAX_M`). */
-export const RAYON_DEFAUT_KM = RATTACHEMENT_MAX_M / 1000;
+export const RAYONS_KM = [5, 12, 25, 50] as const;
+export const RAYON_DEFAUT_KM = 12;
 export const RAYON_MIN_KM = 1;
-export const RAYON_MAX_KM = RAYON_DEFAUT_KM;
+export const RAYON_MAX_KM = 50;
 export { LIMITE_TERRITOIRE_M };
 
 
@@ -236,82 +227,39 @@ export function distFiltrableM(listing: Pick<FilterSubject, "distToSlopesM" | "d
 /** Paliers du filtre distance, du pied des pistes à deux kilomètres. */
 export const DIST_PALIERS_M = [200, 500, 1000, 2000] as const;
 
-/** Motif géographique d'écart : une autre station, un autre domaine, ou la distance. */
-export type GeoReason = "autre-station" | "autre-domaine" | "hors-zone";
+/** Motif géographique d'écart : le domaine, la station introuvable, ou la
+ *  distance. */
+export type GeoReason = "autre-domaine" | "non-rattache" | "hors-zone";
 
 /**
  * La géographie écarte-t-elle cette annonce ?
  *
- * 1. **Un logement n'est listé que sous sa station** (`rattacher`) : celle de
- *    sa commune ou de son village, à défaut la plus proche. Une station
- *    voisine ne le garde pas, même reliée par les pistes (« autre-station ») ;
- *    un logement situé à plus de 12 km de toute station sort (« hors-zone »).
- *    Le domaine relié ne retient plus rien : il ne se lit que sur la fiche
- *    station. Sans station du relevé (`stationId`), il n'y a rien à comparer.
- * 2. Une annonce sans station de relevé sort si `domainFit` la dit sur un
- *    autre domaine. Avec une station de relevé, le rattachement seul décide :
- *    un nom lu dans un titre n'écarte pas.
- * 3. Un gîte que son département dit ailleurs sort.
- * 4. Le rayon de l'écran borne encore la distance au repère de la station.
+ * 1. Un autre domaine skiable sort, même à deux kilomètres.
+ * 2. Un logement du domaine cherché (la station ou un village relié) reste
+ *    s'il est dans le rayon — 10 km par défaut, 30 km au plus.
+ * 3. Sans GPS, le département Gîtes peut encore dire « ailleurs ».
  */
 export function geoReasonFor(
   listing: FilterSubject,
   rayonKm: number | null | undefined = RAYON_DEFAUT_KM,
   searchedDept?: string | null,
 ): GeoReason | null {
-  return lieuReasonFor(listing, searchedDept) ?? (horsRayon(listing, rayonKm) ? "hors-zone" : null);
-}
+  if (listing.domainFit === "other") return "autre-domaine";
+  // Rattaché à aucune station (`rattachement.ts`) : trop loin de toute
+  // station, ou sans position ni lieu reconnu. Rien ne prouve qu'il soit à
+  // celle qu'on cherche.
+  if (listing.domainFit === "unknown" && listing.nonRattache) return "non-rattache";
 
-/**
- * Le lieu écarte-t-il cette annonce, rayon mis à part ? Les points 1 à 3 de
- * `geoReasonFor` : une autre station, aucune station, un autre domaine pour
- * une annonce sans station de relevé, un autre département pour un gîte.
- * Jugé face à `stationId`, la station de l'écran ; à défaut, celle du relevé
- * de l'annonce. Le filtre « Dans
- * la station » de l'écran Logements, que le rayon ne règle pas.
- */
-export function lieuReasonFor(
-  listing: FilterSubject,
-  searchedDept?: string | null,
-  stationId: string | null | undefined = listing.stationId,
-): GeoReason | null {
-  const verdict = stationId ? verdictStation(listing, stationId) : null;
-  if (verdict === "autre-station") return "autre-station";
-  if (verdict === "trop-loin") return "hors-zone";
-  // Le verdict de domaine ne juge plus qu'une annonce sans station de relevé :
-  // sinon, le rattachement seul décide — Bramans, sans domaine au
-  // référentiel, est un village de Val Cenis, et ses logements y restent.
-  // Une annonce non située n'est pas écartée sur un nom lu dans son titre
-  // (« Chalet vue sur Aussois » sous Val Cenis) : le texte inclut, il
-  // n'exclut pas. Elle ne s'affiche ni ne compte nulle part (Logements et la
-  // médiane exigent une position), mais reste à compléter (`aCompleter`) :
-  // sa fiche lue lui donne souvent un point.
-  if (verdict == null && listing.domainFit === "other") return "autre-domaine";
-
-  // Le département d'un gîte est une preuve à part : un gîte de la Manche
-  // n'est pas à Flumet, quel que soit le point qu'il porte.
   const territoire = territoireReasonFor(listing, searchedDept);
   if (territoire) return territoire;
+
+  const m = listing.distToSlopesM;
+  if (m != null && Number.isFinite(m) && m > clampRayonKm(rayonKm) * 1000) return "hors-zone";
+
   return null;
 }
 
-/**
- * La distance qu'un rayon mesure, en mètres : depuis le repère de la station
- * du logement, village compris (`distanceAuRepere`) — un logement de Belle
- * Plagne est à 5,9 km du repère de La Plagne, posé à Montchavin, mais au pied
- * de Belle Plagne. Sans rattachement par la position, depuis le repère de la
- * station cherchée (`distToSlopesM`). `null` : non mesurée.
- */
-export function distanceRayonM(listing: FilterSubject): number | null {
-  const m = (listing.stationId ? distanceAuRepere(listing, listing.stationId) : null) ?? listing.distToSlopesM;
-  return m != null && Number.isFinite(m) ? m : null;
-}
 
-/** Au-delà du rayon (`distanceRayonM`) ? Une distance non mesurée ne l'est pas. */
-export function horsRayon(listing: FilterSubject, rayonKm: number | null | undefined = RAYON_DEFAUT_KM): boolean {
-  const m = distanceRayonM(listing);
-  return m != null && m > clampRayonKm(rayonKm) * 1000;
-}
 
 export type PartyCriteria = {
   /** Taille du groupe : autant de couchages au minimum. */
@@ -408,8 +356,8 @@ export function fitsParty(
  */
 export type DropReason =
   | "groupe"
-  | "autre-station"
   | "autre-domaine"
+  | "non-rattache"
   | "hors-zone"
   | "capacite"
   | "capacite-muette"
@@ -503,8 +451,8 @@ export function applyFilter<T extends FilterSubject>(
   const rows: { id: string; reason: DropReason }[] = [];
   const byReason: Record<DropReason, number> = {
     groupe: 0,
-    "autre-station": 0,
     "autre-domaine": 0,
+    "non-rattache": 0,
     "hors-zone": 0,
     capacite: 0,
     "capacite-muette": 0,
@@ -528,8 +476,8 @@ export function applyFilter<T extends FilterSubject>(
 /** Singulier et pluriel de chaque motif, en français : `droppedLabel` les traduit. */
 const REASON_LABEL: Record<DropReason, [string, string]> = {
   groupe: [aTraduire("gîte de groupe"), aTraduire("gîtes de groupe")],
-  "autre-station": [aTraduire("dans une autre station"), aTraduire("dans d’autres stations")],
   "autre-domaine": [aTraduire("sur un autre domaine"), aTraduire("sur d’autres domaines")],
+  "non-rattache": [aTraduire("rattaché à aucune station"), aTraduire("rattachés à aucune station")],
   "hors-zone": [aTraduire("hors de la zone"), aTraduire("hors de la zone")],
   capacite: [aTraduire("trop petit"), aTraduire("trop petits")],
   // Ni « trop petit » ni « convient » : la source s'est tue, et on le dit.

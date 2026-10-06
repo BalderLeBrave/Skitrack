@@ -4,8 +4,10 @@ import { attachAccess } from "@/lib/access";
 import { stationById } from "@/lib/stations";
 import { qualifierLogement } from "@/lib/stay/logement";
 import { enrichirListing } from "@/lib/stay/enrichir";
+import type { Page } from "playwright";
 import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
+import { communeGites } from "./gitesCommunes";
 import { scrapeAirbnbDetailed } from "./airbnb.server";
 import { scrapeBookingPlaywright, scrapeBookingPythonDetaille } from "./booking.server";
 import { fillBookingGps } from "./bookingGps.server";
@@ -14,8 +16,10 @@ import { collecterCozy, cozyListings, type CollecteCozy } from "./cozy.server";
 import { fusionner } from "./fusion";
 import { allowsPath } from "./robots";
 import { chercherCentrale } from "./centrales/chercher.server";
+import { ficheCentrale } from "./centrales/registre";
 import { releverGreenGo } from "./greengo.server";
-import { agencesDe, collecteurDe } from "./agences/index.server";
+import { collecteurDe } from "./agences/index.server";
+import { agencesDuReleve, parPaquets, sansDoublons, stationsDuReleve } from "./domaine";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
 
 export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences" | "browser" | "all";
@@ -57,7 +61,11 @@ const ECHEANCE_PART_MS = 40_000;
 function locate(input: LiveSearchInput, listings: Listing[]): Listing[] {
   // Capacité, chambres, pièces, cabine et type, chacun avec son origine :
   // ce que le collecteur a posé, puis ce que le texte dit (`logement.ts`).
-  const withOcc = listings.map((l) => qualifierLogement(l));
+  // Une annonce lue pour une station reliée (`domaine.ts`) appartient au
+  // relevé de la station cherchée ; son rattachement dit où elle est.
+  const withOcc = sansDoublons(listings).map((l) =>
+    qualifierLogement(l.stationId === input.stationId ? l : { ...l, stationId: input.stationId }),
+  );
   const station = stationById(input.stationId);
   const located = station ? withOcc.map((l) => attachAccess(l, station)) : withOcc;
   // `total: 0` veut dire « prix non publié », pas « gratuit » : un tri croissant
@@ -161,6 +169,36 @@ function collecteCozy(input: LiveSearchInput, echeance: number): Promise<Collect
   return collecte;
 }
 
+/** Les recherches Cozy d'un grand domaine qui partent en même temps, au plus. */
+const COZY_SIMULTANEES = 3;
+
+/**
+ * La recherche Cozy de la station, et celle de chaque station reliée
+ * (`domaine.ts`) : Cozy cherche par le nom, et « La Plagne » ne rend pas
+ * Champagny. Les pages se mettent bout à bout, `cozyListings` écarte les
+ * doublons. Le compteur publié ne se rapporte plus : celui de chaque recherche
+ * compte aussi ce que la voisine a déjà rendu.
+ */
+async function collecteCozyDomaine(input: LiveSearchInput, echeance: number): Promise<CollecteCozy> {
+  const stations = stationsDuReleve(input);
+  if (stations.length === 1) return collecteCozy(input, echeance);
+  const lus = await parPaquets(stations, COZY_SIMULTANEES, (st) => collecteCozy(st, echeance));
+  const faites = lus.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+  lus.forEach((r, i) => {
+    if (r.status === "rejected") console.warn(`[scrape] Cozy ${stations[i].stationName} échec: ${raisonDe(r)}`);
+  });
+  if (faites.length === 0) throw (lus[0] as PromiseRejectedResult).reason;
+  const arrets: CollecteCozy["arrets"] = {};
+  for (const p of ["airbnb", "abritel", "booking"] as const) {
+    // Un fournisseur n'est complet que s'il l'est partout ; une recherche en
+    // échec compte comme non interrogée.
+    const motifs = lus.map((r) => (r.status === "fulfilled" ? r.value.arrets[p] : undefined));
+    if (motifs.some((m) => m == null)) continue;
+    arrets[p] = motifs.includes("échéance") ? "échéance" : motifs[0];
+  }
+  return { payloads: faites.flatMap((c) => c.payloads), annonces: {}, arrets };
+}
+
 /**
  * Une promesse bornée par un instant : au-delà, elle échoue avec `quoi`.
  *
@@ -202,7 +240,7 @@ async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], li
   const t0 = Date.now();
   const echeance = t0 + ECHEANCE_PART_MS;
   const [cozy, direct] = await Promise.allSettled([
-    avant(collecteCozy(input, echeance), echeance + MARGE_COZY_MS, "CozyCozy"),
+    avant(collecteCozyDomaine(input, echeance), echeance + MARGE_COZY_MS, "CozyCozy"),
     scrapeAirbnbDetailed(input, { echeance }),
   ]);
   const viaCozy = cozy.status === "fulfilled" ? cozyListings(cozy.value.payloads, input, "Airbnb") : [];
@@ -260,7 +298,7 @@ async function releverCozy(input: LiveSearchInput, reports: SourceReport[], list
   const t0 = Date.now();
   const echeance = t0 + ECHEANCE_PART_MS;
   const { payloads, annonces, arrets } = await avant(
-    collecteCozy(input, echeance),
+    collecteCozyDomaine(input, echeance),
     echeance + MARGE_COZY_MS,
     "CozyCozy",
   );
@@ -310,12 +348,38 @@ async function runAirbnb(input: LiveSearchInput): Promise<LiveSearchResult> {
   return { listings: locate(input, listings), sources: reports };
 }
 
+/** Les recherches Gîtes de France d'un grand domaine qui partent en même temps, au plus. */
+const GITES_SIMULTANEES = 3;
+
+/**
+ * Gîtes de France cherche par commune : la station, puis chaque station
+ * reliée qui a la sienne (`domaine.ts`), une fois par commune. La station
+ * cherchée part toujours, même sans commune : son échec dit pourquoi.
+ */
+async function releverGites(open: () => Promise<Page>, input: LiveSearchInput): Promise<Listing[]> {
+  const communes = new Set<string>();
+  const stations = stationsDuReleve(input).filter((st) => {
+    const towns = communeGites(st.stationId)?.towns;
+    if (!towns) return st === input;
+    if (communes.has(towns)) return false;
+    communes.add(towns);
+    return true;
+  });
+  if (stations.length === 1) return scrapeGites(await open(), stations[0]);
+  const lus = await parPaquets(stations, GITES_SIMULTANEES, async (st) => scrapeGites(await open(), st));
+  lus.forEach((r, i) => {
+    if (r.status === "rejected") console.warn(`[scrape] Gîtes de France ${stations[i].stationName} échec: ${raisonDe(r)}`);
+  });
+  if (lus.every((r) => r.status === "rejected")) throw (lus[0] as PromiseRejectedResult).reason;
+  return sansDoublons(lus.flatMap((r) => (r.status === "fulfilled" ? r.value : [])));
+}
+
 async function runGites(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
   try {
     await withBrowser(async (open) => {
-      await recordInto(reports, listings, "Gîtes de France", async () => scrapeGites(await open(), input));
+      await recordInto(reports, listings, "Gîtes de France", () => releverGites(open, input));
     });
   } catch (err) {
     failAll(reports, GITES_SOURCES, err);
@@ -355,21 +419,43 @@ async function runCentrales(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
   const t0 = Date.now();
-  try {
-    const res = await chercherCentrale(input);
+  // Sur un grand domaine, la centrale de chaque station reliée aussi
+  // (`domaine.ts`), une fois par centrale : celle de La Plagne sert aussi
+  // Montchavin et Champagny. La station cherchée part toujours, même sans
+  // centrale : sa raison dit pourquoi.
+  const hotes = new Set<string>();
+  const stations = stationsDuReleve(input).filter((st) => {
+    const host = ficheCentrale(st.stationId)?.host;
+    if (!host) return st === input;
+    if (hotes.has(host)) return false;
+    hotes.add(host);
+    return true;
+  });
+  const lus = await Promise.allSettled(stations.map((st) => chercherCentrale(st)));
+  const faites = lus.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+  for (const r of faites) console.info(`[centrale] ${r.nom ?? "aucune"} ${r.listings.length} en ${Date.now() - t0}ms`);
+  const echecs = lus.flatMap((r) => {
+    const raison = raisonDe(r);
+    if (raison) console.warn(`[centrale] échec: ${raison}`);
+    return raison ? [raison] : [];
+  });
+  if (faites.length === 0) {
+    reports.push({ source: "Centrale", ok: false, count: 0, ms: Date.now() - t0, error: echecs.join(" · ") });
+  } else {
+    const interrogees = faites.filter((r) => r.interrogee);
+    // Une station sans centrale ne parle pas pour une voisine qui en a une.
+    const raisons = [...(interrogees.length ? interrogees : faites).map((r) => r.raison), ...echecs].filter(
+      (r): r is string => Boolean(r),
+    );
+    const rows = sansDoublons(faites.flatMap((r) => r.listings));
     reports.push({
       source: "Centrale",
-      ok: res.interrogee,
-      count: res.listings.length,
+      ok: interrogees.length > 0,
+      count: rows.length,
       ms: Date.now() - t0,
-      ...(res.raison ? { error: res.raison } : {}),
+      ...(raisons.length ? { error: raisons.join(" · ") } : {}),
     });
-    listings.push(...res.listings);
-    console.info(`[centrale] ${res.nom ?? "aucune"} ${res.listings.length} en ${Date.now() - t0}ms`);
-  } catch (err) {
-    const error = err instanceof Error ? err.message : String(err);
-    reports.push({ source: "Centrale", ok: false, count: 0, ms: Date.now() - t0, error });
-    console.warn(`[centrale] échec: ${error}`);
+    listings.push(...rows);
   }
   applyDump(input, reports, listings, new Set(CENTRALE_SOURCES));
   return { listings: locate(input, listings), sources: reports };
@@ -390,7 +476,7 @@ async function runGreenGo(input: LiveSearchInput): Promise<LiveSearchResult> {
     pushReport(reports, listings, "GreenGo", r.listings, Date.now() - t0, {
       note: notes(
         r.hotes != null
-          ? `${r.hotes} hôtes réservables à 6 km, ${r.ecartes} écartés (camping, hôtel, chambres d'hôtes), ${r.detailles} lus en détail`
+          ? `${r.hotes} hôtes réservables à 6 km${stationsDuReleve(input).length > 1 ? " des stations du domaine" : ""}, ${r.ecartes} écartés (camping, hôtel, chambres d'hôtes), ${r.detailles} lus en détail`
           : null,
         r.raison && `arrêté en route — ${r.raison}`,
       ),
@@ -413,18 +499,43 @@ async function runAgences(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
   const echeance = Date.now() + ECHEANCE_PART_MS;
+  // Sur un grand domaine, chaque agence relève aussi les stations reliées où
+  // elle a des lieux (`domaine.ts`), l'une après l'autre sur son site, la
+  // station cherchée d'abord.
   await Promise.all(
-    agencesDe(input.stationId).map(async (source) => {
+    [...agencesDuReleve(input)].map(async ([source, stations]) => {
       const t0 = Date.now();
-      try {
-        const r = await collecteurDe(source)(input, { echeance });
-        pushReport(reports, listings, source, r.listings, Date.now() - t0, {
-          annoncees: r.annoncees ?? null,
-          note: notes(r.note, r.raison && `arrêté en route — ${r.raison}`),
-        });
-      } catch (err) {
-        failAll(reports, [source], err);
+      const rows: Listing[] = [];
+      const dits: (string | undefined)[] = [];
+      const echecs: unknown[] = [];
+      let annoncees: number | null = 0;
+      const nommer = (st: LiveSearchInput, texte: string) => (stations.length > 1 ? `${st.stationName} : ${texte}` : texte);
+      for (const st of stations) {
+        if (Date.now() >= echeance) {
+          dits.push(nommer(st, "non relevée, échéance atteinte"));
+          annoncees = null;
+          continue;
+        }
+        try {
+          const r = await collecteurDe(source)(st, { echeance });
+          rows.push(...r.listings);
+          annoncees = annoncees != null && r.annoncees != null ? annoncees + r.annoncees : null;
+          const dit = notes(r.note, r.raison && `arrêté en route — ${r.raison}`);
+          if (dit) dits.push(nommer(st, dit));
+        } catch (err) {
+          echecs.push(err);
+          annoncees = null;
+          dits.push(nommer(st, `échec — ${err instanceof Error ? err.message : String(err)}`));
+        }
       }
+      if (echecs.length === stations.length) {
+        failAll(reports, [source], echecs[0]);
+        return;
+      }
+      pushReport(reports, listings, source, sansDoublons(rows), Date.now() - t0, {
+        annoncees,
+        note: notes(...dits),
+      });
     }),
   );
   return { listings: locate(input, listings), sources: reports };
@@ -436,7 +547,7 @@ async function runBrowser(input: LiveSearchInput): Promise<LiveSearchResult> {
   try {
     await withBrowser(async (open) => {
       await Promise.all([
-        recordInto(reports, listings, "Gîtes de France", async () => scrapeGites(await open(), input)),
+        recordInto(reports, listings, "Gîtes de France", () => releverGites(open, input)),
         releverAirbnb(input, reports, listings),
         releverCozy(input, reports, listings),
       ]);
@@ -481,7 +592,7 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
     borne(runCozy(input), COZY_SOURCES),
     borne(runCentrales(input), CENTRALE_SOURCES),
     borne(runGreenGo(input), GREENGO_SOURCES),
-    borne(runAgences(input), agencesDe(input.stationId)),
+    borne(runAgences(input), [...agencesDuReleve(input).keys()]),
   ]);
   return {
     listings: locate(input, parts.flatMap((p) => p.listings)),
@@ -519,7 +630,9 @@ export function dureeCache(part: SearchPart, result: LiveSearchResult): number {
 const inflight = new Map<string, Promise<LiveSearchResult>>();
 
 function cacheKey(input: LiveSearchInput, part: SearchPart): string {
-  return [CACHE_GEN, part, input.stationId, input.checkIn, input.checkOut, input.guests, input.bedrooms].join("|");
+  // Le relevé d'un grand domaine n'est pas celui de la station seule.
+  const domaine = stationsDuReleve(input).length > 1 ? "domaine" : "";
+  return [CACHE_GEN, part, input.stationId, input.checkIn, input.checkOut, input.guests, input.bedrooms, domaine].join("|");
 }
 
 /**

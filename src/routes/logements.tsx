@@ -11,7 +11,7 @@
  *  recherche. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
@@ -27,6 +27,9 @@ import { FourchetteRecherche } from "@/components/v7/FourchettesRecherche";
 import { SensTri } from "@/components/v7/SensTri";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
 import { partagerParBornes, type Bornes } from "@/lib/carte";
+import { grandDomaineDe } from "@/lib/grandsDomaines";
+import { RATTACHEMENT_MAX_KM } from "@/lib/villages";
+import { rangerParStation, stationDuLogement } from "@/lib/stay/parStation";
 import { aTraduire, dire, langue, tr, trN } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
@@ -38,11 +41,9 @@ import { completudeOf } from "@/lib/stay/completude";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
   distFiltrableM,
-  distanceRayonM,
   DIST_PALIERS_M,
+  geoReasonFor,
   gpsPrecis,
-  horsRayon,
-  lieuReasonFor,
   normalizedBedrooms,
   RAYON_DEFAUT_KM,
   RAYON_MAX_KM,
@@ -65,7 +66,7 @@ import {
 import { echecLbl, mentionForfait } from "@/lib/forfaits/prixSejour";
 import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { agencesDe } from "@/lib/scrape/agences/couverture";
+import { agencesDuReleve } from "@/lib/scrape/domaine";
 import { partyLabel } from "@/lib/stay/party";
 import {
   searchStay,
@@ -78,7 +79,6 @@ import {
 } from "@/lib/searchStay";
 import { airbnbComplet, plausible } from "@/lib/stay/priseFiche";
 import { stationById, type Station } from "@/lib/stations";
-import { stationDeRattachement } from "@/lib/villages";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
@@ -89,7 +89,6 @@ import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
-import { dedoublonnerParBien } from "@/lib/stay/poserReleve";
 import {
   altLbl,
   aStation,
@@ -187,7 +186,7 @@ function borneLbl(k: (typeof RANGES)[number]["k"]): (v: number) => string {
   return (v) => (k === "rooms" && v === 0 ? tr("Studio") : `${fmt(v)} ${tr(RANGE[k].unit)}`);
 }
 
-/** L'échelle du périmètre : du centre de la station à 12 km (`RAYON_MAX_KM`). */
+/** L'échelle du périmètre : du centre de la station à 50 km. */
 const ECHELLE_RAYON: Echelle = [0, RAYON_MAX_KM];
 
 /** « jusqu'à 12 km », « de 2 à 12 km » : le périmètre n'est jamais indifférent. */
@@ -374,7 +373,15 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           } else if (part === "agences") {
             mergeLive(
               [],
-              agencesDe(station.id).map((source) => ({ source, ok: false, count: 0, ms: 0, error })),
+              // Celles de la station et de ses stations reliées : l'écran
+              // relève tout le grand domaine (`scrape/domaine.ts`).
+              [...agencesDuReleve({ ...payload, domaine: true }).keys()].map((source) => ({
+                source,
+                ok: false,
+                count: 0,
+                ms: 0,
+                error,
+              })),
             );
           } else {
             mergeLive(
@@ -459,12 +466,7 @@ type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: bo
 function Logements() {
   const go = useGo();
   const P = useParcours();
-  // Un village de station (Lanslebourg, Plagne Centre…) n'a pas de logements
-  // à lui : ils sont ceux de sa station, listés une seule fois, sous elle
-  // (`villages.ts`, `stay/rattachement.ts`). L'écran cherche et liste donc
-  // ceux de la station, et le dit.
-  const retenue = P.stationId ? stationById(P.stationId) : undefined;
-  const s = retenue ? stationById(stationDeRattachement(retenue.id)) : undefined;
+  const s = P.stationId ? stationById(P.stationId) : undefined;
 
   // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
   // L'état est relu dans le magasin : au premier rendu du navigateur, le
@@ -484,7 +486,7 @@ function Logements() {
       </Coquille>
     );
   }
-  return <LogementsStation s={s} villageDe={retenue && retenue.id !== s.id ? retenue : undefined} />;
+  return <LogementsStation s={s} />;
 }
 
 /**
@@ -508,7 +510,7 @@ function useReleveVisible(searching: boolean): boolean {
 }
 
 /** La ligne d'état du bloc collant, à la place du compteur. */
-function LigneReleve({ sources, trouves = 0 }: { sources: string[]; trouves?: number }) {
+function LigneReleve({ trouves = 0 }: { trouves?: number }) {
   return (
     <div className="rech7" aria-busy="true">
       <span className="rech7__points" aria-hidden="true">
@@ -521,7 +523,6 @@ function LigneReleve({ sources, trouves = 0 }: { sources: string[]; trouves?: nu
           ? trN(trouves, "{n} logement, recherche en cours…", "{n} logements, recherche en cours…")
           : tr("Recherche de logements disponibles…")}
       </span>
-      {sources.length ? <span className="rech7__sources">{sources.join(" · ")}</span> : null}
     </div>
   );
 }
@@ -565,7 +566,7 @@ function Squelettes({ n }: { n: number }) {
   );
 }
 
-function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station }) {
+function LogementsStation({ s }: { s: Station }) {
   const go = useGo();
   const P = useParcours();
   const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
@@ -577,8 +578,11 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
   const setStay = useStay((x) => x.setStay);
   // Le relevé entier de la station : la capacité s'applique plus bas, en
   // toutes lettres, pour que l'état vide puisse dire ce qu'elle a écarté.
-  const frozen = useMemo(() => listingsForStay(s.id, 1, 0).map(enrichirListing), [s.id]);
-  const dumpGps = useDumpComplet(s.id, checkIn, checkOut, trav);
+  const frozen = useMemo(
+    () => (P.stationId ? listingsForStay(P.stationId, 1, 0) : []).map(enrichirListing),
+    [P.stationId],
+  );
+  const dumpGps = useDumpComplet(P.stationId ?? undefined, checkIn, checkOut, trav);
   useLiveSearch(s, dumpGps ?? frozen);
   const raw = useMemo(() => {
     const dump = dumpGps ?? frozen;
@@ -588,10 +592,7 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
       rows = [...dump.filter((l) => !reported.has(l.source)), ...liveListings];
       if (reported.has("Gîtes de France")) rows = conserverDevisGites(dump, rows);
     }
-    // Le relevé figé et le direct peuvent porter le même bien : une fois.
-    const lignes = dedoublonnerParBien(
-      rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l)),
-    );
+    const lignes = rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
     // Airbnb dont la page a été lue sans point : celui du même logement relevé
     // sur une autre source, repris tel quel (`jumelageGpsAirbnb`), et son
     // accès aux pistes mesuré depuis ce point.
@@ -660,7 +661,7 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
   /** Pose une borne d'une fourchette de l'écran, depuis l'état courant. */
   const poserLf = (k: (typeof RANGES)[number]["k"], which: 0 | 1, v: number, exact: boolean) =>
     setLf((x) => ({ ...x, [k]: poserBorne(x[k], RANGE[k].b, RANGE[k].pas, which, v, exact) }));
-  /** Le périmètre ne se retire pas : couvrir toute l'échelle, c'est 12 km, et
+  /** Le périmètre ne se retire pas : couvrir toute l'échelle, c'est 50 km, et
    *  sa borne haute ne descend pas sous le kilomètre. */
   const poserRayon = (which: 0 | 1, v: number, exact: boolean) =>
     setLf((x) => {
@@ -725,17 +726,6 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
       },
       fixed: true,
     });
-  // Un logement n'est listé que sous sa station (`lieuReasonFor`,
-  // `stay/rattachement.ts`) : ceux d'une station voisine, reliée ou non, sont
-  // sous elle ; ceux à plus de 12 km de toute station, nulle part. Il écarte
-  // aussi un gîte que son département dit ailleurs. Toujours appliqué, il ne
-  // se règle pas. Le rayon, lui, ne juge que la distance.
-  lp.push({
-    id: "station",
-    label: tr("Dans la station"),
-    fn: (l) => lieuReasonFor(l, s.dept, s.id) == null,
-    fixed: true,
-  });
   // La zone est toujours appliquée : une recherche de logements a toujours un
   // périmètre. Son rayon se règle dans le panneau, il ne se retire pas. Une
   // borne basse écarte aussi ce qui est trop près du centre, et ce dont la
@@ -747,12 +737,9 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
       rayonMin > 0
         ? tr("Entre {min} et {max} km", { min: fmt(rayonMin), max: fmt(rayonMax) })
         : tr("Rayon de {max} km", { max: fmt(rayonMax) }),
-    fn: (l) => {
-      if (horsRayon(l, rayonMax)) return false;
-      if (rayonMin <= 0) return true;
-      const m = distanceRayonM(l);
-      return m != null && m >= rayonMin * 1000;
-    },
+    fn: (l) =>
+      geoReasonFor(l, rayonMax, s.dept) == null &&
+      (rayonMin <= 0 || (l.distToSlopesM != null && l.distToSlopesM >= rayonMin * 1000)),
     fixed: true,
   });
   lp.push({
@@ -891,7 +878,26 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
   // restent : ils n'ont pas de cadre, la carte ne peut ni les montrer ni les
   // cacher.
   const parCadre = partagerParBornes(principales, bornes);
-  const affichees = parCadre.visibles;
+  // Sur un grand domaine relié, les logements se rangent par station : la
+  // station cherchée d'abord, puis ses voisines (`parStation.ts`).
+  const domaineRelie = grandDomaineDe(s.id);
+  const nomStation = (id: string) => stationById(id)?.name ?? id;
+  const affichees = domaineRelie ? rangerParStation(parCadre.visibles, s.id, nomStation) : parCadre.visibles;
+  // Les logements rattachés à aucune station, et pourquoi (`rattachement.ts`).
+  // Ils ne sont pas dans la liste : rien ne prouve qu'ils soient ici.
+  const nonRattaches = raw.filter((l) => l.domainFit === "unknown" && l.nonRattache);
+  const nTropLoin = nonRattaches.filter((l) => l.nonRattache === "trop-loin").length;
+  const nSansLieu = nonRattaches.length - nTropLoin;
+  const motifsNonRattaches = [
+    nTropLoin
+      ? trN(nTropLoin, "{n} à plus de {km} km de toute station", "{n} à plus de {km} km de toute station", {
+          km: RATTACHEMENT_MAX_KM,
+        })
+      : null,
+    nSansLieu ? trN(nSansLieu, "{n} sans position ni lieu reconnu", "{n} sans position ni lieu reconnu") : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   // La page en cours. On revient à la première quand le cadre, les filtres ou
   // le tri changent : la page 7 d'une autre liste ne désigne rien.
   const nPages = Math.max(1, Math.ceil(affichees.length / PAGE_LOGEMENTS));
@@ -964,9 +970,6 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
     // Seul le rayon est dans le panneau ; capacité, chambres et dates viennent
     // du séjour, et la position GPS ne se règle nulle part.
     const reglage: Record<string, string> = {
-      station: tr(
-        "Les logements d’une station voisine sont listés sous leur propre station ; ceux à plus de 12 km de toute station ne le sont nulle part.",
-      ),
       zone: tr("Élargissez le rayon dans les filtres."),
       cap: tr("Réduisez le nombre de voyageurs du séjour."),
       rooms: tr("Réduisez le nombre de chambres du séjour."),
@@ -1216,14 +1219,6 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
             <div className="v7tete v7tete--titre">
               <span className="v7surtitre">{tr("Étape 2")}</span>
               <h1>{tr("Logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })}</h1>
-              {villageDe && (
-                <p>
-                  {tr("{village} est un village de {station} : ses logements sont ceux de la station.", {
-                    village: villageDe.name,
-                    station: s.name,
-                  })}
-                </p>
-              )}
             </div>
             <div className="sejour7">
               <button
@@ -1351,7 +1346,7 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
                 ) : null}
                 <span className="filtres7__espace" />
                 {enReleve ? (
-                  <LigneReleve sources={liveSources.map((x) => x.source)} trouves={dejaLus.length} />
+                  <LigneReleve trouves={dejaLus.length} />
                 ) : (
                 <span className="filtres7__compte">
                   {logements.length === 0
@@ -1359,6 +1354,11 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
                     : `${trN(logements.length, "{n} logement disponible", "{n} logements disponibles")}${
                         lvis.length > logements.length ? ` · ${trN(lvis.length, "{n} offre", "{n} offres")}` : ""
                       }`}
+                  {nonRattaches.length
+                    ? ` · ${trN(nonRattaches.length, "{n} non rattaché ({motifs})", "{n} non rattachés ({motifs})", {
+                        motifs: motifsNonRattaches,
+                      })}`
+                    : ""}
                 </span>
                 )}
                 <select className="select7" value={lsort} onChange={(e) => choisirTri(e.target.value as LodgeSort)}>
@@ -1494,7 +1494,7 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
             /* Premier relevé : pas encore de barre de filtres, mais l'écran
                doit dire qu'il travaille. */
             <div className="filtres7__barre">
-              <LigneReleve sources={liveSources.map((x) => x.source)} />
+              <LigneReleve />
             </div>
           ) : null}
           {enReleve ? <span className="rech7__jauge" aria-hidden="true" /> : null}
@@ -1513,7 +1513,24 @@ function LogementsStation({ s, villageDe }: { s: Station; villageDe?: Station })
               ) : affichees.length ? (
                 <>
                 <div className="grille7-2">
-                  {pageItems.map(carte)}
+                  {domaineRelie
+                    ? pageItems.map((l, i) => {
+                        const st = stationDuLogement(l, s.id);
+                        const avant = i > 0 ? stationDuLogement(pageItems[i - 1]!, s.id) : null;
+                        const n = affichees.filter((x) => stationDuLogement(x, s.id) === st).length;
+                        return (
+                          <Fragment key={l.id}>
+                            {st !== avant ? (
+                              <h3 className="grille7-2__station">
+                                {nomStation(st)}
+                                <span>{trN(n, "{n} logement", "{n} logements")}</span>
+                              </h3>
+                            ) : null}
+                            {carte(l)}
+                          </Fragment>
+                        );
+                      })
+                    : pageItems.map(carte)}
                 </div>
                 {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
                 </>

@@ -8,6 +8,7 @@
 
 import { attachAccess } from "./access";
 import type { DomainVerdict } from "./domainFit";
+import type { MotifNonRattache, ViaRattachement } from "./rattachement";
 import type { SourceAgence } from "./scrape/agences/couverture";
 import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
@@ -18,12 +19,13 @@ import { langueIntl } from "./i18n/langue.ts";
 export type Listing = {
   id: string;
   /**
-   * La station **du relevé** : celle que la recherche a interrogée, et sous
-   * laquelle l'annonce est rangée (clé du relevé, cache). Ce n'est pas la
-   * station du logement : celle-là se calcule, toujours à jour, par
-   * `rattacher` (`stay/rattachement.ts`), et l'annonce n'est montrée que si
-   * les deux concordent (`geoReasonFor`). Elle n'est pas stockée, pour ne pas
-   * vieillir quand la position change.
+   * **La station du relevé** : celle qu'on a cherchée, que le collecteur
+   * recopie de sa requête (`input.stationId`) et qui range l'annonce dans le
+   * relevé de cette station. Ce n'est **pas** la station du logement : un
+   * logement de Peisey relevé en cherchant Les Arcs porte « les-arcs-… » ici,
+   * et la sienne dans `nearestDomainId` (`rattachement.ts`). Un relevé
+   * enregistré sous un ancien identifiant (village, doublon) se lit sous sa
+   * station (`stationById`).
    */
   stationId: string;
   title: string;
@@ -114,15 +116,19 @@ export type Listing = {
   liftLon?: number | null;
   liftOtherLat?: number | null;
   liftOtherLon?: number | null;
-  /**
-   * Information seulement : le domaine de la station cherchée contient-il le
-   * logement (`domainFit.ts`) ? Il ne décide plus de l'appartenance.
-   */
   domainFit?: DomainVerdict;
+  /** La station du logement (`rattachement.ts`) : par sa localité publiée, ses
+   *  coordonnées ou son texte. Recalculée à chaque relecture. */
   nearestDomainId?: string | null;
   nearestDomainName?: string | null;
   distToNearestDomainM?: number | null;
   winterBarrier?: string | null;
+  /** Le village de la table qui a rattaché le logement (`villages.ts`). */
+  villageId?: string | null;
+  /** La preuve du rattachement : localité publiée, coordonnées ou texte. */
+  rattachementVia?: ViaRattachement | null;
+  /** Pourquoi le logement n'est rattaché à aucune station (verdict `unknown`). */
+  nonRattache?: MotifNonRattache | null;
   searchedLiftM?: number | null;
   searchedLiftName?: string | null;
   /** Les autres photos de la tuile, dans l'ordre publié. `photo` reste la

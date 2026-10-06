@@ -18,8 +18,9 @@
  * elles.
  */
 
-import { stationsDuLibelle } from "./domaineStations.ts";
+import { stationsVoisines } from "./domaineStations.ts";
 import { stationById } from "./stations.ts";
+import { villagesDe } from "./villages.ts";
 import { CAMERAS, type Camera } from "./webcams.data.ts";
 
 export type Webcam = {
@@ -62,14 +63,19 @@ export function webcamsForStation(stationId: string): Webcam[] {
   if (!station) return [];
   const vues = new Set<string>();
   const propres: Webcam[] = [];
-  for (const c of CAMERAS[stationId] ?? []) {
+  // Les caméras de ses villages sont les siennes : la table les range sous
+  // l'identifiant du village (« plagne-centre »), qui n'est plus une station.
+  const cles = [station.id, ...villagesDe(station.id).map((v) => v.id)];
+  for (const c of cles.flatMap((k) => CAMERAS[k] ?? [])) {
     if (vues.has(c.url)) continue;
     vues.add(c.url);
     propres.push(versWebcam(c, null, false));
   }
   const partagees: Webcam[] = [];
-  for (const voisine of stationsDuLibelle(stationId, station.domain)) {
-    for (const c of CAMERAS[voisine.id] ?? []) {
+  for (const voisine of stationsVoisines(station.id)) {
+    for (const c of [voisine.id, ...villagesDe(voisine.id).map((v) => v.id)].flatMap(
+      (k) => CAMERAS[k] ?? [],
+    )) {
       if (vues.has(c.url)) continue;
       vues.add(c.url);
       partagees.push(versWebcam(c, voisine.name, true));

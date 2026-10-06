@@ -32,7 +32,8 @@ import { cleDuLogement, estFormuleForfait } from "./poserReleve.ts";
  * **Ce qui n'est jamais regroupé.** Un titre qu'une même plateforme porte deux
  * fois : c'est un type de logement (« Studio 2 personnes confort » dans une
  * résidence), pas un logement, et 154 titres l'étaient à Avoriaz. Deux offres
- * d'une même plateforme dans un même logement : ce sont deux logements. Et
+ * d'une même plateforme dans un même logement : ce sont deux logements, sauf
+ * les deux formules d'un même bien (preuve 0). Et
  * rien sur la seule proximité : les lots d'une résidence partagent un point.
  * Mieux vaut un doublon visible qu'un logement perdu dans un autre.
  */

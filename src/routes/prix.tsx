@@ -39,7 +39,7 @@ import { dansLesBornes, type Bornes as Cadre } from "@/lib/carte";
 import type { Listing } from "@/lib/listings";
 import { eur, groupLbl, useParcours, useSejour } from "@/lib/parcours";
 import { useAnnonces } from "@/lib/prix/annonces";
-import { resultatsALaLecture } from "@/lib/prix/migrationRattachement";
+import { resultatsALaLecture } from "@/lib/prix/recompte";
 import {
   annSub,
   autresBudget,
@@ -49,7 +49,7 @@ import {
   choisirDomaine,
   choisirMassif,
   choisirStation,
-  cleResultat,
+  cleDeLecture,
   comparateur,
   comparateurBudget,
   countBudget,
@@ -126,14 +126,11 @@ import {
   type Tri,
 } from "@/lib/prix/calcul";
 import { usePrix, type Course, type Onglet } from "@/lib/prix/releve";
+import { nomStationPropre, sourceEtLieu } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { todayIso } from "@/lib/stay/calendar";
 import { clampRooms, clampTravelers } from "@/lib/stay/party";
-import { type Station } from "@/lib/stations";
-// Les stations à logements : un village de station (Lanslebourg, Plagne
-// Centre…) n'a pas de médiane à lui, ses logements sont ceux de sa station
-// (`villages.ts`). L'écran ne liste, ne compte et ne relève que celles-là.
-import { STATIONS_A_LOGEMENTS } from "@/lib/villages";
+import { STATIONS, type Station } from "@/lib/stations";
 import { prixPin } from "@/lib/v7";
 import { useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
@@ -143,17 +140,17 @@ export const Route = createFileRoute("/prix")({ component: Prix });
 
 /* Le référentiel ne change pas pendant la vie de l'écran : bornes des
    curseurs, ordre des massifs et options de massif se calculent une fois. */
-const BORNES = bornesPlages(STATIONS_A_LOGEMENTS);
-const MASSIFS = ordreMassifs(STATIONS_A_LOGEMENTS);
+const BORNES = bornesPlages(STATIONS);
+const MASSIFS = ordreMassifs(STATIONS);
 const RANG_MASSIF: ReadonlyMap<string, number> = new Map(MASSIFS.map((m, i) => [m, i]));
-const NOMS: ReadonlyMap<string, string> = new Map(STATIONS_A_LOGEMENTS.map((s) => [s.id, s.name]));
+const NOMS: ReadonlyMap<string, string> = new Map(STATIONS.map((s) => [s.id, s.name]));
 /** Pour le choix de station et son jeton : deux « Praloup » s'y distinguent. */
-const NOMS_DISTINCTS: ReadonlyMap<string, string> = nomsDistincts(STATIONS_A_LOGEMENTS);
+const NOMS_DISTINCTS: ReadonlyMap<string, string> = nomsDistincts(STATIONS);
 const OPTIONS_MASSIF = [
-  { v: "", label: `Tous · ${STATIONS_A_LOGEMENTS.length}` },
+  { v: "", label: `Tous · ${STATIONS.length}` },
   ...MASSIFS.map((m) => ({
     v: m,
-    label: `${m} · ${STATIONS_A_LOGEMENTS.filter((s) => s.massif === m).length}`,
+    label: `${m} · ${STATIONS.filter((s) => s.massif === m).length}`,
   })),
 ];
 
@@ -168,7 +165,7 @@ const idVue = (o: Onglet) => `prix-vue-${o}`;
 /** Les départements du massif choisi, ou de tous, comptés dans ce même
  *  ensemble (Prix par station.dc.html:591). « Tous » n'a pas de compte. */
 function optionsDept(massifs: readonly string[]): { v: string; label: string }[] {
-  const pool = massifs.length > 0 ? STATIONS_A_LOGEMENTS.filter((s) => massifs.includes(s.massif)) : STATIONS_A_LOGEMENTS;
+  const pool = massifs.length > 0 ? STATIONS.filter((s) => massifs.includes(s.massif)) : STATIONS;
   const compte = new Map<string, number>();
   for (const s of pool) if (s.dept) compte.set(s.dept, (compte.get(s.dept) ?? 0) + 1);
   return [
@@ -199,11 +196,6 @@ function colonnes(nights: number): Colonne[] {
 function Prix() {
   const [monte, setMonte] = useState(false);
   useEffect(() => setMonte(true), []);
-  // Le re-rattachement des relevés enregistrés, piloté depuis la console
-  // (`skitrackRattachement.simuler()`, puis `appliquer({ confirmer: true })`).
-  useEffect(() => {
-    void import("@/lib/prix/migrationRattachement.client").then((m) => m.installerRattachement());
-  }, []);
   return (
     <Coquille>
       {monte ? (
@@ -542,7 +534,7 @@ function ChoixStation({ relevees }: { relevees: readonly Station[] }) {
   const domaine = usePrix((s) => s.fl.domaine);
   const station = usePrix((s) => s.fl.station);
   const majFl = usePrix((s) => s.majFl);
-  const domaines = useMemo(() => optionsDomaine(STATIONS_A_LOGEMENTS, massif, dept), [massif, dept]);
+  const domaines = useMemo(() => optionsDomaine(STATIONS, massif, dept), [massif, dept]);
   const stations = useMemo(
     () => optionsStation(relevees, { massif, dept, domaine, station }, NOMS_DISTINCTS),
     [relevees, massif, dept, domaine, station],
@@ -593,36 +585,24 @@ function PlageFiltre({ p }: { p: DefPlage }) {
 
 /**
  * Les résultats de ces dates et de ce groupe, **recomptés à la lecture**
- * (`resultatsALaLecture`), sans rien écrire : une médiane relevée avant la
- * règle d'une station par logement (6 octobre 2026) comptait les logements
- * des stations voisines, et un comparateur ne compare pas une telle médiane
- * à celle d'un relevé d'aujourd'hui. Chaque relevé se recompte sur ses seules
- * annonces, celles que l'onglet « Par budget » montre sous la même clé ; rien
- * n'y change de relevé. La migration (`skitrackRattachement.appliquer`) range
- * ailleurs ce qui doit l'être. Le temps de la lecture, les résultats
- * enregistrés.
+ * (`resultatsALaLecture`), sans rien écrire : chaque relevé sur ses seules
+ * annonces, celles que l'onglet « Par budget » montre sous la même clé. Le
+ * temps de la lecture, les résultats enregistrés.
  */
-function useResultatsRattaches(per: Periode, groupe: Groupe): Record<string, Resultat> {
+function useResultatsRecomptes(per: Periode, groupe: Groupe): Record<string, Resultat> {
   const res = usePrix((s) => s.res);
   const prefixe = `${perKey(per)}|${grpKey(groupe)}|`;
   const cles = useMemo(
-    () => Object.keys(res).filter((k) => k.startsWith(prefixe) && res[k].etat === "fait"),
+    () => Object.keys(res).filter((k) => k.startsWith(prefixe) && res[k]?.etat === "fait"),
     [res, prefixe],
   );
-  const { parCle, pret } = useAnnonces(cles);
-  return useMemo(() => {
-    if (!pret) return res;
-    const entrees = cles.flatMap((cle) => {
-      const annonces = parCle.get(cle);
-      return annonces ? [{ cle, annonces }] : [];
-    });
-    return resultatsALaLecture(entrees, res);
-  }, [pret, parCle, cles, res]);
+  const { parCle } = useAnnonces(cles);
+  return useMemo(() => resultatsALaLecture(parCle, res), [parCle, res]);
 }
 
 /** « Par station » : critères, relevé, tableau (Prix par station.dc.html:54-125). */
 function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
-  const res = useResultatsRattaches(per, groupe);
+  const res = useResultatsRecomptes(per, groupe);
   const course = usePrix((s) => s.course);
   const file = usePrix((s) => s.file);
   const lancer = usePrix((s) => s.lancer);
@@ -660,9 +640,9 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
 
   const lignes = useMemo(
     () =>
-      STATIONS_A_LOGEMENTS.map((s) => ({
+      STATIONS.map((s) => ({
         s,
-        l: ligne(s, res[cleResultat(per, groupe, s.id)] ?? null, {
+        l: ligne(s, res[cleDeLecture(res, per, groupe, s.id)] ?? null, {
           enCours: s.id === enCoursId,
           attente: enAttente.has(s.id),
         }),
@@ -743,7 +723,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
         </div>
         <div className="prix7__jetons">
           <span className="prix7__compte" ref={refCompte} tabIndex={-1}>
-            {countFl(filtrees.length, STATIONS_A_LOGEMENTS.length)}
+            {countFl(filtrees.length, STATIONS.length)}
           </span>
           {js.map((j) => (
             <button
@@ -943,12 +923,12 @@ function VueBudget({
   // stations retenues, élargir un critère faisait lire une clé neuve, et la
   // liste comme la carte disparaissaient le temps de la lecture.
   const relevees = useMemo(
-    () => STATIONS_A_LOGEMENTS.filter((s) => res[cleResultat(per, groupe, s.id)]?.etat === "fait"),
+    () => STATIONS.filter((s) => res[cleDeLecture(res, per, groupe, s.id)]?.etat === "fait"),
     [res, per, groupe],
   );
   const cles = useMemo(
-    () => relevees.map((s) => cleResultat(per, groupe, s.id)),
-    [relevees, per, groupe],
+    () => relevees.map((s) => cleDeLecture(res, per, groupe, s.id)),
+    [relevees, res, per, groupe],
   );
   const { parCle, pret, anciennes } = useAnnonces(cles);
   // Une fois la première lecture faite pour ces dates et ce groupe, l'écran ne
@@ -970,7 +950,7 @@ function VueBudget({
         (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
           a,
           stationId: s.id,
-          stationNom: s.name,
+          lieu: nomStationPropre(a),
         })),
       ),
     [relevees, cles, parCle],
@@ -982,9 +962,10 @@ function VueBudget({
     return tout.filter((c) => passent.has(c.stationId));
   }, [tout, relevees, fl]);
   // Dans l'ordre du référentiel : la carte se cadre sur elles, et un autre tri
-  // ne la recadre pas. Une annonce située ne passe que sous sa station ; une
-  // annonce non située sortie de deux relevés n'y figure qu'une fois, sous
-  // celle qui la mesure le plus près des remontées (`filtrerCartes`).
+  // ne la recadre pas. Une annonce située ne passe que sous sa station
+  // (`passeAnnonce`) ; une annonce non située sortie de deux relevés n'y figure
+  // qu'une fois, sous celle qui la mesure le plus près des remontées
+  // (`filtrerCartes`).
   const filtrees = useMemo(() => filtrerCartes(avant, fl, BORNES), [avant, fl]);
   // Un logement par carte, comme dans Logements : ses offres des autres
   // plateformes se rangent derrière la moins chère de celles qui passent, et
@@ -1047,8 +1028,8 @@ function VueBudget({
   const toutes = useMemo(
     () =>
       toutesALancer(
-        STATIONS_A_LOGEMENTS.map((s) => s.id),
-        (id) => res[cleResultat(per, groupe, id)]?.etat === "fait",
+        STATIONS.map((s) => s.id),
+        (id) => res[cleDeLecture(res, per, groupe, id)]?.etat === "fait",
         per,
         groupe,
         course,
@@ -1354,7 +1335,7 @@ function VueBudget({
               refCompte.current?.focus();
             }}
           >
-            {relToutesLbl(toutes.ids.length, STATIONS_A_LOGEMENTS.length, toutes.aNouveau)}
+            {relToutesLbl(toutes.ids.length, STATIONS.length, toutes.aNouveau)}
           </button>
         ) : (
           <span className="prix7__indice" role="status">
@@ -1450,7 +1431,7 @@ function VueBudget({
                       <CarteLogement
                         key={`${c.stationId}|${c.a.id}`}
                         l={c.a}
-                        sources={g ? sourcesBudget(g) : `${c.a.source} · ${c.stationNom}`}
+                        sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
                         autres={g ? autresBudget(g) : null}
                         retenu={r?.a.id ?? null}
                         retenuSource={r && r.a.id !== c.a.id ? r.a.source : null}
@@ -1500,7 +1481,7 @@ function VueBudget({
                 return (
                   <FicheEpingle
                     l={c.a}
-                    sources={g ? sourcesBudget(g) : `${c.a.source} · ${c.stationNom}`}
+                    sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
                     stay={stay}
                     trav={trav}
                     nights={nights}

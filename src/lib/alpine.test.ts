@@ -8,39 +8,50 @@ import {
   mapFilter,
 } from "./alpine.ts";
 import { STATIONS } from "./stations.ts";
+import { REPERES_REVUS, STATIONS_AJOUTEES } from "./villages.ts";
 
 describe("carte alpine + IGN", () => {
-  it("225 stations alpines FR, IGN RGE ALTI au pin pour celles du dépôt", () => {
+  it("156 stations alpines FR, IGN RGE ALTI au pin", () => {
     const rows = alpineStations();
     // 231 jusqu'au 26 septembre 2026 : Sainte-Foy Station, Saint-Pancrace les
     // Bottières et Lus-la-Croix-Haute (Alpes du Nord), « Praloup » au Sauze
     // (Alpes du Sud) doublaient une autre station (`IDS_RETIRES`). 227 jusqu'au
     // 30 septembre 2026 : Le Grand Puy (Alpes du Sud), fermé pour de bon, est
     // sorti sous ses deux identifiants (`seyne-les-alpes`, `le-grand-puy`).
-    assert.equal(rows.length, 225);
-    assert.equal(rows.filter((s) => s.massif === "Alpes du Nord").length, 164);
-    assert.equal(rows.filter((s) => s.massif === "Alpes du Sud").length, 61);
+    // 156 depuis le 5 octobre 2026 : une station est une fiche Skiinfo
+    // (`villages.ts`). Alpes du Nord : les 112 fiches de l'index Skiinfo, plus
+    // Sollières-Sardières, rangée sous la Savoie ; Alpes du Sud : 44 fiches,
+    // moins Le Grand Puy.
+    assert.equal(rows.length, 156);
+    assert.equal(rows.filter((s) => s.massif === "Alpes du Nord").length, 113);
+    assert.equal(rows.filter((s) => s.massif === "Alpes du Sud").length, 43);
     assert.ok(STATIONS.filter((s) => !isAlpine(s)).every((s) => !s.massif.startsWith("Alpes")));
     assert.equal(ign.source, "IGN RGE ALTI");
-    // Le classeur n’apporte pas de relevé IGN au pin : l’invariant ne vaut
-    // que pour les stations qui viennent du dépôt.
+    // Toutes ont une fiche Skiinfo et un relevé IGN au pin : celui du
+    // 9 septembre 2026 (`alt.ign.json`), sauf un repère revu le 5 octobre
+    // (`REPERES_REVUS`) ou une station ajoutée, relevés au nouveau point.
     const depot = rows.filter((s) => s.origin === "depot");
-    assert.equal(depot.length, 155);
+    assert.equal(depot.length, 156);
     for (const s of depot) {
-      assert.equal(s.demM, ign.m[s.id as keyof typeof ign.m], s.id);
+      const releve =
+        REPERES_REVUS[s.id]?.demM ??
+        STATIONS_AJOUTEES.find((a) => a.id === s.id)?.demM ??
+        ign.m[s.id as keyof typeof ign.m];
+      assert.equal(s.demM, releve, s.id);
       assert.ok(s.demM != null && s.demM > 400 && s.demM < 4000, s.id);
     }
-    assert.ok(rows.filter((s) => s.origin === "classeur").every((s) => s.demM == null));
   });
 
-  it("France entière : 313 pins, massifs hors Alpes présents", () => {
-    assert.equal(mapFilter(STATIONS, "all").length, 313);
-    assert.equal(mapFilter(STATIONS, "pyrenees").length, 40);
-    assert.equal(mapFilter(STATIONS, "jura").length, 13);
-    assert.equal(mapFilter(STATIONS, "vosges").length, 19);
-    // Espace Aubrac, en double de Laguiole, est sorti le 26 septembre 2026.
-    assert.equal(mapFilter(STATIONS, "central").length, 15);
-    assert.equal(mapFilter(STATIONS, "corse").length, 1);
+  it("France entière : 233 pins, massifs hors Alpes présents", () => {
+    // Les fiches de l'index Skiinfo par massif (5 octobre 2026), les quatre
+    // stations suisses que Skiinfo range dans « Jura » mises à part, plus Val
+    // d'Ese et Haut Asco, que Skiinfo cite sans fiche.
+    assert.equal(mapFilter(STATIONS, "all").length, 233);
+    assert.equal(mapFilter(STATIONS, "pyrenees").length, 35);
+    assert.equal(mapFilter(STATIONS, "jura").length, 9);
+    assert.equal(mapFilter(STATIONS, "vosges").length, 17);
+    assert.equal(mapFilter(STATIONS, "central").length, 13);
+    assert.equal(mapFilter(STATIONS, "corse").length, 3);
   });
 
   it("points IGN connus : 2 Alpes 1670, Val Thorens 2298, Chamonix 1036, Oz Poutran 1333, Isola 2028", () => {
@@ -62,7 +73,7 @@ describe("carte alpine + IGN", () => {
 
   it("GeoJSON : Valmeinier ≠ Valloire ; Oz n’est plus au Pic Blanc", () => {
     const fc = alpineFeatureCollection(mapFilter(STATIONS, "all"));
-    assert.equal(fc.features.length, 313);
+    assert.equal(fc.features.length, 233);
     const vt = fc.features.find((f) => f.properties?.id === "valmeinier")!;
     const vo = fc.features.find((f) => f.properties?.id === "valloire")!;
     const oz = fc.features.find((f) => f.properties?.id === "oz-en-oisans")!;
@@ -82,7 +93,9 @@ describe("carte alpine + IGN", () => {
         assert.equal(photo, null, id);
         continue;
       }
-      if (id === "larche" || id === "le-chazelet") {
+      // Larche et Le Chazelet : URL morte ; Sollières-Sardières, ajoutée le
+      // 5 octobre 2026, sans photo. Val d'Ese et Haut Asco ont la leur.
+      if (["larche", "le-chazelet", "sollieres-sardieres"].includes(id)) {
         assert.equal(photo, null, id);
         continue;
       }

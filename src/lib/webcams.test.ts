@@ -1,15 +1,22 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { stationsDuLibelle } from "./domaineStations.ts";
+import { stationsVoisines } from "./domaineStations.ts";
 import { STATIONS, stationById } from "./stations.ts";
+import { IDS_SANS_FICHE, villageById, villagesDe } from "./villages.ts";
 import { CAMERAS } from "./webcams.data.ts";
 import { webcamCoverage, webcamsForStation } from "./webcams.ts";
 
 const urls = (id: string) => webcamsForStation(id).map((c) => c.url);
 
 describe("table des webcams", () => {
-  it("ne nomme que des stations du référentiel", () => {
-    for (const id of Object.keys(CAMERAS)) assert.ok(stationById(id), id);
+  it("ne nomme que des stations, des villages ou des lignes retirées du référentiel", () => {
+    // La table est générée (`scripts/webcams/`) sur l'ancien référentiel :
+    // depuis le 5 octobre 2026, un village (« plagne-centre ») se lit sous sa
+    // station, et les caméras d'une ligne retirée faute de fiche Skiinfo ne
+    // s'affichent plus nulle part.
+    for (const id of Object.keys(CAMERAS)) {
+      assert.ok(stationById(id) || villageById(id) || IDS_SANS_FICHE.has(id), id);
+    }
   });
 
   it("au moins une caméra par station, sans doublon, en https", () => {
@@ -37,23 +44,31 @@ describe("webcams d'une station", () => {
   it("toutes les stations d'un même domaine proposent les mêmes caméras", () => {
     for (const s of STATIONS) {
       const attendu = [...urls(s.id)].sort();
-      for (const v of stationsDuLibelle(s.id, s.domain)) {
+      for (const v of stationsVoisines(s.id)) {
         assert.deepEqual([...urls(v.id)].sort(), attendu, `${s.id} et ${v.id}`);
       }
     }
   });
 
-  it("les caméras propres passent en tête, dans l'ordre de la table", () => {
-    for (const [id, cams] of Object.entries(CAMERAS)) {
-      const vues = webcamsForStation(id);
+  /** Les caméras d'une station dans la table : les siennes, puis celles de
+   *  ses villages (`villages.ts`), dans l'ordre de la table. */
+  const camerasDe = (id: string) =>
+    [id, ...villagesDe(id).map((v) => v.id)].flatMap((k) => CAMERAS[k] ?? []).map((c) => c.url);
+
+  it("les caméras propres passent en tête, dans l'ordre de la table, villages compris", () => {
+    for (const s of STATIONS) {
+      const vues = webcamsForStation(s.id);
       const propres = vues.filter((c) => !c.duDomaine).map((c) => c.url);
-      assert.deepEqual(propres, [...new Set(cams.map((c) => c.url))], id);
-      assert.deepEqual(vues.slice(0, propres.length).map((c) => c.url), propres, id);
+      assert.deepEqual(propres, [...new Set(camerasDe(s.id))], s.id);
+      assert.deepEqual(vues.slice(0, propres.length).map((c) => c.url), propres, s.id);
     }
+    // Aime 2000 est La Plagne : ses caméras sont celles de La Plagne.
+    assert.deepEqual(urls("aime-2000"), urls("la-plagne"));
+    assert.ok(urls("la-plagne").some((u) => u.endsWith("/Aime-2000")));
   });
 
   it("une station sans caméra propre montre celles de son domaine, et dit où elles sont", () => {
-    const sansPropre = STATIONS.filter((s) => !CAMERAS[s.id] && webcamsForStation(s.id).length > 0);
+    const sansPropre = STATIONS.filter((s) => camerasDe(s.id).length === 0 && webcamsForStation(s.id).length > 0);
     assert.ok(sansPropre.length > 0);
     for (const s of sansPropre) {
       for (const c of webcamsForStation(s.id)) {
@@ -82,6 +97,6 @@ describe("webcams d'une station", () => {
     const ids = STATIONS.map((s) => s.id);
     const c = webcamCoverage(ids);
     assert.equal(c.couvertes.length + c.sansCamera.length, ids.length);
-    assert.ok(c.couvertes.length >= Object.keys(CAMERAS).length);
+    assert.ok(c.couvertes.length >= STATIONS.filter((s) => camerasDe(s.id).length > 0).length);
   });
 });

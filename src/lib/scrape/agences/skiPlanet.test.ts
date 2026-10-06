@@ -321,8 +321,14 @@ describe("Ski-Planet : couverture", () => {
     assert.deepEqual(lieuxDe("Ski-Planet", "avoriaz"), ["avoriaz"]);
     assert.ok(agencesDe("avoriaz").includes("Ski-Planet"));
     assert.deepEqual(lieuxDe("Ski-Planet", "tignes"), ["tignes"]);
-    assert.deepEqual(lieuxDe("Ski-Planet", "tignes-le-lac"), []);
+    // Tignes Le Lac est un village de Tignes depuis le 5 octobre 2026
+    // (`villages.ts`) : il se lit sous sa station.
+    assert.deepEqual(lieuxDe("Ski-Planet", "tignes-le-lac"), ["tignes"]);
     assert.deepEqual(lieuxDe("Ski-Planet", "orelle"), ["orelle"]);
+    // Le site range Mottaret, Montalbert ou La Joue du Loup à part : leurs
+    // résidences s'ajoutent à celles de la station (`LIEUX_DISJOINTS`).
+    assert.deepEqual(lieuxDe("Ski-Planet", "meribel"), ["meribel", "meribel-mottaret"]);
+    assert.deepEqual(lieuxDe("Ski-Planet", "superdevoluy-la-joue-du-loup"), ["superdevoluy", "la-joue-du-loup"]);
   });
 });
 

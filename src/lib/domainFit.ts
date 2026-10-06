@@ -1,33 +1,50 @@
-/** Un logement n’appartient à un domaine que s’il y est vraiment, pas s’il est « à 5 km à vol d’oiseau ».
+/**
+ * Un logement n’appartient à un domaine que s’il y est vraiment, pas s’il est
+ * « à 5 km à vol d’oiseau ».
  *
- *  Depuis le 6 octobre 2026, ce verdict ne décide plus sous quelle station un
- *  logement est listé : c'est `rattacher` (`stay/rattachement.ts`), une
- *  station par logement, jamais le domaine. Le verdict reste une information
- *  (fiche du logement, choix de la remontée mesurée). */
+ * Le logement est d'abord rattaché à sa station (`rattachement.ts` : localité
+ * publiée, puis coordonnées, puis texte). Le verdict compare ensuite cette
+ * station à celle qu'on cherche : la même (`in`), une station du même grand
+ * domaine relié (`linked`, `grandsDomaines.ts`), une autre (`other`), ou aucune
+ * (`unknown`, logement non rattaché). Ni un forfait commercial ni un libellé de
+ * domaine OpenStreetMap ne relient deux stations : seule la table le fait,
+ * comme pour les voisines de `domaineStations.ts`.
+ */
 
-import { domaineNomme } from "./classeur.ts";
 import type { Listing } from "./listings.ts";
-import { metresBetween } from "./osmAccess.ts";
-import { domainForStation, FORFAIT_CATALOG } from "./forfaits/catalog.ts";
-import { STATIONS, stationById, type Station } from "./stations.ts";
+import { metresBetween } from "./remontees.ts";
+import { grandDomaineDe } from "./grandsDomaines.ts";
+import {
+  rattacher,
+  repereLePlusProche,
+  stationIdFromText,
+  stationsReliees,
+  type IndicesLieu,
+  type MotifNonRattache,
+  type ViaRattachement,
+} from "./rattachement.ts";
+import { stationById, type Station } from "./stations.ts";
 import { aStation } from "./v7.ts";
 import { langue } from "./i18n/langue.ts";
 import { tr } from "./i18n/tr.ts";
 
-export type GeoHint = {
-  lat?: number | null;
-  lon?: number | null;
-  title?: string;
-  locality?: string | null;
-  placeName?: string | null;
-};
+export { stationIdFromText };
+
+export type GeoHint = IndicesLieu;
 
 export type DomainVerdict = "in" | "linked" | "other" | "unknown";
 
 export type DomainFit = {
   searchedId: string;
+  /** La station du logement (`rattachement.ts`), pas forcément la plus proche
+   *  à vol d'oiseau : la localité publiée passe avant. */
   nearestStationId: string | null;
   nearestStationName: string | null;
+  /** Le village de la table qui a rattaché le logement, s'il y en a un. */
+  villageId: string | null;
+  via: ViaRattachement | null;
+  /** Pourquoi le logement n'est rattaché à rien (verdict `unknown`). */
+  motif: MotifNonRattache | null;
   distToSearchedPinM: number | null;
   distToNearestPinM: number | null;
   verdict: DomainVerdict;
@@ -44,86 +61,6 @@ const WINTER_BARRIERS: { a: string; b: string; col: string }[] = [
   { a: "tignes", b: "val-cenis", col: "col de l’Iseran" },
 ];
 
-/**
- * Libellés de domaine qui sont ceux d'un forfait commun, pas d'une liaison à
- * ski. « Espace Haute Maurienne Vanoise » réunit Aussois, Val Cenis, La Norma,
- * Valfréjus, Bessans et Bonneval-sur-Arc sous un même pass ; le propriétaire
- * l'a rappelé le 6 octobre 2026 : Aussois a son propre domaine, non relié à
- * Val Cenis. Deux stations distinctes sous ce libellé ne sont pas du même
- * domaine skiable. Que les autres paires (La Norma–Valfréjus, Bessans–Bonneval)
- * ne soient pas reliées non plus n'est pas vérifié dans le dépôt.
- */
-const LIBELLES_SANS_LIAISON = new Set(["Espace Haute Maurienne Vanoise"]);
-
-/** Le libellé ne nomme qu'un forfait commun (`LIBELLES_SANS_LIAISON`). */
-export function libelleSansLiaison(nom: string | null | undefined): boolean {
-  return nom != null && LIBELLES_SANS_LIAISON.has(nom);
-}
-
-/**
- * Stations qui portent le même libellé de domaine sans être reliées à ski.
- *
- * Le classeur range sous « Portes du Soleil (versant français) » tout le
- * versant, et `sameDomain` en concluait qu'un logement de Morzine est à
- * Abondance. OpenSkiMap fait d'Abondance une zone à part : aucune remontée ne
- * la relie à Morzine, les plus proches (Corne 2, Crusaz) sont à 8,7 km. Dans le
- * relevé d'Abondance du propriétaire, 76 annonces sur 130 avaient pour repère
- * le plus proche Morzine (38), Montriond (24), Avoriaz (8) ou
- * Saint-Jean-d'Aulps (6), et passaient « dans le domaine » ; « Appartement
- * Hermine – 4 personnes – Morzine », à 10,7 km, s'affichait « Airbnb ·
- * Abondance ». Sans elles, les logements retenus passent de 116 à 48, et leur
- * médiane de 6 492 à 4 186 € (audit du 26 septembre 2026).
- *
- * Seul le libellé commun est désavoué ici ; un lien de forfait (`linked`) ne
- * l'est que pour les paires que le propriétaire a déliées (`DELIEES`). La
- * règle « même domaine » ne change pas
- * pour les autres : 1 658 annonces l'utilisent, presque toutes à juste titre
- * (Paradiski, Tignes – Val d'Isère, Grand Massif).
- */
-const MEME_LIBELLE_NON_RELIEES: { a: string; b: string }[] = [
-  { a: "abondance", b: "morzine" },
-  { a: "abondance", b: "montriond" },
-  { a: "abondance", b: "avoriaz" },
-  { a: "abondance", b: "les-gets" },
-  { a: "abondance", b: "saint-jean-daulps" },
-];
-
-/** Hameaux / toponymes → station, jamais un autre versant. */
-const PLACE_ALIAS: Record<string, string> = {
-  "le fornet": "val-disere",
-  fornet: "val-disere",
-  "la daille": "val-disere",
-  "le laisinant": "val-disere",
-  tralenta: "bonneval-sur-arc",
-  "l ecot": "bonneval-sur-arc",
-  "l'ecot": "bonneval-sur-arc",
-  bonneval: "bonneval-sur-arc",
-  "bonneval sur arc": "bonneval-sur-arc",
-  "bonneval-sur-arc": "bonneval-sur-arc",
-  // Les altitudes de Courchevel : « Courchevel » seul est aussi la commune de
-  // La Tania (`stay/rattachement.ts`), « Courchevel 1850 » est la station.
-  "courchevel 1850": "courchevel",
-  "courchevel 1650": "courchevel-moriond-1650",
-  "courchevel moriond": "courchevel-moriond-1650",
-  "courchevel 1550": "courchevel-village-1550",
-  "courchevel village": "courchevel-village-1550",
-};
-
-const EXTRA_LINKED: string[][] = [
-  ["alpe-d-huez", "auris-en-oisans", "vaujany", "oz-en-oisans", "villard-reculas"],
-];
-
-function fold(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/['’]/g, " ")
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function barrierBetween(a: string, b: string): string | null {
   if (a === b) return null;
   for (const row of WINTER_BARRIERS) {
@@ -132,145 +69,19 @@ function barrierBetween(a: string, b: string): string | null {
   return null;
 }
 
-/**
- * Stations déliées par le propriétaire (26 septembre 2026) : ni le libellé
- * commun ni le forfait ne les réunissent. Abondance ne partage avec Châtel et
- * La Chapelle-d'Abondance que le forfait des Portes du Soleil, sans liaison à
- * ski directe : un relevé d'Abondance ne montre plus leurs logements.
- */
-const DELIEES: { a: string; b: string }[] = [
-  { a: "abondance", b: "chatel" },
-  { a: "abondance", b: "la-chapelle-dabondance" },
-];
-
-function dansLaListe(liste: readonly { a: string; b: string }[], a: string, b: string): boolean {
-  if (a === b) return false;
-  return liste.some((row) => (row.a === a && row.b === b) || (row.a === b && row.b === a));
-}
-
-/** Même libellé de domaine, mais aucune liaison à ski entre les deux. */
-export function memeLibelleNonReliees(a: string, b: string): boolean {
-  return dansLaListe(MEME_LIBELLE_NON_RELIEES, a, b) || dansLaListe(DELIEES, a, b);
-}
-
-/** Déliées par le propriétaire : pas même par le forfait (`DELIEES`). */
-export function stationsDeliees(a: string, b: string): boolean {
-  return dansLaListe(DELIEES, a, b);
-}
-
-let linkedCache: Map<string, Set<string>> | null = null;
-
-function linkedIndex(): Map<string, Set<string>> {
-  if (linkedCache) return linkedCache;
-  const groups: string[][] = [...EXTRA_LINKED];
-  const byPass = new Map<string, string[]>();
-  for (const d of FORFAIT_CATALOG) {
-    const ids = [...(d.stationIds ?? [])];
-    if (stationById(d.slug)) ids.push(d.slug);
-    if (d.pass) {
-      const cur = byPass.get(d.pass) ?? [];
-      cur.push(...ids);
-      byPass.set(d.pass, cur);
-    } else if (ids.length > 1) {
-      groups.push(ids);
-    }
-  }
-  for (const ids of byPass.values()) groups.push(ids);
-  for (const s of STATIONS) {
-    const d = domainForStation(s.id);
-    if (!d) continue;
-    const ids = [...(d.stationIds ?? []), d.slug, s.id].filter(Boolean);
-    groups.push(ids);
-  }
-  const map = new Map<string, Set<string>>();
-  const add = (id: string, other: string) => {
-    let set = map.get(id);
-    if (!set) {
-      set = new Set([id]);
-      map.set(id, set);
-    }
-    set.add(other);
-  };
-  for (const g of groups) {
-    // L'identifiant de la station, pas celui qu'on a demandé : un identifiant
-    // retiré (`IDS_RETIRES`) se résout vers la station gardée.
-    const ids = [...new Set(g.map((id) => stationById(id)?.id).filter((id): id is string => !!id))];
-    for (const a of ids) for (const b of ids) add(a, b);
-  }
-  linkedCache = map;
-  return map;
-}
-
+/** La station et celles de son grand domaine relié (`grandsDomaines.ts`). */
 export function linkedSkiStations(stationId: string): Set<string> {
-  return linkedIndex().get(stationId) ?? new Set([stationId]);
+  return new Set([stationId, ...(grandDomaineDe(stationId)?.stations ?? [])]);
 }
 
 export function winterBarrier(a: string, b: string): string | null {
   return barrierBetween(a, b);
 }
 
-export function nearestStationPin(
-  lat: number,
-  lon: number,
-): { station: Station; m: number } {
-  let best = STATIONS[0]!;
-  let bestM = metresBetween(lat, lon, best.lat, best.lon);
-  for (let i = 1; i < STATIONS.length; i++) {
-    const s = STATIONS[i]!;
-    const m = metresBetween(lat, lon, s.lat, s.lon);
-    if (m < bestM) {
-      best = s;
-      bestM = m;
-    }
-  }
-  return { station: best, m: Math.round(bestM) };
-}
-
-const NAME_IDS: { needle: string; id: string }[] = (() => {
-  const rows: { needle: string; id: string }[] = [];
-  for (const [alias, id] of Object.entries(PLACE_ALIAS)) {
-    rows.push({ needle: fold(alias), id });
-  }
-  for (const s of STATIONS) {
-    rows.push({ needle: fold(s.name), id: s.id });
-    rows.push({ needle: fold(s.id.replace(/-/g, " ")), id: s.id });
-  }
-  rows.sort((a, b) => b.needle.length - a.needle.length);
-  return rows;
-})();
-
-export function stationIdFromText(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  const hay = ` ${fold(raw)} `;
-  for (const row of NAME_IDS) {
-    if (row.needle.length < 5 && row.needle !== "fornet") continue;
-    if (hay.includes(` ${row.needle} `)) return row.id;
-  }
-  return null;
-}
-
-/**
- * Toutes les stations qu'un texte nomme, le nom le plus long d'abord ; un nom
- * lu masque ceux qu'il contient (« Courchevel 1850 » ne nomme pas aussi
- * « Courchevel »). Sert à reconnaître un doute : un titre qui nomme deux
- * stations n'en désigne aucune. Un nom qu'`ignorer` écarte (le nom nu d'une
- * commune partagée) masque, mais ne nomme pas.
- */
-export function stationsNommees(
-  raw: string | null | undefined,
-  ignorer: (nom: string) => boolean = () => false,
-): string[] {
-  if (!raw) return [];
-  let hay = ` ${fold(raw)} `;
-  const ids: string[] = [];
-  for (const row of NAME_IDS) {
-    if (row.needle.length < 5 && row.needle !== "fornet") continue;
-    const aiguille = ` ${row.needle} `;
-    if (!hay.includes(aiguille)) continue;
-    if (!ignorer(row.needle) && !ids.includes(row.id)) ids.push(row.id);
-    hay = hay.split(aiguille).join(" | ");
-  }
-  return ids;
+/** Le repère de station le plus proche, un village valant sa station. */
+export function nearestStationPin(lat: number, lon: number): { station: Station; m: number } {
+  const r = repereLePlusProche(lat, lon);
+  return { station: stationById(r.stationId)!, m: r.m };
 }
 
 export function domainFit(listing: GeoHint, searched: Station): DomainFit {
@@ -278,51 +89,62 @@ export function domainFit(listing: GeoHint, searched: Station): DomainFit {
     listing.lat != null && listing.lon != null
       ? Math.round(metresBetween(listing.lat, listing.lon, searched.lat, searched.lon))
       : null;
-  const gps =
-    listing.lat != null && listing.lon != null
-      ? nearestStationPin(listing.lat, listing.lon)
-      : null;
-  const textId = stationIdFromText(`${listing.locality ?? ""} ${listing.placeName ?? ""} ${listing.title}`);
-  const nearestId = gps?.station.id ?? textId;
-  const nearest = nearestId ? stationById(nearestId) : undefined;
+  const r = rattacher(listing);
+  const nearest = r.stationId ? stationById(r.stationId) : undefined;
   if (!nearest) {
     return {
       searchedId: searched.id,
       nearestStationId: null,
       nearestStationName: null,
+      villageId: null,
+      via: null,
+      motif: r.motif ?? "sans-lieu",
       distToSearchedPinM: pinM,
-      distToNearestPinM: null,
+      distToNearestPinM: r.distanceM,
       verdict: "unknown",
       winterBarrier: null,
     };
   }
   const col = barrierBetween(searched.id, nearest.id);
-  const linked =
-    !col && !stationsDeliees(searched.id, nearest.id) && linkedSkiStations(searched.id).has(nearest.id);
-  // Le classeur découpe les grands domaines en sous-stations (Arc 1600, Plagne
-  // Centre, Le Fornet…). Deux pins du même domaine skiable, sans col fermé
-  // entre eux, sont le même domaine — comparer les identifiants ne suffit plus.
-  // Un libellé qui ne nomme pas de domaine (`domaineNomme`) ne réunit rien, et
-  // un libellé commun sans liaison à ski non plus (`memeLibelleNonReliees`).
-  const sameDomain =
-    !col &&
-    domaineNomme(nearest.domain) &&
-    nearest.domain === searched.domain &&
-    !libelleSansLiaison(nearest.domain) &&
-    !memeLibelleNonReliees(searched.id, nearest.id);
   let verdict: DomainVerdict;
   if (nearest.id === searched.id) verdict = "in";
-  else if (linked) verdict = "linked";
-  else if (sameDomain) verdict = "in";
+  else if (!col && stationsReliees(searched.id, nearest.id)) verdict = "linked";
   else verdict = "other";
   return {
     searchedId: searched.id,
     nearestStationId: nearest.id,
     nearestStationName: nearest.name,
+    villageId: r.villageId,
+    via: r.via,
+    motif: null,
     distToSearchedPinM: pinM,
-    distToNearestPinM: gps?.m ?? null,
+    distToNearestPinM: r.distanceM,
     verdict,
     winterBarrier: col,
+  };
+}
+
+/** Ce que l'annonce garde du verdict : la station, la preuve, le motif. */
+export function champsDuVerdict(fit: DomainFit): Pick<
+  Listing,
+  | "domainFit"
+  | "nearestDomainId"
+  | "nearestDomainName"
+  | "distToNearestDomainM"
+  | "winterBarrier"
+  | "villageId"
+  | "rattachementVia"
+  | "nonRattache"
+> {
+  return {
+    domainFit: fit.verdict,
+    nearestDomainId: fit.nearestStationId,
+    nearestDomainName: fit.nearestStationName,
+    distToNearestDomainM: fit.distToNearestPinM,
+    winterBarrier: fit.winterBarrier,
+    villageId: fit.villageId,
+    rattachementVia: fit.via,
+    nonRattache: fit.motif,
   };
 }
 
@@ -345,21 +167,17 @@ export function inSearchedDomain(fit: DomainFit): boolean {
  * Comme `attachAccess`, une annonce sortie du domaine perd sa remontée : elle
  * n'est pas la sienne, et la distance se rabat sur le repère de la station
  * cherchée. Une annonce qui y entre la retrouve à la remesure
- * (`remesurerRemontee`), qui doit donc passer après. Sans position, rien n'est
- * rejugé : le texte seul a déjà tranché au relevé, et les annonces de l'ancien
- * format, sans position, gardent ce qu'elles avaient.
+ * (`remesurerRemontee`), qui doit donc passer après.
+ *
+ * Depuis le 5 octobre 2026, le rattachement lui-même se recalcule ici, à
+ * chaque relecture et sans migration : une annonce sans position est rejugée
+ * aussi, par sa localité et son texte (`rattachement.ts`). Un relevé fait
+ * avant la table des villages suit donc la table du jour.
  */
 export function rejugerDomaine<L extends Listing>(l: L, searched: Station | undefined): L {
-  if (!searched || l.lat == null || l.lon == null) return l;
+  if (!searched) return l;
   const fit = domainFit(l, searched);
-  const juge: L = {
-    ...l,
-    domainFit: fit.verdict,
-    nearestDomainId: fit.nearestStationId,
-    nearestDomainName: fit.nearestStationName,
-    distToNearestDomainM: fit.distToNearestPinM,
-    winterBarrier: fit.winterBarrier,
-  };
+  const juge: L = { ...l, ...champsDuVerdict(fit) };
   if (inSearchedDomain(fit)) return juge;
   return {
     ...juge,

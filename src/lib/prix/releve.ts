@@ -77,7 +77,6 @@ import {
   type Tri,
   type TriB,
 } from "./calcul";
-import { stationDeRattachement } from "../villages";
 
 export type Course = Job & {
   /** Stations déjà passées : l'indice de celle en cours. */
@@ -184,27 +183,6 @@ let arret: AbortController | null = null;
  * que la station suivante, qui l'attend, ne parte.
  */
 let stationEnVol: Promise<void> | null = null;
-/**
- * Fait tourner `faire` seul face aux relevés : sous le verrou que les onglets
- * se passent (`VERROU`), aucune course n'en cours ici, la station en vol
- * réglée — une course arrêtée peut encore écrire la sienne. Refuse si un
- * relevé tourne, ici ou dans un autre onglet. Pour la migration
- * (`migrationRattachement.client.ts`), qui réécrit les mêmes relevés.
- */
-export async function seulFaceAuxReleves<T>(faire: () => Promise<T>): Promise<T> {
-  const seul = async (): Promise<T> => {
-    if (usePrix.getState().course) throw new Error("un relevé est en cours dans cet onglet");
-    if (stationEnVol) await stationEnVol.catch(() => undefined);
-    return faire();
-  };
-  const verrous = typeof navigator === "undefined" ? undefined : navigator.locks;
-  if (!verrous) return seul();
-  return verrous.request(VERROU, { ifAvailable: true }, async (v) => {
-    if (!v) throw new Error("un relevé est en cours dans un autre onglet");
-    return seul();
-  });
-}
-
 /** Depuis quand Logements cherche (voir `attendreLogements`). */
 let chercheDepuis: number | null = null;
 /** Les fiches Airbnb de la course en vol : un refus ou une panne valent jusqu'à sa fin. */
@@ -697,12 +675,9 @@ export const usePrix = create<PrixStore>()(
       ...PAGES0,
       setPer: (p) =>
         set({ per: p ? { from: p.from, nights: bornerNuits(p.nights) } : null, ...PAGES0 }),
-      lancer: (demande) => {
+      lancer: (job) => {
         // La boucle ne tourne que dans le navigateur.
         if (typeof window === "undefined") return;
-        // Un village de station se relève sous sa station (`villages.ts`) : ses
-        // logements sont les siens, et sa clé ne serait lue nulle part.
-        const job = { ...demande, ids: [...new Set(demande.ids.map(stationDeRattachement))] };
         const { course, file } = get();
         if (job.ids.length === 0 || dejaPrevu(job, course, file)) return;
         // Des dates passées : rien à louer, et le créneau Airbnb est compté.

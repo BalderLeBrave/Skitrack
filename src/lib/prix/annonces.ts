@@ -10,11 +10,12 @@
  */
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { nearestLiftDe } from "../access";
+import { rejugerDomaine } from "../domainFit";
 import type { Listing } from "../listings";
 import { stationById } from "../stations";
 import { passerLaPorte } from "../stay/porte";
 import type { AvecCompletude } from "../stay/statut";
-import { rejugerPourStation, stationDeCle, versListing, type AnnonceRetenue } from "./calcul";
+import { remesurerRemontee, stationDeCle, versListing, type AnnonceRetenue } from "./calcul";
 import { migrerAnnonces } from "./migrationAnnonces";
 
 const BASE = "skitrack-prix";
@@ -184,10 +185,7 @@ function annoncesLues(v: unknown, cle: string): AnnonceRetenue[] | null {
   return v.flatMap((a) => {
     const l = versListing(a, stationId);
     if (!l) return [];
-    // Rejugée pour la station du relevé (`rejugerPourStation`) : un logement
-    // de Bramans relevé pour Val Cenis retrouve sa remontée, comme à la
-    // recherche (`attachAccess`).
-    const r: Listing & AvecCompletude = rejugerPourStation(l, station);
+    const r: Listing & AvecCompletude = remesurerRemontee(rejugerDomaine(l, station));
     if (!station) return [passerLaPorte(r, "memoire")];
     const x = { ...r, completude: { ...r.completude, nearestLift: nearestLiftDe(r, station) } };
     return [passerLaPorte(x, "memoire")];
@@ -276,40 +274,6 @@ export async function oublierAnnonces(cle: string): Promise<void> {
     m.delete(cle);
   });
   if (ok) canal?.postMessage(cle);
-}
-
-/**
- * Ce que la base garde pour une clé, **tel quel**, sans la relecture
- * d'`annoncesLues` (rejugement, remesure, porte) : une annonce de l'ancien
- * format le reste. Pour la migration (`migrationRattachement.client.ts`), qui
- * réécrit ce qu'elle a lu. `null` : rien d'écrit, ou base indisponible.
- */
-export async function lireAnnoncesBrutes(cle: string): Promise<AnnonceRetenue[] | null> {
-  let brut: unknown = null;
-  const ok = await transaction("readonly", (m) => {
-    const req = m.get(cle);
-    req.onsuccess = () => {
-      brut = req.result ?? null;
-    };
-  });
-  return ok && Array.isArray(brut) ? (brut as AnnonceRetenue[]) : null;
-}
-
-/**
- * Écrit des annonces brutes (`lireAnnoncesBrutes`) et les fait relire comme au
- * chargement : la mémoire ne garde jamais que des annonces passées par
- * `annoncesLues`. Rend `false` si la base a refusé.
- */
-export async function ecrireAnnoncesBrutes(cle: string, a: readonly AnnonceRetenue[]): Promise<boolean> {
-  const ok = await transaction("readwrite", (m) => {
-    m.put([...a], cle);
-  });
-  ecrites.set(cle, ++rang);
-  connues.delete(cle);
-  cache.delete(cle);
-  await charger([cle]);
-  if (ok) canal?.postMessage(cle);
-  return ok;
 }
 
 /** `null` : rien d'écrit pour cette clé. */

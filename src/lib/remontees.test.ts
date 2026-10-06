@@ -131,8 +131,10 @@ describe("attachAccess : la remontée d'un logement du domaine", () => {
     });
   }
 
-  it("garde sur les 313 stations : une gare à 2 km du repère le fait retenir", () => {
-    assert.equal(STATIONS.length, 313);
+  it("garde sur les 233 stations : une gare à 2 km du repère le fait retenir", () => {
+    // 313 jusqu'au 5 octobre 2026 ; une station est depuis une fiche Skiinfo
+    // (plus Val d'Ese et Haut Asco, gardées sans fiche).
+    assert.equal(STATIONS.length, 233);
     const ecartees: string[] = [];
     for (const s of STATIONS) {
       const l = auRepere(s);
@@ -212,7 +214,8 @@ describe("les gares de ville et les remontées en projet ne font pas un logement
   it("La Bourboule : l'ancienne télécabine de Charlannes ne met pas le bourg au pied des pistes", () => {
     // « Charmante Maison Familiale à La Bourboule », relevée pour Besse le
     // 25 septembre 2026 : 307 m de l'ancienne télécabine, 11,8 km des pistes.
-    for (const id of ["besse-super-besse", "la-bourboule", "le-mont-dore"]) {
+    // La Bourboule elle-même a quitté le référentiel le 5 octobre 2026.
+    for (const id of ["besse-super-besse", "le-mont-dore"]) {
       const l = en(45.5852, 2.7439, station(id));
       assert.notEqual(l.liftName, "Ancien télécabine de Charlannes", id);
       assert.equal(dansLaStation(l), false, `${id} : ${l.distToLiftM} m de ${l.liftName}`);
@@ -327,8 +330,11 @@ describe("les appareils sans ski retirés le 26 septembre 2026 ne font plus entr
     });
   }
 
-  it("un logement de Thonon, relevé pour Lullin, n'est plus « à 21 m » du funiculaire", () => {
-    const s = station("lullin");
+  it("un logement de Thonon, relevé pour Hirmentaz, n'est pas « à 21 m » du funiculaire", () => {
+    // Relevé pour Lullin le 25 septembre 2026. Lullin, sans fiche Skiinfo, a
+    // quitté le référentiel le 5 octobre : la même annonce, cherchée depuis
+    // Bellevaux-Hirmentaz, à 3,4 km de Lullin.
+    const s = station("bellevaux-hirmentaz");
     const l = attachAccess({ ...auRepere(s), id: "thonon", lat: 46.37425, lon: 6.47935 }, s);
     assert.notEqual(l.liftKind, "funicular");
     assert.equal(dansLaStation(l), false, `${l.distToLiftM} m de ${l.liftName}`);

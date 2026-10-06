@@ -10,6 +10,7 @@ import { domainForStation } from "./forfaits/catalog.ts";
 import { dansPlage, type Echelle, type Plage } from "./plage.ts";
 import type { Station } from "./stations.ts";
 import { parMesure, parTexte, type Sens } from "./tri.ts";
+import { villagesDe } from "./villages.ts";
 import { langueIntl } from "./i18n/langue.ts";
 import { aTraduire, tr, trN } from "./i18n/tr.ts";
 
@@ -256,10 +257,30 @@ export function foldName(s: string): string {
     .trim();
 }
 
+/**
+ * Le nom d'un village de la table (`villages.ts`) qui correspond à la saisie,
+ * tel qu'il correspond (son nom ou l'un de ses autres noms), ou `null`. Un
+ * village n'est plus une station : chercher « Val Claret », « Plagne Centre »
+ * ou « Lanslebourg » trouve sa station, Tignes, La Plagne ou Val Cenis.
+ */
+export function villageCherche(stationId: string, q: string): string | null {
+  if (!q) return null;
+  for (const v of villagesDe(stationId)) {
+    for (const nom of [v.nom, ...(v.alias ?? [])]) if (foldName(nom).includes(q)) return nom;
+  }
+  return null;
+}
+
+/** La station répond-elle à cette saisie (déjà passée par `foldName`) : son
+ *  nom, ou celui d'un de ses villages. */
+export function nomCorrespond(s: Station, q: string): boolean {
+  return foldName(s.name).includes(q) || villageCherche(s.id, q) !== null;
+}
+
 export function searchStations(rows: readonly Station[], query: string): Station[] {
   const q = foldName(query);
   if (!q) return [...rows];
-  return rows.filter((s) => foldName(s.name).includes(q) || foldName(s.domain ?? "").includes(q));
+  return rows.filter((s) => nomCorrespond(s, q) || foldName(s.domain ?? "").includes(q));
 }
 
 const SORT_VALUE: Record<Exclude<CarteOrder, "n">, (s: Station) => number | null> = {

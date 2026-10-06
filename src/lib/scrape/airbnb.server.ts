@@ -15,6 +15,7 @@ import { PAUSE_MAX_MS, retryAfterMs } from "@/lib/stay/http429";
 import { TAUX_PATH, noterBlocage, paceTaux } from "@/lib/stay/taux.server";
 import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
+import { stationsReliees } from "./domaine";
 import type { LiveSearchInput } from "./types";
 import { prixHorsSejour } from "./airbnbDates";
 import { annoncer, occupancyFromRecord, type OccupancyAnnoncee } from "@/lib/stay/occupancy";
@@ -653,6 +654,10 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
     bedrooms: input.bedrooms,
     lat: input.lat,
     lon: input.lon,
+    // Les repères des stations du grand domaine relié, la plus proche
+    // d'abord (`domaine.ts`) : le worker lit une emprise serrée autour de
+    // chacune, après celle de la station et dans le même budget de requêtes.
+    relies: stationsReliees(input).map((s) => ({ lat: s.lat, lon: s.lon })),
     // Garde-fou par emprise. L'arrêt normal est la fin des curseurs, et le
     // worker lit aussi le nombre qu'Airbnb publie (`resultCount`) pour
     // découper une emprise qu'Airbnb ne laisse pas paginer en entier.

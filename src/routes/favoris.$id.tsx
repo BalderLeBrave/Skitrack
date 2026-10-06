@@ -25,8 +25,7 @@ import { contenu, type Favori, type SejourFavori } from "@/lib/favoris/modele";
 import { useFavoris } from "@/lib/favoris/store";
 import type { Listing } from "@/lib/listings";
 import { nightsBetween, useParcours } from "@/lib/parcours";
-import { stationById } from "@/lib/stations";
-import { stationDuLogement } from "@/lib/stay/rattachement";
+import { sourceEtLieu } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
@@ -83,7 +82,7 @@ function Dossier({ id }: { id: string }) {
       if (p.lodgeId === annonceId) return p.chooseLodge(null);
       const f = favoris.find((x) => x.annonceId === annonceId);
       if (!f) return;
-      p.retain(stationDuLogement(f.annonce));
+      p.retain(f.annonce.stationId);
       if (f.sejour) useStay.getState().setStay({ checkIn: f.sejour.checkIn, checkOut: f.sejour.checkOut });
       p.chooseLodge(annonceId);
     },
@@ -148,7 +147,7 @@ function Dossier({ id }: { id: string }) {
                   <div key={f.annonceId} className="favoris7__case">
                     <CarteLogement
                       l={f.annonce}
-                      sources={`${f.annonce.source} · ${stationById(stationDuLogement(f.annonce))?.name ?? f.annonce.stationId}`}
+                      sources={sourceEtLieu(f.annonce)}
                       autres={null}
                       retenu={P.lodgeId === f.annonceId ? f.annonceId : null}
                       retenuSource={null}
@@ -421,7 +420,7 @@ function Comparaison({
                     <span>
                       <b>{l.title}</b>
                       <small>
-                        {l.source} · {stationById(stationDuLogement(l))?.name ?? l.stationId}
+                        {sourceEtLieu(l)}
                       </small>
                     </span>
                   </button>

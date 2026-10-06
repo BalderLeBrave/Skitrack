@@ -44,10 +44,8 @@ import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
 
 /** Au-delà, une gare n'est plus la remontée d'un logement (`nearestLift`). */
 const GARE_LOINTAINE_M = 40_000;
-import { STATIONS, stationById } from "../stations.ts";
+import { anciensIds, STATIONS, stationById } from "../stations.ts";
 import { cleBien, cleDuLogement, cleListing, dedoublonnerParBien } from "../stay/poserReleve.ts";
-import { exclueDeLaStation, verdictDomaineAccorde } from "../stay/rattachement.ts";
-import { rejugerDomaine } from "../domainFit.ts";
 import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
 import { recopierSoeurs } from "../stay/recopie.ts";
 import { parPrix as parPrixOffre, regrouper, type Logement } from "../stay/regroupement.ts";
@@ -97,6 +95,28 @@ export function grpKey(g: Groupe): string {
  *  rien pour dix, et la maquette l'oubliait. */
 export function cleResultat(p: Periode, g: Groupe, stationId: string): string {
   return `${perKey(p)}|${grpKey(g)}|${stationId}`;
+}
+
+/**
+ * La clé sous laquelle lire le relevé d'une station : la sienne ; faute de
+ * relevé fait sous elle, celle d'un identifiant qui la désigne aujourd'hui
+ * (`anciensIds` : un village comme « plagne-centre », un doublon). Un relevé
+ * enregistré avant le référentiel Skiinfo du 5 octobre 2026 se relit ainsi
+ * sous sa station, sans migration ; ses annonces sont rejugées à la lecture.
+ */
+export function cleDeLecture(
+  res: Readonly<Record<string, { etat: string } | undefined>>,
+  p: Periode,
+  g: Groupe,
+  stationId: string,
+): string {
+  const propre = cleResultat(p, g, stationId);
+  if (res[propre]?.etat === "fait") return propre;
+  for (const id of anciensIds(stationId)) {
+    const cle = cleResultat(p, g, id);
+    if (res[cle]?.etat === "fait") return cle;
+  }
+  return propre;
 }
 
 /** La station d'une clé de résultat : ce qui suit le quatrième « | ». */
@@ -223,8 +243,15 @@ type Crible = {
  * 4 884 € sans eux. Les relevés déjà enregistrés les écartent dès la
  * relecture : « Par budget » (`passeAnnonce`) et les médianes de « Par
  * station » (`resultatsALaLecture`), par la même règle (`annonceMontree`).
+ *
+ * Et un logement **de la station** : Prix compare des stations, et un
+ * logement n'appartient qu'à la sienne (`rattachement.ts`). Logements montre
+ * aussi les stations du grand domaine relié, chacune sous son nom
+ * (`parStation.ts`) ; Prix non : un logement des Arcs ne compte pas dans la
+ * médiane de La Plagne, ni l'inverse (`horsDeLaStation`).
  */
 function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
+  if (horsDeLaStation(l)) return false;
   if (motifHorsSujet(l) != null) return false;
   if (estFicheGitesIntrouvable(l) || !estOffreGitesVerifiee(l)) return false;
   if (REPLI.test(l.proven ?? "")) return false;
@@ -446,22 +473,6 @@ export function remesurerRemontee(l: Listing): Listing {
     liftOtherLat: gare.otherLat,
     liftOtherLon: gare.otherLon,
   };
-}
-
-/**
- * Une annonce enregistrée, rejugée pour la station de son relevé sur le
- * référentiel d'aujourd'hui : son verdict de domaine (`rejugerDomaine`), accordé
- * à son rattachement (`verdictDomaineAccorde` — un logement de Bramans relevé
- * pour Val Cenis est dans son domaine), puis sa remontée remesurée
- * (`remesurerRemontee`). La relecture (`prix/annonces.ts`) et la migration
- * (`migrationRattachement.ts`) passent par elle, comme la recherche passe par
- * `attachAccess`.
- */
-export function rejugerPourStation<L extends Listing>(l: L, station: Station | undefined): L {
-  const juge = rejugerDomaine(l, station);
-  const accorde =
-    station && juge.domainFit ? { ...juge, domainFit: verdictDomaineAccorde(juge.domainFit, juge, station.id) } : juge;
-  return remesurerRemontee(accorde) as L;
 }
 
 /** L'annonce sans sa remontée : `distFiltrableM` se rabat sur le repère. */
@@ -1205,27 +1216,40 @@ export function passeBudget(total: number, pl: Plage, b: readonly [number, numbe
  */
 export function passeAnnonce(a: AnnonceRetenue, fl: Filtres, b: Bornes): boolean {
   if (!passeBudget(a.total, fl.budget, b.budget)) return false;
-  if (!annonceMontree(a, a.stationId)) return false;
+  if (!annonceMontree(a)) return false;
   if (!dansPlage(distFiltrableM(a), fl.distance, b.distance)) return false;
   if (!dansPlage(a.capacity ?? null, fl.capacite, b.capacite)) return false;
   return dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres);
 }
 
 /**
- * Une annonce relevée que la station montre, critères de l'écran mis à part :
- * la règle commune de « Par budget » (`passeAnnonce`) et du recompte des
- * médianes (`recompter`), pour qu'une médiane ne compte jamais un logement
- * sans carte.
- *
- * Un relevé enregistré avant la règle d'une station par logement (6 octobre
- * 2026) garde les logements des stations voisines : ils sortent ici, à la
- * relecture, comme dans `cribler` (`geoReasonFor`). Une annonce de l'ancien
- * format, sans position, n'est pas située (`verdictStation`) : la distance
- * enregistrée au repère la juge ensuite (`dansLaStation`). Puis les hors
- * sujet, fiche démentie par son titre comprise (`horsSujetRelu`).
+ * L'annonce est-elle, par son rattachement, ailleurs que dans la station du
+ * relevé ? Une autre station, reliée ou non (verdict `other` ou `linked`,
+ * `domainFit.ts`), ou aucune : à plus de 12 km de toute station. Une annonce
+ * que rien ne situe (`sans-lieu`) ne l'est pas : rien ne la dit ailleurs.
  */
-export function annonceMontree(a: AnnonceRetenue, stationId: string): boolean {
-  return !exclueDeLaStation(a, stationId) && dansLaStation(a) && !horsSujetRelu(a);
+export function horsDeLaStation(l: Pick<Listing, "domainFit" | "nonRattache">): boolean {
+  return (
+    l.domainFit === "other" ||
+    l.domainFit === "linked" ||
+    (l.domainFit === "unknown" && l.nonRattache === "trop-loin")
+  );
+}
+
+/**
+ * Une annonce relevée que sa station montre, critères de l'écran mis à part :
+ * la règle commune de « Par budget » (`passeAnnonce`) et du recompte des
+ * médianes à la lecture (`recompter`), pour qu'une médiane ne compte jamais un
+ * logement sans carte.
+ *
+ * Les annonces relues sont rejugées sur le référentiel du jour
+ * (`annoncesLues`) : un relevé enregistré avant le rattachement par station
+ * garde les logements des stations voisines et reliées, qui sortent ici
+ * (`horsDeLaStation`). Puis la distance à une remontée (`dansLaStation`) et
+ * les hors sujet, fiche démentie par son titre comprise (`horsSujetRelu`).
+ */
+export function annonceMontree(a: AnnonceRetenue): boolean {
+  return !horsDeLaStation(a) && dansLaStation(a) && !horsSujetRelu(a);
 }
 
 /** Le verdict de chaque annonce relue, calculé une fois : `filtrerCartes`
@@ -1532,8 +1556,12 @@ export function lireTriB(v: string): TriB {
   return cle ? { k: cle, dir: SENS_TRI_B[cle] } : TRIB0;
 }
 
-/** Une annonce de l'onglet budget, avec la station dont le relevé l'a retenue. */
-export type CarteAnnonce = { a: AnnonceRetenue; stationId: string; stationNom: string };
+/**
+ * Une annonce de l'onglet budget, avec la station dont le relevé l'a retenue
+ * (`stationId`, qui sert aux critères et à l'ordre) et le lieu du logement
+ * lui-même (`lieu`, `nomStationPropre`), qui s'affiche.
+ */
+export type CarteAnnonce = { a: AnnonceRetenue; stationId: string; lieu: string | null };
 
 function ordreTexte(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -1574,10 +1602,9 @@ export function comparateurBudget(t: TriB): (p: CarteAnnonce, q: CarteAnnonce) =
  *  plus près de la remontée du logement (`ecartAuReleve`), plus la première du
  *  référentiel : « La Cascade - La Giettaz », sortie à 293 m des relevés de
  *  Cordon, de Crest-Voland et de La Giettaz, s'étiquetait « Cordon »
- *  (25 septembre 2026). Depuis la règle d'une station par logement (6 octobre
- *  2026), une annonce située ne passe que sous sa station (`passeAnnonce`) :
- *  ce cas ne reste que pour une annonce non située. Chaque logement garde la
- *  place de sa première carte, qu'elle passe ou non. */
+ *  (25 septembre 2026). Chaque logement garde la place de sa première carte,
+ *  qu'elle passe ou non. Une annonce située ne passe que sous sa station
+ *  (`passeAnnonce`) : ce cas ne reste que pour une annonce non située. */
 export function filtrerCartes(
   cartes: readonly CarteAnnonce[],
   fl: Filtres,
@@ -1769,11 +1796,11 @@ export function versLogement(g: LogementBudget): Logement {
 
 /** L'étiquette de la carte : « Booking + 1 · Albiez-Montrond ». La liste mêle
  *  plusieurs stations, et la carte de Logements n'a pas d'autre place pour
- *  nommer celle du relevé. */
+ *  nommer celle du logement. */
 export function sourcesBudget(g: LogementBudget): string {
   const autres = g.offres.length - 1;
   const src = autres > 0 ? `${g.principale.a.source} + ${autres}` : g.principale.a.source;
-  return `${src} · ${g.principale.stationNom}`;
+  return g.principale.lieu ? `${src} · ${g.principale.lieu}` : src;
 }
 
 /** « Aussi sur Airbnb (3 061,00 €) », pour l'infobulle de l'étiquette, comme

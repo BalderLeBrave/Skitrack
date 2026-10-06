@@ -33,7 +33,10 @@ describe("fiche détaillée", () => {
   });
 
   it("chaque station FR a une fiche : GPS toujours, IGN pour le dépôt", () => {
-    assert.equal(STATIONS.length, 313);
+    // 313 jusqu'au 5 octobre 2026 ; depuis, une station est une fiche Skiinfo
+    // (`villages.ts`) : 230 du dépôt, plus Sollières-Sardières, et Val d'Ese et
+    // Haut Asco, gardées sans fiche par le propriétaire.
+    assert.equal(STATIONS.length, 233);
     for (const s of STATIONS) {
       const f = stationFiche(s);
       assert.equal(f.id, s.id);
@@ -70,7 +73,9 @@ describe("échelle des chiffres : un domaine, un jeu de chiffres", () => {
       rows.push(s);
       byDomain.set(s.domain, rows);
     }
-    assert.ok(byDomain.size > 140, `${byDomain.size} domaines nommés`);
+    // Les villages rattachés et les lignes sans fiche ne sont plus des
+    // stations : 140 domaines nommés restent.
+    assert.ok(byDomain.size >= 140, `${byDomain.size} domaines nommés`);
     const divergents: string[] = [];
     for (const [domain, rows] of byDomain) {
       const signatures = new Set(
@@ -83,11 +88,12 @@ describe("échelle des chiffres : un domaine, un jeu de chiffres", () => {
   });
 
   it("le libellé sans nom est la seule exemption, et ce n'est pas un domaine partagé", () => {
-    // Trois domaines distincts qu'OpenSkiMap ne nomme pas portent ce libellé.
-    // Leurs mesures diffèrent légitimement : 1,4 / 0,4 / 0,2 km.
+    // Deux domaines distincts qu'OpenSkiMap ne nomme pas portent ce libellé
+    // (trois avant que Névache, sans fiche Skiinfo, ne sorte le 5 octobre
+    // 2026). Leurs mesures diffèrent légitimement : 1,4 / 0,2 km.
     const rows = STATIONS.filter((s) => s.domain === UNNAMED_DOMAIN);
-    assert.equal(rows.length, 3);
-    assert.equal(new Set(rows.map((s) => s.pistesKm)).size, 3);
+    assert.equal(rows.length, 2);
+    assert.equal(new Set(rows.map((s) => s.pistesKm)).size, 2);
   });
 
   it("les six rattachements corrigés ont emporté leurs chiffres", () => {
@@ -126,22 +132,26 @@ describe("échelle des chiffres : un domaine, un jeu de chiffres", () => {
     assert.equal(xonrupt.lifts, 2);
     assert.equal(gerardmer.domain, "Gérardmer");
     assert.equal(gerardmer.pistesKm, 22.8);
-    // Gérardmer et Lispach ne sont plus voisines de domaine.
-    assert.deepEqual(stationsVoisines("gerardmer", gerardmer.domain), []);
-    assert.deepEqual(stationsVoisines("la-bresse-lispach", lispach.domain), []);
-    // La Bourboule n'a plus de domaine, ni donc de voisines.
-    const bourboule = STATIONS.find((s) => s.id === "la-bourboule")!;
-    assert.equal(bourboule.domain, null);
-    assert.equal(bourboule.pistesKm, null);
-    assert.equal(bourboule.lifts, null);
-    assert.deepEqual(stationsVoisines("la-bourboule", bourboule.domain), []);
-    const mont = STATIONS.find((s) => s.id === "le-mont-dore")!;
-    assert.ok(!stationsVoisines("le-mont-dore", mont.domain).some((s) => s.id === "la-bourboule"));
+    // Gérardmer et Lispach ne sont pas voisines.
+    assert.deepEqual(stationsVoisines("gerardmer"), []);
+    assert.deepEqual(stationsVoisines("la-bresse-lispach"), []);
+    // La Bourboule, sans fiche Skiinfo, est sortie du référentiel le
+    // 5 octobre 2026 ; Le Mont-Dore a pour seule voisine Super Besse.
+    assert.equal(
+      STATIONS.find((s) => s.id === "la-bourboule"),
+      undefined,
+    );
+    assert.deepEqual(
+      stationsVoisines("le-mont-dore").map((s) => s.id),
+      ["besse-super-besse"],
+    );
   });
 
   it("l'altitude du village reste propre à la station", () => {
+    // Huit stations à fiche Skiinfo depuis le 5 octobre 2026 : les villages
+    // (Courchevel 1650, Méribel-Mottaret…) sont rattachés à la leur.
     const trois = STATIONS.filter((s) => s.domain === "Les Trois Vallées");
-    assert.ok(trois.length >= 14);
+    assert.equal(trois.length, 8);
     // Même domaine, altitudes de village distinctes : c'est l'autre moitié de
     // la règle d'échelle.
     assert.ok(new Set(trois.map((s) => s.villageM)).size > 5);
@@ -149,7 +159,7 @@ describe("échelle des chiffres : un domaine, un jeu de chiffres", () => {
 });
 
 describe("photo de station : la sienne, celle de son domaine, ou rien", () => {
-  it("228 photos propres, 66 empruntées au domaine, 19 sans photo", () => {
+  it("230 photos propres, aucune empruntée, 3 sans photo", () => {
     // Jusqu'au 26 septembre 2026 : 72 empruntées et 19 sans photo, sur 320.
     // Quatre doublons écartés empruntaient la photo de leur station (Sainte-Foy
     // Station, Saint-Pancrace, « Praloup » celle du Sauze, Espace Aubrac) ;
@@ -158,13 +168,17 @@ describe("photo de station : la sienne, celle de son domaine, ou rien", () => {
     // domaine nommé, l'autre plus de domaine du tout. Aucune image n'a changé.
     // Le 30 septembre, Le Grand Puy, fermé, est sorti : sa photo propre
     // (`le-grand-puy`) et sa ligne sans photo (`seyne-les-alpes`) avec lui.
+    // Le 5 octobre, une station devient une fiche Skiinfo (`villages.ts`) :
+    // les 66 qui empruntaient étaient des villages ou des lignes sans fiche,
+    // qui ne sont plus des stations. Restent sans photo Larche et Le Chazelet
+    // (URL morte), et Sollières-Sardières, ajoutée sans photo. Val d'Ese et
+    // Haut Asco, ajoutées le même jour, ont la photo que le propriétaire a
+    // choisie (`STATIONS_AJOUTEES`).
     const c = photoCoverage();
-    assert.equal(c.total, 313);
-    assert.equal(c.propres, 228);
-    assert.equal(c.empruntees, 66);
-    assert.equal(c.absentes.length, 19);
-    assert.ok(c.absentes.includes("nevache"));
-    assert.ok(c.absentes.includes("la-bourboule"));
+    assert.equal(c.total, 233);
+    assert.equal(c.propres, 230);
+    assert.equal(c.empruntees, 0);
+    assert.deepEqual(c.absentes, ["larche", "le-chazelet", "sollieres-sardieres"]);
   });
 
   it("aucun chemin distant : que des fichiers locaux", () => {
@@ -176,12 +190,21 @@ describe("photo de station : la sienne, celle de son domaine, ou rien", () => {
     }
   });
 
-  it("Aime 2000 emprunte La Plagne, son domaine, et le crédit le dit", () => {
+  it("Aime 2000 est La Plagne : sa photo est celle de sa station, pas un emprunt", () => {
+    // Aime 2000 empruntait la photo de La Plagne, « même domaine ». Depuis le
+    // 5 octobre 2026 c'est un village de La Plagne (`villages.ts`) : son
+    // identifiant ouvre La Plagne, avec sa photo à elle.
     const p = resolveStationPhoto("aime-2000")!;
     assert.equal(p.src, "/stations/la-plagne.jpg");
-    assert.equal(p.fromId, "la-plagne");
-    assert.equal(p.domain, "Paradiski (Les Arcs – La Plagne)");
-    assert.match(photoCreditFor("aime-2000")!.label, /La Plagne, même domaine/);
+    assert.equal(p.fromId, null);
+    assert.equal(photoCreditFor("aime-2000")!.borrowedFrom, null);
+  });
+
+  it("hors relevé Skiinfo, la photo choisie et le crédit de son hôte", () => {
+    assert.equal(resolveStationPhoto("haut-asco")!.src, "/stations/haut-asco.jpg");
+    assert.equal(photoCreditFor("haut-asco")!.label, "Photo France 3 Corse ViaStella");
+    assert.equal(resolveStationPhoto("val-d-ese")!.src, "/stations/val-d-ese.jpg");
+    assert.equal(photoCreditFor("val-d-ese")!.label, "Photo Ajaccio Tourisme");
   });
 
   it("une station qui a sa photo ne l'emprunte pas, et son crédit ne mentionne rien", () => {
@@ -191,30 +214,34 @@ describe("photo de station : la sienne, celle de son domaine, ou rien", () => {
     assert.equal(photoCreditFor("val-thorens")!.borrowedFrom, null);
   });
 
-  it("le libellé sans nom ne prête pas de photo : Névache n'est pas Saint-Colomban", () => {
-    // Névache (Hautes-Alpes) empruntait la photo de Saint-Colomban-des-Villards
-    // (Savoie, 44 km), « même domaine » : les deux portent seulement le libellé
-    // qu'OpenSkiMap donne aux zones sans nom.
-    assert.equal(STATIONS.find((s) => s.id === "nevache")!.domain, UNNAMED_DOMAIN);
+  it("le libellé sans nom ne prête pas de photo", () => {
+    // Névache empruntait la photo de Saint-Colomban-des-Villards, « même
+    // domaine » : les deux ne portaient que le libellé qu'OpenSkiMap donne aux
+    // zones sans nom. Névache, sans fiche Skiinfo, est sortie le 5 octobre
+    // 2026 ; Saint-Colomban garde la sienne.
     assert.equal(resolveStationPhoto("nevache"), null);
-    assert.equal(photoCreditFor("nevache"), null);
-    // Saint-Colomban garde la sienne.
     assert.equal(resolveStationPhoto("saint-colomban-villards")!.fromId, null);
   });
 
-  it("le libellé sans nom ne fait pas de voisines", () => {
+  it("les voisines sont celles du grand domaine relié, pas du libellé", () => {
     assert.equal(domaineNomme(UNNAMED_DOMAIN), false);
     assert.equal(domaineNomme(null), false);
     assert.equal(domaineNomme(""), false);
     assert.equal(domaineNomme("Les Trois Vallées"), true);
-    // Beille, Névache et Saint-Colomban se proposaient l'une l'autre dans le
-    // menu « Plus », de 44 à 471 km.
-    for (const id of ["plateau-de-beille", "nevache", "saint-colomban-villards"]) {
-      assert.deepEqual(stationsVoisines(id, UNNAMED_DOMAIN), [], id);
-    }
-    // Un vrai domaine en garde.
-    const vt = STATIONS.find((s) => s.id === "val-thorens")!;
-    assert.ok(stationsVoisines("val-thorens", vt.domain).some((s) => s.id === "courchevel"));
+    // Beille et Saint-Colomban se proposaient l'une l'autre dans le menu
+    // « Plus », à 471 km, par le libellé sans nom. Depuis le 5 octobre 2026,
+    // les voisines se lisent dans la table des grands domaines reliés
+    // (`grandsDomaines.ts`) : Beille n'en a pas, Saint-Colomban a les Sybelles.
+    assert.deepEqual(stationsVoisines("plateau-de-beille"), []);
+    const sybelles = stationsVoisines("saint-colomban-villards").map((s) => s.id);
+    assert.ok(sybelles.includes("la-toussuire"));
+    assert.ok(!sybelles.includes("plateau-de-beille"));
+    assert.ok(stationsVoisines("val-thorens").some((s) => s.id === "courchevel"));
+    // Un village se lit sous sa station : Méribel-Mottaret a les voisines de
+    // Méribel, et Méribel n'est pas sa propre voisine.
+    const mottaret = stationsVoisines("meribel-mottaret").map((s) => s.id);
+    assert.ok(mottaret.includes("courchevel"));
+    assert.ok(!mottaret.includes("meribel"));
   });
 
   it("sans domaine donneur, rien n'est affiché ni crédité", () => {

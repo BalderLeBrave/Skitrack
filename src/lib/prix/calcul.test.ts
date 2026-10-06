@@ -376,15 +376,8 @@ describe("agreger — ce qui entre dans la médiane", () => {
   const exclues: [string, Listing][] = [
     ["un repli sur le relevé figé", annonce({ proven: "Relevé Airbnb, repli relevé 3 sept." })],
     ["une devise autre que l’euro", annonce({ currency: "CHF" })],
-    // À Marseille : à plus de 12 km de toute station, quelle que soit la
-    // distance enregistrée.
-    ["un logement à plus de 12 km", annonce({ lat: 43.2965, lon: 5.3698, distToSlopesM: 20_000 })],
-    // Une autre station, sur un autre domaine : l'Alpe d'Huez, à 12 km des 2
-    // Alpes. Le rattachement l'écarte (« autre-station »), pas le domaine.
-    [
-      "un logement d’une autre station",
-      annonce({ domainFit: "other", lat: stationReelle("alpe-d-huez").lat, lon: stationReelle("alpe-d-huez").lon }),
-    ],
+    ["un logement à plus de 12 km", annonce({ distToSlopesM: 20_000 })],
+    ["un logement d’un autre domaine", annonce({ domainFit: "other" })],
     [
       "un gîte d’un autre département",
       gite({
@@ -871,13 +864,15 @@ describe("résultat d'un relevé", () => {
 
 describe("plages — échelle et poignées", () => {
   it("l'échelle du référentiel, arrondie au pas", () => {
-    // Relevé sur les 320 stations : km 0,1 à 771,4 ; sommet 970 à 3 600
-    // (0 non mesuré exclu) ; village 324 à 2 321.
+    // Relevé sur les 231 stations du référentiel Skiinfo (5 octobre 2026) :
+    // km 0,1 à 771,4 ; sommet 970 à 3 600 ; village 551 (Saint-Maurice-sur-
+    // Moselle) à 2 321. Le village de 324 m était une ligne sans fiche,
+    // sortie du référentiel.
     assert.deepEqual(bornesPlages(STATIONS), {
       prix: [0, 6000],
       km: [0, 780],
       sommet: [900, 3600],
-      village: [300, 2400],
+      village: [500, 2400],
       budget: [0, 10000],
       capacite: [1, 20],
       chambres: [0, 8],
@@ -886,8 +881,9 @@ describe("plages — échelle et poignées", () => {
   });
 
   it("une altitude à zéro ne fait pas descendre l'échelle du sommet", () => {
-    const pilat = stationReelle("les-monts-du-pilat");
-    assert.equal(pilat.maxM, 0);
+    // Les Monts du Pilat, sommet à 0, ont quitté le référentiel le 5 octobre
+    // 2026 (sans fiche Skiinfo) : le cas se fabrique.
+    const pilat = { ...S2A, maxM: 0 };
     assert.equal(valeurStation("sommet", pilat), null);
     assert.equal(valeurStation("km", S2A), S2A.pistesKm);
     assert.equal(valeurStation("village", S2A), S2A.villageM);
@@ -992,8 +988,9 @@ describe("plages — échelle et poignées", () => {
 describe("lignes — état et filtres", () => {
   it("le sous-titre de massif omet un département absent", () => {
     assert.equal(ligne(S2A, null, REPOS).subMassif, "Alpes du Nord · Isère");
-    const sansDept = stationReelle("le-granier-vallee-des-entremonts");
-    assert.equal(sansDept.dept, null);
+    // Toutes les stations ont un département depuis le 5 octobre 2026
+    // (`DEPARTEMENTS`, `villages.ts`) : le cas se fabrique.
+    const sansDept = { ...S2A, dept: null };
     assert.equal(ligne(sansDept, null, REPOS).subMassif, "Alpes du Nord");
   });
 
@@ -1071,7 +1068,7 @@ describe("lignes — état et filtres", () => {
     assert.equal(passe(prix, sansKm, FL0, B), true);
     // Une plage de prix active écarte toute station sans prix.
     assert.equal(passe(peu, s, f({ prix: [0, 6000] }), B), false);
-    const sansSommet = stationReelle("les-monts-du-pilat");
+    const sansSommet = { ...S2A, maxM: 0 };
     const l = ligne(sansSommet, null, REPOS);
     assert.equal(passe(l, sansSommet, f({ sommet: [900, 2000] }), B), false);
   });
@@ -1158,20 +1155,12 @@ describe("tri", () => {
     assert.deepEqual(trier({ k: "med", dir: -1 }, xs), attendu);
   });
 
-  it("nom : les homonymes du référentiel restent départagés par l'id", () => {
-    // `praloup-04226`, doublon de `praloup`, n'est plus au référentiel.
-    const ids = ["le-granier-vallee-des-entremonts", "praloup", "le-granier"];
-    const xs = ids.map((id) => ligne(stationReelle(id), null, REPOS));
-    assert.deepEqual(trier({ k: "nom", dir: 1 }, xs), [
-      "le-granier",
-      "le-granier-vallee-des-entremonts",
-      "praloup",
-    ]);
-    assert.deepEqual(trier({ k: "nom", dir: -1 }, xs), [
-      "praloup",
-      "le-granier",
-      "le-granier-vallee-des-entremonts",
-    ]);
+  it("nom : des homonymes restent départagés par l'id", () => {
+    // Le référentiel n'en a plus depuis que « Le Granier » du classeur est
+    // reconnu pour un doublon (5 octobre 2026) : le cas se fabrique.
+    const xs = [l("le-granier-b", "Le Granier"), l("praloup", "Praloup"), l("le-granier-a", "Le Granier")];
+    assert.deepEqual(trier({ k: "nom", dir: 1 }, xs), ["le-granier-a", "le-granier-b", "praloup"]);
+    assert.deepEqual(trier({ k: "nom", dir: -1 }, xs), ["praloup", "le-granier-a", "le-granier-b"]);
   });
 
   it("massif : rang du massif dans le sens demandé, puis prix croissant, sans prix en dernier", () => {
@@ -2033,7 +2022,7 @@ describe("un logement par carte dans l'onglet budget", () => {
       sources: [] as SourceReport[],
       partsEchouees: [] as Part[],
       ...CTX,
-    }).map((a) => ({ a, stationId, stationNom: NOMS[stationId] ?? stationId }));
+    }).map((a) => ({ a, stationId, lieu: NOMS[stationId] ?? stationId }));
   /** Comme l'onglet : l'identité sur tout ce qui est relevé, les critères ensuite. */
   const logements = (tout: CarteAnnonce[], fl: Filtres = FL0) =>
     logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, BORNES));
@@ -2166,7 +2155,7 @@ describe("un logement par carte dans l'onglet budget", () => {
     const bkAilleurs: CarteAnnonce = {
       a: { ...bkIci.a, total: 1800, distToSlopesM: 1500 },
       stationId: "alpe-d-huez",
-      stationNom: "Alpe d'Huez",
+      lieu: "Alpe d'Huez",
     };
     const [g] = logements([bkAilleurs, bkIci, abnbIci]);
     assert.deepEqual(offres(g), ["abnb-777", "bk-777"]);
@@ -2207,7 +2196,7 @@ describe("un logement par carte dans l'onglet budget", () => {
     const tout = unBien.map((l) => ({
       a: compacter(l),
       stationId: "les-2-alpes",
-      stationNom: "Les 2 Alpes",
+      lieu: "Les 2 Alpes",
     }));
     assert.deepEqual(logements(tout).map(offres), [["abr-777"], ["bk-777"], ["abnb-777"]]);
   });
@@ -2222,7 +2211,7 @@ describe("tri des cartes", () => {
   ): CarteAnnonce => ({
     a: compacter(annonce({ id, total, capacity: guests })),
     stationId,
-    stationNom: stationId,
+    lieu: stationId,
   });
   /** L'id, suivi de la station quand ce n'est pas celle par défaut. */
   const ranger = (t: TriB, xs: CarteAnnonce[]) =>
@@ -2802,7 +2791,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     const carte = (id: string, stationId: string, over: Partial<Listing> = {}): CarteAnnonce => ({
       a: a({ id, ...over }),
       stationId,
-      stationNom: stationId,
+      lieu: stationId,
     });
     const cartes = [
       carte("a", "la-clusaz"),
@@ -2824,7 +2813,7 @@ describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
     const carte = (id: string, stationId: string, over: Partial<Listing> = {}): CarteAnnonce => ({
       a: a({ id, ...over }),
       stationId,
-      stationNom: stationId,
+      lieu: stationId,
     });
     // Le même logement du village de Saint-Martin, relevé depuis Méribel
     // (333 m) puis depuis Méribel Village (27 m).
@@ -2870,7 +2859,9 @@ describe("domaine et station, onglet budget", () => {
   it("optionsDomaine : les domaines du massif et du département, comptés, triés", () => {
     const opts = optionsDomaine(STATIONS, ["Alpes du Nord"], ["Savoie"]);
     assert.deepEqual(opts[0], { v: "", label: "Tous" });
-    assert.ok(opts.some((o) => o.label === "Les Trois Vallées · 14"));
+    // Huit stations à fiche Skiinfo depuis le 5 octobre 2026 (quatorze avec
+    // les villages de Courchevel et de Méribel).
+    assert.ok(opts.some((o) => o.label === "Les Trois Vallées · 8"));
     const valeurs = opts.slice(1).map((o) => o.v);
     assert.deepEqual(
       valeurs,
@@ -2904,10 +2895,16 @@ describe("domaine et station, onglet budget", () => {
   it("nomsDistincts précise les homonymes, et eux seuls", () => {
     // Seule depuis le retrait de son doublon `praloup-04226` : rien à préciser.
     assert.equal(noms.get("praloup"), "Praloup");
-    assert.equal(noms.get("le-granier"), "Le Granier · Saint-Pierre-de-Chartreuse");
-    assert.equal(noms.get("le-granier-vallee-des-entremonts"), "Le Granier · Alpes du Nord");
+    // Le Granier aussi, depuis la fusion de son doublon (5 octobre 2026).
+    assert.equal(noms.get("le-granier"), undefined);
+    assert.equal(noms.get("le-granier-vallee-des-entremonts"), "Le Granier");
     assert.equal(noms.get("val-thorens"), "Val Thorens");
     assert.equal(new Set(noms.values()).size, STATIONS.length);
+    // Deux homonymes se précisent par leur domaine, ou leur département.
+    const sansDomaine = { ...S2A, id: "homonyme", domain: null, dept: "Savoie" };
+    const deux = nomsDistincts([S2A, sansDomaine]);
+    assert.equal(deux.get(S2A.id), `${S2A.name} · ${S2A.domain}`);
+    assert.equal(deux.get("homonyme"), `${S2A.name} · Savoie`);
   });
 
   it("optionsStation : les relevées qui passent massif, département et domaine, par nom", () => {
@@ -3102,7 +3099,7 @@ describe("tri des cartes : plus près des remontées", () => {
   ): CarteAnnonce => ({
     a: compacter(annonce({ id, total, distToLiftM, distToSlopesM })),
     stationId: "les-2-alpes",
-    stationNom: "Les 2 Alpes",
+    lieu: "Les 2 Alpes",
   });
 
   const xs = [
@@ -3133,10 +3130,6 @@ describe("complétion : les annonces à compléter", () => {
   const sansRien = (over: Partial<Listing> = {}) =>
     annonce({ capacity: null, bedrooms: null, lat: null, lon: null, distToSlopesM: null, ...over });
 
-  it("une annonce non située qu'un nom lu dit « autre domaine » reste à compléter : le texte n'exclut pas", () => {
-    assert.equal(aCompleter([sansRien({ domainFit: "other", title: "Chalet vue sur l'Alpe d'Huez" })], CTX).length, 1);
-  });
-
   it("une annonce sans position, capacité ni chambres, qui passe le reste, est à compléter", () => {
     const xs = aCompleter([sansRien()], CTX);
     assert.deepEqual(
@@ -3160,12 +3153,8 @@ describe("complétion : les annonces à compléter", () => {
     ["un « à partir de »", sansRien({ priceIndicative: true })],
     ["un total à zéro", sansRien({ total: 0 })],
     ["un prix d’autres dates", sansRien({ pricedCheckIn: "2027-02-13", pricedCheckOut: "2027-02-20" })],
-    // Situé dans une autre station : sa fiche ne le ramènerait pas ici.
-    [
-      "un logement d’une autre station",
-      sansRien({ lat: stationReelle("alpe-d-huez").lat, lon: stationReelle("alpe-d-huez").lon }),
-    ],
-    ["un logement à plus de 12 km", sansRien({ lat: 43.2965, lon: 5.3698, distToSlopesM: 20_000 })],
+    ["un logement d’un autre domaine", sansRien({ domainFit: "other" })],
+    ["un logement à plus de 12 km", sansRien({ lat: 45.3, lon: 6.5, distToSlopesM: 20_000 })],
     ["un gîte sans devis ITEA live", gite({ capacity: null, proven: "ITEA gites-web 2026-09-03" })],
   ];
   for (const [cas, l] of horsCrible) {
@@ -3215,7 +3204,7 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
   it("les annonces complètes vont à la mémoire, une par clé, jamais un repli", () => {
     const xs = connuesDuReleve([
       annonce(),
-      // Une autre annonce du même logement Airbnb : même clé.
+      // Une autre annonce du même logement Airbnb : une seule entrée par clé.
       annonce({ id: "airbnb-2", url: "https://www.airbnb.fr/rooms/12345678" }),
       annonce({ id: "x", url: "https://www.airbnb.fr/rooms/999999", capacity: null }),
       annonce({ id: "y", url: "https://www.airbnb.fr/rooms/888888", proven: "repli relevé" }),
@@ -3484,7 +3473,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
     const cartes: CarteAnnonce[] = [...horsSujet, ...gardes].map((l) => ({
       a: compacter(l),
       stationId: "les-2-alpes",
-      stationNom: "Les 2 Alpes",
+      lieu: "Les 2 Alpes",
     }));
     const ls = logementsBudget(logementsReleves(cartes), filtrerCartes(cartes, FL0, B));
     assert.deepEqual(ids(ls.map((g) => g.principale.a)), ids(gardes));
@@ -3495,7 +3484,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
       annoncesDuReleve({ listings, sources: [], partsEchouees: [], ...CTX }).map((a) => ({
         a,
         stationId: "chatel",
-        stationNom: "Châtel",
+        lieu: "Châtel",
       }));
     const logements = (tout: CarteAnnonce[], fl: Filtres = FL0) =>
       logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, B)).map((g) =>
@@ -3555,7 +3544,7 @@ describe("hors sujet : ce qui n'est pas une location de station", () => {
           logement: "bk-8",
         },
         stationId: "chatel",
-        stationNom: "Châtel",
+        lieu: "Châtel",
       });
       // Une chambre d'hôtel à 2 000 € retirait la location à 7 000 €, puis
       // sortait elle-même : le logement n'avait plus d'offre.

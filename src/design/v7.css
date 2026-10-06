@@ -98,8 +98,7 @@
 
 /* Les cadres photo des écrans v7 remplissent toujours leur conteneur, qui
    porte lui-même le rayon et le débord caché. */
-.v7 .islot,
-.volet7 .islot {
+.v7 .islot {
   position: absolute;
   inset: 0;
   width: auto;
@@ -1336,6 +1335,30 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: calc(var(--spacing) * 4.5);
 }
+/* Sur un grand domaine relié, les logements se rangent par station : le nom
+   de la station barre toute la largeur de la grille, son compte à côté. */
+.grille7-2__station {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--spacing) * 2);
+  margin: calc(var(--spacing) * 2) 0 calc(var(--spacing) * -1);
+  font-size: var(--text-note);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-marque-texte);
+}
+.grille7-2__station:first-child {
+  margin-top: 0;
+}
+.grille7-2__station span {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
 
 /* Un texte pour les lecteurs d'écran seulement : l'étiquette « Airbnb + 2 »
    y dit quelles sont les autres plateformes, que l'infobulle ne donne qu'à la
@@ -1438,14 +1461,6 @@
   font-size: var(--text-detail);
   font-weight: 700;
   white-space: nowrap;
-}
-.rech7__sources {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--text-note);
-  color: var(--color-texte-3);
 }
 /* La jauge indéterminée, posée sur le bord bas du bloc collant. `absolute` :
    elle ne prend pas de rangée dans la grille du bloc, dont la hauteur ne
@@ -4028,13 +4043,18 @@
   font-size: var(--text-note);
   font-weight: 700;
 }
+/* Posée sur la photo : un texte gris sans fond s'y perdait. Même pastille que
+   la source et le « à partir de ». */
 .lodge7__vue {
   position: absolute;
   right: 10px;
   bottom: 8px;
-  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  font-size: var(--text-note);
   font-weight: 700;
-  color: var(--color-muted);
+  color: var(--color-ink);
 }
 .lodge7__indic {
   position: absolute;
@@ -4083,8 +4103,13 @@
   height: 100%;
   object-fit: cover;
 }
+/* La carte prend la hauteur de sa rangée : le corps remplit ce qui reste sous
+   la photo, et le pied s'y cale en bas. Un titre sur deux lignes ne décale
+   plus le prix d'une carte à sa voisine. */
 .lodge7__corps {
-  display: grid;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   gap: calc(var(--spacing) * 2.5);
   padding: calc(var(--spacing) * 3.5) calc(var(--spacing) * 4) calc(var(--spacing) * 4);
 }
@@ -4139,6 +4164,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: calc(var(--spacing) * 3);
+  margin-top: auto;
   padding-top: calc(var(--spacing) * 3);
   border-top: 1px solid var(--color-line-douce);
 }
@@ -4294,123 +4320,224 @@
   z-index: 40;
   background: color-mix(in srgb, var(--color-photo-voile) 45%, transparent);
 }
-.volet7 {
+/* ── Fiche d'une annonce ─────────────────────────────────────────────────
+   Plein écran (5 oct. 2026) : en haut toutes les photos de l'annonce en
+   grand, côte à côte, qui défilent à la molette, aux flèches et aux boutons ;
+   en bas un bandeau qui porte tout le texte. Les photos gardent leurs
+   proportions : une hauteur commune, une largeur à elles. */
+.fiche7 {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 41;
-  width: 440px;
   display: flex;
   flex-direction: column;
-  background: color-mix(in srgb, var(--color-surface) 97%, transparent);
-  backdrop-filter: blur(18px);
-  box-shadow: -2px 0 6px color-mix(in srgb, var(--color-ombre) 6%, transparent), -18px 0 48px color-mix(in srgb, var(--color-ombre) 16%, transparent);
-  overflow: auto;
+  background: var(--color-photo-voile);
   font-family: var(--font-sans);
   color: var(--color-ink);
 }
-.volet7 * {
+.fiche7 * {
   box-sizing: border-box;
 }
-.volet7 h2 {
+.fiche7__haut {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.fiche7__photos {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  height: 100%;
+  padding: calc(var(--spacing) * 16) calc(var(--spacing) * 6) calc(var(--spacing) * 6);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: calc(var(--spacing) * 6);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-photo-texte) 30%, transparent) transparent;
+}
+.fiche7__photos img {
+  flex: none;
+  height: 100%;
+  width: auto;
+  max-width: min(1400px, calc(100vw - var(--spacing) * 12));
+  /* Avant le chargement l'image n'a pas de largeur : 3/2 lui en réserve une,
+     que ses vraies proportions remplacent dès qu'elle arrive. */
+  aspect-ratio: auto 3 / 2;
+  object-fit: cover;
+  border-radius: var(--radius-surface);
+  background: color-mix(in srgb, var(--color-photo-texte) 8%, transparent);
+  scroll-snap-align: start;
+}
+.fiche7__sansphoto {
+  margin: auto;
+  color: var(--color-photo-texte);
+  font-size: var(--text-corps);
+  font-weight: 600;
+}
+.fiche7__rond {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-photo-texte) 16%, transparent);
+  color: var(--color-photo-texte);
+  cursor: pointer;
+}
+.fiche7__rond:hover {
+  background: color-mix(in srgb, var(--color-photo-texte) 26%, transparent);
+}
+.fiche7__rond:focus-visible {
+  outline: 2px solid var(--color-photo-texte);
+  outline-offset: 2px;
+}
+.fiche7__fermer {
+  top: calc(var(--spacing) * 4);
+  left: calc(var(--spacing) * 6);
+}
+.fiche7__coeur {
+  position: absolute;
+  top: calc(var(--spacing) * 4);
+  right: calc(var(--spacing) * 6);
+  width: 40px;
+  height: 40px;
+}
+.fiche7__compte {
+  position: absolute;
+  top: calc(var(--spacing) * 6);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--text-detail);
+  font-weight: 700;
+  color: var(--color-photo-texte);
+}
+.fiche7__prec,
+.fiche7__suiv {
+  top: calc(50% + var(--spacing) * 5);
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--color-photo-voile) 60%, transparent);
+}
+.fiche7__prec {
+  left: calc(var(--spacing) * 3);
+}
+.fiche7__suiv {
+  right: calc(var(--spacing) * 3);
+}
+.fiche7__bandeau {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: calc(var(--spacing) * 5) calc(var(--spacing) * 10);
+  max-height: 46vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--spacing) * 5) calc(var(--spacing) * 6) calc(var(--spacing) * 6);
+  border-radius: var(--radius-surface) var(--radius-surface) 0 0;
+  background: var(--color-surface);
+}
+.fiche7__infos {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  align-content: start;
+  min-width: 0;
+}
+.fiche7__tete {
+  display: grid;
+  gap: 4px;
+}
+.fiche7__tete h2 {
   margin: 0;
   font-size: var(--text-section);
   font-weight: 800;
   letter-spacing: -0.01em;
 }
-.volet7 p {
-  margin: 0;
-}
-.volet7__media {
-  position: relative;
-  flex: none;
-  height: 240px;
-  display: grid;
-  place-items: center;
-  color: var(--color-muted);
-  font-size: 13px;
-  font-weight: 600;
-}
-.volet7__fermer {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-photo-voile) 55%, transparent);
-  color: var(--color-photo-texte);
-  cursor: pointer;
-}
-.volet7__corps {
-  display: grid;
-  gap: calc(var(--spacing) * 4.5);
-  padding: calc(var(--spacing) * 5) calc(var(--spacing) * 5.5) calc(var(--spacing) * 6);
-  align-content: start;
-  flex: 1;
-}
-.volet7__corps > div:first-child {
-  display: grid;
-  gap: 6px;
-}
-.volet7__ref {
+.fiche7__ref {
   font-size: var(--text-note);
   font-weight: 700;
   color: var(--color-muted);
 }
-.volet7__faits {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 16px;
-  font-size: var(--text-corps);
+.fiche7__faits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 8);
+  margin: 0;
 }
-.volet7__faits > div {
+.fiche7__faits > div {
   display: grid;
   gap: 1px;
 }
-.volet7__faits span {
+.fiche7__faits dt {
   font-size: var(--text-note);
   color: var(--color-texte-3);
 }
-.volet7__large {
-  grid-column: 1 / -1;
+.fiche7__faits dd {
+  margin: 0;
+  font-size: var(--text-corps);
+  font-weight: 700;
 }
-.volet7__doux {
-  font-weight: 600;
-  color: var(--color-muted);
-}
-.volet7__prix {
+.fiche7__cote {
   display: grid;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 12px;
-  background: var(--color-bg);
+  gap: calc(var(--spacing) * 4);
+  align-content: start;
 }
-.volet7__prix > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+.fiche7__prix {
+  display: grid;
+  gap: 2px;
 }
-.volet7__prix > div > span {
+.fiche7__prix > span {
   font-size: var(--text-detail);
   color: var(--color-muted);
 }
-.volet7__prix > div > b {
+.fiche7__prix > span b {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+.fiche7__prix > b {
   font-size: var(--text-titre);
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
-.volet7__pp {
-  font-size: var(--text-corps) !important;
-  letter-spacing: 0 !important;
+.fiche7__prix > .fiche7__alerte {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--color-alerte-texte);
 }
-.volet7__alerte,
-.volet7__ok,
+.fiche7__actions {
+  display: grid;
+  gap: 8px;
+}
+@media (max-width: 900px) {
+  .fiche7__photos {
+    padding: calc(var(--spacing) * 15) calc(var(--spacing) * 4) calc(var(--spacing) * 4);
+    scroll-padding-inline: calc(var(--spacing) * 4);
+  }
+  .fiche7__photos img {
+    max-width: calc(100vw - var(--spacing) * 8);
+  }
+  .fiche7__fermer {
+    left: calc(var(--spacing) * 4);
+  }
+  .fiche7__coeur {
+    right: calc(var(--spacing) * 4);
+  }
+  .fiche7__prec,
+  .fiche7__suiv {
+    display: none;
+  }
+  .fiche7__bandeau {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 55vh;
+    padding: calc(var(--spacing) * 4);
+  }
+}
 .bk7__alerte,
 .bk7__ok {
   display: flex;
@@ -4419,19 +4546,11 @@
   font-size: 13px;
   color: var(--color-alerte-texte);
 }
-.volet7__alerte,
-.volet7__ok {
-  padding-top: 8px;
-  border-top: 1px solid var(--color-line);
-}
-.volet7__alerte svg,
-.volet7__ok svg,
 .bk7__alerte svg,
 .bk7__ok svg {
   flex: none;
   margin-top: 1px;
 }
-.volet7__ok,
 .bk7__ok {
   color: var(--color-ok-texte);
 }
@@ -4500,31 +4619,6 @@
   gap: 4px;
   font-weight: 700;
   white-space: nowrap;
-}
-
-.volet7__prov {
-  display: grid;
-  gap: 8px;
-}
-.volet7__prov > span {
-  font-size: var(--text-note);
-  font-weight: 700;
-  color: var(--color-texte-3);
-}
-.volet7__prov p {
-  font-size: var(--text-detail);
-  color: var(--color-muted);
-  text-wrap: pretty;
-}
-.volet7__actions {
-  display: grid;
-  gap: 8px;
-  margin-top: auto;
-}
-.volet7__sanslien {
-  font-size: var(--text-note);
-  color: var(--color-texte-3);
-  text-align: center;
 }
 
 /* ── Fenêtre flottante d'une épingle ─────────────────────────────────────
@@ -6661,15 +6755,10 @@
   fill: var(--color-coeur);
   stroke: var(--color-flocon);
 }
-.lodge7__coeur,
-.volet7__coeur {
+.lodge7__coeur {
   position: absolute;
   top: 6px;
   right: 6px;
-}
-.volet7__coeur {
-  top: 11px;
-  right: 11px;
 }
 
 /* La fenêtre « Enregistrer dans un dossier ». */

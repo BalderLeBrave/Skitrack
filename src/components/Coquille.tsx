@@ -38,6 +38,7 @@ import {
   useSejour,
 } from "@/lib/parcours";
 import { stationsVoisines } from "@/lib/domaineStations";
+import { grandDomaineDe } from "@/lib/grandsDomaines";
 import { usePrix } from "@/lib/prix/releve";
 import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
@@ -105,15 +106,11 @@ function MenuPlus() {
   const [ouvert, setOuvert] = useState(false);
   const hote = useRef<HTMLDivElement>(null);
   useFermeture(ouvert, () => setOuvert(false), hote);
-  // Les stations du domaine relié : depuis Courchevel, passer à Méribel ou à
-  // Val Thorens sans repasser par Comparer. Le menu ne proposait rien de tel,
-  // et aucun autre écran ne fait ce saut. Chacune a ses propres logements
-  // (`stay/rattachement.ts`) ; les villages d'une station n'y figurent pas.
+  // Les voisines du grand domaine relié : depuis Courchevel, passer à Méribel
+  // ou à Val Thorens sans repasser par Comparer. Le menu ne proposait rien de
+  // tel, et aucun autre écran ne fait ce saut.
   const station = useStationCourante();
-  const voisines = useMemo(
-    () => (station ? stationsVoisines(station.id, station.domain) : []),
-    [station],
-  );
+  const voisines = useMemo(() => (station ? stationsVoisines(station.id) : []), [station]);
 
   return (
     <div className="v7nav__plus" ref={hote}>
@@ -151,7 +148,7 @@ function MenuPlus() {
           {voisines.length ? (
             <div className="v7menu__groupe">
               <span className="v7menu__titre">
-                {t("nav.domainStations")} · {station?.domain}
+                {t("nav.domainStations")} · {station ? grandDomaineDe(station.id)?.nom : null}
               </span>
               <div className="v7menu__liens v7menu__liens--stations">
                 {voisines.map((s) => (

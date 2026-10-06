@@ -36,10 +36,8 @@ import type { Resolution } from "@/lib/forfaits/resolution";
 import { montantCents } from "@/lib/devises";
 import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
-import { stationMere, stationsVoisines, villagesDeLaStation } from "@/lib/domaineStations";
 import {
   altLbl,
-  aStation,
   crumb,
   kmLbl,
   liftsLbl,
@@ -352,30 +350,6 @@ function echu(validUntil: string | null | undefined): boolean {
 }
 
 /**
- * La place de la station dans son domaine, sur la fiche : de quelle station
- * elle n'est qu'un village, quels villages elle réunit, et avec quelles
- * stations son domaine skiable est relié (`domaineStations.ts`). Une
- * information seulement : chaque logement n'est listé que sous sa station
- * (`stay/rattachement.ts`), jamais sous une voisine.
- */
-function RelationDomaine({ s }: { s: Station }) {
-  const mere = stationMere(s.id);
-  const villages = villagesDeLaStation(s.id);
-  const reliees = stationsVoisines(s.id, s.domain);
-  if (!mere && villages.length === 0 && reliees.length === 0) return null;
-  const noms = (xs: readonly Station[]) => xs.map((x) => x.name).join(", ");
-  return (
-    <div className="fhero7__faits">
-      {mere ? (
-        <span>{tr("Village de {station} : ses logements sont listés sous la station", { station: mere.name })}</span>
-      ) : null}
-      {villages.length > 0 ? <span>{tr("Villages : {villages}", { villages: noms(villages) })}</span> : null}
-      {reliees.length > 0 ? <span>{tr("Domaine relié avec {stations}", { stations: noms(reliees) })}</span> : null}
-    </div>
-  );
-}
-
-/**
  * Le bulletin d'avalanche : le pictogramme du niveau, une ligne courte, et le
  * texte du bulletin replié derrière « + ».
  *
@@ -552,7 +526,6 @@ function Fiche() {
 
 function FicheBody({ s }: { s: Station }) {
   const go = useGo();
-  const stationId = useParcours((x) => x.stationId);
   const cmp = useParcours((x) => x.cmp);
   const retain = useParcours((x) => x.retain);
   const toggleCmp = useParcours((x) => x.toggleCmp);
@@ -562,7 +535,6 @@ function FicheBody({ s }: { s: Station }) {
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
 
-  const retained = stationId === s.id;
   const inCmp = cmp.includes(s.id);
   const photo = stationPhoto(s);
   const pret = resolveStationPhoto(s.id);
@@ -641,7 +613,6 @@ function FicheBody({ s }: { s: Station }) {
               <i>·</i>
               <span>{tr("Village {altitude}", { altitude: villageLbl(s) ?? tr("non relevé") })}</span>
             </div>
-            <RelationDomaine s={s} />
           </div>
           <span className="fhero7__note">{photoNote}</span>
         </section>
@@ -806,9 +777,7 @@ function FicheBody({ s }: { s: Station }) {
                 void go("lodging");
               }}
             >
-              {retained
-                ? tr("Voir les logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })
-                : tr("Retenir et voir les logements")}
+              {tr("Voir les logements")}
               <Icon name="fleche-droite" taille={16} />
             </button>
             <div>

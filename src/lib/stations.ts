@@ -1,6 +1,16 @@
 /** Référentiel des stations FR : classeur France Montagnes × OpenSkiMap (279
  *  lignes, 4 doublons et 1 station fermée écartés), plus les stations du dépôt
- *  absentes du classeur (34) : 313 entrées.
+ *  absentes du classeur (34) : 313 entrées jusqu'au 5 octobre 2026.
+ *
+ *  Depuis, **une station est une fiche Skiinfo** (`villages.ts`) : les
+ *  65 villages sans fiche propre ne sont plus des stations mais se rattachent à
+ *  la leur, les 17 lignes sans fiche ni station où les rattacher sortent, le
+ *  doublon du Granier est fusionné, et trois stations entrent : Sollières-
+ *  Sardières, puis Val d'Ese et Haut Asco, sans fiche Skiinfo, par décision du
+ *  propriétaire. 233 stations.
+ *  Un identifiant de village, de doublon ou d'alias Skiinfo se résout vers sa
+ *  station (`stationById`) ; rien de ce qui a été enregistré sous lui n'est
+ *  migré.
  *
  *  Clé primaire : l'identifiant du dépôt partout où la station y existe. Les
  *  identifiants du dépôt survivent donc tous, inchangés (voir
@@ -36,6 +46,14 @@ import type { StationSlopes } from "./pistes.ts";
 import { SKIINFO_AT, skiinfoPhoto, slopesFromSkiinfo } from "./skiinfo.ts";
 import rows from "./stations.data.json" with { type: "json" };
 import { altitude, type Systeme } from "./unites.ts";
+import {
+  DEPARTEMENTS,
+  IDS_NON_STATION,
+  IDS_SANS_FICHE,
+  REPERES_REVUS,
+  STATIONS_AJOUTEES,
+  stationDuLieu,
+} from "./villages.ts";
 
 export type PinKind = "base" | "sommet" | "autre" | "inconnu";
 
@@ -141,8 +159,21 @@ function pctOf(slopes: StationSlopes): ColorShare | null {
   return g + b + r + k > 0 ? { green: g, blue: b, red: r, black: k } : null;
 }
 
-/** Les lignes du dépôt, sans les stations fermées pour de bon. */
-const DEPOT: DepotRow[] = (rows as DepotRow[]).filter((r) => !IDS_FERMES.has(r.id));
+/** Un identifiant de station du référentiel : ni fermée, ni retirée faute de
+ *  fiche Skiinfo, ni village, doublon ou alias d'une autre (`villages.ts`). */
+function estStation(id: string): boolean {
+  return !IDS_FERMES.has(id) && !IDS_SANS_FICHE.has(id) && !IDS_NON_STATION.has(id);
+}
+
+/** Les lignes du dépôt, sans les stations fermées pour de bon. Un repère revu
+ *  (`REPERES_REVUS`) remplace le pin, avec l'altitude IGN du nouveau point :
+ *  l'altitude du village est celle du repère. */
+const DEPOT: DepotRow[] = (rows as DepotRow[])
+  .filter((r) => estStation(r.id))
+  .map((r) => {
+    const revu = REPERES_REVUS[r.id];
+    return revu ? { ...r, lat: revu.lat, lon: revu.lon, demM: revu.demM, villageM: revu.demM } : r;
+  });
 const DEPOT_BY_ID = new Map(DEPOT.map((r) => [r.id, r]));
 
 /**
@@ -187,7 +218,7 @@ function slopesFromClasseur(km: number | null, cnt: ColorCounts | null): Station
   };
 }
 
-const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
+const FROM_CLASSEUR: Station[] = CLASSEUR.filter((entry) => estStation(entry.id)).map((entry) => {
   const { fm } = entry;
   const depot = entry.depotId ? DEPOT_BY_ID.get(entry.depotId) : undefined;
   // Les chiffres de domaine viennent de `entry.measure`, pas de la ligne :
@@ -232,7 +263,7 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     origin: depot ? "depot" : "classeur",
     inClasseur: true,
     kind: entry.kind,
-    dept: fm.departement || null,
+    dept: fm.departement || DEPARTEMENTS[entry.id] || null,
     commune: fm.commune || null,
     status: fm.status || null,
     domain: entry.domain,
@@ -273,7 +304,7 @@ const DEPOT_ONLY: Station[] = DEPOT.filter((r) => !IN_CLASSEUR.has(r.id)).map((r
     origin: "depot",
     inClasseur: false,
     kind: "station",
-    dept: null,
+    dept: DEPARTEMENTS[r.id] ?? null,
     commune: null,
     status: null,
     domain: null,
@@ -293,10 +324,57 @@ const DEPOT_ONLY: Station[] = DEPOT.filter((r) => !IN_CLASSEUR.has(r.id)).map((r
   } satisfies Station;
 });
 
-export const STATIONS: Station[] = [...FROM_CLASSEUR, ...DEPOT_ONLY];
+/** Stations que ni le dépôt ni le classeur ne décrivent (`STATIONS_AJOUTEES` :
+ *  Sollières-Sardières, Val d'Ese, Haut Asco). Nordiques ou sans relevé de
+ *  domaine : leurs champs d'échelle domaine sont nuls. */
+const AJOUTEES: Station[] = STATIONS_AJOUTEES.map((a) => ({
+  id: a.id,
+  name: a.name,
+  country: "FR",
+  massif: a.massif,
+  villageM: a.villageM,
+  minM: a.minM,
+  maxM: a.maxM,
+  photo: a.photoUrl ? `/stations/${a.id}.jpg` : null,
+  fmId: null,
+  fmVillageM: null,
+  fmMinM: null,
+  fmMaxM: null,
+  demM: a.demM,
+  pinKind: "autre",
+  gpsDup: false,
+  lat: a.lat,
+  lon: a.lon,
+  posRelevee: true,
+  slopes: slopesFromSkiinfo(a.id),
+  origin: "depot",
+  inClasseur: false,
+  kind: "station",
+  dept: a.dept,
+  commune: a.commune,
+  status: null,
+  domain: null,
+  pistesKm: null,
+  pistesKmScale: null,
+  segments: null,
+  lifts: null,
+  liftsScale: null,
+  distToPisteKm: null,
+  colorShare: null,
+  colorScale: null,
+  colorCounts: null,
+  skiinfoPct: null,
+  measuredAt: null,
+  medianM: null,
+  above2000Pct: null,
+}));
 
-/** Les 230 du dépôt (231, moins Le Grand Puy, fermé) : seules à porter `demM`
- *  et une fiche Skiinfo. */
+export const STATIONS: Station[] = [...FROM_CLASSEUR, ...DEPOT_ONLY, ...AJOUTEES];
+
+/** Les 230 du dépôt (231, moins Le Grand Puy, fermé), plus les trois
+ *  stations ajoutées (`STATIONS_AJOUTEES`) : seules à porter `demM`. Depuis le
+ *  5 octobre 2026, ce sont toutes les stations du référentiel ; toutes ont une
+ *  fiche Skiinfo, sauf Val d'Ese et Haut Asco. */
 export const DEPOT_STATIONS: Station[] = STATIONS.filter((s) => s.origin === "depot");
 
 const BY_ID = new Map(STATIONS.map((s) => [s.id, s]));
@@ -307,9 +385,30 @@ const BY_ID = new Map(STATIONS.map((s) => [s.id, s]));
  * 2026) rend la station qui le remplace : un séjour, une comparaison, un lien
  * ou un relevé enregistrés sous « espace-aubrac » ouvrent Laguiole, au lieu de
  * ne plus rien ouvrir. La station rendue porte son propre identifiant.
+ *
+ * Même chose pour un village rattaché, un doublon fusionné ou un alias
+ * Skiinfo (`villages.ts`, 5 octobre 2026) : « plagne-centre » ouvre
+ * La Plagne, « termignon » Val Cenis.
  */
 export function stationById(id: string): Station | undefined {
-  return BY_ID.get(id) ?? BY_ID.get(IDS_RETIRES[id] ?? "");
+  return BY_ID.get(id) ?? BY_ID.get(IDS_RETIRES[id] ?? "") ?? BY_ID.get(stationDuLieu(id) ?? "");
+}
+
+/** Les identifiants sous lesquels quelque chose a pu être enregistré pour
+ *  cette station avant qu'ils ne la désignent : villages, doublons, alias,
+ *  lignes retirées. Ils se lisent sous elle, sans migration. */
+export function anciensIds(stationId: string): string[] {
+  return [...IDS_NON_STATION, ...Object.keys(IDS_RETIRES)].filter(
+    (id) => id !== stationId && stationById(id)?.id === stationId,
+  );
+}
+
+/** L'identifiant de station qu'un identifiant enregistré désigne aujourd'hui :
+ *  le sien, celui de la station qui le remplace (`IDS_RETIRES`), ou celui de
+ *  la station d'un village, d'un doublon ou d'un alias Skiinfo
+ *  (`villages.ts`). `undefined` pour une station fermée ou retirée. */
+export function idStation(id: string): string | undefined {
+  return stationById(id)?.id;
 }
 
 export function dropM(station: Station): number {

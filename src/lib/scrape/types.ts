@@ -29,6 +29,11 @@ export type LiveSearchInput = {
   checkOut: string;
   guests: number;
   bedrooms: number;
+  /**
+   * Relever aussi les stations du grand domaine relié (`domaine.ts`). L'écran
+   * Logements le demande ; l'écran Prix, qui compare des stations, non.
+   */
+  domaine?: boolean;
 };
 
 export type LiveSearchResult = {

@@ -40,7 +40,8 @@ describe("bra massifs FR", () => {
     const reperes = reperesBra(STATIONS);
     const zone = STATIONS.filter((s) => publieUnBra(s.massif));
     const couvertes = zone.filter((s) => rattachementBra(s, reperes).code != null);
-    assert.ok(zone.length > 250, `zone BRA : ${zone.length} stations`);
+    // 192 stations depuis le 5 octobre 2026 (une station, une fiche Skiinfo).
+    assert.ok(zone.length > 180, `zone BRA : ${zone.length} stations`);
     assert.ok(
       couvertes.length / zone.length > 0.95,
       `couverture ${couvertes.length}/${zone.length}`,
@@ -84,7 +85,8 @@ describe("bra massifs FR", () => {
       { massif: par("valfrejus").massif, code: par("valfrejus").code, voie: par("valfrejus").voie },
       { massif: "Thabor", code: 13, voie: "nom" },
     );
-    assert.equal(par("nevache").code, 13);
+    // Névache, autre station du Thabor, a quitté le référentiel le 5 octobre
+    // 2026 (sans fiche Skiinfo) ; son mot-clé reste dans la table.
     assert.equal(par("ascou-pailheres").code, 72);
     assert.equal(par("les-monts-dolmes").code, 72);
     // Valloire et Valmeinier restent en Maurienne : le déplacement de

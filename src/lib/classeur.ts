@@ -161,8 +161,9 @@ export function sansDomaineAlpin(id: string): boolean {
  * Ce qui n'y est pas, exprès : Chamrousse 1750 (Roche Béranger, un autre
  * village, avec ses remontées et son forfait), les paires station et village
  * (Tignes et Tignes-le-Lac, Chamrousse et 1650, Les 7 Laux et Prapoutel), et
- * « Le Granier », dont l'identité avec la station du dépôt n'est pas prouvée
- * (voir `NAME_MATCH_EXCEPTIONS`).
+ * « Le Granier » (voir `NAME_MATCH_EXCEPTIONS`). Depuis le 5 octobre 2026,
+ * ces villages et ce doublon se résolvent vers leur station dans
+ * `villages.ts`, qui lit le classeur sans le corriger.
  */
 const LIGNES_EN_DOUBLE: { ligne: string; retire: string; garde: string }[] = [
   { ligne: "Sainte-Foy Station", retire: "sainte-foy-station", garde: "sainte-foy-tarentaise" },
@@ -286,7 +287,7 @@ export function nomAffiche(
 /** Positions relevées à la main sur le centre de la station, le 15 septembre
  *  2026. Le classeur France Montagnes pose le pin au centre de la **commune** :
  *  Lanslebourg tombait à 5,7 km de ses pistes, Val Joly à 3,5 km, Arc 1600 à
- *  2,3 km. Vingt-deux stations sont concernées, et quatre de plus le 6 octobre (plus bas).
+ *  2,3 km. Vingt-deux stations sont concernées.
  *
  *  Corriger ici et non dans le fichier généré, qui serait écrasé au prochain
  *  import — même raison que `DOMAIN_FIXES`.
@@ -317,19 +318,6 @@ export const GPS_FIXES: Record<string, readonly [number, number]> = {
   "le-tour": [45.9997, 6.9473], // Le Tour
   "les-carroz": [46.0268, 6.6385], // Les Carroz d'Araches
   "les-coches": [45.5472, 6.743], // Les Coches
-  // Le 6 octobre 2026, validé par le propriétaire : les repères du dépôt de
-  // quatre stations tombaient chez une voisine — Les Menuires à
-  // Saint-Martin-de-Belleville (311 m de son repère), Les Saisies à
-  // Notre-Dame-de-Bellecombe, Le Corbier et Saint-Jean-d'Arves l'un sur
-  // l'autre (24 m), près de Saint-Colomban. Depuis que chaque logement est
-  // rattaché à la station la plus proche (`stay/rattachement.ts`), un
-  // logement des Menuires allait à Reberty. Ce sont les positions du classeur
-  // France Montagnes (`franceMontagnes.data.ts`), à 6,3 à 10,5 km des
-  // anciennes.
-  "le-corbier": [45.239662, 6.268214], // Le Corbier
-  "les-menuires": [45.324, 6.5385], // Les Menuires
-  "les-saisies": [45.7547, 6.5388], // Les Saisies
-  "st-jean-darves": [45.204531, 6.279153], // Saint-Jean-d'Arves
 };
 
 /** Vrai quand la position vient d'un relevé : une correction de `GPS_FIXES`,
@@ -390,10 +378,12 @@ export type DomainMeasure = {
  *  n'est là que pour attraper une dérive future des données. */
 const NAME_MATCH_MAX_KM = 15;
 
-/** Stations du dépôt dont le nom existe au classeur sans désigner le même lieu.
- *  Le classeur nomme « Le Granier » une station de Saint-Pierre-de-Chartreuse ;
- *  le dépôt nomme « Le Granier » le domaine de la vallée des Entremonts, à
- *  9,2 km. Deux lieux, deux domaines. */
+/** Stations du dépôt que l'appariement par le nom ne doit pas toucher.
+ *  Le classeur place « Le Granier » à Saint-Pierre-de-Chartreuse, à 9,2 km du
+ *  « Le Granier » du dépôt, avec les mesures du Planolet : apparier la ligne
+ *  donnerait ces mesures à la station du dépôt. La ligne reste donc à part
+ *  ici, et c'est `FUSIONS` (`villages.ts`, 5 octobre 2026) qui la reconnaît
+ *  pour un doublon et la résout vers la station du dépôt. */
 const NAME_MATCH_EXCEPTIONS = new Set<string>(["le-granier-vallee-des-entremonts"]);
 
 /** Correspondances qu'aucune règle ne trouve : graphie différente, station

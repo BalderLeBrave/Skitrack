@@ -19,6 +19,7 @@ import type { Listing } from "./listings.ts";
 import { qualifierLogement } from "./stay/logement.ts";
 import { GPS_FIXES, sansDomaineAlpin, UNNAMED_DOMAIN } from "./classeur.ts";
 import { STATIONS } from "./stations.ts";
+import { villageById } from "./villages.ts";
 
 describe("aStation — la préposition suit l'article du nom", () => {
   it("contracte, élide, ou laisse « à » selon l'article", () => {
@@ -60,82 +61,95 @@ describe("aStation — la préposition suit l'article du nom", () => {
 });
 
 describe("positions relevées à la main", () => {
-  it("les vingt-six corrections sont posées", () => {
-    // Vingt-deux le 15 septembre 2026, quatre repères du dépôt le 6 octobre
-    // (Les Menuires, Les Saisies, Le Corbier, Saint-Jean-d'Arves).
-    assert.equal(Object.keys(GPS_FIXES).length, 26);
+  it("les vingt-deux corrections sont posées, sur la station ou sur son village", () => {
+    // Depuis le 5 octobre 2026, dix-huit des vingt-deux sont des villages
+    // (`villages.ts`) : la position relevée est celle du village, avec sa
+    // source, et le village se rattache à sa station.
+    assert.equal(Object.keys(GPS_FIXES).length, 22);
     for (const [id, [lat, lon]] of Object.entries(GPS_FIXES)) {
       const s = STATIONS.find((x) => x.id === id);
-      assert.ok(s, `${id} absente du référentiel`);
-      assert.equal(s.lat, lat, `${id} : latitude`);
-      assert.equal(s.lon, lon, `${id} : longitude`);
-      assert.equal(s.posRelevee, true, `${id} : position dite relevée`);
+      if (s) {
+        assert.equal(s.lat, lat, `${id} : latitude`);
+        assert.equal(s.lon, lon, `${id} : longitude`);
+        assert.equal(s.posRelevee, true, `${id} : position dite relevée`);
+        continue;
+      }
+      const v = villageById(id);
+      assert.ok(v, `${id} : ni station ni village`);
+      assert.equal(v.lat, lat, `${id} : latitude`);
+      assert.equal(v.lon, lon, `${id} : longitude`);
+      assert.equal(v.source, "releve", `${id} : source`);
     }
   });
 
   it("Lanslebourg quitte le centre de sa commune", () => {
     // Le classeur la posait à 5,7 km de ses pistes : c'est la correction la
-    // plus ample des vingt-deux.
-    const s = STATIONS.find((x) => x.id === "lanslebourg")!;
-    assert.equal(s.lat, 45.286);
-    assert.equal(s.lon, 6.879);
+    // plus ample des vingt-deux. Lanslebourg est un village de Val Cenis.
+    const v = villageById("lanslebourg")!;
+    assert.equal(v.station, "val-cenis");
+    assert.equal(v.lat, 45.286);
+    assert.equal(v.lon, 6.879);
   });
 
-  it("une station sans relevé ni correction se dit approximative", () => {
-    const sans = STATIONS.filter((s) => !s.posRelevee);
-    assert.ok(sans.length > 0, "le référentiel a des positions de commune");
-    for (const s of sans.slice(0, 20)) {
-      assert.equal(s.pinKind, "inconnu");
-      assert.ok(!(s.id in GPS_FIXES));
-    }
+  it("chaque station a une position relevée", () => {
+    // Les positions de commune étaient celles des lignes que seul le
+    // classeur décrivait. Depuis le 5 octobre 2026, toutes les stations ont
+    // une fiche Skiinfo, et un pin relevé.
+    assert.deepEqual(
+      STATIONS.filter((s) => !s.posRelevee).map((s) => s.id),
+      [],
+    );
   });
 });
 
 describe("« Domaine relié »", () => {
-  it("le libellé sans nom d'OpenStreetMap n'est pas un domaine relié", () => {
-    // Névache (0,4 km, 1 remontée) passait la puce, et Comparer écrivait
-    // « domaine non nommé (OpenStreetMap) » au lieu de « Non ».
-    for (const id of ["plateau-de-beille", "nevache", "saint-colomban-villards"]) {
-      const s = STATIONS.find((x) => x.id === id)!;
-      assert.equal(s.domain, UNNAMED_DOMAIN, id);
-      assert.equal(linked(s), false, id);
-      assert.equal(CHIPS.linked.fn(s), false, id);
-    }
-    // Une station d'un domaine qui porte un autre nom reste reliée ; une
-    // station sans domaine, non.
+  it("se lit dans la table des grands domaines reliés, pas dans le libellé", () => {
+    // Le libellé sans nom d'OpenStreetMap ne relie rien : Beille ne l'est pas.
+    // Saint-Colomban, qui le porte aussi, est sur les Sybelles.
+    const beille = STATIONS.find((x) => x.id === "plateau-de-beille")!;
+    assert.equal(beille.domain, UNNAMED_DOMAIN);
+    assert.equal(linked(beille), false);
+    assert.equal(CHIPS.linked.fn(beille), false);
+    assert.equal(linked(STATIONS.find((x) => x.id === "saint-colomban-villards")!), true);
+    // Une station seule de son domaine OpenStreetMap n'est reliée à rien,
+    // même si le domaine porte un autre nom qu'elle.
+    const serre = STATIONS.find((x) => x.id === "serre-chevalier")!;
+    assert.equal(serre.domain, "Serre-Chevalier");
+    assert.equal(linked(serre), false);
+    // Un forfait commercial ne relie pas non plus : Val Cenis et l'Espace
+    // Haute Maurienne Vanoise.
+    assert.equal(linked(STATIONS.find((x) => x.id === "val-cenis")!), false);
     assert.equal(linked(STATIONS.find((x) => x.id === "val-thorens")!), true);
-    assert.equal(linked(STATIONS.find((x) => x.id === "la-bourboule")!), false);
   });
 });
 
 describe("sans domaine alpin : une donnée, pas un relevé manquant", () => {
-  it("La Bourboule se lit « sans domaine alpin », et ses 0 m ne sont pas une mesure", () => {
-    const bourboule = STATIONS.find((x) => x.id === "la-bourboule")!;
+  // La Bourboule, seule station que `DOMAINES_CORRIGES` détache, a quitté le
+  // référentiel le 5 octobre 2026 (sans fiche Skiinfo). La règle demeure :
+  // le cas se fabrique sous son identifiant.
+  const bourboule = { ...STATIONS.find((x) => x.id === "le-mont-dore")!, id: "la-bourboule", name: "La Bourboule", domain: null, minM: 0, maxM: 0 };
+
+  it("une station détachée de son domaine se lit « sans domaine alpin », et ses 0 m ne sont pas une mesure", () => {
     assert.equal(sansDomaineAlpin(bourboule.id), true);
     assert.equal(sansDomaineLbl(bourboule), "sans domaine alpin");
     assert.equal(sub(bourboule), `${bourboule.massif} · sans domaine alpin`);
     // 0 m au référentiel : ni bas, ni haut, ni fourchette.
-    assert.equal(bourboule.minM, 0);
     assert.equal(minM(bourboule), null);
     assert.equal(maxM(bourboule), null);
     assert.equal(altLbl(bourboule), null);
   });
 
   it("un domaine seulement non relevé reste « non renseigné »", () => {
-    // Le Granier du dépôt n'a pas de domaine rattaché : on ne sait pas, on ne
-    // dit pas « sans ».
+    // Une station sans domaine rattaché, que rien ne détache : on ne sait pas,
+    // on ne dit pas « sans ».
     const granier = STATIONS.find((x) => x.id === "le-granier-vallee-des-entremonts")!;
     assert.equal(granier.domain, null);
     assert.equal(sansDomaineLbl(granier), null);
     assert.match(sub(granier), /domaine non renseigné$/);
-    // Les Monts du Pilat : 0 m aussi, mais aucune correction ne dit pourquoi.
-    const pilat = STATIONS.find((x) => x.id === "les-monts-du-pilat")!;
-    assert.equal(altLbl(pilat), null);
-    assert.equal(sansDomaineLbl(pilat), null);
-    // Seules les stations que `DOMAINES_CORRIGES` détache sont « sans ».
+    // Aucune station du référentiel n'est « sans ».
     assert.deepEqual(
       STATIONS.filter((s) => sansDomaineAlpin(s.id)).map((s) => s.id),
-      ["la-bourboule"],
+      [],
     );
   });
 });

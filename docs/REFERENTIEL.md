@@ -1,8 +1,43 @@
 # Référentiel des stations
 
-315 entrées : 280 des 284 lignes du classeur France Montagnes × OpenSkiMap
-(quatre lignes en double sont écartées, voir [Identifiants](#identifiants)),
-plus 35 stations que seul le dépôt décrit.
+**233 stations, une par fiche Skiinfo** depuis le 5 octobre 2026 (table
+validée : [REFERENTIEL-SKIINFO.md](REFERENTIEL-SKIINFO.md), code :
+`src/lib/villages.ts`). Les 230 stations du dépôt, plus Sollières-Sardières,
+et deux exceptions sans fiche gardées par le propriétaire : Val d'Ese et
+Haut Asco, que Skiinfo cite dans sa page Corse.
+
+Le classeur France Montagnes × OpenSkiMap (284 lignes) reste la source des
+chiffres de domaine. Les 83 lignes que seul lui décrivait ne sont plus des
+stations : 65 villages rattachés à leur station (Plagne Centre est La Plagne,
+Lanslebourg est Val Cenis), 17 lignes sans fiche ni station où les rattacher,
+retirées, et « Le Granier », doublon de la station du dépôt. Jusqu'à cette
+date, le référentiel comptait 315 puis 313 entrées.
+
+## Stations, villages et grands domaines
+
+- **Une station = une fiche Skiinfo.** Un village sans fiche propre est
+  rattaché à sa station (`VILLAGES`) et garde ses coordonnées, avec leur
+  source (relevé du 15 septembre 2026, toponyme IGN BD TOPO ou repère du
+  classeur). Son identifiant se résout vers la station (`stationById`), sans
+  migration de ce qui a été enregistré.
+- **Grands domaines reliés** (`grandsDomaines.ts`) : une couche à part, qui
+  liste ses stations membres, reliées par les remontées. Jamais un forfait
+  commercial (Espace Haute Maurienne Vanoise, Eski-mo, Mont Blanc Unlimited),
+  jamais le libellé de domaine d'OpenStreetMap. Le verdict de domaine des
+  logements, les voisines du menu « Plus », la puce et la ligne « Domaine
+  relié » lisent tous cette table. Un grand domaine ne fusionne aucun
+  logement.
+- **Rattachement d'un logement** (`rattachement.ts`) : la localité publiée par
+  la table, puis le repère le plus proche (station ou village) à 12 km au plus
+  (`RATTACHEMENT_MAX_KM`), puis le texte, seulement sans coordonnées. Sans
+  rien, le logement est « non rattaché », avec son motif (`trop-loin`,
+  `sans-lieu`), et l'écran Logements les compte. Recalculé à chaque relecture
+  (`rejugerDomaine`).
+- `Listing.stationId` est **la station du relevé** (celle qu'on a cherchée) ;
+  la station du logement est `nearestDomainId`.
+- Point ouvert : un même bien publié sur deux plateformes reste en double,
+  hors des deux preuves que `stay/regroupement.ts` sait lire (identifiant
+  CozyCozy, titre identique à moins de 150 m).
 
 ## D'où vient chaque chiffre
 
@@ -96,17 +131,20 @@ comparaison enregistrées sous un identifiant retiré.
 
 ## `le-granier-vallee-des-entremonts`
 
-Le classeur nomme « Le Granier » une station de Saint-Pierre-de-Chartreuse, à
-9,2 km du « Le Granier » du dépôt, qui désigne le domaine de la vallée des
-Entremonts. Deux lieux, deux domaines : ce ne sont pas la même station, et
-l'appariement par nom l'exclut explicitement (`NAME_MATCH_EXCEPTIONS`).
+Le classeur place une ligne « Le Granier » à Saint-Pierre-de-Chartreuse, à
+9,2 km du « Le Granier » du dépôt, avec les mesures du Planolet (vote de
+proximité). L'appariement par nom l'exclut (`NAME_MATCH_EXCEPTIONS`), pour ne
+pas prêter ces mesures à la station du dépôt. Le 5 octobre 2026, la ligne est
+reconnue pour un doublon (`FUSIONS`) : `le-granier` ouvre
+`le-granier-vallee-des-entremonts`.
 
-Elle reste au référentiel comme station du dépôt seul, identifiant et fiche
-inchangés. Ce qu'elle n'a pas, faute de domaine rattaché : domaine, remontées,
-tronçons par couleur, distance à la piste. L'écran l'affiche.
+La station du dépôt garde son identifiant et sa fiche. Ce qu'elle n'a pas,
+faute de domaine rattaché : domaine, remontées, tronçons par couleur, distance
+à la piste. L'écran l'affiche.
 
-## Ce qui ne vaut que pour les 231 du dépôt
+## Ce qui ne vaut que pour les stations à fiche
 
 `demM` (IGN RGE ALTI au pin) et la fiche Skiinfo. Les écrans qui les comparent —
-`/altitudes`, `/openskimap` — travaillent sur `DEPOT_STATIONS`, pas sur
-`STATIONS`.
+`/altitudes`, `/openskimap` — travaillent sur `DEPOT_STATIONS`. Depuis le
+5 octobre 2026, c'est tout le référentiel : les 230 du dépôt et les trois
+stations ajoutées (Val d'Ese et Haut Asco sans fiche Skiinfo).

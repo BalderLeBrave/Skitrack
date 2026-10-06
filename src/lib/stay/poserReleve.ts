@@ -169,28 +169,53 @@ const CHAMPS_DE_POSITION = [
   "nearestDomainName",
   "distToNearestDomainM",
   "winterBarrier",
+  "villageId",
+  "rattachementVia",
+  "nonRattache",
   "searchedLiftM",
   "searchedLiftName",
 ] as const;
 
+/** Ce que le bien publie de lui-même, chaque valeur avec sa source : la
+ *  capacité et les chambres sont celles du logement, quelle que soit la copie
+ *  qui les porte. */
+const CHAMPS_DU_BIEN = [
+  ["capacity", "capacitySource"],
+  ["bedrooms", "bedroomsSource"],
+  ["rooms"],
+] as const;
+
 /**
  * Un bien relevé deux fois (même plateforme, même identifiant) n'est gardé
- * qu'une fois, à la place de sa première copie (`copiesParBien`). Une
- * position qui ne manque qu'à la copie gardée est reprise d'une autre, avec
- * tout ce qu'elle détermine (distances, remontée, verdict de domaine) : c'est
- * le même logement, relevé pour la même station.
+ * qu'une fois, à la place de sa première copie (`copiesParBien`). Ce que la
+ * copie gardée ne publie pas est repris d'une autre : c'est le même logement,
+ * relevé pour la même station.
+ *
+ * - une position, avec tout ce qu'elle détermine (distances, remontée,
+ *   verdict de domaine) ;
+ * - la capacité, les chambres, les pièces, chacune avec sa source. La copie
+ *   Cozy d'un Airbnb, moins chère mais muette sur sa capacité, rendait sinon
+ *   « muet » un logement que sa copie directe faisait compter.
  *
  * Ce n'est pas `regrouper` (`regroupement.ts`), qui réunit les offres d'un
  * même logement **sur plusieurs plateformes** : ici, c'est la même offre.
  */
 export function dedoublonnerParBien<T extends CopieDeBien>(listings: readonly T[]): T[] {
   return [...copiesParBien(listings).values()].map(({ gardee, copies }) => {
-    if (plausible(gardee.lat, gardee.lon)) return gardee;
-    const situee = copies.find((c) => plausible(c.lat, c.lon));
-    if (!situee) return gardee;
+    if (copies.length === 1) return gardee;
     const out: Record<string, unknown> = { ...gardee };
-    const donneur = situee as unknown as Record<string, unknown>;
-    for (const k of CHAMPS_DE_POSITION) if (k in donneur) out[k] = donneur[k];
+    const de = (c: T) => c as unknown as Record<string, unknown>;
+    if (!plausible(gardee.lat, gardee.lon)) {
+      const situee = copies.find((c) => plausible(c.lat, c.lon));
+      if (situee) for (const k of CHAMPS_DE_POSITION) if (k in de(situee)) out[k] = de(situee)[k];
+    }
+    for (const [valeur, ...source] of CHAMPS_DU_BIEN) {
+      if (out[valeur] != null) continue;
+      const donneur = copies.find((c) => de(c)[valeur] != null);
+      if (!donneur) continue;
+      out[valeur] = de(donneur)[valeur];
+      for (const k of source) out[k] = de(donneur)[k];
+    }
     return out as T;
   });
 }

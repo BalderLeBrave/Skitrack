@@ -45,7 +45,7 @@ import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
 /** Au-delà, une gare n'est plus la remontée d'un logement (`nearestLift`). */
 const GARE_LOINTAINE_M = 40_000;
 import { anciensIds, STATIONS, stationById } from "../stations.ts";
-import { cleListing } from "../stay/poserReleve.ts";
+import { cleBien, cleDuLogement, cleListing, dedoublonnerParBien } from "../stay/poserReleve.ts";
 import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
 import { recopierSoeurs } from "../stay/recopie.ts";
 import { parPrix as parPrixOffre, regrouper, type Logement } from "../stay/regroupement.ts";
@@ -240,10 +240,18 @@ type Crible = {
  * vendu forfaits compris compte, depuis le 26 septembre 2026 : consigne du
  * propriétaire (`stay/forfaitInclus.ts`). Sur les relevés du 25 septembre 2026, les hôtels
  * faisaient bouger la médiane de 46 stations : La Clusaz passait de 5 688 à
- * 4 884 € sans eux. Les médianes déjà enregistrées ne changent qu'au relevé
- * suivant ; « Par budget » les écarte dès la relecture (`passeAnnonce`).
+ * 4 884 € sans eux. Les relevés déjà enregistrés les écartent dès la
+ * relecture : « Par budget » (`passeAnnonce`) et les médianes de « Par
+ * station » (`resultatsALaLecture`), par la même règle (`annonceMontree`).
+ *
+ * Et un logement **de la station** : Prix compare des stations, et un
+ * logement n'appartient qu'à la sienne (`rattachement.ts`). Logements montre
+ * aussi les stations du grand domaine relié, chacune sous son nom
+ * (`parStation.ts`) ; Prix non : un logement des Arcs ne compte pas dans la
+ * médiane de La Plagne, ni l'inverse (`horsDeLaStation`).
  */
 function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
+  if (horsDeLaStation(l)) return false;
   if (motifHorsSujet(l) != null) return false;
   if (estFicheGitesIntrouvable(l) || !estOffreGitesVerifiee(l)) return false;
   if (REPLI.test(l.proven ?? "")) return false;
@@ -272,22 +280,22 @@ function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
  */
 function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
   const criteres = { travelers: ctx.groupe.trav, rooms: ctx.groupe.rooms };
-  const vus = new Set<string>();
   const retenues: Listing[] = [];
   let muettes = 0;
   let petits = 0;
 
-  for (const brute of listings) {
-    const l = enrichirListing(brute);
-    if (!offreRecevable(l, ctx)) continue;
-    if (!gpsPrecis(l)) continue;
-    // Le rayon de 12 km garde la vallée entière : un logement de station est
-    // bien plus près d'une remontée. Écarté ici, il n'entre dans aucun compte.
-    if (!dansLaStation(l)) continue;
-    // Une même annonce rendue deux fois ne compte qu'une fois.
-    if (vus.has(l.id)) continue;
-    vus.add(l.id);
-
+  const recevables = listings.map(enrichirListing).filter(
+    (l) =>
+      offreRecevable(l, ctx) &&
+      gpsPrecis(l) &&
+      // Le rayon de 12 km garde la vallée entière : un logement de station est
+      // bien plus près d'une remontée. Écarté ici, il n'entre dans aucun compte.
+      dansLaStation(l),
+  );
+  // Un même bien rendu deux fois (même plateforme, même identifiant) ne
+  // compte qu'une fois, et toujours par la même copie, quel que soit l'ordre
+  // du relevé (`dedoublonnerParBien`).
+  for (const l of dedoublonnerParBien(recevables)) {
     const verdict = partyVerdict(l, criteres);
     if (verdict === "convient") retenues.push(l);
     else if (verdict === "non-annonce") muettes += 1;
@@ -609,14 +617,11 @@ export function manqueFiche(l: Listing): boolean {
  */
 export function aCompleter(listings: readonly Listing[], ctx: ContexteReleve): Listing[] {
   const criteres = { travelers: ctx.groupe.trav, rooms: ctx.groupe.rooms };
-  const vus = new Set<string>();
   const out: Listing[] = [];
-  for (const brute of listings) {
-    const l = enrichirListing(brute);
-    if (!offreRecevable(l, ctx)) continue;
-    if (gpsPrecis(l) && !dansLaStation(l)) continue;
-    if (vus.has(l.id)) continue;
-    vus.add(l.id);
+  const recevables = listings
+    .map(enrichirListing)
+    .filter((l) => offreRecevable(l, ctx) && !(gpsPrecis(l) && !dansLaStation(l)));
+  for (const l of dedoublonnerParBien(recevables)) {
     if (!manqueFiche(l)) continue;
     if (partyVerdict(l, criteres) === "trop-petit") continue;
     out.push(l);
@@ -1211,11 +1216,40 @@ export function passeBudget(total: number, pl: Plage, b: readonly [number, numbe
  */
 export function passeAnnonce(a: AnnonceRetenue, fl: Filtres, b: Bornes): boolean {
   if (!passeBudget(a.total, fl.budget, b.budget)) return false;
-  if (!dansLaStation(a)) return false;
+  if (!annonceMontree(a)) return false;
   if (!dansPlage(distFiltrableM(a), fl.distance, b.distance)) return false;
   if (!dansPlage(a.capacity ?? null, fl.capacite, b.capacite)) return false;
-  if (!dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres)) return false;
-  return !horsSujetRelu(a);
+  return dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres);
+}
+
+/**
+ * L'annonce est-elle, par son rattachement, ailleurs que dans la station du
+ * relevé ? Une autre station, reliée ou non (verdict `other` ou `linked`,
+ * `domainFit.ts`), ou aucune : à plus de 12 km de toute station. Une annonce
+ * que rien ne situe (`sans-lieu`) ne l'est pas : rien ne la dit ailleurs.
+ */
+export function horsDeLaStation(l: Pick<Listing, "domainFit" | "nonRattache">): boolean {
+  return (
+    l.domainFit === "other" ||
+    l.domainFit === "linked" ||
+    (l.domainFit === "unknown" && l.nonRattache === "trop-loin")
+  );
+}
+
+/**
+ * Une annonce relevée que sa station montre, critères de l'écran mis à part :
+ * la règle commune de « Par budget » (`passeAnnonce`) et du recompte des
+ * médianes à la lecture (`recompter`), pour qu'une médiane ne compte jamais un
+ * logement sans carte.
+ *
+ * Les annonces relues sont rejugées sur le référentiel du jour
+ * (`annoncesLues`) : un relevé enregistré avant le rattachement par station
+ * garde les logements des stations voisines et reliées, qui sortent ici
+ * (`horsDeLaStation`). Puis la distance à une remontée (`dansLaStation`) et
+ * les hors sujet, fiche démentie par son titre comprise (`horsSujetRelu`).
+ */
+export function annonceMontree(a: AnnonceRetenue): boolean {
+  return !horsDeLaStation(a) && dansLaStation(a) && !horsSujetRelu(a);
 }
 
 /** Le verdict de chaque annonce relue, calculé une fois : `filtrerCartes`
@@ -1569,7 +1603,8 @@ export function comparateurBudget(t: TriB): (p: CarteAnnonce, q: CarteAnnonce) =
  *  référentiel : « La Cascade - La Giettaz », sortie à 293 m des relevés de
  *  Cordon, de Crest-Voland et de La Giettaz, s'étiquetait « Cordon »
  *  (25 septembre 2026). Chaque logement garde la place de sa première carte,
- *  qu'elle passe ou non. */
+ *  qu'elle passe ou non. Une annonce située ne passe que sous sa station
+ *  (`passeAnnonce`) : ce cas ne reste que pour une annonce non située. */
 export function filtrerCartes(
   cartes: readonly CarteAnnonce[],
   fl: Filtres,
@@ -1578,12 +1613,14 @@ export function filtrerCartes(
   // Une Map garde l'ordre de sa première clé, même quand la valeur change.
   const gardees = new Map<string, CarteAnnonce | null>();
   for (const c of cartes) {
-    const deja = gardees.get(c.a.id) ?? null;
+    // Un même bien (plateforme + identifiant, `cleBien`) ne fait qu'une carte.
+    const k = cleBien(c.a);
+    const deja = gardees.get(k) ?? null;
     if (!passeAnnonce(c.a, fl, b)) {
-      if (!gardees.has(c.a.id)) gardees.set(c.a.id, null);
+      if (!gardees.has(k)) gardees.set(k, null);
       continue;
     }
-    if (!deja || copiePreferee(c, deja)) gardees.set(c.a.id, c);
+    if (!deja || copiePreferee(c, deja)) gardees.set(k, c);
   }
   return [...gardees.values()].filter((c): c is CarteAnnonce => c != null);
 }
@@ -1634,8 +1671,10 @@ function ecartAuReleve(c: CarteAnnonce): number {
 export function logementsReleves(cartes: readonly CarteAnnonce[]): Logement[] {
   const parent = new Map<string, string>();
   const premiere = new Map<string, AnnonceRetenue>();
-  /** Les plateformes de chaque logement, tenues à sa racine. */
-  const sources = new Map<string, Set<string>>();
+  /** Les plateformes de chaque logement, tenues à sa racine, avec le bien
+   *  qu'elles y vendent : deux biens d'une plateforme ne font pas un logement,
+   *  les deux formules d'un bien (seul, forfaits compris) si. */
+  const sources = new Map<string, Map<string, string>>();
   const racine = (id: string): string => {
     let r = id;
     while (parent.get(r) !== r) r = parent.get(r) as string;
@@ -1651,27 +1690,33 @@ export function logementsReleves(cartes: readonly CarteAnnonce[]): Logement[] {
     const ra = racine(a);
     const rb = racine(b);
     if (ra === rb) return;
-    const sa = sources.get(ra) as Set<string>;
-    const sb = sources.get(rb) as Set<string>;
-    for (const s of sb) if (sa.has(s)) return;
+    const sa = sources.get(ra) as Map<string, string>;
+    const sb = sources.get(rb) as Map<string, string>;
+    for (const [s, bien] of sb) if (sa.has(s) && sa.get(s) !== bien) return;
     parent.set(rb, ra);
-    for (const s of sb) sa.add(s);
+    for (const [s, bien] of sb) sa.set(s, bien);
     sources.delete(rb);
   };
   /** La première offre vue de chaque logement de relevé (station et marque). */
   const tete = new Map<string, string>();
   for (const c of cartes) {
     const { id, source, logement } = c.a;
+    const bien = cleDuLogement(c.a);
     if (!parent.has(id)) {
       parent.set(id, id);
       premiere.set(id, c.a);
-      sources.set(id, new Set([source]));
+      sources.set(id, new Map([[source, bien]]));
     }
-    if (!logement) continue;
-    const cle = `${c.stationId}\n${logement}`;
-    const t = tete.get(cle);
-    if (t == null) tete.set(cle, id);
-    else unir(t, id);
+    // Les formules d'un même bien, marquées ou non (relevés d'avant le 25
+    // septembre 2026), sont un logement : la médiane les compte une fois
+    // (`recompter`), la carte aussi.
+    const cles = [`${c.stationId}\nbien\n${bien}`];
+    if (logement) cles.push(`${c.stationId}\n${logement}`);
+    for (const cle of cles) {
+      const t = tete.get(cle);
+      if (t == null) tete.set(cle, id);
+      else unir(t, id);
+    }
   }
   const groupes = new Map<string, Listing[]>();
   for (const [id, a] of premiere) {

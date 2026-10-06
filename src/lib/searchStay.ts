@@ -10,6 +10,7 @@ import { enrichirListing } from "./stay/enrichir";
 import { journalResidu, residuLogements } from "./stay/logement";
 import { estFicheGitesIntrouvable } from "./stay/ficheGites";
 import { estOffreGitesVerifiee, purgerTarifFigé } from "./stay/tarif";
+import { dedoublonnerParBien } from "./stay/poserReleve";
 
 const Input = z.object({
   stationId: z.string().min(1),
@@ -261,7 +262,7 @@ async function completer(
   const extraDevis = stay && rows.some((l) => l.source === "Gîtes de France") ? DEVIS_MS : 0;
   const extraTarif = stay && rows.some((l) => l.source === "Centrale" && l.total > 0) ? TARIF_MS : 0;
   const budget = Math.max(budgetMs, extraDevis, extraTarif);
-  if (budget <= 0) return poserAcces(rows, stationId);
+  if (budget <= 0) return poserAcces(dedoublonnerParBien(rows), stationId);
   try {
     await withDeadline(
       Promise.all([
@@ -311,7 +312,10 @@ async function completer(
     if (!estTimeout(err)) throw err;
     console.warn("[searchStay] complément de fiches : délai dépassé, on rend ce qui est lu");
   }
-  const rendues = rows.filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
+  // Un même bien rendu deux fois par une part (deux pages d'une centrale, une
+  // copie Cozy et une copie directe) n'est qu'un logement : plateforme +
+  // identifiant (`dedoublonnerParBien`). Entre parts, `mergeLive` dédoublonne.
+  const rendues = dedoublonnerParBien(rows.filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l)));
   // Ce qui reste introuvable reste `null`, et se dit : jamais de valeur par défaut.
   for (const ligne of journalResidu(residuLogements(rendues), stationId)) console.info(ligne);
   return poserAcces(rendues, stationId);

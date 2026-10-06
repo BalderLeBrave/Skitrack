@@ -75,6 +75,151 @@ export function cleListing(l: SujetReleve): string | null {
   return null;
 }
 
+/**
+ * L'identité d'un bien : sa plateforme et son identifiant **sur cette
+ * plateforme**, tels que `cleListing` les lit (identifiant Airbnb, code Gîtes,
+ * `platformId`, à défaut l'identifiant de l'annonce). Deux annonces de même
+ * clé sont le même logement relevé deux fois.
+ *
+ * Une centrale fait exception : toutes portent la source « Centrale », et
+ * deux offices peuvent numéroter leurs biens de la même façon. Leur
+ * identifiant d'annonce, préfixé du moteur et de l'office (`os-hmv-…`,
+ * `dw-…`), est la clé.
+ *
+ * Une offre forfaits compris n'est pas la même offre que l'hébergement seul
+ * du même bien : Mountain Collection, Maeva et Travelski publient les deux
+ * sous un même `platformId` (`mc-2338` et `mc-2338-forfait`), à deux totaux.
+ * Elles restent deux offres (`skiPassIncluded`, ou à défaut le suffixe
+ * `-forfait` de l'identifiant).
+ */
+export function cleBien(l: SujetReleve & { id: string; skiPassIncluded?: boolean | null }): string {
+  const bien = cleDuLogement(l);
+  return estFormuleForfait(l) ? `${bien}:forfait` : bien;
+}
+
+/** L'offre est-elle la formule forfaits compris de son bien ? */
+export function estFormuleForfait(l: { id: string; skiPassIncluded?: boolean | null }): boolean {
+  return l.skiPassIncluded === true || /-forfait$/.test(l.id);
+}
+
+/**
+ * Le logement d'une offre, quelle que soit sa formule : l'hébergement seul et
+ * l'offre forfaits compris d'un même bien ont la même. Deux offres d'un même
+ * logement, que `regrouper` réunit (`regroupement.ts`).
+ */
+export function cleDuLogement(l: SujetReleve & { id: string }): string {
+  if (l.source === "Centrale") {
+    // Les identifiants de centrale portent la formule (`…-forfait`) : le
+    // logement est l'identifiant sans elle.
+    return `Centrale:${l.id.replace(/-forfait$/, "")}`;
+  }
+  // `cleListing` rend `source:id` faute de `platformId` : la formule s'y
+  // retire aussi.
+  const cle = cleListing(l) ?? `${l.source ?? ""}:${l.id}`;
+  return cle.replace(/-forfait$/, "");
+}
+
+type CopieDeBien = SujetReleve & { id: string; total?: number | null; skiPassIncluded?: boolean | null };
+
+/**
+ * Pour chaque bien (`cleBien`), dans l'ordre de sa première copie : la copie
+ * gardée et toutes ses copies. La copie tarifée passe devant celle qui ne
+ * l'est pas, puis la copie située, puis la moins chère, puis la première
+ * rendue. La copie gardée est l'une des copies reçues, telle quelle.
+ */
+export function copiesParBien<T extends CopieDeBien>(listings: readonly T[]): Map<string, { gardee: T; copies: T[] }> {
+  const tarifee = (l: T) => (l.total ?? 0) > 0;
+  const meilleure = (a: T, b: T): boolean => {
+    if (tarifee(a) !== tarifee(b)) return tarifee(a);
+    const pa = plausible(a.lat, a.lon);
+    if (pa !== plausible(b.lat, b.lon)) return pa;
+    return tarifee(a) && (a.total ?? 0) < (b.total ?? 0);
+  };
+  const biens = new Map<string, { gardee: T; copies: T[] }>();
+  for (const l of listings) {
+    const k = cleBien(l);
+    const b = biens.get(k);
+    if (!b) biens.set(k, { gardee: l, copies: [l] });
+    else {
+      b.copies.push(l);
+      if (meilleure(l, b.gardee)) b.gardee = l;
+    }
+  }
+  return biens;
+}
+
+/** Ce qu'une position détermine sur une annonce (`attachAccess`) : repris
+ *  ensemble, avec elle, jamais séparément. */
+const CHAMPS_DE_POSITION = [
+  "lat",
+  "lon",
+  "gpsSource",
+  "distToSlopesM",
+  "distToLiftM",
+  "liftName",
+  "liftKind",
+  "liftLat",
+  "liftLon",
+  "liftOtherLat",
+  "liftOtherLon",
+  "placeName",
+  "distToPlaceM",
+  "domainFit",
+  "nearestDomainId",
+  "nearestDomainName",
+  "distToNearestDomainM",
+  "winterBarrier",
+  "villageId",
+  "rattachementVia",
+  "nonRattache",
+  "searchedLiftM",
+  "searchedLiftName",
+] as const;
+
+/** Ce que le bien publie de lui-même, chaque valeur avec sa source : la
+ *  capacité et les chambres sont celles du logement, quelle que soit la copie
+ *  qui les porte. */
+const CHAMPS_DU_BIEN = [
+  ["capacity", "capacitySource"],
+  ["bedrooms", "bedroomsSource"],
+  ["rooms"],
+] as const;
+
+/**
+ * Un bien relevé deux fois (même plateforme, même identifiant) n'est gardé
+ * qu'une fois, à la place de sa première copie (`copiesParBien`). Ce que la
+ * copie gardée ne publie pas est repris d'une autre : c'est le même logement,
+ * relevé pour la même station.
+ *
+ * - une position, avec tout ce qu'elle détermine (distances, remontée,
+ *   verdict de domaine) ;
+ * - la capacité, les chambres, les pièces, chacune avec sa source. La copie
+ *   Cozy d'un Airbnb, moins chère mais muette sur sa capacité, rendait sinon
+ *   « muet » un logement que sa copie directe faisait compter.
+ *
+ * Ce n'est pas `regrouper` (`regroupement.ts`), qui réunit les offres d'un
+ * même logement **sur plusieurs plateformes** : ici, c'est la même offre.
+ */
+export function dedoublonnerParBien<T extends CopieDeBien>(listings: readonly T[]): T[] {
+  return [...copiesParBien(listings).values()].map(({ gardee, copies }) => {
+    if (copies.length === 1) return gardee;
+    const out: Record<string, unknown> = { ...gardee };
+    const de = (c: T) => c as unknown as Record<string, unknown>;
+    if (!plausible(gardee.lat, gardee.lon)) {
+      const situee = copies.find((c) => plausible(c.lat, c.lon));
+      if (situee) for (const k of CHAMPS_DE_POSITION) if (k in de(situee)) out[k] = de(situee)[k];
+    }
+    for (const [valeur, ...source] of CHAMPS_DU_BIEN) {
+      if (out[valeur] != null) continue;
+      const donneur = copies.find((c) => de(c)[valeur] != null);
+      if (!donneur) continue;
+      out[valeur] = de(donneur)[valeur];
+      for (const k of source) out[k] = de(donneur)[k];
+    }
+    return out as T;
+  });
+}
+
 export function poserReleve<T extends SujetReleve, D extends SujetReleve>(rows: T[], dump: D[]): number {
   const index = new Map<string, D>();
   for (const raw of dump) {

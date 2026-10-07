@@ -31,6 +31,7 @@ import time
 from typing import Any, Callable
 from urllib.parse import urlencode
 
+from fiche_pdp import extraits_avis, fiche_enrichie_de_pdp
 from occupancy import merge_occupancy, occupancy_from_pdp
 from throttle import (
     MARGE_REQUETE_S,
@@ -137,7 +138,13 @@ def lire_reponse_pdp(status: int, headers: Any, text: str) -> dict[str, Any] | N
             return None
     if status != 200 or not isinstance(raw, dict):
         return None
-    return occupancy_from_pdp(raw)
+    occ = occupancy_from_pdp(raw)
+    # Description, équipements, règlement, note : sur la même réponse, sans
+    # second appel (`fiche_pdp.py`). Une forme inattendue ne donne rien.
+    enrichie = fiche_enrichie_de_pdp(raw)
+    if enrichie:
+        occ["enrichie"] = enrichie
+    return occ
 
 
 def url_pdp(listing_id: str, *, check_in: str | None, check_out: str | None, adults: int | None) -> str:
@@ -359,9 +366,43 @@ def fiche_de(occ: dict[str, Any] | None) -> dict[str, Any] | None:
         "typeLogement": occ.get("type_logement"),
         "ecartee": bool(occ.get("dropped")),
     }
-    if fiche["ecartee"] or any(fiche[k] is not None for k in ("capacity", "bedrooms", "rooms", "lat")):
+    if occ.get("enrichie") and not fiche["ecartee"]:
+        fiche["enrichie"] = occ["enrichie"]
+    if fiche["ecartee"] or fiche.get("enrichie") or any(fiche[k] is not None for k in ("capacity", "bedrooms", "rooms", "lat")):
         return fiche
     return None
+
+
+class AvisIndisponibles(Exception):
+    """La page d'avis n'a rien rendu de lisible (requête inconnue, forme
+    nouvelle) : on n'en redemande pas d'autre dans la tranche."""
+
+
+def lire_page_avis(listing_id: str, *, api_key: str, proxy_url: str = "") -> list[dict[str, Any]]:
+    """Une page d'avis, une seule : 50 au plus, les plus récents d'abord
+    (`pyairbnb/reviews.get_from_offset`, offset 0, son hash
+    StaysPdpReviewsQuery). Jamais `reviews.get`, qui pagine tout l'historique.
+
+    La requête passe par la session partagée et le limiteur (`session._wrap`,
+    installé par `run_fiches`). Un refus lève `RateLimited` ; une réponse sans
+    liste d'avis (hash rejeté, forme inconnue) lève `AvisIndisponibles`.
+    """
+    import pyairbnb.reviews as reviews
+
+    try:
+        page = reviews.get_from_offset(
+            api_key, 0, str(listing_id), currency="EUR", language="fr", proxy_url=proxy_url or None, timeout=20
+        )
+    except (RythmeLocal, CoupeCircuit, RateLimited):
+        raise
+    except Exception as err:
+        code = http_status_of(err)
+        if code in (403, 429, 503) or is_rate_limited(err):
+            raise RateLimited(code or 429, retry_after_from_exc(err, cap=PAUSE_MAX_S)) from err
+        raise AvisIndisponibles(str(err)[:200]) from err
+    if not isinstance(page, list):
+        raise AvisIndisponibles("réponse sans liste d'avis")
+    return extraits_avis(page)
 
 
 def texte_arret(arret: str, statut: int = 429, attente: float = 0.0, detail: str = "") -> str:
@@ -468,6 +509,8 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
         return sortie()
 
     vides_de_suite = 0
+    # Une page d'avis par fiche qui en annonce, sauf demande contraire.
+    avec_avis = params.get("avis") is not False
     while etat["i"] < len(ids):
         if etat["i"] and fin - time.time() - pause < MARGE_REQUETE_S:
             etat["arret"] = "echeance"
@@ -510,6 +553,37 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
             fiches[lid] = fiche
         else:
             vides.append(lid)
+        # Les avis : une page, seulement pour une fiche qui en annonce, tant
+        # que la requête d'avis répond et que l'échéance le permet.
+        avis = (fiche or {}).get("enrichie", {}) or {}
+        avis = avis.get("avis") if isinstance(avis, dict) else None
+        if (
+            avec_avis
+            and isinstance(avis, dict)
+            and (avis.get("nombre") or 0) > 0
+            and fin - time.time() >= MARGE_REQUETE_S + 2.0
+        ):
+            try:
+                avis["extraits"] = lire_page_avis(lid, api_key=key, proxy_url=proxy_url)
+                etat["lues"] += 1
+                airbnb_circuit.hit_ok()
+            except RythmeLocal as err:
+                etat.update(arret="rythme", attente=err.retry_after_s)
+                break
+            except CoupeCircuit:
+                etat["arret"] = "coupe-circuit"
+                break
+            except RateLimited as err:
+                etat["lues"] += 1
+                refus(err.status, min(PAUSE_MAX_S, max(0.2, err.retry_after_s)), "avis")
+                if err.status == 403:
+                    _jeter_cle()
+                etat.update(arret="refus", statut=err.status)
+                break
+            except AvisIndisponibles as err:
+                etat["lues"] += 1
+                avec_avis = False
+                print(f"[airbnb] avis indisponibles ({err}) — plus d'avis dans cette tranche", file=sys.stderr)
         if fiche and (fiche["capacity"] is not None or fiche["ecartee"]):
             vides_de_suite = 0
         else:

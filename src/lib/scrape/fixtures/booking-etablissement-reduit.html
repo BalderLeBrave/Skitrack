@@ -1,0 +1,36 @@
+<!-- Page établissement Booking réduite et anonymisée, pour le test du lecteur
+     (`bookingFiche.ts`). Construite sur les repères que lit le lecteur
+     (JSON-LD, data-testid, id="hotelPoliciesInc") : ce n'est pas une capture
+     intégrale. Aucun cookie, aucun identifiant de compte. -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<script type="application/ld+json">
+{"@context":"http://schema.org","@type":"Hotel","name":"Résidence Les Mélèzes","description":"Appartement au pied des pistes, à 200 m des remontées.","aggregateRating":{"@type":"AggregateRating","ratingValue":9.2,"bestRating":10,"reviewCount":87},"address":{"@type":"PostalAddress","addressLocality":"Les Deux Alpes"}}
+</script>
+</head>
+<body>
+<div data-testid="property-description">
+  <p>Situé à Mont-de-Lans, cet appartement dispose d’un balcon.</p>
+  <p>Il comprend 2 chambres, un salon avec télévision et une cuisine équipée.</p>
+</div>
+<div data-testid="review-score-component"><div>Avec une note de 9,2</div><div>Fabuleux</div><div>87 expériences vécues</div></div>
+<div data-testid="property-most-popular-facilities-wrapper">
+  <ul>
+    <li><span>Connexion Wi-Fi gratuite</span></li>
+    <li><span>Parking gratuit</span></li>
+    <li><span>Logements non-fumeurs</span></li>
+    <li><span>Lave-linge</span></li>
+  </ul>
+</div>
+<div id="hotelPoliciesInc">
+  <div><span>Arrivée</span></div><div>De 16:00 à 20:00</div>
+  <div><span>Départ</span></div><div>De 08:00 à 10:00</div>
+  <div><span>Annulation / prépaiement</span></div><div>Les conditions d’annulation et de prépaiement varient en fonction du type d’hébergement.</div>
+  <div><span>Caution remboursable</span></div><div>Une caution de 500 € est requise à l’arrivée.</div>
+  <div><span>Animaux domestiques</span></div><div>Les animaux ne sont pas admis.</div>
+  <div><span>Fêtes</span></div><div>Les fêtes ne sont pas autorisées.</div>
+</div>
+<div class="prix">À partir de 1 240 €</div>
+</body>
+</html>

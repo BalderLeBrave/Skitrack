@@ -1,8 +1,10 @@
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { allowsPath } from "./robots";
+import { ficheDepuisPageBooking } from "./bookingFiche";
 
-/** GPS Booking.com uniquement. Ne touche ni aux prix ni au relevé des fiches. */
+/** GPS Booking.com. Ne touche ni aux prix ni au relevé des fiches ; la page
+ *  déjà chargée donne aussi sa fiche (`bookingFiche.ts`), sans autre requête. */
 
 const MAX_FICHES = 12;
 const WORKERS = 4;
@@ -59,9 +61,16 @@ export function atlasFromHtml(html: string): { lat: number; lon: number } | null
   return null;
 }
 
-async function gpsOnPage(page: Page, url: string, until: number): Promise<{ lat: number; lon: number } | null> {
-  if (Date.now() >= until) return null;
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: Math.max(3_000, until - Date.now()) });
+type PageLue = { gps: { lat: number; lon: number } | null; html: string | null; statut: number | null };
+
+async function gpsOnPage(page: Page, url: string, until: number): Promise<PageLue> {
+  if (Date.now() >= until) return { gps: null, html: null, statut: null };
+  const rep = await page.goto(url, { waitUntil: "domcontentloaded", timeout: Math.max(3_000, until - Date.now()) });
+  const statut = rep?.status() ?? null;
+  if (statut === 403 || statut === 429) return { gps: null, html: null, statut };
+  // Le HTML de la page chargée : pour la fiche, et pour le GPS si la carte
+  // ne le donne pas. Aucune navigation de plus.
+  const html = await page.content().catch(() => null);
   const left = Math.max(1_000, until - Date.now());
   const atlas = await page
     .locator("[data-atlas-latlng]")
@@ -72,9 +81,9 @@ async function gpsOnPage(page: Page, url: string, until: number): Promise<{ lat:
     const [a, b] = atlas.split(",");
     const lat = Number(a);
     const lon = Number(b);
-    if (plausible(lat, lon)) return { lat, lon };
+    if (plausible(lat, lon)) return { gps: { lat, lon }, html, statut };
   }
-  return atlasFromHtml(await page.content());
+  return { gps: html ? atlasFromHtml(html) : null, html, statut };
 }
 
 /**
@@ -110,7 +119,9 @@ export async function fillBookingGps(host: Page, listings: Listing[]): Promise<n
           const url = hotelPageUrl(row.url);
           if (!url) continue;
           try {
-            const gps = await gpsOnPage(p, url, until);
+            const { gps, html, statut } = await gpsOnPage(p, url, until);
+            const fiche = ficheDepuisPageBooking(row, html, statut);
+            if (fiche) row.fiche = fiche;
             if (!gps) continue;
             row.lat = gps.lat;
             row.lon = gps.lon;

@@ -38,6 +38,7 @@ import type { LiveSearchInput } from "./types";
 import { annoncer, champsLogement } from "../stay/occupancy.ts";
 import { depuisTexte, equipements, fusionner, type CleEquipement, type EquipementsLus } from "../stay/equipements.ts";
 import { texteDeHtml } from "../stay/texteHtml.ts";
+import { ficheDepuisBrut, type FicheEnrichie } from "../stay/ficheEnrichie.ts";
 
 export const GREENGO_SITE = "https://www.greengo.voyage";
 export const GREENGO_API = "https://operations.greengo.voyage/graphql";
@@ -163,7 +164,53 @@ export type LogementGreenGo = {
   avis?: number | null;
   /** Les équipements publiés : ceux du logement seul, ou les parties communes de l'établissement ; absent si aucun code n'est publié. */
   equipements?: EquipementsLus;
+  /** Les mêmes, en codes GreenGo tels quels : possédés et déclarés absents. */
+  codesEquipement?: { possedes: string[]; absents: string[] };
 };
+
+/** Les codes d'équipement de blocs GreenGo, possédés et déclarés absents, dans l'ordre publié. */
+export function codesEquipementGreenGo(...blocs: unknown[]): { possedes: string[]; absents: string[] } | null {
+  const possedes: string[] = [];
+  const absents: string[] = [];
+  for (const b of blocs) {
+    const o = obj(b);
+    if (!o) continue;
+    const groupes = Array.isArray(o.possessedEquipmentsGroupedBySortedCategories) ? o.possessedEquipmentsGroupedBySortedCategories : [];
+    for (const g of groupes) for (const c of tableau(obj(g)?.sortedEquipments)) if (!possedes.includes(c)) possedes.push(c);
+    for (const c of tableau(o.sortedNonPossessedEquipments)) if (!absents.includes(c)) absents.push(c);
+  }
+  return possedes.length || absents.length ? { possedes, absents } : null;
+}
+
+/** « HAIR_DRYER » → « Hair dryer » : le code de la source, lisible. */
+export function libelleCodeGreenGo(code: string): string {
+  const t = code.toLowerCase().replace(/_/g, " ").trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/**
+ * La fiche d'un logement GreenGo, depuis son détail déjà lu : description,
+ * équipements possédés et déclarés absents (codes passés par la table), et
+ * le nombre d'avis. La note `averageGlobalRating` n'écrit pas son échelle :
+ * elle est gardée brute, sans note sur 5.
+ */
+export function ficheGreenGo(u: LogementGreenGo, url: string | null): FicheEnrichie | null {
+  const codes = u.codesEquipement;
+  return ficheDepuisBrut(
+    {
+      description: u.description ?? null,
+      equipements: codes
+        ? [
+            ...codes.possedes.map((c) => ({ libelle: libelleCodeGreenGo(c), present: true })),
+            ...codes.absents.map((c) => ({ libelle: libelleCodeGreenGo(c), present: false })),
+          ]
+        : [],
+      avis: u.avis ? { noteSource: u.note ?? null, echelleSource: null, nombre: u.avis, extraits: [] } : null,
+    },
+    "greengo",
+    { url },
+  );
+}
 
 /**
  * Les codes GreenGo de chacune des douze clés. Les animaux n'ont pas de code :
@@ -363,6 +410,14 @@ function avecEquipements(e: EquipementsLus | null): Pick<LogementGreenGo, "equip
   return e ? { equipements: e } : {};
 }
 
+function avecFiche(f: FicheEnrichie | null): Pick<Listing, "fiche"> {
+  return f ? { fiche: f } : {};
+}
+
+function avecCodes(c: { possedes: string[]; absents: string[] } | null): Pick<LogementGreenGo, "codesEquipement"> {
+  return c ? { codesEquipement: c } : {};
+}
+
 export function lireDetail(json: unknown): LogementGreenGo[] {
   const h = obj(obj(obj(obj(json)?.data)?.publicAdverts)?.hostingAdvert);
   if (!h) return [];
@@ -390,6 +445,7 @@ export function lireDetail(json: unknown): LogementGreenGo[] {
       reservable: Array.isArray(u.nonbookableReasons) && u.nonbookableReasons.length === 0,
       ...noteEtDescription(u),
       ...avecEquipements(equipementsGreenGo(communs)),
+      ...avecCodes(codesEquipementGreenGo(communs)),
     });
   }
   return out;
@@ -508,6 +564,9 @@ export function greengoListings(
         // La liste structurée d'abord, la description ensuite (`fusionner`).
         ...(u.description || u.equipements ? { amenities: equipements(fusionner(u.equipements, depuisTexte(u.description))) } : {}),
         ...(u.note != null ? { rating: u.note, reviewCount: u.avis ?? null } : {}),
+        // La fiche : description, codes d'équipement par la table (absents
+        // compris), nombre d'avis ; la note reste sans échelle.
+        ...avecFiche(ficheGreenGo(u, url)),
         photo: photos[0] ?? null,
         photos: photos.length ? photos : null,
         platformId: u.id,

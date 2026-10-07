@@ -18,7 +18,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNod
 import { Icon } from "@/components/Icon";
 import { BoutonFavori } from "@/components/v7/BoutonFavori";
 import { useEchap } from "@/components/v7/fermeture";
-import { BlocAcces, BlocAnnonce, BlocBadges, BlocEmplacement, BlocFaits, BlocNonIndique, CartePrix } from "@/components/v7/FicheBlocs";
+import { BlocAcces, BlocBadges, BlocEmplacement, BlocFaits, BlocFiche, BlocNonIndique, CartePrix } from "@/components/v7/FicheBlocs";
 import { OffresLogement } from "@/components/v7/OffresLogement";
 import { TAILLE_FENETRE, TAILLE_PLEIN, useGalerie } from "@/components/v7/useGalerie";
 import { useTracesPistes } from "@/components/v7/useTracesPistes";
@@ -306,7 +306,7 @@ export function VoletAnnonce({
               <BlocBadges l={l} stay={stay} />
               <BlocFaits l={l} altitude={altitude} />
               <BlocAcces l={l} altitude={altitude} traces={traces} />
-              <BlocAnnonce l={l} />
+              <BlocFiche l={l} />
               <BlocNonIndique l={l} />
               {groupe && groupe.offres.length > 1 ? (
                 <OffresLogement g={groupe} ici={l.id} voir={onVoirOffre} />

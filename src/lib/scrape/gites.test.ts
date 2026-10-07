@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   blocage,
   deviseFromGitesHtml,
+  avisFromGitesHtml,
   descriptionFromGitesHtml,
   listingDeFiche,
   nombreDeResultats,
@@ -20,6 +21,7 @@ import {
 import { COMMUNES_GITES, communeGites } from "./gitesCommunes.ts";
 import { lieuFromGitesHtml, lieuGitesEnCache, retenirLieuGites, viderCacheGitesGps } from "./gitesGps.server.ts";
 import type { LiveSearchInput } from "./types.ts";
+import { equipementsDe, noteSur5De } from "../stay/ficheEnrichie.ts";
 
 /**
  * Le dépôt ne contient **aucune** page de résultats Gîtes de France ni aucun
@@ -350,6 +352,25 @@ describe("budget de fiches", () => {
       trierParDistance([inconnu1, loin, inconnu2, pres], pin).map((t) => t.title),
       ["Mont-de-Lans", "Auris", "Inconnu 1", "Inconnu 2"],
     );
+  });
+});
+
+describe("Gîtes de France : la fiche enrichie, depuis le JSON-LD déjà lu", () => {
+  const html = readFileSync(new URL("./fixtures/itea-fiche-38G253122.html", import.meta.url), "utf8");
+
+  it("la note sans bestRating n'a pas d'échelle : pas de note sur 5, le nombre d'avis reste", () => {
+    const avis = avisFromGitesHtml(html)!;
+    assert.deepEqual(avis, { noteSource: "5", echelleSource: null, nombre: "2", extraits: [] });
+    const description = descriptionFromGitesHtml(html);
+    const fiche = { total: 0, currency: "EUR", priceLabel: null, occupancy: { capacity: 14, bedrooms: 5, rooms: null }, lieu: { lat: null, lon: null, locality: null }, platformId: null, description, avis };
+    const tile = { title: "Chalet les Copains", url: "https://www.gites-de-france.com/fr/x", photo: null, capacite: "14 personnes", typeLabel: "Gîte" };
+    const l = listingDeFiche(tile as never, fiche as never, "38G253122", { stationId: "les-2-alpes", stationName: "Les 2 Alpes", lat: 45, lon: 6, checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8, bedrooms: 0 });
+    assert.equal(l.fiche!.sourceFiche, "gites");
+    assert.equal(l.fiche!.description, description);
+    assert.deepEqual([l.fiche!.avis!.noteSur5, l.fiche!.avis!.nombre, l.fiche!.avis!.noteSource], [null, 2, 5]);
+    assert.deepEqual(l.fiche!.equipements, [], "pas d'équipement tiré de la description");
+    assert.equal(equipementsDe(l), null);
+    assert.equal(noteSur5De(l), null);
   });
 });
 

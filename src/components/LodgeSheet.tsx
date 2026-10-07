@@ -8,12 +8,14 @@ import { provenancePhrase, sourcePhrase } from "@/lib/provenance";
 import { datesCourtes, nuitsLbl } from "@/lib/parcours";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
+import { avisDe } from "@/lib/stay/ficheEnrichie";
+import { noteEtAvisLbl } from "@/lib/note";
 import { bedNomme, capLbl, persLbl, prixLbl } from "@/lib/v7";
 import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
-import { langue, langueIntl } from "@/lib/i18n/langue";
+import { langue } from "@/lib/i18n/langue";
 import { tr, trN } from "@/lib/i18n";
 
 /**
@@ -114,6 +116,8 @@ export function LodgeSheet({
   const ppNuit =
     listing.total > 0 ? Math.round(listing.total / Math.max(1, stay.guests) / nights) : null;
   const dispo = availabilityOf(listing, { checkIn: stay.checkIn, checkOut: stay.checkOut });
+  const avis = avisDe(listing);
+  const noteAvis = avis ? noteEtAvisLbl(avis.noteSur5, avis.nombre) : null;
   const complet = completudeOf(listing);
 
   useEffect(() => {
@@ -217,13 +221,11 @@ export function LodgeSheet({
                 </li>
               ) : null}
               <li>{sourcePhrase(listing)}</li>
-              {listing.rating != null ? (
+              {noteAvis ? (
                 <li>
                   <strong>{tr("Note publiée")}</strong>
                   {tr(" : ")}
-                  {listing.rating.toLocaleString(langueIntl())}
-                  {listing.reviewCount != null ? ` (${listing.reviewCount === 1 ? tr("1 avis") : tr("{n} avis", { n: listing.reviewCount })})` : ""}
-                  {tr(", telle que la source l’affiche, jamais recalculée.")}
+                  {noteAvis}
                 </li>
               ) : null}
               <li>

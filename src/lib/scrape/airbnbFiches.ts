@@ -10,6 +10,7 @@
 
 import type { SourceCapacite, SourceValeur } from "../stay/logement.ts";
 import { annoncer } from "../stay/occupancy.ts";
+import { ficheDepuisBrut, type FicheEnrichie } from "../stay/ficheEnrichie.ts";
 
 /** Pourquoi une tranche s'est arrêtée. Seul `refus` veut dire qu'Airbnb a refusé. */
 export type ArretFiches =
@@ -32,6 +33,10 @@ export type FicheAirbnb = {
   typeLogement: string | null;
   /** Hôtel, chambre (privée, partagée, d'hôtes) ou hébergement insolite : l'annonce sort. */
   ecartee: boolean;
+  /** Description, équipements, règlement, note et avis lus sur la même
+   *  réponse (`scrape/airbnb/fiche_pdp.py`), normalisés ici. Absente : la
+   *  fiche n'en publiait rien. */
+  enrichie?: FicheEnrichie;
 };
 
 export type LectureFichesAirbnb = {
@@ -170,7 +175,14 @@ function fiche(v: unknown): FicheAirbnb | null {
     roomType: texte(r.roomType),
     typeLogement: texte(r.typeLogement),
     ecartee: r.ecartee === true,
+    ...enrichieDe(r),
   };
+}
+
+function enrichieDe(r: Record<string, unknown>): { enrichie?: FicheEnrichie } {
+  if (r.ecartee === true) return {};
+  const f = ficheDepuisBrut(r.enrichie, "airbnb");
+  return f ? { enrichie: f } : {};
 }
 
 function liste(v: unknown, permis: ReadonlySet<string>): string[] {

@@ -55,6 +55,7 @@ const {
   poserMemoire,
 } = await import("./completerFiche.server.ts");
 const { memoireFiches } = await import("./memoireFiches.server.ts");
+const { ficheDepuisBrut } = await import("./ficheEnrichie.ts");
 
 const T0 = Date.parse("2027-01-10T12:00:00Z");
 
@@ -452,6 +453,44 @@ describe("mémoire des fiches : Logements la lit et l'alimente", () => {
     assert.deepEqual([...dejaLues], ["abnb-714330356704298148"]);
     // Inconnue de la mémoire : intacte, elle sera lue.
     assert.deepEqual([c.capacity, c.bedrooms, c.pdpLue ?? null], [null, null, null]);
+  });
+
+  it("Logements reprend la fiche enrichie que la complétion Prix a lue sur PdpPlatformSections, sans requête", () => {
+    const fiche = ficheDepuisBrut(
+      {
+        description: "Appartement rénové au pied des pistes.",
+        equipements: [{ libelle: "Sèche-cheveux", present: true }, { libelle: "Lave-linge", present: false }],
+        avis: { noteSource: 4.86, echelleSource: 5, nombre: 120, extraits: [{ auteur: "Marie", texte: "Très bien." }] },
+      },
+      "airbnb",
+    )!;
+    memoireFiches().noter([{ cle: "Airbnb:6660077", capacity: 4, capacitySource: "structured", lue: true, fiche }]);
+    const n = departs.length;
+    // Complète : seule la fiche se pose ; trouée : la fiche avec le reste.
+    const complete = airbnb("6660077", { capacity: 4, bedrooms: 1 });
+    const trouee = airbnb("6660077", { capacity: null, bedrooms: null });
+    const dejaFichee = airbnb("6660077", { capacity: 4, bedrooms: 1, fiche: { ...fiche, description: "La sienne." } });
+    poserMemoire([complete, trouee, dejaFichee]);
+    assert.equal(departs.length, n, "aucune requête");
+    assert.equal(complete.fiche?.description, "Appartement rénové au pied des pistes.");
+    assert.deepEqual(
+      complete.fiche?.equipements.map((e) => [e.id, e.present]),
+      [
+        ["seche_cheveux", true],
+        ["lave_linge", false],
+      ],
+    );
+    assert.deepEqual([complete.fiche?.avis?.noteSur5, complete.fiche?.avis?.nombre], [4.9, 120]);
+    assert.equal(complete.capacity, 4, "rien d'autre ne change");
+    assert.equal(trouee.fiche?.avis?.extraits[0]?.auteur, "Marie");
+    assert.equal(dejaFichee.fiche?.description, "La sienne.", "une fiche déjà là n'est pas remplacée");
+  });
+
+  it("une annonce dont la page n'a rien publié de plus reste sans fiche", () => {
+    memoireFiches().noter([{ cle: "Airbnb:6660078", capacity: 4, capacitySource: "structured", lue: true }]);
+    const row = airbnb("6660078", { capacity: 4, bedrooms: 1 });
+    poserMemoire([row]);
+    assert.equal(row.fiche, undefined);
   });
 
   it("une page rooms/ lue par Logements comble Logements, pas l'écran Prix, qui lit sa fiche PDP", () => {

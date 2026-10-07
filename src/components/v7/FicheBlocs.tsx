@@ -31,7 +31,16 @@ import {
 } from "@/lib/stay/accesPistes";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { LIBELLE_EQUIPEMENT } from "@/lib/stay/equipements";
+import { EQUIPEMENTS_EN_AVANT, EQUIPEMENTS_FICHE, LIBELLE_EQUIPEMENT, type EquipementFiche } from "@/lib/stay/equipements";
+import {
+  avisDe,
+  conditionsDe,
+  descriptionDe,
+  equipementsDe,
+  tronquer,
+  type ConditionsSejour,
+} from "@/lib/stay/ficheEnrichie";
+import { noteEtAvisLbl, noteSur5Lbl } from "@/lib/note";
 import { CHAMP_LIBELLE, champsNonIndiques } from "@/lib/stay/nonIndique";
 import { ecartAvecPrincipale, type Logement } from "@/lib/stay/regroupement";
 import { forfaitsAjoutables, parPersonne, totalSejour } from "@/lib/stay/totalSejour";
@@ -40,7 +49,7 @@ import { bedLbl, capLbl, distanceOf, firmOf, prixLbl } from "@/lib/v7";
 type Sejour = { checkIn: string; checkOut: string };
 
 /** Au-delà, la description se replie derrière « Lire toute la description ». */
-const DESCRIPTION_COURTE = 170;
+const DESCRIPTION_COURTE = 280;
 
 const PISTE_COULEUR: Record<PisteColor, string> = {
   green: aTraduire("Piste verte"),
@@ -53,8 +62,6 @@ const PISTE_COULEUR: Record<PisteColor, string> = {
 const dateCourte = (ms: number) =>
   new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", year: "numeric" }).format(new Date(ms));
 
-const note = (n: number) => new Intl.NumberFormat(langueIntl(), { maximumFractionDigits: 2 }).format(n);
-
 /** Le type publié, avec sa capitale : Cozy écrit « studio », « appartement ». */
 const majuscule = (s: string) => s.charAt(0).toLocaleUpperCase(langueIntl()) + s.slice(1);
 
@@ -63,18 +70,18 @@ const altM = (m: number) => `${new Intl.NumberFormat(langueIntl(), { maximumFrac
 /** 1. Disponibilité, note et avis, type publié. */
 export function BlocBadges({ l, stay }: { l: Listing; stay: Sejour }) {
   const ferme = firmOf(l, stay);
+  const avis = avisDe(l);
+  const noteAvis = avis ? noteEtAvisLbl(avis.noteSur5, avis.nombre) : null;
   return (
     <div className="fiche7__badges">
       <span className={`fiche7__badge ${ferme ? "fiche7__badge--ok" : "fiche7__badge--alerte"}`}>
         <Icon name={ferme ? "coche" : "alerte"} taille={13} />
         {availabilityLabel(availabilityOf(l, stay))}
       </span>
-      {l.rating != null ? (
+      {noteAvis ? (
         <span className="fiche7__badge">
           <Icon name="etoile" taille={13} />
-          {l.reviewCount != null
-            ? trN(l.reviewCount, "{note} · {n} avis sur {source}", "{note} · {n} avis sur {source}", { note: note(l.rating), source: l.source })
-            : tr("{note} sur {source}", { note: note(l.rating), source: l.source })}
+          {noteAvis}
         </span>
       ) : null}
       {l.propertyType?.trim() ? <span className="fiche7__badge">{majuscule(l.propertyType.trim())}</span> : null}
@@ -234,49 +241,228 @@ export function BlocAcces({
   );
 }
 
-/** 4. La description publiée, repliée quand elle est longue. */
-export function BlocAnnonce({ l }: { l: Listing }) {
-  const [ouverte, setOuverte] = useState(false);
-  const texte = l.description?.trim() ?? "";
-  const longue = texte.length > DESCRIPTION_COURTE;
-  // Sans description, rien n'en est dit : le bloc ne porte que les équipements.
+/** Une section repliable de la fiche, avec son titre. */
+function Repli({ id, titre, ouverte = true, children }: { id: string; titre: string; ouverte?: boolean; children: ReactNode }) {
   return (
-    <section className="fiche7__bloc" aria-labelledby="fiche7-annonce">
+    <details className="fiche7__bloc fiche7__repli" open={ouverte}>
+      <summary>
+        <h3 id={id}>{titre}</h3>
+      </summary>
+      <div className="fiche7__repli-corps" role="group" aria-labelledby={id}>
+        {children}
+      </div>
+    </details>
+  );
+}
+
+/** « Non publié par Airbnb » : un état vide qui ne ressemble pas à une donnée. */
+function NonPublie({ l }: { l: Listing }) {
+  return <p className="fiche7__absent">{tr("Non publié par {source}", { source: l.source })}</p>;
+}
+
+/** « Voir sur Airbnb », vers la page de la source. */
+function VoirSur({ l, url }: { l: Listing; url?: string | null }) {
+  const href = url ?? l.url;
+  if (!href) return null;
+  return (
+    <a className="fiche7__lien" href={href} target="_blank" rel="noopener">
+      {tr("Voir sur {source}", { source: l.source })}
+      <Icon name="externe" taille={11} />
+    </a>
+  );
+}
+
+/** 4a. La description publiée, repliée quand elle est longue. */
+function SectionDescription({ l }: { l: Listing }) {
+  const [entiere, setEntiere] = useState(false);
+  const texte = descriptionDe(l) ?? "";
+  const longue = texte.length > DESCRIPTION_COURTE;
+  return (
+    <Repli id="fiche7-description" titre={tr("Description")}>
       {texte ? (
         <>
-          <h3 id="fiche7-annonce">{tr("Dans l’annonce")}</h3>
-          <p className="fiche7__description">
-            {longue && !ouverte ? `${texte.slice(0, DESCRIPTION_COURTE).trimEnd()}…` : texte}
-          </p>
+          <p className="fiche7__description">{longue && !entiere ? tronquer(texte, DESCRIPTION_COURTE) : texte}</p>
           {longue ? (
-            <button type="button" className="fiche7__lien" aria-expanded={ouverte} onClick={() => setOuverte((o) => !o)}>
-              {ouverte ? tr("Replier la description") : tr("Lire toute la description")}
+            <button type="button" className="fiche7__lien" aria-expanded={entiere} onClick={() => setEntiere((o) => !o)}>
+              {entiere ? tr("Replier la description") : tr("Lire toute la description")}
             </button>
           ) : null}
-          <h4 className="fiche7__sous-titre">{tr("Équipements")}</h4>
+          <VoirSur l={l} />
         </>
       ) : (
-        <h3 id="fiche7-annonce">{tr("Équipements")}</h3>
+        <NonPublie l={l} />
       )}
-      {l.amenities?.length ? (
-        <ul className="fiche7__equipements">
-          {l.amenities.map((e) => (
-            <li key={e.cle} className={`fiche7__equipement fiche7__equipement--${e.valeur}`}>
-              <span className="fiche7__pastille" aria-hidden>
-                <Icon name={e.valeur === "oui" ? "coche" : e.valeur === "non" ? "moins" : "question"} taille={12} />
-              </span>
-              <span className="fiche7__equipement-nom">{tr(LIBELLE_EQUIPEMENT[e.cle])}</span>
-              <span className="lecteur7">
-                {e.valeur === "oui" ? tr("présent") : e.valeur === "non" ? tr("absent") : tr("non indiqué")}
-              </span>
-              {e.valeur === "inconnu" ? <span className="fiche7__equipement-note" aria-hidden>{tr("non indiqué")}</span> : null}
-            </li>
-          ))}
-        </ul>
+    </Repli>
+  );
+}
+
+/** Le nom d'un équipement : le libellé français de la table, sinon celui de la source. */
+function nomEquipement(e: EquipementFiche): string {
+  const def = EQUIPEMENTS_FICHE[e.id];
+  return def ? tr(def.libelle) : e.libelle;
+}
+
+function Pastille({ e }: { e: EquipementFiche }) {
+  const nom = nomEquipement(e);
+  return (
+    <li className={`fiche7__equipement fiche7__equipement--${e.present ? "oui" : "non"}`} title={e.libelle !== nom ? e.libelle : undefined}>
+      <span className="fiche7__pastille" aria-hidden>
+        <Icon name={e.present ? "coche" : "moins"} taille={12} />
+      </span>
+      <span className="fiche7__equipement-nom">{nom}</span>
+      <span className="lecteur7">{e.present ? tr("présent") : tr("absent")}</span>
+    </li>
+  );
+}
+
+/**
+ * 4b. Les équipements que la source liste : ceux qu'on met en avant d'abord
+ * (télévision, sèche-cheveux, wifi, lave-linge, parking, ski aux pieds), puis
+ * par groupe ; enfin ceux que la source dit absents. Ce qu'elle ne mentionne
+ * pas n'apparaît pas : ce n'est pas un absent.
+ */
+function SectionEquipements({ l }: { l: Listing }) {
+  const liste = equipementsDe(l);
+  const presents = (liste ?? []).filter((e) => e.present);
+  const absents = (liste ?? []).filter((e) => !e.present);
+  const enAvant = EQUIPEMENTS_EN_AVANT.map((id) => presents.find((e) => e.id === id)).filter((e): e is EquipementFiche => e != null);
+  const groupes = new Map<string, EquipementFiche[]>();
+  for (const e of presents) {
+    if (enAvant.includes(e)) continue;
+    const g = e.groupe ? tr(e.groupe) : tr("Autres");
+    groupes.set(g, [...(groupes.get(g) ?? []), e]);
+  }
+  return (
+    <Repli id="fiche7-equipements" titre={tr("Équipements")}>
+      {!liste?.length ? (
+        <NonPublie l={l} />
       ) : (
-        <p className="fiche7__absent">{tr("Équipements non relevés pour cette annonce.")}</p>
+        <>
+          {enAvant.length ? (
+            <ul className="fiche7__equipements fiche7__equipements--avant" aria-label={tr("Principaux équipements")}>
+              {enAvant.map((e) => (
+                <Pastille key={e.id} e={e} />
+              ))}
+            </ul>
+          ) : null}
+          {[...groupes].map(([g, es]) => (
+            <div key={g} className="fiche7__groupe">
+              <h4 className="fiche7__sous-titre">{g}</h4>
+              <ul className="fiche7__equipements">
+                {es.map((e) => (
+                  <Pastille key={e.id} e={e} />
+                ))}
+              </ul>
+            </div>
+          ))}
+          {absents.length ? (
+            <div className="fiche7__groupe">
+              <h4 className="fiche7__sous-titre">{tr("Absents selon {source}", { source: l.source })}</h4>
+              <ul className="fiche7__equipements">
+                {absents.map((e) => (
+                  <Pastille key={e.id} e={e} />
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </>
       )}
-    </section>
+    </Repli>
+  );
+}
+
+/** 4c. Les avis : « 4,8 / 5 · 120 avis », puis les extraits publiés. */
+function SectionAvis({ l }: { l: Listing }) {
+  const avis = avisDe(l);
+  const resume = avis ? noteEtAvisLbl(avis.noteSur5, avis.nombre) : null;
+  return (
+    <Repli id="fiche7-avis" titre={tr("Avis")}>
+      {!avis ? (
+        <NonPublie l={l} />
+      ) : (
+        <>
+          <p className="fiche7__avis-resume">
+            {resume ?? (avis.nombre ? trN(avis.nombre, "{n} avis, note non publiée", "{n} avis, note non publiée") : tr("Note non publiée"))}
+          </p>
+          {avis.extraits.length ? (
+            <ul className="fiche7__avis">
+              {avis.extraits.map((x, i) => {
+                const n = noteSur5Lbl(x.noteSur5);
+                const meta = [x.auteur, x.date, n].filter(Boolean).join(" · ");
+                return (
+                  <li key={i}>
+                    <blockquote>{tronquer(x.texte, 400)}</blockquote>
+                    {meta ? <p className="fiche7__note">{meta}</p> : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+          <VoirSur l={l} url={avis.url} />
+        </>
+      )}
+    </Repli>
+  );
+}
+
+const OUI_NON: Record<string, string> = {
+  oui: aTraduire("Oui"),
+  non: aTraduire("Non"),
+  sur_demande: aTraduire("Sur demande"),
+};
+
+const LIGNES_CONDITIONS: readonly { k: keyof ConditionsSejour; label: string }[] = [
+  { k: "arrivee", label: aTraduire("Arrivée") },
+  { k: "depart", label: aTraduire("Départ") },
+  { k: "annulation", label: aTraduire("Annulation") },
+  { k: "paiement", label: aTraduire("Acompte et paiement") },
+  { k: "caution", label: aTraduire("Caution") },
+  { k: "animaux", label: aTraduire("Animaux") },
+  { k: "fumeurs", label: aTraduire("Fumeurs") },
+  { k: "fetes", label: aTraduire("Fêtes") },
+  { k: "reglement", label: aTraduire("Règlement intérieur") },
+];
+
+/** 4d. Les conditions, dans les mots de la source. */
+function SectionConditions({ l }: { l: Listing }) {
+  const c = conditionsDe(l);
+  const lignes = c ? LIGNES_CONDITIONS.filter(({ k }) => c[k] != null) : [];
+  return (
+    <Repli id="fiche7-conditions" titre={tr("Conditions")} ouverte={false}>
+      {!c ? (
+        <NonPublie l={l} />
+      ) : (
+        <>
+          {lignes.length ? (
+            <dl className="fiche7__conditions">
+              {lignes.map(({ k, label }) => {
+                const v = c[k] as string;
+                return (
+                  <div key={k}>
+                    <dt>{tr(label)}</dt>
+                    <dd>{k === "animaux" || k === "fumeurs" || k === "fetes" ? tr(OUI_NON[v] ?? v) : v}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+          ) : null}
+          {c.texteSource ? <p className="fiche7__description">{c.texteSource}</p> : null}
+          <p className="fiche7__note">{tr("Texte publié par {source}, non reformulé.", { source: l.source })}</p>
+        </>
+      )}
+    </Repli>
+  );
+}
+
+/** 4. La fiche du logement : description, équipements, avis, conditions. */
+export function BlocFiche({ l }: { l: Listing }) {
+  return (
+    <>
+      <SectionDescription l={l} />
+      <SectionEquipements l={l} />
+      <SectionAvis l={l} />
+      <SectionConditions l={l} />
+    </>
   );
 }
 

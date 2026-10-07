@@ -20,6 +20,73 @@ import { stationById, type Station } from "../stations.ts";
 import { cleResultat, type Job, type Resultat } from "./calcul.ts";
 import type { RenduTranche } from "./completion.server.ts";
 
+/**
+ * Le verrou entre onglets. Node expose `navigator.locks` à partir de la 24.5 ;
+ * plus ancien (22 ici), il n'existe pas, et l'essai ne pouvait même pas
+ * attendre la fin d'une course (`auRepos`). Ce qui suit en tient lieu, sur ce
+ * que `releve.ts` en utilise et selon la spécification Web Locks : verrou
+ * exclusif, `ifAvailable` (rappel avec `null` s'il est tenu ou demandé),
+ * `signal` (abandon de l'attente, `AbortError`), file d'attente dans l'ordre
+ * des demandes où le verrou passe au suivant dès qu'il est rendu, et
+ * `query()`. Un Node qui a la vraie API la garde.
+ */
+type Verrou = { name: string; mode: "exclusive" };
+class VerrousDeSecours {
+  #tenus = new Map<string, Verrou>();
+  #file = new Map<string, Array<{ accorder: () => void }>>();
+
+  async request<T>(
+    name: string,
+    opts: { ifAvailable?: boolean; signal?: AbortSignal } | ((v: Verrou | null) => Promise<T> | T),
+    rappel?: (v: Verrou | null) => Promise<T> | T,
+  ): Promise<T> {
+    const cb = typeof opts === "function" ? opts : rappel!;
+    const { ifAvailable = false, signal } = typeof opts === "function" ? {} : opts;
+    if (signal?.aborted) throw signal.reason ?? new DOMException("Arrêt", "AbortError");
+    const file = this.#file.get(name) ?? [];
+    this.#file.set(name, file);
+    const verrou: Verrou = { name, mode: "exclusive" };
+    if (this.#tenus.has(name) || file.length > 0) {
+      if (ifAvailable) return cb(null);
+      await new Promise<void>((resolve, reject) => {
+        const attente = {
+          accorder: () => {
+            signal?.removeEventListener("abort", abandon);
+            resolve();
+          },
+        };
+        const abandon = () => {
+          const i = file.indexOf(attente);
+          if (i >= 0) file.splice(i, 1);
+          reject(signal?.reason ?? new DOMException("Arrêt", "AbortError"));
+        };
+        signal?.addEventListener("abort", abandon, { once: true });
+        file.push(attente);
+      });
+    } else {
+      this.#tenus.set(name, verrou);
+    }
+    try {
+      return await cb(verrou);
+    } finally {
+      // Rendu : le premier de la file le reçoit aussitôt, avant toute autre demande.
+      const suivant = file.shift();
+      if (suivant) {
+        this.#tenus.set(name, { name, mode: "exclusive" });
+        suivant.accorder();
+      } else this.#tenus.delete(name);
+    }
+  }
+
+  async query(): Promise<{ held: Verrou[]; pending: Verrou[] }> {
+    const pending = [...this.#file].flatMap(([name, f]) => f.map(() => ({ name, mode: "exclusive" as const })));
+    return { held: [...this.#tenus.values()], pending };
+  }
+}
+if (typeof navigator !== "undefined" && !navigator.locks) {
+  Object.defineProperty(navigator, "locks", { value: new VerrousDeSecours(), configurable: true });
+}
+
 const ICI = dirname(fileURLToPath(import.meta.url));
 const SRC = resolve(ICI, "..", "..");
 

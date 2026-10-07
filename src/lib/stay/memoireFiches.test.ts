@@ -331,3 +331,35 @@ describe("mémoire des fiches : la capacité tirée des couchages", () => {
     assert.equal(lu?.capaciteCouchages, undefined);
   });
 });
+
+describe("mémoire des fiches : la fiche enrichie", () => {
+  const fiche = {
+    description: "Au pied des pistes.",
+    equipements: [{ id: "wifi", libelle: "Wifi", present: true }],
+    avis: { noteSur5: 4.9, noteSource: 4.86, echelleSource: 5 as const, nombre: 120, extraits: [] },
+    conditions: { arrivee: "Arrivée : 16:00" },
+    sourceFiche: "airbnb" as const,
+  };
+
+  it("se garde normalisée, se relit d'un autre processus, et s'efface après trente jours", () => {
+    const m = neuve("fiche");
+    const t0 = Date.parse("2026-10-07T10:00:00Z");
+    m.noter([{ cle: "Airbnb:42", lue: true, fiche }], t0);
+    const relue = new MemoireFiches(m.chemin).lire("Airbnb:42", t0)!;
+    assert.equal(relue.fiche?.description, "Au pied des pistes.");
+    assert.equal(relue.fiche?.avis?.noteSur5, 4.9);
+    assert.deepEqual(relue.fiche?.conditions, { arrivee: "Arrivée : 16:00" });
+    const jour31 = t0 + 31 * 24 * 3600 * 1000;
+    assert.equal(new MemoireFiches(m.chemin).lire("Airbnb:42", jour31), null);
+  });
+
+  it("une fiche indisponible ou vide ne se garde pas ; rien d'autre que la fiche normalisée", () => {
+    const m = neuve("fiche-vide");
+    m.noter([{ cle: "Airbnb:43", fiche: { ...fiche, indisponible: true } }, { cle: "Airbnb:44", fiche: { equipements: [], avis: null, conditions: null, sourceFiche: "airbnb" } }]);
+    assert.equal(m.lire("Airbnb:43"), null);
+    assert.equal(m.lire("Airbnb:44"), null);
+    m.noter([{ cle: "Airbnb:45", fiche: { ...fiche, html: "<html>…</html>", cookie: "x" } as never }]);
+    const brut = JSON.stringify(JSON.parse(readFileSync(m.chemin, "utf8")));
+    assert.ok(!brut.includes("<html>") && !brut.includes("cookie"), brut);
+  });
+});

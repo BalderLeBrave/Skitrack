@@ -1,0 +1,105 @@
+{
+  "_note": "Réponse PdpPlatformSections réduite et anonymisée (forme `presentation`, celle de pyairbnb/standardize.py). Aucun cookie, aucune clé, aucun nom complet. Construite pour le test du lecteur : les sections et leurs clés sont celles que lit pyairbnb, pas une capture intégrale.",
+  "data": {
+    "presentation": {
+      "stayProductDetailPage": {
+        "sections": {
+          "metadata": {
+            "loggingContext": {
+              "eventDataLogging": {
+                "personCapacity": 6,
+                "bedroomCount": 2,
+                "listingLat": 45.0123,
+                "listingLng": 6.1234,
+                "roomType": "Entire home/apt",
+                "guestSatisfactionOverall": 4.86,
+                "visibleReviewCount": 120
+              }
+            },
+            "sharingConfig": {
+              "title": "Appartement · Les Deux Alpes · ★4,86 · 2 chambres · 3 lits",
+              "propertyType": "Appartement"
+            }
+          },
+          "sections": [
+            {
+              "sectionComponentType": "PDP_DESCRIPTION_DEFAULT",
+              "section": {
+                "__typename": "PdpDescriptionSection",
+                "htmlDescription": {
+                  "htmlText": "Appartement rénové au pied des pistes.<br /><br />Deux chambres, balcon plein sud &amp; vue sur le glacier."
+                }
+              }
+            },
+            {
+              "sectionComponentType": "AMENITIES_DEFAULT",
+              "section": {
+                "__typename": "AmenitiesSection",
+                "seeAllAmenitiesGroups": [
+                  {
+                    "title": "Salle de bain",
+                    "amenities": [
+                      { "title": "Sèche-cheveux", "available": true, "icon": "SYSTEM_HAIRDRYER" }
+                    ]
+                  },
+                  {
+                    "title": "Divertissement",
+                    "amenities": [{ "title": "TV", "available": true }]
+                  },
+                  {
+                    "title": "Internet et bureau",
+                    "amenities": [{ "title": "Wifi", "available": true }]
+                  },
+                  {
+                    "title": "Parking et installations",
+                    "amenities": [
+                      { "title": "Parking gratuit sur place", "available": true },
+                      { "title": "Ski-in/Ski-out", "available": true }
+                    ]
+                  },
+                  {
+                    "title": "Non inclus",
+                    "amenities": [
+                      { "title": "Lave-linge", "available": false },
+                      { "title": "Climatisation", "available": false }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "sectionComponentType": "POLICIES_DEFAULT",
+              "section": {
+                "__typename": "PoliciesSection",
+                "houseRulesSections": [
+                  {
+                    "title": "Arrivée et départ",
+                    "items": [
+                      { "title": "Arrivée : 16:00 - 21:00" },
+                      { "title": "Départ avant 10:00" }
+                    ]
+                  },
+                  {
+                    "title": "Pendant votre séjour",
+                    "items": [
+                      { "title": "6 voyageurs maximum" },
+                      { "title": "Animaux non admis" },
+                      { "title": "Pas de fêtes ni d'événements" },
+                      { "title": "Non-fumeur" }
+                    ]
+                  }
+                ],
+                "cancellationPolicyForDisplay": {
+                  "__typename": "CancellationPolicyForDisplay",
+                  "title": "Politique d'annulation",
+                  "subtitle": "Annulation gratuite avant le 7 janv. Remboursement partiel ensuite.",
+                  "policyId": "MODERATE"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

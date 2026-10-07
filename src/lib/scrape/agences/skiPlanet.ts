@@ -33,6 +33,7 @@ import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 import { depuisTexte, equipements } from "../../stay/equipements.ts";
+import { ficheDepuisBrut, type FicheBrute } from "../../stay/ficheEnrichie.ts";
 
 export const SKIPLANET_SITE = "https://www.ski-planet.com";
 export const SKIPLANET_AJAX = `${SKIPLANET_SITE}/fr/ajax`;
@@ -297,7 +298,44 @@ export type FicheArchivee = {
   lon: number | null;
   /** Chemin de la première photo (sous `SKIPLANET_PHOTOS`), format moyen de préférence. */
   photo: string | null;
+  /**
+   * Description, équipements et note **écrits dans l'archive** (JSON-LD de la
+   * page : `description`, `amenityFeature`, `aggregateRating` avec son
+   * `bestRating`). Absent quand l'archive n'en publie pas — c'est le cas des
+   * pages relevées (`sp-fiche-archivee-snow.html`) : leur JSON-LD ne porte que
+   * le nom et le point.
+   */
+  fiche?: FicheBrute;
 };
+
+/** Ce que le JSON-LD d'une page archivée publie de plus que son point. */
+function ficheDeLArchive(html: string): FicheBrute | null {
+  let description: string | null = null;
+  const equipements: { libelle: string; present: boolean }[] = [];
+  let avis: Record<string, unknown> | null = null;
+  for (const m of html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    let ld: unknown;
+    try {
+      ld = JSON.parse(m[1].trim());
+    } catch {
+      continue;
+    }
+    for (const x of Array.isArray(ld) ? ld : [ld]) {
+      if (!x || typeof x !== "object") continue;
+      const o = x as Record<string, unknown>;
+      if (!description && typeof o.description === "string" && o.description.trim()) description = decoder(o.description.trim());
+      for (const f of Array.isArray(o.amenityFeature) ? o.amenityFeature : []) {
+        const a = f && typeof f === "object" ? (f as Record<string, unknown>) : null;
+        if (a && typeof a.name === "string" && a.name.trim()) equipements.push({ libelle: decoder(a.name.trim()), present: a.value !== false });
+      }
+      const r = o.aggregateRating && typeof o.aggregateRating === "object" ? (o.aggregateRating as Record<string, unknown>) : null;
+      // L'échelle n'est retenue que si l'archive l'écrit (`bestRating`).
+      if (r && !avis) avis = { noteSource: r.ratingValue, echelleSource: r.bestRating, nombre: r.reviewCount, extraits: [] };
+    }
+  }
+  if (!description && !equipements.length && !avis) return null;
+  return { description, equipements, avis };
+}
 
 /**
  * Ce que la copie archivée d'une fiche de résidence publie : son
@@ -320,7 +358,15 @@ export function lireFicheArchivee(html: string): FicheArchivee {
   const lon = coordonnee(nombre(carte?.[2] ?? geo?.[2]), 180);
   const photos = [...html.matchAll(/docs\.ski-planet\.com\/photo\/([\w-]+(?:\/[\w.-]+)+\.jpe?g)/gi)].map((m) => m[1]);
   const photo = photos.find((p) => /\/medium\//.test(p)) ?? photos.find((p) => /\/large\//.test(p)) ?? photos[0] ?? null;
-  return { id, station, lat: lat != null && lon != null ? lat : null, lon: lat != null && lon != null ? lon : null, photo };
+  const fiche = ficheDeLArchive(html);
+  return {
+    id,
+    station,
+    lat: lat != null && lon != null ? lat : null,
+    lon: lat != null && lon != null ? lon : null,
+    photo,
+    ...(fiche ? { fiche } : {}),
+  };
 }
 
 /* ---------- Calendrier ---------- */
@@ -571,6 +617,9 @@ export function skiPlanetListings(
       ),
       propertyType: lib.type,
       ...(description != null ? { description, amenities: equipements(depuisTexte(description)) } : {}),
+      // La fiche : la description du panneau, telle quelle. Pas d'équipement
+      // tiré de sa prose, pas de note : le panneau n'en publie pas.
+      ...(description != null ? { fiche: ficheDepuisBrut({ description }, "ski-planet", { url: l.url }) ?? undefined } : {}),
       available: true,
       photo: photos[0] ?? null,
       photos: photos.length > 0 ? photos : null,

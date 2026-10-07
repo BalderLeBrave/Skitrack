@@ -11,6 +11,7 @@ import type { LiveSearchInput } from "./types";
 import { annoncer } from "../stay/occupancy.ts";
 import { assurerCles } from "../cles/store.server.ts";
 import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server.ts";
+import { ficheDepuisPageBooking } from "./bookingFiche.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -315,8 +316,13 @@ async function fillGpsFromHotelPages(page: Page, listings: Listing[]): Promise<v
   const missing = listings.filter((l) => !plausible(l.lat, l.lon) && l.url);
   for (const row of missing.slice(0, 12)) {
     try {
-      await page.goto(row.url!, { waitUntil: "domcontentloaded", timeout: 20_000 });
-      const html = await page.content();
+      const rep = await page.goto(row.url!, { waitUntil: "domcontentloaded", timeout: 20_000 });
+      const statut = rep?.status() ?? null;
+      const html = statut === 403 || statut === 429 ? null : await page.content();
+      // La fiche de la page déjà chargée, sans autre requête (`bookingFiche.ts`).
+      const fiche = ficheDepuisPageBooking(row, html, statut);
+      if (fiche) row.fiche = fiche;
+      if (!html) continue;
       const gps = coordsFromHotelHtml(html);
       if (gps) {
         row.lat = gps.lat;

@@ -4868,6 +4868,90 @@
   color: var(--color-texte-4);
   white-space: nowrap;
 }
+/* Les sections repliables de la fiche : description, équipements, avis,
+   conditions. Le titre reste un titre ; le triangle dit qu'il se replie. */
+.fiche7__repli > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.fiche7__repli > summary::-webkit-details-marker {
+  display: none;
+}
+.fiche7__repli > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 2px solid var(--color-muted);
+  border-bottom: 2px solid var(--color-muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+.fiche7__repli:not([open]) > summary::after {
+  transform: rotate(-45deg);
+}
+.fiche7__repli > summary:focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 2px;
+}
+.fiche7__repli-corps {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+}
+.fiche7__groupe {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+}
+.fiche7__equipements--avant .fiche7__equipement-nom {
+  font-weight: 700;
+}
+.fiche7__avis-resume {
+  margin: 0;
+  font-size: var(--text-corps);
+  font-weight: 800;
+}
+.fiche7__avis {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fiche7__avis blockquote {
+  margin: 0;
+  padding-left: calc(var(--spacing) * 3);
+  border-left: 2px solid var(--color-line);
+  font-size: var(--text-detail);
+  line-height: 1.5;
+}
+.fiche7__conditions {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  margin: 0;
+}
+.fiche7__conditions > div {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) minmax(0, 1fr);
+  gap: calc(var(--spacing) * 3);
+}
+.fiche7__conditions dt {
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+}
+.fiche7__conditions dd {
+  margin: 0;
+  font-size: var(--text-detail);
+  white-space: pre-line;
+}
+@media (max-width: 640px) {
+  .fiche7__conditions > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
 .fiche7__encadre {
   display: grid;
   gap: calc(var(--spacing) * 3);

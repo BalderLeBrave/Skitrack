@@ -7,6 +7,7 @@ import { annoncer, type Occupancy } from "../stay/occupancy.ts";
 import { capaciteFormuleItea } from "../stay/lectureFiche.ts";
 import { depuisTexte, equipements } from "../stay/equipements.ts";
 import { texteDeHtml } from "../stay/texteHtml.ts";
+import { ficheDepuisBrut } from "../stay/ficheEnrichie.ts";
 import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } from "./gitesGps.server.ts";
 import { communeGites } from "./gitesCommunes.ts";
 
@@ -474,7 +475,34 @@ export type Fiche = {
   platformId: string | null;
   /** La description publiée par le JSON-LD de la fiche, en texte. */
   description?: string | null;
+  /** La note et le nombre d'avis du JSON-LD (`aggregateRating`), bruts. */
+  avis?: AvisGites | null;
 };
+
+/** La note brute du JSON-LD, son échelle **si la fiche l'écrit** (`bestRating`), et le nombre d'avis. */
+export type AvisGites = { noteSource: unknown; echelleSource: unknown; nombre: unknown; extraits: [] };
+
+/**
+ * L'`aggregateRating` du JSON-LD de la fiche ITEA, tel quel. Les fiches
+ * relevées n'écrivent pas `bestRating` : leur note n'a pas d'échelle, et
+ * reste sans note sur 5 (`noterSur5`) ; seul le nombre d'avis se lit.
+ */
+export function avisFromGitesHtml(html: string): AvisGites | null {
+  for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
+    let ld: unknown;
+    try {
+      ld = JSON.parse(m[1] ?? "");
+    } catch {
+      continue;
+    }
+    const r = ld && typeof ld === "object" ? (ld as { aggregateRating?: unknown }).aggregateRating : null;
+    if (r && typeof r === "object") {
+      const o = r as Record<string, unknown>;
+      return { noteSource: o.ratingValue, echelleSource: o.bestRating ?? null, nombre: o.reviewCount ?? o.ratingCount, extraits: [] };
+    }
+  }
+  return null;
+}
 
 /**
  * La description du JSON-LD de la fiche ITEA (`LodgingBusiness.description`),
@@ -540,6 +568,7 @@ async function relever(
     lieu,
     platformId: ident && ident !== code ? ident : null,
     description: descriptionFromGitesHtml(html),
+    avis: avisFromGitesHtml(html),
   };
   if (!ident || !instance || !exercice0) return sansDevis;
   if (!/\.G$/i.test(ident)) return null;
@@ -644,6 +673,9 @@ export function listingDeFiche(
     propertyType: tile.typeLabel || null,
     // La description de la fiche, et les équipements qu'elle nomme.
     ...(fiche.description ? { description: fiche.description, amenities: equipements(depuisTexte(fiche.description)) } : {}),
+    // La fiche : sa description et son nombre d'avis, tels que le JSON-LD les
+    // publie. Pas d'équipement tiré de la description, pas de note sans échelle.
+    ...ficheGites(fiche, `${tile.url}`),
     priceLabel: fiche.priceLabel,
     platformId: fiche.platformId,
     available: true,
@@ -654,6 +686,11 @@ export function listingDeFiche(
     locality: fiche.lieu.locality,
     proven: fiche.lieu.lat != null && fiche.lieu.lon != null ? `${proven} · GPS ITEA` : proven,
   };
+}
+
+function ficheGites(fiche: Fiche, url: string): Pick<Listing, "fiche"> | Record<string, never> {
+  const f = ficheDepuisBrut({ description: fiche.description, avis: fiche.avis }, "gites", { url });
+  return f ? { fiche: f } : {};
 }
 
 export type OptionsGites = {

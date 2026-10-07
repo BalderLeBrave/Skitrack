@@ -14,6 +14,7 @@ import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
 import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement";
 import type { Equipement } from "./stay/equipements";
+import type { FicheEnrichie } from "./stay/ficheEnrichie.ts";
 import type { SourceGps } from "./stay/repliGps";
 import { langueIntl } from "./i18n/langue.ts";
 
@@ -169,9 +170,19 @@ export type Listing = {
    *  qui porte souvent celui d'un intermédiaire. */
   platformId?: string | null;
   /** Note et nombre d'avis, **seulement quand la source les publie**. Aucun
-   *  collecteur ne les fabrique, et aucun défaut optimiste ne les remplace. */
+   *  collecteur ne les fabrique, et aucun défaut optimiste ne les remplace.
+   *  La note est brute, sur l'échelle de la source : l'écran, les filtres et
+   *  le tri ne la lisent que ramenée sur 5 (`avisDe`, `stay/ficheEnrichie.ts`),
+   *  et pas du tout quand cette échelle n'est pas établie. */
   rating?: number | null;
   reviewCount?: number | null;
+  /**
+   * La fiche du logement, lue sur sa page : description, équipements, avis,
+   * conditions, tels que la source les publie (`stay/ficheEnrichie.ts`).
+   * Absente : la page n'a pas été lue, ce qui ne dit rien du logement. Les
+   * annonces d'avant ce champ restent valides.
+   */
+  fiche?: FicheEnrichie | null;
   proven: string;
   /* Champs de relevé daté, lus par `stay/availability.ts`.
    *

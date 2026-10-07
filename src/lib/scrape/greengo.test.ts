@@ -14,6 +14,7 @@ import {
   hoteGarde,
   hotePur,
   lienHote,
+  ficheGreenGo,
   lireDetail,
   lireRecherche,
   logementGarde,
@@ -536,5 +537,38 @@ describe("GreenGo : équipements du détail", () => {
     assert.equal(equipementsGreenGo(bloc([], [])), null);
     assert.equal(equipementsGreenGo(undefined, null), null);
     assert.equal(lireDetail(NEVA)[0].equipements, undefined);
+  });
+});
+
+describe("GreenGo : la fiche enrichie, depuis le détail déjà lu", () => {
+  const dir = dirname(fileURLToPath(import.meta.url));
+  const DETAIL = JSON.parse(readFileSync(join(dir, "fixtures/greengo-detail-equipements.json"), "utf8"));
+  const URL_HOTE = "https://www.greengo.voyage/hote/balcons";
+
+  it("les codes publiés passent par la table ; les inconnus gardent leur libellé, sans clé inventée", () => {
+    const [u] = lireDetail(DETAIL);
+    const f = ficheGreenGo(u, URL_HOTE)!;
+    assert.equal(f.sourceFiche, "greengo");
+    assert.match(f.description ?? "", /^Dans notre appartement cosy de 30 m²/);
+    const ids = f.equipements.filter((e) => e.present).map((e) => e.id);
+    for (const id of ["seche_cheveux", "lave_linge", "seche_linge", "fer", "television", "chauffage", "lave_vaisselle", "wifi", "balcon", "vue", "parking"]) {
+      assert.ok(ids.includes(id), id);
+    }
+    const cafetiere = f.equipements.find((e) => e.libelle === "Coffee maker");
+    assert.equal(cafetiere?.id, "autre:coffee maker");
+    assert.ok(f.equipements.every((e) => e.present), "le détail ne déclare aucun absent");
+  });
+
+  it("un équipement déclaré absent est absent ; la note sans échelle n'est pas une note sur 5", () => {
+    const [u] = lireDetail(DETAIL);
+    const f = ficheGreenGo({ ...u, codesEquipement: { possedes: ["WIFI"], absents: ["ELEVATOR"] }, note: 4.8, avis: 6 }, URL_HOTE)!;
+    assert.deepEqual(
+      f.equipements.map((e) => [e.id, e.present]),
+      [
+        ["wifi", true],
+        ["ascenseur", false],
+      ],
+    );
+    assert.deepEqual([f.avis!.noteSur5, f.avis!.noteSource, f.avis!.nombre], [null, 4.8, 6]);
   });
 });

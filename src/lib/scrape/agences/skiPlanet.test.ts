@@ -26,6 +26,7 @@ import {
   type TableSkiPlanet,
 } from "./skiPlanet.ts";
 import type { LiveSearchInput } from "../types.ts";
+import { equipementsDe, ficheDepuisBrut } from "../../stay/ficheEnrichie.ts";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 /**
@@ -177,6 +178,44 @@ describe("Ski-Planet : fiche archivée", () => {
     const sansCarte = fx("sp-fiche-archivee-snow.html").replace(/<div id="googlemap_carte"[^>]*><\/div>/, "");
     assert.deepEqual([lireFicheArchivee(sansCarte).lat, lireFicheArchivee(sansCarte).lon], [46.19047, 6.77798]);
     assert.deepEqual(lireFicheArchivee("<html>Just a moment...</html>"), { id: null, station: null, lat: null, lon: null, photo: null });
+  });
+
+  it("l'archive relevée ne publie ni description, ni équipements, ni note : pas de fiche, GPS et photo inchangés", () => {
+    const f = lireFicheArchivee(fx("sp-fiche-archivee-snow.html"));
+    assert.equal("fiche" in f, false);
+    assert.deepEqual([f.lat, f.lon], [46.19047, 6.77798]);
+    assert.match(f.photo ?? "", /medium\/snow-appartement/);
+  });
+
+  it("ce que le JSON-LD de l'archive écrit : description, équipements, note seulement avec son échelle", () => {
+    const ld = (extra: string) =>
+      fx("sp-fiche-archivee-snow.html").replace(
+        '"name": "Snow",',
+        `"name": "Snow", "description": "R\u00e9sidence au pied des pistes.", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Ascenseur", "value": true}], ${extra}`,
+      );
+    const avecEchelle = lireFicheArchivee(ld('"aggregateRating": {"ratingValue": "4.6", "bestRating": "5", "reviewCount": "12"},'));
+    assert.equal(avecEchelle.lat, 46.19047);
+    const fiche = ficheDepuisBrut(avecEchelle.fiche, "ski-planet")!;
+    assert.equal(fiche.description, "Résidence au pied des pistes.");
+    assert.deepEqual(
+      fiche.equipements.map((e) => [e.id, e.present]),
+      [["ascenseur", true]],
+    );
+    assert.deepEqual([fiche.avis!.noteSur5, fiche.avis!.nombre], [4.6, 12]);
+    const sansEchelle = lireFicheArchivee(ld('"aggregateRating": {"ratingValue": "4.6", "reviewCount": "12"},'));
+    assert.equal(ficheDepuisBrut(sansEchelle.fiche, "ski-planet")!.avis!.noteSur5, null);
+  });
+});
+
+describe("Ski-Planet : la fiche d'un logement, depuis son panneau déjà lu", () => {
+  it("la description telle quelle ; pas d'équipement tiré de sa prose, pas de note", () => {
+    const description = lireDescriptionLogement(fx("sp-infos-logement-76147.html"));
+    const [l] = skiPlanetListings(SNOW, SEUL, AVORIAZ, null, undefined, () => description);
+    assert.equal(l.fiche!.sourceFiche, "ski-planet");
+    assert.equal(l.fiche!.description, description);
+    assert.deepEqual(l.fiche!.equipements, []);
+    assert.equal(l.fiche!.avis, null);
+    assert.equal(equipementsDe(l), null, "« Non publié par Ski-Planet », pas des équipements déduits");
   });
 });
 

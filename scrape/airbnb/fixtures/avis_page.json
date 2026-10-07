@@ -1,0 +1,12 @@
+{
+  "_note": "Liste `data.presentation.stayProductDetailPage.reviews.reviews` d'une page StaysPdpReviewsQuery, réduite et anonymisée (prénoms fictifs, aucun identifiant de compte).",
+  "reviews": [
+    { "comments": "Très bel appartement, skis aux pieds.<br/>Merci !", "createdAt": "2026-03-02T10:00:00Z", "rating": 5, "reviewer": { "firstName": "Marie Claire", "id": "x" } },
+    { "comments": "Bien situé, un peu bruyant le soir.", "createdAt": "2026-02-20T09:00:00Z", "rating": 4, "reviewer": { "firstName": "Tom" } },
+    { "comments": "", "createdAt": "2026-02-18T09:00:00Z", "rating": 5, "reviewer": { "firstName": "Vide" } },
+    { "comments": "Parfait.", "localizedDate": "février 2026", "rating": 5, "reviewer": { "firstName": "Léa" } },
+    { "comments": "Propre et chaud.", "createdAt": "2026-01-30T09:00:00Z", "rating": 7, "reviewer": { "firstName": "Hors" } },
+    { "comments": "Hôte réactif.", "createdAt": "2026-01-20T09:00:00Z", "rating": 5, "reviewer": { "firstName": "Paul" } },
+    { "comments": "Sixième, ne doit pas sortir.", "createdAt": "2026-01-10T09:00:00Z", "rating": 5, "reviewer": { "firstName": "Six" } }
+  ]
+}

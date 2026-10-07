@@ -31,6 +31,7 @@ import { mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSyn
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
 import { poserValeur, RANG_SOURCE, type SourceCapacite, type SourceValeur } from "./logement.ts";
+import { ficheRelue, type FicheEnrichie } from "./ficheEnrichie.ts";
 
 /** Trente jours : au-delà, une annonce a pu changer (travaux, nouvelle capacité). */
 export const DUREE_MEMOIRE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -64,6 +65,13 @@ export type ValeursFiche = {
    */
   lue?: boolean;
   /**
+   * La fiche enrichie lue sur la page du logement (Airbnb : la réponse
+   * PdpPlatformSections de la complétion Prix), normalisée : description,
+   * équipements, avis, conditions. Écran Logements et Prix la reprennent sans
+   * relire la page. Ni HTML, ni cookie, ni jeton ; d'un avis, le prénom seul.
+   */
+  fiche?: FicheEnrichie | null;
+  /**
    * Airbnb : la page `rooms/` du logement a été lue (écran Logements), pas sa
    * fiche PDP. Elle publie capacité, chambres et point, mais pas
    * `isHotelRatePlanEnabled` : l'écran Prix, qui écarte les hôtels sur ce
@@ -81,9 +89,9 @@ export type DatesFiche = Partial<Record<"capacity" | "bedrooms" | "rooms" | "poi
 export type ValeursLues = ValeursFiche & { dates: DatesFiche };
 
 /** Ce qui se date une à une : chaque valeur, et la lecture de la fiche. */
-type Datee = "capacity" | "bedrooms" | "rooms" | "beds" | "point" | "ecartee" | "lue" | "page";
+type Datee = "capacity" | "bedrooms" | "rooms" | "beds" | "point" | "ecartee" | "lue" | "page" | "fiche";
 type Dates = Partial<Record<Datee, number>>;
-const DATEES: readonly Datee[] = ["capacity", "bedrooms", "rooms", "beds", "point", "ecartee", "lue", "page"];
+const DATEES: readonly Datee[] = ["capacity", "bedrooms", "rooms", "beds", "point", "ecartee", "lue", "page", "fiche"];
 const NOMBRES = ["capacity", "bedrooms", "rooms"] as const;
 /** Les dates qu'on montre : celles des valeurs, pas celles de l'écart ni de la lecture. */
 const MONTREES = [...NOMBRES, "point"] as const;
@@ -130,6 +138,7 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
   const capacitySource = capacity != null ? (sourceLue(v?.capacitySource, false) as SourceCapacite | null) : null;
   const bedroomsSource = bedrooms != null ? sourceLue(v?.bedroomsSource, true) : null;
   const beds = entier(v?.beds, 1);
+  const fiche = ficheRelue(v?.fiche);
   return {
     capacity,
     bedrooms,
@@ -141,6 +150,7 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
     ...(bedroomsSource ? { bedroomsSource } : {}),
     ...(beds != null ? { beds } : {}),
     ...(typeof v?.ecartee === "boolean" ? { ecartee: v.ecartee } : {}),
+    ...(fiche ? { fiche } : {}),
     ...(v?.lue === true ? { lue: true } : {}),
     ...(v?.page === true ? { page: true } : {}),
   };
@@ -166,6 +176,7 @@ function utile(v: ValeursFiche): boolean {
     v.beds != null ||
     v.lat != null ||
     typeof v.ecartee === "boolean" ||
+    v.fiche != null ||
     v.lue === true ||
     v.page === true
   );
@@ -210,6 +221,10 @@ function fraiche(e: Entree, now: number, dureeMs: number): Datees | null {
   if (typeof e.ecartee === "boolean" && frais("ecartee")) {
     out.ecartee = e.ecartee;
     out.dates.ecartee = date("ecartee");
+  }
+  if (e.fiche && frais("fiche")) {
+    out.fiche = e.fiche;
+    out.dates.fiche = date("fiche");
   }
   // « Lue » ne se déduit pas d'un fichier plus ancien : seule sa date le dit.
   const lue = e.dates?.lue;
@@ -336,6 +351,7 @@ export class MemoireFiches {
       ...(f.bedroomsSource ? { bedroomsSource: f.bedroomsSource } : {}),
       ...(f.beds != null ? { beds: f.beds } : {}),
       ...(typeof f.ecartee === "boolean" ? { ecartee: f.ecartee } : {}),
+      ...(f.fiche ? { fiche: f.fiche } : {}),
       ...(f.dates.lue != null ? { lue: true } : {}),
       ...(f.dates.page != null ? { page: true } : {}),
       dates,
@@ -399,6 +415,11 @@ export class MemoireFiches {
         revoir("ecartee", apres.ecartee === v.ecartee);
         apres.ecartee = v.ecartee;
       }
+      if (v.fiche) {
+        // La fiche lue la plus récente remplace l'ancienne, entière.
+        revoir("fiche", JSON.stringify(apres.fiche ?? null) === JSON.stringify(v.fiche));
+        apres.fiche = v.fiche;
+      }
       if (v.lue) revoir("lue", apres.dates.lue != null);
       if (v.page) revoir("page", apres.dates.page != null);
       if (!change) continue;
@@ -437,14 +458,16 @@ export type SujetMemoire = {
   beds?: number | null;
   lat: number | null;
   lon: number | null;
+  fiche?: FicheEnrichie | null;
 };
 
 /**
  * Pose sur `row` ce que la mémoire sait et que l'annonce tait, ou qu'elle ne
  * tient que d'une moins bonne source : chaque valeur avec sa source gardée
  * (`poserValeur`). Jamais un champ structuré remplacé. Rend `true` si
- * quelque chose a été posé ; à l'appelant de requalifier l'annonce
- * (`qualifierLogement`).
+ * capacité, chambres, pièces, lits ou point ont été posés ; à l'appelant de
+ * requalifier l'annonce (`qualifierLogement`). La fiche enrichie se pose
+ * aussi, dans un vide, sans compter.
  */
 export function comblerDepuisMemoire(row: SujetMemoire, m: ValeursFiche): boolean {
   let pose = false;
@@ -467,6 +490,9 @@ export function comblerDepuisMemoire(row: SujetMemoire, m: ValeursFiche): boolea
     row.beds = m.beds;
     pose = true;
   }
+  // La fiche enrichie, à une annonce qui n'en a pas : elle ne compte pas
+  // dans `pose`, qui ne dit que l'occupation et le point.
+  if (row.fiche == null && m.fiche) row.fiche = m.fiche;
   return pose;
 }
 

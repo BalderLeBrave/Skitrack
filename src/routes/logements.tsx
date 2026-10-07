@@ -38,6 +38,9 @@ import { listingsForStay, type Listing } from "@/lib/listings";
 import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
 import { getListingElevations } from "@/lib/snow/api";
 import { completudeOf } from "@/lib/stay/completude";
+import { EQUIPEMENTS_FICHE } from "@/lib/stay/equipements";
+import { aEquipement, noteAuMoins, noteSur5De } from "@/lib/stay/ficheEnrichie";
+import { noteSur5Lbl } from "@/lib/note";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
   distFiltrableM,
@@ -105,7 +108,7 @@ import {
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "station" | "pp" | "total" | "cap" | "dist" | "alt" | "trous";
+type LodgeSort = "station" | "pp" | "total" | "cap" | "dist" | "alt" | "note" | "trous";
 
 /** Les critères du tri ; le sens se choisit à côté. Chacun part dans son sens
  *  de départ : le moins cher, le plus grand, le plus près d'abord, et les
@@ -120,6 +123,8 @@ const TRIS_LOGEMENT: { k: LodgeSort; label: string; sens: Sens }[] = [
   // Le plus haut d'abord : la neige y tient mieux.
   { k: "alt", label: aTraduire("Tri : altitude"), sens: -1 },
   { k: "cap", label: aTraduire("Tri : capacité"), sens: -1 },
+  // La mieux notée d'abord ; une annonce sans note reste en queue.
+  { k: "note", label: aTraduire("Tri : note des avis"), sens: -1 },
   { k: "trous", label: aTraduire("Tri : trous dans la fiche"), sens: -1 },
 ];
 
@@ -149,6 +154,11 @@ type LF = {
   pos: boolean;
   full: boolean;
   holes: boolean;
+  /** Les équipements demandés, par clé normalisée (`stay/equipements.ts`) :
+   *  seuls passent les logements qui les listent comme présents. */
+  equip: readonly string[];
+  /** La note des avis au moins égale à ce seuil, **sur 5**. */
+  noteMin: number | null;
 };
 const LF0: LF = {
   pp: null,
@@ -164,7 +174,12 @@ const LF0: LF = {
   pos: false,
   full: false,
   holes: false,
+  equip: [],
+  noteMin: null,
 };
+
+/** Les seuils de note proposés, sur 5. */
+const SEUILS_NOTE: readonly number[] = [4, 4.5];
 
 /** Le budget est à part : il est lu et écrit sur le magasin partagé. */
 const BUDGET = { k: "budget" as const, label: aTraduire("Total du séjour"), ...ECHELLES.budget, unit: "€" };
@@ -821,6 +836,26 @@ function LogementsStation({ s }: { s: Station }) {
       remove: () => patchLf({ holes: false }),
     });
 
+  // Un équipement demandé : listé comme présent par la source. Une annonce
+  // dont les équipements n'ont pas été lus ne passe pas (`aEquipement`).
+  for (const id of lf.equip)
+    lp.push({
+      id: `equip:${id}`,
+      label: EQUIPEMENTS_FICHE[id] ? tr(EQUIPEMENTS_FICHE[id].libelle) : id,
+      fn: (l) => aEquipement(l, id),
+      remove: () => patchLf({ equip: lf.equip.filter((x) => x !== id) }),
+    });
+  // La note, sur 5 seulement ; sans note, une annonce ne passe pas.
+  if (lf.noteMin != null) {
+    const seuil = lf.noteMin;
+    lp.push({
+      id: "note",
+      label: tr("Note ≥ {note}", { note: noteSur5Lbl(seuil) ?? "" }),
+      fn: (l) => noteAuMoins(l, seuil),
+      remove: () => patchLf({ noteMin: null }),
+    });
+  }
+
   const lapply = (ps: Pred[]) => raw.filter((l) => ps.every((p) => p.fn(l)));
   /** Ce que la source n'a pas publié se range **après** ce qu'elle a publié,
    *  jamais au rang de zéro : `?? 0` classait une capacité non annoncée comme
@@ -842,6 +877,7 @@ function LogementsStation({ s }: { s: Station }) {
     cap: (a, b) => parMesure(a.capacity ?? null, b.capacity ?? null, lsens),
     dist: (a, b) => parMesure(distFiltrableM(a), distFiltrableM(b), lsens),
     alt: (a, b) => parMesure(altDe(a)?.m, altDe(b)?.m, lsens),
+    note: (a, b) => parMesure(noteSur5De(a), noteSur5De(b), lsens),
     trous: (a, b) => {
       const d = lsens * (completudeOf(a).trous.length - completudeOf(b).trous.length);
       return d !== 0 ? d : parMesure(apres(a.total), apres(b.total), 1);
@@ -1026,6 +1062,12 @@ function LogementsStation({ s }: { s: Station }) {
   const bySrc = (src: string) => raw.filter((l) => l.source === src).length;
   const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
   const nIncompletes = raw.length - nCompletes;
+  // Les équipements que des annonces de ce relevé listent comme présents :
+  // on ne propose pas de filtre qui ne retiendrait rien.
+  const equipDispo = Object.keys(EQUIPEMENTS_FICHE)
+    .map((id) => ({ id, n: raw.filter((l) => aEquipement(l, id)).length }))
+    .filter((e) => e.n > 0 || lf.equip.includes(e.id));
+  const notesDispo = SEUILS_NOTE.map((seuil) => ({ seuil, n: raw.filter((l) => noteAuMoins(l, seuil)).length }));
   const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
     { k: "measured", label: tr("Distance mesurée"), n: raw.filter((l) => distanceOf(l).kind === "measured").length },
     { k: "pos", label: tr("Position connue"), n: raw.filter((l) => l.lat != null).length },
@@ -1456,6 +1498,44 @@ function LogementsStation({ s }: { s: Station }) {
                         ))}
                       </div>
                     </div>
+                    {equipDispo.length ? (
+                      <div className="pop7__bloc">
+                        <span className="v7surtitre">{tr("Équipements listés par la source")}</span>
+                        <div className="pop7__sources">
+                          {equipDispo.map(({ id, n }) => (
+                            <label key={id} className={`puce puce--case${lf.equip.includes(id) ? " puce--on" : ""}`}>
+                              <input
+                                type="checkbox"
+                                checked={lf.equip.includes(id)}
+                                onChange={() =>
+                                  patchLf({ equip: lf.equip.includes(id) ? lf.equip.filter((x) => x !== id) : [...lf.equip, id] })
+                                }
+                              />
+                              {tr(EQUIPEMENTS_FICHE[id].libelle)}
+                              <span className="puce__n">{n}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {notesDispo.some((x) => x.n > 0) || lf.noteMin != null ? (
+                      <div className="pop7__bloc">
+                        <span className="v7surtitre">{tr("Note des avis")}</span>
+                        <div className="pop7__sources">
+                          {notesDispo.map(({ seuil, n }) => (
+                            <label key={seuil} className={`puce puce--case${lf.noteMin === seuil ? " puce--on" : ""}`}>
+                              <input
+                                type="checkbox"
+                                checked={lf.noteMin === seuil}
+                                onChange={() => patchLf({ noteMin: lf.noteMin === seuil ? null : seuil })}
+                              />
+                              {tr("≥ {note}", { note: noteSur5Lbl(seuil) ?? "" })}
+                              <span className="puce__n">{n}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="pop7__bloc">
                       <span className="v7surtitre">{tr("Qualité du relevé")}</span>
                       <div className="pop7__toggles">

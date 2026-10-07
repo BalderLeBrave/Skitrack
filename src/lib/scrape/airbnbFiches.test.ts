@@ -201,3 +201,75 @@ describe("airbnbFiches", () => {
     assert.deepEqual(out.restants, [IDS[2]]);
   });
 });
+
+describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => {
+  const brut = {
+    capacity: 6,
+    capacitySource: "structured",
+    bedrooms: 2,
+    bedroomsSource: "structured",
+    rooms: null,
+    textes: [],
+    lat: 45.0123,
+    lon: 6.1234,
+    roomType: "Entire home/apt",
+    typeLogement: "Appartement",
+    ecartee: false,
+    enrichie: {
+      description: "Appartement rénové au pied des pistes.",
+      equipements: [
+        { libelle: "Sèche-cheveux", present: true, groupe: "Salle de bain" },
+        { libelle: "TV", present: true },
+        { libelle: "Lave-linge", present: false },
+        { libelle: "Coffee maker", present: true },
+      ],
+      conditions: { arrivee: "Arrivée : 16:00 - 21:00", animaux: "non", caution: "" },
+      avis: {
+        noteSource: 4.86,
+        echelleSource: 5,
+        nombre: 120,
+        extraits: [
+          { auteur: "Marie", date: "2026-03-02", noteSource: 5, texte: "Très bien." },
+          { auteur: "Tom", texte: "Bien." },
+        ],
+      },
+    },
+  };
+
+  it("équipements par la table, note ramenée sur 5, capacité et GPS inchangés", () => {
+    const lu = lireSortieFiches({ fiches: { "111111": brut } }, ["111111"]);
+    const f = lu.fiches["111111"];
+    assert.equal(f.capacity, 6);
+    assert.equal(f.lat, 45.0123);
+    const e = f.enrichie!;
+    assert.equal(e.sourceFiche, "airbnb");
+    assert.deepEqual(
+      e.equipements.map((x) => [x.id, x.present]),
+      [
+        ["seche_cheveux", true],
+        ["television", true],
+        ["lave_linge", false],
+        ["autre:coffee maker", true],
+      ],
+    );
+    assert.deepEqual(e.conditions, { arrivee: "Arrivée : 16:00 - 21:00", animaux: "non" });
+    assert.equal(e.avis!.noteSur5, 4.9);
+    assert.equal(e.avis!.nombre, 120);
+    assert.deepEqual(
+      e.avis!.extraits.map((x) => [x.auteur, x.noteSur5]),
+      [
+        ["Marie", 5],
+        ["Tom", null],
+      ],
+    );
+  });
+
+  it("une fiche écartée (hôtel, chambre) n'est pas enrichie ; une fiche sans rien n'a pas de clé", () => {
+    const lu = lireSortieFiches(
+      { fiches: { "1": { ...brut, ecartee: true }, "2": { ...brut, enrichie: { equipements: "?" } } } },
+      ["1", "2"],
+    );
+    assert.equal("enrichie" in lu.fiches["1"], false);
+    assert.equal("enrichie" in lu.fiches["2"], false);
+  });
+});

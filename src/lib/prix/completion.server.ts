@@ -276,7 +276,10 @@ async function trancheAirbnb(
     const lue = lotLu || f.capacitySource === "structured";
     for (const row of parId.get(id) ?? []) {
       bilan.essayees.push(row.id);
-      bilan.lectures.push({ cle: cleDe(row), ...f, lue });
+      // La fiche enrichie va dans la mémoire des fiches, sous `fiche` :
+      // l'écran Logements la reprend sans relire la page.
+      const { enrichie, ...valeurs } = f;
+      bilan.lectures.push({ cle: cleDe(row), ...valeurs, ...(enrichie && lue ? { fiche: row.fiche ?? enrichie } : {}), lue });
       if (f.ecartee) {
         bilan.retires.push(row.id);
         continue;
@@ -284,6 +287,12 @@ async function trancheAirbnb(
       // La page du logement a été lue : ce qui y manque y manque vraiment.
       // Pas une page d'un lot jugé illisible : elle se relira.
       if (lue) row.pdpLue = true;
+      // Description, équipements, règlement, avis : ce que la fiche publie,
+      // avec la page de l'annonce pour lien vers ses avis.
+      if (f.enrichie) {
+        const avis = f.enrichie.avis ? { ...f.enrichie.avis, url: f.enrichie.avis.url ?? row.url ?? undefined } : null;
+        row.fiche = { ...f.enrichie, avis, recupereLe: new Date().toISOString() };
+      }
       const sansPoint = !gpsPrecis(row);
       if (comblerDepuisMemoire(row, f)) {
         Object.assign(row, qualifierLogement(row));

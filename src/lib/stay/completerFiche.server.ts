@@ -950,7 +950,21 @@ export function poserMemoire(
     // Airbnb seulement : ailleurs, ouvrir la page pose aussi ce que la mémoire
     // ne garde pas (la taxe de séjour d'une centrale ajoutée au loyer), et une
     // annonce comblée par la mémoire ne l'ouvrirait plus.
-    if (row.source !== "Airbnb" || !trouee(row)) continue;
+    if (row.source !== "Airbnb") continue;
+    if (!trouee(row)) {
+      // Complète : seule la fiche enrichie de sa page, si la mémoire en garde
+      // une (lue par la complétion Prix sur PdpPlatformSections) ; rien
+      // d'autre ne change, et aucune page n'est relue.
+      if (row.fiche == null) {
+        try {
+          const f = memoire.lire(cleListing(row))?.fiche;
+          if (f) row.fiche = f;
+        } catch {
+          return { posees, dejaLues, ecartees };
+        }
+      }
+      continue;
+    }
     let lu: ReturnType<typeof memoire.lire>;
     try {
       lu = memoire.lire(cleListing(row));

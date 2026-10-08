@@ -109,13 +109,13 @@ def test_une_page_d_avis_donne_cinq_extraits_au_plus_prenom_seul():
     assert extraits_avis({"oops": 1}) == [] and extraits_avis(None) == []
 
 
-def _avec_fiche(nombre=120):
+def _avec_fiche(nombre=120, extraits=None):
     occ = _occ()
     occ["enrichie"] = {
         "description": "x",
         "equipements": [],
         "conditions": None,
-        "avis": {"noteSource": 4.86, "echelleSource": 5, "nombre": nombre, "extraits": []},
+        "avis": {"noteSource": 4.86, "echelleSource": 5, "nombre": nombre, "extraits": list(extraits or [])},
     }
     return occ
 
@@ -224,3 +224,130 @@ def test_lire_page_avis_classe_refus_et_reponse_illisible():
             pass
     finally:
         reviews.get_from_offset = ancien
+
+
+def test_description_en_texte_plat_ou_dans_la_fenetre_description():
+    plat = {"__typename": "PdpDescriptionSection", "htmlDescription": None, "description": "Studio cosy au centre."}
+    assert fiche_enrichie_de_pdp(plat)["description"] == "Studio cosy au centre."
+    fenetre = {
+        "sections": [
+            {
+                "sectionComponentType": "LOCATION_DEFAULT",
+                "section": {
+                    "__typename": "GeneralListContentSection",
+                    "items": [{"html": {"htmlText": "Le quartier."}}],
+                },
+            },
+            {
+                "sectionComponentType": "DESCRIPTION_MODAL",
+                "section": {
+                    "__typename": "GeneralListContentSection",
+                    "items": [
+                        {"title": "Le logement", "html": {"htmlText": "Deux chambres.<br/>Balcon."}},
+                        {"title": "Vide", "html": {"htmlText": ""}},
+                        {"title": "Accès des voyageurs", "html": {"htmlText": "Tout le logement."}},
+                    ],
+                },
+            },
+        ]
+    }
+    assert fiche_enrichie_de_pdp(fenetre)["description"] == (
+        "Le logement\nDeux chambres.\nBalcon.\n\nAccès des voyageurs\nTout le logement."
+    )
+
+
+def test_l_apercu_des_equipements_seulement_sans_la_liste_entiere():
+    apercu = {
+        "__typename": "AmenitiesSection",
+        "previewAmenitiesGroups": [
+            {"title": "", "amenities": [{"title": "Wifi", "available": True}, {"title": "Cuisine"}]}
+        ],
+    }
+    assert [(e["libelle"], e["present"], e.get("groupe")) for e in fiche_enrichie_de_pdp(apercu)["equipements"]] == [
+        ("Wifi", True, None),
+        ("Cuisine", True, None),
+    ]
+    p = _pdp()
+    amen = p["data"]["presentation"]["stayProductDetailPage"]["sections"]["sections"][1]["section"]
+    amen["previewAmenitiesGroups"] = [{"title": "", "amenities": [{"title": "Jacuzzi"}]}]
+    assert "Jacuzzi" not in [e["libelle"] for e in fiche_enrichie_de_pdp(p)["equipements"]]
+
+
+def test_annulation_en_section_a_part_et_apercu_du_reglement():
+    brut = {
+        "sections": [
+            {
+                "__typename": "PoliciesSection",
+                "houseRules": [
+                    {"title": "Arrivée autonome"},
+                    {"title": "Arrivée après 16:00"},
+                    {"title": "Départ avant 10 h"},
+                    {"title": "Animaux acceptés"},
+                ],
+            },
+            {
+                "__typename": "CancellationPolicySection",
+                "title": "Annulation gratuite pendant 48 heures",
+                "subtitle": "Ensuite, remboursement partiel.",
+                "policyId": "FLEXIBLE",
+            },
+        ]
+    }
+    c = fiche_enrichie_de_pdp(brut)["conditions"]
+    assert c["arrivee"] == "Arrivée après 16:00", "la règle qui donne une heure"
+    assert c["depart"] == "Départ avant 10 h"
+    assert c["animaux"] == "oui"
+    assert c["annulation"] == "Annulation gratuite pendant 48 heures\nEnsuite, remboursement partiel."
+    # La section imbriquée dans PoliciesSection ne se lit pas deux fois.
+    assert fiche_enrichie_de_pdp(_pdp())["conditions"]["annulation"].count("Annulation gratuite") == 1
+
+
+def test_note_et_avis_depuis_la_section_d_avis_sans_requete():
+    brut = {
+        "__typename": "StayPdpReviewsSection",
+        "summary": {"accessibilityLabel": "Noté 4,92 sur 5 · 48 avis"},
+        "reviews": [
+            {
+                "comments": "Je mets 5 sur 5 !",
+                "rating": 5,
+                "createdAt": "2026-03-01T08:00:00Z",
+                "reviewer": {"firstName": "Inès Martin"},
+            }
+        ],
+    }
+    f = fiche_enrichie_de_pdp(brut)
+    assert f["avis"] == {
+        "noteSource": 4.92,
+        "echelleSource": 5,
+        "nombre": 48,
+        "extraits": [{"texte": "Je mets 5 sur 5 !", "auteur": "Inès", "date": "2026-03-01", "noteSource": 5.0}],
+    }
+    # Le texte d'un avis ne fait jamais la note : seuls les libellés comptent.
+    sans_libelle = {"__typename": "StayPdpReviewsSection", "reviews": [{"comments": "5 sur 5, 12 avis !"}]}
+    a = fiche_enrichie_de_pdp(sans_libelle)["avis"]
+    assert (a["noteSource"], a["nombre"], len(a["extraits"])) == (None, None, 1)
+    # Un libellé hors section d'avis ne compte pas.
+    assert fiche_enrichie_de_pdp({"__typename": "PdpTitleSection", "accessibilityLabel": "4,9 sur 5 · 3 avis"}) is None
+
+
+def test_une_page_d_avis_dans_son_enveloppe_ou_traduite():
+    attendu = extraits_avis(_avis())
+    assert extraits_avis({"reviews": _avis()}) == attendu
+    graphql = {"data": {"presentation": {"stayProductDetailPage": {"reviews": {"reviews": _avis()}}}}}
+    assert extraits_avis(graphql) == attendu
+    traduit = {"comments": "", "localizedReview": {"comments": "Super séjour."}, "reviewer": {"smartName": "Bob"}}
+    xs = extraits_avis([traduit])
+    assert xs == [{"texte": "Super séjour.", "auteur": "Bob"}]
+
+
+def test_les_avis_deja_dans_la_fiche_restent_si_la_page_ne_donne_rien():
+    deja = [{"texte": "Déjà là."}]
+    ancien = pdp.lire_page_avis
+    for page in (lambda lid, **_kw: [], lambda lid, **_kw: (_ for _ in ()).throw(pdp.AvisIndisponibles("?"))):
+        pdp.lire_page_avis = page
+        try:
+            with _isole(lambda i, n: _avec_fiche(extraits=deja)):
+                out = pdp.run_fiches(_demande(ids=["111111"]))
+        finally:
+            pdp.lire_page_avis = ancien
+        assert out["fiches"]["111111"]["enrichie"]["avis"]["extraits"] == deja

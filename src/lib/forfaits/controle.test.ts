@@ -111,6 +111,41 @@ describe("contrôle qualité d'une grille", () => {
     assert.match(c.rejets[0], /21 jours Adulte à 28 €, moins cher qu'une durée plus courte/);
   });
 
+  it("plusieurs jours ou la saison moins chers que la journée, sous un autre libellé : rejetés seuls", () => {
+    // Flaine, relevé du 4 octobre 2026 : une option lue comme un forfait.
+    const c = controlerGrille(
+      grille([
+        periode("Saison entière", [
+          t(1, 60.7, { libelleCategorie: "Normal De 15 à 74 ans" }),
+          t(7, 29, { libelleDuree: "2 à 7 jours consécutifs", libelleCategorie: "Tarif unique" }),
+          { ...t(1, 59, { libelleCategorie: "Tarif unique" }), duree: { type: "saison" }, libelleDuree: "Saison" },
+          t(6, 330, { libelleCategorie: "Normal De 15 à 74 ans" }),
+        ]),
+      ]),
+    );
+    assert.deepEqual(
+      c.grille?.periodes[0].tarifs.map((x) => x.prix),
+      [60.7, 330],
+    );
+    assert.equal(c.rejets.length, 2);
+    assert.match(c.rejets[0], /2 à 7 jours consécutifs Tarif unique à 29 €, moins cher que la journée adulte \(60,7 €\)/);
+    assert.match(c.rejets[1], /Saison Tarif unique à 59 €/);
+  });
+
+  it("le plancher de la journée ne vise que l'adulte ordinaire", () => {
+    const c = controlerGrille(
+      grille([
+        periode("Hiver", [
+          t(1, 55),
+          t(6, 40, { categorie: "enfant", libelleCategorie: "Enfant" }),
+          t(6, 45, { restriction: "promotion" }),
+          t(6, 290),
+        ]),
+      ]),
+    );
+    assert.deepEqual(c.rejets, []);
+  });
+
   it("la haute saison moins chère que la basse : grille rejetée", () => {
     const c = controlerGrille(
       grille([

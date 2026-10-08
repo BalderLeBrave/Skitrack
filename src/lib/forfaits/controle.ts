@@ -19,6 +19,13 @@
  *   plus cher que la journée ; sinon la grille entière est rejetée, parce que
  *   c'est le signe d'une colonne mal lue. Une autre durée moins chère que la
  *   précédente est rejetée seule.
+ * - **Le plancher de la journée** : dans une période, un forfait adulte
+ *   ordinaire de plusieurs jours, ou de saison, ne coûte pas moins que la
+ *   journée adulte la moins chère, quel que soit son libellé de catégorie. La
+ *   règle précédente ne compare qu'à libellé égal : Flaine, relevé du
+ *   4 octobre 2026, gardait « 2 à 7 jours consécutifs » à 29 € et « Saison »
+ *   à 59 € en « Tarif unique », à côté d'une journée « Normal » à 60,70 € —
+ *   une option lue comme un forfait, affichée comme son 6 jours. Rejeté seul.
  * - **La haute saison ne coûte pas moins que la basse** : sinon, grille
  *   rejetée.
  * - **Écart de plus de 30 %** avec la grille précédente du même forfait :
@@ -89,7 +96,7 @@ export function controlerGrille(g: GrilleTarifaire, precedente?: GrilleTarifaire
     }
   }
 
-  // 2. Bornes, et 3. la durée se paie.
+  // 2. Bornes, 3. la durée se paie, et 3 bis. le plancher de la journée.
   const periodes: Periode[] = [];
   for (const p of g.periodes) {
     let tarifs = p.tarifs.filter((t) => {
@@ -126,6 +133,19 @@ export function controlerGrille(g: GrilleTarifaire, precedente?: GrilleTarifaire
           tarifs = tarifs.filter((x) => x !== t);
         } else plafond = t.prix;
       }
+    }
+    // 3 bis. Le plancher de la journée, tous libellés de catégorie confondus.
+    const journees = tarifs.filter((t) => ordinaire(t) && t.categorie === "adulte" && jours(t) === 1);
+    if (journees.length) {
+      const plancher = Math.min(...journees.map((t) => t.prix));
+      tarifs = tarifs.filter((t) => {
+        const long = (jours(t) ?? 0) >= 2 || t.duree.type === "semaine" || t.duree.type === "saison";
+        if (!ordinaire(t) || t.categorie !== "adulte" || !long || t.prix >= plancher) return true;
+        rejets.push(
+          `${nom}, « ${p.libelle} » : ${t.libelleDuree} ${t.libelleCategorie} à ${montant(t.prix)}, moins cher que la journée adulte (${montant(plancher)})`,
+        );
+        return false;
+      });
     }
     if (tarifs.length) periodes.push({ ...p, tarifs });
     else if (p.tarifs.length) rejets.push(`${nom}, « ${p.libelle} » : période sans tarif retenu`);

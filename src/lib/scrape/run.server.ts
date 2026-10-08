@@ -8,7 +8,8 @@ import type { Page } from "playwright";
 import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
 import { communeGites } from "./gitesCommunes";
-import { scrapeAirbnbDetailed } from "./airbnb.server";
+import { scrapeAirbnbDetailed, scrapeAirbnbSuite, type SuiteReste } from "./airbnb.server";
+import { lireFichesLentes } from "./airbnbSuite.server";
 import { scrapeBookingPlaywright, scrapeBookingPythonDetaille } from "./booking.server";
 import { fillBookingGps } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
@@ -21,6 +22,13 @@ import { releverGreenGo } from "./greengo.server";
 import { collecteurDe } from "./agences/index.server";
 import { agencesDuReleve, parPaquets, sansDoublons, stationsDuReleve } from "./domaine";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
+import {
+  airbnbListePrioritaire,
+  generationReleveAirbnb,
+  marquerRefusFichesAirbnb,
+  tenirPagesAirbnb,
+  tenirPdpAirbnb,
+} from "@/lib/stay/completerFiche.server";
 
 export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences" | "browser" | "all";
 
@@ -236,7 +244,7 @@ function notes(...parts: (string | null | undefined)[]): string | undefined {
  * l'essentiel n'était jamais demandé. Les deux relevés touchent deux domaines
  * différents, la politesse de chacun est tenue par son collecteur.
  */
-async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], listings: Listing[]) {
+async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], listings: Listing[]): Promise<SuiteReste | null> {
   const t0 = Date.now();
   const echeance = t0 + ECHEANCE_PART_MS;
   const [cozy, direct] = await Promise.allSettled([
@@ -254,7 +262,7 @@ async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], li
       AIRBNB_SOURCES,
       notes(raisonDe(cozy) && `Cozy : ${raisonDe(cozy)}`, raisonDirect && `direct : ${raisonDirect}`),
     );
-    return;
+    return null;
   }
   const f = fusionner(viaCozy, viaDirect);
   const publieDirect = direct.status === "fulfilled" ? direct.value.annoncees : null;
@@ -282,6 +290,7 @@ async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], li
       raisonDirect && `direct : ${raisonDirect}`,
     ),
   });
+  return direct.status === "fulfilled" ? (direct.value.reste ?? null) : null;
 }
 
 /**
@@ -336,16 +345,17 @@ async function releverCozy(input: LiveSearchInput, reports: SourceReport[], list
   });
 }
 
-async function runAirbnb(input: LiveSearchInput): Promise<LiveSearchResult> {
+async function runAirbnb(input: LiveSearchInput): Promise<LiveSearchResult & { reste?: SuiteReste | null }> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
+  let reste: SuiteReste | null = null;
   try {
-    await releverAirbnb(input, reports, listings);
+    reste = await releverAirbnb(input, reports, listings);
   } catch (err) {
     failAll(reports, AIRBNB_SOURCES, err);
   }
   applyDump(input, reports, listings, new Set(AIRBNB_SOURCES));
-  return { listings: locate(input, listings), sources: reports };
+  return { listings: locate(input, listings), sources: reports, ...(reste ? { reste } : {}) };
 }
 
 /** Les recherches Gîtes de France d'un grand domaine qui partent en même temps, au plus. */
@@ -629,6 +639,140 @@ export function dureeCache(part: SearchPart, result: LiveSearchResult): number {
 }
 const inflight = new Map<string, Promise<LiveSearchResult>>();
 
+/** Pages de suite par appel, après le relevé que l'écran attend. */
+const PAGES_PAR_TOUR = 8;
+/** Plafond de pages en plus des 12 du relevé interactif. */
+const PAGES_SUITE_MAX = 72;
+const TOUR_SUITE_MS = 90_000;
+
+function dormir(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/** Un refus d'Airbnb dans la note. Le limiteur local n'en est pas un : la suite peut reprendre. */
+function arretDur(result: LiveSearchResult): boolean {
+  const r = result.sources.find((s) => s.source === "Airbnb");
+  const dit = `${r?.error ?? ""} ${r?.note ?? ""}`;
+  return /HTTP \d{3}|coupe-circuit/i.test(dit);
+}
+
+function ajouterAuCache(key: string, rows: Listing[]): number {
+  const hit = cache.get(key);
+  if (!hit || rows.length === 0) return 0;
+  const connus = new Set(hit.result.listings.map((l) => l.id));
+  const neuf = rows.filter((l) => !connus.has(l.id));
+  if (neuf.length === 0) return 0;
+  const listings = [...hit.result.listings, ...neuf];
+  const sources = hit.result.sources.map((s) =>
+    s.source === "Airbnb" ? { ...s, count: listings.filter((l) => l.source === "Airbnb").length } : s,
+  );
+  cache.set(key, { at: Date.now(), ttl: hit.ttl, result: { listings, sources } });
+  return neuf.length;
+}
+
+function raccourcirCache(key: string): void {
+  const hit = cache.get(key);
+  if (!hit) return;
+  cache.set(key, { ...hit, at: Date.now(), ttl: Math.min(hit.ttl, CACHE_MS) });
+}
+
+function listingsDuCache(key: string): Listing[] {
+  const hit = cache.get(key);
+  if (!hit || Date.now() - hit.at >= hit.ttl) return [];
+  return hit.result.listings;
+}
+
+/**
+ * Ce que le cache Airbnb tient encore pour cette recherche. L'écran Logements
+ * l'ajoute à la liste : les pages lues après la réponse n'attendent pas une
+ * nouvelle recherche.
+ */
+export function lireCacheAirbnb(input: LiveSearchInput): Listing[] {
+  const key = cacheKey(input, "airbnb");
+  return listingsDuCache(key);
+}
+
+async function paginerSuite(
+  key: string,
+  input: LiveSearchInput,
+  reste: SuiteReste,
+  gen: number,
+): Promise<"ok" | "refus" | "laisse"> {
+  let curseur: SuiteReste | null = reste;
+  let budget = 0;
+  let rythme = 0;
+  while (curseur && curseur.file.length > 0 && budget < PAGES_SUITE_MAX) {
+    if (generationReleveAirbnb() !== gen) return "laisse";
+    while (airbnbListePrioritaire()) {
+      await dormir(1_000);
+      if (generationReleveAirbnb() !== gen) return "laisse";
+    }
+    const tour = await scrapeAirbnbSuite(input, curseur, PAGES_PAR_TOUR, Date.now() + TOUR_SUITE_MS);
+    budget += PAGES_PAR_TOUR;
+    const ajout = ajouterAuCache(key, locate(input, tour.listings));
+    if (ajout) console.info(`[airbnb] suite +${ajout} annonce(s)`);
+    if (tour.arret === "rythme") {
+      rythme += 1;
+      if (rythme > 4) return "ok";
+      if (tour.reste) curseur = tour.reste;
+      await dormir(8_000);
+      continue;
+    }
+    rythme = 0;
+    if (tour.rateLimited || tour.arret === "refus" || tour.arret === "coupe-circuit") return "refus";
+    if (!tour.reste) return "ok";
+    curseur = tour.reste;
+  }
+  return "ok";
+}
+
+/**
+ * Après le relevé que l'écran attend : le reste des pages, puis les fiches
+ * PDP, une à une. Rien de tout cela pendant un relevé de liste. Un refus
+ * arrête les deux et raccourcit le cache.
+ */
+function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: SuiteReste | null): void {
+  const gen = generationReleveAirbnb();
+  const lacherPages = tenirPagesAirbnb();
+  void (async () => {
+    let issue: "ok" | "refus" | "laisse" = "ok";
+    let lacherPdp: (() => void) | null = null;
+    try {
+      if (reste) issue = await paginerSuite(key, input, reste, gen);
+      if (
+        issue === "ok" &&
+        generationReleveAirbnb() === gen &&
+        listingsDuCache(key).some((l) => l.source === "Airbnb")
+      ) {
+        lacherPdp = tenirPdpAirbnb();
+      }
+    } catch (err) {
+      issue = "refus";
+      console.warn("[airbnb] suite", err instanceof Error ? err.message : err);
+    } finally {
+      lacherPages();
+    }
+    if (issue === "refus") {
+      marquerRefusFichesAirbnb();
+      raccourcirCache(key);
+      return;
+    }
+    if (!lacherPdp) return;
+    try {
+      const lu = await lireFichesLentes(listingsDuCache(key), input, () => generationReleveAirbnb() !== gen);
+      if (lu === "refus") {
+        marquerRefusFichesAirbnb();
+        raccourcirCache(key);
+      }
+    } catch (err) {
+      console.warn("[airbnb] fiches", err instanceof Error ? err.message : err);
+      marquerRefusFichesAirbnb();
+    } finally {
+      lacherPdp();
+    }
+  })();
+}
+
 function cacheKey(input: LiveSearchInput, part: SearchPart): string {
   // Le relevé d'un grand domaine n'est pas celui de la station seule.
   const domaine = stationsDuReleve(input).length > 1 ? "domaine" : "";
@@ -672,15 +816,23 @@ export async function runLiveSearch(
   if (pending) return pending;
   const promise = actuallyRun(input, part)
     .then((brut) => {
+      const extra = brut as LiveSearchResult & { reste?: SuiteReste | null };
+      const reste = extra.reste ?? null;
+      const nu: LiveSearchResult = { listings: extra.listings, sources: extra.sources };
       const at = Date.now();
-      const result = daterReleve(brut, at);
-      const ttl = dureeCache(part, result);
+      const result = daterReleve(nu, at);
+      const dur = arretDur(result);
+      const suitePages = part === "airbnb" && input.domaine === true && reste != null && !dur;
+      const suiteFiches = part === "airbnb" && input.domaine === true && !dur && result.listings.some((l) => l.source === "Airbnb");
+      const degrade = dureeCache(part, result) <= CACHE_MS;
       // Une relance tombée pendant une pause (coupe-circuit, limiteur) rend un
       // relevé dégradé : il ne remplace pas un relevé complet encore valable.
       const avant = cache.get(key);
-      if (avant && avant.ttl > CACHE_MS && at - avant.at < avant.ttl && ttl <= CACHE_MS) return avant.result;
+      if (avant && avant.ttl > CACHE_MS && at - avant.at < avant.ttl && degrade) return avant.result;
+      const ttl = suitePages ? CACHE_AIRBNB_MS : degrade ? CACHE_MS : CACHE_AIRBNB_MS;
       cache.set(key, { at, ttl, result });
       for (const [k, v] of cache) if (Date.now() - v.at >= v.ttl) cache.delete(k);
+      if (suitePages || suiteFiches) poursuivreApresReleve(key, input, suitePages ? reste : null);
       return result;
     })
     .finally(() => {

@@ -125,10 +125,9 @@ const OUVERTES_MAX = 3;
  * fond a lu (cache des fiches) et la mémoire des fiches se posent, et rien ne
  * part d'ici. Les pages Airbnb se lisent en tâche de fond ; l'écran les
  * affichait « non renseigné » jusqu'à la recherche suivante. Ce qui reste à
- * lire retourne en fin de file de la tâche de fond, et une suite arrêtée
- * (échéance de 45 min, refus répétés) repart à son rythme, derrière le même
- * limiteur : avant, la relecture lisait elle-même ses pages et relançait la
- * suite.
+ * lire retourne en fin de file, sauf si un refus a arrêté le catalogue : la
+ * relecture ne le relance pas. L'annonce ouverte, elle, peut encore partir
+ * seule (`prioriserSuiteAirbnb`).
  *
  * `lireMaintenant` : les annonces Airbnb qu'on vient d'ouvrir (trois au plus)
  * passent d'abord en tête de la file de la tâche de fond
@@ -172,6 +171,28 @@ export const completerAnnonces = createServerFn({ method: "POST" })
     if (bouges.length === 0) return rows;
     const parId = new Map(poserAcces(bouges, bouges[0].stationId).map((l) => [l.id, l]));
     return rows.map((l) => parId.get(l.id) ?? l);
+  });
+
+/**
+ * Les annonces Airbnb déjà en cache pour cette recherche, y compris celles
+ * lues après la première réponse (suite de pages). Aucun appel à Airbnb.
+ */
+export const lireSuiteAirbnb = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      stationName: z.string().min(1),
+      lat: z.number(),
+      lon: z.number(),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      guests: z.number().int().min(1).max(30),
+      bedrooms: z.number().int().min(0).max(20),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const { lireCacheAirbnb } = await import("./scrape/run.server");
+    return lireCacheAirbnb({ ...data, domaine: true });
   });
 
 /** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, devis ITEA daté. */

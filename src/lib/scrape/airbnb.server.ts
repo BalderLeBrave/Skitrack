@@ -19,6 +19,7 @@ import { stationsReliees } from "./domaine";
 import type { LiveSearchInput } from "./types";
 import { prixHorsSejour } from "./airbnbDates";
 import { annoncer, occupancyFromRecord, type OccupancyAnnoncee } from "@/lib/stay/occupancy";
+import { depuisListe, equipements } from "@/lib/stay/equipements";
 import { assurerCles } from "../cles/store.server";
 import {
   dossierScrape,
@@ -401,6 +402,54 @@ function valeurStructuree(v: unknown, source: unknown, min: number): number | nu
   return source === "structured" && typeof v === "number" && Number.isInteger(v) && v >= min && v <= 50 ? v : null;
 }
 
+/** Titres d'équipements déjà sur la tuile, ramenés aux douze clés. Rien si aucun ne correspond. */
+function amenitiesDeTitres(titres: unknown): Listing["amenities"] {
+  if (!Array.isArray(titres)) return undefined;
+  const lus = depuisListe(
+    titres.filter((t): t is string => typeof t === "string" && t.trim().length > 0).map((texte) => ({ texte })),
+  );
+  if (!Object.values(lus).some((v) => v === "oui" || v === "non")) return undefined;
+  return equipements(lus) ?? undefined;
+}
+
+export type SuiteZone = {
+  nom: string;
+  bounds: { north: number; south: number; east: number; west: number };
+  cursor: string;
+};
+
+/** Emprises encore à paginer, et les annonces déjà vues : la suite ne les relit pas. */
+export type SuiteReste = { file: SuiteZone[]; seen: string[] };
+
+function suiteReste(brut: unknown): SuiteReste | null {
+  if (!brut || typeof brut !== "object") return null;
+  const fileBrut = (brut as { file?: unknown }).file;
+  if (!Array.isArray(fileBrut)) return null;
+  const file: SuiteZone[] = [];
+  for (const item of fileBrut) {
+    if (!item || typeof item !== "object") continue;
+    const bounds = (item as { bounds?: unknown }).bounds;
+    if (!bounds || typeof bounds !== "object") continue;
+    const b = bounds as Record<string, unknown>;
+    const north = b.north;
+    const south = b.south;
+    const east = b.east;
+    const west = b.west;
+    if (![north, south, east, west].every((n) => typeof n === "number" && Number.isFinite(n))) continue;
+    file.push({
+      nom: typeof (item as { nom?: unknown }).nom === "string" ? (item as { nom: string }).nom : "reprise",
+      bounds: { north: north as number, south: south as number, east: east as number, west: west as number },
+      cursor: typeof (item as { cursor?: unknown }).cursor === "string" ? (item as { cursor: string }).cursor : "",
+    });
+  }
+  if (file.length === 0) return null;
+  const seenBrut = (brut as { seen?: unknown }).seen;
+  const seen = Array.isArray(seenBrut)
+    ? seenBrut.filter((x): x is string => typeof x === "string" && x.length > 0).slice(0, 8_000)
+    : [];
+  return { file, seen };
+}
+
 function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[] {
   if (!payload || typeof payload !== "object") return [];
   const listings = (payload as { listings?: unknown }).listings;
@@ -440,6 +489,8 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
       ? row.photos.filter((p): p is string => typeof p === "string" && p.trim().length > 0)
       : [];
     const image = typeof row.image === "string" ? row.image : null;
+    const description = typeof row.description === "string" && row.description.trim() ? row.description.trim() : null;
+    const amenities = amenitiesDeTitres(row.amenityTitles);
     out.push({
       id: `abnb-${id}`,
       stationId: input.stationId,
@@ -466,6 +517,8 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
         typeof row.reviewCount === "number" && Number.isInteger(row.reviewCount) && row.reviewCount >= 0
           ? row.reviewCount
           : null,
+      ...(description ? { description } : {}),
+      ...(amenities ? { amenities } : {}),
       url:
         typeof row.url === "string"
           ? row.url
@@ -623,7 +676,11 @@ export async function lireFichesAirbnb(demande: DemandeFichesAirbnb): Promise<Le
   return lu;
 }
 
-async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): Promise<AirbnbScrape> {
+async function scrapeAirbnbPyairbnb(
+  input: LiveSearchInput,
+  echeance: number,
+  suite?: { reste: SuiteReste; max: number },
+): Promise<AirbnbScrape> {
   if (airbnbCircuitOpen()) {
     const raison = raisonCoupeCircuit();
     console.warn(`[airbnb] ${raison} — pas d'appel`);
@@ -665,10 +722,11 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
     // Tout le relevé, préalables compris, doit tenir avant cet instant.
     deadlineMs: echeance,
     // Pas de fiche PDP dans la part : elle n'a que 40 s, et il n'y resterait
-    // de place que pour six fiches environ. Les fiches se lisent à part, par
-    // tranches (`lireFichesAirbnb`, appelée par la complétion de l'écran Prix).
+    // de place que pour six fiches environ. Les fiches se lisent à part, une
+    // à une, après la suite de pages (`airbnbSuite.server.ts`).
     skipEnrich: true,
     maxEnrich: 0,
+    ...(suite ? { suite: suite.reste, suiteMax: suite.max } : {}),
   });
   const raw = await lancerWorker(python, cli, body, echeance);
   for (const ligne of raw.err.split(/\r?\n/)) {
@@ -696,6 +754,7 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
     /** Un relevé tronqué sans refus : emprise suivante en échec, échéance. */
     partiel?: unknown;
     advertised?: unknown;
+    reste?: unknown;
   } | null;
   if (!parsed) {
     console.warn("[airbnb] py: json illisible");
@@ -707,9 +766,10 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
   const arret = typeof parsed.arret === "string" ? parsed.arret : null;
   const listings = fromPyairbnbPayload(parsed.payload, input);
   const annoncees = typeof parsed.advertised === "number" && parsed.advertised >= 0 ? parsed.advertised : null;
+  const reste = suiteReste(parsed.reste);
   if (parsed.ok === false && listings.length === 0) {
     console.warn("[airbnb] py:", parsed.error ?? "json illisible");
-    return { listings: [], rateLimited, raison: parsed.error ?? undefined };
+    return { listings: [], rateLimited, raison: parsed.error ?? undefined, ...(arret ? { arret } : {}), ...(reste ? { reste } : {}) };
   }
   // Un relevé arrêté en route garde ce qu'il a lu, et dit pourquoi il s'est
   // arrêté : la raison va dans la note de la source.
@@ -720,7 +780,7 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
     : partiel
       ? `arrêté en route — ${partiel}`
       : undefined;
-  return { listings, rateLimited, annoncees, ...(raisonArret ? { raison: raisonArret } : {}) };
+  return { listings, rateLimited, annoncees, ...(arret ? { arret } : {}), ...(raisonArret ? { raison: raisonArret } : {}), ...(reste ? { reste } : {}) };
 }
 
 async function scrapeAirbnbFetch(input: LiveSearchInput): Promise<Listing[]> {
@@ -770,6 +830,10 @@ export type AirbnbScrape = {
   raison?: string;
   /** Le nombre qu'Airbnb publie pour l'emprise proche de la station, ou `null`. */
   annoncees?: number | null;
+  /** Pourquoi le worker s'est arrêté : `refus`, `coupe-circuit`, `rythme`, ou rien. */
+  arret?: string;
+  /** Pages encore à lire, hors d'un refus : la suite les prend sans relancer le relevé. */
+  reste?: SuiteReste;
 };
 
 export type AirbnbOptions = {
@@ -800,7 +864,7 @@ export async function scrapeAirbnbDetailed(input: LiveSearchInput, opts: AirbnbO
   }
   if (viaPy.rateLimited) {
     console.warn(`[airbnb] ${viaPy.raison ?? "HTTP 429"} — pas de repli HTML`);
-    return { listings: [], rateLimited: true, raison: viaPy.raison ?? "HTTP 429" };
+    return { listings: [], rateLimited: true, raison: viaPy.raison ?? "HTTP 429", ...(viaPy.arret ? { arret: viaPy.arret } : {}), ...(viaPy.reste ? { reste: viaPy.reste } : {}) };
   }
   if (Date.now() >= echeance) return viaPy;
   const raison = viaPy.raison ? `${viaPy.raison} — repli sur une page HTML` : undefined;
@@ -819,6 +883,16 @@ export async function scrapeAirbnbDetailed(input: LiveSearchInput, opts: AirbnbO
   }
   console.warn("[airbnb] 0 logement (py, fetch, pas de navigateur)");
   return { listings: [], rateLimited: false, raison: viaPy.raison };
+}
+
+export async function scrapeAirbnbSuite(
+  input: LiveSearchInput,
+  reste: SuiteReste,
+  max: number,
+  echeance: number,
+): Promise<AirbnbScrape> {
+  if (airbnbCircuitOpen()) return { listings: [], rateLimited: true, raison: raisonCoupeCircuit() };
+  return scrapeAirbnbPyairbnb(input, echeance, { reste, max });
 }
 
 export async function scrapeAirbnb(

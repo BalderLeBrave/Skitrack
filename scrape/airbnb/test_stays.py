@@ -50,6 +50,37 @@ def test_sans_coordonnees_une_seule_recherche_comme_avant():
     assert [nom for nom, _ in emprises({"url": "https://www.airbnb.fr/s/x/homes", "lat": 45, "lon": 6})] == ["unique"]
 
 
+def test_une_reprise_garde_le_curseur_et_jette_une_emprise_sans_bornes():
+    from stays import bornes_de, file_depuis_reprise, serialiser_file, vus_de
+
+    assert bornes_de({"north": 1, "south": 0, "east": 2, "west": 0}) == {
+        "north": 1.0,
+        "south": 0.0,
+        "east": 2.0,
+        "west": 0.0,
+    }
+    assert bornes_de({"north": 1}) is None
+    assert bornes_de("non") is None
+    file = file_depuis_reprise(
+        {
+            "file": [
+                {"nom": "proche", "bounds": {"north": 2, "south": 1, "east": 4, "west": 3}, "cursor": "abc"},
+                {"nom": "casse", "bounds": {"north": "x"}},
+                "non",
+            ],
+        },
+        {"city": "Val Thorens"},
+    )
+    assert len(file) == 1
+    assert file[0][0] == "proche" and file[0][2] == "abc"
+    assert file[0][1]["bounds"]["north"] == 2.0 and file[0][1]["city"] == "Val Thorens"
+    assert serialiser_file([], set()) is None
+    rendu = serialiser_file(file, {"9", "8"})
+    assert rendu["file"] == [{"nom": "proche", "bounds": file[0][1]["bounds"], "cursor": "abc"}]
+    assert set(rendu["seen"]) == {"9", "8"}
+    assert vus_de({"seen": ["1", 2, "", None]}) == {"1", "2"}
+
+
 def test_les_quarts_couvrent_l_emprise_sans_la_deborder():
     b = bounds_from_point(45.0, 6.0, 6.0)
     qs = quadrants(b)

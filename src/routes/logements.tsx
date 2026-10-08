@@ -74,6 +74,7 @@ import { partyLabel } from "@/lib/stay/party";
 import {
   searchStay,
   completerAnnonces,
+  lireSuiteAirbnb,
   completerReleve,
   PAUSE_DELAI,
   SEARCH_PART_MS,
@@ -224,13 +225,10 @@ function palierDistLbl(m: number): string {
 /** Le temps qu'on laisse aux critères pour se poser avant de relancer la recherche. */
 const RELANCE_MS = 800;
 /**
- * Les pages Airbnb se lisent en tâche de fond, une toutes les 5 s au moins
- * (`completerFiche.server.ts`), et la recherche ne les attend plus : tant
- * qu'une annonce Airbnb n'a pas ses trois champs, l'écran relit ses annonces
- * à cet intervalle, sans nouveau relevé et sans réseau (`completerAnnonces` :
- * le cache et la mémoire des fiches seuls, quelques dizaines de ms), au lieu
- * d'afficher « non renseigné » jusqu'à la recherche suivante. Chaque relecture
- * remet aussi en fin de file ce qui lui manque, et relance une suite arrêtée.
+ * Les pages de liste encore à lire arrivent par `lireSuiteAirbnb` (aucun appel
+ * à Airbnb : le cache du serveur). La relecture des fiches, elle, pose ce que
+ * la mémoire a déjà, y compris une annonce complète à qui il manque encore sa
+ * fiche. Elle ne relance pas un catalogue arrêté sur un refus.
  */
 const RELECTURE_AIRBNB_MS = 15_000;
 /** Au plus 45 min après la recherche, comme les 45 relectures d'une minute d'avant. */
@@ -238,6 +236,9 @@ const RELECTURES_AIRBNB_MAX = 180;
 /** L'annonce ouverte se relit plus souvent, sans réseau, deux minutes au plus. */
 const RELECTURE_OUVERTE_MS = 4_000;
 const RELECTURES_OUVERTE_MAX = 30;
+/** La suite de pages ajoute des annonces : on relit le cache, sans réseau. */
+const SUITE_AIRBNB_MS = 8_000;
+const SUITES_AIRBNB_MAX = 150;
 
 /**
  * Une annonce Airbnb à qui il manque GPS, capacité ou chambres, et que la
@@ -252,6 +253,11 @@ function aCombler(l: Listing): boolean {
   return Boolean(l.url) && (l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)));
 }
 
+/** Trous de fiche, ou annonce Airbnb dont la fiche enrichie n'est pas encore posée. */
+function aRelire(l: Listing): boolean {
+  return aCombler(l) || (l.source === "Airbnb" && l.fiche == null);
+}
+
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   const frozenRef = useRef(frozen);
@@ -263,6 +269,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   const searchNonce = useStay((s) => s.searchNonce);
   const mergeLive = useStay((s) => s.mergeLive);
   const patchLive = useStay((s) => s.patchLive);
+  const ajouterLive = useStay((s) => s.ajouterLive);
   const setSearching = useStay((s) => s.setSearching);
   const setLive = useStay((s) => s.setLive);
   // La première recherche part tout de suite ; les suivantes attendent que les
@@ -305,27 +312,52 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     // tient ; elles reviennent comblées de ce que le cache des fiches sait.
     let relecture: ReturnType<typeof setTimeout> | null = null;
     let relectures = 0;
-    // Seules partent les annonces que la tâche de fond peut encore combler :
-    // une requête légère, et les autres ne se redessinent pas pour rien.
-    const incompletes = (rows: readonly Listing[]) => rows.filter(aCombler);
+    let suiteTimer: ReturnType<typeof setTimeout> | null = null;
+    let toursSuite = 0;
+    // Trous, et annonces Airbnb sans fiche : la mémoire se pose sans réseau.
+    const aRelireMaintenant = (rows: readonly Listing[]) => rows.filter(aRelire);
     const planifierRelecture = (rows: readonly Listing[]) => {
-      if (cancelled || relectures >= RELECTURES_AIRBNB_MAX || incompletes(rows).length === 0) return;
+      if (cancelled || relectures >= RELECTURES_AIRBNB_MAX || aRelireMaintenant(rows).length === 0) return;
       relecture = setTimeout(relireAirbnb, RELECTURE_AIRBNB_MS);
     };
     const relireAirbnb = () => {
       if (cancelled) return;
       relectures += 1;
-      const actuelles = incompletes(useStay.getState().liveListings ?? []);
+      const actuelles = aRelireMaintenant(useStay.getState().liveListings ?? []);
       if (actuelles.length === 0) return;
       void completerAnnonces({ data: { listings: actuelles } })
         .then((rows) => {
           if (cancelled) return;
           patchLive(rows);
-          planifierRelecture(rows);
+          planifierRelecture(useStay.getState().liveListings ?? rows);
         })
         .catch(() => {
           // Réseau ou pause Airbnb : on réessaie à l'intervalle suivant.
           planifierRelecture(actuelles);
+        });
+    };
+    const relireSuite = () => {
+      if (cancelled || !station) return;
+      toursSuite += 1;
+      void lireSuiteAirbnb({
+        data: {
+          stationId: station.id,
+          stationName: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          checkIn,
+          checkOut,
+          guests,
+          bedrooms,
+        },
+      })
+        .then((rows) => {
+          if (cancelled || rows.length === 0) return;
+          ajouterLive(rows);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled && toursSuite < SUITES_AIRBNB_MAX) suiteTimer = setTimeout(relireSuite, SUITE_AIRBNB_MS);
         });
     };
     const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences") => {
@@ -338,6 +370,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       void withDeadline(searchStay({ data: { ...payload, part } }), wait, part)
         .then((res) => {
           if (cancelled) return;
+          if (part === "airbnb" && toursSuite === 0) relireSuite();
           if (res.listings.length > 0) {
             mergeLive(res.listings, res.sources);
             if (part === "airbnb") planifierRelecture(res.listings);
@@ -438,6 +471,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       cancelled = true;
       clearTimeout(depart);
       if (relecture) clearTimeout(relecture);
+      if (suiteTimer) clearTimeout(suiteTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);

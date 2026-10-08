@@ -221,6 +221,31 @@ def test_listings_from_raw_dedupe_et_filtre_capacite():
     assert rows[0]["id"] == "40088811"
 
 
+def test_description_de_tuile_pas_la_ligne_d_occupation():
+    from map import description_tuile, equipements_tuile, stay_to_listing
+
+    assert description_tuile({"overview": "6 voyageurs · 3 chambres · 2 lits"}) is None
+    desc = "Appartement au pied des pistes, avec casier à skis et vue sur le domaine."
+    rec = {
+        "__typename": "StaySearchResult",
+        "title": "Chalet",
+        "demandStayListing": {
+            "id": "RGVtYW5kU3RheUxpc3Rpbmc6MTUwODExNTgxMDM1NDY0NTcyOA==",
+            "description": {"htmlText": f"<p>{desc}</p>"},
+            "location": {"coordinate": {"latitude": 45.0, "longitude": 6.1}},
+        },
+        "structuredDisplayPrice": {"primaryLine": {"accessibilityLabel": "900 € au total"}},
+        "previewAmenitiesGroups": [{"amenities": [{"title": "Wifi"}, {"title": "Wifi"}, {"title": "Casier à skis"}]}],
+    }
+    assert description_tuile(rec) == desc
+    assert equipements_tuile(rec) == ["Wifi", "Casier à skis"]
+    assert equipements_tuile({"title": "Piscine", "amenities": [{"title": "Piscine"}]}) == []
+    row = stay_to_listing(rec, check_in="2027-02-06", check_out="2027-02-13", adults=2)
+    assert row is not None
+    assert row["description"] == desc
+    assert row["amenityTitles"] == ["Wifi", "Casier à skis"]
+
+
 def test_stay_to_listing_forme_api_2026():
     """title/subtitle nuls : le nom vit dans nameLocalized (StaysSearch actuel)."""
     rec = {

@@ -6,7 +6,7 @@
 <html lang="fr">
 <head>
 <script type="application/ld+json">
-{"@context":"http://schema.org","@type":"Hotel","name":"Résidence Les Mélèzes","description":"Appartement au pied des pistes, à 200 m des remontées.","aggregateRating":{"@type":"AggregateRating","ratingValue":9.2,"bestRating":10,"reviewCount":87},"address":{"@type":"PostalAddress","addressLocality":"Les Deux Alpes"}}
+{"@context":"http://schema.org","@type":"Hotel","name":"Résidence Les Mélèzes","description":"Appartement au pied des pistes, à 200 m des remontées.","aggregateRating":{"@type":"AggregateRating","ratingValue":9.2,"bestRating":10,"reviewCount":87},"address":{"@type":"PostalAddress","addressLocality":"Les Deux Alpes"},"review":[{"@type":"Review","author":{"@type":"Person","name":"Camille"},"datePublished":"2026-02-28T09:00:00Z","reviewRating":{"@type":"Rating","ratingValue":10,"bestRating":10},"reviewBody":"Vue magnifique sur les pistes, appartement très propre."}]}
 </script>
 </head>
 <body>
@@ -23,6 +23,42 @@
     <li><span>Lave-linge</span></li>
   </ul>
 </div>
+<div data-testid="property-section--facilities">
+  <div data-testid="facility-group-container"><h3><span>Internet</span></h3>
+    <ul><li><div>Connexion Wi-Fi gratuite</div><div>Une connexion Wi-Fi est disponible gratuitement dans tout l’établissement.</div></li></ul>
+  </div>
+  <div data-testid="facility-group-container"><h3><span>Cuisine</span></h3>
+    <ul><li><span>Lave-vaisselle</span></li><li><span>Four</span></li></ul>
+  </div>
+  <div data-testid="facility-group-container"><h3><span>Équipements en extérieur</span></h3>
+    <ul><li><span>Balcon</span></li><li><span>Local à skis</span></li></ul>
+  </div>
+</div>
+<div data-testid="featuredreview">
+  <div data-testid="featuredreview-avatar"><div>Camille</div><div>France</div></div>
+  <div data-testid="featuredreview-text">“Vue magnifique sur les pistes, appartement très propre.”</div>
+</div>
+<div data-testid="featuredreview">
+  <div data-testid="featuredreview-avatar"><div>Lucas</div><div>Suisse</div></div>
+  <div data-testid="featuredreview-text">“Calme, et la navette part juste devant.”</div>
+</div>
+<div data-testid="review-card">
+  <div data-testid="review-avatar"><div>Jean-Marc Dupont</div><div>Belgique</div></div>
+  <span data-testid="review-date">Commentaire envoyé le : 12 février 2026</span>
+  <div data-testid="review-score"><div>Avec une note de 9</div></div>
+  <h3 data-testid="review-title">« Superbe séjour »</h3>
+  <div data-testid="review-positive-text"><span>Skis aux pieds, cuisine bien équipée.</span></div>
+  <div data-testid="review-negative-text"><span>Parking un peu étroit.</span></div>
+</div>
+<div data-testid="review-card">
+  <div data-testid="review-avatar"><div>Sofia</div></div>
+  <div data-testid="review-score">10</div>
+  <div data-testid="review-positive-text">Hôte très réactif.</div>
+</div>
+<div data-testid="review-card">
+  <div data-testid="review-avatar"><div>Vide</div></div>
+  <div data-testid="review-score">8</div>
+</div>
 <div id="hotelPoliciesInc">
   <div><span>Arrivée</span></div><div>De 16:00 à 20:00</div>
   <div><span>Départ</span></div><div>De 08:00 à 10:00</div>
@@ -30,6 +66,8 @@
   <div><span>Caution remboursable</span></div><div>Une caution de 500 € est requise à l’arrivée.</div>
   <div><span>Animaux domestiques</span></div><div>Les animaux ne sont pas admis.</div>
   <div><span>Fêtes</span></div><div>Les fêtes ne sont pas autorisées.</div>
+  <div><span>Enfants et lits</span></div><div>Les enfants de tous âges sont acceptés.</div>
+  <div><span>Horaires de silence</span></div><div>Les clients doivent respecter le silence entre 22:00 et 07:00.</div>
 </div>
 <div class="prix">À partir de 1 240 €</div>
 </body>

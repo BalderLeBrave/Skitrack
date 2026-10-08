@@ -564,7 +564,11 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
             and fin - time.time() >= MARGE_REQUETE_S + 2.0
         ):
             try:
-                avis["extraits"] = lire_page_avis(lid, api_key=key, proxy_url=proxy_url)
+                # La page, la plus récente d'abord, remplace les avis que la
+                # fiche portait déjà ; vide, elle ne les efface pas.
+                page = lire_page_avis(lid, api_key=key, proxy_url=proxy_url)
+                if page:
+                    avis["extraits"] = page
                 etat["lues"] += 1
                 airbnb_circuit.hit_ok()
             except RythmeLocal as err:

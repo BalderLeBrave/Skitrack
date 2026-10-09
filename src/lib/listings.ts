@@ -32,7 +32,7 @@ export type Listing = {
   stationId: string;
   title: string;
   /** Les plateformes, la centrale, GreenGo, puis les agences de montagne (`scrape/agences/couverture.ts`). */
-  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale" | "GreenGo" | SourceAgence;
+  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale" | "GreenGo" | "HomeToGo" | SourceAgence;
   /**
    * Total du séjour tel que la source l'a publié, aux dates demandées.
    *

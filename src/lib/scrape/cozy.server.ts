@@ -235,6 +235,22 @@ function entriesOf(json: unknown): unknown[] {
   return [];
 }
 
+function fichesDe(entries: readonly unknown[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  const push = (v: unknown) => {
+    if (v && typeof v === "object") out.push(v as Record<string, unknown>);
+  };
+  for (const e of entries) {
+    push(e);
+    // Un bandeau (`resultStrip`) porte des fiches dans `groups`, parfois
+    // absentes du premier niveau et pourtant comptées dans `filteredCount`.
+    // Les ignorer coupait le relevé en dessous du compteur publié.
+    const groups = e && typeof e === "object" ? (e as { groups?: unknown }).groups : null;
+    if (Array.isArray(groups)) for (const g of groups) push(g);
+  }
+  return out;
+}
+
 type CozyFilters = {
   noBounds: boolean;
   price: [number, number];
@@ -639,9 +655,9 @@ export function cozyListings(
   const seen = new Set<string>();
   for (const json of payloads) {
     if (!json || typeof json !== "object") continue;
-    const list = Array.isArray((json as { entries?: unknown }).entries)
-      ? ((json as { entries: unknown[] }).entries)
-      : [];
+    const list = fichesDe(
+      Array.isArray((json as { entries?: unknown }).entries) ? ((json as { entries: unknown[] }).entries) : [],
+    );
     for (const raw of list) {
       if (!raw || typeof raw !== "object") continue;
       const e = raw as Record<string, unknown>;

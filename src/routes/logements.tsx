@@ -390,7 +390,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           if (!cancelled && toursBooking < SUITES_BOOKING_MAX) bookingTimer = setTimeout(relireBooking, SUITE_BOOKING_MS);
         });
     };
-    const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences") => {
+    const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "hometogo" | "agences") => {
       const wait =
         part === "gites"
           ? SEARCH_PART_MS + DEVIS_MS + 6_000
@@ -425,8 +425,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
                   ? dump.filter((l) => l.source === "Centrale")
                   : part === "greengo"
                     ? dump.filter((l) => l.source === "GreenGo")
-                    : dump.filter((l) => l.source === "Abritel" || l.source === "Booking");
-          if (fallback.length) mergeLive(fallback, res.sources);
+                    : part === "hometogo"
+                      ? dump.filter((l) => l.source === "HomeToGo")
+                      : dump.filter((l) => l.source === "Abritel" || l.source === "Booking");
+          if (fallback.length || part === "hometogo") mergeLive(fallback, res.sources);
         })
         .catch((err: unknown) => {
           if (cancelled) return;
@@ -451,6 +453,11 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
             mergeLive(
               frozenRef.current.filter((l) => l.source === "GreenGo"),
               [{ source: "GreenGo", ok: false, count: 0, ms: 0, error }],
+            );
+          } else if (part === "hometogo") {
+            mergeLive(
+              frozenRef.current.filter((l) => l.source === "HomeToGo"),
+              [{ source: "HomeToGo", ok: false, count: 0, ms: 0, error }],
             );
           } else if (part === "agences") {
             mergeLive(
@@ -488,6 +495,8 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       // GreenGo : ses propres hébergements écoresponsables, qu'aucune autre
       // source ne rapporte.
       run("greengo");
+      // HomeToGo : le comparateur, paginé jusqu'au compteur qu'il publie.
+      run("hometogo");
       // Les agences et loueurs de montagne qui couvrent la station (Ovo
       // Network, Travelski…). Pour une station qu'aucun ne couvre, le serveur
       // répond tout de suite, sans rien demander à personne.

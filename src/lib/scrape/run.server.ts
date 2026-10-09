@@ -19,6 +19,7 @@ import { allowsPath } from "./robots";
 import { chercherCentrale } from "./centrales/chercher.server";
 import { ficheCentrale } from "./centrales/registre";
 import { releverGreenGo } from "./greengo.server";
+import { releverHomeToGo } from "./hometogo.server";
 import { collecteurDe } from "./agences/index.server";
 import { agencesDuReleve, parPaquets, sansDoublons, stationsDuReleve } from "./domaine";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
@@ -31,7 +32,7 @@ import {
   tenirPdpAirbnb,
 } from "@/lib/stay/completerFiche.server";
 
-export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences" | "browser" | "all";
+export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "hometogo" | "agences" | "browser" | "all";
 
 function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   if (
@@ -59,6 +60,7 @@ const COZY_SOURCES = ["Abritel", "Booking"] as const;
 const BROWSER_SOURCES = ["Airbnb", "Gîtes de France", "Abritel", "Booking"] as const;
 const CENTRALE_SOURCES = ["Centrale"] as const;
 const GREENGO_SOURCES = ["GreenGo"] as const;
+const HOMETOGO_SOURCES = ["HomeToGo"] as const;
 
 /**
  * Le temps qu'une part se donne pour relever, sous les 52 s de `SEARCH_PART_MS`
@@ -497,6 +499,27 @@ async function runGreenGo(input: LiveSearchInput): Promise<LiveSearchResult> {
 }
 
 /**
+ * HomeToGo : comparateur, même principe que Cozy. La liste JSON autorisée
+ * (`fsid` + `_format=json`), toutes les pages jusqu'au compteur, puis le
+ * détail des offres encore sans titre. Un refus arrête, sans reprise.
+ */
+async function runHomeToGo(input: LiveSearchInput): Promise<LiveSearchResult> {
+  const reports: SourceReport[] = [];
+  const listings: Listing[] = [];
+  const t0 = Date.now();
+  try {
+    const r = await releverHomeToGo(input, { echeance: t0 + ECHEANCE_PART_MS });
+    pushReport(reports, listings, "HomeToGo", r.listings, Date.now() - t0, {
+      annoncees: r.annoncees,
+      note: r.raison ?? undefined,
+    });
+  } catch (err) {
+    failAll(reports, HOMETOGO_SOURCES, err);
+  }
+  return { listings: locate(input, listings), sources: reports };
+}
+
+/**
  * Les agences, loueurs et voyagistes de montagne (`agences/couverture.ts`) :
  * Alpissime, Cimalpes, Madame Vacances, Maeva, Mountain Collection, Ovo
  * Network, Ski-Planet et Travelski. Ils partent ensemble, chacun pour les
@@ -593,6 +616,7 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
   if (part === "cozy") return runCozy(input);
   if (part === "centrales") return runCentrales(input);
   if (part === "greengo") return runGreenGo(input);
+  if (part === "hometogo") return runHomeToGo(input);
   if (part === "agences") return runAgences(input);
   if (part === "browser") return runBrowser(input);
   const parts = await Promise.all([
@@ -601,6 +625,7 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
     borne(runCozy(input), COZY_SOURCES),
     borne(runCentrales(input), CENTRALE_SOURCES),
     borne(runGreenGo(input), GREENGO_SOURCES),
+    borne(runHomeToGo(input), HOMETOGO_SOURCES),
     borne(runAgences(input), [...agencesDuReleve(input).keys()]),
   ]);
   return {

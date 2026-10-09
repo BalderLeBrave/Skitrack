@@ -21,7 +21,7 @@ const Input = z.object({
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guests: z.number().int().min(1).max(30),
   bedrooms: z.number().int().min(0).max(20),
-  part: z.enum(["airbnb", "gites", "cozy", "centrales", "greengo", "agences", "browser", "all"]).optional(),
+  part: z.enum(["airbnb", "gites", "cozy", "centrales", "greengo", "hometogo", "agences", "browser", "all"]).optional(),
   /** « Relancer le relevé » à l'écran : le cache long d'Airbnb ne sert que 90 s. */
   relance: z.boolean().optional(),
   /**
@@ -50,10 +50,11 @@ function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>, input: Live
   if (part === "gites") return ["Gîtes de France"];
   if (part === "centrales") return ["Centrale"];
   if (part === "greengo") return ["GreenGo"];
+  if (part === "hometogo") return ["HomeToGo"];
   if (part === "agences") return agences;
   if (part === "cozy") return ["Abritel", "Booking"];
   if (part === "browser") return ["Airbnb", "Gîtes de France", "Abritel", "Booking"];
-  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo", ...agences];
+  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo", "HomeToGo", ...agences];
 }
 
 function timedOutResult(part: NonNullable<z.infer<typeof Input>["part"]>, input: LiveSearchInput, ms: number): LiveSearchResult {

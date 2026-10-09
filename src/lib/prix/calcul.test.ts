@@ -494,7 +494,7 @@ describe("agreger — ce qui entre dans la médiane", () => {
 
 describe("sources en défaut", () => {
   it("les parts couvrent toutes les sources, agences comprises, sans doublon", () => {
-    assert.deepEqual([...PARTS], ["airbnb", "gites", "cozy", "centrales", "greengo", "agences"]);
+    assert.deepEqual([...PARTS], ["airbnb", "gites", "cozy", "centrales", "greengo", "hometogo", "agences"]);
     const toutes = PARTS.flatMap((p) => SOURCES_DE_PART[p]);
     assert.deepEqual(toutes, [
       "Airbnb",
@@ -503,6 +503,7 @@ describe("sources en défaut", () => {
       "Booking",
       "Centrale",
       "GreenGo",
+      "HomeToGo",
       ...SOURCES_AGENCES,
     ]);
     assert.equal(new Set(toutes).size, toutes.length);

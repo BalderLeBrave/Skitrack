@@ -489,7 +489,7 @@ function sansRemontee(l: Listing): Listing {
   };
 }
 
-export const PARTS = ["airbnb", "gites", "cozy", "centrales", "greengo", "agences"] as const;
+export const PARTS = ["airbnb", "gites", "cozy", "centrales", "greengo", "hometogo", "agences"] as const;
 export type Part = (typeof PARTS)[number];
 
 /** Toutes les sources que chaque part peut rapporter. Les agences n'en
@@ -500,6 +500,7 @@ export const SOURCES_DE_PART: Record<Part, readonly Listing["source"][]> = {
   cozy: ["Abritel", "Booking"],
   centrales: ["Centrale"],
   greengo: ["GreenGo"],
+  hometogo: ["HomeToGo"],
   agences: SOURCES_AGENCES,
 };
 

@@ -95,7 +95,9 @@ export const EXTRAITS_MAX = 5;
  *   `note_de_tuile`) — un badge sans échelle n'est pas repris ;
  * - Travelski : `averageRating` (`agences/travelski.ts`) ;
  * - Ovo Network : `review_rating` (`agences/ovo.ts`) ;
- * - Mountain Collection : `avis.note` (`agences/mountainCollection.ts`).
+ * - Mountain Collection : `avis.note` (`agences/mountainCollection.ts`) ;
+ * - HomeToGo : `starMessage` « sur 5 », ou `starValue` quand `maxStarValue` vaut 5
+ *   (`scrape/hometogo.ts`, `noteDe`) — un « 8,0 » sans échelle n'est pas repris ;
  *
  * Les autres (GreenGo `averageGlobalRating`, Maeva `note`) recopient la note
  * sans borne : leur échelle n'est pas établie, leur note n'est pas lue.
@@ -106,6 +108,7 @@ const ECHELLE_RELEVEE: Partial<Record<Listing["source"], EchelleNote>> = {
   Travelski: 5,
   "Ovo Network": 5,
   "Mountain Collection": 5,
+  HomeToGo: 5,
 };
 
 function texte(v: unknown): string | null {

@@ -257,7 +257,8 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "{n} offre": "{n} offer",
   "{n} offres": "{n} offers",
   "Périmètre de recherche": "Search area",
-  "Distance au centre de la station. Une annonce sans position GPS est écartée.": "Distance from the resort centre. A listing without a GPS position is left out.",
+  "Distance au centre de la station. Sans GPS publié, la position est triangulée et l'annonce reste listée : ce n'est pas la porte.":
+    "Distance from the resort centre. Without a published GPS fix, the position is triangulated and the listing stays listed: it is not the door.",
   "Distance au centre": "Distance from the centre",
   "Prix et taille": "Price and size",
   "Le filtre « Capacité ≥ {n} » est toujours appliqué ; ces fourchettes s’y ajoutent. Hors prix, elles écartent les annonces qui ne publient pas la valeur. Chaque borne se tape.":
@@ -342,6 +343,8 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Remontée": "Lift",
   "Position non publiée par {source}.": "Location not published by {source}.",
   "Position approchée publiée par {source}.": "Approximate location published by {source}.",
+  "Position triangulée : {source} n'a pas publié de GPS. Ce n'est pas la porte.":
+    "Triangulated position: {source} did not publish a GPS fix. This is not the door.",
   "prix du séjour": "stay price",
   "capacité": "capacity",
   "chambres": "bedrooms",

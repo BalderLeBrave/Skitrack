@@ -27,10 +27,10 @@
 import { plier } from "./logement.ts";
 
 /** D'où vient un point qui n'est pas celui de la liste. `apify` : la page
- *  `rooms/` lue par Apify (`scrape/apify/airbnbApify.ts`). `triangule` : un
- *  gîte Gîtes de France sans GPS de fiche — le point de la carte de recherche,
- *  ou à défaut le barycentre des gîtes du même lieu, le repère publié de ce
- *  lieu, ou la station cherchée. Ce n'est pas la porte. */
+ *  `rooms/` lue par Apify (`scrape/apify/airbnbApify.ts`). `triangule` : aucun
+ *  GPS publié — barycentre d'annonces du même lieu qui en publient un, repère
+ *  du référentiel, ou station cherchée. Pour un gîte, aussi le point de la
+ *  carte de recherche quand la fiche n'a pas de GPS. Ce n'est pas la porte. */
 export type SourceGps = "pdp" | "page" | "ban" | "jumelage" | "apify" | "triangule";
 
 /** Un point BAN plus loin de la station est écarté. */

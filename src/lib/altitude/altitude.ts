@@ -34,7 +34,7 @@ export function pointAltitude(l: Pick<Listing, "lat" | "lon">): { lat: number; l
 }
 
 /** Le point de l'annonce n'est qu'approché : Airbnb, une adresse géocodée,
- *  ou une position triangulée (gîte sans GPS de fiche). */
+ *  ou une position triangulée (aucun GPS publié). */
 export function positionApprochee(l: Pick<Listing, "source" | "gpsSource">): boolean {
   return l.source === "Airbnb" || l.gpsSource === "ban" || l.gpsSource === "triangule";
 }

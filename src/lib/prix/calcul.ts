@@ -277,6 +277,9 @@ function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
  * se regroupent comme dans Logements, et seule l'offre la moins chère de
  * chacun compte. Sans cela, deux biens suffisaient à atteindre MIN_ANNONCES.
  * Muettes et petites restent des offres : elles ne sont pas proposées.
+ *
+ * Une position triangulée (`gpsSource`) n'est pas une porte mesurée : elle
+ * reste sur la carte de Logements, et elle n'entre pas dans la médiane.
  */
 function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
   const criteres = { travelers: ctx.groupe.trav, rooms: ctx.groupe.rooms };
@@ -287,6 +290,7 @@ function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
   const recevables = listings.map(enrichirListing).filter(
     (l) =>
       offreRecevable(l, ctx) &&
+      l.gpsSource !== "triangule" &&
       gpsPrecis(l) &&
       // Le rayon de 12 km garde la vallée entière : un logement de station est
       // bien plus près d'une remontée. Écarté ici, il n'entre dans aucun compte.

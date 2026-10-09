@@ -521,7 +521,11 @@ export function BlocEmplacement({ l }: { l: Listing }) {
       ) : (
         <p className="fiche7__absent">{tr("Position non publiée par {source}.", { source: l.source })}</p>
       )}
-      {epingles.length && positionApprochee(l) ? (
+      {epingles.length && l.gpsSource === "triangule" ? (
+        <p className="fiche7__note">
+          {tr("Position triangulée : {source} n'a pas publié de GPS. Ce n'est pas la porte.", { source: l.source })}
+        </p>
+      ) : epingles.length && positionApprochee(l) ? (
         <p className="fiche7__note">{tr("Position approchée publiée par {source}.", { source: l.source })}</p>
       ) : null}
     </section>

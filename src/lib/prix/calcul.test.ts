@@ -2649,6 +2649,21 @@ describe("relevé : seuls les logements de station comptent", () => {
     });
   });
 
+  it("une position triangulée n'entre pas dans la médiane", () => {
+    const pin = annonce({
+      id: "pin",
+      total: 100,
+      distToLiftM: 50,
+      gpsSource: "triangule",
+      proven: "test · position triangulée : station Les 2 Alpes, aucun point publié pour cette annonce",
+    });
+    assert.deepEqual(agreger([pres("porte", 2000), pin], CTX), { n: 1, muettes: 0, petits: 0, med: 2000 });
+    assert.deepEqual(
+      retenir([pin], CTX).map((l) => l.id),
+      [],
+    );
+  });
+
   it("retenir et le relevé écartent le même logement", () => {
     const lot = [loin, pres("a", 2000), pres("b", 3000)];
     assert.deepEqual(

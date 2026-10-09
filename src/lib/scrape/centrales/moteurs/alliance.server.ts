@@ -14,13 +14,16 @@ import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   blocSuivant,
+  dansPolygone,
   lireCatalogueAlliance,
   lireDisposAlliance,
+  lireZoneAlliance,
   logementsAlliance,
   requeteAlliance,
   urlRechercheAlliance,
   type CatalogueAlliance,
   type ReponseAlliance,
+  type ZoneAlliance,
 } from "./alliance";
 
 const UA = UA_NAVIGATEUR;
@@ -56,10 +59,16 @@ export type ReglageAlliance = {
   catalogue: string;
   /** Site de réservation publié, pour le lien de l'annonce. */
   site: string;
+  /**
+   * Fichier de contour publié par le widget. Obligatoire quand le `loginAPI`
+   * couvre plusieurs stations : sans lui la recherche les mélangerait.
+   */
+  zone?: string;
 };
 
 type Memoire<T> = { jusqua: number; valeur: T };
 const catalogues = new Map<string, Memoire<CatalogueAlliance>>();
+const zones = new Map<string, Memoire<ZoneAlliance>>();
 const recherches = new Map<string, Memoire<Listing[]>>();
 
 function nuitsDe(arrivee: string, depart: string): number {
@@ -109,7 +118,21 @@ async function catalogueDe(url: string): Promise<CatalogueAlliance> {
   return valeur;
 }
 
-async function pages(r: ReglageAlliance, ctx: ContexteCentrale, vue: number, nuits: number): Promise<ReponseAlliance[]> {
+async function zoneDe(url: string): Promise<ZoneAlliance> {
+  const deja = zones.get(url);
+  if (deja && deja.jusqua > Date.now()) return deja.valeur;
+  const valeur = lireZoneAlliance(await lire(url));
+  zones.set(url, { jusqua: Date.now() + CATALOGUE_MS, valeur });
+  return valeur;
+}
+
+async function pages(
+  r: ReglageAlliance,
+  ctx: ContexteCentrale,
+  vue: number,
+  nuits: number,
+  polygone: string,
+): Promise<ReponseAlliance[]> {
   const sorties: ReponseAlliance[] = [];
   let conversation = "";
   let bloc = 0;
@@ -123,6 +146,7 @@ async function pages(r: ReglageAlliance, ctx: ContexteCentrale, vue: number, nui
         personnes: ctx.guests,
         conversation,
         bloc,
+        polygone,
       }),
     );
     let reponse: ReponseAlliance;
@@ -178,7 +202,11 @@ function enAnnonces(
       lon: f.lon,
       locality: null,
       placeName: null,
-      proven: `${r.nom} (Open System, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuits. Total daté publié par la recherche du widget, login « ${r.login} ». Le résumé répond pour 2 adultes : le montant suit la durée, pas le nombre de personnes.`,
+      proven: `${r.nom} (Open System, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuits. Total daté publié par la recherche du widget, login « ${r.login} ». Le résumé répond pour 2 adultes : le montant suit la durée, pas le nombre de personnes.${
+        r.zone
+          ? " Le contour publié de la station borne la recherche : ce login en couvre plusieurs."
+          : ""
+      }`,
     };
   });
 }
@@ -187,11 +215,12 @@ function enAnnonces(
 export async function chercherAlliance(ctx: ContexteCentrale, r: ReglageAlliance): Promise<Listing[]> {
   const nuits = nuitsDe(ctx.checkIn, ctx.checkOut);
   if (nuits < 1) throw new Error("dates de séjour illisibles");
-  const cle = `${r.login}|${r.catalogue}|${ctx.checkIn}|${ctx.checkOut}|${ctx.guests}`;
+  const cle = `${r.login}|${r.catalogue}|${r.zone ?? ""}|${ctx.checkIn}|${ctx.checkOut}|${ctx.guests}`;
   const deja = recherches.get(cle);
   if (deja && deja.jusqua > Date.now()) return deja.valeur.map((l) => ({ ...l, stationId: ctx.stationId }));
+  const zone = r.zone ? await zoneDe(r.zone) : null;
   const catalogue = await catalogueDe(r.catalogue);
-  const recues = await pages(r, ctx, catalogue.id, nuits);
+  const recues = await pages(r, ctx, catalogue.id, nuits, zone?.rectangle ?? "");
   const fusion: ReponseAlliance = {
     total: recues[0]?.total ?? null,
     nuits,
@@ -201,11 +230,18 @@ export async function chercherAlliance(ctx: ContexteCentrale, r: ReglageAlliance
     dispos: recues.flatMap((p) => p.dispos),
   };
   const { gardes, ecartes } = logementsAlliance(catalogue, fusion);
+  const places = zone
+    ? gardes.filter((g) => g.lat == null || g.lon == null || dansPolygone(g.lon, g.lat, zone.points))
+    : gardes;
+  const hors = gardes.length - places.length;
+  if (hors > 0) {
+    console.info(`[centrale] ${r.host} : ${hors} hors du contour publié`);
+  }
   if (ecartes.size > 0) {
     const texte = [...ecartes].map(([m, n]) => `${m} (${n})`).join(", ");
     console.info(`[centrale] ${r.host} : écartés hors règle — ${texte}`);
   }
-  const annonces = enAnnonces(gardes, r, ctx, nuits);
+  const annonces = enAnnonces(places, r, ctx, nuits);
   recherches.set(cle, { jusqua: Date.now() + RECHERCHE_MS, valeur: annonces });
   return annonces;
 }

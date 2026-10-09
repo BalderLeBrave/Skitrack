@@ -69,6 +69,11 @@ export function requeteAlliance(p: {
   personnes: number;
   conversation?: string;
   bloc?: number;
+  /**
+   * Rectangle du contour publié, dans le champ `polygone` du widget.
+   * Vide pour les login qui ne couvrent qu'une station.
+   */
+  polygone?: string;
 }): string {
   const bloc = p.bloc ?? 0;
   const personnes = Math.max(1, Math.trunc(p.personnes));
@@ -80,7 +85,7 @@ export function requeteAlliance(p: {
     String(bloc),
     "20",
     p.login,
-    "",
+    p.polygone ?? "",
     "",
     String(p.vue),
     String(bloc),
@@ -101,6 +106,96 @@ export function requeteAlliance(p: {
 
 export function urlRechercheAlliance(requete: string): string {
   return `https://etape-rest.for-system.com/index.aspx?ref=json-catalogue-etape16v5&q=${encodeURIComponent(requete)}`;
+}
+
+export type ZoneAlliance = {
+  /** Rectangle envoyé dans le champ `polygone`, au format du widget. */
+  rectangle: string;
+  /** Sommets du contour publié, `[longitude, latitude]`. */
+  points: ReadonlyArray<readonly [number, number]>;
+};
+
+/**
+ * Le rectangle qui borne un tracé `lng,lat,0 lng,lat,0 …`, tel que le widget
+ * écrit un polygone : `lng lat` séparés par des virgules, fermé sur le coin
+ * sud-ouest.
+ *
+ * Les nombres gardent l'écriture publiée. Moins de trois sommets, ou un tracé
+ * plat, n'est pas un contour : on lève, on n'interroge pas sans borne.
+ */
+export function zoneDeChemins(chemins: string): ZoneAlliance {
+  const points: Array<readonly [number, number]> = [];
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+  let sMinLng = "";
+  let sMinLat = "";
+  let sMaxLng = "";
+  let sMaxLat = "";
+  for (const tok of chemins.trim().split(/\s+/)) {
+    if (!tok) continue;
+    const [slng, slat] = tok.split(",");
+    if (!slng || !slat) continue;
+    const lng = Number(slng);
+    const lat = Number(slat);
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
+    points.push([lng, lat]);
+    if (lng < minLng) {
+      minLng = lng;
+      sMinLng = slng;
+    }
+    if (lng > maxLng) {
+      maxLng = lng;
+      sMaxLng = slng;
+    }
+    if (lat < minLat) {
+      minLat = lat;
+      sMinLat = slat;
+    }
+    if (lat > maxLat) {
+      maxLat = lat;
+      sMaxLat = slat;
+    }
+  }
+  if (points.length < 3 || minLng === maxLng || minLat === maxLat) {
+    throw new Error("le contour publié n'a pas de tracé");
+  }
+  const rectangle = `${sMinLng} ${sMinLat},${sMaxLng} ${sMinLat},${sMaxLng} ${sMaxLat},${sMinLng} ${sMaxLat},${sMinLng} ${sMinLat}`;
+  return { rectangle, points };
+}
+
+/** Vrai quand le point est dans le contour publié (rayon pair-impair). */
+export function dansPolygone(
+  lng: number,
+  lat: number,
+  points: ReadonlyArray<readonly [number, number]>,
+): boolean {
+  let dedans = false;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const pi = points[i];
+    const pj = points[j];
+    if (!pi || !pj) continue;
+    const yi = pi[1];
+    const yj = pj[1];
+    if ((yi > lat) !== (yj > lat)) {
+      const x = ((pj[0] - pi[0]) * (lat - yi)) / (yj - yi) + pi[0];
+      if (lng < x) dedans = !dedans;
+    }
+  }
+  return dedans;
+}
+
+/**
+ * Le fichier de carte publié par le widget (`paths` du contour).
+ * Lève s'il n'y a pas de tracé : une recherche sans contour n'est pas la station.
+ */
+export function lireZoneAlliance(source: string): ZoneAlliance {
+  const brut = objetJson(source);
+  if (!brut || typeof brut !== "object") throw new Error("contour illisible");
+  const pol = (brut as { pol?: { paths?: unknown } }).pol;
+  if (!pol || typeof pol.paths !== "string") throw new Error("le contour publié n'a pas de tracé");
+  return zoneDeChemins(pol.paths);
 }
 
 /** Le bloc suivant, ou `null` quand la page est la dernière ou ne progresse pas. */

@@ -8,11 +8,12 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-neuf ; trente en ont un ici. Vingt-huit d'entre eux s'interrogent
- * vraiment et couvrent cinquante stations ; les deux autres racontent un
- * empêchement qui leur est propre, et que la phrase de leur moteur dirait mal.
+ * soixante-neuf ; trente-quatre en ont un ici. Trente-trois d'entre eux
+ * s'interrogent vraiment et couvrent cinquante-cinq stations ; l'autre
+ * raconte un empêchement qui lui est propre, et que la phrase de son moteur
+ * dirait mal.
  *
- * Pour les trente-neuf autres centrales, `registre.ts` sait déjà nommer le
+ * Pour les trente-cinq autres centrales, `registre.ts` sait déjà nommer le
  * moteur. Celles d'Ingénie sans fichier passent par `chercherIngenieHote`.
  * Celles d'Orchestra sans fichier passent par `chercherOrchestraHote` : les
  * destinations sont les liens que l'accueil publie. Pour les autres,
@@ -30,6 +31,8 @@ import { correnconEnVercors } from "./correnconEnVercors";
 import { devoluy } from "./devoluy";
 import { flaine } from "./flaine";
 import { foretBlanche } from "./foretBlanche";
+import { gourette } from "./gourette";
+import { grandTourmalet } from "./grandTourmalet";
 import { hauteMaurienneVanoise } from "./hauteMaurienneVanoise";
 import { isola2000 } from "./isola2000";
 import { laBresse } from "./laBresse";
@@ -38,9 +41,11 @@ import { laPlagne } from "./laPlagne";
 import { lesArcs } from "./lesArcs";
 import { lesContamines } from "./lesContamines";
 import { lesSybelles } from "./lesSybelles";
+import { luzArdiden } from "./luzArdiden";
 import { montclar } from "./montclar";
 import { montgenevre } from "./montgenevre";
 import { paysDesEcrins } from "./paysDesEcrins";
+import { peyragudes } from "./peyragudes";
 import { piauEngaly } from "./piauEngaly";
 import { pralognan } from "./pralognan";
 import { saintFrancoisLongchamp } from "./saintFrancoisLongchamp";
@@ -88,11 +93,16 @@ const TOUS: readonly Connecteur[] = [
   ax3Domaines,
   montgenevre,
   valmorel,
+  // N'Py : un login pour les Pyrénées, un contour publié par station.
+  piauEngaly,
+  gourette,
+  luzArdiden,
+  peyragudes,
+  grandTourmalet,
   // Valfréjus : la page datée que son site publie sur Haute Maurienne.
   valfrejus,
-  // Sites dont l'empreinte n'est qu'un widget panier, sans recherche datée.
+  // Site dont l'empreinte n'est qu'un widget panier, sans recherche datée.
   alpeDuGrandSerre,
-  piauEngaly,
   // Chamonix : les identifiants sont sur la page de résultats, le prix sur
   // le calendrier.
   chamonix,

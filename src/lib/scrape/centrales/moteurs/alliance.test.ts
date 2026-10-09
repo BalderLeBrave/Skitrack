@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   blocSuivant,
+  dansPolygone,
   lireCatalogueAlliance,
   lireDisposAlliance,
+  lireZoneAlliance,
   logementsAlliance,
   requeteAlliance,
   urlRechercheAlliance,
+  zoneDeChemins,
 } from "./alliance.ts";
 
 const CATALOGUE = `AllianceReseaux.OsCatalogue.prototype['GetVueInfo-OsForm-1-2-3'] = function() { return {
@@ -41,6 +44,30 @@ describe("Alliance : la recherche publiée par le widget", () => {
     assert.equal(url.hostname, "etape-rest.for-system.com");
     assert.equal(url.searchParams.get("ref"), "json-catalogue-etape16v5");
     assert.equal(url.searchParams.get("q"), q);
+  });
+
+  it("met le rectangle publié dans le champ polygone, et nulle part ailleurs", () => {
+    const zone = zoneDeChemins("0,0,0 2,0,0 2,1,0 0,1,0");
+    assert.equal(zone.rectangle, "0 0,2 0,2 1,0 1,0 0");
+    assert.equal(dansPolygone(1, 0.5, zone.points), true);
+    assert.equal(dansPolygone(3, 0.5, zone.points), false);
+    const q = requeteAlliance({
+      login: "n-py",
+      vue: 1381,
+      arrivee: "2027-02-06",
+      nuits: 7,
+      personnes: 4,
+      polygone: zone.rectangle,
+    });
+    assert.equal(q, `|0|20|n-py|${zone.rectangle}||1381|0|0||1|7|2027-02-06|0||*|0|4||*`);
+  });
+
+  it("un fichier de contour sans tracé lève, il ne devient pas une recherche sans borne", () => {
+    const source = `AllianceReseaux.OsCarte.prototype["x"] = function(options) { return { "pol":{ "paths":"0,0,0 1,0,0 1,1,0 0,1,0" } } };`;
+    const zone = lireZoneAlliance(source);
+    assert.equal(dansPolygone(0.5, 0.5, zone.points), true);
+    assert.throws(() => zoneDeChemins("0,0,0 1,0,0"), /tracé/);
+    assert.throws(() => lireZoneAlliance("<html>vide</html>"), /tracé|illisible|sans objet/);
   });
 
   it("lit le catalogue et ne garde que les séjours vendus, nommés, hors hôtel et camping", () => {

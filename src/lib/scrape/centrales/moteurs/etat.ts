@@ -38,8 +38,8 @@ const ETAT: Record<MoteurCentrale, string> = {
   Ingénie:
     "ce moteur s'interroge. Les centrales sans fichier propre passent par le connecteur commun, identifiant lu sur la page d'accueil. Un Disallow sur la recherche datée est lu et n'arrête pas. Relevé du 13 septembre 2026.",
 
-  // Deux centrales, trois stations. Les deux échouent pour des raisons
-  // opposées, et la phrase doit porter les deux.
+  // Super-Besse et le Mont-Dore. Le site affiche une grille sans date.
+  // Grand Tourmalet n'est plus ici : sa recherche datée est le widget Alliance.
   Diffusio:
     "ce moteur affiche ses prix sans qu'aucune date soit demandée, et n'expose aucun filtre de date, de durée ou de personnes : c'est une grille tarifaire, pas un total de séjour. Relevé du 13 septembre 2026.",
 

@@ -84,7 +84,7 @@ import {
   DEVIS_MS,
   TARIF_MS,
 } from "@/lib/searchStay";
-import { airbnbComplet, plausible } from "@/lib/stay/priseFiche";
+import { airbnbComplet, pointPublie } from "@/lib/stay/priseFiche";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
@@ -92,7 +92,7 @@ import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { voisinDansListe } from "@/lib/stay/visionneuse";
 import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
-import { placerSansPoint } from "@/lib/stay/situer";
+import { estPointPublie, placerSansPoint } from "@/lib/stay/situer";
 import { photosDeResidence } from "@/lib/stay/photoResidence";
 import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
@@ -257,10 +257,11 @@ const SUITES_HTG_MAX = 60;
  * Une annonce Airbnb à qui il manque GPS, capacité ou chambres, et que la
  * tâche de fond peut encore combler. Lue et à point (`pdpLue`), ce qui lui
  * manque, sa page ne le publie pas. Sans point, sa page se relit encore : elle
- * donne un point de repli que la mémoire des fiches ne garde pas.
+ * donne un point de repli que la mémoire des fiches ne garde pas. Un point
+ * triangulé (`raw`, `placerSansPoint`) n'en est pas un : `pointPublie`.
  */
 function aCombler(l: Listing): boolean {
-  if (l.source === "Airbnb") return !airbnbComplet(l) && !(l.pdpLue === true && plausible(l.lat, l.lon));
+  if (l.source === "Airbnb") return !airbnbComplet(l) && !(l.pdpLue === true && pointPublie(l));
   // Hors Airbnb : une fiche que la tâche de fond lit encore, à qui il manque
   // la capacité, ou les chambres sans pièces dont les tirer.
   return Boolean(l.url) && (l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)));
@@ -985,7 +986,7 @@ function LogementsStation({ s }: { s: Station }) {
   if (lf.link) lp.push({ id: "link", label: tr("Lien de réservation"), fn: (l) => !!l.url, remove: () => patchLf({ link: false }) });
   if (lf.photo) lp.push({ id: "photo", label: tr("Avec photo"), fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
   if (lf.firm) lp.push({ id: "firm", label: tr("Prix relevé pour ces dates"), fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
-  if (lf.pos) lp.push({ id: "pos", label: tr("Position connue"), fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
+  if (lf.pos) lp.push({ id: "pos", label: tr("Position connue"), fn: (l) => estPointPublie(l), remove: () => patchLf({ pos: false }) });
   if (lf.full)
     lp.push({
       id: "full",
@@ -1235,7 +1236,7 @@ function LogementsStation({ s }: { s: Station }) {
   const notesDispo = SEUILS_NOTE.map((seuil) => ({ seuil, n: raw.filter((l) => noteAuMoins(l, seuil)).length }));
   const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
     { k: "measured", label: tr("Distance mesurée"), n: raw.filter((l) => distanceOf(l).kind === "measured").length },
-    { k: "pos", label: tr("Position connue"), n: raw.filter((l) => l.lat != null).length },
+    { k: "pos", label: tr("Position connue"), n: raw.filter((l) => estPointPublie(l)).length },
     { k: "link", label: tr("Lien de réservation"), n: raw.filter((l) => l.url).length },
     { k: "photo", label: tr("Avec photo"), n: raw.filter((l) => l.photo).length },
     { k: "firm", label: tr("Prix relevé pour ces dates"), n: raw.filter((l) => firmOf(l, stay)).length },

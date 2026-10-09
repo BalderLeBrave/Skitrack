@@ -135,6 +135,31 @@ export function situerManquants(listings: readonly Listing[], ctx: ContexteSitue
 }
 
 /**
+ * L'annonce telle qu'une fiche ou un tableau la décrit : un point triangulé
+ * reste sur la carte et dans le rayon, mais les distances qu'il donne ne
+ * sont pas des mesures. Remontée, lieu et repère cherché repartent à vide,
+ * comme pour une annonce sans point (`attachAccess`). Un point publié
+ * ressort tel quel.
+ */
+export function mesuresPubliees<T extends Listing>(l: T): T {
+  if (l.gpsSource !== "triangule") return l;
+  return {
+    ...l,
+    distToSlopesM: null,
+    distToLiftM: null,
+    liftName: null,
+    liftKind: null,
+    liftLat: null,
+    liftLon: null,
+    liftOtherLat: null,
+    liftOtherLon: null,
+    distToPlaceM: null,
+    searchedLiftM: null,
+    searchedLiftName: null,
+  };
+}
+
+/**
  * La liste telle que l'écran la montre : les trous de GPS sont triangulés,
  * et seuls ces logements-là refont leur accès aux pistes depuis ce point.
  * Un point déjà publié ressort tel quel, accès compris.

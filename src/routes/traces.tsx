@@ -12,7 +12,7 @@ import { formatDistFrom, formatLift, sectorOf, skiAccessLabel } from "@/lib/acce
 import { formatEle, formatDuration, formatKm } from "@/lib/gpx";
 import { formatEuro, listingsForStay, type Listing } from "@/lib/listings";
 import { enrichirListing } from "@/lib/stay/enrichir";
-import { placerSansPoint } from "@/lib/stay/situer";
+import { estPointPublie, mesuresPubliees, placerSansPoint } from "@/lib/stay/situer";
 import { stationById } from "@/lib/stations";
 import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
@@ -49,11 +49,17 @@ function Traces() {
     [stationId, guests, bedrooms],
   );
   // Même règle que Logements : sans GPS publié, position triangulée. Ce n'est
-  // pas la porte, et cette copie ne quitte pas l'écran.
+  // pas la porte, et cette copie ne quitte pas l'écran. Elle place l'épingle ;
+  // le tableau et la fiche ne mesurent rien depuis elle (`mesuresPubliees`) :
+  // une distance à la trace ou à une remontée tirée d'un barycentre ou de la
+  // station n'est pas une mesure, elle reste « inconnue » et en queue.
   const base = live ?? frozen;
   const raw = useMemo(() => (station ? placerSansPoint(base, station) : base), [base, station]);
   const rows = useMemo(() => {
-    const scored = raw.map((l) => ({ listing: l, gpxM: distToGpxM(l, points) }));
+    const scored = raw.map((l) => ({
+      listing: mesuresPubliees(l),
+      gpxM: estPointPublie(l) ? distToGpxM(l, points) : null,
+    }));
     // Un prix non publié (`total` à zéro) ou une distance inconnue reste en
     // queue, dans les deux sens.
     const prix = (l: Listing) => (l.total > 0 ? l.total : null);
@@ -71,7 +77,7 @@ function Traces() {
     return scored;
   }, [raw, sort, sens, guests, points]);
 
-  const fiche = ficheId ? raw.find((l) => l.id === ficheId) : undefined;
+  const fiche = ficheId ? base.find((l) => l.id === ficheId) : undefined;
   const mapCenter = stats?.start ?? (station ? { lat: station.lat, lon: station.lon } : null);
 
   return (
@@ -312,7 +318,7 @@ function Traces() {
                   lat: l.lat,
                   lon: l.lon,
                   titre: l.title,
-                  detail: `${formatEuro(l.total)} · ${sectorOf(l) ?? l.source} · ${formatLift(l)}`,
+                  detail: `${formatEuro(l.total)} · ${sectorOf(l) ?? l.source} · ${formatLift(mesuresPubliees(l))}`,
                   sorte: "logement" as const,
                 }))}
             />

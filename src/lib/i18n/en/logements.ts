@@ -33,6 +33,7 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Engagé · 40 % rouges ou noires": "Challenging · 40% red or black",
   "Pas de données de remontées pour cette station": "No lift data for this resort",
   "Distance non communiquée": "Distance not given",
+  "Distance non mesurée : position triangulée": "Distance not measured: triangulated position",
   "Autre domaine": "Other ski area",
   "{distance} de {remontee}": "{distance} from {remontee}",
   "la remontée": "the lift",

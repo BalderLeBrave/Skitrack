@@ -1,8 +1,18 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Listing } from "../listings.ts";
-import { reperesNommes, situerManquants, placerSansPoint, type ContexteSituer } from "./situer.ts";
+import {
+  estPointPublie,
+  mesuresPubliees,
+  reperesNommes,
+  situerManquants,
+  placerSansPoint,
+  type ContexteSituer,
+} from "./situer.ts";
 import { stationById } from "../stations.ts";
+import { completudeOf } from "./completude.ts";
+import { airbnbComplet, troisChampsAirbnb } from "./priseFiche.ts";
+import { distanceOf } from "../v7.ts";
 
 function ann(over: Partial<Listing> = {}): Listing {
   return {
@@ -156,5 +166,61 @@ describe("placerSansPoint", () => {
     assert.equal(sit?.lon, station!.lon);
     assert.equal(sit?.gpsSource, "triangule");
     assert.equal(typeof sit?.distToSlopesM, "number");
+  });
+});
+
+describe("une position triangulée n'est pas une donnée publiée", () => {
+  const station = stationById("les-2-alpes");
+  // Annonce Airbnb aux 2 Alpes : tout est publié sauf le point.
+  const sansPoint = () =>
+    ann({
+      id: "abnb",
+      source: "Airbnb",
+      total: 900,
+      capacity: 4,
+      bedrooms: 1,
+      photo: "https://a0.muscache.com/im/pictures/x.jpg",
+      url: "https://www.airbnb.fr/rooms/1",
+      locality: null,
+    });
+
+  it("avant comme après le placement : trou de GPS, distance non mesurée, position inconnue", () => {
+    assert.ok(station);
+    const brute = sansPoint();
+    assert.deepEqual(completudeOf(brute).trous, ["gps"]);
+    assert.equal(distanceOf(brute).kind, "no_coords");
+
+    const [sit] = placerSansPoint([brute], station!);
+    assert.equal(sit?.gpsSource, "triangule");
+    // Le point placé mesure bien une remontée : c'est ce qu'il ne faut pas dire.
+    assert.equal(typeof sit?.distToLiftM, "number");
+    assert.deepEqual(completudeOf(sit!).trous, ["gps"]);
+    assert.equal(completudeOf(sit!).ok, false);
+    const d = distanceOf(sit!);
+    assert.equal(d.kind, "triangulated");
+    assert.doesNotMatch(d.text, /\d/);
+    assert.equal(estPointPublie(sit!), false);
+  });
+
+  it("Airbnb : la fiche reste à lire, le GPS reste à combler", () => {
+    assert.ok(station);
+    const [sit] = placerSansPoint([sansPoint()], station!);
+    assert.equal(airbnbComplet(sit!), false);
+    assert.deepEqual(troisChampsAirbnb(sit!), ["gps"]);
+    // Le même point publié par la source la rend complète.
+    const publie = { ...sit!, gpsSource: null };
+    assert.equal(airbnbComplet(publie), true);
+  });
+
+  it("mesuresPubliees : rien depuis un point triangulé, tout depuis un point publié", () => {
+    assert.ok(station);
+    const [sit] = placerSansPoint([sansPoint()], station!);
+    const m = mesuresPubliees(sit!);
+    assert.equal(m.lat, sit!.lat);
+    assert.equal(m.distToLiftM, null);
+    assert.equal(m.distToSlopesM, null);
+    assert.equal(m.liftName, null);
+    const pin = ann({ lat: 45.01, lon: 6.12, distToLiftM: 120 });
+    assert.equal(mesuresPubliees(pin), pin);
   });
 });

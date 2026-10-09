@@ -158,7 +158,9 @@ export function BlocAcces({
   );
   const aPied = tempsAPied(l.distToPlaceM);
 
-  if (l.lat == null || l.lon == null) {
+  // Un point triangulé n'est pas la porte : l'accès ne se mesure pas plus
+  // que sans point.
+  if (l.lat == null || l.lon == null || l.gpsSource === "triangule") {
     return (
       <section className="fiche7__bloc" aria-labelledby="fiche7-acces">
         <h3 id="fiche7-acces">{tr("Accès aux pistes")}</h3>

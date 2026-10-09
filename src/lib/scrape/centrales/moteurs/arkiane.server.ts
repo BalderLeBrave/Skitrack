@@ -33,7 +33,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { estMessageRefus, poserRefus, respecterCadence } from "../../gardeHote";
+import { porteFermee, poserRefus } from "../../gardeHote";
 import { aTourDeRole, noterFin } from "../cadence";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
@@ -64,7 +64,7 @@ const TIMEOUT_MS = 45_000;
  */
 const PAGES_MAX = 10;
 /** Une pause entre deux pages. La centrale n'en demande pas ; on se la donne. */
-const PAUSE_PAGE_MS = 2_000;
+const PAUSE_PAGE_MS = 700;
 /** Le détail d'un lot ne dépend pas des dates : on le garde trente jours. */
 const DETAIL_TTL_MS = 30 * 24 * 3600 * 1000;
 /** Temps donné aux détails par recherche ; le reste attend la suivante. */
@@ -109,8 +109,8 @@ function cookiesDe(r: Response): string {
 
 async function ouvrir(marchand: string, langue: string): Promise<string> {
   const url = `${marchand}/${langue}/`;
-  const garde = await respecterCadence(url, 5_000);
-  if (garde) throw new Error(garde);
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -137,8 +137,8 @@ async function chercherPage(
   corps: URLSearchParams,
 ): Promise<string> {
   const url = `${marchand}/${langue}/Home/RefreshAvailabilities`;
-  const garde = await respecterCadence(url, 5_000);
-  if (garde) throw new Error(garde);
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -185,11 +185,7 @@ async function detailLot(
   cookies: string,
   formulaire: NonNullable<FicheArkiane["detail"]>,
 ): Promise<{ statut: number; page: string | null }> {
-  const garde = await respecterCadence(url, 5_000);
-  if (garde) {
-    if (estMessageRefus(garde)) return { statut: 429, page: null };
-    throw new Error(garde);
-  }
+  if (porteFermee(url)) return { statut: 429, page: null };
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), DETAIL_TIMEOUT_MS);

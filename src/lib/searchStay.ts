@@ -2,12 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { attachAccess } from "./access";
 import { listingsForStay, type Listing } from "./listings";
-import { agencesDuReleve } from "./scrape/domaine";
+import { agencesDuReleve, stationsDuReleve } from "./scrape/domaine";
 import type { LiveSearchInput, LiveSearchResult, SourceName } from "./scrape/types";
 import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
 import { enrichirListing } from "./stay/enrichir";
-import { journalResidu, residuLogements } from "./stay/logement";
+import { journalResidu, qualifierLogement, residuLogements } from "./stay/logement";
 import { estFicheGitesIntrouvable } from "./stay/ficheGites";
 import { estOffreGitesVerifiee, purgerTarifFigé } from "./stay/tarif";
 import { dedoublonnerParBien } from "./stay/poserReleve";
@@ -237,7 +237,21 @@ export const lireSuiteGites = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<Listing[]> => {
     const { lireMemoireGites } = await import("./scrape/gites.server");
-    return lireMemoireGites(data);
+    // Chaque station du relevé a sa suite (`releverGites`) : sur un grand
+    // domaine, celle d'une station reliée se range sous la station regardée,
+    // comme dans la recherche. Mêmes règles que `completer` : une fiche sans
+    // devis ITEA live n'est pas rendue. Aucun appel réseau.
+    const lues = stationsDuReleve({ ...data, domaine: true }).flatMap((st) => lireMemoireGites(st));
+    const rows = lues
+      .map((l) =>
+        dater(
+          qualifierLogement(l.stationId === data.stationId ? l : { ...l, stationId: data.stationId }),
+          data.checkIn,
+          data.checkOut,
+        ),
+      )
+      .filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
+    return poserAcces(dedoublonnerParBien(rows), data.stationId);
   });
 
 /**

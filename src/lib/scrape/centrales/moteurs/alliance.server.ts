@@ -9,7 +9,7 @@
 import type { Listing } from "@/lib/listings";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { estMessageRefus, poserRefus, respecterCadence } from "../../gardeHote";
+import { poserRefus, respecterCadence } from "../../gardeHote";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
@@ -154,7 +154,7 @@ async function pages(
       reponse = lireDisposAlliance(await lire(url));
     } catch (err) {
       const quoi = err instanceof Error ? err.message : String(err);
-      if (sorties.length === 0 || estMessageRefus(quoi) || /limiteur local/.test(quoi)) throw err;
+      if (sorties.length === 0) throw err;
       console.warn(`[centrale] ${r.host} : page ${bloc} muette — ${quoi}`);
       break;
     }

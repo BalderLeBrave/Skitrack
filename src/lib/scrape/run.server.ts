@@ -788,6 +788,7 @@ async function paginerSuite(
   let curseur: SuiteReste | null = reste;
   let budget = 0;
   let rythme = 0;
+  let surPlace = 0;
   while (curseur && curseur.file.length > 0 && budget < PAGES_SUITE_MAX) {
     if (generationReleveAirbnb() !== gen) return "laisse";
     while (airbnbListePrioritaire()) {
@@ -811,6 +812,12 @@ async function paginerSuite(
     rythme = 0;
     if (tour.rateLimited || tour.arret === "refus" || tour.arret === "coupe-circuit") return "refus";
     if (!tour.reste) return "ok";
+    // Une page en échec sans refus (5xx, 400, délai) revient en tête du reste.
+    // Elle a une reprise, pas quarante-huit : au second tour sur place, sans
+    // annonce, la suite s'arrête comme une fin de liste.
+    const memeFile = JSON.stringify(tour.reste.file) === JSON.stringify(curseur.file);
+    surPlace = memeFile && tour.listings.length === 0 ? surPlace + 1 : 0;
+    if (surPlace >= 2) return "ok";
     curseur = tour.reste;
     await dormir(PAUSE_ENTRE_TOURS_MS);
   }
@@ -961,46 +968,55 @@ function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): vo
     let premiere = true;
     try {
       const stations = stationsDuReleve(input);
-      for (; memo.station < stations.length; memo.station += 1, memo.offset = 0) {
+      while (memo.station < stations.length && memo.pages < PAGES_BOOKING_MAX) {
         const st = stations[memo.station];
-        while (memo.offset != null && memo.pages < PAGES_BOOKING_MAX) {
-          if (generationBooking !== gen) return;
-          const ferme = porteFermee("https://www.booking.com/");
-          if (ferme) {
-            console.info(`[booking] suite arrêtée — ${ferme}`);
-            return;
-          }
-          if (!premiere) await dormir(PAUSE_BOOKING_MS);
-          premiere = false;
-          if (Date.now() < suiteBookingApres) return;
-          if (generationBooking !== gen) return;
-          const tour = await scrapeBookingPage(st, memo.offset, PAGE_BOOKING_MS);
-          memo.pages += 1;
-          memo.at = Date.now();
-          if (tour.listings.length > 0) {
-            const dates = locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now()));
-            memo.listings = fusionner(memo.listings, dates).listings;
-            // Les annonces de cette page sont celles de cette recherche : elles
-            // restent, même si un relevé plus récent est parti pendant la page.
-            const ajout = reposerBooking(key, input, dates);
-            if (ajout) console.info(`[booking] suite +${ajout} annonce(s)`);
-          }
-          if (tour.arret) {
-            reculerSuiteBooking();
-            return;
-          }
-          if (tour.listings.length > 0) reculBookingNiveau = 0;
-          if (generationBooking !== gen) return;
-          if (tour.raison) {
-            // Une page sans tuile : la liste de cette station est épuisée.
-            // Toute autre panne (worker, sortie illisible) arrête la suite.
-            if (tour.listings.length === 0 && /aucune tuile lisible/i.test(tour.raison)) break;
-            return;
-          }
-          if (tour.offset == null) break;
+        if (memo.offset == null) {
+          memo.station += 1;
+          memo.offset = 0;
+          continue;
+        }
+        if (generationBooking !== gen) return;
+        const ferme = porteFermee("https://www.booking.com/");
+        if (ferme) {
+          console.info(`[booking] suite arrêtée — ${ferme}`);
+          return;
+        }
+        if (!premiere) await dormir(PAUSE_BOOKING_MS);
+        premiere = false;
+        if (Date.now() < suiteBookingApres) return;
+        if (generationBooking !== gen) return;
+        const tour = await scrapeBookingPage(st, memo.offset, PAGE_BOOKING_MS);
+        memo.pages += 1;
+        memo.at = Date.now();
+        if (tour.listings.length > 0) {
+          const dates = locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now()));
+          memo.listings = fusionner(memo.listings, dates).listings;
+          // Les annonces de cette page sont celles de cette recherche : elles
+          // restent, même si un relevé plus récent est parti pendant la page.
+          const ajout = reposerBooking(key, input, dates);
+          if (ajout) console.info(`[booking] suite +${ajout} annonce(s)`);
+        }
+        if (tour.arret) {
+          reculerSuiteBooking();
+          return;
+        }
+        if (tour.listings.length > 0) reculBookingNiveau = 0;
+        // Une page sans tuile : la liste de cette station est épuisée. Toute
+        // autre panne (worker, sortie illisible) arrête la suite, la page à
+        // relire.
+        const epuisee = tour.raison
+          ? tour.listings.length === 0 && /aucune tuile lisible/i.test(tour.raison)
+          : tour.offset == null;
+        if (tour.raison && !epuisee) return;
+        // La progression se note avant de rendre la main : la même recherche,
+        // reprise, ne relit pas cette page.
+        if (epuisee) {
+          memo.station += 1;
+          memo.offset = 0;
+        } else {
           memo.offset = tour.offset;
         }
-        if (memo.pages >= PAGES_BOOKING_MAX) break;
+        if (generationBooking !== gen) return;
       }
       memo.fini = true;
     } catch (err) {

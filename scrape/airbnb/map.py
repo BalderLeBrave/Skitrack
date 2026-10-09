@@ -562,10 +562,17 @@ def description_tuile(record: dict[str, Any]) -> str | None:
     return texte[:4000]
 
 
+# Le groupe qu'Airbnb publie pour ce que le logement n'a pas (même règle que
+# `fiche_pdp.NON_INCLUS_RE`).
+NON_INCLUS_RE = re.compile(r"^(non inclus|not included|indisponible|unavailable)$", re.IGNORECASE)
+
+
 def equipements_tuile(record: dict[str, Any]) -> list[str]:
     """Les titres d'équipements déjà dans la tuile (aperçu ou liste complète).
 
-    Seulement les groupes qu'Airbnb nomme ainsi. Aucun titre d'ailleurs.
+    Seulement les groupes qu'Airbnb nomme ainsi. Aucun titre d'ailleurs. Un
+    équipement du groupe « Non inclus », ou marqué indisponible, n'est pas un
+    équipement présent : il n'est pas rendu.
     """
     titres: list[str] = []
 
@@ -585,11 +592,14 @@ def equipements_tuile(record: dict[str, Any]) -> list[str]:
             for groupe in groupes:
                 if not isinstance(groupe, dict):
                     continue
+                nom_groupe = groupe.get("title")
+                if isinstance(nom_groupe, str) and NON_INCLUS_RE.match(nom_groupe.strip()):
+                    continue
                 amenities = groupe.get("amenities")
                 if not isinstance(amenities, list):
                     continue
                 for amenity in amenities:
-                    if not isinstance(amenity, dict):
+                    if not isinstance(amenity, dict) or amenity.get("available") is False:
                         continue
                     titre = amenity.get("title")
                     if isinstance(titre, str) and titre.strip():

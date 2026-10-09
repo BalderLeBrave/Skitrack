@@ -240,6 +240,14 @@ def test_description_de_tuile_pas_la_ligne_d_occupation():
     assert description_tuile(rec) == desc
     assert equipements_tuile(rec) == ["Wifi", "Casier à skis"]
     assert equipements_tuile({"title": "Piscine", "amenities": [{"title": "Piscine"}]}) == []
+    # Ce qu'Airbnb dit absent n'est pas un équipement de la tuile.
+    absents = {
+        "seeAllAmenitiesGroups": [
+            {"title": "Cuisine", "amenities": [{"title": "Lave-vaisselle", "available": True}, {"title": "Four", "available": False}]},
+            {"title": "Non inclus", "amenities": [{"title": "Wifi"}, {"title": "Télévision"}]},
+        ]
+    }
+    assert equipements_tuile(absents) == ["Lave-vaisselle"]
     row = stay_to_listing(rec, check_in="2027-02-06", check_out="2027-02-13", adults=2)
     assert row is not None
     assert row["description"] == desc

@@ -425,8 +425,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       })
         .then((rows) => {
           if (cancelled || rows.length === 0) return;
-          // Mêmes identifiants que les tuiles : on les remplace, on n'ajoute pas.
+          // La fiche remplace sa tuile ; celle dont la tuile n'avait pas de
+          // devis, et n'était donc pas rendue, s'ajoute.
           patchLive(rows);
+          ajouterLive(rows);
         })
         .catch(() => undefined)
         .finally(() => {
@@ -474,7 +476,14 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           if (part === "cozy" && toursBooking === 0 && res.sources.some((s) => s.source === "Booking" && s.ok && s.count > 0)) {
             relireBooking();
           }
-          if (part === "gites" && toursGites === 0 && res.listings.some((l) => /fiche ITEA non lue/.test(l.proven))) {
+          // Le relevé retire les tuiles sans devis : on ne peut pas les y
+          // chercher. Le rapport de la source suffit, et la relecture ne fait
+          // que lire la mémoire du serveur.
+          if (
+            part === "gites" &&
+            toursGites === 0 &&
+            res.sources.some((s) => s.source === "Gîtes de France" && s.ok && s.count > 0)
+          ) {
             relireGites();
           }
           if (

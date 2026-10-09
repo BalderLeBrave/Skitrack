@@ -13,6 +13,7 @@ import { communeGites } from "./gitesCommunes.ts";
 import { STATIONS } from "../stations.ts";
 import { VILLAGES } from "../villages.ts";
 import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
+import { noterTabItea, noterWidgetItea, tabIteaEnCache, widgetIteaEnCache } from "../stay/completerDevis.server.ts";
 
 /**
  * Bornes du relevé, toutes explicites.
@@ -579,19 +580,25 @@ async function relever(
   // déborder ensemble.
   const signal = () => AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_FICHE_MS, fin - Date.now())));
   const ficheUrl = gitesWidgetUrl(code);
-  const cadence = await respecterCadence(ficheUrl, Math.max(0, fin - Date.now() - 1_000));
-  if (cadence) throw new Error(`ITEA ${cadence}`);
-  const rep = await fetch(ficheUrl, {
-    headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
-    signal: signal(),
-  });
-  // Un refus se respecte : on ne lit pas la page de défi comme une fiche vide,
-  // et plus rien ne part vers ITEA ni vers Gîtes tant que la pause tient.
-  if (poserRefus(ficheUrl, rep.status, rep.headers)) {
-    await rep.body?.cancel().catch(() => undefined);
-    throw new Error(`ITEA HTTP ${rep.status}`);
+  // La page que le devis (`stay/completerDevis.server.ts`) a déjà lue ne
+  // repart pas : ITEA ne voit qu'une demande par gîte.
+  let html = widgetIteaEnCache(code);
+  if (html == null) {
+    const cadence = await respecterCadence(ficheUrl, Math.max(0, fin - Date.now() - 1_000));
+    if (cadence) throw new Error(`ITEA ${cadence}`);
+    const rep = await fetch(ficheUrl, {
+      headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
+      signal: signal(),
+    });
+    // Un refus se respecte : on ne lit pas la page de défi comme une fiche vide,
+    // et plus rien ne part vers ITEA ni vers Gîtes tant que la pause tient.
+    if (poserRefus(ficheUrl, rep.status, rep.headers)) {
+      await rep.body?.cancel().catch(() => undefined);
+      throw new Error(`ITEA HTTP ${rep.status}`);
+    }
+    html = await rep.text();
+    if (rep.ok) noterWidgetItea(code, html);
   }
-  const html = await rep.text();
   const occupancy = occupancyFromGitesHtml(html);
   const lieu = lieuFromGitesHtml(html);
   retenirLieuGites(code, lieu);
@@ -641,14 +648,21 @@ async function relever(
     }
     return res.text();
   };
-  let exercice = exercice0;
-  try {
-    const exo = JSON.parse(await post(exercice, "getExerciceByDateFin")) as { exercice?: string };
-    if (exo.exercice) exercice = String(exo.exercice);
-  } catch {
-    /* HTML */
+  const sejour = { checkIn, checkOut, guests };
+  let tab = tabIteaEnCache(code, sejour);
+  if (tab == null) {
+    let exercice = exercice0;
+    try {
+      const exo = JSON.parse(await post(exercice, "getExerciceByDateFin")) as { exercice?: string };
+      if (exo.exercice) exercice = String(exo.exercice);
+    } catch (err) {
+      // Un refus n'est pas un « HTML » : il arrête la fiche.
+      if (err instanceof Error && estMessageRefus(err.message)) throw err;
+      /* HTML */
+    }
+    tab = await post(exercice, "getHTMLTabPrixFormulesSejour");
+    noterTabItea(code, sejour, tab);
   }
-  const tab = await post(exercice, "getHTMLTabPrixFormulesSejour");
   // « contactSiNonVendable » : la source ne vend pas ce séjour en ligne à ces
   // dates. Elle ne publie donc pas de prix, ce qui se dit `total: 0` — et non
   // par la disparition de l'annonce.
@@ -1002,7 +1016,9 @@ function contexteSituation(input: LiveSearchInput): ContexteSituation {
 }
 
 function lancerSuiteGites(input: LiveSearchInput, reste: readonly ResteGites[], dejaPrecis: readonly Listing[]): void {
-  if (reste.length === 0) return;
+  // Seul l'écran Logements relit la suite (comme HomeToGo, Airbnb et Booking) :
+  // Prix ne la lance pas, et ne prend pas la place de la station regardée.
+  if (!input.domaine || reste.length === 0) return;
   const map = memoiresGites();
   for (const s of map.values()) if (s.enCours) return;
   const cle = cleSuiteGites(input);

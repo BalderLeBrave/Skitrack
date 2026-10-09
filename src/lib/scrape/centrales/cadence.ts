@@ -1,11 +1,11 @@
 /**
- * La cadence des détails de centrale : deux secondes au moins entre deux
+ * La cadence des détails de centrale : une seconde au moins entre deux
  * requêtes vers un même hôte.
  *
  * Feratel, Arkiane et Orchestra lisent, après leurs résultats, un détail par
  * logement : les services d'un hébergement, le détail d'un lot, la fiche d'un
- * logement. Ces détails se suivent un à un, et chacun part au plus tôt deux
- * secondes après la fin de la requête précédente vers le même hôte, quelle
+ * logement. Ces détails se suivent un à un, et chacun part au plus tôt une
+ * seconde après la fin de la requête précédente vers le même hôte, quelle
  * qu'elle soit : une page de résultats, un calendrier, un autre détail. Le
  * premier détail attend donc aussi la fin de la dernière page de résultats.
  *
@@ -20,7 +20,7 @@
  */
 
 /** Écart minimal, en millisecondes, entre deux requêtes vers un même hôte. */
-export const ECART_HOTE_MS = 2_000;
+export const ECART_HOTE_MS = 1_000;
 
 type Hote = {
   /** Fin de la dernière requête notée vers cet hôte. */

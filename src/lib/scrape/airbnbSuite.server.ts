@@ -23,6 +23,12 @@ const FICHES_MAX = 400;
 /** Entre deux fiches, en plus de l'écart du limiteur. */
 const PAUSE_FICHE_MS = 12_000;
 const FICHE_MS = 40_000;
+/**
+ * Réponses PDP de suite sans capacité ni écart : la page ne se lit plus. Même
+ * seuil que le worker (`scrape/airbnb/pdp.py`), qui ne le voit pas ici : il
+ * reçoit un identifiant à la fois.
+ */
+const VIDES_DE_SUITE_MAX = 4;
 
 function dormir(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -35,6 +41,14 @@ async function ceder(stop: () => boolean): Promise<boolean> {
     await dormir(1_000);
   }
   return stop();
+}
+
+/**
+ * Sa fiche est en mémoire, ou sa page PDP a déjà été lue (écartée, vide, sans
+ * bloc enrichi) : elle ne se redemande pas avant trente jours.
+ */
+function dejaLue(m: { fiche?: unknown; lue?: boolean } | null): boolean {
+  return Boolean(m?.fiche) || m?.lue === true;
 }
 
 /**
@@ -56,7 +70,7 @@ export async function lireFichesLentes(
     const cle = cleListing(row);
     if (!id || !cle || vus.has(id)) continue;
     vus.add(id);
-    if (memoire.lire(cle)?.fiche) continue;
+    if (dejaLue(memoire.lire(cle))) continue;
     ids.push(id);
     if (ids.length >= FICHES_MAX) break;
   }
@@ -66,12 +80,17 @@ export async function lireFichesLentes(
     if (id && !parId.has(id)) parId.set(id, row);
   }
   let lues = 0;
+  let videsDeSuite = 0;
+  // Les vides d'une série en cours ne se notent qu'une fois une fiche lisible
+  // revenue : une série qui finit « illisible » n'est pas une suite de fiches
+  // vides, et Prix doit pouvoir les relire.
+  let videsEnAttente: { cle: string; lue: true }[] = [];
   for (const id of ids) {
     if (await ceder(stop)) return "laisse";
     if (airbnbCircuitOpen()) return "refus";
     const row = parId.get(id);
     const cle = row ? cleListing(row) : null;
-    if (cle && memoire.lire(cle)?.fiche) continue;
+    if (cle && dejaLue(memoire.lire(cle))) continue;
     let essaisRythme = 0;
     for (;;) {
       const lu = await lireFichesAirbnb({
@@ -110,13 +129,27 @@ export async function lireFichesLentes(
           lue: true,
         });
       }
+      const videsLus: { cle: string; lue: true }[] = [];
       for (const vid of lu.vides) {
         const cible = parId.get(vid);
         const cleCible = cible ? cleListing(cible) : null;
-        if (cleCible) notes.push({ cle: cleCible, lue: true });
+        if (cleCible) videsLus.push({ cle: cleCible, lue: true });
+      }
+      const lisible = Object.values(lu.fiches).some((f) => f.capacity != null || f.ecartee === true);
+      if (lisible) {
+        videsDeSuite = 0;
+        notes.push(...videsEnAttente, ...videsLus);
+        videsEnAttente = [];
+      } else if (lu.lues > 0) {
+        videsDeSuite += 1;
+        videsEnAttente.push(...videsLus);
       }
       if (notes.length) memoire.noter(notes);
       lues += lu.lues;
+      if (videsDeSuite >= VIDES_DE_SUITE_MAX) {
+        console.info(`[airbnb] fiches lentes arrêtées (illisible) après ${lues}`);
+        return "ok";
+      }
       if (lu.arret === "hash" || lu.arret === "cle" || lu.arret === "worker" || lu.arret === "illisible") {
         console.info(`[airbnb] fiches lentes arrêtées (${lu.arret}) après ${lues}`);
         return "ok";
@@ -126,6 +159,8 @@ export async function lireFichesLentes(
     if (await ceder(stop)) return "laisse";
     await dormir(PAUSE_FICHE_MS);
   }
+  // Une série de moins de quatre en fin de liste : des fiches vides ordinaires.
+  if (videsEnAttente.length) memoire.noter(videsEnAttente);
   if (lues) console.info(`[airbnb] fiches lentes : ${lues} lue(s), ${ids.length} demandée(s)`);
   return "ok";
 }

@@ -20,11 +20,11 @@ function appel(journal: { debut: number; fin: number }[], dureeMs = 5) {
   };
 }
 
-describe("Cadence des détails : deux secondes au moins entre deux requêtes vers un même hôte", () => {
+describe("Cadence des détails : une seconde au moins entre deux requêtes vers un même hôte", () => {
   beforeEach(() => oublierCadence());
 
-  it("l'écart vaut deux secondes", () => {
-    assert.equal(ECART_HOTE_MS, 2_000);
+  it("l'écart vaut une seconde", () => {
+    assert.equal(ECART_HOTE_MS, 1_000);
   });
 
   it("deux détails de suite sont séparés de l'écart, fin à départ", async () => {

@@ -28,7 +28,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { poserRefus, respecterCadence } from "../../gardeHote";
+import { porteFermee, poserRefus } from "../../gardeHote";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
@@ -178,8 +178,9 @@ async function pageIngenie(
   await centraleAutorise(url);
   const reste = echeance - Date.now();
   if (reste < APPEL_MIN_INGENIE_MS) throw new Error(PLUS_LE_TEMPS);
-  const garde = await respecterCadence(url, Math.min(5_000, Math.max(0, echeance - Date.now() - APPEL_MIN_INGENIE_MS)));
-  if (garde) throw new Error(garde);
+  // Un refus récent (429, 403, 503) ferme l'hôte le temps de sa pause.
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), Math.min(TIMEOUT_MS, reste));
   try {

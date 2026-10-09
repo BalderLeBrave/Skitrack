@@ -828,7 +828,7 @@ export const PAGES_MAX_INGENIE = 200;
  * Au moins une seconde entre deux pages d'un même hôte, comptée depuis la fin
  * de la précédente. La centrale n'en fixe aucune : c'est notre politesse.
  */
-export const PAUSE_PAGE_INGENIE_MS = 2_000;
+export const PAUSE_PAGE_INGENIE_MS = 1_000;
 
 /**
  * En deçà de ce qui reste avant l'échéance, aucun appel ne part : sa réponse

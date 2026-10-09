@@ -293,7 +293,12 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   useEffect(() => {
     if (!station) return;
     let cancelled = false;
-    let pending = 6;
+    // Une par part lancée : `run` compte, `finish` décompte. Un nombre écrit à
+    // la main restait à 6 quand HomeToGo a fait la septième part, et
+    // `searching` retombait avant la plus lente — l'écran se disait fini, et
+    // le relevé Prix (`attendreLogements`) repartait sur des hôtes encore
+    // interrogés par Logements.
+    let pending = 0;
     setSearching(true);
     setLive(null, [], true);
     const payload = {
@@ -455,6 +460,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
         });
     };
     const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "hometogo" | "agences") => {
+      pending += 1;
       const wait =
         part === "gites"
           ? SEARCH_PART_MS + DEVIS_MS + 6_000

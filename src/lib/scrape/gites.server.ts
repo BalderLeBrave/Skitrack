@@ -20,10 +20,11 @@ import { communeGites } from "./gitesCommunes.ts";
  * ou faux. Le motif d'arrêt est journalisé à chaque fois.
  *
  * `MAX_FICHES` est un budget de politesse envers `widget-fngf.itea.fr`, un
- * hôte tiers : ce n'est pas un filtre sur les résultats, et ce qu'il laisse de
- * côté est compté et journalisé. On interroge moins de fiches en parallèle
- * qu'avant (quatre au lieu de huit) et on souffle entre deux : le rythme ne
- * peut que se calmer.
+ * hôte tiers : ce n'est pas un filtre sur les résultats. Au-delà de ces
+ * vingt-quatre fiches, et quand ITEA ne répond pas, la tuile de recherche
+ * sort quand même — titre, type, photo, position et ligne de capacité, total
+ * à zéro. Le prix, la description et les avis ne viennent que de la fiche ;
+ * ils ne sont pas inventés à sa place.
  */
 const MAX_PAGES = 6;
 const BUDGET_PAGES_MS = 20_000;
@@ -34,6 +35,7 @@ const BUDGET_PAGES_MS = 20_000;
  */
 const PAUSE_PAGE_MS = 5_000;
 const MAX_FICHES = 24;
+/** Quatre fiches à la fois, et un souffle entre deux : c'était huit. */
 const WORKERS = 4;
 const PAUSE_FICHE_MS = 250;
 /**
@@ -524,6 +526,23 @@ export function descriptionFromGitesHtml(html: string): string | null {
 }
 
 /**
+ * Le devis ITEA ne remplace que le prix. Description, avis, lieu, capacité
+ * et identifiant déjà lus sur la fiche restent : un montant publié ne les
+ * efface pas.
+ */
+export function ficheAvecDevis(
+  base: Fiche,
+  prix: { total: number; currency: string | null; label: string | null },
+): Fiche {
+  return {
+    ...base,
+    total: prix.total,
+    currency: prix.currency ?? base.currency,
+    priceLabel: prix.label,
+  };
+}
+
+/**
  * La fiche ITEA d'un gîte : un seul téléchargement, tout ce qu'elle publie.
  *
  * Ce HTML portait déjà la capacité et les chambres ; il porte aussi le lieu
@@ -608,15 +627,10 @@ async function relever(
   // par la disparition de l'annonce.
   const prix = /contactSiNonVendable/.test(tab) ? null : prixDuTableau(tab);
   if (!prix) return sansDevis;
-  return {
-    total: prix.total,
-    currency: prix.currency ?? devise,
-    priceLabel: prix.label,
-    occupancy,
-    lieu,
-    platformId: sansDevis.platformId,
-    description: sansDevis.description,
-  };
+  // Le devis ne remplace que le prix. Recopier les champs un à un avait
+  // laissé l'avis du JSON-LD sur le chemin sans prix, et l'avait perdu dès
+  // qu'un montant était publié.
+  return ficheAvecDevis(sansDevis, prix);
 }
 
 /**
@@ -691,6 +705,52 @@ export function listingDeFiche(
 function ficheGites(fiche: Fiche, url: string): Pick<Listing, "fiche"> | Record<string, never> {
   const f = ficheDepuisBrut({ description: fiche.description, avis: fiche.avis }, "gites", { url });
   return f ? { fiche: f } : {};
+}
+
+/**
+ * Une tuile de recherche dont la fiche ITEA n'a pas été lue.
+ *
+ * Le budget de politesse, une échéance ou un ITEA muet ne font plus
+ * disparaître le gîte : la tuile publie déjà un titre, un type, une photo,
+ * parfois une position et une ligne « N personnes ». Le total reste 0 — la
+ * tuile ne porte pas de prix — et ni description, ni avis, ni équipement
+ * n'est posé : ils ne vivent que sur la fiche.
+ */
+export function listingDeTuile(tile: Tile, code: string, input: LiveSearchInput): Listing {
+  const capaciteTuile = /^(\d{1,2})\s*personnes?\b/i.exec(tile.capacite.trim())?.[1];
+  const occ = annoncer(
+    { capacity: capaciteTuile ? Number(capaciteTuile) : null, bedrooms: null, rooms: null },
+    tile.title,
+    tile.capacite,
+  );
+  const dates = `${input.checkIn}→${input.checkOut}`;
+  const position = tile.lat != null && tile.lon != null;
+  return {
+    id: code,
+    stationId: input.stationId,
+    title: tile.title,
+    source: "Gîtes de France",
+    total: 0,
+    // La tuile ne publie pas de devise. Même convention qu'une fiche muette :
+    // EUR, sans prétendre l'avoir lue.
+    currency: "EUR",
+    capacity: occ.capacity,
+    bedrooms: occ.bedrooms,
+    rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
+    propertyType: tile.typeLabel || null,
+    available: true,
+    photo: tile.photo,
+    url: `${tile.url}?adults=${input.guests}&date-start=${input.checkIn}&date-end=${input.checkOut}`,
+    lat: tile.lat,
+    lon: tile.lon,
+    proven: `Tuile Gîtes de France live ${dates}, ${input.guests} pers. — fiche ITEA non lue${
+      position ? " · position publiée par la recherche" : ""
+    }`,
+  };
 }
 
 export type OptionsGites = {
@@ -801,10 +861,13 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
   const need = candidats.slice(0, MAX_FICHES);
   if (candidats.length > need.length) {
     console.info(
-      `[gites] ${candidats.length - need.length} tuile(s) non interrogées : budget ITEA de ${MAX_FICHES} fiches (les plus éloignées)`,
+      `[gites] ${candidats.length - need.length} tuile(s) au-delà du budget ITEA de ${MAX_FICHES} : elles sortiront depuis la tuile, sans devis`,
     );
   }
   const out: Listing[] = [];
+  // Codes déjà tranchés : fiche lue, ou produit hors périmètre (identifiant
+  // qui ne finit pas par `.G`). Le reste de la recherche sort depuis la tuile.
+  const deja = new Set<string>();
   let horsPerimetre = 0;
   let manquees = 0;
   let echecsDeSuite = 0;
@@ -827,11 +890,16 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
         try {
           const fiche = await relever(code, input.checkIn, input.checkOut, input.guests, finFiches);
           echecsDeSuite = 0;
-          if (fiche == null) horsPerimetre += 1;
-          else out.push(listingDeFiche(tile, fiche, code, input));
+          if (fiche == null) {
+            horsPerimetre += 1;
+            deja.add(code);
+          } else {
+            out.push(listingDeFiche(tile, fiche, code, input));
+            deja.add(code);
+          }
         } catch {
-          // Une fiche rate : on ne sait rien de son prix, donc on ne rend pas
-          // d'annonce — mais on la compte, pour que le silence se voie.
+          // ITEA n'a pas répondu : la tuile, plus bas, porte l'annonce sans
+          // prix. On compte l'échec, et plusieurs d'affilée coupent la file.
           manquees += 1;
           echecsDeSuite += 1;
           // Plusieurs échecs d'affilée : ITEA ne répond plus. Inutile de lui
@@ -848,6 +916,17 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
   if (horsPerimetre || manquees || nonInterrogees) {
     const coupe = coupure ? ` · ${nonInterrogees} non interrogée(s) : ${coupure}` : "";
     console.info(`[gites] ${horsPerimetre} hors périmètre · ${manquees} fiche(s) illisibles${coupe}`);
+  }
+  let depuisTuile = 0;
+  for (const tile of candidats) {
+    const code = codeFromUrl(tile.url);
+    if (!code || deja.has(code)) continue;
+    deja.add(code);
+    out.push(listingDeTuile(tile, code, input));
+    depuisTuile += 1;
+  }
+  if (depuisTuile) {
+    console.info(`[gites] ${depuisTuile} tuile(s) sans fiche ITEA : annonce sans prix, description ni avis`);
   }
   // `total: 0` veut dire « prix non publié », pas « gratuit » : ces annonces
   // passent après celles qui portent un prix, jamais devant.

@@ -7,6 +7,8 @@ import {
   avisFromGitesHtml,
   descriptionFromGitesHtml,
   listingDeFiche,
+  listingDeTuile,
+  ficheAvecDevis,
   nombreDeResultats,
   occupancyFromGitesHtml,
   pageSuivante,
@@ -280,6 +282,69 @@ describe("annonce Gîtes de France", () => {
     assert.equal(l.rooms, 3);
     assert.equal(l.bedrooms, 2);
     assert.equal(l.bedroomsSource, "derived_from_type");
+  });
+
+  it("un devis garde l'avis et la description déjà lus sur la fiche", () => {
+    const base = fiche({
+      description: "Grand gîte aménagé",
+      avis: { noteSource: "5", echelleSource: null, nombre: "2", extraits: [] },
+      occupancy: { capacity: 8, bedrooms: 3, rooms: null },
+      lieu: { lat: 45.01, lon: 6.12, locality: "Venosc" },
+      platformId: "38G40102.G",
+    });
+    const apres = ficheAvecDevis(base, { total: 727.44, currency: "EUR", label: "Semaine 727,44 €" });
+    assert.equal(apres.total, 727.44);
+    assert.equal(apres.currency, "EUR");
+    assert.equal(apres.priceLabel, "Semaine 727,44 €");
+    assert.equal(apres.description, "Grand gîte aménagé");
+    assert.deepEqual(apres.avis, base.avis);
+    assert.equal(apres.platformId, "38G40102.G");
+    assert.equal(apres.occupancy.capacity, 8);
+    assert.equal(apres.lieu.locality, "Venosc");
+    const l = listingDeFiche(tuile(), apres, "38G40102", INPUT);
+    assert.equal(l.total, 727.44);
+    assert.equal(l.fiche?.avis?.nombre, 2);
+    assert.equal(l.description, "Grand gîte aménagé");
+  });
+
+  it("une tuile dont la fiche ITEA n'est pas lue sort quand même, sans rien inventer", () => {
+    const l = listingDeTuile(
+      tuile({
+        capacite: "6 personnes",
+        lat: 45.01,
+        lon: 6.12,
+        photo: "https://www.gites-de-france.com/x.jpg",
+        typeLabel: "Gîte",
+      }),
+      "38G40102",
+      INPUT,
+    );
+    assert.equal(l.id, "38G40102");
+    assert.equal(l.source, "Gîtes de France");
+    assert.equal(l.total, 0);
+    assert.equal(l.currency, "EUR");
+    assert.equal(l.capacity, 6);
+    assert.equal(l.propertyType, "Gîte");
+    assert.equal(l.photo, "https://www.gites-de-france.com/x.jpg");
+    assert.equal(l.lat, 45.01);
+    assert.equal(l.lon, 6.12);
+    assert.equal(l.description, undefined);
+    assert.equal(l.amenities, undefined);
+    assert.equal(l.fiche, undefined);
+    assert.equal(l.rating, undefined);
+    assert.equal(l.reviewCount, undefined);
+    assert.equal(l.priceLabel, undefined);
+    assert.match(l.proven, /fiche ITEA non lue/);
+    assert.match(l.proven, /position publiée par la recherche/);
+    assert.match(l.url ?? "", /adults=8/);
+    assert.match(l.url ?? "", /date-start=2027-02-06/);
+  });
+
+  it("sans ligne « N personnes », la tuile n'invente pas de capacité", () => {
+    const l = listingDeTuile(tuile({ title: "Le Petit Gîte", capacite: "" }), "38G40102", INPUT);
+    assert.equal(l.capacity, null);
+    assert.equal(l.bedrooms, null);
+    assert.doesNotMatch(l.proven, /position publiée/);
   });
 });
 

@@ -64,11 +64,11 @@ const ETAT: Record<MoteurCentrale, string> = {
   Elloha:
     "aucune centrale du parc ne tourne sur ce moteur : la seule qui y avait été rangée au relevé du 13 septembre 2026 est en réalité sous MSEM, et la donnée est corrigée.",
 
-  // Trois centrales. La Plagne est branchée ; le catalogue de Chamonix ne
-  // porte pas d'identifiant de logement. Praz-sur-Arly n'a pas encore de
-  // fichier.
+  // Quatre centrales. La Plagne a sa table. Combloux et Praz-sur-Arly n'ont
+  // pas de table : `chercherOrchestraHote` lit l'accueil. Chamonix a son
+  // fichier, et cette phrase ne s'affiche donc plus pour lui.
   Orchestra:
-    "la seule centrale de ce moteur qui s'interroge est branchée, celle de La Plagne. Celle-ci ne l'est pas : son catalogue n'expose pas les identifiants de logement qu'il faut pour lui demander un prix. Relevé du 13 septembre 2026.",
+    "ce moteur s'interroge. Sans fichier propre, les destinations sont celles que la page d'accueil publie, préfixe de chemin compris. Un catalogue sans identifiant de logement n'est pas compté comme un séjour vide. Relevé du 13 septembre 2026.",
 
   // Une centrale, Pralognan-la-Vanoise, et elle est branchée.
   Arkiane:

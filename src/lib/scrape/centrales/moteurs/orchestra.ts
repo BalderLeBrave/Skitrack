@@ -150,6 +150,83 @@ export function urlCatalogueOrchestra(base: string, destination: string): string
   return `${base.replace(/\/+$/, "")}/destinations/${encodeURIComponent(destination)}`;
 }
 
+/** Liens `/destinations/{slug}` publiés dans une page, préfixe de chemin compris. */
+export type DestinationsPubliees =
+  | { ok: true; prefixe: string; slugs: string[] }
+  | { ok: false; raison: "aucune" | "plusieurs préfixes" };
+
+/**
+ * Les destinations qu'une page publie elle-même.
+ *
+ * La Plagne les écrit à la racine (`/destinations/champagny-en-vanoise`).
+ * Combloux, relevé du 20 septembre 2026, vit sous un préfixe (`/combloux/`),
+ * que seul le lien publié dit. On ne devine ni le préfixe ni le slug : un href
+ * absent ne devient pas une destination, et deux préfixes différents ne sont
+ * pas fondus en un.
+ */
+export function destinationsPubliees(page: string): DestinationsPubliees {
+  const trouves: { prefixe: string; slug: string }[] = [];
+  const re = /(?:href|data-link)\s*=\s*(?:"([^"]+)"|'([^']+)')/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(page)) !== null) {
+    const lu = lienDestination(m[1] ?? m[2] ?? "");
+    if (lu) trouves.push(lu);
+  }
+  if (trouves.length === 0) return { ok: false, raison: "aucune" };
+  const prefixes = new Set(trouves.map((t) => t.prefixe));
+  if (prefixes.size > 1) return { ok: false, raison: "plusieurs préfixes" };
+  const slugs: string[] = [];
+  const vus = new Set<string>();
+  for (const t of trouves) {
+    if (vus.has(t.slug)) continue;
+    vus.add(t.slug);
+    slugs.push(t.slug);
+  }
+  return { ok: true, prefixe: trouves[0]?.prefixe ?? "", slugs };
+}
+
+/** Un href vers `/…/destinations/{slug}`, ou rien. */
+function lienDestination(brut: string): { prefixe: string; slug: string } | null {
+  const sans = brut.trim().split(/[?#]/)[0] ?? "";
+  if (!sans || /^(?:javascript|mailto|tel):/i.test(sans)) return null;
+  let path = sans;
+  if (/^https?:\/\//i.test(sans)) {
+    try {
+      path = new URL(sans).pathname;
+    } catch {
+      return null;
+    }
+  }
+  const m = /^(.*)\/destinations\/([a-z0-9-]+)\/?$/i.exec(path);
+  if (!m) return null;
+  const slug = m[2] ?? "";
+  if (!slug) return null;
+  return { prefixe: (m[1] ?? "").replace(/\/+$/, ""), slug };
+}
+
+/**
+ * Les destinations de cette station, parmi celles que la page a publiées.
+ *
+ * Le préfixe gagne quand il nomme la station (`/combloux` pour Combloux) :
+ * les slugs qui suivent sont les villages de cette centrale, pas d'une autre.
+ * Sans cela, on ne garde qu'un slug qui est la station ou qui en est le
+ * préfixe publié (`praz` pour `praz-sur-arly`). Le reste n'est pas pris :
+ * une page partagée ne doit pas coller les logements d'une voisine.
+ */
+export function destinationsDeStation(prefixe: string, slugs: readonly string[], stationId: string): string[] {
+  const id = stationId.toLowerCase();
+  const dernier = prefixe.split("/").filter(Boolean).at(-1)?.toLowerCase() ?? "";
+  const prefixeVise =
+    dernier.length > 0 && (dernier === id || dernier.startsWith(`${id}-`) || id.startsWith(`${dernier}-`));
+  if (prefixeVise) return [...slugs];
+  return slugs.filter((s) => slugViseStation(s, id));
+}
+
+function slugViseStation(slug: string, stationId: string): boolean {
+  const s = slug.toLowerCase();
+  return s === stationId || s.startsWith(`${stationId}-`) || stationId.startsWith(`${s}-`);
+}
+
 /**
  * L'URL du calendrier d'un logement.
  *

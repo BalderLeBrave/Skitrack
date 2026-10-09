@@ -11,6 +11,8 @@ import {
   refOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
+  destinationsPubliees,
+  destinationsDeStation,
 } from "./orchestra.ts";
 
 describe("Orchestra : la référence publiée du logement", () => {
@@ -469,5 +471,67 @@ describe("Orchestra : description et équipements d'une fiche réelle de La Plag
 
   it("les champs du bloc « Information » ne changent pas", () => {
     assert.deepEqual([f.capacite, f.pieces, f.village], [6, 2, "CHAMPAGNY"]);
+  });
+});
+
+describe("Orchestra : destinations publiées, pas inventées", () => {
+  const fiche = readFileSync(new URL("./fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url), "utf8");
+
+  it("la fiche de La Plagne publie ses onze destinations, à la racine", () => {
+    const lu = destinationsPubliees(fiche);
+    assert.equal(lu.ok, true);
+    if (!lu.ok) return;
+    assert.equal(lu.prefixe, "");
+    assert.deepEqual(
+      [...lu.slugs].sort(),
+      [
+        "belle-plagne",
+        "champagny-en-vanoise",
+        "montchavin-les-coches",
+        "plagne-1800",
+        "plagne-aime-2000",
+        "plagne-bellecote",
+        "plagne-centre",
+        "plagne-montalbert",
+        "plagne-soleil",
+        "plagne-vallee",
+        "plagne-villages",
+      ],
+    );
+  });
+
+  it("un préfixe publié est gardé, et il entre dans l'URL du catalogue", () => {
+    const page = `<a href="/combloux/destinations/le-jaillet">Le Jaillet</a>
+      <a href="https://reservation.combloux.com/combloux/destinations/centre?lang=fr">Centre</a>`;
+    const lu = destinationsPubliees(page);
+    assert.equal(lu.ok, true);
+    if (!lu.ok) return;
+    assert.equal(lu.prefixe, "/combloux");
+    assert.deepEqual(lu.slugs, ["le-jaillet", "centre"]);
+    const cat = new URL(urlCatalogueOrchestra(`https://reservation.combloux.com${lu.prefixe}`, lu.slugs[0] ?? ""));
+    assert.equal(cat.pathname, "/combloux/destinations/le-jaillet");
+    assert.equal(cat.search, "");
+  });
+
+  it("deux préfixes ne sont pas fondus, et une page sans lien n'invente rien", () => {
+    const melange = `<a href="/destinations/a">A</a><a href="/autre/destinations/b">B</a>`;
+    assert.deepEqual(destinationsPubliees(melange), { ok: false, raison: "plusieurs préfixes" });
+    assert.deepEqual(destinationsPubliees("<html><a href=\"/location/x\">fiche</a></html>"), {
+      ok: false,
+      raison: "aucune",
+    });
+  });
+
+  it("seules les destinations de la station sont gardées", () => {
+    assert.deepEqual(destinationsDeStation("/combloux", ["le-jaillet", "centre"], "combloux"), [
+      "le-jaillet",
+      "centre",
+    ]);
+    assert.deepEqual(destinationsDeStation("", ["praz-sur-arly", "chamonix", "praz"], "praz-sur-arly"), [
+      "praz-sur-arly",
+      "praz",
+    ]);
+    assert.deepEqual(destinationsDeStation("", ["megeve"], "praz-sur-arly"), []);
+    assert.deepEqual(destinationsDeStation("/fr", ["chamonix", "les-houches"], "chamonix"), ["chamonix"]);
   });
 });

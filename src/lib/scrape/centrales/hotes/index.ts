@@ -8,20 +8,23 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-neuf ; vingt-sept en ont un ici. Dix-neuf d'entre eux s'interrogent
- * vraiment et couvrent trente-trois stations ; les huit autres racontent un
+ * soixante-neuf ; vingt-huit en ont un ici. Vingt d'entre eux s'interrogent
+ * vraiment et couvrent trente-quatre stations ; les huit autres racontent un
  * empêchement qui leur est propre, et que la phrase de leur moteur dirait mal.
  *
- * Pour les quarante-deux autres centrales, `registre.ts` sait déjà nommer le
+ * Pour les quarante et une autres centrales, `registre.ts` sait déjà nommer le
  * moteur. Celles d'Ingénie sans fichier passent par `chercherIngenieHote`.
- * Pour les autres, `moteurs/etat.ts` dit en une phrase ce qui empêche encore —
- * plus jamais un Disallow.
+ * Celles d'Orchestra sans fichier passent par `chercherOrchestraHote` : les
+ * destinations sont les liens que l'accueil publie. Pour les autres,
+ * `moteurs/etat.ts` dit en une phrase ce qui empêche encore — plus jamais un
+ * Disallow.
  */
 
 import type { Connecteur } from "../types";
 import { alpeDHuez } from "./alpeDHuez";
 import { alpeDuGrandSerre } from "./alpeDuGrandSerre";
 import { ax3Domaines } from "./ax3Domaines";
+import { chamonix } from "./chamonix";
 import { combloux } from "./combloux";
 import { correnconEnVercors } from "./correnconEnVercors";
 import { devoluy } from "./devoluy";
@@ -63,10 +66,12 @@ const TOUS: readonly Connecteur[] = [
   montclar,
   // Deskline / Feratel : la seule du parc, et la mieux servie.
   laClusaz,
-  // Arkiane, iResa et Orchestra : une centrale chacun.
+  // Arkiane, iResa et Orchestra : une centrale chacun, plus Combloux dont
+  // les destinations se lisent sur l'accueil.
   pralognan,
   lesArcs,
   laPlagne,
+  combloux,
   // Ingénie : quatre centrales avec cid relevé. Les autres passent par
   // chercherIngenieHote dans chercher.server.ts, cid lu sur l'accueil.
   foretBlanche,
@@ -80,9 +85,10 @@ const TOUS: readonly Connecteur[] = [
   valmorel,
   ax3Domaines,
   piauEngaly,
-  // Montgenèvre : même génération ancienne. Combloux : moteur encore inconnu.
+  // Montgenèvre : même génération ancienne. Chamonix : catalogue Orchestra
+  // sans identifiant de logement.
   montgenevre,
-  combloux,
+  chamonix,
 ];
 
 const PAR_HOTE = new Map(TOUS.map((c) => [c.host, c]));

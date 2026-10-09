@@ -51,6 +51,8 @@ import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   cartesOrchestra,
+  destinationsDeStation,
+  destinationsPubliees,
   ficheOrchestra,
   horsRegleOrchestra,
   nuitsOrchestra,
@@ -387,11 +389,14 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
   const destinations = r.destinations[ctx.stationId] ?? r.parDefaut;
   const refus: string[] = [];
   let coupe = false;
+  let pagesLues = 0;
 
   const listes = await parGroupes(destinations, async (d) => {
     if (coupe) return [] as CarteOrchestra[];
     try {
-      return await catalogue(base, d);
+      const cartes = await catalogue(base, d);
+      pagesLues += 1;
+      return cartes;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       refus.push(`${d} : ${msg}`);
@@ -399,8 +404,12 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
       return [] as CarteOrchestra[];
     }
   });
-  if (refus.length === destinations.length) {
-    throw new Error(refus[0] ?? "aucune destination déclarée");
+  const brutes = listes.reduce((n, l) => n + l.length, 0);
+  // Une page lue sans identifiant n'est pas un séjour complet : le dire
+  // « rien de disponible » serait faux. Un refus, lui, se relit tel quel.
+  if (brutes === 0) {
+    if (pagesLues === 0) throw new Error(refus[0] ?? "aucune destination déclarée");
+    throw new Error("les pages de destination n'ont publié aucun identifiant de logement");
   }
 
   const par = new Map<string, CarteOrchestra>();
@@ -471,4 +480,48 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
   );
   if (refus.length) console.warn(`[centrale] ${r.host} : ${refus.join(" ; ")}`);
   return listings;
+}
+
+function cleDepuisHote(host: string): string {
+  const brut = host.replace(/^www\./, "").split(".")[0] ?? "orc";
+  return brut.replace(/[^a-z0-9]/gi, "").slice(0, 8) || "orc";
+}
+
+/**
+ * Centrale Orchestra sans table de destinations : celles de la page d'accueil.
+ *
+ * La Plagne a sa table, parce que chaque village ne vise que le sien. Les
+ * autres (Combloux, Praz-sur-Arly) n'en ont pas dans le relevé. On lit les
+ * liens publiés, préfixe compris, et on ne garde que ceux de la station
+ * demandée. Rien n'est inventé : pas de lien, ou aucun qui nomme la station,
+ * et l'appel s'arrête au lieu de répondre « rien de disponible ».
+ */
+export async function chercherOrchestraHote(
+  ctx: ContexteCentrale,
+  nom: string,
+  host: string,
+): Promise<Listing[]> {
+  const origine = ctx.base.replace(/\/+$/, "");
+  const page = (await json(`${origine}/`, true)) as string;
+  const lu = destinationsPubliees(page);
+  if (!lu.ok) {
+    throw new Error(
+      lu.raison === "plusieurs préfixes"
+        ? "la page d'accueil publie plusieurs préfixes de destination"
+        : "la page d'accueil n'a pas publié de destination",
+    );
+  }
+  const slugs = destinationsDeStation(lu.prefixe, lu.slugs, ctx.stationId);
+  if (slugs.length === 0) {
+    throw new Error("la page d'accueil n'a publié aucune destination de cette station");
+  }
+  const base = `${origine}${lu.prefixe}`;
+  if (base !== origine) console.info(`[centrale] ${host} : les destinations sont sous ${lu.prefixe}`);
+  return chercherOrchestra(base === ctx.base ? ctx : { ...ctx, base }, {
+    host,
+    nom,
+    cle: cleDepuisHote(host),
+    destinations: {},
+    parDefaut: slugs,
+  });
 }

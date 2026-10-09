@@ -15,6 +15,7 @@
 
 import type { Listing } from "../listings.ts";
 import { gpsPrecis } from "../stay/lodgingFilter.ts";
+import type { AvecCompletude } from "../stay/statut.ts";
 
 export type Dossier = {
   id: string;
@@ -194,7 +195,7 @@ const LIES_AU_POINT = [
   "proven",
 ] as const;
 
-function garderPointPublie(out: Listing, ancienne: Listing): void {
+function garderPointPublie(out: Listing & AvecCompletude, ancienne: Listing & AvecCompletude): void {
   const cible = out as Record<string, unknown>;
   const source = ancienne as Record<string, unknown>;
   for (const k of LIES_AU_POINT) {

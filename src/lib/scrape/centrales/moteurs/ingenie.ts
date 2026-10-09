@@ -828,7 +828,7 @@ export const PAGES_MAX_INGENIE = 200;
  * Au moins une seconde entre deux pages d'un même hôte, comptée depuis la fin
  * de la précédente. La centrale n'en fixe aucune : c'est notre politesse.
  */
-export const PAUSE_PAGE_INGENIE_MS = 1_000;
+export const PAUSE_PAGE_INGENIE_MS = 2_000;
 
 /**
  * En deçà de ce qui reste avant l'échéance, aucun appel ne part : sa réponse
@@ -866,8 +866,8 @@ export type SuiteIngenie = {
 /**
  * Les pages suivantes, comme le défilement de la centrale les demande.
  *
- * On suit `#lasuite a` depuis la première page, une page à la fois, une
- * seconde au moins entre deux. Les cookies de la session sont fusionnés page
+ * On suit `#lasuite a` depuis la première page, une page à la fois, deux
+ * secondes au moins entre deux. Les cookies de la session sont fusionnés page
  * après page ; la première page reste le `Referer`, et c'est contre elle que
  * le lien se lit : le défilement ne la quitte pas.
  *

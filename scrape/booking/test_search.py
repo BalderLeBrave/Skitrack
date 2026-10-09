@@ -6,6 +6,7 @@ from search import classer_reponse
 def test_un_refus_ne_se_reclasse_pas_en_defi():
     assert classer_reponse(429, "x" * 20_000) == "refus"
     assert classer_reponse(403, "x" * 20_000) == "refus"
+    assert classer_reponse(503, "x" * 20_000) == "refus"
 
 
 def test_un_202_ou_une_coquille_est_un_defi():

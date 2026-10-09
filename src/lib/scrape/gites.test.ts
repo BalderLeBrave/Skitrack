@@ -587,8 +587,9 @@ describe("blocage du site", () => {
     assert.equal(blocage({ status: 200, cfMitigated: null, titre: "Just a moment..." }), "bloqué (page de défi)");
   });
 
-  it("appelle une panne serveur par son nom, pas « bloqué »", () => {
-    assert.equal(blocage({ status: 503, cfMitigated: null, titre: "Service Unavailable" }), "HTTP 503");
+  it("un 503 est un refus ; une autre panne garde son nom", () => {
+    assert.equal(blocage({ status: 503, cfMitigated: null, titre: "Service Unavailable" }), "bloqué (503)");
+    assert.equal(blocage({ status: 500, cfMitigated: null, titre: "Erreur" }), "HTTP 500");
   });
 
   it("laisse passer une page ordinaire", () => {

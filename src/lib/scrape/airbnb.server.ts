@@ -794,7 +794,7 @@ async function scrapeAirbnbFetch(input: LiveSearchInput): Promise<Listing[]> {
     headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
   }).catch(() => null);
   if (!res) return [];
-  if (res.status === 429 || res.status === 503) {
+  if (res.status === 403 || res.status === 429 || res.status === 503) {
     refusDirect("repli HTML", res.status, res.headers);
     return [];
   }
@@ -812,7 +812,7 @@ export async function scrapeAirbnbPlaywright(page: Page, input: LiveSearchInput)
   const url = searchUrl(input);
   const res = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 40_000 });
   const status = res?.status() ?? 0;
-  if (status === 429 || status === 503) {
+  if (status === 403 || status === 429 || status === 503) {
     refusDirect("repli navigateur", status, new Headers(res?.headers() ?? {}));
     return [];
   }

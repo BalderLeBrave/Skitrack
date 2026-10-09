@@ -33,6 +33,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { porteFermee, poserRefus } from "../../gardeHote";
 import { aTourDeRole, noterFin } from "../cadence";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
@@ -63,7 +64,7 @@ const TIMEOUT_MS = 45_000;
  */
 const PAGES_MAX = 10;
 /** Une pause entre deux pages. La centrale n'en demande pas ; on se la donne. */
-const PAUSE_PAGE_MS = 700;
+const PAUSE_PAGE_MS = 2_000;
 /** Le détail d'un lot ne dépend pas des dates : on le garde trente jours. */
 const DETAIL_TTL_MS = 30 * 24 * 3600 * 1000;
 /** Temps donné aux détails par recherche ; le reste attend la suivante. */
@@ -108,6 +109,8 @@ function cookiesDe(r: Response): string {
 
 async function ouvrir(marchand: string, langue: string): Promise<string> {
   const url = `${marchand}/${langue}/`;
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -119,6 +122,7 @@ async function ouvrir(marchand: string, langue: string): Promise<string> {
     });
     const cookies = cookiesDe(r);
     await r.body?.cancel();
+    if (poserRefus(url, r.status, r.headers)) throw new Error(`la centrale a répondu ${r.status}`);
     return cookies;
   } finally {
     clearTimeout(minuteur);
@@ -133,6 +137,8 @@ async function chercherPage(
   corps: URLSearchParams,
 ): Promise<string> {
   const url = `${marchand}/${langue}/Home/RefreshAvailabilities`;
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -155,6 +161,7 @@ async function chercherPage(
     });
     if (!r.ok) {
       await r.body?.cancel();
+      poserRefus(url, r.status, r.headers);
       throw new Error(`la centrale a répondu ${r.status}`);
     }
     return await r.text();
@@ -178,6 +185,8 @@ async function detailLot(
   cookies: string,
   formulaire: NonNullable<FicheArkiane["detail"]>,
 ): Promise<{ statut: number; page: string | null }> {
+  const ferme = porteFermee(url);
+  if (ferme) return { statut: 429, page: null };
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), DETAIL_TIMEOUT_MS);
@@ -198,6 +207,7 @@ async function detailLot(
     });
     if (!r.ok) {
       await r.body?.cancel();
+      poserRefus(url, r.status, r.headers);
       return { statut: r.status, page: null };
     }
     return { statut: r.status, page: await r.text() };

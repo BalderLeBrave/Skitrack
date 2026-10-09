@@ -21,6 +21,7 @@ import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
 import { valeurCle } from "../../cles/store.server.ts";
+import { poserRefus } from "../gardeHote.ts";
 import {
   ACTEUR_APIFY,
   PLAFOND_RECHERCHE_USD,
@@ -248,7 +249,14 @@ async function lancer(ids: string[], sejour: SejourApify, plafondUsd: number): P
   const q = new URLSearchParams({ maxTotalChargeUsd: plafondUsd.toFixed(4), timeout: String(LANCEMENT_MAX_S) });
   const depart = await api(`/acts/${ACTEUR_APIFY}/runs?${q}`, { method: "POST", body: JSON.stringify(entreeApify(ids, sejour)) });
   if (depart.status === 401 || depart.status === 403) {
+    if (depart.status === 403) poserRefus("https://api.apify.com/", depart.status, depart.headers);
     e.arret = `jeton Apify refusé (HTTP ${depart.status})`;
+    console.warn(`[apify] ${e.arret}`);
+    return 0;
+  }
+  if (depart.status === 429 || depart.status === 503) {
+    poserRefus("https://api.apify.com/", depart.status, depart.headers);
+    e.arret = `Apify HTTP ${depart.status} — pause, sans reprise`;
     console.warn(`[apify] ${e.arret}`);
     return 0;
   }

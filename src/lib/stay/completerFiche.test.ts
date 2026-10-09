@@ -173,9 +173,10 @@ describe("pages de fiche de l'écran Prix : ce qu'une tranche rend", () => {
     repondre = () => "muet";
     const hote = "muet.exemple.fr";
     const r = await lire([ligne(1, hote), ligne(2, hote), ligne(3, hote)], 42_000);
-    assert.equal(departs.length, 2);
-    assert.deepEqual(trie(r.essayees), ["c-1", "c-2"]);
-    assert.deepEqual(r.laissees, ["c-3"]);
+    // Une seule lecture en vol : la première page muette laisse l'hôte, les suivantes ne partent pas.
+    assert.equal(departs.length, 1);
+    assert.deepEqual(trie(r.essayees), ["c-1"]);
+    assert.deepEqual(trie(r.laissees), ["c-2", "c-3"]);
     assert.deepEqual(r.hotesRefus, [hote]);
   });
 

@@ -3,18 +3,18 @@ import assert from "node:assert/strict";
 import { ECART_HOTE_MS, PAR_HOTE, parHote, RythmeHotes, semaphore } from "./limiteHotes.ts";
 
 describe("rythme des pages de fiche, hôte par hôte", () => {
-  it("deux lectures en vol et une seconde entre deux départs, par défaut", () => {
-    assert.equal(PAR_HOTE, 2);
-    assert.equal(ECART_HOTE_MS, 1_000);
+  it("une lecture en vol et deux secondes entre deux départs, par défaut", () => {
+    assert.equal(PAR_HOTE, 1);
+    assert.equal(ECART_HOTE_MS, 2_000);
   });
 
-  it("deux demandes simultanées partent à une seconde d'écart, pas ensemble", () => {
+  it("deux demandes simultanées partent à deux secondes d'écart, pas ensemble", () => {
     let t = 10_000;
     const r = new RythmeHotes({ now: () => t });
     assert.equal(r.reserver("a.fr"), 0);
-    assert.equal(r.reserver("a.fr"), 1_000);
     assert.equal(r.reserver("a.fr"), 2_000);
-    t += 5_000;
+    assert.equal(r.reserver("a.fr"), 4_000);
+    t += 7_000;
     assert.equal(r.reserver("a.fr"), 0);
   });
 
@@ -22,7 +22,7 @@ describe("rythme des pages de fiche, hôte par hôte", () => {
     const r = new RythmeHotes({ now: () => 0 });
     assert.equal(r.reserver("a.fr"), 0);
     assert.equal(r.reserver("b.fr"), 0);
-    assert.equal(r.reserver("a.fr"), 1_000);
+    assert.equal(r.reserver("a.fr"), 2_000);
   });
 
   it("les départs se partagent d'une passe à l'autre, pas les refus", () => {
@@ -31,7 +31,7 @@ describe("rythme des pages de fiche, hôte par hôte", () => {
     assert.equal(premiere.reserver("a.fr"), 0);
     // La passe suivante (tranche de Prix, recherche de Logements) part 0,3 s après.
     const suivante = new RythmeHotes({ now: () => 10_300, departs });
-    assert.equal(suivante.reserver("a.fr"), 700);
+    assert.equal(suivante.reserver("a.fr"), 1_700);
     premiere.refuser("a.fr");
     assert.equal(suivante.aRefuse("a.fr"), false);
   });

@@ -44,7 +44,7 @@ install_shared_http()
 MAX_PAGES = 80
 # Une page de plus, c'est un appel de plus au même domaine : on ralentit le
 # rythme plutôt que de l'accélérer, et on s'interdit de tourner indéfiniment.
-PAGE_PAUSE_S = 0.4
+PAGE_PAUSE_S = 2.0
 # Échéance par défaut quand l'appelant n'en donne pas (`deadlineMs`). Elle
 # couvre tout le relevé, clé et hash compris : l'ancien budget de pages ne
 # partait qu'après eux, et dépassait la part de 52 s du côté de Node.

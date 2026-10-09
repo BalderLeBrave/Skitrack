@@ -44,6 +44,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
@@ -67,7 +68,7 @@ import {
 const UA = UA_NAVIGATEUR;
 const TIMEOUT_MS = 30_000;
 /** Appels menés de front sur un même hôte. */
-const FRONT = 4;
+const FRONT = 1;
 /** Un catalogue de logements bouge en semaines. */
 const CATALOGUE_TTL_MS = 6 * 60 * 60 * 1000;
 /** Une disponibilité bouge en heures. */
@@ -106,6 +107,8 @@ const fiches = new Map<string, { at: number; valeur: FicheOrchestra }>();
 /** L'heure du dernier refus d'une fiche, par centrale. */
 const refusFiches = new Map<string, number>();
 async function json(url: string, texte = false, delai = TIMEOUT_MS): Promise<unknown> {
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), delai);
@@ -121,6 +124,7 @@ async function json(url: string, texte = false, delai = TIMEOUT_MS): Promise<unk
     });
     if (!r.ok) {
       await r.body?.cancel();
+      poserRefus(url, r.status, r.headers);
       throw new Error(`la centrale a répondu ${r.status}`);
     }
     return texte ? await r.text() : await r.json();
@@ -346,12 +350,16 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
   const base = ctx.base.replace(/\/+$/, "");
   const destinations = r.destinations[ctx.stationId] ?? r.parDefaut;
   const refus: string[] = [];
+  let coupe = false;
 
   const listes = await parGroupes(destinations, async (d) => {
+    if (coupe) return [] as CarteOrchestra[];
     try {
       return await catalogue(base, d);
     } catch (err) {
-      refus.push(`${d} : ${err instanceof Error ? err.message : String(err)}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      refus.push(`${d} : ${msg}`);
+      if (estMessageRefus(msg)) coupe = true;
       return [] as CarteOrchestra[];
     }
   });
@@ -383,10 +391,13 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
     console.info(`[centrale] ${r.host} : ${phrase}`);
   }
 
+  let coupeOffres = false;
   const offres = await parGroupes(cartes, async (c) => {
+    if (coupeOffres) return null;
     try {
       return prixOrchestra(await calendrier(base, c.id, ctx), ctx);
-    } catch {
+    } catch (err) {
+      if (estMessageRefus(err instanceof Error ? err.message : String(err))) coupeOffres = true;
       return null;
     }
   });

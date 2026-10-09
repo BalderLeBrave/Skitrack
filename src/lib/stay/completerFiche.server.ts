@@ -13,11 +13,12 @@ import { montantCents } from "../devises.ts";
 import type { Listing } from "../listings.ts";
 import { RELEVE_2A } from "../listings.ts";
 import { gitesCodeOf, gitesWidgetUrl } from "../scrape/gitesGps.server.ts";
+import { cleHote } from "../scrape/gardeHote.ts";
 import { airbnbCircuitOpen, airbnbCircuitRestantMs, tripAirbnbCircuit } from "./airbnbCircuit.server.ts";
 import { airbnbCookieHeader } from "./airbnbSession.server.ts";
 import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
-import { PAUSE_MAX_MS, estHoteAirbnb, estRefus, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
+import { CIRCUIT_COOLDOWN_MS, PAUSE_MAX_MS, estHoteAirbnb, estRefus, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureAirbnb, lectureFiche, pageAirbnbLisible, type LectureFiche } from "./lectureFiche.ts";
 import { contenuDeFiche, type ContenuDeFiche } from "./contenuFiche.ts";
 import { contenuFiches } from "./contenuFiches.server.ts";
@@ -444,14 +445,9 @@ type FetchOutcome =
 /** Une page sans réponse au bout de ce temps : l'hôte ne répond pas. */
 const SILENCE_MS = 15_000;
 
-function hoteTaux(url: string): "airbnb" | "gites" | null {
-  if (estHoteAirbnb(url)) return "airbnb";
-  try {
-    if (/gites-de-france\.com$/i.test(new URL(url).hostname)) return "gites";
-  } catch {
-    /* URL illisible : pas de file d'attente */
-  }
-  return null;
+function hoteTaux(url: string): string | null {
+  const cle = cleHote(url);
+  return cle || null;
 }
 
 /** Les fiches réellement demandées au réseau pendant une passe. */
@@ -489,12 +485,11 @@ async function fetchHtml(
       signal: ctrl.signal,
     });
     if (estRefus(res.status)) {
-      // La pause demandée entière : le plafond de 12 s ne vaut que sur place.
-      const pause = retryAfterMs(res.headers, 0, PAUSE_MAX_MS);
-      // Un 403 d'Airbnb est un refus comme un 429 (protocole du 23 septembre
-      // 2026) : il passait pour une page vide, et la fiche suivante partait.
-      // Ailleurs, un 403 arrête l'hôte (`fillPool`) sans pause partagée.
-      if (host && (host === "airbnb" || estStatutRalenti(res.status))) noterBlocage(host, pause);
+      // La pause demandée entière, et au moins 45 s : le plafond de 12 s ne
+      // vaut que sur place. Un 403 d'ITEA ou de Booking ouvre la même pause
+      // que le relevé de liste, sinon la fiche suivante partait.
+      const pause = Math.max(CIRCUIT_COOLDOWN_MS, retryAfterMs(res.headers, 0, PAUSE_MAX_MS));
+      if (host) noterBlocage(host, pause);
       return { kind: "limited", status: res.status, retryAfterMs: pause };
     }
     // 202 : un défi anti-robot (AWS WAF chez Booking), pas la fiche. Lu comme
@@ -503,7 +498,7 @@ async function fetchHtml(
     const html = await res.text();
     if (html.length < 400) return { kind: "empty" };
     if (htmlEstBloque(html)) {
-      const waitMs = retryAfterMs(res.headers, 0, PAUSE_MAX_MS);
+      const waitMs = Math.max(CIRCUIT_COOLDOWN_MS, retryAfterMs(res.headers, 0, PAUSE_MAX_MS));
       if (host) noterBlocage(host, waitMs);
       return { kind: "limited", status: 429, retryAfterMs: waitMs };
     }
@@ -567,8 +562,8 @@ function hotesEnPause(now = Date.now()): string[] {
 }
 
 /**
- * Les pages de fiche hors Airbnb, hôte par hôte (`limiteHotes.ts`) : deux
- * lectures en vol au plus par hôte, une seconde entre deux départs, et
+ * Les pages de fiche hors Airbnb, hôte par hôte (`limiteHotes.ts`) : une
+ * lecture en vol au plus par hôte, deux secondes entre deux départs, et
  * l'hôte laissé au premier 429, 403 ou 503, ou quand il ne répond pas
  * (`muet`), pour le reste de la passe. `workers` borne les lectures de tous
  * les hôtes réunis ; la place se prend avant de réserver le départ, pour que

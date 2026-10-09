@@ -604,7 +604,7 @@ describe("Ingénie : suivre la liste, sans réseau", () => {
     return pagesSuivantesIngenie(p1, deja, echeance, c.outils);
   }
 
-  it("suit la liste jusqu'au bout, avec la session et une seconde entre deux pages", async () => {
+  it("suit la liste jusqu'au bout, avec la session et deux secondes entre deux pages", async () => {
     const p1 = premiere(page(1, ids("A", 10)));
     const c = centrale(
       { 2: page(2, ids("B", 10)), 3: page(3, ids("C", 3), { suite: false }) },
@@ -629,12 +629,12 @@ describe("Ingénie : suivre la liste, sans réseau", () => {
       c.appels.map((a) => a.referer),
       [P1_URL, P1_URL],
     );
-    // Une seconde au moins entre la fin d'une page et la demande suivante.
-    assert.equal(PAUSE_PAGE_INGENIE_MS, 1_000);
-    assert.deepEqual(c.attentes, [1_000, 1_000]);
+    // Deux secondes au moins entre la fin d'une page et la demande suivante.
+    assert.equal(PAUSE_PAGE_INGENIE_MS, 2_000);
+    assert.deepEqual(c.attentes, [2_000, 2_000]);
     assert.deepEqual(
       c.appels.map((a) => a.a),
-      [1_000, 2_500],
+      [2_000, 4_500],
     );
   });
 
@@ -690,19 +690,20 @@ describe("Ingénie : suivre la liste, sans réseau", () => {
 
   it("le temps se compte depuis l'entrée de la recherche : la page 1 a pris sa part", async () => {
     // Échéance à 38 s de l'entrée ; l'accueil et la page 1 en ont pris 30.
-    // Chaque page prend 2 s, après sa seconde d'attente.
+    // Chaque page prend 2 s, après deux secondes d'attente. Il ne reste
+    // qu'une page : à 34 s, la suivante n'a plus sa pause et son appel.
     const echeance = 38_000;
     const c = centrale(
       { 2: page(2, ids("B", 10)), 3: page(3, ids("C", 10)), 4: page(4, ids("D", 10)) },
       { depart: 30_000, dureeMs: 2_000 },
     );
     const s = await suivre(premiere(page(1, ids("A", 10))), echeance, c);
-    // Pages 2 et 3 demandées à 31 et 34 s ; à 36 s, il ne reste que 2 s.
+    // Page 2 demandée à 32 s ; à 34 s, la pause de 2 s et l'appel ne tiennent plus.
     assert.deepEqual(
       c.appels.map((a) => a.a),
-      [31_000, 34_000],
+      [32_000],
     );
-    assert.deepEqual([s.fiches.length, s.arret, s.page], [20, "échéance", 4]);
+    assert.deepEqual([s.fiches.length, s.arret, s.page], [10, "échéance", 3]);
     // Aucun appel ne part à moins de `APPEL_MIN_INGENIE_MS` de l'échéance.
     for (const a of c.appels) assert.ok(echeance - a.a >= APPEL_MIN_INGENIE_MS);
   });

@@ -28,6 +28,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { porteFermee, poserRefus } from "../../gardeHote";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
@@ -177,6 +178,8 @@ async function pageIngenie(
   await centraleAutorise(url);
   const reste = echeance - Date.now();
   if (reste < APPEL_MIN_INGENIE_MS) throw new Error(PLUS_LE_TEMPS);
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), Math.min(TIMEOUT_MS, reste));
   try {
@@ -193,6 +196,7 @@ async function pageIngenie(
     });
     if (!rep.ok) {
       await rep.body?.cancel();
+      poserRefus(url, rep.status, rep.headers);
       throw new Error(`la centrale a répondu ${rep.status}`);
     }
     return { url: rep.url || url, texte: await rep.text(), cookies: cookiesDe(rep) };

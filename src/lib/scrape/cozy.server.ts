@@ -2,6 +2,7 @@ import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { sleep } from "./browser.server.ts";
 import { allowsPath } from "./robots.ts";
+import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer, occupancyFromRecord } from "../stay/occupancy.ts";
 
@@ -287,8 +288,8 @@ const PAGE_SIZE = 200;
  * soit neuf pages. L'arrêt normal est le compteur `filteredCount`.
  */
 const MAX_PAGES = 15;
-/** Une requête à la fois par domaine, et cette pause entre deux. */
-const PAUSE_MS = 300;
+/** Une requête à la fois, et cette pause entre deux. C'était 300 ms : trop court pour le même hôte. */
+const PAUSE_MS = 1_000;
 /** La recherche Cozy se remplit en arrière-plan : on l'attend au plus ce temps. */
 const ATTENTE_COMPLETE_MS = 10_000;
 /** Taille de la petite page qui sert à sonder l'avancement de la recherche. */
@@ -311,9 +312,11 @@ async function pullPage(
   // côté Node la laisserait courir chez Cozy, et la suivante partirait avant
   // la fin de la précédente. Sans délai, une requête qui pendait retenait tout
   // l'aller, et avec lui le relevé Airbnb direct qui l'attend.
-  return page.evaluate(
-    async ({ sid, base, providerCodes, from, count, delai }) =>
-      fetch("/api/getResultList", {
+  const garde = await respecterCadence("https://www.cozycozy.com/", 5_000);
+  if (garde) throw new Error(`Cozy ${garde}`);
+  const brut = await page.evaluate(
+    async ({ sid, base, providerCodes, from, count, delai }) => {
+      const r = await fetch("/api/getResultList", {
         method: "POST",
         headers: { "content-type": "application/json" },
         signal: AbortSignal.timeout(delai),
@@ -329,9 +332,18 @@ async function pullPage(
           excludeAds: false,
           prefixAccommodationIds: [],
         }),
-      }).then((r) => r.json()),
+      });
+      if (r.status === 403 || r.status === 429 || r.status === 503) return { __refus: r.status };
+      return r.json();
+    },
     { sid: searchId, base: filters, providerCodes: codes, from: offset, count, delai: delaiMs },
   );
+  if (brut && typeof brut === "object" && typeof (brut as { __refus?: unknown }).__refus === "number") {
+    const status = (brut as { __refus: number }).__refus;
+    poserRefus("https://www.cozycozy.com/", status);
+    throw new Error(`Cozy HTTP ${status}`);
+  }
+  return brut;
 }
 
 /**
@@ -592,14 +604,22 @@ export async function collecterCozy(
     if (!complete) console.warn("[cozy] recherche encore incomplète — arrêt sur la page incomplète");
     for (const code of codes) {
       if (Date.now() >= echeance) break;
-      const res = await paginerFournisseur(tirage(code), echeance);
-      for (const p of res.pages) {
-        payloads.push(p && typeof p === "object" ? { ...(p as object), fournisseur: code } : p);
+      try {
+        const res = await paginerFournisseur(tirage(code), echeance);
+        for (const p of res.pages) {
+          payloads.push(p && typeof p === "object" ? { ...(p as object), fournisseur: code } : p);
+        }
+        annonces[code] = res.annonces;
+        arrets[code] = res.arret;
+        const cible = res.annonces != null ? ` sur ${res.annonces} annoncées` : " (compteur non publié)";
+        console.info(`[cozy] ${code} ${res.releves} fiches${cible} — ${res.arret}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        arrets[code] = msg;
+        console.warn(`[cozy] ${code} arrêté — ${msg}`);
+        if (estMessageRefus(msg) || /limiteur local/.test(msg)) break;
+        throw err;
       }
-      annonces[code] = res.annonces;
-      arrets[code] = res.arret;
-      const cible = res.annonces != null ? ` sur ${res.annonces} annoncées` : " (compteur non publié)";
-      console.info(`[cozy] ${code} ${res.releves} fiches${cible} — ${res.arret}`);
     }
     console.info(`[cozy] ${payloads.length} paquets · ${entryCount(payloads)} fiches`);
   } finally {

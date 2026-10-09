@@ -12,6 +12,7 @@ import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } f
 import { communeGites } from "./gitesCommunes.ts";
 import { STATIONS } from "../stations.ts";
 import { VILLAGES } from "../villages.ts";
+import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
 
 /**
  * Bornes du relevé, toutes explicites.
@@ -44,8 +45,8 @@ const BUDGET_PAGES_MS = 20_000;
  */
 const PAUSE_PAGE_MS = 5_000;
 const MAX_FICHES = 24;
-/** Quatre fiches à la fois, et un souffle entre deux : c'était huit. */
-const WORKERS = 4;
+/** Une fiche à la fois : quatre ouvriers faisaient refuser la suivante. */
+const WORKERS = 1;
 const PAUSE_FICHE_MS = 250;
 /**
  * Le temps des fiches ITEA. Cette phase n'avait aucune borne : quand ITEA ne
@@ -89,7 +90,7 @@ export function searchUrl(input: LiveSearchInput, towns: string): string {
  */
 export function blocage(r: { status: number | null; cfMitigated: string | null; titre: string | null }): string | null {
   if (r.cfMitigated) return `bloqué (défi ${r.cfMitigated})`;
-  if (r.status === 403 || r.status === 429) return `bloqué (${r.status})`;
+  if (r.status === 403 || r.status === 429 || r.status === 503) return `bloqué (${r.status})`;
   if (r.titre && /attention required|just a moment/i.test(r.titre)) return "bloqué (page de défi)";
   // Une panne ou une page absente n'est pas un refus : on l'appelle par son nom.
   if (r.status != null && r.status >= 400) return `HTTP ${r.status}`;
@@ -577,12 +578,16 @@ async function relever(
   // recherche avec lui ; un délai par appel laissait trois appels lents
   // déborder ensemble.
   const signal = () => AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_FICHE_MS, fin - Date.now())));
-  const rep = await fetch(gitesWidgetUrl(code), {
+  const ficheUrl = gitesWidgetUrl(code);
+  const cadence = await respecterCadence(ficheUrl, Math.max(0, fin - Date.now() - 1_000));
+  if (cadence) throw new Error(`ITEA ${cadence}`);
+  const rep = await fetch(ficheUrl, {
     headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
     signal: signal(),
   });
-  // Un refus se respecte : on ne lit pas la page de défi comme une fiche vide.
-  if (rep.status === 403 || rep.status === 429 || rep.status === 503) {
+  // Un refus se respecte : on ne lit pas la page de défi comme une fiche vide,
+  // et plus rien ne part vers ITEA ni vers Gîtes tant que la pause tient.
+  if (poserRefus(ficheUrl, rep.status, rep.headers)) {
     await rep.body?.cancel().catch(() => undefined);
     throw new Error(`ITEA HTTP ${rep.status}`);
   }
@@ -606,7 +611,10 @@ async function relever(
   };
   if (!ident || !instance || !exercice0) return sansDevis;
   if (!/\.G$/i.test(ident)) return null;
+  const postUrl = "https://widget-fngf.itea.fr/lib_2/ajax/gereResa.php";
   const post = async (exercice: string, type: string) => {
+    const ferme = await respecterCadence(postUrl, Math.max(0, fin - Date.now() - 1_000));
+    if (ferme) throw new Error(`ITEA ${ferme}`);
     const body = new URLSearchParams({
       nbAdultes: String(guests),
       dateDeb: isoToFr(checkIn),
@@ -617,7 +625,7 @@ async function relever(
       estpresentsurfiche: "true",
       type,
     });
-    const res = await fetch("https://widget-fngf.itea.fr/lib_2/ajax/gereResa.php", {
+    const res = await fetch(postUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -627,6 +635,10 @@ async function relever(
       body,
       signal: signal(),
     });
+    if (poserRefus(postUrl, res.status, res.headers)) {
+      await res.body?.cancel().catch(() => undefined);
+      throw new Error(`ITEA HTTP ${res.status}`);
+    }
     return res.text();
   };
   let exercice = exercice0;
@@ -828,7 +840,8 @@ export async function lireFichesEnRetard(
     } catch (err) {
       echecs += 1;
       const msg = err instanceof Error ? err.message : String(err);
-      if (/HTTP (403|429|503)/.test(msg) || echecs >= ECHECS_DISJONCTEUR) {
+      if (/limiteur local/.test(msg)) return { listings, arret: "échéance", lues: i + 1 };
+      if (estMessageRefus(msg) || echecs >= ECHECS_DISJONCTEUR) {
         return { listings, arret: "refus", lues: i + 1 };
       }
     }
@@ -1065,7 +1078,13 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
       // La première page, c'est la source elle-même : si elle ne répond pas,
       // l'échec remonte et se journalise comme tel. Les suivantes ne valent
       // pas qu'on perde le relevé déjà fait : on s'arrête avec ce qu'on a.
+      const cadence = await respecterCadence(url, Math.max(0, debut + BUDGET_PAGES_MS - Date.now()));
+      if (cadence) throw new Error(`Gîtes de France ${cadence}`);
       const rep = await page.goto(url, { waitUntil: "domcontentloaded", timeout: pages === 0 ? 22_000 : 12_000 });
+      const statut = rep?.status() ?? 0;
+      if (poserRefus(url, statut)) {
+        /* la pause est posée ; blocage dit pourquoi on s'arrête */
+      }
       refus = blocage({
         status: rep?.status() ?? null,
         cfMitigated: rep?.headers()["cf-mitigated"] ?? null,
@@ -1175,7 +1194,13 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
             out.push(listingDeFiche(tile, fiche, code, input));
             deja.add(code);
           }
-        } catch {
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          // Un refus ou la pause qu'il a ouverte : on n'envoie pas la fiche suivante.
+          if (estMessageRefus(msg) || /limiteur local/.test(msg)) {
+            coupure ??= msg;
+            return;
+          }
           // ITEA n'a pas répondu : la tuile, plus bas, porte l'annonce sans
           // prix. On compte l'échec, et plusieurs d'affilée coupent la file.
           manquees += 1;

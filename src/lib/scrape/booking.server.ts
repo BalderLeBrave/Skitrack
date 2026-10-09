@@ -12,6 +12,7 @@ import { annoncer } from "../stay/occupancy.ts";
 import { assurerCles } from "../cles/store.server.ts";
 import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server.ts";
 import { ficheDepuisPageBooking } from "./bookingFiche.ts";
+import { poserRefus, respecterCadence } from "./gardeHote.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -356,10 +357,13 @@ async function fillGpsFromHotelPages(page: Page, listings: Listing[]): Promise<v
   const missing = listings.filter((l) => !plausible(l.lat, l.lon) && l.url);
   for (const row of missing.slice(0, 12)) {
     try {
+      const garde = await respecterCadence(row.url!, 5_000);
+      if (garde) break;
       const rep = await page.goto(row.url!, { waitUntil: "domcontentloaded", timeout: 20_000 });
       const statut = rep?.status() ?? null;
       // 202 : le défi AWS WAF, pas la fiche. On n'en tire rien, et on n'enchaîne pas.
-      if (statut === 202 || statut === 403 || statut === 429) {
+      if (statut === 403 || statut === 429 || statut === 503) poserRefus(row.url!, statut);
+      if (statut === 202 || statut === 403 || statut === 429 || statut === 503) {
         const fiche = ficheDepuisPageBooking(row, null, statut);
         if (fiche) row.fiche = fiche;
         break;
@@ -418,7 +422,18 @@ export async function scrapeBookingPlaywright(page: Page, input: LiveSearchInput
   };
   page.on("response", onResponse);
   try {
-    await page.goto(searchUrl(input), { waitUntil: "domcontentloaded", timeout: 45_000 });
+    const garde = await respecterCadence("https://www.booking.com/", 5_000);
+    if (garde) {
+      console.warn(`[booking] playwright arrêté — ${garde}`);
+      return [];
+    }
+    const ouvert = await page.goto(searchUrl(input), { waitUntil: "domcontentloaded", timeout: 45_000 });
+    const statutOuvert = ouvert?.status() ?? 0;
+    if (statutOuvert === 403 || statutOuvert === 429 || statutOuvert === 503) {
+      poserRefus("https://www.booking.com/", statutOuvert);
+      console.warn(`[booking] playwright HTTP ${statutOuvert} — pause partagée`);
+      return [];
+    }
     await page
       .locator("#onetrust-accept-btn-handler, button:has-text('Accepter'), button:has-text('Accept')")
       .first()

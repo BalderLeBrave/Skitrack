@@ -20,6 +20,7 @@ import { chercherCentrale } from "./centrales/chercher.server";
 import { ficheCentrale } from "./centrales/registre";
 import { releverGreenGo } from "./greengo.server";
 import { releverHomeToGo } from "./hometogo.server";
+import { porteFermee } from "./gardeHote";
 import { collecteurDe } from "./agences/index.server";
 import { agencesDuReleve, parPaquets, sansDoublons, stationsDuReleve } from "./domaine";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
@@ -868,6 +869,11 @@ function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): vo
         let offset: number | null = 0;
         while (offset != null && budget < PAGES_BOOKING_MAX) {
           if (generationBooking !== gen) return;
+          const ferme = porteFermee("https://www.booking.com/");
+          if (ferme) {
+            console.info(`[booking] suite arrêtée — ${ferme}`);
+            return;
+          }
           if (budget > 0) await dormir(PAUSE_BOOKING_MS);
           if (generationBooking !== gen) return;
           const tour = await scrapeBookingPage(st, offset, PAGE_BOOKING_MS);

@@ -32,7 +32,7 @@ HOSTS: dict[str, tuple[float, int]] = {
     # Le CDN statique d'Airbnb (muscache.com) : des fichiers, pas l'API.
     "airbnb-cdn": (0.3, 60),
     "gites": (2.0, 24),
-    "booking": (1.2, 24),
+    "booking": (2.0, 24),
 }
 WINDOW_S = 60.0
 SLEEP_CAP_S = 5.0

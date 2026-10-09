@@ -14,6 +14,7 @@ import { attachAccess } from "../access.ts";
 import { stationById } from "../stations.ts";
 import { qualifierLogement } from "../stay/logement.ts";
 import { UA_NAVIGATEUR } from "./navigateur.ts";
+import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
 import { allowsPath } from "./robots.ts";
 import { sansDoublons, stationsDuReleve } from "./domaine.ts";
 import type { LiveSearchInput } from "./types";
@@ -61,6 +62,8 @@ async function lire(url: string, echeance: number): Promise<{ status: number; te
   if (reste < 1_000) return { motif: "defi", detail: "échéance" };
   const u = new URL(url);
   await allowsPath(u.origin, `${u.pathname}${u.search}`);
+  const garde = await respecterCadence(url, Math.min(5_000, Math.max(0, reste - 1_000)));
+  if (garde) return { motif: estMessageRefus(garde) ? "refus" : "defi", detail: garde };
   try {
     const res = await fetch(url, {
       headers: {
@@ -73,7 +76,10 @@ async function lire(url: string, echeance: number): Promise<{ status: number; te
       signal: AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_MS, reste))),
     });
     const texte = await res.text();
-    if (res.status === 403 || res.status === 429 || res.status === 503) return { motif: "refus", detail: `HTTP ${res.status}` };
+    if (res.status === 403 || res.status === 429 || res.status === 503) {
+      poserRefus(url, res.status, res.headers);
+      return { motif: "refus", detail: `HTTP ${res.status}` };
+    }
     if (res.status !== 200) return { motif: "defi", detail: `HTTP ${res.status}` };
     return { status: res.status, texte };
   } catch (err) {

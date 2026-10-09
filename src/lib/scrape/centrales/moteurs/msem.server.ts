@@ -22,6 +22,7 @@ import { memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
@@ -42,7 +43,7 @@ const TIMEOUT_MS = 30_000;
 /** Le catalogue vieillit en heures, pas en minutes. */
 const CATALOGUE_TTL_MS = 6 * 60 * 60 * 1000;
 /** Au moins une seconde entre deux requêtes vers `services.msem.tech`. */
-const ECART_MS = 1_000;
+const ECART_MS = 2_000;
 
 function pause(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -83,6 +84,8 @@ export type ReglageMsem = {
 
 const catalogues = new Map<string, { at: number; valeur: CatalogueMsem }>();
 async function json(url: string, corps?: Record<string, unknown>, delaiMs = TIMEOUT_MS): Promise<unknown> {
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), delaiMs);
@@ -101,6 +104,7 @@ async function json(url: string, corps?: Record<string, unknown>, delaiMs = TIME
     });
     if (!r.ok) {
       await r.body?.cancel();
+      poserRefus(url, r.status, r.headers);
       throw new Error(`la centrale a répondu ${r.status}`);
     }
     return await r.json();
@@ -255,7 +259,9 @@ async function monter(
           corpsOffresMsem(r.canal, { ...ctx, guests: g }),
           DELAI_MONTEE_MS,
         )) as OffresMsem;
-      } catch {
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (estMessageRefus(msg)) break;
         offres = null;
       }
     }

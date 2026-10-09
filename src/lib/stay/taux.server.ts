@@ -30,7 +30,10 @@ const VERROU_ATTENTE_MS = 500;
 const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
   airbnb: { gapMs: 2_000, maxHits: 18 },
   gites: { gapMs: 2_000, maxHits: 24 },
-  booking: { gapMs: 1_200, maxHits: 24 },
+  booking: { gapMs: 2_000, maxHits: 24 },
+  /** Cozy et HomeToGo dorment déjà une seconde entre deux pages. Le journal aligne une seconde recherche sur la même seconde, sans la ralentir davantage. */
+  cozy: { gapMs: 1_000, maxHits: 50 },
+  hometogo: { gapMs: 1_000, maxHits: 40 },
   /**
    * L'API GraphQL de GreenGo : une recherche, puis un détail par hôte gardé.
    * Le défaut, écrit ici pour que l'écran Prix le lise (`attente.ts`) et que
@@ -40,12 +43,11 @@ const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
   greengo: { gapMs: 2_000, maxHits: 20 },
   /**
    * Les appels internes de Ski-Planet (`calendrier-residence.php`), un par
-   * résidence : une page de résultats du site en lance dix d'un coup. Une
-   * requête par seconde, quarante par minute, reste en deçà de ce qu'un
-   * visiteur qui feuillette lui fait envoyer. Aucun refus observé sur plus
-   * de 300 appels à 2 s d'écart le 26 septembre 2026.
+   * résidence. La tâche continue après la part et reprend le fil en mémoire :
+   * deux secondes et trente par minute, le même écart que les autres hôtes.
+   * Aucun refus observé sur plus de 300 appels à 2 s d'écart le 26 septembre 2026.
    */
-  skiplanet: { gapMs: 1_000, maxHits: 40 },
+  skiplanet: { gapMs: 2_000, maxHits: 30 },
 };
 
 type Row = { hits?: unknown; until?: unknown };

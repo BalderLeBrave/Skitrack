@@ -2,7 +2,7 @@ import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { sleep } from "./browser.server.ts";
 import { allowsPath } from "./robots.ts";
-import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
+import { estMessageRefus, porteFermee, poserRefus } from "./gardeHote.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer, occupancyFromRecord } from "../stay/occupancy.ts";
 
@@ -288,8 +288,15 @@ const PAGE_SIZE = 200;
  * soit neuf pages. L'arrêt normal est le compteur `filteredCount`.
  */
 const MAX_PAGES = 15;
-/** Une requête à la fois, et cette pause entre deux. C'était 300 ms : trop court pour le même hôte. */
-const PAUSE_MS = 1_000;
+/**
+ * Une requête à la fois par recherche, et cette pause entre deux. Pas de
+ * créneau dans le journal de taux : les trois recherches d'un grand domaine
+ * (`COZY_SIMULTANEES`) s'y partageaient une requête par seconde, et une partie
+ * des stations n'était plus lue avant l'échéance (Abritel et Booking en
+ * moins). Un refus (403, 429, 503) ferme l'hôte pour tout le processus :
+ * `porteFermee`.
+ */
+const PAUSE_MS = 300;
 /** La recherche Cozy se remplit en arrière-plan : on l'attend au plus ce temps. */
 const ATTENTE_COMPLETE_MS = 10_000;
 /** Taille de la petite page qui sert à sonder l'avancement de la recherche. */
@@ -312,7 +319,7 @@ async function pullPage(
   // côté Node la laisserait courir chez Cozy, et la suivante partirait avant
   // la fin de la précédente. Sans délai, une requête qui pendait retenait tout
   // l'aller, et avec lui le relevé Airbnb direct qui l'attend.
-  const garde = await respecterCadence("https://www.cozycozy.com/", 5_000);
+  const garde = porteFermee("https://www.cozycozy.com/");
   if (garde) throw new Error(`Cozy ${garde}`);
   const brut = await page.evaluate(
     async ({ sid, base, providerCodes, from, count, delai }) => {

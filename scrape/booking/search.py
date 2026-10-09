@@ -19,8 +19,11 @@ from urls import PAGE_SIZE, search_url
 MAX_PAGES = 15
 # Une requête à la fois vers Booking, et cette pause entre deux pages : les
 # pages s'enchaînaient sans aucun délai. La suite lancée après le relevé
-# passe `entre_s` (plus long) et ne met qu'une page par appel.
-PAGE_PAUSE_S = 2.0
+# passe `entre_s` (plus long) et ne met qu'une page par appel. Le repli direct,
+# lui, a 12 s avant que Node ne le tue : à 2 s entre les pages, ses trois pages
+# n'y tenaient plus, et le worker tué n'écrivait rien (toutes ses annonces
+# perdues). 0,5 s, comme avant.
+PAGE_PAUSE_S = 0.5
 DEFAULT_TIMEOUT = 25
 # Une page plus courte que ça, en 200, est un défi (coquille), pas une liste.
 PAGE_COURTE = 8_000

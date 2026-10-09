@@ -674,7 +674,8 @@ function prixDureeDabord(
   const couvre = nombre(e.nightNb);
   if (couvre != null && couvre !== nuits) return null;
   const cats = Object.values(e.categories ?? {});
-  const lots = cats.length > 0 ? cats : [e];
+  // Sans catégories, le jour porte lui-même prix et bande : il se lit comme une.
+  const lots: Categorie[] = cats.length > 0 ? cats : [e];
   let meilleure: OffreOrchestra | null = null;
   let sansPrix: OffreOrchestra | null = null;
   for (const lot of lots) {

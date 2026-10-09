@@ -664,8 +664,15 @@ export function dureeCache(part: SearchPart, result: LiveSearchResult): number {
 }
 const inflight = new Map<string, Promise<LiveSearchResult>>();
 
-/** Pages de suite par appel, après le relevé que l'écran attend. */
-const PAGES_PAR_TOUR = 8;
+/**
+ * Pages de suite par appel, après le relevé que l'écran attend. Un tour parti
+ * ne s'interrompt pas : à huit pages (près d'une minute), un relevé lancé
+ * pendant le tour partageait le limiteur avec lui et pouvait manquer son
+ * échéance. À deux, il attend au plus une douzaine de secondes.
+ */
+const PAGES_PAR_TOUR = 2;
+/** Entre deux tours, comme entre deux pages d'un tour (`PAUSE_SUITE_S`, stays.py). */
+const PAUSE_ENTRE_TOURS_MS = 4_000;
 /**
  * Pages en plus des 12 du relevé. Huit stations (3 Vallées, Portes du
  * Soleil) à ~7 pages, plus les quarts d'une emprise pleine : 12 + 96 couvrent
@@ -695,11 +702,18 @@ function daterAnnonce(l: Listing, input: LiveSearchInput, at: number): Listing {
   };
 }
 
-/** Un refus d'Airbnb dans la note. Le limiteur local n'en est pas un : la suite peut reprendre. */
+/**
+ * Un refus d'Airbnb dans la note du relevé direct. Le limiteur local n'en est
+ * pas un : la suite peut reprendre. Seul le segment « direct : … » compte : un
+ * refus de CozyCozy (« Cozy : Cozy HTTP 429 ») n'arrêtait pas Airbnb, et
+ * coupait pourtant la suite de pages et les fiches.
+ */
 function arretDur(result: LiveSearchResult): boolean {
   const r = result.sources.find((s) => s.source === "Airbnb");
-  const dit = `${r?.error ?? ""} ${r?.note ?? ""}`;
-  return /HTTP \d{3}|coupe-circuit/i.test(dit);
+  return `${r?.error ?? ""} · ${r?.note ?? ""}`
+    .split(" · ")
+    .filter((seg) => /^\s*direct :/i.test(seg))
+    .some((seg) => /HTTP \d{3}|coupe-circuit/i.test(seg));
 }
 
 function ajouterAuCache(key: string, rows: Listing[]): number {
@@ -722,10 +736,26 @@ function poserTtl(key: string, ttl: number): void {
   cache.set(key, { ...hit, at: Date.now(), ttl });
 }
 
-function finirCache(key: string, gen: number, refus: boolean): void {
-  // Une recherche plus récente tient déjà cette clé : on ne raccourcit pas son cache.
-  if (generationReleveAirbnb() !== gen) return;
-  poserTtl(key, refus ? CACHE_MS : CACHE_AIRBNB_MS);
+/**
+ * Le relevé dont part la suite de chaque clé. La génération des relevés est
+ * globale (une autre station, d'autres voyageurs, l'écran Prix la changent) :
+ * c'est par clé qu'on sait si une recherche plus récente tient la sienne.
+ */
+const generationParCle = new Map<string, number>();
+/** Les clés dont la suite de pages ou les fiches tournent encore. */
+const suitesEnCours = new Set<string>();
+
+/**
+ * La suite finie, arrêtée sur un refus ou laissée à un autre relevé : le
+ * relevé et les pages déjà lues restent 15 min, comme un relevé complet. Sur
+ * un refus, 90 s faisaient relancer 12 StaysSearch juste après le 429, et
+ * remplaçaient un relevé plus complet que celui d'avant la suite. Une
+ * recherche plus récente de la même clé tient déjà son cache : on n'y touche
+ * pas.
+ */
+function finirCache(key: string, gen: number): void {
+  if (generationParCle.get(key) !== gen) return;
+  poserTtl(key, CACHE_AIRBNB_MS);
 }
 
 function listingsDuCache(key: string): Listing[] {
@@ -765,10 +795,12 @@ async function paginerSuite(
       if (generationReleveAirbnb() !== gen) return "laisse";
     }
     const tour = await scrapeAirbnbSuite(input, curseur, PAGES_PAR_TOUR, Date.now() + TOUR_SUITE_MS);
-    if (generationReleveAirbnb() !== gen) return "laisse";
+    // Les annonces de ce tour sont celles de cette recherche : elles restent,
+    // même si un autre relevé est parti pendant le tour.
     budget += PAGES_PAR_TOUR;
     const ajout = ajouterAuCache(key, locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now())));
     if (ajout) console.info(`[airbnb] suite +${ajout} annonce(s)`);
+    if (generationReleveAirbnb() !== gen) return "laisse";
     if (tour.arret === "rythme") {
       rythme += 1;
       if (rythme > 4) return "ok";
@@ -780,6 +812,7 @@ async function paginerSuite(
     if (tour.rateLimited || tour.arret === "refus" || tour.arret === "coupe-circuit") return "refus";
     if (!tour.reste) return "ok";
     curseur = tour.reste;
+    await dormir(PAUSE_ENTRE_TOURS_MS);
   }
   return "ok";
 }
@@ -791,6 +824,7 @@ async function paginerSuite(
  */
 function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: SuiteReste | null, gen: number): void {
   const lacherPages = tenirPagesAirbnb();
+  suitesEnCours.add(key);
   poserTtl(key, CACHE_PENDANT_SUITE_MS);
   void (async () => {
     let issue: "ok" | "refus" | "laisse" = "ok";
@@ -812,26 +846,24 @@ function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: Suite
     }
     if (issue === "refus") {
       marquerRefusFichesAirbnb();
-      finirCache(key, gen, true);
+      finirCache(key, gen);
+      suitesEnCours.delete(key);
       return;
     }
     if (!lacherPdp) {
-      finirCache(key, gen, false);
+      finirCache(key, gen);
+      suitesEnCours.delete(key);
       return;
     }
     try {
       const lu = await lireFichesLentes(listingsDuCache(key), input, () => generationReleveAirbnb() !== gen);
-      if (lu === "refus") {
-        marquerRefusFichesAirbnb();
-        finirCache(key, gen, true);
-      } else {
-        finirCache(key, gen, false);
-      }
+      if (lu === "refus") marquerRefusFichesAirbnb();
     } catch (err) {
       console.warn("[airbnb] fiches", err instanceof Error ? err.message : err);
       marquerRefusFichesAirbnb();
-      finirCache(key, gen, true);
     } finally {
+      finirCache(key, gen);
+      suitesEnCours.delete(key);
       lacherPdp();
     }
   })();
@@ -856,42 +888,121 @@ function poserBooking(key: string, bookings: Listing[]): number {
 }
 
 /**
+ * Ce que la suite Booking a lu pour une recherche : ses annonces, la station
+ * et la page où elle en est, et jusqu'à quand elle ne repart pas. Le cache
+ * Cozy ne tient que 90 s : à chaque relevé Cozy, la suite repartait de la
+ * première page et relisait les mêmes pages. Elle repose maintenant ce qu'elle
+ * a lu, sans requête, et reprend où elle en était.
+ */
+type MemoBooking = {
+  at: number;
+  listings: Listing[];
+  station: number;
+  offset: number | null;
+  /** Pages lues pour cette recherche, toutes suites confondues : 12 au plus. */
+  pages: number;
+  fini: boolean;
+};
+const suitesBooking = new Map<string, MemoBooking>();
+/** Une suite Booking se souvient de ce qu'elle a lu le temps d'un relevé complet. */
+const MEMO_BOOKING_MS = 15 * 60_000;
+/**
+ * Recul de la suite seule après un défi ou un refus de sa propre page, pour
+ * tout Booking (un défi vise l'hôte, pas la station). Le journal `booking` ne
+ * garde que le refus (45 s) : un défi n'y pose rien, pour que le repli d'une
+ * station que Cozy rend sans Booking parte encore, comme avant. Sans ce
+ * recul, chaque relevé Cozy de Logements relançait une page : deux requêtes au
+ * défi par station visitée. Paliers : 45 s, puis 2, 4 et 8 min ; une page lue,
+ * ou 5 min sans arrêt passé le recul, et le palier repart de zéro.
+ */
+const RECULS_BOOKING_MS = [45_000, 2 * 60_000, 4 * 60_000, 8 * 60_000];
+const OUBLI_RECUL_BOOKING_MS = 5 * 60_000;
+let reculBookingNiveau = 0;
+let suiteBookingApres = 0;
+
+function reculerSuiteBooking(maintenant = Date.now()): void {
+  if (maintenant - suiteBookingApres > OUBLI_RECUL_BOOKING_MS) reculBookingNiveau = 0;
+  suiteBookingApres = maintenant + RECULS_BOOKING_MS[Math.min(reculBookingNiveau, RECULS_BOOKING_MS.length - 1)];
+  reculBookingNiveau += 1;
+}
+
+function reposerBooking(key: string, input: LiveSearchInput, lues: Listing[]): number {
+  if (lues.length === 0) return 0;
+  const hit = cache.get(key);
+  const actuels = hit ? hit.result.listings.filter((l) => l.source === "Booking") : [];
+  const fusion = fusionner(actuels, lues);
+  return poserBooking(key, fusion.listings);
+}
+
+/**
  * Après la réponse Cozy : les pages Booking que Cozy n'a pas, une à une.
  * La station cherchée d'abord, puis les stations reliées, dans le même budget.
- * Un 429, un 403 ou un défi arrête tout le domaine. Une liste épuisée passe
- * à la station suivante. Une recherche plus récente ne se fait pas écraser.
+ * Un 429, un 403 ou un défi arrête tout le domaine, et la suite recule
+ * (`reculerSuiteBooking`). Une liste épuisée (page sans tuile) passe à la station
+ * suivante. Une recherche plus récente ne se fait pas écraser.
  */
 function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): void {
   void (async () => {
-    let budget = 0;
+    const maintenant = Date.now();
+    const vieux = suitesBooking.get(key);
+    const memo: MemoBooking =
+      vieux && maintenant - vieux.at < MEMO_BOOKING_MS
+        ? vieux
+        : { at: maintenant, listings: [], station: 0, offset: 0, pages: 0, fini: false };
+    suitesBooking.set(key, memo);
+    // Ce qu'une suite précédente a lu pour cette recherche revient sans requête.
+    const repose = reposerBooking(key, input, memo.listings);
+    if (repose) console.info(`[booking] suite : ${repose} annonce(s) reprise(s) sans requête`);
+    if (memo.fini) return;
+    if (Date.now() < suiteBookingApres) {
+      console.info(`[booking] suite en recul (encore ${Math.ceil((suiteBookingApres - Date.now()) / 1000)} s)`);
+      return;
+    }
+    let premiere = true;
     try {
-      for (const st of stationsDuReleve(input)) {
-        let offset: number | null = 0;
-        while (offset != null && budget < PAGES_BOOKING_MAX) {
+      const stations = stationsDuReleve(input);
+      for (; memo.station < stations.length; memo.station += 1, memo.offset = 0) {
+        const st = stations[memo.station];
+        while (memo.offset != null && memo.pages < PAGES_BOOKING_MAX) {
           if (generationBooking !== gen) return;
           const ferme = porteFermee("https://www.booking.com/");
           if (ferme) {
             console.info(`[booking] suite arrêtée — ${ferme}`);
             return;
           }
-          if (budget > 0) await dormir(PAUSE_BOOKING_MS);
+          if (!premiere) await dormir(PAUSE_BOOKING_MS);
+          premiere = false;
+          if (Date.now() < suiteBookingApres) return;
           if (generationBooking !== gen) return;
-          const tour = await scrapeBookingPage(st, offset, PAGE_BOOKING_MS);
-          if (generationBooking !== gen) return;
-          budget += 1;
+          const tour = await scrapeBookingPage(st, memo.offset, PAGE_BOOKING_MS);
+          memo.pages += 1;
+          memo.at = Date.now();
           if (tour.listings.length > 0) {
-            const hit = cache.get(key);
-            const actuels = hit ? hit.result.listings.filter((l) => l.source === "Booking") : [];
             const dates = locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now()));
-            const fusion = fusionner(actuels, dates);
-            const ajout = poserBooking(key, fusion.listings);
+            memo.listings = fusionner(memo.listings, dates).listings;
+            // Les annonces de cette page sont celles de cette recherche : elles
+            // restent, même si un relevé plus récent est parti pendant la page.
+            const ajout = reposerBooking(key, input, dates);
             if (ajout) console.info(`[booking] suite +${ajout} annonce(s)`);
           }
-          if (tour.arret || tour.raison) return;
+          if (tour.arret) {
+            reculerSuiteBooking();
+            return;
+          }
+          if (tour.listings.length > 0) reculBookingNiveau = 0;
+          if (generationBooking !== gen) return;
+          if (tour.raison) {
+            // Une page sans tuile : la liste de cette station est épuisée.
+            // Toute autre panne (worker, sortie illisible) arrête la suite.
+            if (tour.listings.length === 0 && /aucune tuile lisible/i.test(tour.raison)) break;
+            return;
+          }
           if (tour.offset == null) break;
-          offset = tour.offset;
+          memo.offset = tour.offset;
         }
+        if (memo.pages >= PAGES_BOOKING_MAX) break;
       }
+      memo.fini = true;
     } catch (err) {
       console.warn("[booking] suite", err instanceof Error ? err.message : err);
     }
@@ -935,7 +1046,11 @@ export async function runLiveSearch(
   await allowsPath("https://skitrack.local", "/");
   const key = cacheKey(input, part);
   const hit = cache.get(key);
-  const ttl = hit ? (opts.relance ? Math.min(hit.ttl, CACHE_MS) : hit.ttl) : 0;
+  // Une relance pendant la suite de cette clé est servie par le cache : il
+  // grossit de ses pages. Un nouveau relevé arrêtait la suite avant même de
+  // savoir s'il serait gardé, et repassait 12 StaysSearch dans le limiteur.
+  const relance = opts.relance === true && !suitesEnCours.has(key);
+  const ttl = hit ? (relance ? Math.min(hit.ttl, CACHE_MS) : hit.ttl) : 0;
   if (hit && Date.now() - hit.at < ttl) return hit.result;
   const pending = inflight.get(key);
   if (pending) return pending;
@@ -944,6 +1059,7 @@ export async function runLiveSearch(
   if (part === "airbnb" || part === "all" || part === "browser") {
     nouveauReleveAirbnb();
     gen = generationReleveAirbnb();
+    generationParCle.set(key, gen);
   }
   const genBooking = part === "cozy" ? ++generationBooking : generationBooking;
   const promise = actuallyRun(input, part)

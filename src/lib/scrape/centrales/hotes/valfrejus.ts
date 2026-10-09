@@ -39,7 +39,7 @@ export const valfrejus: Connecteur = {
       },
     );
     return listings.filter(
-      (l) => /valfr[eé]jus/i.test(l.locality ?? "") || /valfrejus/i.test(l.url),
+      (l) => /valfr[eé]jus/i.test(l.locality ?? "") || /valfrejus/i.test(l.url ?? ""),
     );
   },
 };

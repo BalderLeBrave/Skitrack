@@ -31,7 +31,12 @@ const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
   airbnb: { gapMs: 2_000, maxHits: 18 },
   gites: { gapMs: 2_000, maxHits: 24 },
   booking: { gapMs: 2_000, maxHits: 24 },
-  /** Cozy et HomeToGo dorment déjà une seconde entre deux pages. Le journal aligne une seconde recherche sur la même seconde, sans la ralentir davantage. */
+  /**
+   * Cozy ne réserve plus de créneau (`cozy.server.ts`) : seule sa pause de
+   * refus est lue. HomeToGo dort déjà une seconde entre deux pages ; le journal
+   * aligne une seconde recherche sur la même seconde, sans la ralentir
+   * davantage.
+   */
   cozy: { gapMs: 1_000, maxHits: 50 },
   hometogo: { gapMs: 1_000, maxHits: 40 },
   /**

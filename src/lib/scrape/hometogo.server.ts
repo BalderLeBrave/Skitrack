@@ -306,7 +306,11 @@ function publier(
 }
 
 type MemoireHomeToGo = { a: number; listings: Listing[]; enCours: boolean; finie: boolean };
-const htgGlobal = globalThis as typeof globalThis & { __skitrackSuiteHomeToGo__?: Map<string, MemoireHomeToGo> };
+const htgGlobal = globalThis as typeof globalThis & {
+  __skitrackSuiteHomeToGo__?: Map<string, MemoireHomeToGo>;
+  /** La clé de la dernière recherche qui a lancé ou repris sa suite : les autres lui cèdent l'hôte. */
+  __skitrackSuiteHomeToGoCourante__?: string;
+};
 
 function memoiresHomeToGo(): Map<string, MemoireHomeToGo> {
   return (htgGlobal.__skitrackSuiteHomeToGo__ ??= new Map());
@@ -336,9 +340,18 @@ function lancerSuiteHomeToGo(recherche: LiveSearchInput, restes: readonly ResteS
   const utiles = restes.filter((r) => r.offres.length > 0);
   if (!recherche.domaine || utiles.length === 0) return;
   const map = memoiresHomeToGo();
-  for (const s of map.values()) if (s.enCours) return;
   const cle = cleSuiteHomeToGo(recherche);
   const etat = map.get(cle);
+  // Une seule suite tire à la fois, et c'est celle de la station regardée.
+  // Attendre la fin d'une autre (8 min au plus) laissait ici les squelettes
+  // sans détail : l'écran cesse de relire au bout de 8 min, et rien ne
+  // relançait cette suite. Celle qui cède s'arrête avant son lot suivant,
+  // garde ses détails en mémoire et reprend à sa prochaine recherche (arrêt
+  // « échéance », `finie` faux) : pas un appel de plus à la minute.
+  if (etat?.enCours) {
+    htgGlobal.__skitrackSuiteHomeToGoCourante__ = cle;
+    return;
+  }
   if (etat?.finie && Date.now() - etat.a < MEMOIRE_MS) return;
   const connus = new Set((etat?.listings ?? []).map((l) => l.platformId).filter((id): id is string => !!id));
   const lots: { st: LiveSearchInput; lieu: LieuHomeToGo; ids: string[]; parId: Map<string, Record<string, unknown>> }[] = [];
@@ -353,6 +366,7 @@ function lancerSuiteHomeToGo(recherche: LiveSearchInput, restes: readonly ResteS
   if (nuitsSejour == null) return;
   const listings = [...(etat?.listings ?? [])];
   map.set(cle, { a: Date.now(), listings, enCours: true, finie: false });
+  htgGlobal.__skitrackSuiteHomeToGoCourante__ = cle;
   const echeance = Date.now() + SUITE_MAX_MS;
   void lireDetailsEnRetard(
     plat.map((p) => p.ids),
@@ -362,6 +376,7 @@ function lancerSuiteHomeToGo(recherche: LiveSearchInput, restes: readonly ResteS
       maintenant: () => Date.now(),
       attendre: dormir,
       tirer: async (ids) => {
+        if (htgGlobal.__skitrackSuiteHomeToGoCourante__ !== cle) return "échéance";
         const lot = plat.find((p) => p.ids === ids);
         if (!lot) return "échéance";
         const tour = await lire(urlDetails(lot.lieu, lot.st, nuitsSejour, ids), echeance);

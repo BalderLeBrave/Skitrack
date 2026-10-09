@@ -118,6 +118,12 @@ def cached(slot: str, fetch: Callable[[], str]) -> str:
     return _hash
 
 
+def age_hash_s() -> float | None:
+    """L'âge du hash StaysSearch gardé sur disque, en secondes, ou None."""
+    at = _read_disk().get("hash_at")
+    return time.time() - at if isinstance(at, (int, float)) else None
+
+
 def cookies_dump() -> list[dict[str, str]]:
     """Cookies encore valides, pour le sidecar et pour Node."""
     disk = _read_disk()
@@ -286,14 +292,17 @@ def install_shared_http() -> None:
     _installed = True
 
 
-def invalidate(*, cookies: bool = False) -> None:
-    """Jette clé et hash. Les cookies restent, sauf demande explicite."""
+def invalidate(*, cookies: bool = False, key: bool = True) -> None:
+    """Jette le hash, et la clé sauf `key=False`. Les cookies restent, sauf demande explicite."""
     global _key, _key_at, _hash, _hash_at, _http
-    _key = _hash = ""
-    _key_at = _hash_at = 0.0
+    _hash = ""
+    _hash_at = 0.0
     disk = _read_disk()
-    disk.pop("key", None)
-    disk.pop("key_at", None)
+    if key:
+        _key = ""
+        _key_at = 0.0
+        disk.pop("key", None)
+        disk.pop("key_at", None)
     disk.pop("hash", None)
     disk.pop("hash_at", None)
     if cookies:

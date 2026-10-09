@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import os
 import sys
 import time
@@ -14,7 +15,7 @@ from typing import Any
 from urllib.parse import quote, urlencode
 
 from map import listings_from_raw, par_prix
-from pdp import enrich_listings
+from pdp import HASH_PERIME_RE, enrich_listings
 import session
 from session import cached, install_shared_http, invalidate, next_search_cursor
 from throttle import (
@@ -153,10 +154,18 @@ def _timeout(fin: float) -> float:
     return max(1.0, min(float(DEFAULT_TIMEOUT), _reste(fin) - 0.5))
 
 
+# La page d'accueil lue pour la clé, le temps de chercher le hash juste après
+# (`_hash`) : au démarrage à froid, une seule page d'accueil au lieu de deux.
+# C'est elle qu'Airbnb refuse le plus volontiers (`session.py`).
+_accueil: dict[str, str] = {}
+
+
 def _hash(proxy_url: str, fin: float) -> str:
+    texte = _accueil.pop("texte", None)
+
     def fetch() -> str:
         return call_with_retry(
-            lambda: airbnb_search.fetch_stays_search_hash(proxy_url, timeout=_timeout(fin)),
+            lambda: airbnb_search.fetch_stays_search_hash(proxy_url, timeout=_timeout(fin), homepage_text=texte),
             fin=fin,
             etape="hash",
         )
@@ -165,10 +174,15 @@ def _hash(proxy_url: str, fin: float) -> str:
 
 
 def _api_key(proxy_url: str, fin: float) -> str:
-    return cached(
-        "key",
-        lambda: call_with_retry(lambda: airbnb_api.get(proxy_url, timeout=_timeout(fin)), fin=fin, etape="clé"),
-    )
+    _accueil.clear()
+
+    def lire() -> str:
+        cle, texte = airbnb_api.get_with_body(proxy_url, timeout=_timeout(fin))
+        if texte:
+            _accueil["texte"] = texte
+        return cle
+
+    return cached("key", lambda: call_with_retry(lire, fin=fin, etape="clé"))
 
 
 def motif_arret(err: RateLimited) -> str:
@@ -207,6 +221,19 @@ def classer_echec(err: BaseException, etape: str) -> tuple[str, int] | None:
     return None
 
 
+# Un hash StaysSearch plus jeune que cela n'est pas jeté sur un refus de
+# requête persistée : il vient d'être relu, et le relire encore n'y changerait
+# rien (`run_search`).
+HASH_PERIME_GARDE_S = 3600.0
+
+
+def hash_perime(raw: Any) -> bool:
+    """La réponse dit la requête persistée inconnue (`PersistedQueryNotFound`)."""
+    if not isinstance(raw, dict) or not raw.get("errors"):
+        return False
+    return bool(HASH_PERIME_RE.search(json.dumps(raw.get("errors"), ensure_ascii=False)[:2000]))
+
+
 def result_count(raw: Any) -> int | None:
     """Le nombre d'annonces qu'Airbnb publie pour l'emprise, ou None.
 
@@ -241,7 +268,13 @@ def _search_pages(
     pages, le motif d'arrêt (`arret` : refus, coupe-circuit, rythme — ou None)
     et son code (`statut`), le nombre publié pour l'emprise (`publie`), si
     l'emprise a été lue jusqu'au bout de ce qu'Airbnb laisse paginer
-    (`epuisee`), et si l'échéance l'a coupée (`echeance`).
+    (`epuisee`), si l'échéance l'a coupée (`echeance`), l'échec d'une page
+    après la première (`erreur`, avec son code HTTP `http` s'il y en a un), et
+    si sa première page disait la requête persistée inconnue (`hashPerime`).
+
+    La première page en échec remonte, comme avant (`run_search`). Une page
+    suivante en échec ne jette plus celles déjà lues : un délai à la page 4
+    jetait trois pages, la clé et le hash, et le relevé partait au repli HTML.
     """
     raw_params = airbnb_search.url_to_raw_params(url)
     api_key = _api_key(proxy_url, fin)
@@ -254,6 +287,9 @@ def _search_pages(
     echeance = False
     advertised: int | None = None
     epuisee = False
+    erreur: str | None = None
+    http: int | None = None
+    perime = False
     call = {
         "currency": CURRENCY,
         "language": LANGUAGE,
@@ -305,6 +341,28 @@ def _search_pages(
             quoi = {"refus": f"HTTP {statut}", "coupe-circuit": "coupe-circuit", "rythme": "limiteur local"}[arret]
             print(f"[airbnb] {quoi} après {pages} page(s) — on garde ce qui est lu", file=sys.stderr)
             break
+        except Exception as err:
+            if not raws:
+                raise
+            # Un refus (403, ou 429/503 hors de `call_with_retry`) en est un
+            # comme ailleurs ; autre chose garde les pages lues, dit comme tel.
+            classe = classer_echec(err, "StaysSearch")
+            if classe:
+                arret, statut = classe
+            else:
+                # Une coupure après les en-têtes porte la réponse partielle, et
+                # son statut (200) : ce n'est pas un échec HTTP.
+                code = http_status_of(err)
+                erreur = str(err)[:200] or type(err).__name__
+                http = code if code is not None and code >= 400 else None
+            print(f"[airbnb] page {pages + 1} : {err} — on garde ce qui est lu", file=sys.stderr)
+            break
+        if not pages and not listings_from_raw(raw) and hash_perime(raw):
+            # Une requête persistée qu'Airbnb ne connaît plus répond 200, sans
+            # annonce. Noté, sans rien changer au parcours : `run_search` jette
+            # le hash si le relevé entier ne rend rien. Gardé, il servait 12 h
+            # de relevés vides, chacun suivi du repli HTML.
+            perime = True
         raws.append(raw)
         pages += 1
         if advertised is None:
@@ -334,6 +392,9 @@ def _search_pages(
         "publie": advertised,
         "epuisee": epuisee,
         "echeance": echeance,
+        "erreur": erreur,
+        "http": http,
+        "hashPerime": perime,
     }
 
 
@@ -439,6 +500,7 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     lues: list[str] = []
     seen: set[str] = set()
     budget = [MAX_REQUETES]
+    hash_perime_vu = False
     try:
         with contextlib.redirect_stdout(sink):
             file = list(zones)
@@ -464,13 +526,30 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                     break
                 r, p, publie, epuisee = lu["raws"], lu["pages"], lu["publie"], lu["epuisee"]
                 arret, statut = lu["arret"], lu["statut"]
+                hash_perime_vu = hash_perime_vu or lu["hashPerime"]
                 if lu["echeance"]:
                     partiel = partiel or "échéance atteinte en cours d'emprise"
+                premiere = not raws
+                if premiere and arret == "refus" and statut == 403:
+                    # Comme un 403 à la première page (plus bas) : une clé ou un
+                    # hash périmés, peut-être. Le coupe-circuit est ouvert.
+                    invalidate()
+                if lu["erreur"] is not None:
+                    partiel = partiel or f"emprise {nom} interrompue ({lu['erreur']})"
+                    # Dans la première emprise, un statut HTTP (500, 404…) jette
+                    # clé et hash, comme avant. Une coupure sans statut (délai,
+                    # connexion), après des pages lues avec eux, les garde :
+                    # les jeter faisait relire page d'accueil et paquets JS.
+                    if premiere and lu["http"] is not None:
+                        invalidate()
                 raws.extend(r)
                 pages += p
                 lues.append(f"{nom}:{p}p/{len(seen) - avant}+" + (f"/{publie}" if publie is not None else ""))
                 if nom in ("proche", "unique"):
                     advertised = publie
+                if lu["erreur"] is not None:
+                    # Une panne qui dure enverrait un StaysSearch par emprise.
+                    break
                 # L'emprise proche publie plus qu'Airbnb ne laisse paginer : ses
                 # quarts passent avant l'emprise large, parce qu'ils sont dans
                 # le domaine et elle en partie non. Sur un grand domaine, ils
@@ -532,6 +611,14 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             listings.append(row)
     listings.sort(key=par_prix)
     if not listings:
+        if hash_perime_vu and not arret:
+            # Rien de tout le relevé, et la requête persistée inconnue : le hash
+            # seul est jeté, la clé vient de servir (réponse 200). Un hash lu il
+            # y a moins d'une heure, périmé à son tour, reste, comme avant : le
+            # jeter à chaque relevé referait page d'accueil et paquets JS.
+            age = session.age_hash_s()
+            if age is None or age > HASH_PERIME_GARDE_S:
+                invalidate(key=False)
         return {
             "ok": False,
             "error": erreur_arret(arret, statut) if arret else "pyairbnb: aucune annonce",

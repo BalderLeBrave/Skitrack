@@ -832,3 +832,301 @@ describe("la description et les équipements d'une fiche déjà ouverte", () => 
     assert.equal(relue.amenities?.find((e) => e.cle === "wifi")?.valeur, "oui");
   });
 });
+
+/*
+ * En dernier : ces cas laissent des pauses et des pages rooms/ loin dans
+ * l'heure simulée, que les essais d'avant, repartis de T0, verraient.
+ */
+describe("la suite de Logements : refus, relevé qui arrive", () => {
+  const annonce = (n: number, over: Partial<Listing> = {}): Listing =>
+    ligne(n, "www.airbnb.fr", {
+      id: `abnb-${n}`,
+      source: "Airbnb",
+      url: `https://www.airbnb.fr/rooms/${n}`,
+      lat: 45.03604,
+      lon: 6.11436,
+      ...over,
+    });
+  const LUE = (): Reponse => ({
+    html: page(`<script>{"personCapacity":4,"bedroomCount":2}</script>`),
+  });
+  const pagesRooms = () => departs.filter((d) => d.url.includes("/rooms/"));
+  const numeros = () => pagesRooms().map((d) => Number(/rooms\/(\d+)/.exec(d.url)?.[1]));
+  const attendre = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
+  /** Jusqu'à ce que la suite s'arrête, relue chaque demi-seconde. */
+  async function finDeSuite(): Promise<void> {
+    for (let t = 0; t < 60 * 60_000 && etatSuiteAirbnb().enCours; t += 500) await attendre(500);
+  }
+  /**
+   * Chaque cas part deux heures après le précédent, journal de taux et
+   * coupe-circuit vidés : loin des pages, des pauses et du recul des cas
+   * d'avant. Chacun finit sur des pages lues : le recul retombe à zéro.
+   */
+  let decalage = 0;
+  function partir(): void {
+    decalage += 2 * 3_600_000;
+    mock.timers.tick(decalage);
+    rmSync(process.env.SKITRACK_TAUX as string, { force: true });
+    rmSync(process.env.SKITRACK_AIRBNB_CIRCUIT as string, { force: true });
+  }
+
+  it("un refus qui dure, relu toutes les 15 s : une page par palier au plus, aucune pendant un recul", async () => {
+    partir();
+    repondre = (url) => (url.includes("/rooms/") ? { status: 429 } : { html: page() });
+    const rows = [annonce(4500001), annonce(4500002), annonce(4500003)];
+    const copies = () => rows.map((r) => ({ ...r }));
+    const relire = () => fillFiches(copies(), 0, { relecture: true });
+    await silence(() =>
+      jouer(
+        (async () => {
+          await fillFiches(rows, 30_000);
+          // La relecture de l'écran relançait la suite arrêtée : trois refus
+          // de plus à chaque fois, une cinquantaine en 45 min.
+          for (let t = 0; t < 45 * 60_000; t += 15_000) {
+            await relire();
+            await attendre(15_000);
+          }
+        })(),
+        250,
+      ),
+    );
+    const t = pagesRooms().map((d) => d.t);
+    assert.ok(t.length >= 4 && t.length <= 8, `${t.length} pages rooms/ refusées en 45 min`);
+    // La pause du coupe-circuit, puis 2, 4 et 8 minutes au moins.
+    const paliers = [45_000, 2 * 60_000, 4 * 60_000, 8 * 60_000];
+    t.slice(1).forEach((x, i) =>
+      assert.ok(x - t[i] >= paliers[Math.min(i, 3)], `écart ${i + 1} : ${x - t[i]} ms`),
+    );
+    // Aucune page n'est sortie de la file.
+    assert.equal(etatSuiteAirbnb().file, 3);
+    // Airbnb répond de nouveau : les trois partent, passé le recul.
+    const avant = t.length;
+    repondre = LUE;
+    await silence(() =>
+      jouer(
+        (async () => {
+          for (let i = 0; i < 80 && etatSuiteAirbnb().file > 0; i++) {
+            await relire();
+            await attendre(15_000);
+          }
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+    assert.deepEqual(trie(numeros().slice(avant).map(String)), ["4500001", "4500002", "4500003"]);
+  });
+
+  it("le palier repart de zéro après une page lue", async () => {
+    const { prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    partir();
+    let n = 0;
+    repondre = (url) => {
+      if (!url.includes("/rooms/")) return { html: page() };
+      n += 1;
+      return n === 1 || n === 2 || n === 4 ? { status: 429 } : LUE();
+    };
+    const rows = [annonce(4500101), annonce(4500102), annonce(4500103)];
+    await silence(() =>
+      jouer(
+        (async () => {
+          prioriserSuiteAirbnb(rows);
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    const t = pagesRooms().map((d) => d.t);
+    assert.equal(t.length, 6);
+    // Deux refus : la pause du coupe-circuit, puis 2 min.
+    assert.ok(t[1] - t[0] >= 45_000 && t[1] - t[0] < 2 * 60_000, `${t[1] - t[0]} ms`);
+    assert.ok(t[2] - t[1] >= 2 * 60_000, `${t[2] - t[1]} ms`);
+    // Lue, puis refusée : la pause seule de nouveau, pas 4 min.
+    assert.ok(t[4] - t[3] >= 45_000 && t[4] - t[3] < 2 * 60_000, `${t[4] - t[3]} ms`);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+
+  it("écran fermé : quatre refus au plus, comme avant ; relancée passé le recul, elle lit tout", async () => {
+    const { prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    partir();
+    repondre = (url) => (url.includes("/rooms/") ? { status: 429 } : { html: page() });
+    const rows = [annonce(4500601), annonce(4500602), annonce(4500603)];
+    await silence(() =>
+      jouer(
+        (async () => {
+          // L'écran est fermé : aucune relecture ne relance la suite.
+          prioriserSuiteAirbnb(rows);
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    // Reprendre seule l'aurait fait envoyer plus de pages refusées qu'avant,
+    // chacune rouvrant le coupe-circuit qui vide le relevé Airbnb.
+    assert.equal(pagesRooms().length, 4);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 3, enCours: false });
+    // Une relance pendant le recul ne fait que mettre en file ; passé le
+    // recul, elle fait repartir la suite, qui lit les trois pages.
+    repondre = LUE;
+    await silence(() =>
+      jouer(
+        (async () => {
+          for (let i = 0; i < 60 && etatSuiteAirbnb().file > 0; i++) {
+            await fillFiches(
+              rows.map((r) => ({ ...r })),
+              0,
+              { relecture: true },
+            );
+            await attendre(15_000);
+          }
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    assert.equal(pagesRooms().length, 7);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+
+  it("des heures après un refus qui a duré, un refus isolé ne coûte que la pause, pas 8 min", async () => {
+    const { prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    partir();
+    repondre = (url) => (url.includes("/rooms/") ? { status: 429 } : { html: page() });
+    await silence(() =>
+      jouer(
+        (async () => {
+          // Le palier monte jusqu'à 8 min, et aucune page n'est lue.
+          prioriserSuiteAirbnb([annonce(4500701)]);
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    // Trois heures plus tard, sans page lue entre-temps. L'horloge de ce cas
+    // avance de près de quatre heures : les cas suivants partent après.
+    mock.timers.tick(3 * 3_600_000);
+    decalage += 6 * 3_600_000;
+    rmSync(process.env.SKITRACK_TAUX as string, { force: true });
+    rmSync(process.env.SKITRACK_AIRBNB_CIRCUIT as string, { force: true });
+    const avant = pagesRooms().length;
+    let n = 0;
+    repondre = (url) => {
+      if (!url.includes("/rooms/")) return { html: page() };
+      n += 1;
+      return n === 1 ? { status: 429 } : LUE();
+    };
+    await silence(() =>
+      jouer(
+        (async () => {
+          prioriserSuiteAirbnb([annonce(4500701), annonce(4500702)]);
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    const t = pagesRooms()
+      .slice(avant)
+      .map((d) => d.t);
+    assert.equal(t.length, 3);
+    assert.ok(t[1] - t[0] >= 45_000 && t[1] - t[0] < 2 * 60_000, `${t[1] - t[0]} ms`);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+
+  it("un coupe-circuit ouvert ailleurs (Python, Prix) : la suite en attend la fin, sans recul", async () => {
+    const { prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    const { tripAirbnbCircuit } = await import("./airbnbCircuit.server.ts");
+    const { noterBlocage } = await import("./taux.server.ts");
+    partir();
+    repondre = LUE;
+    noterBlocage("airbnb", tripAirbnbCircuit(45_000));
+    const t0 = Date.now();
+    await silence(() =>
+      jouer(
+        (async () => {
+          prioriserSuiteAirbnb([annonce(4500201), annonce(4500202)]);
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    const t = pagesRooms().map((d) => d.t - t0);
+    assert.equal(t.length, 2);
+    // La pause et 5 s de marge, comme avant : pas de palier de 2 min.
+    assert.ok(t[0] >= 45_000 && t[0] < 60_000, `${t[0]} ms`);
+    assert.ok(t[1] - t[0] >= 5_000 && t[1] - t[0] < 6_000, `${t[1] - t[0]} ms`);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+
+  it("pendant un recul, une annonce sans point qu'on ouvre part tout de suite ; une annonce à point attend", async () => {
+    const { prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    partir();
+    let n = 0;
+    repondre = (url) => {
+      if (!url.includes("/rooms/")) return { html: page() };
+      n += 1;
+      return n <= 2 ? { status: 429 } : LUE();
+    };
+    let avantOuverture = -1;
+    let ouverture = 0;
+    await silence(() =>
+      jouer(
+        (async () => {
+          prioriserSuiteAirbnb([annonce(4500301)]);
+          // Deux refus : la pause (jusque vers 50 s), puis un recul de 2 min,
+          // jusque vers 170 s ; le coupe-circuit, lui, se ferme vers 95 s.
+          await attendre(110_000);
+          prioriserSuiteAirbnb([annonce(4500302)]);
+          await attendre(10_000);
+          avantOuverture = pagesRooms().length;
+          ouverture = Date.now();
+          prioriserSuiteAirbnb([annonce(4500303, { lat: null, lon: null })]);
+          await finDeSuite();
+        })(),
+        250,
+      ),
+    );
+    assert.equal(avantOuverture, 2, "rien pendant le recul, pas même l'annonce à point ouverte");
+    const p = pagesRooms();
+    assert.equal(p.length, 5);
+    assert.ok(
+      p[2].url.endsWith("/rooms/4500303") && p[2].t - ouverture < 5_000,
+      `${p[2].url} à ${p[2].t - ouverture} ms`,
+    );
+    assert.deepEqual(numeros().slice(3), [4500302, 4500301]);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+
+  it("un relevé lancé pendant l'attente de l'écart : aucune page ne part à côté de lui, toutes partent ensuite", async () => {
+    const { prioriserSuiteAirbnb, pendantReleveAirbnb } =
+      await import("./completerFiche.server.ts");
+    partir();
+    repondre = LUE;
+    let pendant = -1;
+    let finReleve = 0;
+    await silence(() =>
+      jouer(
+        (async () => {
+          prioriserSuiteAirbnb([annonce(4500501), annonce(4500502), annonce(4500503)]);
+          // La première page partie, la suite attend 5 s avant la deuxième : le relevé arrive à 2 s.
+          while (pagesRooms().length === 0) await attendre(100);
+          await attendre(2_000);
+          let finir: () => void = () => undefined;
+          const releve = pendantReleveAirbnb(() => new Promise<void>((ok) => (finir = ok)));
+          await attendre(30_000);
+          pendant = pagesRooms().length;
+          finReleve = Date.now();
+          finir();
+          await releve;
+          await finDeSuite();
+        })(),
+        50,
+      ),
+    );
+    assert.equal(pendant, 1, "aucune page rooms/ pendant le relevé");
+    const p = pagesRooms();
+    assert.equal(p.length, 3);
+    assert.ok(p[1].t >= finReleve, `deuxième page ${finReleve - p[1].t} ms avant la fin du relevé`);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+});

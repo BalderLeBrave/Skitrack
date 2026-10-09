@@ -64,22 +64,28 @@ headers_global = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 }
 
-def fetch_stays_search_hash(proxy_url: str = "", timeout: Timeout = DEFAULT_TIMEOUT) -> str:
+def fetch_stays_search_hash(
+    proxy_url: str = "", timeout: Timeout = DEFAULT_TIMEOUT, homepage_text: str | None = None
+) -> str:
+    """`homepage_text` : la page d'accueil déjà lue pour la clé (`api.get_with_body`).
+    Sans le paquet `asyncRequire` dedans, la page est redemandée, comme avant."""
     proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
     headers = {"User-Agent": headers_global["User-Agent"]}
-
-    homepage = requests.get(
-        "https://www.airbnb.com/",
-        headers=headers,
-        proxies=proxies,
-        impersonate="chrome124",
-        timeout=timeout,
-    )
-    homepage.raise_for_status()
-
-    bundle_match = re.compile(
+    bundle_re = re.compile(
         r"https://a0\.muscache\.com/airbnb/static/packages/web/[^/]+/frontend/airmetro/browser/asyncRequire\.[^\"']+\.js"
-    ).search(homepage.text)
+    )
+
+    bundle_match = bundle_re.search(homepage_text) if homepage_text else None
+    if not bundle_match:
+        homepage = requests.get(
+            "https://www.airbnb.com/",
+            headers=headers,
+            proxies=proxies,
+            impersonate="chrome124",
+            timeout=timeout,
+        )
+        homepage.raise_for_status()
+        bundle_match = bundle_re.search(homepage.text)
     if not bundle_match:
         raise RuntimeError("Unable to locate StaysSearch bundle")
 

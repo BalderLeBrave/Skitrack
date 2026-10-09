@@ -22,6 +22,56 @@ export const ORIGINE_HOMETOGO = "https://www.hometogo.fr";
 export const LOT_DETAILS = 12;
 /** Garde-fou, pas une lecture de la source. L'arrêt normal est la dernière page. */
 export const PAGES_MAX = 30;
+/** Phrase d'une offre rendue sans que `/searchdetails` ait été lu. */
+export const DETAIL_NON_LU = "détail HomeToGo non lu";
+
+/** Les identifiants dont le détail n'a pas été lu, dans l'ordre reçu. */
+export function idsSansDetail(ids: readonly string[], detailles: ReadonlySet<string>): string[] {
+  return ids.filter((id) => id && !detailles.has(id));
+}
+
+/** Découpe en lots de `taille`, le lot du site par défaut. */
+export function lotsDe(ids: readonly string[], taille = LOT_DETAILS): string[][] {
+  const out: string[][] = [];
+  for (let i = 0; i < ids.length; i += taille) out.push(ids.slice(i, i + taille));
+  return out;
+}
+
+/** Le détail n'a pas été lu : la phrase le dit. Déjà lue, l'annonce ne change pas. */
+export function avecDetailOuNon(l: Listing, detailLu: boolean): Listing {
+  if (detailLu || l.proven.includes(DETAIL_NON_LU)) return l;
+  return { ...l, proven: `${l.proven} · ${DETAIL_NON_LU}` };
+}
+
+/**
+ * Les lots de détail qu'une recherche n'a pas eu le temps de lire.
+ *
+ * Une pause avant chaque lot. Un refus ou l'échéance arrête, sans second
+ * essai et sans lot suivant. `noter` ne voit que les offres qu'un lot a
+ * publiées.
+ */
+export async function lireDetailsEnRetard(
+  lots: readonly (readonly string[])[],
+  opts: {
+    tirer: (ids: readonly string[]) => Promise<Record<string, unknown>[] | "refus" | "échéance">;
+    noter: (ids: readonly string[], offres: readonly Record<string, unknown>[]) => void;
+    attendre: (ms: number) => Promise<void>;
+    maintenant: () => number;
+    echeance: number;
+    pauseMs: number;
+  },
+): Promise<"fin" | "refus" | "échéance"> {
+  for (const lot of lots) {
+    if (opts.maintenant() >= opts.echeance) return "échéance";
+    await opts.attendre(opts.pauseMs);
+    if (opts.maintenant() >= opts.echeance) return "échéance";
+    const tour = await opts.tirer(lot);
+    if (tour === "refus") return "refus";
+    if (tour === "échéance") return "échéance";
+    opts.noter(lot, tour);
+  }
+  return "fin";
+}
 
 export function nuits(checkIn: string, checkOut: string): number | null {
   const a = Date.parse(`${checkIn}T00:00:00Z`);

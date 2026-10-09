@@ -8,6 +8,12 @@ import {
   pageSuivante,
   prixAffiche,
   slugsLieu,
+  avecDetailOuNon,
+  idsSansDetail,
+  lireDetailsEnRetard,
+  lotsDe,
+  DETAIL_NON_LU,
+  LOT_DETAILS,
 } from "./hometogo.ts";
 import type { LiveSearchInput } from "./types.ts";
 
@@ -172,5 +178,98 @@ describe("offre", () => {
     assert.equal(row?.total, 0);
     assert.equal(row?.priceIndicative, true);
     assert.equal(row?.priceLabel, "14 €");
+  });
+});
+
+describe("détail en retard", () => {
+  it("repère les identifiants encore sans détail", () => {
+    assert.deepEqual(idsSansDetail(["a", "b", "", "c"], new Set(["b"])), ["a", "c"]);
+  });
+
+  it("découpe au lot du site, le dernier peut être plus court", () => {
+    const ids = Array.from({ length: LOT_DETAILS + 1 }, (_, i) => `id${i}`);
+    const lots = lotsDe(ids);
+    assert.equal(lots.length, 2);
+    assert.equal(lots[0]?.length, LOT_DETAILS);
+    assert.deepEqual(lots[1], [`id${LOT_DETAILS}`]);
+  });
+
+  it("marque une offre non détaillée, une seule fois", () => {
+    const row = offreEnListing({ id: "abc123", title: "Chalet" }, INPUT, "5460aec004a18", 7);
+    assert.ok(row);
+    const marquee = avecDetailOuNon(row, false);
+    assert.match(marquee.proven, new RegExp(DETAIL_NON_LU));
+    assert.equal(avecDetailOuNon(marquee, false), marquee);
+    assert.equal(avecDetailOuNon(row, true), row);
+  });
+
+  it("un refus n'appelle ni le lot suivant ni noter", async () => {
+    const vus: string[][] = [];
+    const notes: string[] = [];
+    const arret = await lireDetailsEnRetard([["a"], ["b"]], {
+      tirer: async (ids) => {
+        vus.push([...ids]);
+        return "refus";
+      },
+      noter: (ids) => notes.push(ids.join(",")),
+      attendre: async () => undefined,
+      maintenant: () => 0,
+      echeance: 10,
+      pauseMs: 1,
+    });
+    assert.equal(arret, "refus");
+    assert.deepEqual(vus, [["a"]]);
+    assert.deepEqual(notes, []);
+  });
+
+  it("une échéance avant le premier lot n'appelle pas tirer", async () => {
+    let appels = 0;
+    const arret = await lireDetailsEnRetard([["a"]], {
+      tirer: async () => {
+        appels += 1;
+        return [];
+      },
+      noter: () => undefined,
+      attendre: async () => undefined,
+      maintenant: () => 20,
+      echeance: 10,
+      pauseMs: 1,
+    });
+    assert.equal(arret, "échéance");
+    assert.equal(appels, 0);
+  });
+
+  it("une échéance après la pause n'appelle pas tirer", async () => {
+    let t = 0;
+    let appels = 0;
+    const arret = await lireDetailsEnRetard([["a"]], {
+      tirer: async () => {
+        appels += 1;
+        return [];
+      },
+      noter: () => undefined,
+      attendre: async () => {
+        t = 20;
+      },
+      maintenant: () => t,
+      echeance: 10,
+      pauseMs: 1,
+    });
+    assert.equal(arret, "échéance");
+    assert.equal(appels, 0);
+  });
+
+  it("un lot réussi est noté, puis le suivant est lu", async () => {
+    const notes: string[] = [];
+    const arret = await lireDetailsEnRetard([["a"], ["b"]], {
+      tirer: async (ids) => [{ id: ids[0] }],
+      noter: (ids, offres) => notes.push(`${ids.join(",")}:${offres.length}`),
+      attendre: async () => undefined,
+      maintenant: () => 0,
+      echeance: 10,
+      pauseMs: 1,
+    });
+    assert.equal(arret, "fin");
+    assert.deepEqual(notes, ["a:1", "b:1"]);
   });
 });

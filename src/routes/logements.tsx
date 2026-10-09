@@ -77,6 +77,7 @@ import {
   lireSuiteAirbnb,
   lireSuiteBooking,
   lireSuiteGites,
+  lireSuiteHomeToGo,
   completerReleve,
   PAUSE_DELAI,
   SEARCH_PART_MS,
@@ -248,6 +249,9 @@ const SUITES_BOOKING_MAX = 24;
 /** La suite ITEA lit une fiche toutes les ~2 s. Huit minutes de relecture. */
 const SUITE_GITES_MS = 8_000;
 const SUITES_GITES_MAX = 60;
+/** La suite HomeToGo lit un lot de détails toutes les ~2 s. Huit minutes de relecture. */
+const SUITE_HTG_MS = 8_000;
+const SUITES_HTG_MAX = 60;
 
 /**
  * Une annonce Airbnb à qui il manque GPS, capacité ou chambres, et que la
@@ -327,6 +331,8 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     let toursBooking = 0;
     let gitesTimer: ReturnType<typeof setTimeout> | null = null;
     let toursGites = 0;
+    let htgTimer: ReturnType<typeof setTimeout> | null = null;
+    let toursHtg = 0;
     // Trous, et annonces Airbnb sans fiche : la mémoire se pose sans réseau.
     const aRelireMaintenant = (rows: readonly Listing[]) => rows.filter(aRelire);
     const planifierRelecture = (rows: readonly Listing[]) => {
@@ -422,6 +428,32 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           if (!cancelled && toursGites < SUITES_GITES_MAX) gitesTimer = setTimeout(relireGites, SUITE_GITES_MS);
         });
     };
+    const relireHomeToGo = () => {
+      if (cancelled || !station) return;
+      toursHtg += 1;
+      void lireSuiteHomeToGo({
+        data: {
+          stationId: station.id,
+          stationName: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          checkIn,
+          checkOut,
+          guests,
+          bedrooms,
+        },
+      })
+        .then((rows) => {
+          if (cancelled || rows.length === 0) return;
+          // Déjà à l'écran : le détail remplace. Un squelette qui gagne un titre s'ajoute.
+          patchLive(rows);
+          ajouterLive(rows);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled && toursHtg < SUITES_HTG_MAX) htgTimer = setTimeout(relireHomeToGo, SUITE_HTG_MS);
+        });
+    };
     const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "hometogo" | "agences") => {
       const wait =
         part === "gites"
@@ -438,6 +470,14 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           }
           if (part === "gites" && toursGites === 0 && res.listings.some((l) => /fiche ITEA non lue/.test(l.proven))) {
             relireGites();
+          }
+          if (
+            part === "hometogo" &&
+            toursHtg === 0 &&
+            (res.sources.some((s) => /détail en suite/.test(s.note ?? "")) ||
+              res.listings.some((l) => /détail HomeToGo non lu/.test(l.proven)))
+          ) {
+            relireHomeToGo();
           }
           if (res.listings.length > 0) {
             mergeLive(res.listings, res.sources);
@@ -551,6 +591,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       if (suiteTimer) clearTimeout(suiteTimer);
       if (bookingTimer) clearTimeout(bookingTimer);
       if (gitesTimer) clearTimeout(gitesTimer);
+      if (htgTimer) clearTimeout(htgTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);

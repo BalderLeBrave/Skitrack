@@ -2,11 +2,17 @@
  * Relevé HomeToGo : la page du lieu, puis la recherche JSON autorisée,
  * page par page, puis le détail des offres que la liste laisse creuses.
  *
- * Une requête à la fois, une seconde entre deux. Un 403, un 429 ou un 503
- * arrête le domaine, sans second essai. L'échéance rend ce qui est déjà lu.
+ * Une requête à la fois, une seconde entre deux pendant la recherche. Ce qui
+ * n'a pas été détaillé dans le délai part ensuite, un lot toutes les deux
+ * secondes, huit minutes au plus. Un 403, un 429 ou un 503 arrête, sans
+ * second essai. L'écran Prix ne lance pas cette suite. L'échéance de la
+ * recherche rend ce qui est déjà lu.
  */
 
 import type { Listing } from "@/lib/listings";
+import { attachAccess } from "../access.ts";
+import { stationById } from "../stations.ts";
+import { qualifierLogement } from "../stay/logement.ts";
 import { UA_NAVIGATEUR } from "./navigateur.ts";
 import { allowsPath } from "./robots.ts";
 import { sansDoublons, stationsDuReleve } from "./domaine.ts";
@@ -15,9 +21,13 @@ import {
   LOT_DETAILS,
   ORIGINE_HOMETOGO,
   PAGES_MAX,
+  avecDetailOuNon,
   compteurPublie,
   fondreOffre,
+  idsSansDetail,
   lieuDepuisHtml,
+  lireDetailsEnRetard,
+  lotsDe,
   nuits,
   offreEnListing,
   offresDe,
@@ -28,6 +38,10 @@ import {
 
 const PAUSE_MS = 1_000;
 const DELAI_MS = 15_000;
+/** La suite de détails, après la réponse : plus lente que la recherche. */
+const PAUSE_SUITE_MS = 2_000;
+const SUITE_MAX_MS = 8 * 60 * 1000;
+const MEMOIRE_MS = 60 * 60 * 1000;
 
 export type ReleveHomeToGo = {
   listings: Listing[];
@@ -144,6 +158,12 @@ function urlDetails(lieu: LieuHomeToGo, input: LiveSearchInput, nuitsSejour: num
 
 type PageLue = { offres: Record<string, unknown>[]; compteur: number | null; suivante: number | null };
 
+type ResteDetail = { ids: string[]; offres: Record<string, unknown>[] };
+
+function idOffre(o: Record<string, unknown>): string | null {
+  return typeof o.id === "string" && o.id ? o.id : null;
+}
+
 async function lirePage(
   url: string,
   echeance: number,
@@ -171,11 +191,12 @@ async function releverStation(
   nuitsSejour: number,
   echeance: number,
   pause: { fait: boolean },
-): Promise<{ listings: Listing[]; annoncees: number | null; raison: string | null }> {
+): Promise<{ listings: Listing[]; annoncees: number | null; raison: string | null; refus: boolean; reste: ResteDetail }> {
   const parId = new Map<string, Record<string, unknown>>();
   let annoncees: number | null = null;
   let page = 1;
   let raison: string | null = null;
+  let refus = false;
   for (let n = 0; n < PAGES_MAX; n += 1) {
     if (Date.now() >= echeance) {
       raison = "échéance";
@@ -185,13 +206,13 @@ async function releverStation(
     pause.fait = true;
     const tour = await lirePage(urlRecherche(lieu, input, nuitsSejour, page), echeance);
     if ("motif" in tour) {
-      raison = tour.detail === "échéance" ? "échéance" : tour.motif === "refus" ? tour.detail : tour.detail;
-      if (tour.motif === "refus") raison = tour.detail;
+      refus = tour.motif === "refus";
+      raison = tour.detail === "échéance" ? "échéance" : tour.detail;
       break;
     }
     if (tour.compteur != null) annoncees = tour.compteur;
     for (const o of tour.offres) {
-      const id = typeof o.id === "string" ? o.id : null;
+      const id = idOffre(o);
       if (id && !parId.has(id)) parId.set(id, o);
     }
     if (tour.offres.length === 0 || tour.suivante == null) break;
@@ -203,7 +224,8 @@ async function releverStation(
     const tb = typeof b.title === "string" || typeof b.name === "string" ? 1 : 0;
     return ta - tb;
   });
-  const ids = ordre.map((o) => (typeof o.id === "string" ? o.id : "")).filter(Boolean);
+  const ids = ordre.map((o) => idOffre(o)).filter((id): id is string => id != null);
+  const detailles = new Set<string>();
   for (let i = 0; i < ids.length && raison == null; i += LOT_DETAILS) {
     if (Date.now() >= echeance) {
       raison = "échéance";
@@ -223,24 +245,153 @@ async function releverStation(
     pause.fait = true;
     const tour = await lire(urlDetails(lieu, input, nuitsSejour, lot), echeance);
     if (estArret(tour)) {
+      refus = tour.motif === "refus";
       raison = tour.detail === "échéance" ? "échéance" : tour.detail;
       break;
     }
     const json = jsonDe(tour.texte);
     if (json && typeof json === "object" && "motif" in json) {
-      raison = (json as Arret).detail;
+      const arret = json as Arret;
+      refus = arret.motif === "refus";
+      raison = arret.detail;
       break;
     }
     for (const d of offresDe(json)) {
-      const id = typeof d.id === "string" ? d.id : null;
+      const id = idOffre(d);
       if (!id) continue;
+      detailles.add(id);
       parId.set(id, fondreOffre(parId.get(id) ?? { id }, d));
     }
   }
-  const listings = [...parId.values()]
-    .map((o) => offreEnListing(o, input, lieu.locationId, nuitsSejour))
+  const listings = ids
+    .map((id) => {
+      const o = parId.get(id);
+      if (!o) return null;
+      const row = offreEnListing(o, input, lieu.locationId, nuitsSejour);
+      return row ? avecDetailOuNon(row, detailles.has(id)) : null;
+    })
     .filter((l): l is Listing => l != null);
-  return { listings, annoncees, raison };
+  const manquants = idsSansDetail(ids, detailles);
+  return {
+    listings,
+    annoncees,
+    raison,
+    refus,
+    reste: { ids: manquants, offres: manquants.map((id) => parId.get(id) ?? { id }) },
+  };
+}
+
+type ResteStation = { input: LiveSearchInput; lieu: LieuHomeToGo; offres: Record<string, unknown>[] };
+
+function publier(
+  o: Record<string, unknown>,
+  st: LiveSearchInput,
+  lieu: LieuHomeToGo,
+  recherche: LiveSearchInput,
+): Listing | null {
+  const nuitsSejour = nuits(recherche.checkIn, recherche.checkOut);
+  if (nuitsSejour == null) return null;
+  const row = offreEnListing(o, st, lieu.locationId, nuitsSejour);
+  if (!row) return null;
+  const aligne = row.stationId === recherche.stationId ? row : { ...row, stationId: recherche.stationId };
+  const q = qualifierLogement(aligne);
+  const station = stationById(recherche.stationId);
+  return station ? attachAccess(q, station) : q;
+}
+
+type MemoireHomeToGo = { a: number; listings: Listing[]; enCours: boolean; finie: boolean };
+const htgGlobal = globalThis as typeof globalThis & { __skitrackSuiteHomeToGo__?: Map<string, MemoireHomeToGo> };
+
+function memoiresHomeToGo(): Map<string, MemoireHomeToGo> {
+  return (htgGlobal.__skitrackSuiteHomeToGo__ ??= new Map());
+}
+
+export function cleSuiteHomeToGo(
+  input: Pick<LiveSearchInput, "stationId" | "checkIn" | "checkOut" | "guests" | "bedrooms">,
+): string {
+  return `${input.stationId}|${input.checkIn}|${input.checkOut}|${input.guests}|${input.bedrooms}`;
+}
+
+/** Les détails déjà lus en tâche de fond. Aucun appel réseau. */
+export function lireMemoireHomeToGo(
+  input: Pick<LiveSearchInput, "stationId" | "checkIn" | "checkOut" | "guests" | "bedrooms">,
+): Listing[] {
+  const cle = cleSuiteHomeToGo(input);
+  const s = memoiresHomeToGo().get(cle);
+  if (!s) return [];
+  if (!s.enCours && Date.now() - s.a > MEMOIRE_MS) {
+    memoiresHomeToGo().delete(cle);
+    return [];
+  }
+  return s.listings;
+}
+
+function lancerSuiteHomeToGo(recherche: LiveSearchInput, restes: readonly ResteStation[]): void {
+  const utiles = restes.filter((r) => r.offres.length > 0);
+  if (!recherche.domaine || utiles.length === 0) return;
+  const map = memoiresHomeToGo();
+  for (const s of map.values()) if (s.enCours) return;
+  const cle = cleSuiteHomeToGo(recherche);
+  const etat = map.get(cle);
+  if (etat?.finie && Date.now() - etat.a < MEMOIRE_MS) return;
+  const connus = new Set((etat?.listings ?? []).map((l) => l.platformId).filter((id): id is string => !!id));
+  const lots: { st: LiveSearchInput; lieu: LieuHomeToGo; ids: string[]; parId: Map<string, Record<string, unknown>> }[] = [];
+  for (const r of utiles) {
+    const ids = r.offres.map((o) => idOffre(o)).filter((id): id is string => id != null && !connus.has(id));
+    if (ids.length === 0) continue;
+    lots.push({ st: r.input, lieu: r.lieu, ids, parId: new Map(r.offres.map((o) => [idOffre(o) ?? "", o])) });
+  }
+  const plat = lots.flatMap((l) => lotsDe(l.ids).map((ids) => ({ ...l, ids })));
+  if (plat.length === 0) return;
+  const nuitsSejour = nuits(recherche.checkIn, recherche.checkOut);
+  if (nuitsSejour == null) return;
+  const listings = [...(etat?.listings ?? [])];
+  map.set(cle, { a: Date.now(), listings, enCours: true, finie: false });
+  const echeance = Date.now() + SUITE_MAX_MS;
+  void lireDetailsEnRetard(
+    plat.map((p) => p.ids),
+    {
+      pauseMs: PAUSE_SUITE_MS,
+      echeance,
+      maintenant: () => Date.now(),
+      attendre: dormir,
+      tirer: async (ids) => {
+        const lot = plat.find((p) => p.ids === ids);
+        if (!lot) return "échéance";
+        const tour = await lire(urlDetails(lot.lieu, lot.st, nuitsSejour, ids), echeance);
+        if (estArret(tour)) return tour.motif === "refus" ? "refus" : "échéance";
+        const json = jsonDe(tour.texte);
+        if (json && typeof json === "object" && "motif" in json) {
+          return (json as Arret).motif === "refus" ? "refus" : "échéance";
+        }
+        return offresDe(json);
+      },
+      noter: (ids, offres) => {
+        const lot = plat.find((p) => p.ids === ids);
+        if (!lot) return;
+        const par = new Map(offres.map((o) => [idOffre(o) ?? "", o]));
+        for (const id of ids) {
+          const base = lot.parId.get(id) ?? { id };
+          const fusion = fondreOffre(base, par.get(id) ?? null);
+          const row = publier(fusion, lot.st, lot.lieu, recherche);
+          if (!row) continue;
+          const deja = listings.findIndex((l) => l.id === row.id);
+          if (deja >= 0) listings[deja] = row;
+          else listings.push(row);
+        }
+        const s = map.get(cle);
+        if (s) s.a = Date.now();
+      },
+    },
+  )
+    .then((arret) => {
+      map.set(cle, { a: Date.now(), listings, enCours: false, finie: arret !== "échéance" });
+      console.info(`[hometogo] suite ${cle} : ${listings.length} détail(s), arrêt « ${arret} »`);
+    })
+    .catch(() => {
+      const s = map.get(cle);
+      if (s) s.enCours = false;
+    });
 }
 
 export async function releverHomeToGo(input: LiveSearchInput, opts: { echeance: number }): Promise<ReleveHomeToGo> {
@@ -248,8 +399,10 @@ export async function releverHomeToGo(input: LiveSearchInput, opts: { echeance: 
   if (nuitsSejour == null) return { listings: [], annoncees: null, raison: "dates illisibles" };
   const pause = { fait: false };
   const listings: Listing[] = [];
+  const restes: ResteStation[] = [];
   let annoncees: number | null = null;
   let raison: string | null = null;
+  let refus = false;
   const manques: string[] = [];
   const stations = stationsDuReleve(input);
   for (const st of stations) {
@@ -259,6 +412,7 @@ export async function releverHomeToGo(input: LiveSearchInput, opts: { echeance: 
     }
     const lieu = await resoudreLieu(st, opts.echeance, pause);
     if (lieu && typeof lieu === "object" && "motif" in lieu) {
+      refus = lieu.motif === "refus";
       raison = lieu.detail === "échéance" ? "échéance" : lieu.detail;
       break;
     }
@@ -268,16 +422,21 @@ export async function releverHomeToGo(input: LiveSearchInput, opts: { echeance: 
     }
     const tour = await releverStation(st, lieu, nuitsSejour, opts.echeance, pause);
     listings.push(...tour.listings);
+    if (tour.reste.offres.length) restes.push({ input: st, lieu, offres: tour.reste.offres });
     if (stations.length === 1) annoncees = tour.annoncees;
+    if (tour.refus) refus = true;
     if (tour.raison) {
       raison = tour.raison;
       break;
     }
   }
+  if (!refus) lancerSuiteHomeToGo(input, restes);
+  const nSuite = restes.reduce((s, r) => s + r.offres.length, 0);
+  const noteSuite = !refus && input.domaine && nSuite > 0 ? `détail en suite : ${nSuite}` : null;
   const noteLieu = manques.length ? `${manques.join(", ")} : lieu non publié par HomeToGo` : null;
   return {
     listings: sansDoublons(listings),
     annoncees,
-    raison: [raison && raison !== "échéance" ? `arrêté en route — ${raison}` : raison, noteLieu].filter(Boolean).join(" · ") || null,
+    raison: [raison && raison !== "échéance" ? `arrêté en route — ${raison}` : raison, noteSuite, noteLieu].filter(Boolean).join(" · ") || null,
   };
 }

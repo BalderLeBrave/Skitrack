@@ -632,13 +632,13 @@
   },
   "www.labresse.net": {
    "nom": "La Bresse Hohneck",
-   "moteur": "Open System",
+   "moteur": "Ingénie",
    "stations": [
     "la-bresse-hohneck"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Identifié le 20 septembre 2026 : Open System, cinq empreintes sur sa page d'accueil. L'audit l'avait laissé « inconnu ». Reste à savoir de quelle génération il relève — la moderne rend ses résultats côté serveur, l'ancienne les peint en JavaScript."
+   "corrige": "L'accueil de l'office charge un panier Open System, sans recherche datée. Le 9 octobre 2026, le lien « La Bresse Réservation » mène à reservation.labresse.net, formulaire Ingénie cid 3, catégorie G. Vingt-quatre meublés du 6 février 2027 : le même logement double presque sur quatorze nuits (929 € puis 1 826 €)."
   },
   "www.ballons-hautes-vosges.com": {
    "nom": "Saint Maurice sur Moselle",

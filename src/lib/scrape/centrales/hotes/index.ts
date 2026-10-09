@@ -8,11 +8,11 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-neuf ; vingt-neuf en ont un ici. Vingt-sept d'entre eux s'interrogent
- * vraiment et couvrent quarante-neuf stations ; les deux autres racontent un
+ * soixante-neuf ; trente en ont un ici. Vingt-huit d'entre eux s'interrogent
+ * vraiment et couvrent cinquante stations ; les deux autres racontent un
  * empêchement qui leur est propre, et que la phrase de leur moteur dirait mal.
  *
- * Pour les quarante autres centrales, `registre.ts` sait déjà nommer le
+ * Pour les trente-neuf autres centrales, `registre.ts` sait déjà nommer le
  * moteur. Celles d'Ingénie sans fichier passent par `chercherIngenieHote`.
  * Celles d'Orchestra sans fichier passent par `chercherOrchestraHote` : les
  * destinations sont les liens que l'accueil publie. Pour les autres,
@@ -32,6 +32,7 @@ import { flaine } from "./flaine";
 import { foretBlanche } from "./foretBlanche";
 import { hauteMaurienneVanoise } from "./hauteMaurienneVanoise";
 import { isola2000 } from "./isola2000";
+import { laBresse } from "./laBresse";
 import { laClusaz } from "./laClusaz";
 import { laPlagne } from "./laPlagne";
 import { lesArcs } from "./lesArcs";
@@ -73,12 +74,14 @@ const TOUS: readonly Connecteur[] = [
   lesArcs,
   laPlagne,
   combloux,
-  // Ingénie : quatre centrales avec cid relevé. Les autres passent par
-  // chercherIngenieHote dans chercher.server.ts, cid lu sur l'accueil.
+  // Ingénie : quatre centrales avec cid relevé, plus La Bresse dont
+  // l'office publie le lien vers reservation.labresse.net. Les autres
+  // passent par chercherIngenieHote dans chercher.server.ts, cid lu sur l'accueil.
   foretBlanche,
   lesContamines,
   valmeinier,
   valdAllos,
+  laBresse,
   // Open System, génération ancienne : le widget publie un loginAPI.
   lesSybelles,
   devoluy,

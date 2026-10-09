@@ -91,7 +91,9 @@ export function chargerGrillesForfaits(): Promise<void> {
     // Ramenées ensemble : une station couverte par l'un des lots ne prend pas
     // la grille d'un village dans un autre.
     useGrillesForfaits.setState({ grilles: ramenerAuxStations([...officielles, ...migrees]) });
-    const magasin = grillesDuMagasin(await releveServeur(), migrees);
+    const rejets: string[] = [];
+    const magasin = grillesDuMagasin(await releveServeur(), migrees, rejets);
+    if (rejets.length) console.warn("[forfaits] relevé serveur : tarifs rejetés au contrôle", rejets);
     if (magasin.length)
       useGrillesForfaits.setState({
         grilles: ramenerAuxStations([...officielles, ...magasin, ...migrees]),

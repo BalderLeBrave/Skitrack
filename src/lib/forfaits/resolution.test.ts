@@ -442,6 +442,33 @@ describe("station qui ne vend que la journée : les journées additionnées", ()
     assert.equal(r.drapeaux.journeesAdditionnees, false);
     assert.equal(r.drapeaux.saisonAnterieure, true);
   });
+
+  it("un forfait semaine publié par une autre grille de la station interdit l'addition (Grand Massif, 7 jours)", () => {
+    // La grille officielle ne publie que la journée, le catalogue le 6 jours :
+    // 7 jours de ski s'affichaient « 7 × 60,70 € », « aucun forfait de plusieurs jours publié ».
+    const officielle = grille([periode("Saison", "2026-12-19", "2027-04-18", [tarif(1, 60.7)])], {
+      stationIds: ["flaine"],
+      perimetre: { type: "domaine", cle: "domaine:grand-massif", nom: "Le Grand Massif" },
+    });
+    const catalogue = grille([periode("Saison", "2026-12-19", "2027-04-18", [tarif(6, 288)])], {
+      origine: "catalogue",
+      confiance: "faible",
+      stationIds: ["flaine"],
+      perimetre: { type: "domaine", cle: "domaine:grand-massif", nom: "Le Grand Massif" },
+    });
+    const flaine = { id: "flaine" };
+    const sept = resolvePassPrice(
+      flaine,
+      { arrivee: "2027-02-06", depart: "2027-02-14" },
+      opts([officielle, catalogue]),
+    );
+    assert.equal(sept.statut, "duree-absente");
+    // Six jours de ski : le 6 jours du catalogue, comme avant.
+    const six = resolu(
+      resolvePassPrice(flaine, { arrivee: "2027-02-06", depart: "2027-02-13" }, opts([officielle, catalogue])),
+    );
+    assert.equal(six.prix, 288);
+  });
 });
 
 /* ---------- Grille trop ancienne ---------- */

@@ -102,6 +102,22 @@ describe("migration : lecture des libellés", () => {
       des: "12:30",
     });
     assert.deepEqual(d("1 Jour à 13:00"), { type: "partielle", heures: null, des: "13:00" });
+    // Abondance, relevé du 4 octobre 2026 : lu comme une journée à 14,10 €.
+    assert.deepEqual(d("Fin de journée (à partir de 15h)"), {
+      type: "partielle",
+      heures: null,
+      des: "15:00",
+    });
+    assert.deepEqual(d("Journée dès 12h"), { type: "partielle", heures: null, des: "12:00" });
+    assert.deepEqual(d("Fin de journée"), { type: "partielle", heures: null, des: null });
+    assert.deepEqual(d("Après-midi"), { type: "partielle", heures: null, des: null });
+    assert.deepEqual(d("Matinée"), { type: "partielle", heures: null, des: null });
+    // Le Lioran et Sainte-Foy : l'heure de fin était lue comme une durée (15 h, 17 h).
+    assert.deepEqual(d("Fin d'après-midi (15h – 17h)"), { type: "partielle", heures: null, des: null });
+    assert.deepEqual(d("Après-midi 12h45-17h"), { type: "partielle", heures: null, des: null });
+    // Une heure sans « à partir de » ni « dès », ou sans le mot « jour », reste ce qu'elle était.
+    assert.deepEqual(d("1 jour XL (9h-20h)"), { type: "jours", jours: 1 });
+    assert.deepEqual(d("3h à partir de 14h"), { type: "partielle", heures: 3, des: null });
     assert.deepEqual(d("Montée et descente"), { type: "autre" });
   });
 

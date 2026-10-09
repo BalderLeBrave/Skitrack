@@ -19,13 +19,22 @@
  *   plus cher que la journée ; sinon la grille entière est rejetée, parce que
  *   c'est le signe d'une colonne mal lue. Une autre durée moins chère que la
  *   précédente est rejetée seule.
- * - **Le plancher de la journée** : dans une période, un forfait adulte
- *   ordinaire de plusieurs jours, ou de saison, ne coûte pas moins que la
- *   journée adulte la moins chère, quel que soit son libellé de catégorie. La
- *   règle précédente ne compare qu'à libellé égal : Flaine, relevé du
- *   4 octobre 2026, gardait « 2 à 7 jours consécutifs » à 29 € et « Saison »
- *   à 59 € en « Tarif unique », à côté d'une journée « Normal » à 60,70 € —
- *   une option lue comme un forfait, affichée comme son 6 jours. Rejeté seul.
+ * - **Le plancher de la journée** : un forfait adulte ordinaire de plusieurs
+ *   jours (ou de semaine) coûte au moins `PLANCHER.plusieursJours` fois la
+ *   journée adulte la moins chère, une saison au moins `PLANCHER.saison` fois,
+ *   quel que soit son libellé de catégorie. La journée de référence est celle
+ *   de la période, à défaut celle de la grille. La règle précédente ne
+ *   compare qu'à libellé égal : Flaine, relevé du 4 octobre 2026, gardait
+ *   « 2 à 7 jours consécutifs » à 29 € et « Saison » à 59 € en « Tarif
+ *   unique », à côté d'une journée « Normal » à 60,70 € — une option lue comme
+ *   un forfait, affichée comme son 6 jours. Les seuils viennent des grilles du
+ *   4 octobre 2026 : les vrais forfaits de deux jours et plus valent au moins
+ *   1,67 journée (Col de l'Arzelier, 25 € pour 15 €), les vraies saisons au
+ *   moins 5 journées (Col du Feu, 50 € pour 10 €) ; les options lues comme
+ *   des forfaits, au plus 1,4 journée (Thollon) et 1,16 pour une saison
+ *   (Aravis, 43 € pour 37 €). Un produit sans journée à lui dont un tarif
+ *   tombe sous le plancher est une table d'options : il est rejeté en entier
+ *   dans la période, et non ligne par ligne.
  * - **La haute saison ne coûte pas moins que la basse** : sinon, grille
  *   rejetée.
  * - **Écart de plus de 30 %** avec la grille précédente du même forfait :
@@ -41,6 +50,9 @@ export const BORNES = {
   jourAdulte: { min: 5, max: 120 },
   sixJoursAdulte: { min: 30, max: 600 },
 } as const;
+
+/** Le prix minimal d'un forfait adulte long, en journées adultes (voir l'en-tête). */
+export const PLANCHER = { plusieursJours: 1.5, saison: 4 } as const;
 
 /** L'écart qui fait signaler une grille. */
 export const ECART_SIGNALE = 0.3;
@@ -58,6 +70,28 @@ const ordinaire = (t: Tarif) => t.restriction == null && !t.estime;
 const jours = (t: Tarif) => (t.duree.type === "jours" ? t.duree.jours : null);
 const cleProduit = (t: Tarif) => `${t.categorie}|${t.libelleCategorie}|${t.canal}`;
 const montant = (n: number) => `${String(n).replace(".", ",")} €`;
+
+/** La journée adulte ordinaire la moins chère de ces tarifs, dans les bornes ; `null` sans journée. */
+function journeeMin(tarifs: readonly Tarif[]): number | null {
+  const prix = tarifs
+    .filter(
+      (t) =>
+        ordinaire(t) &&
+        t.categorie === "adulte" &&
+        jours(t) === 1 &&
+        t.prix >= BORNES.jourAdulte.min &&
+        t.prix <= BORNES.jourAdulte.max,
+    )
+    .map((t) => t.prix);
+  return prix.length ? Math.min(...prix) : null;
+}
+
+/** Combien de journées un tarif long doit valoir au moins ; `null` s'il n'est pas long. */
+function facteurPlancher(t: Tarif): number | null {
+  if (t.duree.type === "saison") return PLANCHER.saison;
+  if (t.duree.type === "semaine" || (jours(t) ?? 0) >= 2) return PLANCHER.plusieursJours;
+  return null;
+}
 
 /** Le tarif de référence d'une grille : le 6 jours adulte, à défaut la
  *  journée, ordinaires, le plus élevé des périodes. */
@@ -97,6 +131,7 @@ export function controlerGrille(g: GrilleTarifaire, precedente?: GrilleTarifaire
   }
 
   // 2. Bornes, 3. la durée se paie, et 3 bis. le plancher de la journée.
+  const journeeGrille = journeeMin(g.periodes.flatMap((p) => p.tarifs));
   const periodes: Periode[] = [];
   for (const p of g.periodes) {
     let tarifs = p.tarifs.filter((t) => {
@@ -135,16 +170,36 @@ export function controlerGrille(g: GrilleTarifaire, precedente?: GrilleTarifaire
       }
     }
     // 3 bis. Le plancher de la journée, tous libellés de catégorie confondus.
-    const journees = tarifs.filter((t) => ordinaire(t) && t.categorie === "adulte" && jours(t) === 1);
-    if (journees.length) {
-      const plancher = Math.min(...journees.map((t) => t.prix));
+    const journeeP = journeeMin(tarifs);
+    const journee = journeeP ?? journeeGrille;
+    if (journee != null) {
+      const sousPlancher = (t: Tarif) => {
+        const facteur = facteurPlancher(t);
+        return facteur != null && ordinaire(t) && t.categorie === "adulte" && t.prix < facteur * journee;
+      };
+      const fautifs = tarifs.filter(sousPlancher);
+      // Un produit sans journée à lui, dont un tarif tombe sous le plancher :
+      // une table d'options, rejetée en entier dans la période.
+      const tables = new Set(
+        fautifs
+          .map(cleProduit)
+          .filter((k) => !tarifs.some((t) => cleProduit(t) === k && jours(t) === 1)),
+      );
+      const reference = `${journeeP != null ? "la journée adulte" : "la journée adulte de la grille"} (${montant(journee)})`;
       tarifs = tarifs.filter((t) => {
-        const long = (jours(t) ?? 0) >= 2 || t.duree.type === "semaine" || t.duree.type === "saison";
-        if (!ordinaire(t) || t.categorie !== "adulte" || !long || t.prix >= plancher) return true;
-        rejets.push(
-          `${nom}, « ${p.libelle} » : ${t.libelleDuree} ${t.libelleCategorie} à ${montant(t.prix)}, moins cher que la journée adulte (${montant(plancher)})`,
-        );
-        return false;
+        if (sousPlancher(t)) {
+          rejets.push(
+            `${nom}, « ${p.libelle} » : ${t.libelleDuree} ${t.libelleCategorie} à ${montant(t.prix)}, sous ${String(facteurPlancher(t)).replace(".", ",")} fois ${reference}`,
+          );
+          return false;
+        }
+        if (facteurPlancher(t) != null && ordinaire(t) && t.categorie === "adulte" && tables.has(cleProduit(t))) {
+          rejets.push(
+            `${nom}, « ${p.libelle} » : ${t.libelleDuree} ${t.libelleCategorie} à ${montant(t.prix)}, de la même table d'options`,
+          );
+          return false;
+        }
+        return true;
       });
     }
     if (tarifs.length) periodes.push({ ...p, tarifs });

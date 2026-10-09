@@ -128,8 +128,64 @@ describe("contrôle qualité d'une grille", () => {
       [60.7, 330],
     );
     assert.equal(c.rejets.length, 2);
-    assert.match(c.rejets[0], /2 à 7 jours consécutifs Tarif unique à 29 €, moins cher que la journée adulte \(60,7 €\)/);
-    assert.match(c.rejets[1], /Saison Tarif unique à 59 €/);
+    assert.match(c.rejets[0], /2 à 7 jours consécutifs Tarif unique à 29 €, sous 1,5 fois la journée adulte \(60,7 €\)/);
+    assert.match(c.rejets[1], /Saison Tarif unique à 59 €, sous 4 fois la journée adulte/);
+  });
+
+  it("le plancher grandit avec la durée : l'option de Flaine passe aussi sous une journée à 25 €", () => {
+    const c = controlerGrille(
+      grille([
+        periode("Saison entière", [
+          t(1, 25, { libelleCategorie: "Normal" }),
+          t(7, 29, { libelleDuree: "2 à 7 jours consécutifs", libelleCategorie: "Tarif unique" }),
+          { ...t(1, 59, { libelleCategorie: "Tarif unique" }), duree: { type: "saison" }, libelleDuree: "Saison" },
+          // La Clusaz - Manigod : une saison à 43 € pour une journée à 37 €.
+          { ...t(1, 43, { libelleCategorie: "Autre" }), duree: { type: "saison" }, libelleDuree: "Saison" },
+          t(2, 46, { libelleCategorie: "Normal" }),
+          t(6, 120, { libelleCategorie: "Normal" }),
+          { ...t(1, 140, { libelleCategorie: "Normal" }), duree: { type: "saison" }, libelleDuree: "Saison" },
+        ]),
+      ]),
+    );
+    assert.deepEqual(
+      c.grille?.periodes[0].tarifs.map((x) => x.prix),
+      [25, 46, 120, 140],
+    );
+  });
+
+  it("une table d'options sans journée à elle est rejetée en entier, pas ligne à ligne", () => {
+    // Thollon, relevé du 4 octobre 2026 : 2 à 6 jours « Tarif unique » de 16 à 42 €.
+    const tu = { libelleCategorie: "Tarif unique" };
+    const c = controlerGrille(
+      grille([
+        periode("Saison entière", [
+          t(1, 30, { libelleCategorie: "Adulte 16-69 ans" }),
+          t(6, 154.5, { libelleCategorie: "Adulte 16-69 ans" }),
+          t(2, 16, tu),
+          t(3, 24, tu),
+          t(6, 47, tu),
+        ]),
+      ]),
+    );
+    assert.deepEqual(
+      c.grille?.periodes[0].tarifs.map((x) => x.prix),
+      [30, 154.5],
+    );
+    assert.match(c.rejets[2], /6 jours Tarif unique à 47 €, de la même table d'options/);
+  });
+
+  it("sans journée dans la période, la journée de la grille sert de référence", () => {
+    const c = controlerGrille(
+      grille([
+        periode("Vacances", [t(1, 60.7), t(6, 330)]),
+        periode("Hors vacances", [t(6, 300), t(7, 29, { libelleCategorie: "Tarif unique" })], "2027-01-04", "2027-02-05"),
+      ]),
+    );
+    assert.deepEqual(
+      c.grille?.periodes[1].tarifs.map((x) => x.prix),
+      [300],
+    );
+    assert.match(c.rejets[0], /sous 1,5 fois la journée adulte de la grille \(60,7 €\)/);
   });
 
   it("le plancher de la journée ne vise que l'adulte ordinaire", () => {

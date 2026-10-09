@@ -408,4 +408,18 @@ describe("le relevé du magasin serveur devient une grille", () => {
     assert.equal(out.length, 1);
     assert.deepEqual(out[0].stationIds, CATALOGUE.stationIds);
   });
+
+  it("le relevé du magasin passe par le contrôle : un 6 jours à 29 € ne devance pas le catalogue", () => {
+    // Une assurance lue comme le 6 jours (Flaine, relevé du 4 octobre 2026).
+    const rejets: string[] = [];
+    assert.deepEqual(grillesDuMagasin([ligne({ j1: 60.7, j6: 29 })], [CATALOGUE], rejets), []);
+    assert.match(rejets[0], /^portes-du-soleil : .*6 jours \(29 €\) pas plus cher que la journée \(60,7 €\)/);
+    const r = resolu(
+      resolvePassPrice({ id: "chatel" }, FEVRIER, {
+        grilles: [CATALOGUE, ...grillesDuMagasin([ligne({ j1: 60.7, j6: 29 })], [CATALOGUE])],
+        aujourdhui: AUJOURDHUI,
+      }),
+    );
+    assert.notEqual(r.prix, 29);
+  });
 });

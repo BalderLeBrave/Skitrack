@@ -23,6 +23,7 @@
  */
 
 import { cleDomaine } from "./catalog.ts";
+import { controlerGrille } from "./controle.ts";
 import { dateLbl } from "../provenance.ts";
 import type { DomainForfait, ForfaitRow } from "./types.ts";
 import type { Grille as GrilleSaisie } from "./grille.ts";
@@ -54,20 +55,28 @@ const plier = (s: string): string =>
  * La durée d'un libellé publié.
  *
  * L'ordre compte : « 1 Jour à partir de 12:30 » commence comme une journée et
- * n'en est pas une.
+ * n'en est pas une. « Fin de journée (à partir de 15h) » non plus : l'heure
+ * sans minutes se lit après « à partir de » ou « dès », et une fin de
+ * journée, une matinée ou un après-midi sont des forfaits partiels. Abondance,
+ * relevé du 4 octobre 2026 : ce tarif à 14,10 € s'affichait en « Journée
+ * adulte ».
  */
 export function dureeDepuisLibelle(libelle: string): { duree: Duree; restriction: string | null } {
   const l = plier(libelle);
   const restriction = /week-?end/.test(l) ? "le week-end" : null;
-  const des = /(?:^|\s)(?:a partir de|a|des)\s*(\d{1,2})\s*[:h]\s*(\d{2})/.exec(l);
+  // L'heure sans minutes, seulement là où le mot « jour » ferait lire une
+  // journée : « 3h à partir de 14h » reste un forfait de trois heures.
+  const des =
+    /(?:^|\s)(?:a partir de|a|des)\s*(\d{1,2})\s*[:h]\s*(\d{2})/.exec(l) ??
+    (/jour/.test(l) ? /(?:^|[\s(])(?:a partir de|des)\s*(\d{1,2})\s*h(?![a-z])/.exec(l) : null);
   if (des)
     return {
-      duree: { type: "partielle", heures: null, des: `${des[1].padStart(2, "0")}:${des[2]}` },
+      duree: { type: "partielle", heures: null, des: `${des[1].padStart(2, "0")}:${des[2] ?? "00"}` },
       restriction,
     };
   // « Forfait 1/2j (ou 4h si proposé) » : une demi-journée, quatre heures
   // seulement là où la station les vend.
-  if (/1\/2\s*j|demi|half|halbtag/.test(l))
+  if (/1\/2\s*j|demi|half|halbtag|fin de journee|apres-?midi|matinee/.test(l))
     return { duree: { type: "partielle", heures: null, des: null }, restriction };
   const heures = /(\d{1,2})\s*(?:heures?|h\b|hours?|stunden?)/.exec(l);
   if (heures && !/jour|tag|day/.test(l))
@@ -399,10 +408,17 @@ export function grilleDepuisReleve(
 /**
  * Les grilles des lignes du magasin serveur, chacune rattachée au forfait du
  * catalogue de son domaine (`catalogue:{slug}:{saison}`, la plus récente).
+ *
+ * Chacune passe par le même contrôle que le relevé officiel
+ * (`controlerGrille`) : l'actualisation lit la page par motifs, et un « 6
+ * jours » à 29 € (une assurance) y aurait sinon devancé le catalogue, comme
+ * le relevé de Flaine du 4 octobre 2026. Ce qui est rejeté est rendu dans
+ * `rejets`, pour que l'appelant le dise.
  */
 export function grillesDuMagasin(
   rows: readonly ForfaitRow[],
   grilles: readonly GrilleTarifaire[],
+  rejets: string[] = [],
 ): GrilleTarifaire[] {
   const catalogue = new Map<string, GrilleTarifaire>();
   for (const g of grilles) {
@@ -411,7 +427,13 @@ export function grillesDuMagasin(
     const deja = catalogue.get(slug);
     if (!deja || deja.saison < g.saison) catalogue.set(slug, g);
   }
-  return rows.flatMap((r) => grilleDepuisReleve(r, catalogue.get(r.slug)) ?? []);
+  return rows.flatMap((r) => {
+    const g = grilleDepuisReleve(r, catalogue.get(r.slug));
+    if (!g) return [];
+    const c = controlerGrille(g);
+    rejets.push(...c.rejets.map((x) => `${r.slug} : ${x}`));
+    return c.grille ?? [];
+  });
 }
 
 /* ---------- Référentiel Monde ---------- */

@@ -444,6 +444,9 @@ type Contexte = {
   /** Les journées additionnées sont permises : aucune grille de la station ne
    *  publie de forfait assez long (second passage de `resolvePassPrice`). */
   journees: boolean;
+  /** Le plus long forfait publié pour la catégorie, toutes grilles de la
+   *  station confondues, en jours ; 1 sans forfait de plusieurs jours. */
+  plusLongueStation: number;
 };
 
 const arrondi = (n: number) => Math.round(n * 100) / 100;
@@ -475,14 +478,23 @@ function estimation(g: GrilleTarifaire, categorie: CategorieTarif, jours: number
  * Les journées additionnées : pour une grille qui ne vend pas de forfait
  * semaine (la journée seule à Col du Feu, aux Signaraux, à Ghisoni ; 1 et
  * 2 jours à La Schlucht), chaque jour de ski au prix de la journée de sa
- * période. `null` si la grille publie un forfait de 6 jours ou plus, ou pas
- * même la journée.
+ * période. `null` si la station publie un forfait de 6 jours ou plus, dans
+ * cette grille ou dans une autre, ou si la grille ne publie pas même la
+ * journée.
  */
 function parJournees(ctx: Contexte, accepte: Accepte, categorieRepli: boolean): PrixResolu | null {
   const { grille: g, jours, demandee } = ctx;
   // Là où un forfait semaine existe, trop court pour le séjour (13 jours à
   // Châtel), additionner des journées donnerait un prix que personne ne paie.
-  const plusLongue = Math.max(...g.periodes.flatMap((p) => dureesPubliees(p, accepte)), 1);
+  // Toutes grilles de la station : au Grand Massif, la grille officielle ne
+  // publie que la journée et le catalogue le 6 jours ; 7 jours de ski
+  // s'affichaient « 7 × 60,70 € », avec « aucun forfait de plusieurs jours
+  // publié ».
+  const plusLongue = Math.max(
+    ...g.periodes.flatMap((p) => dureesPubliees(p, accepte)),
+    ctx.plusLongueStation,
+    1,
+  );
   if (plusLongue >= JOURS_SEMAINE) return null;
   const avecJournee = g.periodes.filter((p) => tarifExact(p, accepte, 1));
   if (!avecJournee.length) return null;
@@ -845,6 +857,13 @@ export function resolvePassPrice(
     ? (g: GrilleTarifaire) => g.perimetre.cle === options.perimetreCle
     : (g: GrilleTarifaire) => equivalent(g, options.perimetre ?? "domaine", relie);
   const demandee = sansDates ? JOURS_SANS_DATES : jours.length;
+  const plusLongueStation = Math.max(
+    1,
+    ...candidates.flatMap((g) => {
+      const { accepte } = categorieDeLaGrille(g, categorie);
+      return g.periodes.flatMap((p) => dureesPubliees(p, accepte));
+    }),
+  );
   // Deux passages : les forfaits publiés d'abord, sur toutes les grilles ;
   // les journées additionnées ensuite, seulement si aucune grille de la
   // station ne publie de forfait assez long (la station ne vend que la
@@ -863,6 +882,7 @@ export function resolvePassPrice(
         sansDates,
         perimetreRepli: !voulu(g),
         journees,
+        plusLongueStation,
       });
       if (r.statut === "resolu") return r;
       premiere ??= r;

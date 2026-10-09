@@ -152,7 +152,7 @@ export function recopierSoeurs(listings: readonly Listing[]): Map<string, Recopi
           const a = vals[i];
           const b = vals[j];
           if (recoitNombres(offres[i])) for (const k of NOMBRES) if (prendre(a, b, k)) bouge = true;
-          if (!gpsPrecis(a) && gpsPrecis(b) && recoitPoint(offres[i])) {
+          if (!gpsPrecis(a) && gpsPrecis(b) && offres[j]?.gpsSource !== "triangule" && recoitPoint(offres[i])) {
             a.lat = b.lat;
             a.lon = b.lon;
             bouge = true;
@@ -195,7 +195,7 @@ export function jumelageGpsAirbnb(listings: readonly Listing[]): Map<string, { l
     if (offres.some((a, i) => offres.some((b, j) => j > i && !capaciteCompatible(a, b)))) continue;
     for (const o of offres) {
       if (o.source !== "Airbnb" || o.pdpLue !== true || gpsPrecis(o)) continue;
-      const soeur = offres.find((x) => x !== o && gpsPrecis(x) && memeLogement(o, x));
+      const soeur = offres.find((x) => x !== o && gpsPrecis(x) && x.gpsSource !== "triangule" && memeLogement(o, x));
       if (soeur) out.set(o.id, { lat: soeur.lat as number, lon: soeur.lon as number });
     }
   }

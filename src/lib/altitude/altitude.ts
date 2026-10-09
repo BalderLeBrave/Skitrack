@@ -33,9 +33,10 @@ export function pointAltitude(l: Pick<Listing, "lat" | "lon">): { lat: number; l
   return { lat, lon };
 }
 
-/** Le point de l'annonce n'est qu'approché : Airbnb, ou une adresse géocodée. */
+/** Le point de l'annonce n'est qu'approché : Airbnb, une adresse géocodée,
+ *  ou une position triangulée (gîte sans GPS de fiche). */
 export function positionApprochee(l: Pick<Listing, "source" | "gpsSource">): boolean {
-  return l.source === "Airbnb" || l.gpsSource === "ban";
+  return l.source === "Airbnb" || l.gpsSource === "ban" || l.gpsSource === "triangule";
 }
 
 const nombre = (m: number) => new Intl.NumberFormat(langueIntl(), { maximumFractionDigits: 0 }).format(m);

@@ -702,7 +702,9 @@ export function connuesDuReleve(listings: readonly Listing[]): FicheConnue[] {
     if (!gpsPrecis(l) || l.capacity == null || l.lat == null || l.lon == null) continue;
     if (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)) continue;
     // Un point de repli Airbnb (page, BAN, jumelage) n'est pas celui de
-    // l'annonce : il ne se mémorise pas comme tel (`repliGps.ts`).
+    // l'annonce : il ne se mémorise pas comme tel (`repliGps.ts`). Une
+    // position triangulée non plus : ce n'est pas la porte du gîte.
+    if (l.gpsSource === "triangule") continue;
     if (l.source === "Airbnb" && l.gpsSource != null && l.gpsSource !== "pdp") continue;
     const cle = cleListing(l);
     if (!cle || vues.has(cle)) continue;

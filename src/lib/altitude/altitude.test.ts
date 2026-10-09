@@ -19,6 +19,8 @@ describe("altitude d'un logement", () => {
   it("environ pour un point approché (Airbnb, adresse géocodée), au mètre sinon", () => {
     assert.equal(positionApprochee({ source: "Airbnb", gpsSource: null }), true);
     assert.equal(positionApprochee({ source: "Abritel", gpsSource: "ban" }), true);
+    assert.equal(positionApprochee({ source: "Gîtes de France", gpsSource: "triangule" }), true);
+    assert.equal(positionApprochee({ source: "Gîtes de France", gpsSource: null }), false);
     assert.equal(positionApprochee({ source: "Centrale", gpsSource: null }), false);
     assert.equal(altitudeLbl({ m: 1850, source: "ign" }, false), "1 850 m");
     assert.equal(altitudeLbl({ m: 1850, source: "ign" }, true), "env. 1 850 m");

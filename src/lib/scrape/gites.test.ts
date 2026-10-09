@@ -17,6 +17,7 @@ import {
   prixDuTableau,
   scrapeGites,
   searchUrl,
+  situerAnnoncesGites,
   totalPublie,
   trierParDistance,
   type Fiche,
@@ -254,6 +255,20 @@ describe("annonce Gîtes de France", () => {
     );
     assert.equal(l.locality, "Venosc");
     assert.doesNotMatch(l.proven, /GPS ITEA/);
+    assert.equal(l.lat, null);
+  });
+
+  it("sans GPS de fiche, garde le point publié par la carte de recherche", () => {
+    const l = listingDeFiche(
+      tuile({ lat: 45.02, lon: 6.14 }),
+      fiche({ lieu: { lat: null, lon: null, locality: "Venosc" } }),
+      "38G40102",
+      INPUT,
+    );
+    assert.equal(l.lat, 45.02);
+    assert.equal(l.lon, 6.14);
+    assert.equal(l.locality, "Venosc");
+    assert.doesNotMatch(l.proven, /GPS ITEA/);
   });
 
   it("porte le type publié, le libellé de prix, la devise et l'identifiant ITEA", () => {
@@ -453,6 +468,88 @@ describe("suite ITEA : la fiche des dates, après la tuile", () => {
     });
     assert.equal(appels, 0);
     assert.equal(bilan.arret, "échéance");
+  });
+});
+
+describe("Gîtes : tout logement a une position", () => {
+  const ctx = {
+    reperes: [{ nom: "Vénosc", lat: 45.001, lon: 6.111 }],
+    station: { nom: "Les 2 Alpes", lat: INPUT.lat, lon: INPUT.lon },
+  };
+
+  it("le GPS de la fiche ne bouge pas, et n'est pas dit triangulé", () => {
+    const l = listingDeFiche(
+      tuile({ lat: 44, lon: 5 }),
+      fiche({ lieu: { lat: 45.0106, lon: 6.1226, locality: "Les Deux Alpes" } }),
+      "38G40102",
+      INPUT,
+    );
+    const [sit] = situerAnnoncesGites([l], ctx);
+    assert.equal(sit?.lat, 45.0106);
+    assert.equal(sit?.lon, 6.1226);
+    assert.equal(sit?.gpsSource, undefined);
+    assert.match(sit?.proven ?? "", /GPS ITEA/);
+    assert.doesNotMatch(sit?.proven ?? "", /triangul/);
+  });
+
+  it("la carte de recherche, sans GPS de fiche, est une position triangulée", () => {
+    const l = listingDeTuile(tuile({ lat: 45.02, lon: 6.14, capacite: "6 personnes" }), "38G40102", INPUT);
+    const [sit] = situerAnnoncesGites([l], ctx);
+    assert.equal(sit?.lat, 45.02);
+    assert.equal(sit?.lon, 6.14);
+    assert.equal(sit?.gpsSource, "triangule");
+    assert.match(sit?.proven ?? "", /carte de recherche/);
+  });
+
+  it("sans aucun point, le barycentre des GPS publiés du même lieu", () => {
+    const a = listingDeFiche(
+      tuile(),
+      fiche({ lieu: { lat: 45.02, lon: 6.1, locality: "Venosc" } }),
+      "38G40101",
+      INPUT,
+    );
+    const b = listingDeFiche(
+      tuile({ url: "https://www.gites-de-france.com/fr/x-38g40103" }),
+      fiche({ lieu: { lat: 45.04, lon: 6.2, locality: "Vénosc" } }),
+      "38G40103",
+      INPUT,
+    );
+    const muet = {
+      ...listingDeTuile(tuile({ url: "https://www.gites-de-france.com/fr/x-38g40102", title: "Sans point" }), "38G40102", INPUT),
+      locality: "Venosc",
+    };
+    const sits = situerAnnoncesGites([a, b, muet], ctx);
+    const cible = sits.find((x) => x.id === "38G40102");
+    assert.equal(cible?.lat, 45.03);
+    assert.equal(cible?.lon, 6.15);
+    assert.equal(cible?.gpsSource, "triangule");
+    assert.match(cible?.proven ?? "", /barycentre de 2 gîtes/);
+    assert.equal(sits.find((x) => x.id === "38G40101")?.gpsSource, undefined);
+  });
+
+  it("un seul GPS voisin ne suffit pas : le repère du lieu, sinon la station", () => {
+    const seul = listingDeFiche(
+      tuile(),
+      fiche({ lieu: { lat: 45.02, lon: 6.1, locality: "Venosc" } }),
+      "38G40101",
+      INPUT,
+    );
+    const muet = {
+      ...listingDeTuile(tuile({ url: "https://www.gites-de-france.com/fr/x-38g40102" }), "38G40102", INPUT),
+      locality: "Vénosc",
+    };
+    const sits = situerAnnoncesGites([seul, muet], ctx);
+    const sit = sits.find((x) => x.id === "38G40102");
+    assert.equal(sit?.lat, 45.001);
+    assert.equal(sit?.lon, 6.111);
+    assert.match(sit?.proven ?? "", /repère « Vénosc »/);
+    const nu = listingDeTuile(tuile({ url: "https://www.gites-de-france.com/fr/x-38g40104", title: "Nu" }), "38G40104", INPUT);
+    const [station] = situerAnnoncesGites([nu], ctx);
+    assert.equal(station?.lat, INPUT.lat);
+    assert.equal(station?.lon, INPUT.lon);
+    assert.equal(station?.gpsSource, "triangule");
+    assert.match(station?.proven ?? "", /station Les 2 Alpes/);
+    assert.match(station?.proven ?? "", /aucun point publié/);
   });
 });
 

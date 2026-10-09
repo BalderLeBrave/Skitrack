@@ -10,6 +10,8 @@ import { texteDeHtml } from "../stay/texteHtml.ts";
 import { ficheDepuisBrut } from "../stay/ficheEnrichie.ts";
 import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } from "./gitesGps.server.ts";
 import { communeGites } from "./gitesCommunes.ts";
+import { STATIONS } from "../stations.ts";
+import { VILLAGES } from "../villages.ts";
 
 /**
  * Bornes du relevé, toutes explicites.
@@ -26,6 +28,12 @@ import { communeGites } from "./gitesCommunes.ts";
  * total à zéro. La description, les avis et le devis des dates choisies
  * vivent sur la fiche : ils sont lus ensuite, une fiche à la fois, et un
  * refus (403, 429, 503) arrête cette suite. Rien n'est inventé à sa place.
+ *
+ * Chaque gîte a une position. Le GPS de la fiche d'abord ; sans lui, le point
+ * de la carte de recherche ; sans l'un ni l'autre, une position triangulée
+ * (barycentre des gîtes du même lieu qui publient un GPS, sinon le repère de
+ * ce lieu, sinon la station cherchée). Ce n'est pas la porte. L'annonce sort
+ * quand même.
  */
 const MAX_PAGES = 6;
 const BUDGET_PAGES_MS = 20_000;
@@ -674,6 +682,10 @@ export function listingDeFiche(
     fiche.total > 0
       ? `Devis ITEA live ${dates}, ${input.guests} pers.`
       : `Fiche ITEA live ${dates}, ${input.guests} pers. — aucun prix publié à ces dates.`;
+  // Le GPS de la fiche est le seul point précis. La carte de recherche en
+  // publie souvent un autre : on le garde pour ne pas perdre le gîte, et
+  // `situerAnnoncesGites` le marque triangulé.
+  const gpsFiche = fiche.lieu.lat != null && fiche.lieu.lon != null;
   return {
     id: code,
     stationId: input.stationId,
@@ -702,10 +714,10 @@ export function listingDeFiche(
     available: true,
     photo: tile.photo,
     url: `${tile.url}?adults=${input.guests}&date-start=${input.checkIn}&date-end=${input.checkOut}`,
-    lat: fiche.lieu.lat,
-    lon: fiche.lieu.lon,
+    lat: gpsFiche ? fiche.lieu.lat : tile.lat,
+    lon: gpsFiche ? fiche.lieu.lon : tile.lon,
     locality: fiche.lieu.locality,
-    proven: fiche.lieu.lat != null && fiche.lieu.lon != null ? `${proven} · GPS ITEA` : proven,
+    proven: gpsFiche ? `${proven} · GPS ITEA` : proven,
   };
 }
 
@@ -854,7 +866,129 @@ export function couvrirTuiles(tuiles: readonly Listing[], memoire: readonly List
   return tuiles.map((l) => par.get(l.id) ?? l);
 }
 
-function lancerSuiteGites(input: LiveSearchInput, reste: readonly ResteGites[]): void {
+/** Un point déjà publié : station, village, ou alias du référentiel. */
+export type RepereGites = { nom: string; lat: number; lon: number };
+
+export type ContexteSituation = {
+  reperes: readonly RepereGites[];
+  /** La station cherchée : dernier recours, pas une porte. */
+  station: { nom: string; lat: number; lon: number };
+  /** GPS de fiche déjà lus, hors du lot (la suite n'a qu'une annonce en main). */
+  autresPrecis?: readonly Listing[];
+};
+
+function plierLieu(s: string | null | undefined): string {
+  return (s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** Le GPS lu sur la fiche ITEA. La carte de recherche n'en est pas un. */
+export function estGpsFiche(l: Pick<Listing, "lat" | "lon" | "proven">): boolean {
+  return l.lat != null && l.lon != null && /GPS ITEA/.test(l.proven);
+}
+
+let reperesCache: RepereGites[] | null = null;
+
+/** Stations, villages et alias du référentiel. Rien n'y est calculé. */
+export function reperesNommes(): RepereGites[] {
+  if (reperesCache) return reperesCache;
+  const out: RepereGites[] = [];
+  for (const s of STATIONS) out.push({ nom: s.name, lat: s.lat, lon: s.lon });
+  for (const v of VILLAGES) {
+    out.push({ nom: v.nom, lat: v.lat, lon: v.lon });
+    for (const a of v.alias ?? []) out.push({ nom: a, lat: v.lat, lon: v.lon });
+  }
+  reperesCache = out;
+  return out;
+}
+
+function indexReperes(reperes: readonly RepereGites[]): Map<string, RepereGites> {
+  const m = new Map<string, RepereGites>();
+  // Un village écrase la station du même nom : il est plus précis.
+  for (const r of reperes) {
+    const k = plierLieu(r.nom);
+    if (k) m.set(k, r);
+  }
+  return m;
+}
+
+function barycentre(pts: readonly { lat: number; lon: number }[]): { lat: number; lon: number } {
+  const lat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+  const lon = pts.reduce((s, p) => s + p.lon, 0) / pts.length;
+  return { lat: Math.round(lat * 1e6) / 1e6, lon: Math.round(lon * 1e6) / 1e6 };
+}
+
+function marquerTriangule(l: Listing, lat: number, lon: number, phrase: string): Listing {
+  if (l.gpsSource === "triangule" && l.lat === lat && l.lon === lon && l.proven.includes(phrase)) return l;
+  const proven = l.proven.includes(phrase) ? l.proven : `${l.proven} · ${phrase}`;
+  return { ...l, lat, lon, gpsSource: "triangule", proven };
+}
+
+/**
+ * Chaque annonce ressort avec un point.
+ *
+ * 1. Le GPS de la fiche (`GPS ITEA`) ne bouge pas.
+ * 2. Le point de la carte de recherche est gardé, et dit triangulé : la fiche
+ *    n'a pas publié de GPS.
+ * 3. Sinon le barycentre d'au moins deux GPS de fiche du même lieu.
+ * 4. Sinon le repère du référentiel qui porte ce lieu.
+ * 5. Sinon la station cherchée.
+ *
+ * Une position triangulée n'est pas la porte. Elle existe pour que le gîte
+ * reste sur la carte et dans la liste.
+ */
+export function situerAnnoncesGites(listings: readonly Listing[], ctx: ContexteSituation): Listing[] {
+  const precis = [...listings.filter(estGpsFiche), ...(ctx.autresPrecis ?? []).filter(estGpsFiche)];
+  const parLieu = new Map<string, { lat: number; lon: number }[]>();
+  for (const l of precis) {
+    const k = plierLieu(l.locality);
+    if (!k || l.lat == null || l.lon == null) continue;
+    const lot = parLieu.get(k) ?? [];
+    lot.push({ lat: l.lat, lon: l.lon });
+    parLieu.set(k, lot);
+  }
+  const reperes = indexReperes(ctx.reperes);
+  return listings.map((l) => {
+    if (estGpsFiche(l)) return l.gpsSource === "triangule" ? { ...l, gpsSource: undefined } : l;
+    if (l.lat != null && l.lon != null) {
+      return marquerTriangule(l, l.lat, l.lon, "position de la carte de recherche, sans GPS de fiche");
+    }
+    const k = plierLieu(l.locality);
+    const pairs = k ? parLieu.get(k) : undefined;
+    if (pairs && pairs.length >= 2) {
+      const p = barycentre(pairs);
+      return marquerTriangule(
+        l,
+        p.lat,
+        p.lon,
+        `position triangulée : barycentre de ${pairs.length} gîtes au GPS publié${l.locality ? ` à ${l.locality}` : ""}`,
+      );
+    }
+    const repere = k ? reperes.get(k) : undefined;
+    if (repere) {
+      return marquerTriangule(l, repere.lat, repere.lon, `position triangulée : repère « ${repere.nom} »`);
+    }
+    return marquerTriangule(
+      l,
+      ctx.station.lat,
+      ctx.station.lon,
+      `position triangulée : station ${ctx.station.nom}, aucun point publié pour ce gîte`,
+    );
+  });
+}
+
+function contexteSituation(input: LiveSearchInput): ContexteSituation {
+  return {
+    reperes: reperesNommes(),
+    station: { nom: input.stationName, lat: input.lat, lon: input.lon },
+  };
+}
+
+function lancerSuiteGites(input: LiveSearchInput, reste: readonly ResteGites[], dejaPrecis: readonly Listing[]): void {
   if (reste.length === 0) return;
   const map = memoiresGites();
   for (const s of map.values()) if (s.enCours) return;
@@ -865,6 +999,8 @@ function lancerSuiteGites(input: LiveSearchInput, reste: readonly ResteGites[]):
   const encore = reste.filter((r) => !connus.has(r.code));
   if (encore.length === 0) return;
   const listings = [...(etat?.listings ?? [])];
+  const precis = [...dejaPrecis];
+  const ctx = contexteSituation(input);
   map.set(cle, { a: Date.now(), listings, enCours: true, finie: false });
   const echeance = Date.now() + SUITE_GITES_MAX_MS;
   void lireFichesEnRetard(encore, input, echeance, {
@@ -872,7 +1008,9 @@ function lancerSuiteGites(input: LiveSearchInput, reste: readonly ResteGites[]):
     attendre: sleep,
     maintenant: () => Date.now(),
     noter: (l) => {
-      listings.push(l);
+      const [sit] = situerAnnoncesGites([l], { ...ctx, autresPrecis: precis });
+      if (sit && estGpsFiche(sit)) precis.push(sit);
+      listings.push(sit ?? l);
       const s = map.get(cle);
       if (s) s.a = Date.now();
     },
@@ -1073,11 +1211,17 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
     );
   }
   const memoire = lireMemoireGites(input);
-  lancerSuiteGites(input, reste);
+  const couverts = couvrirTuiles(out, memoire);
+  const situes = situerAnnoncesGites(couverts, contexteSituation(input));
+  lancerSuiteGites(
+    input,
+    reste,
+    situes.filter(estGpsFiche),
+  );
   // `total: 0` veut dire « prix non publié », pas « gratuit » : ces annonces
   // passent après celles qui portent un prix, jamais devant. Une fiche déjà
   // lue en tâche de fond remplace sa tuile, sans rien ajouter d'autre.
-  return couvrirTuiles(out, memoire).sort((a, b) => {
+  return situes.sort((a, b) => {
     const pa = a.total > 0 ? a.total : null;
     const pb = b.total > 0 ? b.total : null;
     if (pa == null && pb == null) return 0;

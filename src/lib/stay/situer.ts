@@ -16,14 +16,17 @@
  * `triangule` n'est pas une ancre : ce n'est pas une porte, et il ne se
  * recopie pas. La phrase le dit dans `proven`.
  *
- * L'écran l'applique sur la liste déjà fusionnée. Le collecteur ne l'écrit
- * pas : une fiche lue ensuite pose encore le GPS que la source publie
- * (`poserLecture` ne remplace qu'un point absent).
+ * L'écran l'applique sur la liste déjà fusionnée (`placerSansPoint`). Le
+ * collecteur ne l'écrit pas : une fiche lue ensuite pose encore le GPS que
+ * la source publie (`poserLecture` ne remplace qu'un point absent). Ce point
+ * ne se copie pas non plus dans un favori à la place d'un GPS publié.
  */
 
 import type { Listing } from "../listings.ts";
+import type { Station } from "../stations.ts";
 import { STATIONS } from "../stations.ts";
 import { VILLAGES } from "../villages.ts";
+import { attachAccess } from "../access.ts";
 import { gpsPrecis } from "./lodgingFilter.ts";
 
 export type RepereNomme = { nom: string; lat: number; lon: number };
@@ -129,4 +132,19 @@ export function situerManquants(listings: readonly Listing[], ctx: ContexteSitue
       `position triangulée : station ${ctx.station.nom}, aucun point publié pour cette annonce`,
     );
   });
+}
+
+/**
+ * La liste telle que l'écran la montre : les trous de GPS sont triangulés,
+ * et seuls ces logements-là refont leur accès aux pistes depuis ce point.
+ * Un point déjà publié ressort tel quel, accès compris.
+ */
+export function placerSansPoint(listings: readonly Listing[], station: Station): Listing[] {
+  const situes = situerManquants(listings, {
+    reperes: reperesNommes(),
+    station: { nom: station.name, lat: station.lat, lon: station.lon },
+  });
+  return situes.map((l, i) =>
+    l.lat === listings[i]?.lat && l.lon === listings[i]?.lon ? l : attachAccess(l, station),
+  );
 }

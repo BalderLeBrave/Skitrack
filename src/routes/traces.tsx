@@ -12,6 +12,7 @@ import { formatDistFrom, formatLift, sectorOf, skiAccessLabel } from "@/lib/acce
 import { formatEle, formatDuration, formatKm } from "@/lib/gpx";
 import { formatEuro, listingsForStay, type Listing } from "@/lib/listings";
 import { enrichirListing } from "@/lib/stay/enrichir";
+import { placerSansPoint } from "@/lib/stay/situer";
 import { stationById } from "@/lib/stations";
 import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
@@ -47,7 +48,10 @@ function Traces() {
     () => (stationId ? listingsForStay(stationId, guests, bedrooms).map(enrichirListing) : []),
     [stationId, guests, bedrooms],
   );
-  const raw = live ?? frozen;
+  // Même règle que Logements : sans GPS publié, position triangulée. Ce n'est
+  // pas la porte, et cette copie ne quitte pas l'écran.
+  const base = live ?? frozen;
+  const raw = useMemo(() => (station ? placerSansPoint(base, station) : base), [base, station]);
   const rows = useMemo(() => {
     const scored = raw.map((l) => ({ listing: l, gpxM: distToGpxM(l, points) }));
     // Un prix non publié (`total` à zéro) ou une distance inconnue reste en

@@ -91,8 +91,8 @@ import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { voisinDansListe } from "@/lib/stay/visionneuse";
 import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
+import { placerSansPoint } from "@/lib/stay/situer";
 import { photosDeResidence } from "@/lib/stay/photoResidence";
-import { reperesNommes, situerManquants } from "@/lib/stay/situer";
 import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
@@ -713,7 +713,7 @@ function LogementsStation({ s }: { s: Station }) {
   );
   const dumpGps = useDumpComplet(P.stationId ?? undefined, checkIn, checkOut, trav);
   useLiveSearch(s, dumpGps ?? frozen);
-  const raw = useMemo(() => {
+  const fusionnes = useMemo(() => {
     const dump = dumpGps ?? frozen;
     let rows = dump;
     if (liveListings != null) {
@@ -736,30 +736,22 @@ function LogementsStation({ s }: { s: Station }) {
     // Ski-Planet sans photo : celle de la même résidence publiée par une autre
     // source du relevé (`photosDeResidence`), dite dans la provenance.
     const photos = photosDeResidence(placees);
-    const avecPhotos =
-      photos.size === 0
-        ? placees
-        : placees.map((l) => {
-            const r = photos.get(l.id);
-            return r ? { ...l, photo: r.photo, proven: `${l.proven} · ${r.proven}` } : l;
-          });
-    // Toutes sources : un GPS publié reste. Sans coordonnées, barycentre du
-    // lieu, repère, ou station. Ce n'est pas la porte (`situerManquants`).
-    // Le collecteur n'est pas modifié : une fiche lue ensuite pose encore
-    // le point que la source publie.
-    const situes = situerManquants(avecPhotos, {
-      reperes: reperesNommes(),
-      station: { nom: s.name, lat: s.lat, lon: s.lon },
+    if (photos.size === 0) return placees;
+    return placees.map((l) => {
+      const r = photos.get(l.id);
+      return r ? { ...l, photo: r.photo, proven: `${l.proven} · ${r.proven}` } : l;
     });
-    return situes.map((l, i) =>
-      l.lat === avecPhotos[i]?.lat && l.lon === avecPhotos[i]?.lon ? l : attachAccess(l, s),
-    );
   }, [liveListings, liveSources, frozen, dumpGps, s]);
+  // Toutes sources : un GPS publié reste. Sans coordonnées, barycentre du
+  // lieu, repère, ou station. Ce n'est pas la porte (`placerSansPoint`).
+  // Le favori garde le relevé, pas cette position d'affichage.
+  const raw = useMemo(() => placerSansPoint(fusionnes, s), [fusionnes, s]);
   // Un logement enregistré qui repasse dans le relevé : sa copie dans les
-  // favoris prend la photo, le point et, pour le même séjour, le prix d'aujourd'hui.
+  // favoris prend la photo, le point publié et, pour le même séjour, le prix
+  // d'aujourd'hui. Pas la position triangulée, qui n'est pas la porte.
   useEffect(() => {
-    if (raw.length > 0) useFavoris.getState().rafraichir(raw, { checkIn, checkOut, trav });
-  }, [raw, checkIn, checkOut, trav]);
+    if (fusionnes.length > 0) useFavoris.getState().rafraichir(fusionnes, { checkIn, checkOut, trav });
+  }, [fusionnes, checkIn, checkOut, trav]);
   // L'altitude de chaque annonce à point, pour la carte et le tri.
   const altDe = useAltitudes(raw);
 

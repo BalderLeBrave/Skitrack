@@ -471,6 +471,7 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "du repère {station}": "from the {station} marker",
   "du repère de la station": "from the resort marker",
   "(de la position GPS de l’annonce au repère, qui n’est ni une piste ni un domaine).": "(from the listing’s GPS position to the marker, which is neither a slope nor a ski area).",
+  "(position triangulée, pas la porte : {source} n'a pas publié de GPS).": "(Triangulated position, not the door: {source} did not publish a GPS position).",
   "du point le plus proche": "from the nearest point",
   "distance non mesurée, aucune trace chargée": "distance not measured, no track loaded",
   "Départ GPX": "GPX start",

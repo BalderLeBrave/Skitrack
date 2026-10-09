@@ -1,7 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Listing } from "../listings.ts";
-import { reperesNommes, situerManquants, type ContexteSituer } from "./situer.ts";
+import { reperesNommes, situerManquants, placerSansPoint, type ContexteSituer } from "./situer.ts";
+import { stationById } from "../stations.ts";
 
 function ann(over: Partial<Listing> = {}): Listing {
   return {
@@ -135,5 +136,25 @@ describe("toutes les sources : un point manquant est triangulé", () => {
     assert.equal(noms.get("Argentière")?.lat, 45.984);
     assert.equal(noms.get("Recoin")?.lat, 45.12526);
     assert.equal(noms.get("Recoin")?.lon, 5.87525);
+  });
+});
+
+describe("placerSansPoint", () => {
+  const station = stationById("les-2-alpes");
+
+  it("un GPS publié n'est pas recalculé", () => {
+    assert.ok(station);
+    const pin = ann({ lat: 45.01, lon: 6.12, source: "Booking" });
+    const [sit] = placerSansPoint([pin], station!);
+    assert.equal(sit, pin);
+  });
+
+  it("sans point, la station, et l'accès mesuré depuis ce point", () => {
+    assert.ok(station);
+    const [sit] = placerSansPoint([ann({ locality: null, source: "Abritel" })], station!);
+    assert.equal(sit?.lat, station!.lat);
+    assert.equal(sit?.lon, station!.lon);
+    assert.equal(sit?.gpsSource, "triangule");
+    assert.equal(typeof sit?.distToSlopesM, "number");
   });
 });

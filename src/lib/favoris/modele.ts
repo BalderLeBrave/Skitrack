@@ -14,6 +14,7 @@
  */
 
 import type { Listing } from "../listings.ts";
+import { gpsPrecis } from "../stay/lodgingFilter.ts";
 
 export type Dossier = {
   id: string;
@@ -157,7 +158,52 @@ function fusionner(ancienne: Listing, neuve: Listing): Listing {
     out.total = ancienne.total;
     out.priceLabel = ancienne.priceLabel;
   }
+  // Une position triangulée n'est pas la porte. Elle ne remplace pas le GPS
+  // déjà publié du favori, ni les distances mesurées depuis ce point.
+  if (neuve.gpsSource === "triangule" && gpsPrecis(ancienne) && ancienne.gpsSource !== "triangule") {
+    garderPointPublie(out, ancienne);
+  }
   return out;
+}
+
+/** Ce qui se mesure depuis le point. Une triangulation ne les apporte pas. */
+const LIES_AU_POINT = [
+  "lat",
+  "lon",
+  "gpsSource",
+  "distToSlopesM",
+  "distToPlaceM",
+  "distToLiftM",
+  "liftName",
+  "liftKind",
+  "liftLat",
+  "liftLon",
+  "liftOtherLat",
+  "liftOtherLon",
+  "placeName",
+  "domainFit",
+  "nearestDomainId",
+  "nearestDomainName",
+  "distToNearestDomainM",
+  "winterBarrier",
+  "villageId",
+  "rattachementVia",
+  "nonRattache",
+  "searchedLiftM",
+  "searchedLiftName",
+  "proven",
+] as const;
+
+function garderPointPublie(out: Listing, ancienne: Listing): void {
+  const cible = out as Record<string, unknown>;
+  const source = ancienne as Record<string, unknown>;
+  for (const k of LIES_AU_POINT) {
+    if (source[k] === undefined) delete cible[k];
+    else cible[k] = source[k];
+  }
+  if (ancienne.completude && out.completude) {
+    out.completude = { ...out.completude, nearestLift: ancienne.completude.nearestLift };
+  }
 }
 
 function memeAnnonce(a: Listing, b: Listing): boolean {

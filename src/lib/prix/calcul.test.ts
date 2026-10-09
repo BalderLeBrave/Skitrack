@@ -494,7 +494,7 @@ describe("agreger — ce qui entre dans la médiane", () => {
 
 describe("sources en défaut", () => {
   it("les parts couvrent toutes les sources, agences comprises, sans doublon", () => {
-    assert.deepEqual([...PARTS], ["airbnb", "gites", "cozy", "centrales", "greengo", "agences"]);
+    assert.deepEqual([...PARTS], ["airbnb", "gites", "cozy", "centrales", "greengo", "hometogo", "agences"]);
     const toutes = PARTS.flatMap((p) => SOURCES_DE_PART[p]);
     assert.deepEqual(toutes, [
       "Airbnb",
@@ -503,6 +503,7 @@ describe("sources en défaut", () => {
       "Booking",
       "Centrale",
       "GreenGo",
+      "HomeToGo",
       ...SOURCES_AGENCES,
     ]);
     assert.equal(new Set(toutes).size, toutes.length);
@@ -2648,6 +2649,21 @@ describe("relevé : seuls les logements de station comptent", () => {
     });
   });
 
+  it("une position triangulée n'entre pas dans la médiane", () => {
+    const pin = annonce({
+      id: "pin",
+      total: 100,
+      distToLiftM: 50,
+      gpsSource: "triangule",
+      proven: "test · position triangulée : station Les 2 Alpes, aucun point publié pour cette annonce",
+    });
+    assert.deepEqual(agreger([pres("porte", 2000), pin], CTX), { n: 1, muettes: 0, petits: 0, med: 2000 });
+    assert.deepEqual(
+      retenir([pin], CTX).map((l) => l.id),
+      [],
+    );
+  });
+
   it("retenir et le relevé écartent le même logement", () => {
     const lot = [loin, pres("a", 2000), pres("b", 3000)];
     assert.deepEqual(
@@ -3145,6 +3161,19 @@ describe("complétion : les annonces à compléter", () => {
     assert.equal(aCompleter([annonce({ bedrooms: null, rooms: null })], CTX).length, 1);
     assert.equal(aCompleter([annonce({ capacity: null })], CTX).length, 1);
     assert.equal(aCompleter([annonce({ lat: 0, lon: 0 })], CTX).length, 1);
+  });
+
+  it("un point triangulé ne bouche pas le trou : l'annonce reste à compléter, comme sans point", () => {
+    // Le point de la station, posé faute de GPS publié (`stay/situer.ts`).
+    const pin = annonce({ gpsSource: "triangule", distToLiftM: 3000 });
+    assert.equal(manqueFiche(pin), true);
+    assert.deepEqual(
+      aCompleter([pin], CTX).map((l) => l.id),
+      aCompleter([annonce({ lat: null, lon: null, distToLiftM: null, distToSlopesM: null })], CTX).map((l) => l.id),
+    );
+    assert.equal(aCompleter([pin], CTX).length, 1);
+    // Le même point publié se juge : à 3 km d'une remontée, rien à compléter.
+    assert.equal(aCompleter([{ ...pin, gpsSource: null }], CTX).length, 0);
   });
 
   const horsCrible: [string, Listing][] = [

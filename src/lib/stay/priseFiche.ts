@@ -64,6 +64,15 @@ export function plausible(lat: number | null | undefined, lon: number | null | u
 }
 
 /**
+ * Un point que la source publie : plausible, et pas triangulé par l'écran
+ * (`placerSansPoint`). Une position triangulée place l'annonce sur la carte ;
+ * elle ne comble pas le trou de GPS, et la fiche se lit encore pour lui.
+ */
+export function pointPublie(l: Pick<Listing, "lat" | "lon" | "gpsSource">): boolean {
+  return plausible(l.lat, l.lon) && l.gpsSource !== "triangule";
+}
+
+/**
  * Ce qui manque à une annonce. Avec `faibles` : aussi ce que seul le texte ou
  * le type a donné (`text_regex`, `derived_from_type`), qu'un champ structuré
  * de la page de détail, quand elle le publie, remplace (`logement.ts`).
@@ -228,17 +237,17 @@ export const AIRBNB_COMPLET = "Airbnb complet";
  * la fiche (PDP) est lue ; aucune annonce n'est écartée pour autant.
  */
 export function airbnbComplet(
-  l: Pick<Listing, "lat" | "lon" | "capacity" | "bedrooms">,
+  l: Pick<Listing, "lat" | "lon" | "gpsSource" | "capacity" | "bedrooms">,
 ): boolean {
-  return plausible(l.lat, l.lon) && l.capacity != null && l.capacity > 0 && l.bedrooms != null;
+  return pointPublie(l) && l.capacity != null && l.capacity > 0 && l.bedrooms != null;
 }
 
 /** Ce qu'il manque à une annonce Airbnb, dans l'ordre du journal. */
 export function troisChampsAirbnb(
-  l: Pick<Listing, "lat" | "lon" | "capacity" | "bedrooms">,
+  l: Pick<Listing, "lat" | "lon" | "gpsSource" | "capacity" | "bedrooms">,
 ): Array<"gps" | "capacity" | "bedrooms"> {
   const manque: Array<"gps" | "capacity" | "bedrooms"> = [];
-  if (!plausible(l.lat, l.lon)) manque.push("gps");
+  if (!pointPublie(l)) manque.push("gps");
   if (l.capacity == null || !(l.capacity > 0)) manque.push("capacity");
   if (l.bedrooms == null) manque.push("bedrooms");
   return manque;

@@ -12,6 +12,7 @@ import { annoncer } from "../stay/occupancy.ts";
 import { assurerCles } from "../cles/store.server.ts";
 import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server.ts";
 import { ficheDepuisPageBooking } from "./bookingFiche.ts";
+import { poserRefus, respecterCadence } from "./gardeHote.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -148,6 +149,15 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
       url: typeof row.url === "string" ? row.url : null,
       lat: plausible(lat, lon) ? lat : null,
       lon: plausible(lat, lon) ? lon : null,
+      // L'identifiant d'hôtel Booking, quand la tuile le publie. Cozy, lui,
+      // numérote autrement : la fusion se fait sur ce numéro, ou sur le slug.
+      platformId: /^\d+$/.test(id) ? id : null,
+      // Note brute sur 10, seulement si la tuile a écrit l'échelle.
+      rating: typeof row.rating === "number" && row.rating > 0 && row.rating <= 10 ? row.rating : null,
+      reviewCount:
+        typeof row.reviewCount === "number" && Number.isInteger(row.reviewCount) && row.reviewCount >= 0
+          ? row.reviewCount
+          : null,
       proven: `booking live ${input.checkIn}→${input.checkOut}`,
     });
   }
@@ -155,13 +165,26 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
 }
 
 /** Ce que rend le worker Booking, et pourquoi il n'a rien rendu quand on le sait. */
-export type BookingPython = { listings: Listing[]; raison?: string };
+export type BookingPython = {
+  listings: Listing[];
+  raison?: string;
+  /** `refus` : 403 ou 429, sans second essai. `defi` : 202 ou coquille, après un seul autre profil. */
+  arret?: "refus" | "defi";
+  /** Rang de la page suivante, ou `null` quand la liste est épuisée ou arrêtée. */
+  offset: number | null;
+};
+
+function arretDe(payload: unknown): "refus" | "defi" | undefined {
+  if (!payload || typeof payload !== "object") return undefined;
+  const a = (payload as { arret?: unknown }).arret;
+  return a === "refus" || a === "defi" ? a : undefined;
+}
 
 async function spawnBooking(body: unknown, timeoutMs: number, input: LiveSearchInput): Promise<BookingPython> {
   const cli = cliPath();
   if (!cli) {
     console.warn("[booking] cli.py introuvable");
-    return { listings: [], raison: "worker Booking introuvable (scrape/booking/cli.py)" };
+    return { listings: [], raison: "worker Booking introuvable (scrape/booking/cli.py)", offset: null };
   }
   // « python3 » en dur ne lançait, sous Windows, que le raccourci du Microsoft
   // Store : il sortait sans lire son entrée, et l'écriture du HTML (plus de
@@ -172,7 +195,7 @@ async function spawnBooking(body: unknown, timeoutMs: number, input: LiveSearchI
   const raison = raisonPython(python);
   if (!python || raison) {
     console.warn(`[booking] ${raison}`);
-    return { listings: [], raison: raison ?? undefined };
+    return { listings: [], raison: raison ?? undefined, offset: null };
   }
   const raw = await new Promise<{ out: string; err: string; code: number | null }>((resolve) => {
     let fini = false;
@@ -208,15 +231,19 @@ async function spawnBooking(body: unknown, timeoutMs: number, input: LiveSearchI
   if (!raw.out) {
     if (raw.err || raw.code) console.warn(`[booking] sortie ${raw.code ?? "?"}`, raw.err.slice(0, 400));
     const fin = raw.err.trim().split(/\r?\n/).pop();
-    return { listings: [], raison: fin ? `worker Booking : ${fin.slice(0, 160)}` : `worker Booking sorti (${raw.code ?? "?"})` };
+    return { listings: [], raison: fin ? `worker Booking : ${fin.slice(0, 160)}` : `worker Booking sorti (${raw.code ?? "?"})`, offset: null };
   }
-  const parsed = lastJsonObject(raw.out) as { ok?: boolean; error?: string } | null;
+  const parsed = lastJsonObject(raw.out) as { ok?: boolean; error?: string; offset?: unknown } | null;
   if (!parsed || parsed.ok === false) {
     const erreur = parsed && "error" in parsed ? String(parsed.error) : "sortie du worker illisible";
     console.warn("[booking]", erreur);
-    return { listings: [], raison: erreur };
+    return { listings: [], raison: erreur, arret: arretDe(parsed), offset: null };
   }
-  return { listings: fromPython(parsed, input) };
+  return {
+    listings: fromPython(parsed, input),
+    arret: arretDe(parsed),
+    offset: typeof parsed.offset === "number" && parsed.offset >= 0 ? parsed.offset : null,
+  };
 }
 
 function pythonBody(input: LiveSearchInput, extra: Record<string, unknown> = {}) {
@@ -248,6 +275,20 @@ export async function scrapeBookingPythonDetaille(
 
 export async function scrapeBookingPython(input: LiveSearchInput): Promise<Listing[]> {
   return (await scrapeBookingPythonDetaille(input)).listings;
+}
+
+/**
+ * Une page de liste, pour la suite qui tourne après la réponse de l'écran.
+ * La pause entre deux pages est celle de l'appelant : ici, une seule requête
+ * (ou deux si la première est un défi, jamais si c'est un 429).
+ */
+export async function scrapeBookingPage(input: LiveSearchInput, offset: number, timeoutMs: number): Promise<BookingPython> {
+  await allowsPath("https://www.booking.com", "/");
+  return spawnBooking(
+    pythonBody(input, { maxPages: 1, offset, entre_s: 0 }),
+    Math.max(1_000, timeoutMs),
+    input,
+  );
 }
 
 function harvestCoordsFromHtml(html: string): Map<string, { lat: number; lon: number }> {
@@ -316,9 +357,18 @@ async function fillGpsFromHotelPages(page: Page, listings: Listing[]): Promise<v
   const missing = listings.filter((l) => !plausible(l.lat, l.lon) && l.url);
   for (const row of missing.slice(0, 12)) {
     try {
+      const garde = await respecterCadence(row.url!, 5_000);
+      if (garde) break;
       const rep = await page.goto(row.url!, { waitUntil: "domcontentloaded", timeout: 20_000 });
       const statut = rep?.status() ?? null;
-      const html = statut === 403 || statut === 429 ? null : await page.content();
+      // 202 : le défi AWS WAF, pas la fiche. On n'en tire rien, et on n'enchaîne pas.
+      if (statut === 403 || statut === 429 || statut === 503) poserRefus(row.url!, statut);
+      if (statut === 202 || statut === 403 || statut === 429 || statut === 503) {
+        const fiche = ficheDepuisPageBooking(row, null, statut);
+        if (fiche) row.fiche = fiche;
+        break;
+      }
+      const html = await page.content();
       // La fiche de la page déjà chargée, sans autre requête (`bookingFiche.ts`).
       const fiche = ficheDepuisPageBooking(row, html, statut);
       if (fiche) row.fiche = fiche;
@@ -372,7 +422,18 @@ export async function scrapeBookingPlaywright(page: Page, input: LiveSearchInput
   };
   page.on("response", onResponse);
   try {
-    await page.goto(searchUrl(input), { waitUntil: "domcontentloaded", timeout: 45_000 });
+    const garde = await respecterCadence("https://www.booking.com/", 5_000);
+    if (garde) {
+      console.warn(`[booking] playwright arrêté — ${garde}`);
+      return [];
+    }
+    const ouvert = await page.goto(searchUrl(input), { waitUntil: "domcontentloaded", timeout: 45_000 });
+    const statutOuvert = ouvert?.status() ?? 0;
+    if (statutOuvert === 403 || statutOuvert === 429 || statutOuvert === 503) {
+      poserRefus("https://www.booking.com/", statutOuvert);
+      console.warn(`[booking] playwright HTTP ${statutOuvert} — pause partagée`);
+      return [];
+    }
     await page
       .locator("#onetrust-accept-btn-handler, button:has-text('Accepter'), button:has-text('Accept')")
       .first()

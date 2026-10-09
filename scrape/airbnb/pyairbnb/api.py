@@ -7,6 +7,15 @@ ep = "https://www.airbnb.com"
 regx_api_key = re.compile(r'"api_config":{"key":".+?"')
 
 def get(proxy_url: str, timeout: Timeout = DEFAULT_TIMEOUT) -> str:
+    return get_with_body(proxy_url, timeout)[0]
+
+
+def get_with_body(proxy_url: str, timeout: Timeout = DEFAULT_TIMEOUT) -> tuple[str, str | None]:
+    """La clé, et le texte de la page d'accueil qui la porte (après une page de
+    bascule de domaine, celle qu'elle a rendue) : la recherche du hash
+    StaysSearch le relit au lieu de redemander la page
+    (`search.fetch_stays_search_hash`, qui la redemande s'il n'y trouve pas
+    son paquet)."""
     headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "en",
@@ -30,6 +39,7 @@ def get(proxy_url: str, timeout: Timeout = DEFAULT_TIMEOUT) -> str:
     response.raise_for_status()
 
     body = response.text
+    homepage_text: str | None = body
     api_key_match = regx_api_key.search(body)
 
     if not api_key_match:
@@ -50,6 +60,7 @@ def get(proxy_url: str, timeout: Timeout = DEFAULT_TIMEOUT) -> str:
             )
             response.raise_for_status()
             body = response.text
+            homepage_text = body
             api_key_match = regx_api_key.search(body)
 
     if not api_key_match:
@@ -58,4 +69,4 @@ def get(proxy_url: str, timeout: Timeout = DEFAULT_TIMEOUT) -> str:
     api_key = api_key_match.group()
     api_key = api_key.replace('"api_config":{"key":"', '')
     api_key = api_key.replace('"', "")
-    return api_key
+    return api_key, homepage_text

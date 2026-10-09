@@ -426,7 +426,9 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
     """Mode « fiches » : capacité, chambres, GPS et type pour une liste d'annonces.
 
     Entrée : `ids`, `checkIn`, `checkOut`, `adults`, `deadlineMs` (instant
-    absolu), `pauseS`. Sortie : `fiches` ({id: {capacity, bedrooms, rooms, lat,
+    absolu), `pauseS`, `avis` (`true` pour lire aussi une page d'avis par
+    fiche qui en annonce : une requête de plus chacune, donc absent par
+    défaut). Sortie : `fiches` ({id: {capacity, bedrooms, rooms, lat,
     lon, roomType, typeLogement, ecartee}}), `vides` (lues sans rien d'utile),
     `restants` (non lues : à redemander), `lues` (requêtes parties), et, si le
     lot s'est arrêté, `arret` (refus, coupe-circuit, rythme, echeance, hash,
@@ -509,8 +511,11 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
         return sortie()
 
     vides_de_suite = 0
-    # Une page d'avis par fiche qui en annonce, sauf demande contraire.
-    avec_avis = params.get("avis") is not False
+    # La page d'avis double les requêtes d'une fiche qui en annonce, et un
+    # refus sur elle ouvre le coupe-circuit partagé qui vide les relevés
+    # StaysSearch : seulement sur demande expresse. Les extraits que la
+    # réponse PDP porte déjà restent (`fiche_pdp.extraits_de_pdp`).
+    avec_avis = params.get("avis") is True
     while etat["i"] < len(ids):
         if etat["i"] and fin - time.time() - pause < MARGE_REQUETE_S:
             etat["arret"] = "echeance"

@@ -1,24 +1,28 @@
 /**
  * Valmorel.
  *
- * L'audit a relevé une empreinte Open System sur `www.valmorel.com`, mais le
- * site est un WordPress d'office de tourisme : l'empreinte vient d'un widget
- * inclus dans une page, pas d'un moteur de recherche hébergé là. Relevé du
- * 13 septembre 2026 : la page d'accueil ne déclare aucun `MoteurRecherche` et
- * ne porte aucun chemin `pr<N>-....htm`.
- *
- * `robots.txt` répond 200 et porte Disallow sur la connexion WordPress, les
- * rétroliens, les flux, les commentaires, `/cgi-bin`, et les fichiers en
- * `.php`, `.inc`, `.gz` et `.cgi`. On le lit. Rien qui concerne une page
- * d'hébergements. Ce qui manque est une URL de résultats.
+ * L'accueil est un WordPress. Le lien « Je réserve mon séjour » qu'il publie
+ * mène à `reservation.valmorel.com`, et le widget de cette page publie la
+ * recherche. Relevé du 9 octobre 2026 : `idIntegration` 1369, `loginAPI`
+ * « valmorel », onglet « Tous les hébergements » moteur 7991, formulaire
+ * 63877-3546. Le logement `OSMB-58385-2` y vaut 594 € sur trois nuits et
+ * 1 386 € sur sept, du 6 février 2027 : le total suit la durée.
  */
 
+import { chercherAlliance } from "../moteurs/alliance.server";
 import type { Connecteur } from "../types";
 
 export const valmorel: Connecteur = {
   host: "www.valmorel.com",
   nom: "Valmorel",
   moteur: "Open System",
-  indisponible:
-    "son site d'office de tourisme n'a pas de page de résultats datés. L'empreinte Open System relevée par l'audit vient d'un widget inclus, pas d'un moteur interrogeable. Relevé du 13 septembre 2026.",
+  chercher: (ctx) =>
+    chercherAlliance(ctx, {
+      host: "www.valmorel.com",
+      nom: "Valmorel",
+      cle: "vmr",
+      login: "valmorel",
+      catalogue: "https://map-jsonp.open-system.fr/osform/63877/3546/7991/vueinfo.js",
+      site: "https://reservation.valmorel.com/",
+    }),
 };

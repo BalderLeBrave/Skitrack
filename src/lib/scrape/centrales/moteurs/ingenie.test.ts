@@ -21,6 +21,8 @@ import {
   fragmentsIngenie,
   lieuIngenie,
   lireIngenie,
+  descriptionIngenie,
+  equipementsAvecDescription,
   nuitsEntre,
   occupationAfficheeIngenie,
   pageSuivanteIngenie,
@@ -420,6 +422,30 @@ describe("Ingénie : le lieu, la capacité et les chambres que la liste publie d
     // nombre de voyageurs demandé, pas la capacité.
     assert.equal(par("-ADRIEN3")?.capacite, 8);
     assert.equal(par("-59")?.capacite, 10);
+  });
+
+  it("reprend la description du JSON-LD de la page datée, sans en faire une capacité", () => {
+    assert.equal(
+      par("-59")?.description,
+      "Arêches-Beaufort très beau duplex, classé pour 8 personnes, idéal grande famille",
+    );
+    assert.equal(
+      par("-ADRIEN3")?.description,
+      "Appartement classé 3* pour 4 personnes.\nHébergement labelisé Clé Vacances : 3clés/ 6personnes",
+    );
+    assert.equal(par("-ADRIEN3")?.capacite, 8);
+    assert.equal(par("-CHOISI")?.description, null);
+    assert.equal(descriptionIngenie("<div></div>"), null);
+    // Un retour chariot brut casse le JSON : on ne reconstitue pas la phrase.
+    const casse = `<script type="application/ld+json">{"description":"a
+b","location":{"geo":{"latitude":"45.1","longitude":"6.2"}}}</script>`;
+    assert.equal(descriptionIngenie(casse), null);
+    const lus = equipementsAvecDescription(null, "WiFi et lave-vaisselle");
+    assert.equal(lus?.wifi, "oui");
+    assert.equal(lus?.laveVaisselle, "oui");
+    assert.equal(equipementsAvecDescription(null, "Duplex au calme"), null);
+    // Le pictogramme prime sur la description.
+    assert.equal(equipementsAvecDescription({ animaux: "non" }, "animaux admis")?.animaux, "non");
   });
 
   it("la dernière fiche s'arrête à la pagination, pas au pied de page", () => {

@@ -36,8 +36,10 @@
 
 import type { Listing } from "@/lib/listings";
 import { memoireFiches } from "@/lib/stay/memoireFiches.server";
+import { equipements, depuisTexte } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
 import { compter, phrasesRegle } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
@@ -234,6 +236,8 @@ async function json(
   corps?: Record<string, unknown>,
   delaiMs = TIMEOUT_MS,
 ): Promise<{ statut: number; valeur: unknown }> {
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   // La passerelle ne sert même pas son `robots.txt` sans ces en-têtes : sans
   // eux elle rend 400. On les envoie pour lire le fichier, pas pour s'arrêter.
   await centraleAutorise(url, entetesPasserelle(session));
@@ -258,6 +262,7 @@ async function json(
     }
     if (!r.ok) {
       await r.body?.cancel();
+      poserRefus(url, r.status, r.headers);
       throw new ErreurStatut(r.status);
     }
     return { statut: r.status, valeur: await r.json() };
@@ -371,7 +376,10 @@ function detailsFeratel(
         capacitesLues.set(cle, { lueA: maintenant, produits });
         noterCapacites(r.organisation, lecture, maintenant);
       } catch (e) {
-        if (e instanceof ErreurStatut && (e.statut === 403 || e.statut === 429 || e.statut === 503)) {
+        if (
+          (e instanceof ErreurStatut && (e.statut === 403 || e.statut === 429 || e.statut === 503)) ||
+          (e instanceof Error && estMessageRefus(e.message))
+        ) {
           capacitesRefusees.add(r.organisation);
         }
         throw e;
@@ -504,6 +512,10 @@ function enListing(
     // Confins ») : les seuls repères des logements sans coordonnées.
     locality: f.commune,
     placeName: f.quartier,
+    ...(f.description
+      ? { description: f.description, amenities: equipements(depuisTexte(f.description)) }
+      : {}),
+    ...(f.note != null ? { rating: f.note } : {}),
     proven: `${r.nom} (Deskline / Feratel, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.service ? ` — ${f.service}` : ""
     }${f.produit && f.produit !== f.titre ? ` — produit vendu : ${f.produit}` : ""}`,

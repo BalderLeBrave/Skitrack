@@ -8,39 +8,51 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-neuf ; vingt-sept en ont un ici. Dix-neuf d'entre eux s'interrogent
- * vraiment et couvrent trente-trois stations ; les huit autres racontent un
- * empêchement qui leur est propre, et que la phrase de leur moteur dirait mal.
+ * soixante-neuf ; trente-six en ont un ici. Trente-trois d'entre eux
+ * s'interrogent vraiment et couvrent cinquante-cinq stations ; les trois
+ * autres racontent un empêchement qui leur est propre, et que la phrase de
+ * leur moteur dirait mal.
  *
- * Pour les quarante-deux autres centrales, `registre.ts` sait déjà nommer le
+ * Pour les trente-trois autres centrales, `registre.ts` sait déjà nommer le
  * moteur. Celles d'Ingénie sans fichier passent par `chercherIngenieHote`.
- * Pour les autres, `moteurs/etat.ts` dit en une phrase ce qui empêche encore —
- * plus jamais un Disallow.
+ * Celles d'Orchestra sans fichier passent par `chercherOrchestraHote` : les
+ * destinations sont les liens que l'accueil publie. Pour les autres,
+ * `moteurs/etat.ts` dit en une phrase ce qui empêche encore — plus jamais un
+ * Disallow.
  */
 
 import type { Connecteur } from "../types";
 import { alpeDHuez } from "./alpeDHuez";
 import { alpeDuGrandSerre } from "./alpeDuGrandSerre";
 import { ax3Domaines } from "./ax3Domaines";
+import { chamonix } from "./chamonix";
 import { combloux } from "./combloux";
 import { correnconEnVercors } from "./correnconEnVercors";
 import { devoluy } from "./devoluy";
 import { flaine } from "./flaine";
 import { foretBlanche } from "./foretBlanche";
+import { gourette } from "./gourette";
+import { grandTourmalet } from "./grandTourmalet";
 import { hauteMaurienneVanoise } from "./hauteMaurienneVanoise";
 import { isola2000 } from "./isola2000";
+import { karellis } from "./karellis";
+import { laBresse } from "./laBresse";
 import { laClusaz } from "./laClusaz";
 import { laPlagne } from "./laPlagne";
 import { lesArcs } from "./lesArcs";
 import { lesContamines } from "./lesContamines";
 import { lesSybelles } from "./lesSybelles";
+import { luzArdiden } from "./luzArdiden";
 import { montclar } from "./montclar";
 import { montgenevre } from "./montgenevre";
 import { paysDesEcrins } from "./paysDesEcrins";
+import { peyragudes } from "./peyragudes";
 import { piauEngaly } from "./piauEngaly";
 import { pralognan } from "./pralognan";
+import { prazDeLys } from "./prazDeLys";
 import { saintFrancoisLongchamp } from "./saintFrancoisLongchamp";
 import { sainteFoyTarentaise } from "./sainteFoyTarentaise";
+import { valfrejus } from "./valfrejus";
 import { valberg } from "./valberg";
 import { valdAllos } from "./valdAllos";
 import { valmeinier } from "./valmeinier";
@@ -63,26 +75,41 @@ const TOUS: readonly Connecteur[] = [
   montclar,
   // Deskline / Feratel : la seule du parc, et la mieux servie.
   laClusaz,
-  // Arkiane, iResa et Orchestra : une centrale chacun.
+  // Arkiane, iResa et Orchestra : une centrale chacun, plus Combloux dont
+  // les destinations se lisent sur l'accueil.
   pralognan,
   lesArcs,
   laPlagne,
-  // Ingénie : quatre centrales avec cid relevé. Les autres passent par
-  // chercherIngenieHote dans chercher.server.ts, cid lu sur l'accueil.
+  combloux,
+  // Ingénie : quatre centrales avec cid relevé, plus La Bresse dont
+  // l'office publie le lien vers reservation.labresse.net. Les autres
+  // passent par chercherIngenieHote dans chercher.server.ts, cid lu sur l'accueil.
   foretBlanche,
   lesContamines,
   valmeinier,
   valdAllos,
-  // Open System, génération ancienne, et sites sans moteur interrogeable.
+  laBresse,
+  // Open System, génération ancienne : le widget publie un loginAPI.
   lesSybelles,
   devoluy,
-  alpeDuGrandSerre,
-  valmorel,
   ax3Domaines,
-  piauEngaly,
-  // Montgenèvre : même génération ancienne. Combloux : moteur encore inconnu.
   montgenevre,
-  combloux,
+  valmorel,
+  // N'Py : un login pour les Pyrénées, un contour publié par station.
+  piauEngaly,
+  gourette,
+  luzArdiden,
+  peyragudes,
+  grandTourmalet,
+  // Valfréjus : la page datée que son site publie sur Haute Maurienne.
+  valfrejus,
+  // Sites dont on a lu la recherche, et qui ne rendent pas un total de séjour.
+  alpeDuGrandSerre,
+  prazDeLys,
+  karellis,
+  // Chamonix : les identifiants sont sur la page de résultats, le prix sur
+  // le calendrier.
+  chamonix,
 ];
 
 const PAR_HOTE = new Map(TOUS.map((c) => [c.host, c]));

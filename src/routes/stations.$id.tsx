@@ -20,7 +20,7 @@ import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
 import { braLabel, lieuLisible } from "@/lib/bra/parse";
-import { getForecastPair, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
+import { dateParis, getForecastPair, jourCourant, veille, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
 import { fuseauStation, meteoEnDateDu } from "@/lib/meteo/enDateDu";
 import {
   datesLbl,
@@ -150,7 +150,8 @@ function temp(v: number | null | undefined): string {
 
 /** Une altitude aujourd'hui : matin, après-midi et cinq mesures du jour. */
 function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx: Wx; lvl: ForecastLevel | null; haut: boolean }) {
-  const j = lvl?.days[0];
+  const j = lvl ? jourCourant(lvl.days) : undefined;
+  const hier = lvl && j ? lvl.days.find((d) => d.date === veille(j.date)) : undefined;
   return (
     <div className={`wx7__niveau${haut ? " wx7__niveau--haut" : ""}`}>
       <div className="wx7__tete">
@@ -192,6 +193,12 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
                 {j.snowCm == null ? tr("non relevé") : j.snowCm > 0 ? `${j.snowCm} cm` : "0 cm"}
               </dd>
             </div>
+            {hier && hier.snowCm != null && hier.snowCm > 0 ? (
+              <div>
+                <dt>{tr("Neige hier")}</dt>
+                <dd className="wx7__neige">{`${hier.snowCm} cm`}</dd>
+              </div>
+            ) : null}
             <div>
               <dt>{tr("Pluie 24 h")}</dt>
               <dd>{j.rainMm == null ? tr("non relevé") : `${j.rainMm} mm`}</dd>
@@ -212,7 +219,7 @@ function Bande({ titre, lvl }: { titre: string; lvl: ForecastLevel }) {
     <div className="bande7">
       <strong>{titre}</strong>
       <div className="bande7__jours">
-        {lvl.days.slice(0, 14).map((d) => (
+        {lvl.days.slice(0, 15).map((d) => (
           <div key={d.date} className={`bande7__jour${d.snowCm ? " bande7__jour--neige" : ""}`}>
             <span>{jourLbl(d.date)}</span>
             <Icon name={ICONE[d.kind]} taille={18} className={`bande7__ico bande7__ico--${d.kind}`} />
@@ -698,6 +705,17 @@ function FicheBody({ s }: { s: Station }) {
                 <h2>{tr("Aujourd’hui, aux deux altitudes")}</h2>
                 {wx.status === "ok" ? <span>{meteoEnDateDu(wx.at, fuseauStation(s.country))}</span> : null}
               </div>
+              {wx.status === "ok" ? (
+                <p className="carte7-sect__texte">
+                  {wx.data.sourceChutes === "arpege"
+                    ? tr(
+                        "Les chutes sont celles d’Arpège (Météo-France) à l’altitude indiquée. La hauteur au sol est celle du CEPMMT. Ce sont des modèles, pas le relevé de la station.",
+                      )
+                    : tr(
+                        "Les chutes et la hauteur au sol sont celles du CEPMMT, à l’altitude indiquée. Ce sont des modèles, pas le relevé de la station.",
+                      )}
+                </p>
+              ) : null}
               <div className="wx7">
                 <Niveau
                   titre={tr("Bas des pistes")}
@@ -718,7 +736,7 @@ function FicheBody({ s }: { s: Station }) {
 
             {wx.status === "ok" && wx.data.low.days.length ? (
               <section className="carte7-sect">
-                <h2>{tr("14 jours")}</h2>
+                <h2>{tr("Hier et les 14 jours")}</h2>
                 <Bande
                   titre={`${tr("Bas des pistes")} · ${loMesure != null ? `${fmt(loMesure)} m` : tr("altitude non relevée")}`}
                   lvl={wx.data.low}

@@ -69,11 +69,47 @@ export type ForecastLevel = {
 export type ForecastPair = {
   low: ForecastLevel;
   high: ForecastLevel;
-  /** Isotherme 0 °C à la mi-journée du premier jour, en mètres. */
+  /** Isotherme 0 °C à la mi-journée du jour courant, en mètres. */
   freezingLevelM: number | null;
+  /**
+   * D'où viennent les chutes, la pluie et les températures.
+   * `arpege` en France métropolitaine : ce modèle suit l'altitude demandée.
+   * `ecmwf` ailleurs. La hauteur au sol est toujours celle du CEPMMT :
+   * Arpège ne la publie pas.
+   */
+  sourceChutes: "arpege" | "ecmwf";
   /** Horodatage du relevé. `null` = la requête n'a pas abouti. */
   at: string | null;
 };
+
+/** Jour civil à Paris, AAAA-MM-JJ. Les prévisions françaises sont horodatées ainsi. */
+export function dateParis(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+/** La veille d'un jour civil AAAA-MM-JJ. */
+export function veille(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  const dt = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  dt.setUTCDate(dt.getUTCDate() - 1);
+  return dt.toISOString().slice(0, 10);
+}
+
+/**
+ * Le jour courant de la série.
+ *
+ * Avec un jour passé en tête, `days[0]` est hier. L'écran « aujourd'hui »
+ * ne doit pas l'afficher à la place du jour en cours.
+ */
+export function jourCourant(days: readonly ForecastDay[], auj = dateParis()): ForecastDay | undefined {
+  return days.find((d) => d.date === auj) ?? days.find((d) => d.date > auj) ?? days[0];
+}
 
 /** Prévision 14 jours aux deux altitudes. Le relevé se fait côté serveur. */
 export const getForecastPair = createServerFn({ method: "POST" })

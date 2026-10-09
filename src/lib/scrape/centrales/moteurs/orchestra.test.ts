@@ -3,9 +3,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   cartesOrchestra,
+  cartesSerpOrchestra,
   dateOrchestra,
+  destinationsDeStation,
+  destinationsPubliees,
   ficheOrchestra,
   horsRegleOrchestra,
+  lienSuiteSerp,
   nuitsOrchestra,
   prixOrchestra,
   refOrchestra,
@@ -21,6 +25,65 @@ describe("Orchestra : la référence publiée du logement", () => {
     assert.equal(refOrchestra(chemin("/location/chalet-les-pins-86645")), "86645");
     assert.equal(refOrchestra(chemin("/location/2-pieces-ref-ccdt052-99999")), "86645");
     assert.equal(refOrchestra({ id: "86645", chemin: null }), "86645");
+  });
+});
+
+describe("Orchestra : page de résultats, calendrier rangé par durée", () => {
+  const PAGE = `<article><div class="cpt-favorite" data-product='{"id":"4751","title":"Pierre & Vacances","accommodation":"Appartement","stationLocation":"Chamonix-Mont-Blanc","url":"/fr/produit-4751","img":"https://img.exemple/a.jpg"}'></div></article>
+<article data-product='{"id":"9","title":"Les Houches","accommodation":"Appartement","stationLocation":"Les Houches","url":"/fr/produit-9"}'></article>
+<div class="see-more"><a href="/fr/serp?page=2&byPage=20" class="elem-button--default see-more-results">voir plus</a></div>`;
+
+  it("lit l'identifiant et ignore le voisin d'une autre station", () => {
+    const cartes = cartesSerpOrchestra(PAGE, "chamonix");
+    assert.equal(cartes.length, 1);
+    assert.equal(cartes[0]?.id, "4751");
+    assert.equal(cartes[0]?.titre, "Pierre & Vacances");
+    assert.equal(cartes[0]?.type, "Appartement");
+    assert.equal(cartes[0]?.chemin, "/fr/produit-4751");
+    assert.equal(lienSuiteSerp(PAGE), "/fr/serp?page=2&byPage=20");
+    assert.equal(lienSuiteSerp("<p>rien</p>"), null);
+  });
+
+  it("le prix est celui du lot qui couvre le groupe, et il suit la durée", () => {
+    const cal = {
+      availabilities: {
+        XXX: {
+          "8-7": {
+            "02-2027": {
+              "06": {
+                price: 1258,
+                byHousing: true,
+                nightNb: 7,
+                categories: {
+                  studio: { price: 1258, categoryLabel: "Studio 4 personnes", categoryCode: "S", maxPax: 4, minPax: 1, status: "Available" },
+                  grand: { price: 2721, categoryLabel: "Appartement 7 personnes", categoryCode: "G", maxPax: 7, minPax: 1, status: "Available" },
+                },
+              },
+            },
+          },
+          "15-14": {
+            "02-2027": {
+              "06": {
+                price: 2620,
+                byHousing: true,
+                nightNb: 14,
+                categories: {
+                  studio: { price: 2620, categoryLabel: "Studio 4 personnes", categoryCode: "S", maxPax: 4, minPax: 1, status: "Available" },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const quatre = prixOrchestra(cal, { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 4 });
+    assert.equal(quatre?.total, 1258);
+    assert.equal(quatre?.parLogement, true);
+    assert.equal(quatre?.nuits, 7);
+    const six = prixOrchestra(cal, { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 6 });
+    assert.equal(six?.total, 2721);
+    const quatorze = prixOrchestra(cal, { checkIn: "2027-02-06", checkOut: "2027-02-20", guests: 4 });
+    assert.equal(quatorze?.total, 2620);
   });
 });
 
@@ -469,5 +532,67 @@ describe("Orchestra : description et équipements d'une fiche réelle de La Plag
 
   it("les champs du bloc « Information » ne changent pas", () => {
     assert.deepEqual([f.capacite, f.pieces, f.village], [6, 2, "CHAMPAGNY"]);
+  });
+});
+
+describe("Orchestra : destinations publiées, pas inventées", () => {
+  const fiche = readFileSync(new URL("./fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url), "utf8");
+
+  it("la fiche de La Plagne publie ses onze destinations, à la racine", () => {
+    const lu = destinationsPubliees(fiche);
+    assert.equal(lu.ok, true);
+    if (!lu.ok) return;
+    assert.equal(lu.prefixe, "");
+    assert.deepEqual(
+      [...lu.slugs].sort(),
+      [
+        "belle-plagne",
+        "champagny-en-vanoise",
+        "montchavin-les-coches",
+        "plagne-1800",
+        "plagne-aime-2000",
+        "plagne-bellecote",
+        "plagne-centre",
+        "plagne-montalbert",
+        "plagne-soleil",
+        "plagne-vallee",
+        "plagne-villages",
+      ],
+    );
+  });
+
+  it("un préfixe publié est gardé, et il entre dans l'URL du catalogue", () => {
+    const page = `<a href="/combloux/destinations/le-jaillet">Le Jaillet</a>
+      <a href="https://reservation.combloux.com/combloux/destinations/centre?lang=fr">Centre</a>`;
+    const lu = destinationsPubliees(page);
+    assert.equal(lu.ok, true);
+    if (!lu.ok) return;
+    assert.equal(lu.prefixe, "/combloux");
+    assert.deepEqual(lu.slugs, ["le-jaillet", "centre"]);
+    const cat = new URL(urlCatalogueOrchestra(`https://reservation.combloux.com${lu.prefixe}`, lu.slugs[0] ?? ""));
+    assert.equal(cat.pathname, "/combloux/destinations/le-jaillet");
+    assert.equal(cat.search, "");
+  });
+
+  it("deux préfixes ne sont pas fondus, et une page sans lien n'invente rien", () => {
+    const melange = `<a href="/destinations/a">A</a><a href="/autre/destinations/b">B</a>`;
+    assert.deepEqual(destinationsPubliees(melange), { ok: false, raison: "plusieurs préfixes" });
+    assert.deepEqual(destinationsPubliees("<html><a href=\"/location/x\">fiche</a></html>"), {
+      ok: false,
+      raison: "aucune",
+    });
+  });
+
+  it("seules les destinations de la station sont gardées", () => {
+    assert.deepEqual(destinationsDeStation("/combloux", ["le-jaillet", "centre"], "combloux"), [
+      "le-jaillet",
+      "centre",
+    ]);
+    assert.deepEqual(destinationsDeStation("", ["praz-sur-arly", "chamonix", "praz"], "praz-sur-arly"), [
+      "praz-sur-arly",
+      "praz",
+    ]);
+    assert.deepEqual(destinationsDeStation("", ["megeve"], "praz-sur-arly"), []);
+    assert.deepEqual(destinationsDeStation("/fr", ["chamonix", "les-houches"], "chamonix"), ["chamonix"]);
   });
 });

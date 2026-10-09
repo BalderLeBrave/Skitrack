@@ -1,18 +1,22 @@
 /**
  * Combloux.
  *
- * Son `robots.txt` dit « Disallow: / ». On le lit, on n'en fait pas un arrêt.
- * Le moteur n'a pas été identifié au sondage du 13 septembre 2026 : rien d'autre
- * que le fichier n'avait alors été demandé. Sans moteur nommé, il n'y a pas
- * encore d'appel de recherche.
+ * Identifié le 20 septembre 2026 : Orchestra, sous un préfixe de chemin et non
+ * à la racine comme La Plagne. Le préfixe et les destinations ne sont pas
+ * écrits ici. La page d'accueil les publie ; `chercherOrchestraHote` les lit.
+ * Pas de lien, ou aucun qui nomme Combloux, et la recherche le dit au lieu de
+ * répondre qu'il n'y a rien de libre.
+ *
+ * Son `robots.txt` disait Disallow au premier audit. On le lit à l'exécution,
+ * on n'en fait pas un arrêt.
  */
 
+import { chercherOrchestraHote } from "../moteurs/orchestra.server";
 import type { Connecteur } from "../types";
 
 export const combloux: Connecteur = {
   host: "reservation.combloux.com",
   nom: "Combloux",
-  moteur: "inconnu",
-  indisponible:
-    "le moteur de cette centrale n'a pas été identifié au relevé du 13 septembre 2026. Sans savoir ce qui la fait tourner, il n'y a rien à interroger de sûr.",
+  moteur: "Orchestra",
+  chercher: (ctx) => chercherOrchestraHote(ctx, "Combloux", "reservation.combloux.com"),
 };

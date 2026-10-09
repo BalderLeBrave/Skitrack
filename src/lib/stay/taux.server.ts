@@ -30,7 +30,22 @@ const VERROU_ATTENTE_MS = 500;
 const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
   airbnb: { gapMs: 2_000, maxHits: 18 },
   gites: { gapMs: 2_000, maxHits: 24 },
-  booking: { gapMs: 1_200, maxHits: 24 },
+  booking: { gapMs: 2_000, maxHits: 24 },
+  /**
+   * Cozy ne réserve plus de créneau (`cozy.server.ts`) : seule sa pause de
+   * refus est lue. HomeToGo dort déjà une seconde entre deux pages ; le journal
+   * aligne une seconde recherche sur la même seconde, sans la ralentir
+   * davantage.
+   */
+  cozy: { gapMs: 1_000, maxHits: 50 },
+  hometogo: { gapMs: 1_000, maxHits: 40 },
+  /**
+   * `services.msem.tech` sert toutes les centrales MSEM. Deux stations d'un
+   * domaine partaient ensemble. Deux secondes, trente par minute.
+   */
+  msem: { gapMs: 2_000, maxHits: 30 },
+  /** `webapi.deskline.net` sert Feratel, une file pour tout le parc. */
+  feratel: { gapMs: 2_000, maxHits: 30 },
   /**
    * L'API GraphQL de GreenGo : une recherche, puis un détail par hôte gardé.
    * Le défaut, écrit ici pour que l'écran Prix le lise (`attente.ts`) et que
@@ -43,7 +58,10 @@ const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
    * résidence : une page de résultats du site en lance dix d'un coup. Une
    * requête par seconde, quarante par minute, reste en deçà de ce qu'un
    * visiteur qui feuillette lui fait envoyer. Aucun refus observé sur plus
-   * de 300 appels à 2 s d'écart le 26 septembre 2026.
+   * de 300 appels à 2 s d'écart le 26 septembre 2026. Ralenti à deux
+   * secondes, la part de 40 s de l'écran Prix ne lisait plus qu'une
+   * quinzaine de calendriers au lieu d'une trentaine, et la station suivante
+   * arrête la tâche : autant d'annonces de moins dans la médiane.
    */
   skiplanet: { gapMs: 1_000, maxHits: 40 },
 };

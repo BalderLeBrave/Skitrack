@@ -35,6 +35,7 @@ import { SensTri } from "@/components/v7/SensTri";
 import { COLOR_HEX } from "@/lib/carte";
 import {
   getForecastPair,
+  jourCourant,
   SKY_FR,
   type ForecastLevel,
   type ForecastPair,
@@ -200,7 +201,7 @@ function BarreCouleurs({ r }: { r: Repartition }) {
  * pas de prévision du tout.
  */
 function NiveauMeteo({ titre, n, systeme }: { titre: string; n: ForecastLevel; systeme: Systeme }) {
-  const jour = n.days[0];
+  const jour = jourCourant(n.days);
   return (
     <div className="monde-meteo__niveau">
       <span className="monde-meteo__titre">

@@ -523,6 +523,104 @@ def listing_name(record: dict[str, Any]) -> str:
     return _nested_name(desc.get("name"))
 
 
+def description_tuile(record: dict[str, Any]) -> str | None:
+    """La description publiée sur la tuile, si Airbnb l'y écrit.
+
+    Pas une ligne d'occupation (« 6 voyageurs · 3 chambres ») : ça n'est pas
+    une description. Rien d'inventé quand la tuile se tait.
+    """
+    import re
+
+    demand = record.get("demandStayListing") if isinstance(record.get("demandStayListing"), dict) else {}
+    textes: list[str] = []
+    for node in (demand, record):
+        if not isinstance(node, dict):
+            continue
+        desc = node.get("description") if isinstance(node.get("description"), dict) else {}
+        for cle in ("htmlText", "htmlDescription"):
+            val = desc.get(cle)
+            if isinstance(val, dict):
+                val = val.get("htmlText") or val.get("localizedStringWithTranslationPreference")
+            if isinstance(val, str) and val.strip():
+                textes.append(val)
+        for cle in ("overview", "summary"):
+            val = node.get(cle)
+            if isinstance(val, str) and val.strip():
+                textes.append(val)
+    if not textes:
+        return None
+    texte = re.sub(r"<[^>]+>", " ", textes[0])
+    texte = re.sub(r"\s+", " ", texte).strip()
+    if len(texte) < 40:
+        return None
+    if re.fullmatch(
+        r"[\d\s·,./+-]*(?:voyageurs?|personnes?|chambres?|lits?|guests?|bedrooms?|beds?|baths?|salles? de bain).*",
+        texte,
+        re.I,
+    ):
+        return None
+    return texte[:4000]
+
+
+# Le groupe qu'Airbnb publie pour ce que le logement n'a pas (même règle que
+# `fiche_pdp.NON_INCLUS_RE`).
+NON_INCLUS_RE = re.compile(r"^(non inclus|not included|indisponible|unavailable)$", re.IGNORECASE)
+
+
+def equipements_tuile(record: dict[str, Any]) -> list[str]:
+    """Les titres d'équipements déjà dans la tuile (aperçu ou liste complète).
+
+    Seulement les groupes qu'Airbnb nomme ainsi. Aucun titre d'ailleurs. Un
+    équipement du groupe « Non inclus », ou marqué indisponible, n'est pas un
+    équipement présent : il n'est pas rendu.
+    """
+    titres: list[str] = []
+
+    def walk(value: Any, depth: int) -> None:
+        if depth > 8 or value is None:
+            return
+        if isinstance(value, list):
+            for item in value:
+                walk(item, depth + 1)
+            return
+        if not isinstance(value, dict):
+            return
+        for cle in ("previewAmenitiesGroups", "seeAllAmenitiesGroups"):
+            groupes = value.get(cle)
+            if not isinstance(groupes, list):
+                continue
+            for groupe in groupes:
+                if not isinstance(groupe, dict):
+                    continue
+                nom_groupe = groupe.get("title")
+                if isinstance(nom_groupe, str) and NON_INCLUS_RE.match(nom_groupe.strip()):
+                    continue
+                amenities = groupe.get("amenities")
+                if not isinstance(amenities, list):
+                    continue
+                for amenity in amenities:
+                    if not isinstance(amenity, dict) or amenity.get("available") is False:
+                        continue
+                    titre = amenity.get("title")
+                    if isinstance(titre, str) and titre.strip():
+                        titres.append(titre.strip())
+        for item in value.values():
+            if isinstance(item, (dict, list)):
+                walk(item, depth + 1)
+
+    walk(record, 0)
+    vus: set[str] = set()
+    out: list[str] = []
+    for titre in titres:
+        if titre in vus:
+            continue
+        vus.add(titre)
+        out.append(titre)
+        if len(out) >= 80:
+            break
+    return out
+
+
 def structured_lines(record: dict[str, Any]) -> list[str]:
     lines: list[str] = []
 
@@ -620,6 +718,8 @@ def stay_to_listing(
         "beds": beds,
         "rating": rating,
         "reviewCount": review_count,
+        **({"description": description_tuile(record)} if description_tuile(record) else {}),
+        **({"amenityTitles": equipements_tuile(record)} if equipements_tuile(record) else {}),
         # Airbnb liste des biens qu'il ne peut pas vendre à ces dates : sa
         # tuile sort alors sans total de séjour. On les supprimait, ce qui
         # effaçait l'information au lieu de la dire. `0` est la convention

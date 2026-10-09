@@ -2,12 +2,14 @@ import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { allowsPath } from "./robots";
 import { ficheDepuisPageBooking } from "./bookingFiche";
+import { poserRefus, respecterCadence } from "./gardeHote.ts";
 
 /** GPS Booking.com. Ne touche ni aux prix ni au relevé des fiches ; la page
  *  déjà chargée donne aussi sa fiche (`bookingFiche.ts`), sans autre requête. */
 
 const MAX_FICHES = 12;
-const WORKERS = 4;
+/** Une page à la fois : quatre navigateurs en parallèle essuyaient le défi. */
+const WORKERS = 1;
 const BUDGET_MS = 14_000;
 
 function plausible(lat: number | null | undefined, lon: number | null | undefined): boolean {
@@ -65,9 +67,12 @@ type PageLue = { gps: { lat: number; lon: number } | null; html: string | null; 
 
 async function gpsOnPage(page: Page, url: string, until: number): Promise<PageLue> {
   if (Date.now() >= until) return { gps: null, html: null, statut: null };
+  const garde = await respecterCadence(url, Math.max(0, Math.min(5_000, until - Date.now() - 1_000)));
+  if (garde) return { gps: null, html: null, statut: 429 };
   const rep = await page.goto(url, { waitUntil: "domcontentloaded", timeout: Math.max(3_000, until - Date.now()) });
   const statut = rep?.status() ?? null;
-  if (statut === 403 || statut === 429) return { gps: null, html: null, statut };
+  if (statut === 403 || statut === 429 || statut === 503) poserRefus(url, statut);
+  if (statut === 202 || statut === 403 || statut === 429 || statut === 503) return { gps: null, html: null, statut };
   // Le HTML de la page chargée : pour la fiche, et pour le GPS si la carte
   // ne le donne pas. Aucune navigation de plus.
   const html = await page.content().catch(() => null);
@@ -122,6 +127,7 @@ export async function fillBookingGps(host: Page, listings: Listing[]): Promise<n
             const { gps, html, statut } = await gpsOnPage(p, url, until);
             const fiche = ficheDepuisPageBooking(row, html, statut);
             if (fiche) row.fiche = fiche;
+            if (statut === 202 || statut === 403 || statut === 429 || statut === 503) return;
             if (!gps) continue;
             row.lat = gps.lat;
             row.lon = gps.lon;

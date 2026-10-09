@@ -101,6 +101,9 @@ describe("Booking : la fiche lue dans la page déjà chargée", () => {
     assert.equal(ficheDepuisPageBooking({ ...ICI, lodgingType: "chambre" }, HTML, 200), undefined);
     const refusee = ficheDepuisPageBooking(ICI, HTML, 429)!;
     assert.equal(refusee.indisponible, true);
+    const defi = ficheDepuisPageBooking(ICI, HTML, 202)!;
+    assert.equal(defi.indisponible, true);
+    assert.equal(defi.description, undefined);
     assert.deepEqual(
       [refusee.description, refusee.equipements, refusee.avis, refusee.conditions],
       [undefined, [], null, null],

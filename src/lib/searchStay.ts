@@ -2,12 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { attachAccess } from "./access";
 import { listingsForStay, type Listing } from "./listings";
-import { agencesDuReleve } from "./scrape/domaine";
+import { agencesDuReleve, stationsDuReleve } from "./scrape/domaine";
 import type { LiveSearchInput, LiveSearchResult, SourceName } from "./scrape/types";
 import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
 import { enrichirListing } from "./stay/enrichir";
-import { journalResidu, residuLogements } from "./stay/logement";
+import { journalResidu, qualifierLogement, residuLogements } from "./stay/logement";
 import { estFicheGitesIntrouvable } from "./stay/ficheGites";
 import { estOffreGitesVerifiee, purgerTarifFigé } from "./stay/tarif";
 import { dedoublonnerParBien } from "./stay/poserReleve";
@@ -21,7 +21,7 @@ const Input = z.object({
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guests: z.number().int().min(1).max(30),
   bedrooms: z.number().int().min(0).max(20),
-  part: z.enum(["airbnb", "gites", "cozy", "centrales", "greengo", "agences", "browser", "all"]).optional(),
+  part: z.enum(["airbnb", "gites", "cozy", "centrales", "greengo", "hometogo", "agences", "browser", "all"]).optional(),
   /** « Relancer le relevé » à l'écran : le cache long d'Airbnb ne sert que 90 s. */
   relance: z.boolean().optional(),
   /**
@@ -50,10 +50,11 @@ function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>, input: Live
   if (part === "gites") return ["Gîtes de France"];
   if (part === "centrales") return ["Centrale"];
   if (part === "greengo") return ["GreenGo"];
+  if (part === "hometogo") return ["HomeToGo"];
   if (part === "agences") return agences;
   if (part === "cozy") return ["Abritel", "Booking"];
   if (part === "browser") return ["Airbnb", "Gîtes de France", "Abritel", "Booking"];
-  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo", ...agences];
+  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo", "HomeToGo", ...agences];
 }
 
 function timedOutResult(part: NonNullable<z.infer<typeof Input>["part"]>, input: LiveSearchInput, ms: number): LiveSearchResult {
@@ -125,10 +126,9 @@ const OUVERTES_MAX = 3;
  * fond a lu (cache des fiches) et la mémoire des fiches se posent, et rien ne
  * part d'ici. Les pages Airbnb se lisent en tâche de fond ; l'écran les
  * affichait « non renseigné » jusqu'à la recherche suivante. Ce qui reste à
- * lire retourne en fin de file de la tâche de fond, et une suite arrêtée
- * (échéance de 45 min, refus répétés) repart à son rythme, derrière le même
- * limiteur : avant, la relecture lisait elle-même ses pages et relançait la
- * suite.
+ * lire retourne en fin de file, sauf si un refus a arrêté le catalogue : la
+ * relecture ne le relance pas. L'annonce ouverte, elle, peut encore partir
+ * seule (`prioriserSuiteAirbnb`).
  *
  * `lireMaintenant` : les annonces Airbnb qu'on vient d'ouvrir (trois au plus)
  * passent d'abord en tête de la file de la tâche de fond
@@ -162,8 +162,8 @@ export const completerAnnonces = createServerFn({ method: "POST" })
         const { airbnbComplet } = await import("./stay/priseFiche");
         prioriserSuiteAirbnb(rows.filter((l) => l.source === "Airbnb" && !airbnbComplet(l)));
       }
-      // Ce que le cache et la mémoire savent, sans réseau. Ce qui reste à
-      // lire retourne en fin de file, et une suite arrêtée repart.
+      // Ce que le cache et la mémoire savent, sans réseau. Un catalogue arrêté
+      // sur un refus n'est pas relancé ; l'annonce ouverte, si, toute seule.
       await fillFiches(rows, 0, { relecture: true });
     } catch {
       /* mémoire illisible : les trous restent nommés, la relecture suivante reprendra */
@@ -172,6 +172,108 @@ export const completerAnnonces = createServerFn({ method: "POST" })
     if (bouges.length === 0) return rows;
     const parId = new Map(poserAcces(bouges, bouges[0].stationId).map((l) => [l.id, l]));
     return rows.map((l) => parId.get(l.id) ?? l);
+  });
+
+/**
+ * Les annonces Airbnb déjà en cache pour cette recherche, y compris celles
+ * lues après la première réponse (suite de pages). Aucun appel à Airbnb.
+ */
+export const lireSuiteAirbnb = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      stationName: z.string().min(1),
+      lat: z.number(),
+      lon: z.number(),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      guests: z.number().int().min(1).max(30),
+      bedrooms: z.number().int().min(0).max(20),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const { lireCacheAirbnb } = await import("./scrape/run.server");
+    return lireCacheAirbnb({ ...data, domaine: true });
+  });
+
+/**
+ * Les annonces Booking déjà en cache pour cette recherche, y compris les
+ * pages lues après la réponse Cozy. Aucun appel à Booking.
+ */
+export const lireSuiteBooking = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      stationName: z.string().min(1),
+      lat: z.number(),
+      lon: z.number(),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      guests: z.number().int().min(1).max(30),
+      bedrooms: z.number().int().min(0).max(20),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const { lireCacheBooking } = await import("./scrape/run.server");
+    return lireCacheBooking({ ...data, domaine: true });
+  });
+
+/**
+ * Les fiches Gîtes lues après la réponse interactive (suite ITEA, une à la
+ * fois). Aucun appel ici : la suite tourne déjà, ou elle ne tourne pas.
+ */
+export const lireSuiteGites = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      stationName: z.string().min(1),
+      lat: z.number(),
+      lon: z.number(),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      guests: z.number().int().min(1).max(30),
+      bedrooms: z.number().int().min(0).max(20),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const { lireMemoireGites } = await import("./scrape/gites.server");
+    // Chaque station du relevé a sa suite (`releverGites`) : sur un grand
+    // domaine, celle d'une station reliée se range sous la station regardée,
+    // comme dans la recherche. Mêmes règles que `completer` : une fiche sans
+    // devis ITEA live n'est pas rendue. Aucun appel réseau.
+    const lues = stationsDuReleve({ ...data, domaine: true }).flatMap((st) => lireMemoireGites(st));
+    const rows = lues
+      .map((l) =>
+        dater(
+          qualifierLogement(l.stationId === data.stationId ? l : { ...l, stationId: data.stationId }),
+          data.checkIn,
+          data.checkOut,
+        ),
+      )
+      .filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
+    return poserAcces(dedoublonnerParBien(rows), data.stationId);
+  });
+
+/**
+ * Les détails HomeToGo lus après la réponse interactive (un lot à la fois).
+ * Aucun appel ici : la suite tourne déjà, ou elle ne tourne pas.
+ */
+export const lireSuiteHomeToGo = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      stationName: z.string().min(1),
+      lat: z.number(),
+      lon: z.number(),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      guests: z.number().int().min(1).max(30),
+      bedrooms: z.number().int().min(0).max(20),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const { lireMemoireHomeToGo } = await import("./scrape/hometogo.server");
+    return lireMemoireHomeToGo(data);
   });
 
 /** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, devis ITEA daté. */

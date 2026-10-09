@@ -134,6 +134,35 @@ describe("favoris : un prix relevé pour un autre séjour", () => {
   });
 });
 
+describe("favoris : une position triangulée n'est pas la porte", () => {
+  it("ne remplace pas le GPS publié, ni la distance mesurée depuis ce point", () => {
+    let e = enregistrer(
+      deuxDossiers(),
+      annonce("1", { lat: 45.5, lon: 6.67, distToLiftM: 400, proven: "Booking live" }),
+      "a",
+      null,
+      T1,
+    );
+    e = rafraichir(e, [
+      annonce("1", {
+        lat: 45.01,
+        lon: 6.12,
+        gpsSource: "triangule",
+        distToLiftM: 20,
+        proven: "Booking live · position triangulée : station",
+        total: 1600,
+      }),
+    ]);
+    const a = contenu(e, "a")[0].annonce;
+    assert.equal(a.lat, 45.5);
+    assert.equal(a.lon, 6.67);
+    assert.equal(a.gpsSource, undefined);
+    assert.equal(a.distToLiftM, 400);
+    assert.equal(a.proven, "Booking live");
+    assert.equal(a.total, 1600);
+  });
+});
+
 describe("favoris : un état gardé illisible", () => {
   it("écarte les dossiers sans nom et les favoris orphelins", () => {
     const e = etatLu({

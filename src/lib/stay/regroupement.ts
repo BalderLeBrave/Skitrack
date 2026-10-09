@@ -109,9 +109,17 @@ export function capaciteCompatible(
 /**
  * Deux annonces de même titre sont-elles le même bien ? Il faut en plus une
  * position connue des deux côtés, et proche.
+ *
+ * Une position triangulée (`situer.ts`, carte de recherche Gîtes) n'est pas
+ * connue : c'est la station, un repère ou le barycentre d'un lieu. Posée entre
+ * deux biens de même titre à plus de `RAYON_M` l'un de l'autre, elle les
+ * reliait par l'union en un seul logement, et l'un des deux quittait la liste,
+ * même une fois l'annonce-pont écartée par un filtre (les groupes se forment
+ * avant). Elle compte ici comme l'absence de point qu'elle remplace.
  */
 function memeBien(a: Listing, b: Listing): boolean {
   if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) return false;
+  if (a.gpsSource === "triangule" || b.gpsSource === "triangule") return false;
   if (distanceM({ lat: a.lat, lon: a.lon }, { lat: b.lat, lon: b.lon }) > RAYON_M) return false;
   return capaciteCompatible(a, b);
 }

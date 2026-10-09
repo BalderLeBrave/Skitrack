@@ -7,9 +7,9 @@ import type { Listing } from "@/lib/listings";
  * d'Airbnb ne partait que si Cozy ne rendait rien, et rien ne réunissait les
  * deux ; or Cozy ne connaît qu'une trentaine d'Airbnb par station quand Airbnb
  * en publie plusieurs centaines (mesures du 23 septembre 2026). On relève donc
- * les deux, puis on dédoublonne ici. La clé Booking est prête pour le jour où
- * le relevé direct de Booking partira lui aussi à chaque recherche — ce qui
- * reste une décision du propriétaire (voir `releverCozy`).
+ * les deux, puis on dédoublonne ici. Booking se dédoublonne de la même façon :
+ * le direct part après la réponse Cozy, une page à la fois, et s'arrête au
+ * premier refus (`releverCozy`).
  *
  * La clé est l'identifiant **de la plateforme**, pas `Listing.id` : Cozy
  * numérote ses annonces par son propre `accommodationId` (`abnb-…`, `bk-…`),
@@ -29,7 +29,14 @@ export function clePlateforme(l: Pick<Listing, "source" | "url" | "platformId">)
     const room = l.url?.match(/airbnb\.[a-z.]+\/rooms\/(\d+)/i)?.[1] ?? (/^\d+$/.test(pid) ? pid : null);
     return room ? `airbnb:${room}` : null;
   }
-  if (l.source === "Booking") return /^\d+$/.test(pid) ? `booking:${pid}` : null;
+  if (l.source === "Booking") {
+    // Le slug de l'URL est le même chez Cozy et en direct. Le numéro d'hôtel
+    // ne l'est que lorsque les deux l'ont publié : Cozy numérote souvent
+    // autrement (`accommodationId`).
+    const slug = l.url?.match(/\/hotel\/[a-z]{2}\/([^./?#]+)/i)?.[1]?.toLowerCase();
+    if (slug) return `booking:${slug}`;
+    return /^\d+$/.test(pid) ? `booking:${pid}` : null;
+  }
   return null;
 }
 

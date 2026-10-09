@@ -33,6 +33,7 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Engagé · 40 % rouges ou noires": "Challenging · 40% red or black",
   "Pas de données de remontées pour cette station": "No lift data for this resort",
   "Distance non communiquée": "Distance not given",
+  "Distance non mesurée : position triangulée": "Distance not measured: triangulated position",
   "Autre domaine": "Other ski area",
   "{distance} de {remontee}": "{distance} from {remontee}",
   "la remontée": "the lift",
@@ -257,7 +258,8 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "{n} offre": "{n} offer",
   "{n} offres": "{n} offers",
   "Périmètre de recherche": "Search area",
-  "Distance au centre de la station. Une annonce sans position GPS est écartée.": "Distance from the resort centre. A listing without a GPS position is left out.",
+  "Distance au centre de la station. Sans GPS publié, la position est triangulée et l'annonce reste listée : ce n'est pas la porte.":
+    "Distance from the resort centre. Without a published GPS fix, the position is triangulated and the listing stays listed: it is not the door.",
   "Distance au centre": "Distance from the centre",
   "Prix et taille": "Price and size",
   "Le filtre « Capacité ≥ {n} » est toujours appliqué ; ces fourchettes s’y ajoutent. Hors prix, elles écartent les annonces qui ne publient pas la valeur. Chaque borne se tape.":
@@ -342,6 +344,8 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Remontée": "Lift",
   "Position non publiée par {source}.": "Location not published by {source}.",
   "Position approchée publiée par {source}.": "Approximate location published by {source}.",
+  "Position triangulée : {source} n'a pas publié de GPS. Ce n'est pas la porte.":
+    "Triangulated position: {source} did not publish a GPS fix. This is not the door.",
   "prix du séjour": "stay price",
   "capacité": "capacity",
   "chambres": "bedrooms",
@@ -468,6 +472,7 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "du repère {station}": "from the {station} marker",
   "du repère de la station": "from the resort marker",
   "(de la position GPS de l’annonce au repère, qui n’est ni une piste ni un domaine).": "(from the listing’s GPS position to the marker, which is neither a slope nor a ski area).",
+  "(position triangulée, pas la porte : {source} n'a pas publié de GPS).": "(Triangulated position, not the door: {source} did not publish a GPS position).",
   "du point le plus proche": "from the nearest point",
   "distance non mesurée, aucune trace chargée": "distance not measured, no track loaded",
   "Départ GPX": "GPX start",

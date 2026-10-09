@@ -44,14 +44,19 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   cartesOrchestra,
+  cartesSerpOrchestra,
+  destinationsDeStation,
+  destinationsPubliees,
   ficheOrchestra,
   horsRegleOrchestra,
+  lienSuiteSerp,
   nuitsOrchestra,
   prixOrchestra,
   refOrchestra,
@@ -98,6 +103,11 @@ export type ReglageOrchestra = {
   destinations: Record<string, readonly string[]>;
   /** Ce qu'on interroge pour une station absente de la table. */
   parDefaut: readonly string[];
+  /**
+   * Cartes déjà lues (page `/serp`). Elles remplacent les destinations.
+   * Le prix reste celui du calendrier.
+   */
+  cartes?: readonly CarteOrchestra[];
 };
 
 const catalogues = new Map<string, { at: number; valeur: CarteOrchestra[] }>();
@@ -106,6 +116,10 @@ const fiches = new Map<string, { at: number; valeur: FicheOrchestra }>();
 /** L'heure du dernier refus d'une fiche, par centrale. */
 const refusFiches = new Map<string, number>();
 async function json(url: string, texte = false, delai = TIMEOUT_MS): Promise<unknown> {
+  // Un refus récent de l'hôte (429, 403, 503) ferme la porte le temps de sa
+  // pause : on n'insiste pas. Hors refus, l'appel part comme sur master.
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), delai);
@@ -121,6 +135,7 @@ async function json(url: string, texte = false, delai = TIMEOUT_MS): Promise<unk
     });
     if (!r.ok) {
       await r.body?.cancel();
+      poserRefus(url, r.status, r.headers);
       throw new Error(`la centrale a répondu ${r.status}`);
     }
     return texte ? await r.text() : await r.json();
@@ -344,19 +359,32 @@ function enListing(
 export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchestra): Promise<Listing[]> {
   const t0 = Date.now();
   const base = ctx.base.replace(/\/+$/, "");
-  const destinations = r.destinations[ctx.stationId] ?? r.parDefaut;
+  const destinations = r.cartes ? [] : (r.destinations[ctx.stationId] ?? r.parDefaut);
   const refus: string[] = [];
+  let coupe = false;
+  let pagesLues = 0;
 
-  const listes = await parGroupes(destinations, async (d) => {
+  const listes = r.cartes
+    ? [r.cartes]
+    : await parGroupes(destinations, async (d) => {
+    if (coupe) return [] as CarteOrchestra[];
     try {
-      return await catalogue(base, d);
+      const cartes = await catalogue(base, d);
+      pagesLues += 1;
+      return cartes;
     } catch (err) {
-      refus.push(`${d} : ${err instanceof Error ? err.message : String(err)}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      refus.push(`${d} : ${msg}`);
+      if (estMessageRefus(msg)) coupe = true;
       return [] as CarteOrchestra[];
     }
   });
-  if (refus.length === destinations.length) {
-    throw new Error(refus[0] ?? "aucune destination déclarée");
+  const brutes = listes.reduce((n, l) => n + l.length, 0);
+  // Une page lue sans identifiant n'est pas un séjour complet : le dire
+  // « rien de disponible » serait faux. Un refus, lui, se relit tel quel.
+  if (brutes === 0) {
+    if (pagesLues === 0) throw new Error(refus[0] ?? "aucune destination déclarée");
+    throw new Error("les pages de destination n'ont publié aucun identifiant de logement");
   }
 
   const par = new Map<string, CarteOrchestra>();
@@ -383,10 +411,16 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
     console.info(`[centrale] ${r.host} : ${phrase}`);
   }
 
+  // Tous les calendriers se lisent, comme sur master. Seul un refus de l'hôte
+  // arrête les suivants, qui auraient été refusés aussi.
+  let coupeOffres = false;
   const offres = await parGroupes(cartes, async (c) => {
+    if (coupeOffres) return null;
     try {
       return prixOrchestra(await calendrier(base, c.id, ctx), ctx);
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (estMessageRefus(msg)) coupeOffres = true;
       return null;
     }
   });
@@ -410,4 +444,97 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
   );
   if (refus.length) console.warn(`[centrale] ${r.host} : ${refus.join(" ; ")}`);
   return listings;
+}
+
+function cleDepuisHote(host: string): string {
+  const brut = host.replace(/^www\./, "").split(".")[0] ?? "orc";
+  return brut.replace(/[^a-z0-9]/gi, "").slice(0, 8) || "orc";
+}
+
+/**
+ * Centrale Orchestra sans table de destinations : celles de la page d'accueil.
+ *
+ * La Plagne a sa table, parce que chaque village ne vise que le sien. Les
+ * autres (Combloux, Praz-sur-Arly) n'en ont pas dans le relevé. On lit les
+ * liens publiés, préfixe compris, et on ne garde que ceux de la station
+ * demandée. Rien n'est inventé : pas de lien, ou aucun qui nomme la station,
+ * et l'appel s'arrête au lieu de répondre « rien de disponible ».
+ */
+export async function chercherOrchestraHote(
+  ctx: ContexteCentrale,
+  nom: string,
+  host: string,
+): Promise<Listing[]> {
+  const origine = ctx.base.replace(/\/+$/, "");
+  const page = (await json(`${origine}/`, true)) as string;
+  const lu = destinationsPubliees(page);
+  if (!lu.ok) {
+    throw new Error(
+      lu.raison === "plusieurs préfixes"
+        ? "la page d'accueil publie plusieurs préfixes de destination"
+        : "la page d'accueil n'a pas publié de destination",
+    );
+  }
+  const slugs = destinationsDeStation(lu.prefixe, lu.slugs, ctx.stationId);
+  if (slugs.length === 0) {
+    throw new Error("la page d'accueil n'a publié aucune destination de cette station");
+  }
+  const base = `${origine}${lu.prefixe}`;
+  if (base !== origine) console.info(`[centrale] ${host} : les destinations sont sous ${lu.prefixe}`);
+  return chercherOrchestra(base === ctx.base ? ctx : { ...ctx, base }, {
+    host,
+    nom,
+    cle: cleDepuisHote(host),
+    destinations: {},
+    parDefaut: slugs,
+  });
+}
+
+/**
+ * Orchestra dont les identifiants sont sur la page de résultats, pas sur
+ * une page de destination. Le lien « voir plus » est suivi tant qu'il est
+ * publié. Le prix « à partir de » de la page n'est pas un total : le
+ * calendrier l'est.
+ */
+export async function chercherOrchestraSerp(
+  ctx: ContexteCentrale,
+  nom: string,
+  host: string,
+  depart: { chemin: string; lieu: string },
+): Promise<Listing[]> {
+  const base = ctx.base.replace(/\/+$/, "");
+  const cartes: CarteOrchestra[] = [];
+  const vus = new Set<string>();
+  const deja = new Set<string>();
+  let url = new URL(depart.chemin, `${base}/`).toString();
+  let pages = 0;
+  for (let i = 0; i < 6; i++) {
+    if (deja.has(url)) break;
+    deja.add(url);
+    const html = (await json(url, true)) as string;
+    pages += 1;
+    for (const c of cartesSerpOrchestra(html, depart.lieu)) {
+      if (vus.has(c.id)) continue;
+      vus.add(c.id);
+      cartes.push(c);
+    }
+    const suite = lienSuiteSerp(html);
+    if (!suite) break;
+    url = new URL(suite, url).toString();
+  }
+  if (cartes.length === 0) {
+    throw new Error(
+      pages === 0
+        ? "aucune page de résultats"
+        : "les pages de résultats n'ont publié aucun identifiant de logement",
+    );
+  }
+  return chercherOrchestra(ctx, {
+    host,
+    nom,
+    cle: cleDepuisHote(host),
+    destinations: {},
+    parDefaut: [],
+    cartes,
+  });
 }

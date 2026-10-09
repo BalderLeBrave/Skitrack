@@ -10,6 +10,10 @@ import { texteDeHtml } from "../stay/texteHtml.ts";
 import { ficheDepuisBrut } from "../stay/ficheEnrichie.ts";
 import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } from "./gitesGps.server.ts";
 import { communeGites } from "./gitesCommunes.ts";
+import { STATIONS } from "../stations.ts";
+import { VILLAGES } from "../villages.ts";
+import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
+import { noterTabItea, noterWidgetItea, tabIteaEnCache, widgetIteaEnCache } from "../stay/completerDevis.server.ts";
 
 /**
  * Bornes du relevé, toutes explicites.
@@ -20,10 +24,18 @@ import { communeGites } from "./gitesCommunes.ts";
  * ou faux. Le motif d'arrêt est journalisé à chaque fois.
  *
  * `MAX_FICHES` est un budget de politesse envers `widget-fngf.itea.fr`, un
- * hôte tiers : ce n'est pas un filtre sur les résultats, et ce qu'il laisse de
- * côté est compté et journalisé. On interroge moins de fiches en parallèle
- * qu'avant (quatre au lieu de huit) et on souffle entre deux : le rythme ne
- * peut que se calmer.
+ * hôte tiers : ce n'est pas un filtre sur les résultats. Au-delà de ces
+ * vingt-quatre fiches, et quand ITEA ne répond pas, la tuile de recherche
+ * sort tout de suite — titre, type, photo, position et ligne de capacité,
+ * total à zéro. La description, les avis et le devis des dates choisies
+ * vivent sur la fiche : ils sont lus ensuite, une fiche à la fois, et un
+ * refus (403, 429, 503) arrête cette suite. Rien n'est inventé à sa place.
+ *
+ * Chaque gîte a une position. Le GPS de la fiche d'abord ; sans lui, le point
+ * de la carte de recherche ; sans l'un ni l'autre, une position triangulée
+ * (barycentre des gîtes du même lieu qui publient un GPS, sinon le repère de
+ * ce lieu, sinon la station cherchée). Ce n'est pas la porte. L'annonce sort
+ * quand même.
  */
 const MAX_PAGES = 6;
 const BUDGET_PAGES_MS = 20_000;
@@ -34,7 +46,8 @@ const BUDGET_PAGES_MS = 20_000;
  */
 const PAUSE_PAGE_MS = 5_000;
 const MAX_FICHES = 24;
-const WORKERS = 4;
+/** Une fiche à la fois : quatre ouvriers faisaient refuser la suivante. */
+const WORKERS = 1;
 const PAUSE_FICHE_MS = 250;
 /**
  * Le temps des fiches ITEA. Cette phase n'avait aucune borne : quand ITEA ne
@@ -78,7 +91,7 @@ export function searchUrl(input: LiveSearchInput, towns: string): string {
  */
 export function blocage(r: { status: number | null; cfMitigated: string | null; titre: string | null }): string | null {
   if (r.cfMitigated) return `bloqué (défi ${r.cfMitigated})`;
-  if (r.status === 403 || r.status === 429) return `bloqué (${r.status})`;
+  if (r.status === 403 || r.status === 429 || r.status === 503) return `bloqué (${r.status})`;
   if (r.titre && /attention required|just a moment/i.test(r.titre)) return "bloqué (page de défi)";
   // Une panne ou une page absente n'est pas un refus : on l'appelle par son nom.
   if (r.status != null && r.status >= 400) return `HTTP ${r.status}`;
@@ -524,6 +537,23 @@ export function descriptionFromGitesHtml(html: string): string | null {
 }
 
 /**
+ * Le devis ITEA ne remplace que le prix. Description, avis, lieu, capacité
+ * et identifiant déjà lus sur la fiche restent : un montant publié ne les
+ * efface pas.
+ */
+export function ficheAvecDevis(
+  base: Fiche,
+  prix: { total: number; currency: string | null; label: string | null },
+): Fiche {
+  return {
+    ...base,
+    total: prix.total,
+    currency: prix.currency ?? base.currency,
+    priceLabel: prix.label,
+  };
+}
+
+/**
  * La fiche ITEA d'un gîte : un seul téléchargement, tout ce qu'elle publie.
  *
  * Ce HTML portait déjà la capacité et les chambres ; il porte aussi le lieu
@@ -549,10 +579,26 @@ async function relever(
   // recherche avec lui ; un délai par appel laissait trois appels lents
   // déborder ensemble.
   const signal = () => AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_FICHE_MS, fin - Date.now())));
-  const html = await fetch(gitesWidgetUrl(code), {
-    headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
-    signal: signal(),
-  }).then((r) => r.text());
+  const ficheUrl = gitesWidgetUrl(code);
+  // La page que le devis (`stay/completerDevis.server.ts`) a déjà lue ne
+  // repart pas : ITEA ne voit qu'une demande par gîte.
+  let html = widgetIteaEnCache(code);
+  if (html == null) {
+    const cadence = await respecterCadence(ficheUrl, Math.max(0, fin - Date.now() - 1_000));
+    if (cadence) throw new Error(`ITEA ${cadence}`);
+    const rep = await fetch(ficheUrl, {
+      headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
+      signal: signal(),
+    });
+    // Un refus se respecte : on ne lit pas la page de défi comme une fiche vide,
+    // et plus rien ne part vers ITEA ni vers Gîtes tant que la pause tient.
+    if (poserRefus(ficheUrl, rep.status, rep.headers)) {
+      await rep.body?.cancel().catch(() => undefined);
+      throw new Error(`ITEA HTTP ${rep.status}`);
+    }
+    html = await rep.text();
+    if (rep.ok) noterWidgetItea(code, html);
+  }
   const occupancy = occupancyFromGitesHtml(html);
   const lieu = lieuFromGitesHtml(html);
   retenirLieuGites(code, lieu);
@@ -572,7 +618,10 @@ async function relever(
   };
   if (!ident || !instance || !exercice0) return sansDevis;
   if (!/\.G$/i.test(ident)) return null;
+  const postUrl = "https://widget-fngf.itea.fr/lib_2/ajax/gereResa.php";
   const post = async (exercice: string, type: string) => {
+    const ferme = await respecterCadence(postUrl, Math.max(0, fin - Date.now() - 1_000));
+    if (ferme) throw new Error(`ITEA ${ferme}`);
     const body = new URLSearchParams({
       nbAdultes: String(guests),
       dateDeb: isoToFr(checkIn),
@@ -583,7 +632,7 @@ async function relever(
       estpresentsurfiche: "true",
       type,
     });
-    const res = await fetch("https://widget-fngf.itea.fr/lib_2/ajax/gereResa.php", {
+    const res = await fetch(postUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -593,30 +642,36 @@ async function relever(
       body,
       signal: signal(),
     });
+    if (poserRefus(postUrl, res.status, res.headers)) {
+      await res.body?.cancel().catch(() => undefined);
+      throw new Error(`ITEA HTTP ${res.status}`);
+    }
     return res.text();
   };
-  let exercice = exercice0;
-  try {
-    const exo = JSON.parse(await post(exercice, "getExerciceByDateFin")) as { exercice?: string };
-    if (exo.exercice) exercice = String(exo.exercice);
-  } catch {
-    /* HTML */
+  const sejour = { checkIn, checkOut, guests };
+  let tab = tabIteaEnCache(code, sejour);
+  if (tab == null) {
+    let exercice = exercice0;
+    try {
+      const exo = JSON.parse(await post(exercice, "getExerciceByDateFin")) as { exercice?: string };
+      if (exo.exercice) exercice = String(exo.exercice);
+    } catch (err) {
+      // Un refus n'est pas un « HTML » : il arrête la fiche.
+      if (err instanceof Error && estMessageRefus(err.message)) throw err;
+      /* HTML */
+    }
+    tab = await post(exercice, "getHTMLTabPrixFormulesSejour");
+    noterTabItea(code, sejour, tab);
   }
-  const tab = await post(exercice, "getHTMLTabPrixFormulesSejour");
   // « contactSiNonVendable » : la source ne vend pas ce séjour en ligne à ces
   // dates. Elle ne publie donc pas de prix, ce qui se dit `total: 0` — et non
   // par la disparition de l'annonce.
   const prix = /contactSiNonVendable/.test(tab) ? null : prixDuTableau(tab);
   if (!prix) return sansDevis;
-  return {
-    total: prix.total,
-    currency: prix.currency ?? devise,
-    priceLabel: prix.label,
-    occupancy,
-    lieu,
-    platformId: sansDevis.platformId,
-    description: sansDevis.description,
-  };
+  // Le devis ne remplace que le prix. Recopier les champs un à un avait
+  // laissé l'avis du JSON-LD sur le chemin sans prix, et l'avait perdu dès
+  // qu'un montant était publié.
+  return ficheAvecDevis(sansDevis, prix);
 }
 
 /**
@@ -653,6 +708,10 @@ export function listingDeFiche(
     fiche.total > 0
       ? `Devis ITEA live ${dates}, ${input.guests} pers.`
       : `Fiche ITEA live ${dates}, ${input.guests} pers. — aucun prix publié à ces dates.`;
+  // Le GPS de la fiche est le seul point précis. La carte de recherche en
+  // publie souvent un autre : on le garde pour ne pas perdre le gîte, et
+  // `situerAnnoncesGites` le marque triangulé.
+  const gpsFiche = fiche.lieu.lat != null && fiche.lieu.lon != null;
   return {
     id: code,
     stationId: input.stationId,
@@ -681,16 +740,324 @@ export function listingDeFiche(
     available: true,
     photo: tile.photo,
     url: `${tile.url}?adults=${input.guests}&date-start=${input.checkIn}&date-end=${input.checkOut}`,
-    lat: fiche.lieu.lat,
-    lon: fiche.lieu.lon,
+    lat: gpsFiche ? fiche.lieu.lat : tile.lat,
+    lon: gpsFiche ? fiche.lieu.lon : tile.lon,
     locality: fiche.lieu.locality,
-    proven: fiche.lieu.lat != null && fiche.lieu.lon != null ? `${proven} · GPS ITEA` : proven,
+    proven: gpsFiche ? `${proven} · GPS ITEA` : proven,
   };
 }
 
 function ficheGites(fiche: Fiche, url: string): Pick<Listing, "fiche"> | Record<string, never> {
   const f = ficheDepuisBrut({ description: fiche.description, avis: fiche.avis }, "gites", { url });
   return f ? { fiche: f } : {};
+}
+
+/**
+ * Une tuile de recherche dont la fiche ITEA n'a pas été lue.
+ *
+ * Le budget de politesse, une échéance ou un ITEA muet ne font plus
+ * disparaître le gîte : la tuile publie déjà un titre, un type, une photo,
+ * parfois une position et une ligne « N personnes ». Le total reste 0 — la
+ * tuile ne porte pas de prix — et ni description, ni avis, ni équipement
+ * n'est posé : ils ne vivent que sur la fiche.
+ */
+export function listingDeTuile(tile: Tile, code: string, input: LiveSearchInput): Listing {
+  const capaciteTuile = /^(\d{1,2})\s*personnes?\b/i.exec(tile.capacite.trim())?.[1];
+  const occ = annoncer(
+    { capacity: capaciteTuile ? Number(capaciteTuile) : null, bedrooms: null, rooms: null },
+    tile.title,
+    tile.capacite,
+  );
+  const dates = `${input.checkIn}→${input.checkOut}`;
+  const position = tile.lat != null && tile.lon != null;
+  return {
+    id: code,
+    stationId: input.stationId,
+    title: tile.title,
+    source: "Gîtes de France",
+    total: 0,
+    // La tuile ne publie pas de devise. Même convention qu'une fiche muette :
+    // EUR, sans prétendre l'avoir lue.
+    currency: "EUR",
+    capacity: occ.capacity,
+    bedrooms: occ.bedrooms,
+    rooms: occ.rooms,
+    capacityStandard: occ.capacityStandard,
+    capacitySource: occ.capacitySource,
+    bedroomsSource: occ.bedroomsSource,
+    isStudio: occ.isStudio,
+    propertyType: tile.typeLabel || null,
+    available: true,
+    photo: tile.photo,
+    url: `${tile.url}?adults=${input.guests}&date-start=${input.checkIn}&date-end=${input.checkOut}`,
+    lat: tile.lat,
+    lon: tile.lon,
+    proven: `Tuile Gîtes de France live ${dates}, ${input.guests} pers. — fiche ITEA non lue${
+      position ? " · position publiée par la recherche" : ""
+    }`,
+  };
+}
+
+/** Entre deux fiches de la suite : un seul ouvrier, plus lent que les quatre du relevé. */
+const PAUSE_SUITE_GITES_MS = 2_000;
+/** La suite ne dure pas plus. Au-delà, la recherche suivante reprend le reste. */
+const SUITE_GITES_MAX_MS = 8 * 60 * 1000;
+/** Ce qui a été lu vaut une heure : les disponibilités bougent. */
+const DUREE_MEMOIRE_GITES_MS = 60 * 60 * 1000;
+
+export type ResteGites = { tile: Tile; code: string };
+
+export type OutilsSuiteGites = {
+  relever: (code: string, checkIn: string, checkOut: string, guests: number, fin: number) => Promise<Fiche | null>;
+  attendre: (ms: number) => Promise<void>;
+  maintenant: () => number;
+  /** Posé dès qu'une fiche est lue, pour que l'écran n'attende pas la fin. */
+  noter?: (listing: Listing) => void;
+};
+
+export type BilanSuiteGites = {
+  listings: Listing[];
+  arret: "fin" | "refus" | "échéance";
+  lues: number;
+};
+
+/**
+ * Les fiches ITEA que le budget interactif n'a pas lues.
+ *
+ * Une à la fois, `PAUSE_SUITE_GITES_MS` entre deux. Un HTTP 403, 429 ou 503
+ * arrête tout de suite, sans reprise. Trois autres échecs d'affilée aussi.
+ * `null` est un hors-périmètre déclaré par la source, pas un échec.
+ * L'échéance rend ce qui a déjà été lu.
+ */
+export async function lireFichesEnRetard(
+  reste: readonly ResteGites[],
+  input: LiveSearchInput,
+  echeance: number,
+  o: OutilsSuiteGites,
+): Promise<BilanSuiteGites> {
+  const listings: Listing[] = [];
+  let echecs = 0;
+  for (let i = 0; i < reste.length; i++) {
+    if (o.maintenant() >= echeance) return { listings, arret: "échéance", lues: i };
+    if (echecs >= ECHECS_DISJONCTEUR) return { listings, arret: "refus", lues: i };
+    await o.attendre(PAUSE_SUITE_GITES_MS);
+    if (o.maintenant() >= echeance) return { listings, arret: "échéance", lues: i };
+    const { tile, code } = reste[i]!;
+    try {
+      const fiche = await o.relever(code, input.checkIn, input.checkOut, input.guests, echeance);
+      echecs = 0;
+      if (fiche) {
+        const listing = listingDeFiche(tile, fiche, code, input);
+        listings.push(listing);
+        o.noter?.(listing);
+      }
+    } catch (err) {
+      echecs += 1;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/limiteur local/.test(msg)) return { listings, arret: "échéance", lues: i + 1 };
+      if (estMessageRefus(msg) || echecs >= ECHECS_DISJONCTEUR) {
+        return { listings, arret: "refus", lues: i + 1 };
+      }
+    }
+  }
+  return { listings, arret: "fin", lues: reste.length };
+}
+
+type MemoireGites = { a: number; listings: Listing[]; enCours: boolean; finie: boolean };
+const gitesGlobal = globalThis as typeof globalThis & { __skitrackSuiteGites__?: Map<string, MemoireGites> };
+
+function memoiresGites(): Map<string, MemoireGites> {
+  return (gitesGlobal.__skitrackSuiteGites__ ??= new Map());
+}
+
+export function cleSuiteGites(input: Pick<LiveSearchInput, "stationId" | "checkIn" | "checkOut" | "guests">): string {
+  return `${input.stationId}|${input.checkIn}|${input.checkOut}|${input.guests}`;
+}
+
+/** Les fiches déjà lues en tâche de fond pour ces dates. Aucun appel réseau. */
+export function lireMemoireGites(input: Pick<LiveSearchInput, "stationId" | "checkIn" | "checkOut" | "guests">): Listing[] {
+  const cle = cleSuiteGites(input);
+  const s = memoiresGites().get(cle);
+  if (!s) return [];
+  if (!s.enCours && Date.now() - s.a > DUREE_MEMOIRE_GITES_MS) {
+    memoiresGites().delete(cle);
+    return [];
+  }
+  return s.listings;
+}
+
+/** La fiche lue remplace la tuile du même identifiant. Rien d'autre n'est ajouté. */
+export function couvrirTuiles(tuiles: readonly Listing[], memoire: readonly Listing[]): Listing[] {
+  if (memoire.length === 0) return [...tuiles];
+  const par = new Map(memoire.map((l) => [l.id, l]));
+  return tuiles.map((l) => par.get(l.id) ?? l);
+}
+
+/** Un point déjà publié : station, village, ou alias du référentiel. */
+export type RepereGites = { nom: string; lat: number; lon: number };
+
+export type ContexteSituation = {
+  reperes: readonly RepereGites[];
+  /** La station cherchée : dernier recours, pas une porte. */
+  station: { nom: string; lat: number; lon: number };
+  /** GPS de fiche déjà lus, hors du lot (la suite n'a qu'une annonce en main). */
+  autresPrecis?: readonly Listing[];
+};
+
+function plierLieu(s: string | null | undefined): string {
+  return (s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** Le GPS lu sur la fiche ITEA. La carte de recherche n'en est pas un. */
+export function estGpsFiche(l: Pick<Listing, "lat" | "lon" | "proven">): boolean {
+  return l.lat != null && l.lon != null && /GPS ITEA/.test(l.proven);
+}
+
+let reperesCache: RepereGites[] | null = null;
+
+/** Stations, villages et alias du référentiel. Rien n'y est calculé. */
+export function reperesNommes(): RepereGites[] {
+  if (reperesCache) return reperesCache;
+  const out: RepereGites[] = [];
+  for (const s of STATIONS) out.push({ nom: s.name, lat: s.lat, lon: s.lon });
+  for (const v of VILLAGES) {
+    out.push({ nom: v.nom, lat: v.lat, lon: v.lon });
+    for (const a of v.alias ?? []) out.push({ nom: a, lat: v.lat, lon: v.lon });
+  }
+  reperesCache = out;
+  return out;
+}
+
+function indexReperes(reperes: readonly RepereGites[]): Map<string, RepereGites> {
+  const m = new Map<string, RepereGites>();
+  // Un village écrase la station du même nom : il est plus précis.
+  for (const r of reperes) {
+    const k = plierLieu(r.nom);
+    if (k) m.set(k, r);
+  }
+  return m;
+}
+
+function barycentre(pts: readonly { lat: number; lon: number }[]): { lat: number; lon: number } {
+  const lat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+  const lon = pts.reduce((s, p) => s + p.lon, 0) / pts.length;
+  return { lat: Math.round(lat * 1e6) / 1e6, lon: Math.round(lon * 1e6) / 1e6 };
+}
+
+function marquerTriangule(l: Listing, lat: number, lon: number, phrase: string): Listing {
+  if (l.gpsSource === "triangule" && l.lat === lat && l.lon === lon && l.proven.includes(phrase)) return l;
+  const proven = l.proven.includes(phrase) ? l.proven : `${l.proven} · ${phrase}`;
+  return { ...l, lat, lon, gpsSource: "triangule", proven };
+}
+
+/**
+ * Chaque annonce ressort avec un point.
+ *
+ * 1. Le GPS de la fiche (`GPS ITEA`) ne bouge pas.
+ * 2. Le point de la carte de recherche est gardé, et dit triangulé : la fiche
+ *    n'a pas publié de GPS.
+ * 3. Sinon le barycentre d'au moins deux GPS de fiche du même lieu.
+ * 4. Sinon le repère du référentiel qui porte ce lieu.
+ * 5. Sinon la station cherchée.
+ *
+ * Une position triangulée n'est pas la porte. Elle existe pour que le gîte
+ * reste sur la carte et dans la liste.
+ */
+export function situerAnnoncesGites(listings: readonly Listing[], ctx: ContexteSituation): Listing[] {
+  const precis = [...listings.filter(estGpsFiche), ...(ctx.autresPrecis ?? []).filter(estGpsFiche)];
+  const parLieu = new Map<string, { lat: number; lon: number }[]>();
+  for (const l of precis) {
+    const k = plierLieu(l.locality);
+    if (!k || l.lat == null || l.lon == null) continue;
+    const lot = parLieu.get(k) ?? [];
+    lot.push({ lat: l.lat, lon: l.lon });
+    parLieu.set(k, lot);
+  }
+  const reperes = indexReperes(ctx.reperes);
+  return listings.map((l) => {
+    if (estGpsFiche(l)) return l.gpsSource === "triangule" ? { ...l, gpsSource: undefined } : l;
+    if (l.lat != null && l.lon != null) {
+      return marquerTriangule(l, l.lat, l.lon, "position de la carte de recherche, sans GPS de fiche");
+    }
+    const k = plierLieu(l.locality);
+    const pairs = k ? parLieu.get(k) : undefined;
+    if (pairs && pairs.length >= 2) {
+      const p = barycentre(pairs);
+      return marquerTriangule(
+        l,
+        p.lat,
+        p.lon,
+        `position triangulée : barycentre de ${pairs.length} gîtes au GPS publié${l.locality ? ` à ${l.locality}` : ""}`,
+      );
+    }
+    const repere = k ? reperes.get(k) : undefined;
+    if (repere) {
+      return marquerTriangule(l, repere.lat, repere.lon, `position triangulée : repère « ${repere.nom} »`);
+    }
+    return marquerTriangule(
+      l,
+      ctx.station.lat,
+      ctx.station.lon,
+      `position triangulée : station ${ctx.station.nom}, aucun point publié pour ce gîte`,
+    );
+  });
+}
+
+function contexteSituation(input: LiveSearchInput): ContexteSituation {
+  return {
+    reperes: reperesNommes(),
+    station: { nom: input.stationName, lat: input.lat, lon: input.lon },
+  };
+}
+
+function lancerSuiteGites(input: LiveSearchInput, reste: readonly ResteGites[], dejaPrecis: readonly Listing[]): void {
+  // Seul l'écran Logements relit la suite (comme HomeToGo, Airbnb et Booking) :
+  // Prix ne la lance pas, et ne prend pas la place de la station regardée.
+  if (!input.domaine || reste.length === 0) return;
+  const map = memoiresGites();
+  for (const s of map.values()) if (s.enCours) return;
+  const cle = cleSuiteGites(input);
+  const etat = map.get(cle);
+  if (etat?.finie && Date.now() - etat.a < DUREE_MEMOIRE_GITES_MS) return;
+  const connus = new Set((etat?.listings ?? []).map((l) => l.id));
+  const encore = reste.filter((r) => !connus.has(r.code));
+  if (encore.length === 0) return;
+  const listings = [...(etat?.listings ?? [])];
+  const precis = [...dejaPrecis];
+  const ctx = contexteSituation(input);
+  map.set(cle, { a: Date.now(), listings, enCours: true, finie: false });
+  const echeance = Date.now() + SUITE_GITES_MAX_MS;
+  void lireFichesEnRetard(encore, input, echeance, {
+    relever,
+    attendre: sleep,
+    maintenant: () => Date.now(),
+    noter: (l) => {
+      const [sit] = situerAnnoncesGites([l], { ...ctx, autresPrecis: precis });
+      if (sit && estGpsFiche(sit)) precis.push(sit);
+      listings.push(sit ?? l);
+      const s = map.get(cle);
+      if (s) s.a = Date.now();
+    },
+  })
+    .then((b) => {
+      map.set(cle, {
+        a: Date.now(),
+        listings,
+        enCours: false,
+        // Une échéance se reprend à la recherche suivante. Un refus, non.
+        finie: b.arret !== "échéance",
+      });
+      console.info(`[gites] suite ${cle} : ${b.listings.length} fiche(s), arrêt « ${b.arret} »`);
+    })
+    .catch(() => {
+      const s = map.get(cle);
+      if (s) s.enCours = false;
+    });
 }
 
 export type OptionsGites = {
@@ -727,7 +1094,13 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
       // La première page, c'est la source elle-même : si elle ne répond pas,
       // l'échec remonte et se journalise comme tel. Les suivantes ne valent
       // pas qu'on perde le relevé déjà fait : on s'arrête avec ce qu'on a.
+      const cadence = await respecterCadence(url, Math.max(0, debut + BUDGET_PAGES_MS - Date.now()));
+      if (cadence) throw new Error(`Gîtes de France ${cadence}`);
       const rep = await page.goto(url, { waitUntil: "domcontentloaded", timeout: pages === 0 ? 22_000 : 12_000 });
+      const statut = rep?.status() ?? 0;
+      if (poserRefus(url, statut)) {
+        /* la pause est posée ; blocage dit pourquoi on s'arrête */
+      }
       refus = blocage({
         status: rep?.status() ?? null,
         cfMitigated: rep?.headers()["cf-mitigated"] ?? null,
@@ -801,10 +1174,13 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
   const need = candidats.slice(0, MAX_FICHES);
   if (candidats.length > need.length) {
     console.info(
-      `[gites] ${candidats.length - need.length} tuile(s) non interrogées : budget ITEA de ${MAX_FICHES} fiches (les plus éloignées)`,
+      `[gites] ${candidats.length - need.length} tuile(s) au-delà du budget ITEA de ${MAX_FICHES} : la tuile sort tout de suite, la fiche se lit ensuite`,
     );
   }
   const out: Listing[] = [];
+  // Codes déjà tranchés : fiche lue, ou produit hors périmètre (identifiant
+  // qui ne finit pas par `.G`). Le reste de la recherche sort depuis la tuile.
+  const deja = new Set<string>();
   let horsPerimetre = 0;
   let manquees = 0;
   let echecsDeSuite = 0;
@@ -827,11 +1203,22 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
         try {
           const fiche = await relever(code, input.checkIn, input.checkOut, input.guests, finFiches);
           echecsDeSuite = 0;
-          if (fiche == null) horsPerimetre += 1;
-          else out.push(listingDeFiche(tile, fiche, code, input));
-        } catch {
-          // Une fiche rate : on ne sait rien de son prix, donc on ne rend pas
-          // d'annonce — mais on la compte, pour que le silence se voie.
+          if (fiche == null) {
+            horsPerimetre += 1;
+            deja.add(code);
+          } else {
+            out.push(listingDeFiche(tile, fiche, code, input));
+            deja.add(code);
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          // Un refus ou la pause qu'il a ouverte : on n'envoie pas la fiche suivante.
+          if (estMessageRefus(msg) || /limiteur local/.test(msg)) {
+            coupure ??= msg;
+            return;
+          }
+          // ITEA n'a pas répondu : la tuile, plus bas, porte l'annonce sans
+          // prix. On compte l'échec, et plusieurs d'affilée coupent la file.
           manquees += 1;
           echecsDeSuite += 1;
           // Plusieurs échecs d'affilée : ITEA ne répond plus. Inutile de lui
@@ -849,9 +1236,33 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
     const coupe = coupure ? ` · ${nonInterrogees} non interrogée(s) : ${coupure}` : "";
     console.info(`[gites] ${horsPerimetre} hors périmètre · ${manquees} fiche(s) illisibles${coupe}`);
   }
+  let depuisTuile = 0;
+  const reste: ResteGites[] = [];
+  for (const tile of candidats) {
+    const code = codeFromUrl(tile.url);
+    if (!code || deja.has(code)) continue;
+    deja.add(code);
+    out.push(listingDeTuile(tile, code, input));
+    reste.push({ tile, code });
+    depuisTuile += 1;
+  }
+  if (depuisTuile) {
+    console.info(
+      `[gites] ${depuisTuile} tuile(s) sans fiche ITEA pour l'instant : description, avis et devis des dates lues ensuite, une à une`,
+    );
+  }
+  const memoire = lireMemoireGites(input);
+  const couverts = couvrirTuiles(out, memoire);
+  const situes = situerAnnoncesGites(couverts, contexteSituation(input));
+  lancerSuiteGites(
+    input,
+    reste,
+    situes.filter(estGpsFiche),
+  );
   // `total: 0` veut dire « prix non publié », pas « gratuit » : ces annonces
-  // passent après celles qui portent un prix, jamais devant.
-  return out.sort((a, b) => {
+  // passent après celles qui portent un prix, jamais devant. Une fiche déjà
+  // lue en tâche de fond remplace sa tuile, sans rien ajouter d'autre.
+  return situes.sort((a, b) => {
     const pa = a.total > 0 ? a.total : null;
     const pb = b.total > 0 ? b.total : null;
     if (pa == null && pb == null) return 0;

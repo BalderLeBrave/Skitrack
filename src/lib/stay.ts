@@ -58,6 +58,8 @@ type StayStore = Stay & {
   mergeLive: (rows: Listing[], sources: SourceReport[]) => void;
   /** Remplace, par identifiant, des annonces déjà affichées (relecture des fiches) ; les autres restent. */
   patchLive: (rows: Listing[]) => void;
+  /** Ajoute des annonces encore inconnues (suite de pages). Ne remplace pas une source. */
+  ajouterLive: (rows: Listing[]) => void;
   setSearching: (searching: boolean) => void;
 };
 
@@ -111,6 +113,16 @@ export const useStay = create<StayStore>()(
             return r;
           });
           return change ? { liveListings: suivantes } : {};
+        }),
+      ajouterLive: (rows) =>
+        set((s) => {
+          if (!s.liveListings || rows.length === 0) return {};
+          const connus = new Set(s.liveListings.map((l) => l.id));
+          const neuf = rows.filter((l) => l.id && !connus.has(l.id));
+          if (neuf.length === 0) return {};
+          return {
+            liveListings: dedoublonnerParBien([...s.liveListings, ...neuf]).sort((a, b) => a.total - b.total),
+          };
         }),
       setSearching: (searching) => set({ searching }),
     }),

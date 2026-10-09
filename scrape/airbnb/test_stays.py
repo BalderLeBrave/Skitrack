@@ -50,6 +50,37 @@ def test_sans_coordonnees_une_seule_recherche_comme_avant():
     assert [nom for nom, _ in emprises({"url": "https://www.airbnb.fr/s/x/homes", "lat": 45, "lon": 6})] == ["unique"]
 
 
+def test_une_reprise_garde_le_curseur_et_jette_une_emprise_sans_bornes():
+    from stays import bornes_de, file_depuis_reprise, serialiser_file, vus_de
+
+    assert bornes_de({"north": 1, "south": 0, "east": 2, "west": 0}) == {
+        "north": 1.0,
+        "south": 0.0,
+        "east": 2.0,
+        "west": 0.0,
+    }
+    assert bornes_de({"north": 1}) is None
+    assert bornes_de("non") is None
+    file = file_depuis_reprise(
+        {
+            "file": [
+                {"nom": "proche", "bounds": {"north": 2, "south": 1, "east": 4, "west": 3}, "cursor": "abc"},
+                {"nom": "casse", "bounds": {"north": "x"}},
+                "non",
+            ],
+        },
+        {"city": "Val Thorens"},
+    )
+    assert len(file) == 1
+    assert file[0][0] == "proche" and file[0][2] == "abc"
+    assert file[0][1]["bounds"]["north"] == 2.0 and file[0][1]["city"] == "Val Thorens"
+    assert serialiser_file([], set()) is None
+    rendu = serialiser_file(file, {"9", "8"})
+    assert rendu["file"] == [{"nom": "proche", "bounds": file[0][1]["bounds"], "cursor": "abc"}]
+    assert set(rendu["seen"]) == {"9", "8"}
+    assert vus_de({"seen": ["1", 2, "", None]}) == {"1", "2"}
+
+
 def test_les_quarts_couvrent_l_emprise_sans_la_deborder():
     b = bounds_from_point(45.0, 6.0, 6.0)
     qs = quadrants(b)
@@ -461,6 +492,76 @@ def test_la_page_d_accueil_de_la_cle_passe_au_hash_une_fois_et_seulement_a_froid
         stays.airbnb_api.get_with_body, stays.airbnb_search.fetch_stays_search_hash = anciens
         session.SESSION_PATH = ancien
         session._key = session._hash = ""
+
+
+def test_une_suite_coupee_a_sa_premiere_page_garde_cle_et_hash_et_rend_la_page():
+    # La suite part avec la clé et le hash que le relevé vient de prouver : une
+    # coupure ne les jette pas, et la page reste à reprendre.
+    delai = Exception("Failed to perform, curl: (28) Operation timed out")
+    reprise = {
+        "file": [{"nom": "proche", "bounds": {"north": 46.2, "south": 46.1, "east": 6.8, "west": 6.7}, "cursor": "c40"}],
+        "seen": ["1"],
+    }
+    out, disque, appels, ouvert = _relever([delai], {"suite": reprise, "suiteMax": 2})
+    assert out["ok"] is False and appels == 1 and not ouvert
+    assert disque.get("key") == "cle" and disque.get("hash") == "hash"
+    assert out["reste"]["file"][0]["cursor"] == "c40"
+
+
+def test_chaque_emprise_a_sa_part_avant_que_la_premiere_continue():
+    # Grand domaine : la proche a la moitié du budget, puis chaque station
+    # reliée la sienne. Remise en tête, la proche non épuisée prenait tout, et
+    # les reliées n'étaient pas lues au premier relevé.
+    import json
+    import tempfile
+    import time
+    from pathlib import Path
+
+    import session
+    import stays
+    import taux
+    import throttle
+
+    taux.TAUX_PATH = Path(tempfile.mkdtemp()) / "taux.json"
+    throttle.airbnb_circuit.path = Path(tempfile.mkdtemp()) / "c"
+    ancien = session.SESSION_PATH
+    session.SESSION_PATH = Path(tempfile.mkdtemp()) / "session.json"
+    maintenant = time.time()
+    session.SESSION_PATH.write_text(
+        json.dumps({"key": "cle", "key_at": maintenant, "hash": "hash", "hash_at": maintenant}), encoding="utf-8"
+    )
+    session._key = session._hash = ""
+    zones: list[str] = []
+    n = {"i": 0}
+
+    def jouer(**kw):
+        zones.append(kw["raw_params"][0])
+        n["i"] += 1
+        return _page(n["i"] * 100)
+
+    anciens = stays.airbnb_search.get, stays.airbnb_search.url_to_raw_params, stays.PAGE_PAUSE_S
+    stays.airbnb_search.get = jouer
+    stays.airbnb_search.url_to_raw_params = lambda url: [url]
+    stays.PAGE_PAUSE_S = 0.0
+    try:
+        stays.run_search(
+            {
+                "city": "La Plagne",
+                "lat": 45.5075,
+                "lon": 6.6769,
+                "relies": [{"lat": 45.4560, "lon": 6.6931}, {"lat": 45.5601, "lon": 6.7352}],
+                "skipEnrich": True,
+            }
+        )
+    finally:
+        stays.airbnb_search.get, stays.airbnb_search.url_to_raw_params, stays.PAGE_PAUSE_S = anciens
+        session.SESSION_PATH = ancien
+        session._key = session._hash = ""
+    ordre = list(dict.fromkeys(zones))
+    assert len(ordre) == 3, "la proche et les deux stations reliées sont lues"
+    proche = ordre[0]
+    premiere_reliee = zones.index(ordre[1])
+    assert zones[:premiere_reliee] == [proche] * premiere_reliee and premiere_reliee <= 6
 
 
 if __name__ == "__main__":

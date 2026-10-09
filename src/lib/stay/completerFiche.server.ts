@@ -13,11 +13,12 @@ import { montantCents } from "../devises.ts";
 import type { Listing } from "../listings.ts";
 import { RELEVE_2A } from "../listings.ts";
 import { gitesCodeOf, gitesWidgetUrl } from "../scrape/gitesGps.server.ts";
+import { cleHote } from "../scrape/gardeHote.ts";
 import { airbnbCircuitOpen, airbnbCircuitRestantMs, tripAirbnbCircuit } from "./airbnbCircuit.server.ts";
 import { airbnbCookieHeader } from "./airbnbSession.server.ts";
 import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
-import { PAUSE_MAX_MS, estHoteAirbnb, estRefus, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
+import { CIRCUIT_COOLDOWN_MS, PAUSE_MAX_MS, estHoteAirbnb, estRefus, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureAirbnb, lectureFiche, pageAirbnbLisible, type LectureFiche } from "./lectureFiche.ts";
 import { contenuDeFiche, type ContenuDeFiche } from "./contenuFiche.ts";
 import { contenuFiches } from "./contenuFiches.server.ts";
@@ -37,6 +38,7 @@ import {
   ecrireLaissees,
   hoteDe,
   plausible,
+  pointPublie,
   raisonDeLaisser,
   urlPropre,
   urlsPartagees,
@@ -217,12 +219,15 @@ export function poserLecture(
     Object.assign(row, qualifierLogement(row));
     if (row.capacity != null) changed = true;
   }
-  if (!plausible(row.lat, row.lon) && plausible(lect.lat, lect.lon)) {
+  // Un point triangulé (`stay/situer.ts`) n'est publié par personne : celui
+  // de la page le remplace, comme un point absent.
+  if (!pointPublie(row) && plausible(lect.lat, lect.lon)) {
     row.lat = lect.lat;
     row.lon = lect.lon;
     // Airbnb : le point dit d'où il vient (`repliGps.ts`). Un point de la
     // liste n'est jamais touché : on n'arrive ici que sans lui.
     if (lect.gpsSource) row.gpsSource = lect.gpsSource;
+    else if (row.gpsSource === "triangule") row.gpsSource = null;
     changed = true;
   }
   if (!row.locality && lect.locality) {
@@ -444,14 +449,9 @@ type FetchOutcome =
 /** Une page sans réponse au bout de ce temps : l'hôte ne répond pas. */
 const SILENCE_MS = 15_000;
 
-function hoteTaux(url: string): "airbnb" | "gites" | null {
-  if (estHoteAirbnb(url)) return "airbnb";
-  try {
-    if (/gites-de-france\.com$/i.test(new URL(url).hostname)) return "gites";
-  } catch {
-    /* URL illisible : pas de file d'attente */
-  }
-  return null;
+function hoteTaux(url: string): string | null {
+  const cle = cleHote(url);
+  return cle || null;
 }
 
 /** Les fiches réellement demandées au réseau pendant une passe. */
@@ -489,12 +489,11 @@ async function fetchHtml(
       signal: ctrl.signal,
     });
     if (estRefus(res.status)) {
-      // La pause demandée entière : le plafond de 12 s ne vaut que sur place.
-      const pause = retryAfterMs(res.headers, 0, PAUSE_MAX_MS);
-      // Un 403 d'Airbnb est un refus comme un 429 (protocole du 23 septembre
-      // 2026) : il passait pour une page vide, et la fiche suivante partait.
-      // Ailleurs, un 403 arrête l'hôte (`fillPool`) sans pause partagée.
-      if (host && (host === "airbnb" || estStatutRalenti(res.status))) noterBlocage(host, pause);
+      // La pause demandée entière, et au moins 45 s : le plafond de 12 s ne
+      // vaut que sur place. Un 403 d'ITEA ou de Booking ouvre la même pause
+      // que le relevé de liste, sinon la fiche suivante partait.
+      const pause = Math.max(CIRCUIT_COOLDOWN_MS, retryAfterMs(res.headers, 0, PAUSE_MAX_MS));
+      if (host) noterBlocage(host, pause);
       return { kind: "limited", status: res.status, retryAfterMs: pause };
     }
     // 202 : un défi anti-robot (AWS WAF chez Booking), pas la fiche. Lu comme
@@ -503,7 +502,7 @@ async function fetchHtml(
     const html = await res.text();
     if (html.length < 400) return { kind: "empty" };
     if (htmlEstBloque(html)) {
-      const waitMs = retryAfterMs(res.headers, 0, PAUSE_MAX_MS);
+      const waitMs = Math.max(CIRCUIT_COOLDOWN_MS, retryAfterMs(res.headers, 0, PAUSE_MAX_MS));
       if (host) noterBlocage(host, waitMs);
       return { kind: "limited", status: 429, retryAfterMs: waitMs };
     }
@@ -567,8 +566,8 @@ function hotesEnPause(now = Date.now()): string[] {
 }
 
 /**
- * Les pages de fiche hors Airbnb, hôte par hôte (`limiteHotes.ts`) : deux
- * lectures en vol au plus par hôte, une seconde entre deux départs, et
+ * Les pages de fiche hors Airbnb, hôte par hôte (`limiteHotes.ts`) : une
+ * lecture en vol au plus par hôte, deux secondes entre deux départs, et
  * l'hôte laissé au premier 429, 403 ou 503, ou quand il ne répond pas
  * (`muet`), pour le reste de la passe. `workers` borne les lectures de tous
  * les hôtes réunis ; la place se prend avant de réserver le départ, pour que
@@ -1373,6 +1372,11 @@ function lancerSuiteAirbnb(rows: readonly Listing[], enTete = false): number {
 
 /** Les relevés de liste Airbnb en cours dans le processus (`pendantReleveAirbnb`). */
 let relevesAirbnbEnCours = 0;
+/** Génération du dernier relevé parti sur le réseau : une suite plus ancienne s'arrête. Un coup servi par le cache n'en change pas. */
+let generationReleve = 0;
+/** Pagination de suite et fiches PDP lentes : la suite HTML leur laisse le limiteur. */
+let pagesAirbnbEnCours = 0;
+let pdpAirbnbEnCours = 0;
 /** Jusqu'à quand un relevé attend son créneau (`demanderCreneauAirbnb`). */
 let creneauDemandeJusqua = 0;
 
@@ -1410,14 +1414,63 @@ export async function pendantReleveAirbnb<T>(f: () => Promise<T>): Promise<T> {
 }
 
 /**
- * Un relevé de liste Airbnb court, ou en attend la place : la suite lui laisse
- * le limiteur, entre deux pages comme avant la réservation d'une page
- * (`ceder` de `fillAirbnbSeq`). Avant, un relevé lancé pendant que la suite
- * attendait l'écart d'une page voyait cette page partir à côté de lui ; un
- * 429 sur elle ouvrait le coupe-circuit, et le relevé s'arrêtait.
+ * Un relevé qui interroge vraiment Airbnb, pas le cache : les suites de pages
+ * et de fiches plus anciennes s'arrêtent. Un simple retour sur la station,
+ * servi par le cache, ne doit pas les interrompre.
+ */
+export function nouveauReleveAirbnb(): void {
+  generationReleve += 1;
+}
+
+/** Vrai pendant un relevé de liste, ou tant que l'écran Prix a demandé le créneau. */
+export function airbnbListePrioritaire(): boolean {
+  return relevesAirbnbEnCours > 0 || Date.now() < creneauDemandeJusqua;
+}
+
+/** Le relevé parti sur le réseau, pour qu'une suite plus ancienne s'arrête. */
+export function generationReleveAirbnb(): number {
+  return generationReleve;
+}
+
+/**
+ * La pagination de suite tient le limiteur. Synchrone : le drapeau est posé
+ * avant le premier await de l'appelant, donc avant que la suite HTML ne parte.
+ */
+export function tenirPagesAirbnb(): () => void {
+  pagesAirbnbEnCours += 1;
+  return () => {
+    pagesAirbnbEnCours = Math.max(0, pagesAirbnbEnCours - 1);
+  };
+}
+
+/** Les fiches PDP lentes, après la pagination. Même contrat que `tenirPagesAirbnb`. */
+export function tenirPdpAirbnb(): () => void {
+  pdpAirbnbEnCours += 1;
+  return () => {
+    pdpAirbnbEnCours = Math.max(0, pdpAirbnbEnCours - 1);
+  };
+}
+
+/**
+ * Un refus d'une page de liste ou d'une fiche PDP de suite : la suite HTML
+ * recule comme après un refus de sa propre page (`reculerSuite`). Elle
+ * reprend ensuite, au palier suivant : un arrêt jusqu'à la recherche d'après,
+ * sur un seul 429 passager, laissait masquées les annonces sans point que sa
+ * page aurait complétées.
+ */
+export function marquerRefusFichesAirbnb(): void {
+  reculerSuite();
+}
+
+/**
+ * Un relevé de liste Airbnb court ou attend sa place, ou la suite de pages et
+ * les fiches PDP de la recherche tiennent le limiteur : la suite HTML leur
+ * laisse la place, entre deux pages comme avant la réservation d'une page
+ * (`ceder` de `fillAirbnbSeq`). Avant, une page lancée à côté d'eux pouvait
+ * prendre le 429 qui coupait le relevé.
  */
 function releveAirbnbEnAttente(): boolean {
-  return relevesAirbnbEnCours > 0 || Date.now() < creneauDemandeJusqua;
+  return airbnbListePrioritaire() || pagesAirbnbEnCours > 0 || pdpAirbnbEnCours > 0;
 }
 
 /** Les tranches de Prix qui lisent des fiches Airbnb en ce moment (`pendantTranchePrix`). */
@@ -1463,7 +1516,7 @@ function rythmeRepliPrix(): RythmeRooms {
 async function deroulerSuiteAirbnb(): Promise<void> {
   suiteAirbnbEnCours = true;
   suiteArreteeParRefus = false;
-  const fin = Date.now() + SUITE_AIRBNB_MAX_MS;
+  let fin = Date.now() + SUITE_AIRBNB_MAX_MS;
   const compte: Compte = { lues: 0 };
   const essais = new Map<string, number>();
   const dormir = (ms: number) => new Promise((r) => setTimeout(r, Math.max(0, ms)));
@@ -1480,10 +1533,14 @@ async function deroulerSuiteAirbnb(): Promise<void> {
         arret = "échéance";
         break;
       }
-      // Un relevé de liste Airbnb court, ou en attend la place : la suite lui
-      // laisse le limiteur.
+      // Un relevé de liste, sa suite de pages ou les fiches PDP tiennent le
+      // limiteur : la suite HTML attend, elle ne parle pas à Airbnb à côté.
+      // Ce temps ne compte pas dans les 45 min, sinon la file expire avant
+      // d'avoir lu une page.
       if (releveAirbnbEnAttente()) {
+        const debut = Date.now();
         await dormir(1_000);
+        fin += Date.now() - debut;
         continue;
       }
       // Sa propre page refusée, la suite recule (`reculerSuite`) : rien ne
@@ -1669,9 +1726,8 @@ export function etatSuiteAirbnb(): { file: number; enCours: boolean } {
  * encore cette station ; sinon elles vont en fin de file.
  *
  * `relecture` : la relecture de l'écran (`completerAnnonces`), sans budget.
- * Rien ne part d'elle, mais ce qui reste à lire retourne en fin de file, et
- * une suite arrêtée (échéance, refus répétés) repart à son rythme, comme
- * quand la relecture lisait elle-même ses pages.
+ * Rien ne part d'elle. Ce qui reste à lire retourne en fin de file, sauf si
+ * un refus a arrêté le catalogue : la relecture ne le relance pas.
  */
 export type OptionsFiches = {
   pour?: "logements" | "prix";
@@ -1765,18 +1821,10 @@ export async function fillFiches(
   // lit au même rythme. L'écran les reçoit par sa relecture.
   const airbnbALire = ordreDeLecture(aLire.filter(estAirbnb));
   // Une recherche met ses pages en file : en tête si l'écran regarde encore
-  // sa station (`vue`). La relecture de l'écran (`relecture`) remet en fin de
-  // file ce qui lui manque encore et relance une suite arrêtée. Sans l'une ni
-  // l'autre, rien n'est mis en file.
+  // sa station (`vue`). La relecture remet en fin de file ce qui manque, sans
+  // relancer un catalogue arrêté sur un refus. Sans l'une ni l'autre, rien
+  // n'est mis en file.
   const enTete = budgetMs > 0 && opts.vue != null && opts.vue === vueCourante;
-  // Un autre domaine qui a déjà son point ne va pas dans la suite : l'écran
-  // ne le montre pas (`geoReasonFor`), et sa page n'y change rien. Elle ne
-  // pose pas de point sur celui qui en a un (`poserLecture`), ni de localité
-  // (`lectureAirbnb` n'en rend pas) : le verdict reste le même. À Abondance,
-  // le 2 octobre 2026, 325 annonces sur 413, plus d'une demi-heure de pages
-  // `rooms/` à 10 par minute. Sans point, il reste en file, en dernier
-  // (`ordreDeLecture`) : sa page peut lui en donner un. Prix, lui, lit ses
-  // candidates par sa propre course, et le premier plan de Prix ne change pas.
   const enFond =
     airbnbALire.length > 0 && !prix && (budgetMs > 0 || opts.relecture === true)
       ? lancerSuiteAirbnb(airbnbALire, enTete)

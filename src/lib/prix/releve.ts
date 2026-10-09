@@ -166,7 +166,7 @@ const CONNEXIONS = 3;
 /** Les longues d'abord. Gîtes et la plupart des centrales répondent tout de
  *  suite (pas de commune, centrale non branchée) ; les agences aussi, pour
  *  une station qu'aucune ne couvre. */
-const RANG: Record<Part, number> = { airbnb: 0, cozy: 1, greengo: 2, agences: 3, centrales: 4, gites: 5 };
+const RANG: Record<Part, number> = { airbnb: 0, cozy: 1, hometogo: 2, greengo: 3, agences: 4, centrales: 5, gites: 6 };
 const ORDRE_PARTS: readonly Part[] = [...PARTS].sort((a, b) => RANG[a] - RANG[b]);
 
 /**

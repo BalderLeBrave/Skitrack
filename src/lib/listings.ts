@@ -32,7 +32,7 @@ export type Listing = {
   stationId: string;
   title: string;
   /** Les plateformes, la centrale, GreenGo, puis les agences de montagne (`scrape/agences/couverture.ts`). */
-  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale" | "GreenGo" | SourceAgence;
+  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale" | "GreenGo" | "HomeToGo" | SourceAgence;
   /**
    * Total du séjour tel que la source l'a publié, aux dates demandées.
    *
@@ -106,9 +106,10 @@ export type Listing = {
   /**
    * D'où vient le point quand ce n'est pas la liste de la source : la page du
    * logement (`pdp`), des coordonnées écrites ailleurs dans cette page
-   * (`page`), l'adresse qu'elle publie géocodée par la BAN (`ban`), ou le même
-   * logement relevé sur une autre source (`jumelage`). Absent : la liste.
-   * Airbnb seulement, règle du 1er octobre 2026 (`stay/repliGps.ts`).
+   * (`page`), l'adresse qu'elle publie géocodée par la BAN (`ban`), le même
+   * logement relevé sur une autre source (`jumelage`), ou une position
+   * triangulée (`triangule`) quand aucune source n'a publié de GPS. Absent :
+   * la liste. Airbnb : règle du 1er octobre 2026 (`stay/repliGps.ts`).
    */
   gpsSource?: SourceGps | null;
   /** Airbnb : la page du logement a été lue. Un champ qui manque encore n'y

@@ -45,6 +45,9 @@ install_shared_http()
 MAX_PAGES = 80
 # Une page de plus, c'est un appel de plus au même domaine : on ralentit le
 # rythme plutôt que de l'accélérer, et on s'interdit de tourner indéfiniment.
+# Le limiteur partagé impose déjà 2 s entre deux départs : à 2 s de pause en
+# plus, une page coûtait sa latence + 2 s, et le relevé que l'écran attend
+# atteignait son échéance avant ses 12 pages (des annonces en moins).
 PAGE_PAUSE_S = 0.4
 # Échéance par défaut quand l'appelant n'en donne pas (`deadlineMs`). Elle
 # couvre tout le relevé, clé et hash compris : l'ancien budget de pages ne
@@ -259,18 +262,23 @@ def _search_pages(
     fin: float,
     seen: set[str],
     budget: list[int],
+    cursor: str = "",
+    entre_s: float = PAGE_PAUSE_S,
 ) -> dict[str, Any]:
     """Les pages d'une emprise, jusqu'à la fin des curseurs, l'échéance ou le budget.
 
     `seen` est partagé entre les emprises : une annonce déjà lue ailleurs ne
     compte pas comme neuve. `budget` est le nombre de StaysSearch qu'il reste
-    au relevé entier (liste mutable). Rend les charges (`raws`), le nombre de
+    au relevé entier (liste mutable). `cursor` reprend une emprise déjà
+    commencée, sans relire ses pages. Rend les charges (`raws`), le nombre de
     pages, le motif d'arrêt (`arret` : refus, coupe-circuit, rythme — ou None)
     et son code (`statut`), le nombre publié pour l'emprise (`publie`), si
     l'emprise a été lue jusqu'au bout de ce qu'Airbnb laisse paginer
-    (`epuisee`), si l'échéance l'a coupée (`echeance`), l'échec d'une page
-    après la première (`erreur`, avec son code HTTP `http` s'il y en a un), et
-    si sa première page disait la requête persistée inconnue (`hashPerime`).
+    (`epuisee`), si l'échéance l'a coupée (`echeance`), le curseur de la
+    prochaine page (`cursor`, vide si l'emprise est épuisée ; après un échec,
+    celui de la page en échec), l'échec d'une page après la première
+    (`erreur`, avec son code HTTP `http` s'il y en a un), et si sa première
+    page disait la requête persistée inconnue (`hashPerime`).
 
     La première page en échec remonte, comme avant (`run_search`). Une page
     suivante en échec ne jette plus celles déjà lues : un délai à la page 4
@@ -281,7 +289,6 @@ def _search_pages(
     op_hash = _hash(proxy_url, fin)
     pages = 0
     raws: list[Any] = []
-    cursor = ""
     arret: str | None = None
     statut = 429
     echeance = False
@@ -319,7 +326,7 @@ def _search_pages(
     # a plus, ou quand une page n'apporte plus rien de neuf. Le nombre publié
     # (`result_count`) ne sert pas d'arrêt — Airbnb cesse de paginer avant de
     # l'atteindre au-delà de ~280 — mais il dit s'il faut découper l'emprise.
-    pause = PAGE_PAUSE_S
+    pause = entre_s
     while pages < max_pages and budget[0] > 0:
         # Une requête qui ne peut pas finir avant l'échéance ne part pas.
         if _reste(fin) < MARGE_REQUETE_S:
@@ -378,9 +385,11 @@ def _search_pages(
                 neuves += 1
         if not nxt:
             epuisee = True
+            cursor = ""
             break
         if not neuves and pages > 1:
             epuisee = True
+            cursor = ""
             break
         time.sleep(pause)
         cursor = nxt
@@ -392,6 +401,7 @@ def _search_pages(
         "publie": advertised,
         "epuisee": epuisee,
         "echeance": echeance,
+        "cursor": "" if epuisee else cursor,
         "erreur": erreur,
         "http": http,
         "hashPerime": perime,
@@ -460,6 +470,71 @@ def pages_de_zone(nom: str, file: list[tuple[str, dict[str, Any]]], budget: int,
     return max_pages
 
 
+BORNES_EMPRISE = ("north", "south", "east", "west")
+SEEN_MAX = 8_000
+# La suite, après le relevé que l'écran attend : 4 s de plus que l'écart du
+# limiteur (2 s), donc environ 10 pages par minute, sous le plafond de 18.
+# Rien d'autre ne parle à Airbnb pendant ce temps.
+PAUSE_SUITE_S = 4.0
+
+
+def bornes_de(bounds: Any) -> dict[str, float] | None:
+    if not isinstance(bounds, dict):
+        return None
+    out: dict[str, float] = {}
+    for cle in BORNES_EMPRISE:
+        val = bounds.get(cle)
+        if not isinstance(val, (int, float)):
+            return None
+        out[cle] = float(val)
+    return out
+
+
+def file_depuis_reprise(
+    reprise: dict[str, Any], params: dict[str, Any]
+) -> list[tuple[str, dict[str, Any], str]]:
+    """Les emprises encore à lire, telles que le relevé précédent les a laissées."""
+    out: list[tuple[str, dict[str, Any], str]] = []
+    brut = reprise.get("file")
+    if not isinstance(brut, list):
+        return out
+    for item in brut:
+        if not isinstance(item, dict):
+            continue
+        bornes = bornes_de(item.get("bounds"))
+        if not bornes:
+            continue
+        nom = str(item.get("nom") or "reprise")
+        cursor = item.get("cursor") if isinstance(item.get("cursor"), str) else ""
+        out.append((nom, {**params, "bounds": bornes}, cursor))
+    return out
+
+
+def vus_de(reprise: dict[str, Any]) -> set[str]:
+    brut = reprise.get("seen")
+    if not isinstance(brut, list):
+        return set()
+    return {str(x) for x in brut if isinstance(x, (str, int)) and str(x)}
+
+
+def serialiser_file(
+    file: list[tuple[str, dict[str, Any], str]], seen: set[str]
+) -> dict[str, Any] | None:
+    """Ce qu'il reste à paginer, pour une suite qui ne relit pas les pages prises."""
+    zones = []
+    for nom, zone, cursor in file:
+        bornes = bornes_de(zone.get("bounds"))
+        if not bornes:
+            continue
+        zones.append({"nom": nom, "bounds": bornes, "cursor": cursor})
+    if not zones:
+        return None
+    ids = list(seen)
+    if len(ids) > SEEN_MAX:
+        ids = ids[:SEEN_MAX]
+    return {"file": zones, "seen": ids}
+
+
 def run_search(params: dict[str, Any]) -> dict[str, Any]:
     check_in = params.get("checkIn") or params.get("checkin")
     check_out = params.get("checkOut") or params.get("checkout")
@@ -474,8 +549,22 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         else time.time() + PAGE_BUDGET_S
     )
     session.echeance = fin
-    zones = emprises(params)
-    url = build_search_url(zones[0][1])
+    reprise = params.get("suite") if isinstance(params.get("suite"), dict) else None
+    suite = reprise is not None
+    if suite:
+        assert reprise is not None
+        file = file_depuis_reprise(reprise, params)
+        if not file:
+            return {"ok": False, "error": "suite vide", "url": "", "attempts": 0}
+        seen = vus_de(reprise)
+        plafond = params.get("suiteMax")
+        budget = [max(1, min(24, int(plafond) if isinstance(plafond, (int, float)) else 8))]
+    else:
+        file = [(nom, zone, "") for nom, zone in emprises(params)]
+        seen = set()
+        budget = [MAX_REQUETES]
+    url = build_search_url(file[0][1])
+    entre_s = PAUSE_SUITE_S if suite else PAGE_PAUSE_S
     if airbnb_circuit.open():
         print(f"[airbnb] coupe-circuit ouvert (encore {airbnb_circuit.remaining_s():.0f} s) — pas d'appel", file=sys.stderr)
         return {
@@ -498,21 +587,28 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     pages = 0
     advertised: int | None = None
     lues: list[str] = []
-    seen: set[str] = set()
-    budget = [MAX_REQUETES]
     hash_perime_vu = False
     try:
         with contextlib.redirect_stdout(sink):
-            file = list(zones)
             while file and not arret and budget[0] > 0 and _reste(fin) >= MARGE_REQUETE_S:
-                nom, zone = file.pop(0)
+                nom, zone, cursor = file.pop(0)
                 avant = len(seen)
-                pages_zone = pages_de_zone(nom, file, budget[0], max_pages)
+                pages_zone = pages_de_zone(nom, [(n, z) for n, z, _c in file], budget[0], max_pages)
                 try:
-                    lu = _search_pages(build_search_url(zone), proxy_url, pages_zone, fin, seen, budget)
+                    lu = _search_pages(
+                        build_search_url(zone),
+                        proxy_url,
+                        pages_zone,
+                        fin,
+                        seen,
+                        budget,
+                        cursor,
+                        entre_s,
+                    )
                 except Exception as err:
                     # Une emprise suivante qui échoue ne jette pas ce que les
                     # précédentes ont lu ; la première, elle, remonte comme avant.
+                    file.insert(0, (nom, zone, cursor))
                     if not raws:
                         raise
                     # Un refus (403, 429, 503) y est un refus comme ailleurs ;
@@ -545,20 +641,32 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                 raws.extend(r)
                 pages += p
                 lues.append(f"{nom}:{p}p/{len(seen) - avant}+" + (f"/{publie}" if publie is not None else ""))
-                if nom in ("proche", "unique"):
+                if nom in ("proche", "unique") and publie is not None:
                     advertised = publie
                 if lu["erreur"] is not None:
-                    # Une panne qui dure enverrait un StaysSearch par emprise.
+                    # La page en échec reste à reprendre (la suite la relira),
+                    # mais plus rien dans ce relevé : une panne qui dure
+                    # enverrait un StaysSearch par emprise.
+                    if not epuisee:
+                        file.append((nom, zone, lu["cursor"]))
                     break
+                if not epuisee:
+                    # La page suivante de cette emprise, après les autres : chaque
+                    # emprise a d'abord sa part du budget (`pages_de_zone`), comme
+                    # avant ; ce qui reste de celle-ci vient ensuite, ou dans la
+                    # suite. En tête, la première station reliée non épuisée
+                    # prenait tout le budget, et les suivantes n'étaient pas lues.
+                    file.append((nom, zone, lu["cursor"]))
                 # L'emprise proche publie plus qu'Airbnb ne laisse paginer : ses
                 # quarts passent avant l'emprise large, parce qu'ils sont dans
                 # le domaine et elle en partie non. Sur un grand domaine, ils
                 # passent après les stations reliées, avec le budget qui reste.
-                if nom == "proche" and epuisee and publie is not None and publie > PLAFOND_EMPRISE:
+                elif nom == "proche" and publie is not None and publie > PLAFOND_EMPRISE:
                     quarts = [
-                        (f"quart{i + 1}", {**zone, "bounds": q}) for i, q in enumerate(quadrants(zone["bounds"]))
+                        (f"quart{i + 1}", {**zone, "bounds": q}, "")
+                        for i, q in enumerate(quadrants(zone["bounds"]))
                     ]
-                    if any(n.startswith("reliee") for n, _ in file):
+                    if any(n.startswith("reliee") for n, *_reste in file):
                         file.extend(quarts)
                     else:
                         file[0:0] = quarts
@@ -590,12 +698,25 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                 "url": url,
                 "attempts": 1,
             }
+        if suite:
+            # Une suite part avec la clé et le hash que le relevé vient de
+            # prouver : une coupure (délai, 5xx) à sa première page ne les jette
+            # pas, et la page reste à reprendre. Les jeter arrêtait la suite et
+            # faisait relire page d'accueil et paquets JS au relevé suivant.
+            return {
+                "ok": False,
+                "error": f"pyairbnb: {err}",
+                "url": url,
+                "attempts": 1,
+                "reste": serialiser_file(file, seen),
+            }
         invalidate()
         return {"ok": False, "error": f"pyairbnb: {err}", "url": url, "attempts": 1}
     ms_search = int((time.perf_counter() - started) * 1000)
+    vus_pages = seen
 
     listings: list[dict[str, Any]] = []
-    seen: set[str] = set()
+    seen_ids: set[str] = set()
     for raw in raws:
         for row in listings_from_raw(
             raw,
@@ -605,11 +726,13 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             min_guests=int(adults) if adults else None,
             min_bedrooms=int(min_bedrooms) if min_bedrooms else None,
         ):
-            if row["id"] in seen:
+            if row["id"] in seen_ids:
                 continue
-            seen.add(row["id"])
+            seen_ids.add(row["id"])
             listings.append(row)
     listings.sort(key=par_prix)
+    # Un refus ne se poursuit pas : la suite repartirait dans la pause.
+    reste = None if arret in ("refus", "coupe-circuit") else serialiser_file(file, vus_pages)
     if not listings:
         if hash_perime_vu and not arret:
             # Rien de tout le relevé, et la requête persistée inconnue : le hash
@@ -626,6 +749,7 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             **({"arret": arret} if arret else {}),
             "url": url,
             "attempts": 1,
+            **({"reste": reste} if reste else {}),
         }
     enriched = 0
     ms_enrich = 0
@@ -654,13 +778,17 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             enriched = 0
         except Exception:
             enriched = 0
+    if arret in ("refus", "coupe-circuit"):
+        reste = None
     if not listings:
         return {
             "ok": False,
-            "error": "pyairbnb: aucune annonce",
+            "error": erreur_arret(arret, statut) if arret else "pyairbnb: aucune annonce",
             "rateLimited": arret is not None,
+            **({"arret": arret} if arret else {}),
             "url": url,
             "attempts": 1,
+            **({"reste": reste} if reste else {}),
         }
     payload = {
         "source": "airbnb",
@@ -685,6 +813,7 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         "rateLimited": arret is not None,
         **({"arret": arret, "erreurArret": erreur_arret(arret, statut)} if arret else {}),
         **({"partiel": partiel} if partiel else {}),
+        **({"reste": reste} if reste else {}),
     }
 
 

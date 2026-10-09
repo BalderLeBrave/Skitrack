@@ -1,7 +1,7 @@
 /**
  * Pourquoi un moteur n'est pas interrogé, quand il ne l'est pas.
  *
- * Quarante-huit des soixante-neuf centrales du parc n'ont pas de connecteur.
+ * Trente-trois des soixante-neuf centrales du parc n'ont pas de connecteur.
  * Leur écrire un fichier chacune pour n'y mettre qu'une phrase serait autant de
  * fichiers vides ; les laisser sans phrase serait pire, parce qu'un zéro
  * sans motif se lit comme « rien de disponible ». Or elles ne sont pas
@@ -38,8 +38,8 @@ const ETAT: Record<MoteurCentrale, string> = {
   Ingénie:
     "ce moteur s'interroge. Les centrales sans fichier propre passent par le connecteur commun, identifiant lu sur la page d'accueil. Un Disallow sur la recherche datée est lu et n'arrête pas. Relevé du 13 septembre 2026.",
 
-  // Deux centrales, trois stations. Les deux échouent pour des raisons
-  // opposées, et la phrase doit porter les deux.
+  // Super-Besse et le Mont-Dore. Le site affiche une grille sans date.
+  // Grand Tourmalet n'est plus ici : sa recherche datée est le widget Alliance.
   Diffusio:
     "ce moteur affiche ses prix sans qu'aucune date soit demandée, et n'expose aucun filtre de date, de durée ou de personnes : c'est une grille tarifaire, pas un total de séjour. Relevé du 13 septembre 2026.",
 
@@ -60,15 +60,16 @@ const ETAT: Record<MoteurCentrale, string> = {
   MSEM:
     "ce moteur est interrogeable, mais cette centrale-ci n'a pas encore son fichier : il lui manque son identifiant de station et son canal de vente, que son site publie.",
 
-  // Une centrale relevée sous ce nom, corrigée depuis. Plus aucune aujourd'hui.
+  // Praz de Lys a son fichier : la recherche Elloha répond, le montant n'est
+  // pas un total de séjour. Cette phrase ne s'affiche donc plus pour lui.
   Elloha:
-    "aucune centrale du parc ne tourne sur ce moteur : la seule qui y avait été rangée au relevé du 13 septembre 2026 est en réalité sous MSEM, et la donnée est corrigée.",
+    "ce moteur a une recherche datée. Le montant qu'il publie est étiqueté « à partir de », et il ne suit pas la durée de façon régulière. Ce n'est pas un total de séjour. Relevé du 9 octobre 2026.",
 
-  // Trois centrales. La Plagne est branchée ; le catalogue de Chamonix ne
-  // porte pas d'identifiant de logement. Praz-sur-Arly n'a pas encore de
-  // fichier.
+  // Quatre centrales. La Plagne a sa table. Combloux et Praz-sur-Arly n'ont
+  // pas de table : `chercherOrchestraHote` lit l'accueil. Chamonix a son
+  // fichier, et cette phrase ne s'affiche donc plus pour lui.
   Orchestra:
-    "la seule centrale de ce moteur qui s'interroge est branchée, celle de La Plagne. Celle-ci ne l'est pas : son catalogue n'expose pas les identifiants de logement qu'il faut pour lui demander un prix. Relevé du 13 septembre 2026.",
+    "ce moteur s'interroge. Sans fichier propre, les destinations sont celles que la page d'accueil publie, préfixe de chemin compris. Un catalogue sans identifiant de logement n'est pas compté comme un séjour vide. Relevé du 13 septembre 2026.",
 
   // Une centrale, Pralognan-la-Vanoise, et elle est branchée.
   Arkiane:
@@ -78,9 +79,10 @@ const ETAT: Record<MoteurCentrale, string> = {
   iResa:
     "ce moteur est interrogeable, et la seule centrale du parc qui l'emploie est branchée. Celle-ci n'a pas encore son fichier.",
 
-  // Une centrale, Les Karellis.
+  // Les Karellis a son fichier. Le moteur reste nommé pour une centrale
+  // qui apparaîtrait sans le sien.
   Resalys:
-    "ce moteur n'a pas encore de connecteur. Relevé du 13 septembre 2026.",
+    "ce moteur n'a pas encore de connecteur qui lise un total de séjour. Relevé du 9 octobre 2026.",
 
   // Une centrale, les vallées de Gavarnie.
   Tourinsoft:

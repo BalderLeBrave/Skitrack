@@ -150,6 +150,83 @@ export function urlCatalogueOrchestra(base: string, destination: string): string
   return `${base.replace(/\/+$/, "")}/destinations/${encodeURIComponent(destination)}`;
 }
 
+/** Liens `/destinations/{slug}` publiés dans une page, préfixe de chemin compris. */
+export type DestinationsPubliees =
+  | { ok: true; prefixe: string; slugs: string[] }
+  | { ok: false; raison: "aucune" | "plusieurs préfixes" };
+
+/**
+ * Les destinations qu'une page publie elle-même.
+ *
+ * La Plagne les écrit à la racine (`/destinations/champagny-en-vanoise`).
+ * Combloux, relevé du 20 septembre 2026, vit sous un préfixe (`/combloux/`),
+ * que seul le lien publié dit. On ne devine ni le préfixe ni le slug : un href
+ * absent ne devient pas une destination, et deux préfixes différents ne sont
+ * pas fondus en un.
+ */
+export function destinationsPubliees(page: string): DestinationsPubliees {
+  const trouves: { prefixe: string; slug: string }[] = [];
+  const re = /(?:href|data-link)\s*=\s*(?:"([^"]+)"|'([^']+)')/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(page)) !== null) {
+    const lu = lienDestination(m[1] ?? m[2] ?? "");
+    if (lu) trouves.push(lu);
+  }
+  if (trouves.length === 0) return { ok: false, raison: "aucune" };
+  const prefixes = new Set(trouves.map((t) => t.prefixe));
+  if (prefixes.size > 1) return { ok: false, raison: "plusieurs préfixes" };
+  const slugs: string[] = [];
+  const vus = new Set<string>();
+  for (const t of trouves) {
+    if (vus.has(t.slug)) continue;
+    vus.add(t.slug);
+    slugs.push(t.slug);
+  }
+  return { ok: true, prefixe: trouves[0]?.prefixe ?? "", slugs };
+}
+
+/** Un href vers `/…/destinations/{slug}`, ou rien. */
+function lienDestination(brut: string): { prefixe: string; slug: string } | null {
+  const sans = brut.trim().split(/[?#]/)[0] ?? "";
+  if (!sans || /^(?:javascript|mailto|tel):/i.test(sans)) return null;
+  let path = sans;
+  if (/^https?:\/\//i.test(sans)) {
+    try {
+      path = new URL(sans).pathname;
+    } catch {
+      return null;
+    }
+  }
+  const m = /^(.*)\/destinations\/([a-z0-9-]+)\/?$/i.exec(path);
+  if (!m) return null;
+  const slug = m[2] ?? "";
+  if (!slug) return null;
+  return { prefixe: (m[1] ?? "").replace(/\/+$/, ""), slug };
+}
+
+/**
+ * Les destinations de cette station, parmi celles que la page a publiées.
+ *
+ * Le préfixe gagne quand il nomme la station (`/combloux` pour Combloux) :
+ * les slugs qui suivent sont les villages de cette centrale, pas d'une autre.
+ * Sans cela, on ne garde qu'un slug qui est la station ou qui en est le
+ * préfixe publié (`praz` pour `praz-sur-arly`). Le reste n'est pas pris :
+ * une page partagée ne doit pas coller les logements d'une voisine.
+ */
+export function destinationsDeStation(prefixe: string, slugs: readonly string[], stationId: string): string[] {
+  const id = stationId.toLowerCase();
+  const dernier = prefixe.split("/").filter(Boolean).at(-1)?.toLowerCase() ?? "";
+  const prefixeVise =
+    dernier.length > 0 && (dernier === id || dernier.startsWith(`${id}-`) || id.startsWith(`${dernier}-`));
+  if (prefixeVise) return [...slugs];
+  return slugs.filter((s) => slugViseStation(s, id));
+}
+
+function slugViseStation(slug: string, stationId: string): boolean {
+  const s = slug.toLowerCase();
+  return s === stationId || s.startsWith(`${stationId}-`) || stationId.startsWith(`${s}-`);
+}
+
 /**
  * L'URL du calendrier d'un logement.
  *
@@ -209,6 +286,56 @@ export function cartesOrchestra(page: string): CarteOrchestra[] {
     out.push({ id, titre, chemin: lien ? desechapper(lien) : null, photo, type });
   }
   return out;
+}
+
+/**
+ * Les logements d'une page de résultats Orchestra (`/fr/serp`), lus dans
+ * `data-product`. Le prix « à partir de » de cette page n'est pas lu : il
+ * n'est pas daté. L'identifiant, lui, sert au calendrier.
+ *
+ * `lieu`, quand il est donné, écarte une carte dont `stationLocation` ne le
+ * contient pas. La page est déjà filtrée ; ceci empêche qu'une suite mélange
+ * deux stations.
+ */
+export function cartesSerpOrchestra(page: string, lieu?: string): CarteOrchestra[] {
+  const out: CarteOrchestra[] = [];
+  const re = /data-product\s*=\s*(?:'([^']*)'|"([^"]*)")/gi;
+  const voulu = lieu?.trim().toLowerCase() ?? "";
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(page)) !== null) {
+    const brut = desechapper(m[1] ?? m[2] ?? "");
+    let o: {
+      id?: unknown;
+      title?: unknown;
+      url?: unknown;
+      img?: unknown;
+      accommodation?: unknown;
+      stationLocation?: unknown;
+    };
+    try {
+      o = JSON.parse(brut) as typeof o;
+    } catch {
+      continue;
+    }
+    const id = typeof o.id === "string" || typeof o.id === "number" ? String(o.id) : "";
+    const titre = typeof o.title === "string" ? desechapper(o.title).trim() : "";
+    if (!id || !titre) continue;
+    const station = typeof o.stationLocation === "string" ? o.stationLocation.toLowerCase() : "";
+    if (voulu && !station.includes(voulu)) continue;
+    const chemin = typeof o.url === "string" && o.url.startsWith("/") ? (o.url.split(/[?#]/)[0] ?? null) : null;
+    const photo = typeof o.img === "string" && /^https?:\/\//i.test(o.img) ? o.img : null;
+    const type = typeof o.accommodation === "string" && o.accommodation.trim() ? desechapper(o.accommodation).trim() : null;
+    out.push({ id, titre, chemin, photo, type });
+  }
+  return out;
+}
+
+/** Le lien « voir plus » publié sur la page, ou `null`. On ne fabrique pas le suivant. */
+export function lienSuiteSerp(page: string): string | null {
+  const m = /<a\b[^>]*\bsee-more-results\b[^>]*>/i.exec(page);
+  if (!m) return null;
+  const href = /\bhref\s*=\s*"([^"]+)"/i.exec(m[0])?.[1] ?? /\bhref\s*=\s*'([^']+)'/i.exec(m[0])?.[1];
+  return href ? desechapper(href) : null;
 }
 
 /**
@@ -409,6 +536,10 @@ export function ficheOrchestra(page: string): FicheOrchestra {
 type Categorie = {
   categoryLabel?: unknown;
   categoryCode?: unknown;
+  price?: unknown;
+  maxPax?: unknown;
+  minPax?: unknown;
+  status?: unknown;
 };
 type Jour = {
   price?: unknown;
@@ -478,6 +609,16 @@ export function prixOrchestra(calendrier: unknown, d: DemandeOrchestra): OffreOr
   const jour = m[3] ?? "";
   const groupe = Math.max(1, Math.trunc(d.guests));
 
+  // Chamonix range la durée au premier niveau (`8-7`, puis le mois). La Plagne
+  // y range la bande de capacité, et la durée en dessous. On distingue sur
+  // la forme de la clé enfant, pas sur le nom de la centrale.
+  const enfant = Object.values(sansTransport)
+    .map((v) => (v && typeof v === "object" ? Object.keys(v)[0] : ""))
+    .find((k) => k);
+  if (enfant && /^\d{2}-\d{4}$/.test(enfant)) {
+    return prixDureeDabord(sansTransport[duree], mois, jour, nuits, groupe);
+  }
+
   let meilleure: OffreOrchestra | null = null;
   let sansPrix: OffreOrchestra | null = null;
   for (const [bande, durees] of Object.entries(sansTransport)) {
@@ -500,6 +641,57 @@ export function prixOrchestra(calendrier: unknown, d: DemandeOrchestra): OffreOr
       bandeMax: nombre(e.maxPax) ?? max,
       categorie: cat.libelle,
       codeProduit: cat.code,
+      parLogement: typeof e.byHousing === "boolean" ? e.byHousing : null,
+      nuits: couvre,
+    };
+    if (offre.total <= 0) {
+      sansPrix ??= offre;
+      continue;
+    }
+    if (meilleure && meilleure.total <= offre.total) continue;
+    meilleure = offre;
+  }
+  return meilleure ?? sansPrix;
+}
+
+/**
+ * Calendrier qui range la durée avant le mois.
+ *
+ * Chaque catégorie du jour est un lot, avec son prix et ses bornes. Le prix
+ * du jour, lui, est le moins cher de tous les lots : le prendre pour un
+ * groupe qui n'entre pas dans le plus petit lot afficherait le prix d'un
+ * autre. On garde le moins cher des lots dont les bornes couvrent le groupe.
+ */
+function prixDureeDabord(
+  noeud: Record<string, Record<string, Jour>> | undefined,
+  mois: string,
+  jour: string,
+  nuits: number,
+  groupe: number,
+): OffreOrchestra | null {
+  const e = noeud?.[mois]?.[jour];
+  if (!e) return null;
+  const couvre = nombre(e.nightNb);
+  if (couvre != null && couvre !== nuits) return null;
+  const cats = Object.values(e.categories ?? {});
+  // Sans catégories, le jour porte lui-même prix et bande : il se lit comme une.
+  const lots: Categorie[] = cats.length > 0 ? cats : [e];
+  let meilleure: OffreOrchestra | null = null;
+  let sansPrix: OffreOrchestra | null = null;
+  for (const lot of lots) {
+    const status = lot.status ?? e.status;
+    if (typeof status === "string" && status !== "Available") continue;
+    const min = nombre(lot.minPax) ?? nombre(e.minPax) ?? 1;
+    const max = nombre(lot.maxPax) ?? nombre(e.maxPax);
+    if (max == null || groupe < min || groupe > max) continue;
+    const total = nombre(lot.price);
+    const cat = categorieDuJour({ categories: { lot } });
+    const offre: OffreOrchestra = {
+      total: total != null && total > 0 ? total : 0,
+      bandeMin: min,
+      bandeMax: max,
+      categorie: typeof lot.categoryLabel === "string" ? lot.categoryLabel : cat.libelle,
+      codeProduit: typeof lot.categoryCode === "string" ? lot.categoryCode : cat.code,
       parLogement: typeof e.byHousing === "boolean" ? e.byHousing : null,
       nuits: couvre,
     };

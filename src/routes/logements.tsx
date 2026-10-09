@@ -43,7 +43,6 @@ import { aEquipement, noteAuMoins, noteSur5De } from "@/lib/stay/ficheEnrichie";
 import { noteSur5Lbl } from "@/lib/note";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
-  distFiltrableM,
   DIST_PALIERS_M,
   geoReasonFor,
   gpsPrecis,
@@ -74,13 +73,17 @@ import { partyLabel } from "@/lib/stay/party";
 import {
   searchStay,
   completerAnnonces,
+  lireSuiteAirbnb,
+  lireSuiteBooking,
+  lireSuiteGites,
+  lireSuiteHomeToGo,
   completerReleve,
   PAUSE_DELAI,
   SEARCH_PART_MS,
   DEVIS_MS,
   TARIF_MS,
 } from "@/lib/searchStay";
-import { airbnbComplet, plausible } from "@/lib/stay/priseFiche";
+import { airbnbComplet, pointPublie } from "@/lib/stay/priseFiche";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
@@ -88,6 +91,7 @@ import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { voisinDansListe } from "@/lib/stay/visionneuse";
 import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
+import { distRemonteePublieeM, estPointPublie, placerSansPoint } from "@/lib/stay/situer";
 import { photosDeResidence } from "@/lib/stay/photoResidence";
 import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
@@ -224,13 +228,10 @@ function palierDistLbl(m: number): string {
 /** Le temps qu'on laisse aux critères pour se poser avant de relancer la recherche. */
 const RELANCE_MS = 800;
 /**
- * Les pages Airbnb se lisent en tâche de fond, une toutes les 5 s au moins
- * (`completerFiche.server.ts`), et la recherche ne les attend plus : tant
- * qu'une annonce Airbnb n'a pas ses trois champs, l'écran relit ses annonces
- * à cet intervalle, sans nouveau relevé et sans réseau (`completerAnnonces` :
- * le cache et la mémoire des fiches seuls, quelques dizaines de ms), au lieu
- * d'afficher « non renseigné » jusqu'à la recherche suivante. Chaque relecture
- * remet aussi en fin de file ce qui lui manque, et relance une suite arrêtée.
+ * Les pages de liste encore à lire arrivent par `lireSuiteAirbnb` (aucun appel
+ * à Airbnb : le cache du serveur). La relecture des fiches, elle, pose ce que
+ * la mémoire a déjà, y compris une annonce complète à qui il manque encore sa
+ * fiche. Elle ne relance pas un catalogue arrêté sur un refus.
  */
 const RELECTURE_AIRBNB_MS = 15_000;
 /** Au plus 45 min après la recherche, comme les 45 relectures d'une minute d'avant. */
@@ -238,18 +239,36 @@ const RELECTURES_AIRBNB_MAX = 180;
 /** L'annonce ouverte se relit plus souvent, sans réseau, deux minutes au plus. */
 const RELECTURE_OUVERTE_MS = 4_000;
 const RELECTURES_OUVERTE_MAX = 30;
+/** La suite de pages ajoute des annonces : on relit le cache, sans réseau. */
+const SUITE_AIRBNB_MS = 8_000;
+const SUITES_AIRBNB_MAX = 150;
+/** Douze pages Booking à ~8 s, plus la requête : trois minutes couvrent la suite. */
+const SUITE_BOOKING_MS = 8_000;
+const SUITES_BOOKING_MAX = 24;
+/** La suite ITEA lit une fiche toutes les ~2 s. Huit minutes de relecture. */
+const SUITE_GITES_MS = 8_000;
+const SUITES_GITES_MAX = 60;
+/** La suite HomeToGo lit un lot de détails toutes les ~2 s. Huit minutes de relecture. */
+const SUITE_HTG_MS = 8_000;
+const SUITES_HTG_MAX = 60;
 
 /**
  * Une annonce Airbnb à qui il manque GPS, capacité ou chambres, et que la
  * tâche de fond peut encore combler. Lue et à point (`pdpLue`), ce qui lui
  * manque, sa page ne le publie pas. Sans point, sa page se relit encore : elle
- * donne un point de repli que la mémoire des fiches ne garde pas.
+ * donne un point de repli que la mémoire des fiches ne garde pas. Un point
+ * triangulé (`raw`, `placerSansPoint`) n'en est pas un : `pointPublie`.
  */
 function aCombler(l: Listing): boolean {
-  if (l.source === "Airbnb") return !airbnbComplet(l) && !(l.pdpLue === true && plausible(l.lat, l.lon));
+  if (l.source === "Airbnb") return !airbnbComplet(l) && !(l.pdpLue === true && pointPublie(l));
   // Hors Airbnb : une fiche que la tâche de fond lit encore, à qui il manque
   // la capacité, ou les chambres sans pièces dont les tirer.
   return Boolean(l.url) && (l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)));
+}
+
+/** Trous de fiche, ou annonce Airbnb dont la fiche enrichie n'est pas encore posée. */
+function aRelire(l: Listing): boolean {
+  return aCombler(l) || (l.source === "Airbnb" && l.fiche == null);
 }
 
 /** Recherche en direct, telle que la route précédente la lançait. */
@@ -263,6 +282,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   const searchNonce = useStay((s) => s.searchNonce);
   const mergeLive = useStay((s) => s.mergeLive);
   const patchLive = useStay((s) => s.patchLive);
+  const ajouterLive = useStay((s) => s.ajouterLive);
   const setSearching = useStay((s) => s.setSearching);
   const setLive = useStay((s) => s.setLive);
   // La première recherche part tout de suite ; les suivantes attendent que les
@@ -273,7 +293,12 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   useEffect(() => {
     if (!station) return;
     let cancelled = false;
-    let pending = 6;
+    // Une par part lancée : `run` compte, `finish` décompte. Un nombre écrit à
+    // la main restait à 6 quand HomeToGo a fait la septième part, et
+    // `searching` retombait avant la plus lente — l'écran se disait fini, et
+    // le relevé Prix (`attendreLogements`) repartait sur des hôtes encore
+    // interrogés par Logements.
+    let pending = 0;
     setSearching(true);
     setLive(null, [], true);
     const payload = {
@@ -305,30 +330,139 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     // tient ; elles reviennent comblées de ce que le cache des fiches sait.
     let relecture: ReturnType<typeof setTimeout> | null = null;
     let relectures = 0;
-    // Seules partent les annonces que la tâche de fond peut encore combler :
-    // une requête légère, et les autres ne se redessinent pas pour rien.
-    const incompletes = (rows: readonly Listing[]) => rows.filter(aCombler);
+    let suiteTimer: ReturnType<typeof setTimeout> | null = null;
+    let toursSuite = 0;
+    let bookingTimer: ReturnType<typeof setTimeout> | null = null;
+    let toursBooking = 0;
+    let gitesTimer: ReturnType<typeof setTimeout> | null = null;
+    let toursGites = 0;
+    let htgTimer: ReturnType<typeof setTimeout> | null = null;
+    let toursHtg = 0;
+    // Trous, et annonces Airbnb sans fiche : la mémoire se pose sans réseau.
+    const aRelireMaintenant = (rows: readonly Listing[]) => rows.filter(aRelire);
     const planifierRelecture = (rows: readonly Listing[]) => {
-      if (cancelled || relectures >= RELECTURES_AIRBNB_MAX || incompletes(rows).length === 0) return;
+      if (cancelled || relectures >= RELECTURES_AIRBNB_MAX || aRelireMaintenant(rows).length === 0) return;
       relecture = setTimeout(relireAirbnb, RELECTURE_AIRBNB_MS);
     };
     const relireAirbnb = () => {
       if (cancelled) return;
       relectures += 1;
-      const actuelles = incompletes(useStay.getState().liveListings ?? []);
+      const actuelles = aRelireMaintenant(useStay.getState().liveListings ?? []);
       if (actuelles.length === 0) return;
       void completerAnnonces({ data: { listings: actuelles } })
         .then((rows) => {
           if (cancelled) return;
           patchLive(rows);
-          planifierRelecture(rows);
+          planifierRelecture(useStay.getState().liveListings ?? rows);
         })
         .catch(() => {
           // Réseau ou pause Airbnb : on réessaie à l'intervalle suivant.
           planifierRelecture(actuelles);
         });
     };
-    const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences") => {
+    const relireSuite = () => {
+      if (cancelled || !station) return;
+      toursSuite += 1;
+      void lireSuiteAirbnb({
+        data: {
+          stationId: station.id,
+          stationName: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          checkIn,
+          checkOut,
+          guests,
+          bedrooms,
+        },
+      })
+        .then((rows) => {
+          if (cancelled || rows.length === 0) return;
+          ajouterLive(rows);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled && toursSuite < SUITES_AIRBNB_MAX) suiteTimer = setTimeout(relireSuite, SUITE_AIRBNB_MS);
+        });
+    };
+    const relireBooking = () => {
+      if (cancelled || !station) return;
+      toursBooking += 1;
+      void lireSuiteBooking({
+        data: {
+          stationId: station.id,
+          stationName: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          checkIn,
+          checkOut,
+          guests,
+          bedrooms,
+        },
+      })
+        .then((rows) => {
+          if (cancelled || rows.length === 0) return;
+          ajouterLive(rows);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled && toursBooking < SUITES_BOOKING_MAX) bookingTimer = setTimeout(relireBooking, SUITE_BOOKING_MS);
+        });
+    };
+    const relireGites = () => {
+      if (cancelled || !station) return;
+      toursGites += 1;
+      void lireSuiteGites({
+        data: {
+          stationId: station.id,
+          stationName: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          checkIn,
+          checkOut,
+          guests,
+          bedrooms,
+        },
+      })
+        .then((rows) => {
+          if (cancelled || rows.length === 0) return;
+          // La fiche remplace sa tuile ; celle dont la tuile n'avait pas de
+          // devis, et n'était donc pas rendue, s'ajoute.
+          patchLive(rows);
+          ajouterLive(rows);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled && toursGites < SUITES_GITES_MAX) gitesTimer = setTimeout(relireGites, SUITE_GITES_MS);
+        });
+    };
+    const relireHomeToGo = () => {
+      if (cancelled || !station) return;
+      toursHtg += 1;
+      void lireSuiteHomeToGo({
+        data: {
+          stationId: station.id,
+          stationName: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          checkIn,
+          checkOut,
+          guests,
+          bedrooms,
+        },
+      })
+        .then((rows) => {
+          if (cancelled || rows.length === 0) return;
+          // Déjà à l'écran : le détail remplace. Un squelette qui gagne un titre s'ajoute.
+          patchLive(rows);
+          ajouterLive(rows);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled && toursHtg < SUITES_HTG_MAX) htgTimer = setTimeout(relireHomeToGo, SUITE_HTG_MS);
+        });
+    };
+    const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "hometogo" | "agences") => {
+      pending += 1;
       const wait =
         part === "gites"
           ? SEARCH_PART_MS + DEVIS_MS + 6_000
@@ -338,6 +472,28 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       void withDeadline(searchStay({ data: { ...payload, part } }), wait, part)
         .then((res) => {
           if (cancelled) return;
+          if (part === "airbnb" && toursSuite === 0) relireSuite();
+          if (part === "cozy" && toursBooking === 0 && res.sources.some((s) => s.source === "Booking" && s.ok && s.count > 0)) {
+            relireBooking();
+          }
+          // Le relevé retire les tuiles sans devis : on ne peut pas les y
+          // chercher. Le rapport de la source suffit, et la relecture ne fait
+          // que lire la mémoire du serveur.
+          if (
+            part === "gites" &&
+            toursGites === 0 &&
+            res.sources.some((s) => s.source === "Gîtes de France" && s.ok && s.count > 0)
+          ) {
+            relireGites();
+          }
+          if (
+            part === "hometogo" &&
+            toursHtg === 0 &&
+            (res.sources.some((s) => /détail en suite/.test(s.note ?? "")) ||
+              res.listings.some((l) => /détail HomeToGo non lu/.test(l.proven)))
+          ) {
+            relireHomeToGo();
+          }
           if (res.listings.length > 0) {
             mergeLive(res.listings, res.sources);
             if (part === "airbnb") planifierRelecture(res.listings);
@@ -359,8 +515,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
                   ? dump.filter((l) => l.source === "Centrale")
                   : part === "greengo"
                     ? dump.filter((l) => l.source === "GreenGo")
-                    : dump.filter((l) => l.source === "Abritel" || l.source === "Booking");
-          if (fallback.length) mergeLive(fallback, res.sources);
+                    : part === "hometogo"
+                      ? dump.filter((l) => l.source === "HomeToGo")
+                      : dump.filter((l) => l.source === "Abritel" || l.source === "Booking");
+          if (fallback.length || part === "hometogo") mergeLive(fallback, res.sources);
         })
         .catch((err: unknown) => {
           if (cancelled) return;
@@ -385,6 +543,11 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
             mergeLive(
               frozenRef.current.filter((l) => l.source === "GreenGo"),
               [{ source: "GreenGo", ok: false, count: 0, ms: 0, error }],
+            );
+          } else if (part === "hometogo") {
+            mergeLive(
+              frozenRef.current.filter((l) => l.source === "HomeToGo"),
+              [{ source: "HomeToGo", ok: false, count: 0, ms: 0, error }],
             );
           } else if (part === "agences") {
             mergeLive(
@@ -422,6 +585,8 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       // GreenGo : ses propres hébergements écoresponsables, qu'aucune autre
       // source ne rapporte.
       run("greengo");
+      // HomeToGo : le comparateur, paginé jusqu'au compteur qu'il publie.
+      run("hometogo");
       // Les agences et loueurs de montagne qui couvrent la station (Ovo
       // Network, Travelski…). Pour une station qu'aucun ne couvre, le serveur
       // répond tout de suite, sans rien demander à personne.
@@ -438,6 +603,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       cancelled = true;
       clearTimeout(depart);
       if (relecture) clearTimeout(relecture);
+      if (suiteTimer) clearTimeout(suiteTimer);
+      if (bookingTimer) clearTimeout(bookingTimer);
+      if (gitesTimer) clearTimeout(gitesTimer);
+      if (htgTimer) clearTimeout(htgTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);
@@ -600,7 +769,7 @@ function LogementsStation({ s }: { s: Station }) {
   );
   const dumpGps = useDumpComplet(P.stationId ?? undefined, checkIn, checkOut, trav);
   useLiveSearch(s, dumpGps ?? frozen);
-  const raw = useMemo(() => {
+  const fusionnes = useMemo(() => {
     const dump = dumpGps ?? frozen;
     let rows = dump;
     if (liveListings != null) {
@@ -629,11 +798,16 @@ function LogementsStation({ s }: { s: Station }) {
       return r ? { ...l, photo: r.photo, proven: `${l.proven} · ${r.proven}` } : l;
     });
   }, [liveListings, liveSources, frozen, dumpGps, s]);
+  // Toutes sources : un GPS publié reste. Sans coordonnées, barycentre du
+  // lieu, repère, ou station. Ce n'est pas la porte (`placerSansPoint`).
+  // Le favori garde le relevé, pas cette position d'affichage.
+  const raw = useMemo(() => placerSansPoint(fusionnes, s), [fusionnes, s]);
   // Un logement enregistré qui repasse dans le relevé : sa copie dans les
-  // favoris prend la photo, le point et, pour le même séjour, le prix d'aujourd'hui.
+  // favoris prend la photo, le point publié et, pour le même séjour, le prix
+  // d'aujourd'hui. Pas la position triangulée, qui n'est pas la porte.
   useEffect(() => {
-    if (raw.length > 0) useFavoris.getState().rafraichir(raw, { checkIn, checkOut, trav });
-  }, [raw, checkIn, checkOut, trav]);
+    if (fusionnes.length > 0) useFavoris.getState().rafraichir(fusionnes, { checkIn, checkOut, trav });
+  }, [fusionnes, checkIn, checkOut, trav]);
   // L'altitude de chaque annonce à point, pour la carte et le tri.
   const altDe = useAltitudes(raw);
 
@@ -811,7 +985,9 @@ function LogementsStation({ s }: { s: Station }) {
       id: "dist",
       // Un palier de la barre garde son nom : « Pied des pistes », « ≤ 500 m ».
       label: DIST_PALIERS_M.some((m) => palierPose(dist, m)) ? palierDistLbl(dist[1]) : lfLbl("dist", dist),
-      fn: (l) => dansPlage(distFiltrableM(l), dist, RANGE.dist.b),
+      // Un point triangulé ne mesure rien (`distanceOf` le dit) : il ne passe
+      // pas un palier de distance, comme une annonce sans point.
+      fn: (l) => dansPlage(distRemonteePublieeM(l), dist, RANGE.dist.b),
       remove: () => patchLf({ dist: null }),
     });
   const srcOn = Object.keys(lf.src).filter((k) => lf.src[k]);
@@ -820,7 +996,7 @@ function LogementsStation({ s }: { s: Station }) {
   if (lf.link) lp.push({ id: "link", label: tr("Lien de réservation"), fn: (l) => !!l.url, remove: () => patchLf({ link: false }) });
   if (lf.photo) lp.push({ id: "photo", label: tr("Avec photo"), fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
   if (lf.firm) lp.push({ id: "firm", label: tr("Prix relevé pour ces dates"), fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
-  if (lf.pos) lp.push({ id: "pos", label: tr("Position connue"), fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
+  if (lf.pos) lp.push({ id: "pos", label: tr("Position connue"), fn: (l) => estPointPublie(l), remove: () => patchLf({ pos: false }) });
   if (lf.full)
     lp.push({
       id: "full",
@@ -875,7 +1051,7 @@ function LogementsStation({ s }: { s: Station }) {
     pp: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     total: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     cap: (a, b) => parMesure(a.capacity ?? null, b.capacity ?? null, lsens),
-    dist: (a, b) => parMesure(distFiltrableM(a), distFiltrableM(b), lsens),
+    dist: (a, b) => parMesure(distRemonteePublieeM(a), distRemonteePublieeM(b), lsens),
     alt: (a, b) => parMesure(altDe(a)?.m, altDe(b)?.m, lsens),
     note: (a, b) => parMesure(noteSur5De(a), noteSur5De(b), lsens),
     trous: (a, b) => {
@@ -1070,7 +1246,7 @@ function LogementsStation({ s }: { s: Station }) {
   const notesDispo = SEUILS_NOTE.map((seuil) => ({ seuil, n: raw.filter((l) => noteAuMoins(l, seuil)).length }));
   const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
     { k: "measured", label: tr("Distance mesurée"), n: raw.filter((l) => distanceOf(l).kind === "measured").length },
-    { k: "pos", label: tr("Position connue"), n: raw.filter((l) => l.lat != null).length },
+    { k: "pos", label: tr("Position connue"), n: raw.filter((l) => estPointPublie(l)).length },
     { k: "link", label: tr("Lien de réservation"), n: raw.filter((l) => l.url).length },
     { k: "photo", label: tr("Avec photo"), n: raw.filter((l) => l.photo).length },
     { k: "firm", label: tr("Prix relevé pour ces dates"), n: raw.filter((l) => firmOf(l, stay)).length },
@@ -1434,7 +1610,7 @@ function LogementsStation({ s }: { s: Station }) {
                     <div className="pop7__bloc pop7__bloc--premier">
                       <span className="v7surtitre">{tr("Périmètre de recherche")}</span>
                       <span className="pop7__note">
-                        {tr("Distance au centre de la station. Une annonce sans position GPS est écartée.")}
+                        {tr("Distance au centre de la station. Sans GPS publié, la position est triangulée et l'annonce reste listée : ce n'est pas la porte.")}
                       </span>
                       <div className="pop7__puces">
                         {RAYONS_KM.map((km) => (

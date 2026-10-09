@@ -87,22 +87,32 @@ export type FicheEnrichie = {
 export const EXTRAITS_MAX = 5;
 
 /**
- * L'échelle de `Listing.rating`, par source, **quand le collecteur l'établit**
- * — il refuse toute note au-dessus de 5 :
+ * L'échelle de `Listing.rating`, par source, **quand le collecteur l'établit**.
+ * Il refuse une note au-dessus de cette échelle :
  *
  * - Airbnb : `avgRating` et « 4,92 sur 5 » (`scrape/airbnb.server.ts`, `ratingOf`) ;
+ * - Booking : la tuile, seulement quand elle écrit « / 10 » (`scrape/booking/map.py`,
+ *   `note_de_tuile`) — un badge sans échelle n'est pas repris ;
  * - Travelski : `averageRating` (`agences/travelski.ts`) ;
  * - Ovo Network : `review_rating` (`agences/ovo.ts`) ;
- * - Mountain Collection : `avis.note` (`agences/mountainCollection.ts`).
+ * - Mountain Collection : `avis.note` (`agences/mountainCollection.ts`) ;
+ * - HomeToGo : `starMessage` « sur 5 », ou `starValue` quand `maxStarValue` vaut 5
+ *   (`scrape/hometogo.ts`, `noteDe`) — un « 8,0 » sans échelle n'est pas repris ;
+ * - Centrale (Deskline / Feratel seulement) : `rating.value` quand `maxValue`
+ *   vaut 5 (`scrape/centrales/moteurs/feratel.ts`, `noteFeratel`) — une autre
+ *   échelle, ou un nombre seul, n'est pas repris ;
  *
  * Les autres (GreenGo `averageGlobalRating`, Maeva `note`) recopient la note
  * sans borne : leur échelle n'est pas établie, leur note n'est pas lue.
  */
 const ECHELLE_RELEVEE: Partial<Record<Listing["source"], EchelleNote>> = {
   Airbnb: 5,
+  Booking: 10,
   Travelski: 5,
   "Ovo Network": 5,
   "Mountain Collection": 5,
+  HomeToGo: 5,
+  Centrale: 5,
 };
 
 function texte(v: unknown): string | null {

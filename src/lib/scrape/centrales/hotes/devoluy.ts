@@ -1,22 +1,26 @@
 /**
  * Dévoluy — La Joue du Loup et Superdévoluy.
  *
- * Troisième centrale de la génération ancienne d'Open System, reconnaissable au
- * `script/script_os.js` que sa page d'accueil charge et aux widgets
- * `gadget.open-system.fr`. Relevé du 13 septembre 2026 : aucune page
- * `pr<N>-....htm` (404 sur les deux chemins essayés), pas de `sitemap.xml`,
- * aucun `MoteurRecherche` déclaré.
- *
- * `robots.txt` répond 404 : fichier absent, journalisé. Ce qui manque est une
- * URL de résultats.
+ * Génération ancienne d'Open System. Relevé du 9 octobre 2026 : le widget
+ * publie `idIntegration` 1531, `loginAPI` « devoluy-hautesalpes », onglet
+ * « Tous les hébergements » moteur 8217, formulaire 39120-3666. La recherche
+ * datée a répondu 212 logements et des totaux de séjour.
  */
 
+import { chercherAlliance } from "../moteurs/alliance.server";
 import type { Connecteur } from "../types";
 
 export const devoluy: Connecteur = {
   host: "reservation.ledevoluy.com",
   nom: "Dévoluy",
   moteur: "Open System",
-  indisponible:
-    "elle tourne sur la génération ancienne d'Open System, dont la recherche passe par un widget JavaScript, sans page de résultats à interroger. Relevé du 13 septembre 2026.",
+  chercher: (ctx) =>
+    chercherAlliance(ctx, {
+      host: "reservation.ledevoluy.com",
+      nom: "Dévoluy",
+      cle: "dev",
+      login: "devoluy-hautesalpes",
+      catalogue: "https://map-jsonp.open-system.fr/osform/39120/3666/8217/vueinfo.js",
+      site: "https://reservation.ledevoluy.com/",
+    }),
 };

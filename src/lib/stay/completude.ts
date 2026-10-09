@@ -23,6 +23,8 @@ export type SujetCompletude = {
   rooms?: number | null;
   lat: number | null;
   lon: number | null;
+  /** `triangule` : un point posé par l'écran (`placerSansPoint`), pas publié. */
+  gpsSource?: string | null;
   photo: string | null;
   photos?: string[] | null;
   url: string | null;
@@ -33,7 +35,8 @@ export function completudeOf(l: SujetCompletude): Completude {
   if (!(l.total > 0)) trous.push("prix");
   if (l.capacity == null) trous.push("capacite");
   if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) trous.push("chambres");
-  if (l.lat == null || l.lon == null) trous.push("gps");
+  // Une position triangulée ne bouche pas le trou : aucune source ne l'a publiée.
+  if (l.lat == null || l.lon == null || l.gpsSource === "triangule") trous.push("gps");
   if (galerieOf(l).length === 0) trous.push("photo");
   if (!l.url) trous.push("url");
   return { ok: trous.length === 0, trous };

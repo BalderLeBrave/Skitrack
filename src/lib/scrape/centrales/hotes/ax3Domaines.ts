@@ -1,23 +1,26 @@
 /**
  * Ax 3 Domaines.
  *
- * Même génération ancienne d'Open System que [Les Sybelles](./lesSybelles.ts) :
- * point d'entrée `index.aspx`, widgets `gadget.open-system.fr`, aucune page
- * `pr<N>-....htm` — relevé du 13 septembre 2026, les deux chemins essayés
- * répondent 404, et il n'y a pas de `sitemap.xml`.
- *
- * `robots.txt` répond 200 et dit : « User-Agent: * / Disallow:
- * /*callback=jQuery*_WPJS=r* / Allow: / ». On le lit, on journalise le
- * Disallow du canal jQuery, on extrairait. Ce qui manque est une URL de
- * résultats.
+ * Génération ancienne d'Open System. Relevé du 9 octobre 2026 : le widget
+ * publie `idIntegration` 1671, `loginAPI` « ariege », onglet « Tous les
+ * hébergements » moteur 8269, formulaire 92630-3693. La recherche datée a
+ * répondu 118 logements et des totaux de séjour.
  */
 
+import { chercherAlliance } from "../moteurs/alliance.server";
 import type { Connecteur } from "../types";
 
 export const ax3Domaines: Connecteur = {
   host: "reservation.ax-ski.com",
   nom: "Ax 3 Domaines",
   moteur: "Open System",
-  indisponible:
-    "elle tourne sur la génération ancienne d'Open System, dont la recherche passe par un widget JavaScript, sans page de résultats à interroger. Relevé du 13 septembre 2026.",
+  chercher: (ctx) =>
+    chercherAlliance(ctx, {
+      host: "reservation.ax-ski.com",
+      nom: "Ax 3 Domaines",
+      cle: "ax3",
+      login: "ariege",
+      catalogue: "https://map-jsonp.open-system.fr/osform/92630/3693/8269/vueinfo.js",
+      site: "https://reservation.ax-ski.com/",
+    }),
 };

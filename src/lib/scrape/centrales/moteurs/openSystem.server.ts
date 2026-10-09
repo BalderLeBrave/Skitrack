@@ -31,6 +31,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
 import { phrasesRegle } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -71,6 +72,8 @@ type Page = { chemin: string; fiches: FicheOpenSystem[]; refus: string | null };
 
 async function unePage(base: string, chemin: string, ctx: ContexteCentrale): Promise<Page> {
   const url = urlOpenSystem(base, chemin, ctx);
+  const ferme = porteFermee(url);
+  if (ferme) return { chemin, fiches: [], refus: ferme };
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -82,6 +85,7 @@ async function unePage(base: string, chemin: string, ctx: ContexteCentrale): Pro
     });
     if (!r.ok) {
       await r.body?.cancel();
+      poserRefus(url, r.status, r.headers);
       return { chemin, fiches: [], refus: `${chemin} : la centrale a répondu ${r.status}` };
     }
     return { chemin, fiches: lireOpenSystem(await r.text()), refus: null };
@@ -97,13 +101,16 @@ async function unePage(base: string, chemin: string, ctx: ContexteCentrale): Pro
 async function toutesLesPages(base: string, ctx: ContexteCentrale, rubriques: readonly string[]): Promise<Page[]> {
   const sorties: Page[] = new Array<Page>(rubriques.length);
   let curseur = 0;
+  let coupe = false;
   const ouvrier = async (): Promise<void> => {
     for (;;) {
+      if (coupe) return;
       const i = curseur;
       curseur += 1;
       const chemin = rubriques[i];
       if (chemin === undefined) return;
       sorties[i] = await unePage(base, chemin, ctx);
+      if (estMessageRefus(sorties[i]?.refus ?? "")) coupe = true;
     }
   };
   await Promise.all(Array.from({ length: Math.min(FRONT, rubriques.length) }, ouvrier));

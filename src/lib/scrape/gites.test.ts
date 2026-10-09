@@ -7,12 +7,17 @@ import {
   avisFromGitesHtml,
   descriptionFromGitesHtml,
   listingDeFiche,
+  listingDeTuile,
+  ficheAvecDevis,
+  couvrirTuiles,
+  lireFichesEnRetard,
   nombreDeResultats,
   occupancyFromGitesHtml,
   pageSuivante,
   prixDuTableau,
   scrapeGites,
   searchUrl,
+  situerAnnoncesGites,
   totalPublie,
   trierParDistance,
   type Fiche,
@@ -250,6 +255,20 @@ describe("annonce Gîtes de France", () => {
     );
     assert.equal(l.locality, "Venosc");
     assert.doesNotMatch(l.proven, /GPS ITEA/);
+    assert.equal(l.lat, null);
+  });
+
+  it("sans GPS de fiche, garde le point publié par la carte de recherche", () => {
+    const l = listingDeFiche(
+      tuile({ lat: 45.02, lon: 6.14 }),
+      fiche({ lieu: { lat: null, lon: null, locality: "Venosc" } }),
+      "38G40102",
+      INPUT,
+    );
+    assert.equal(l.lat, 45.02);
+    assert.equal(l.lon, 6.14);
+    assert.equal(l.locality, "Venosc");
+    assert.doesNotMatch(l.proven, /GPS ITEA/);
   });
 
   it("porte le type publié, le libellé de prix, la devise et l'identifiant ITEA", () => {
@@ -280,6 +299,257 @@ describe("annonce Gîtes de France", () => {
     assert.equal(l.rooms, 3);
     assert.equal(l.bedrooms, 2);
     assert.equal(l.bedroomsSource, "derived_from_type");
+  });
+
+  it("un devis garde l'avis et la description déjà lus sur la fiche", () => {
+    const base = fiche({
+      description: "Grand gîte aménagé",
+      avis: { noteSource: "5", echelleSource: null, nombre: "2", extraits: [] },
+      occupancy: { capacity: 8, bedrooms: 3, rooms: null },
+      lieu: { lat: 45.01, lon: 6.12, locality: "Venosc" },
+      platformId: "38G40102.G",
+    });
+    const apres = ficheAvecDevis(base, { total: 727.44, currency: "EUR", label: "Semaine 727,44 €" });
+    assert.equal(apres.total, 727.44);
+    assert.equal(apres.currency, "EUR");
+    assert.equal(apres.priceLabel, "Semaine 727,44 €");
+    assert.equal(apres.description, "Grand gîte aménagé");
+    assert.deepEqual(apres.avis, base.avis);
+    assert.equal(apres.platformId, "38G40102.G");
+    assert.equal(apres.occupancy.capacity, 8);
+    assert.equal(apres.lieu.locality, "Venosc");
+    const l = listingDeFiche(tuile(), apres, "38G40102", INPUT);
+    assert.equal(l.total, 727.44);
+    assert.equal(l.fiche?.avis?.nombre, 2);
+    assert.equal(l.description, "Grand gîte aménagé");
+  });
+
+  it("une tuile dont la fiche ITEA n'est pas lue sort quand même, sans rien inventer", () => {
+    const l = listingDeTuile(
+      tuile({
+        capacite: "6 personnes",
+        lat: 45.01,
+        lon: 6.12,
+        photo: "https://www.gites-de-france.com/x.jpg",
+        typeLabel: "Gîte",
+      }),
+      "38G40102",
+      INPUT,
+    );
+    assert.equal(l.id, "38G40102");
+    assert.equal(l.source, "Gîtes de France");
+    assert.equal(l.total, 0);
+    assert.equal(l.currency, "EUR");
+    assert.equal(l.capacity, 6);
+    assert.equal(l.propertyType, "Gîte");
+    assert.equal(l.photo, "https://www.gites-de-france.com/x.jpg");
+    assert.equal(l.lat, 45.01);
+    assert.equal(l.lon, 6.12);
+    assert.equal(l.description, undefined);
+    assert.equal(l.amenities, undefined);
+    assert.equal(l.fiche, undefined);
+    assert.equal(l.rating, undefined);
+    assert.equal(l.reviewCount, undefined);
+    assert.equal(l.priceLabel, undefined);
+    assert.match(l.proven, /fiche ITEA non lue/);
+    assert.match(l.proven, /position publiée par la recherche/);
+    assert.match(l.url ?? "", /adults=8/);
+    assert.match(l.url ?? "", /date-start=2027-02-06/);
+  });
+
+  it("sans ligne « N personnes », la tuile n'invente pas de capacité", () => {
+    const l = listingDeTuile(tuile({ title: "Le Petit Gîte", capacite: "" }), "38G40102", INPUT);
+    assert.equal(l.capacity, null);
+    assert.equal(l.bedrooms, null);
+    assert.doesNotMatch(l.proven, /position publiée/);
+  });
+});
+
+describe("suite ITEA : la fiche des dates, après la tuile", () => {
+  it("une fiche déjà lue remplace la tuile du même gîte, et rien d'autre", () => {
+    const tuileL = listingDeTuile(tuile({ capacite: "6 personnes" }), "38G40102", INPUT);
+    const autre = listingDeTuile(
+      tuile({ title: "L'autre", url: "https://www.gites-de-france.com/fr/x-73g10001" }),
+      "73G10001",
+      INPUT,
+    );
+    const ficheL = listingDeFiche(
+      tuile({ capacite: "6 personnes" }),
+      fiche({ description: "Au calme", total: 900, currency: "EUR" }),
+      "38G40102",
+      INPUT,
+    );
+    const couvert = couvrirTuiles([tuileL, autre], [ficheL]);
+    assert.equal(couvert.length, 2);
+    assert.equal(couvert[0]?.description, "Au calme");
+    assert.equal(couvert[0]?.total, 900);
+    assert.equal(couvert[1]?.id, "73G10001");
+    assert.match(couvert[1]?.proven ?? "", /fiche ITEA non lue/);
+  });
+
+  it("un refus ITEA arrête la suite, sans relancer la fiche suivante", async () => {
+    const appels: string[] = [];
+    const bilan = await lireFichesEnRetard(
+      [
+        { tile: tuile(), code: "38G40102" },
+        { tile: tuile({ url: "https://www.gites-de-france.com/fr/x-73g10001" }), code: "73G10001" },
+      ],
+      INPUT,
+      1_000_000,
+      {
+        maintenant: () => 0,
+        attendre: async () => undefined,
+        relever: async (code) => {
+          appels.push(code);
+          throw new Error("ITEA HTTP 429");
+        },
+      },
+    );
+    assert.deepEqual(appels, ["38G40102"]);
+    assert.equal(bilan.arret, "refus");
+    assert.equal(bilan.listings.length, 0);
+  });
+
+  it("trois échecs d'affilée arrêtent ; un hors-périmètre n'en est pas un", async () => {
+    const appels: string[] = [];
+    const reste = ["38G40102", "73G10001", "74G10002", "05G10003", "06G10004"].map((code) => ({
+      tile: tuile({ url: `https://www.gites-de-france.com/fr/x-${code.toLowerCase()}` }),
+      code,
+    }));
+    const bilan = await lireFichesEnRetard(reste, INPUT, 1_000_000, {
+      maintenant: () => 0,
+      attendre: async () => undefined,
+      relever: async (code) => {
+        appels.push(code);
+        if (code === "38G40102") return null;
+        throw new Error("délai");
+      },
+    });
+    assert.deepEqual(appels, ["38G40102", "73G10001", "74G10002", "05G10003"]);
+    assert.equal(bilan.arret, "refus");
+    assert.equal(bilan.listings.length, 0);
+  });
+
+  it("pose la description de la fiche, et le total seulement s'il est publié pour ces dates", async () => {
+    const notes: string[] = [];
+    const bilan = await lireFichesEnRetard(
+      [{ tile: tuile({ capacite: "8 personnes" }), code: "38G40102" }],
+      INPUT,
+      1_000_000,
+      {
+        maintenant: () => 0,
+        attendre: async () => undefined,
+        noter: (l) => notes.push(l.id),
+        relever: async () =>
+          fiche({
+            description: "Grand gîte aménagé",
+            total: 0,
+            avis: { noteSource: null, echelleSource: null, nombre: "3", extraits: [] },
+          }),
+      },
+    );
+    assert.deepEqual(notes, ["38G40102"]);
+    assert.equal(bilan.arret, "fin");
+    assert.equal(bilan.listings[0]?.description, "Grand gîte aménagé");
+    assert.equal(bilan.listings[0]?.fiche?.avis?.nombre, 3);
+    assert.equal(bilan.listings[0]?.total, 0);
+    assert.match(bilan.listings[0]?.proven ?? "", /aucun prix publié à ces dates/);
+  });
+
+  it("passée l'échéance, aucune fiche n'est demandée", async () => {
+    let appels = 0;
+    const bilan = await lireFichesEnRetard([{ tile: tuile(), code: "38G40102" }], INPUT, 10, {
+      maintenant: () => 10,
+      attendre: async () => undefined,
+      relever: async () => {
+        appels += 1;
+        return null;
+      },
+    });
+    assert.equal(appels, 0);
+    assert.equal(bilan.arret, "échéance");
+  });
+});
+
+describe("Gîtes : tout logement a une position", () => {
+  const ctx = {
+    reperes: [{ nom: "Vénosc", lat: 45.001, lon: 6.111 }],
+    station: { nom: "Les 2 Alpes", lat: INPUT.lat, lon: INPUT.lon },
+  };
+
+  it("le GPS de la fiche ne bouge pas, et n'est pas dit triangulé", () => {
+    const l = listingDeFiche(
+      tuile({ lat: 44, lon: 5 }),
+      fiche({ lieu: { lat: 45.0106, lon: 6.1226, locality: "Les Deux Alpes" } }),
+      "38G40102",
+      INPUT,
+    );
+    const [sit] = situerAnnoncesGites([l], ctx);
+    assert.equal(sit?.lat, 45.0106);
+    assert.equal(sit?.lon, 6.1226);
+    assert.equal(sit?.gpsSource, undefined);
+    assert.match(sit?.proven ?? "", /GPS ITEA/);
+    assert.doesNotMatch(sit?.proven ?? "", /triangul/);
+  });
+
+  it("la carte de recherche, sans GPS de fiche, est une position triangulée", () => {
+    const l = listingDeTuile(tuile({ lat: 45.02, lon: 6.14, capacite: "6 personnes" }), "38G40102", INPUT);
+    const [sit] = situerAnnoncesGites([l], ctx);
+    assert.equal(sit?.lat, 45.02);
+    assert.equal(sit?.lon, 6.14);
+    assert.equal(sit?.gpsSource, "triangule");
+    assert.match(sit?.proven ?? "", /carte de recherche/);
+  });
+
+  it("sans aucun point, le barycentre des GPS publiés du même lieu", () => {
+    const a = listingDeFiche(
+      tuile(),
+      fiche({ lieu: { lat: 45.02, lon: 6.1, locality: "Venosc" } }),
+      "38G40101",
+      INPUT,
+    );
+    const b = listingDeFiche(
+      tuile({ url: "https://www.gites-de-france.com/fr/x-38g40103" }),
+      fiche({ lieu: { lat: 45.04, lon: 6.2, locality: "Vénosc" } }),
+      "38G40103",
+      INPUT,
+    );
+    const muet = {
+      ...listingDeTuile(tuile({ url: "https://www.gites-de-france.com/fr/x-38g40102", title: "Sans point" }), "38G40102", INPUT),
+      locality: "Venosc",
+    };
+    const sits = situerAnnoncesGites([a, b, muet], ctx);
+    const cible = sits.find((x) => x.id === "38G40102");
+    assert.equal(cible?.lat, 45.03);
+    assert.equal(cible?.lon, 6.15);
+    assert.equal(cible?.gpsSource, "triangule");
+    assert.match(cible?.proven ?? "", /barycentre de 2 gîtes/);
+    assert.equal(sits.find((x) => x.id === "38G40101")?.gpsSource, undefined);
+  });
+
+  it("un seul GPS voisin ne suffit pas : le repère du lieu, sinon la station", () => {
+    const seul = listingDeFiche(
+      tuile(),
+      fiche({ lieu: { lat: 45.02, lon: 6.1, locality: "Venosc" } }),
+      "38G40101",
+      INPUT,
+    );
+    const muet = {
+      ...listingDeTuile(tuile({ url: "https://www.gites-de-france.com/fr/x-38g40102" }), "38G40102", INPUT),
+      locality: "Vénosc",
+    };
+    const sits = situerAnnoncesGites([seul, muet], ctx);
+    const sit = sits.find((x) => x.id === "38G40102");
+    assert.equal(sit?.lat, 45.001);
+    assert.equal(sit?.lon, 6.111);
+    assert.match(sit?.proven ?? "", /repère « Vénosc »/);
+    const nu = listingDeTuile(tuile({ url: "https://www.gites-de-france.com/fr/x-38g40104", title: "Nu" }), "38G40104", INPUT);
+    const [station] = situerAnnoncesGites([nu], ctx);
+    assert.equal(station?.lat, INPUT.lat);
+    assert.equal(station?.lon, INPUT.lon);
+    assert.equal(station?.gpsSource, "triangule");
+    assert.match(station?.proven ?? "", /station Les 2 Alpes/);
+    assert.match(station?.proven ?? "", /aucun point publié/);
   });
 });
 
@@ -317,8 +587,9 @@ describe("blocage du site", () => {
     assert.equal(blocage({ status: 200, cfMitigated: null, titre: "Just a moment..." }), "bloqué (page de défi)");
   });
 
-  it("appelle une panne serveur par son nom, pas « bloqué »", () => {
-    assert.equal(blocage({ status: 503, cfMitigated: null, titre: "Service Unavailable" }), "HTTP 503");
+  it("un 503 est un refus ; une autre panne garde son nom", () => {
+    assert.equal(blocage({ status: 503, cfMitigated: null, titre: "Service Unavailable" }), "bloqué (503)");
+    assert.equal(blocage({ status: 500, cfMitigated: null, titre: "Erreur" }), "HTTP 500");
   });
 
   it("laisse passer une page ordinaire", () => {

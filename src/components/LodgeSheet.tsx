@@ -322,9 +322,11 @@ export function LodgeSheet({
                     ? tr("du repère {station}", { station: langue() === "en" ? station.name : deStation(station.name) })
                     : tr("du repère de la station"),
                 )}{" "}
-                {listing.lat == null || listing.lon == null
-                  ? tr("(pas de position GPS publiée).")
-                  : tr("(de la position GPS de l’annonce au repère, qui n’est ni une piste ni un domaine).")}
+                {listing.gpsSource === "triangule"
+                  ? tr("(position triangulée, pas la porte : {source} n'a pas publié de GPS).", { source: listing.source })
+                  : listing.lat == null || listing.lon == null
+                    ? tr("(pas de position GPS publiée).")
+                    : tr("(de la position GPS de l’annonce au repère, qui n’est ni une piste ni un domaine).")}
               </li>
               <li>
                 <strong>{tr("Trace GPX")}</strong>

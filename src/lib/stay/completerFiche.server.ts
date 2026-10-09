@@ -1443,7 +1443,7 @@ async function deroulerSuiteAirbnb(opts?: { uneFiche?: boolean }): Promise<void>
       if (circuitOpen()) {
         refus += 1;
         if (refus > REFUS_SUITE_MAX) {
-          arret = "refus répétés d'Airbnb, la recherche suivante reprendra";
+          arret = "refus d'Airbnb, la suite ne reprend pas le catalogue";
           suiteArreteeParRefus = true;
           break;
         }

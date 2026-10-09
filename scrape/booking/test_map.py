@@ -5,6 +5,7 @@ from map import (
     coords_from_html,
     is_dropped_listing,
     listings_from_html,
+    note_de_tuile,
     occupancy_from_text,
     stay_total_from_label,
 )
@@ -79,8 +80,38 @@ def test_listings_from_html_total_seulement():
     assert chalet["priceIndicative"] is False
     assert abs(chalet["latitude"] - 45.0106) < 0.0001
     assert abs(chalet["longitude"] - 6.1226) < 0.0001
+    # Pas de note écrite sur cette tuile : on n'en fabrique pas.
+    assert chalet["rating"] is None
+    assert chalet["reviewCount"] is None
     # L'hôtel reste écarté : la source elle-même le met hors périmètre.
     assert not [r for r in rows if r["title"].startswith("Hôtel")]
+
+
+def test_note_de_tuile_seulement_si_echelle_ecrite():
+    assert note_de_tuile("8,6 / 10 · 120 avis") == (8.6, 120)
+    assert note_de_tuile("8,6") == (None, None)
+    assert note_de_tuile("8,6 sur 5") == (None, None)
+    html = """
+    <div data-testid="property-card" data-hotel-id="9">
+      <a href="/hotel/fr/chalet-note.fr.html" data-testid="title">Chalet noté</a>
+      <div data-testid="recommended-units">Appartement entier • 2 chambres • 6 personnes</div>
+      <div data-testid="review-score">8,4 / 10 · 37 expériences vécues</div>
+      <div data-testid="price-and-discounted-price">900 €</div>
+    </div>
+    <div data-testid="property-card" data-hotel-id="10">
+      <a href="/hotel/fr/chalet-badge.fr.html" data-testid="title">Chalet badge</a>
+      <div data-testid="recommended-units">Appartement entier • 1 chambre • 4 personnes</div>
+      <div data-testid="review-score">9,1</div>
+      <div data-testid="price-and-discounted-price">700 €</div>
+    </div>
+    """
+    rows = listings_from_html(html)
+    note = next(r for r in rows if r["sourceId"] == "9")
+    badge = next(r for r in rows if r["sourceId"] == "10")
+    assert note["rating"] == 8.4
+    assert note["reviewCount"] == 37
+    assert badge["rating"] is None
+    assert badge["reviewCount"] is None
 
 
 def test_prix_indicatif_reste_dans_la_liste():

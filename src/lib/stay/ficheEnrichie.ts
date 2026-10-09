@@ -87,10 +87,12 @@ export type FicheEnrichie = {
 export const EXTRAITS_MAX = 5;
 
 /**
- * L'échelle de `Listing.rating`, par source, **quand le collecteur l'établit**
- * — il refuse toute note au-dessus de 5 :
+ * L'échelle de `Listing.rating`, par source, **quand le collecteur l'établit**.
+ * Il refuse une note au-dessus de cette échelle :
  *
  * - Airbnb : `avgRating` et « 4,92 sur 5 » (`scrape/airbnb.server.ts`, `ratingOf`) ;
+ * - Booking : la tuile, seulement quand elle écrit « / 10 » (`scrape/booking/map.py`,
+ *   `note_de_tuile`) — un badge sans échelle n'est pas repris ;
  * - Travelski : `averageRating` (`agences/travelski.ts`) ;
  * - Ovo Network : `review_rating` (`agences/ovo.ts`) ;
  * - Mountain Collection : `avis.note` (`agences/mountainCollection.ts`).
@@ -100,6 +102,7 @@ export const EXTRAITS_MAX = 5;
  */
 const ECHELLE_RELEVEE: Partial<Record<Listing["source"], EchelleNote>> = {
   Airbnb: 5,
+  Booking: 10,
   Travelski: 5,
   "Ovo Network": 5,
   "Mountain Collection": 5,

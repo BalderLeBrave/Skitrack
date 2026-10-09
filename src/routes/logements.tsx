@@ -75,6 +75,7 @@ import {
   searchStay,
   completerAnnonces,
   lireSuiteAirbnb,
+  lireSuiteBooking,
   completerReleve,
   PAUSE_DELAI,
   SEARCH_PART_MS,
@@ -239,6 +240,9 @@ const RELECTURES_OUVERTE_MAX = 30;
 /** La suite de pages ajoute des annonces : on relit le cache, sans réseau. */
 const SUITE_AIRBNB_MS = 8_000;
 const SUITES_AIRBNB_MAX = 150;
+/** Douze pages Booking à ~8 s, plus la requête : trois minutes couvrent la suite. */
+const SUITE_BOOKING_MS = 8_000;
+const SUITES_BOOKING_MAX = 24;
 
 /**
  * Une annonce Airbnb à qui il manque GPS, capacité ou chambres, et que la
@@ -314,6 +318,8 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     let relectures = 0;
     let suiteTimer: ReturnType<typeof setTimeout> | null = null;
     let toursSuite = 0;
+    let bookingTimer: ReturnType<typeof setTimeout> | null = null;
+    let toursBooking = 0;
     // Trous, et annonces Airbnb sans fiche : la mémoire se pose sans réseau.
     const aRelireMaintenant = (rows: readonly Listing[]) => rows.filter(aRelire);
     const planifierRelecture = (rows: readonly Listing[]) => {
@@ -360,6 +366,30 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           if (!cancelled && toursSuite < SUITES_AIRBNB_MAX) suiteTimer = setTimeout(relireSuite, SUITE_AIRBNB_MS);
         });
     };
+    const relireBooking = () => {
+      if (cancelled || !station) return;
+      toursBooking += 1;
+      void lireSuiteBooking({
+        data: {
+          stationId: station.id,
+          stationName: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          checkIn,
+          checkOut,
+          guests,
+          bedrooms,
+        },
+      })
+        .then((rows) => {
+          if (cancelled || rows.length === 0) return;
+          ajouterLive(rows);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled && toursBooking < SUITES_BOOKING_MAX) bookingTimer = setTimeout(relireBooking, SUITE_BOOKING_MS);
+        });
+    };
     const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences") => {
       const wait =
         part === "gites"
@@ -371,6 +401,9 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
         .then((res) => {
           if (cancelled) return;
           if (part === "airbnb" && toursSuite === 0) relireSuite();
+          if (part === "cozy" && toursBooking === 0 && res.sources.some((s) => s.source === "Booking" && s.ok && s.count > 0)) {
+            relireBooking();
+          }
           if (res.listings.length > 0) {
             mergeLive(res.listings, res.sources);
             if (part === "airbnb") planifierRelecture(res.listings);
@@ -472,6 +505,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       clearTimeout(depart);
       if (relecture) clearTimeout(relecture);
       if (suiteTimer) clearTimeout(suiteTimer);
+      if (bookingTimer) clearTimeout(bookingTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);

@@ -7,7 +7,8 @@ import { ficheDepuisPageBooking } from "./bookingFiche";
  *  déjà chargée donne aussi sa fiche (`bookingFiche.ts`), sans autre requête. */
 
 const MAX_FICHES = 12;
-const WORKERS = 4;
+/** Une page à la fois : quatre navigateurs en parallèle essuyaient le défi. */
+const WORKERS = 1;
 const BUDGET_MS = 14_000;
 
 function plausible(lat: number | null | undefined, lon: number | null | undefined): boolean {
@@ -67,7 +68,7 @@ async function gpsOnPage(page: Page, url: string, until: number): Promise<PageLu
   if (Date.now() >= until) return { gps: null, html: null, statut: null };
   const rep = await page.goto(url, { waitUntil: "domcontentloaded", timeout: Math.max(3_000, until - Date.now()) });
   const statut = rep?.status() ?? null;
-  if (statut === 403 || statut === 429) return { gps: null, html: null, statut };
+  if (statut === 202 || statut === 403 || statut === 429) return { gps: null, html: null, statut };
   // Le HTML de la page chargée : pour la fiche, et pour le GPS si la carte
   // ne le donne pas. Aucune navigation de plus.
   const html = await page.content().catch(() => null);
@@ -122,6 +123,7 @@ export async function fillBookingGps(host: Page, listings: Listing[]): Promise<n
             const { gps, html, statut } = await gpsOnPage(p, url, until);
             const fiche = ficheDepuisPageBooking(row, html, statut);
             if (fiche) row.fiche = fiche;
+            if (statut === 202 || statut === 403 || statut === 429) return;
             if (!gps) continue;
             row.lat = gps.lat;
             row.lon = gps.lon;

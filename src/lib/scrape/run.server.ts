@@ -10,7 +10,7 @@ import { scrapeGites } from "./gites.server";
 import { communeGites } from "./gitesCommunes";
 import { scrapeAirbnbDetailed, scrapeAirbnbSuite, type SuiteReste } from "./airbnb.server";
 import { lireFichesLentes } from "./airbnbSuite.server";
-import { scrapeBookingPlaywright, scrapeBookingPythonDetaille } from "./booking.server";
+import { scrapeBookingPage, scrapeBookingPlaywright, scrapeBookingPythonDetaille } from "./booking.server";
 import { fillBookingGps } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
 import { collecterCozy, cozyListings, type CollecteCozy } from "./cozy.server";
@@ -297,12 +297,10 @@ async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], li
 /**
  * Abritel et Booking, tels que CozyCozy les rend.
  *
- * Booking reste servi par Cozy, désormais paginé jusqu'à son compteur ; le
- * relevé direct ne part que si Cozy n'en rend aucun, comme avant. Le relever
- * à chaque recherche apporterait des biens que Cozy n'a pas (148 aux 2 Alpes,
- * mesuré le 23 septembre 2026), mais chaque page Booking commence par un défi
- * anti-robot : en faire un passage systématique est une décision du
- * propriétaire, pas une correction.
+ * Le direct ne remplace pas Cozy pendant l'attente de l'écran : chaque page
+ * Booking peut commencer par un défi. Il part après, une page à la fois
+ * (`poursuivreBooking`), et seulement quand Cozy a déjà rendu des annonces —
+ * un zéro a déjà eu son repli ici. Un refus arrête la suite, sans second essai.
  */
 async function releverCozy(input: LiveSearchInput, reports: SourceReport[], listings: Listing[]) {
   const t0 = Date.now();
@@ -720,6 +718,11 @@ export function lireCacheAirbnb(input: LiveSearchInput): Listing[] {
   return listingsDuCache(key);
 }
 
+/** Les annonces Booking du cache Cozy, y compris les pages lues après la réponse. */
+export function lireCacheBooking(input: LiveSearchInput): Listing[] {
+  return listingsDuCache(cacheKey(input, "cozy")).filter((l) => l.source === "Booking");
+}
+
 async function paginerSuite(
   key: string,
   input: LiveSearchInput,
@@ -808,6 +811,62 @@ function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: Suite
   })();
 }
 
+/** Pages de liste Booking en plus de Cozy. Douze pages couvrent l'écart mesuré
+ * (148 annonces aux 2 Alpes, le 23 septembre 2026) sans enchaîner les défis. */
+const PAGES_BOOKING_MAX = 12;
+const PAUSE_BOOKING_MS = 8_000;
+const PAGE_BOOKING_MS = 20_000;
+/** Une recherche Cozy plus récente : la suite Booking de la précédente s'arrête. */
+let generationBooking = 0;
+
+function poserBooking(key: string, bookings: Listing[]): number {
+  const hit = cache.get(key);
+  if (!hit) return 0;
+  const avant = hit.result.listings.filter((l) => l.source === "Booking").length;
+  const listings = [...hit.result.listings.filter((l) => l.source !== "Booking"), ...bookings];
+  const sources = hit.result.sources.map((s) => (s.source === "Booking" ? { ...s, count: bookings.length } : s));
+  cache.set(key, { at: Date.now(), ttl: hit.ttl, result: { listings, sources } });
+  return Math.max(0, bookings.length - avant);
+}
+
+/**
+ * Après la réponse Cozy : les pages Booking que Cozy n'a pas, une à une.
+ * La station cherchée d'abord, puis les stations reliées, dans le même budget.
+ * Un 429, un 403 ou un défi arrête tout le domaine. Une liste épuisée passe
+ * à la station suivante. Une recherche plus récente ne se fait pas écraser.
+ */
+function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): void {
+  void (async () => {
+    let budget = 0;
+    try {
+      for (const st of stationsDuReleve(input)) {
+        let offset: number | null = 0;
+        while (offset != null && budget < PAGES_BOOKING_MAX) {
+          if (generationBooking !== gen) return;
+          if (budget > 0) await dormir(PAUSE_BOOKING_MS);
+          if (generationBooking !== gen) return;
+          const tour = await scrapeBookingPage(st, offset, PAGE_BOOKING_MS);
+          if (generationBooking !== gen) return;
+          budget += 1;
+          if (tour.listings.length > 0) {
+            const hit = cache.get(key);
+            const actuels = hit ? hit.result.listings.filter((l) => l.source === "Booking") : [];
+            const dates = locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now()));
+            const fusion = fusionner(actuels, dates);
+            const ajout = poserBooking(key, fusion.listings);
+            if (ajout) console.info(`[booking] suite +${ajout} annonce(s)`);
+          }
+          if (tour.arret || tour.raison) return;
+          if (tour.offset == null) break;
+          offset = tour.offset;
+        }
+      }
+    } catch (err) {
+      console.warn("[booking] suite", err instanceof Error ? err.message : err);
+    }
+  })();
+}
+
 function cacheKey(input: LiveSearchInput, part: SearchPart): string {
   // Le relevé d'un grand domaine n'est pas celui de la station seule.
   const domaine = stationsDuReleve(input).length > 1 ? "domaine" : "";
@@ -855,6 +914,7 @@ export async function runLiveSearch(
     nouveauReleveAirbnb();
     gen = generationReleveAirbnb();
   }
+  const genBooking = part === "cozy" ? ++generationBooking : generationBooking;
   const promise = actuallyRun(input, part)
     .then((brut) => {
       const extra = brut as LiveSearchResult & { reste?: SuiteReste | null };
@@ -880,6 +940,16 @@ export async function runLiveSearch(
       cache.set(key, { at, ttl, result });
       for (const [k, v] of cache) if (Date.now() - v.at >= v.ttl) cache.delete(k);
       if (suitePages || suiteFiches) poursuivreApresReleve(key, input, suitePages ? reste : null, gen);
+      const booking = result.sources.find((s) => s.source === "Booking");
+      // Cozy a déjà rendu des annonces : le direct ne double pas un repli qui
+      // vient de parler à Booking, et Prix (domaine faux) ne pagine pas.
+      const suiteBooking =
+        part === "cozy" &&
+        input.domaine === true &&
+        booking?.ok === true &&
+        booking.count > 0 &&
+        !/repli|défi|HTTP \d{3}/i.test(`${booking.error ?? ""} ${booking.note ?? ""}`);
+      if (suiteBooking) poursuivreBooking(key, input, genBooking);
       return result;
     })
     .finally(() => {

@@ -195,6 +195,28 @@ export const lireSuiteAirbnb = createServerFn({ method: "POST" })
     return lireCacheAirbnb({ ...data, domaine: true });
   });
 
+/**
+ * Les annonces Booking déjà en cache pour cette recherche, y compris les
+ * pages lues après la réponse Cozy. Aucun appel à Booking.
+ */
+export const lireSuiteBooking = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      stationName: z.string().min(1),
+      lat: z.number(),
+      lon: z.number(),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      guests: z.number().int().min(1).max(30),
+      bedrooms: z.number().int().min(0).max(20),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const { lireCacheBooking } = await import("./scrape/run.server");
+    return lireCacheBooking({ ...data, domaine: true });
+  });
+
 /** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, devis ITEA daté. */
 export const completerReleve = createServerFn({ method: "POST" })
   .validator(

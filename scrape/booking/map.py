@@ -16,6 +16,13 @@ from typing import Any
 NIGHTLY = re.compile(r"/\s*nuit|par\s+nuit|nightly|per\s+night", re.I)
 FROM_PRICE = re.compile(r"(?:à|a)\s+partir\s+de", re.I)
 STAY_MARK = re.compile(r"au\s+total|pour\s+\d+\s+nuits?|total\s+(?:price|stay)", re.I)
+# La note de la tuile, seulement quand l'échelle est écrite (« 8,6 / 10 »).
+# Un badge nu (« 8,6 ») ne dit pas son échelle : on ne la devine pas.
+SCORE_TUILE = re.compile(r"(\d+(?:[.,]\d+)?)\s*(?:/|sur|out of)\s*(10)\b", re.I)
+COMPTE_AVIS = re.compile(
+    r"(\d[\d\s\u00a0\u202f]*)\s*(?:expériences vécues|expériences|commentaires|avis|reviews)\b",
+    re.I,
+)
 PRIVATE = re.compile(
     r"chambre d[' ]?hotes|maison d[' ]?hotes|private[ _-]?room|chambre privee|"
     r"shared[ _-]?room|chambre partage|bed[- ]and[- ]breakfast|hotel_room|"
@@ -115,6 +122,28 @@ def stay_total_from_label(label: str | None) -> float | None:
     if not hit:
         return None
     return parse_amount(hit.group(1))
+
+
+def note_de_tuile(text: str | None) -> tuple[float | None, int | None]:
+    """Note et nombre d'avis publiés sur la tuile. Sans « / 10 », rien."""
+    if not text:
+        return None, None
+    score = SCORE_TUILE.search(text)
+    if not score:
+        return None, None
+    try:
+        note = float(score.group(1).replace(",", "."))
+    except ValueError:
+        return None, None
+    if note <= 0 or note > 10:
+        return None, None
+    compte = COMPTE_AVIS.search(text)
+    n: int | None = None
+    if compte:
+        brut = re.sub(r"\D", "", compte.group(1))
+        if brut:
+            n = int(brut)
+    return note, n
 
 
 def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None, int | None]:
@@ -454,6 +483,7 @@ def listings_from_html(
             bedrooms, bedrooms_src = extra_b, "structured"
         img = card.select_one('[data-testid="image"], img')
         image = _attr(img, "src") or _attr(img, "data-src")
+        note, avis = note_de_tuile(_text(card.select_one('[data-testid="review-score"]')))
         url = href
         if check_in:
             url += f"?checkin={check_in}"
@@ -484,6 +514,8 @@ def listings_from_html(
                 "rooms": rooms,
                 "textes": [t for t in (name, whole_unit) if t],
                 "propertyType": property_type,
+                "rating": note,
+                "reviewCount": avis,
                 "priceConfidence": "total_confirmed" if total is not None else "no_stay_total",
                 # Une plateforme tarife ce qu'elle peut vendre : sans total de
                 # séjour, la disponibilité n'est pas prouvée et ne se déclare

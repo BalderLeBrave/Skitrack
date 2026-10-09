@@ -649,6 +649,17 @@ function dormir(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function daterAnnonce(l: Listing, input: LiveSearchInput, at: number): Listing {
+  if (!(l.total > 0)) return l;
+  const repli = /repli/i.test(l.proven ?? "");
+  return {
+    ...l,
+    pricedCheckIn: l.pricedCheckIn ?? input.checkIn,
+    pricedCheckOut: l.pricedCheckOut ?? input.checkOut,
+    scannedAt: l.scannedAt ?? (repli ? null : at),
+  };
+}
+
 /** Un refus d'Airbnb dans la note. Le limiteur local n'en est pas un : la suite peut reprendre. */
 function arretDur(result: LiveSearchResult): boolean {
   const r = result.sources.find((s) => s.source === "Airbnb");
@@ -709,7 +720,7 @@ async function paginerSuite(
     }
     const tour = await scrapeAirbnbSuite(input, curseur, PAGES_PAR_TOUR, Date.now() + TOUR_SUITE_MS);
     budget += PAGES_PAR_TOUR;
-    const ajout = ajouterAuCache(key, locate(input, tour.listings));
+    const ajout = ajouterAuCache(key, locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now())));
     if (ajout) console.info(`[airbnb] suite +${ajout} annonce(s)`);
     if (tour.arret === "rythme") {
       rythme += 1;
@@ -821,6 +832,7 @@ export async function runLiveSearch(
       const nu: LiveSearchResult = { listings: extra.listings, sources: extra.sources };
       const at = Date.now();
       const result = daterReleve(nu, at);
+      result.listings = result.listings.map((l) => daterAnnonce(l, input, at));
       const dur = arretDur(result);
       const suitePages = part === "airbnb" && input.domaine === true && reste != null && !dur;
       const suiteFiches = part === "airbnb" && input.domaine === true && !dur && result.listings.some((l) => l.source === "Airbnb");

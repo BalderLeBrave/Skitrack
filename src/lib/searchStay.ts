@@ -161,8 +161,8 @@ export const completerAnnonces = createServerFn({ method: "POST" })
         const { airbnbComplet } = await import("./stay/priseFiche");
         prioriserSuiteAirbnb(rows.filter((l) => l.source === "Airbnb" && !airbnbComplet(l)));
       }
-      // Ce que le cache et la mémoire savent, sans réseau. Ce qui reste à
-      // lire retourne en fin de file, et une suite arrêtée repart.
+      // Ce que le cache et la mémoire savent, sans réseau. Un catalogue arrêté
+      // sur un refus n'est pas relancé ; l'annonce ouverte, si, toute seule.
       await fillFiches(rows, 0, { relecture: true });
     } catch {
       /* mémoire illisible : les trous restent nommés, la relecture suivante reprendra */

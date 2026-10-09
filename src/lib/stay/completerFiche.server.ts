@@ -1424,13 +1424,17 @@ async function deroulerSuiteAirbnb(opts?: { uneFiche?: boolean }): Promise<void>
       }
       // Un relevé de liste, sa suite de pages ou les fiches PDP tiennent le
       // limiteur : la suite HTML attend, elle ne parle pas à Airbnb à côté.
+      // Ce temps ne compte pas dans les 45 min, sinon la file expire avant
+      // d'avoir lu une page.
       if (
         relevesAirbnbEnCours > 0 ||
         pagesAirbnbEnCours > 0 ||
         pdpAirbnbEnCours > 0 ||
         Date.now() < creneauDemandeJusqua
       ) {
+        const debut = Date.now();
         await dormir(1_000);
+        fin += Date.now() - debut;
         continue;
       }
       // Un refus d'Airbnb (429, 503, 403, page de blocage) a ouvert le

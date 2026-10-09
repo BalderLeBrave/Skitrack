@@ -146,11 +146,12 @@ export const CHIPS = {
 
 /* ---------- Annonce ---------- */
 
-export type DistKind = "measured" | "no_lifts" | "no_coords" | "other_domain";
+export type DistKind = "measured" | "triangulated" | "no_lifts" | "no_coords" | "other_domain";
 
-/** Trois messages de distance, qui ne veulent pas dire la même chose. En
+/** Quatre messages de distance, qui ne veulent pas dire la même chose. En
  *  français dans la table ; `distanceOf` les traduit au rendu. */
 export const DIST_MSG: Record<Exclude<DistKind, "measured">, string> = {
+  triangulated: aTraduire("Distance non mesurée : position triangulée"),
   no_lifts: aTraduire("Pas de données de remontées pour cette station"),
   no_coords: aTraduire("Distance non communiquée"),
   other_domain: aTraduire("Autre domaine"),
@@ -159,6 +160,10 @@ export const DIST_MSG: Record<Exclude<DistKind, "measured">, string> = {
 export function distanceOf(l: Listing): { kind: DistKind; text: string } {
   if (l.domainFit === "other") return { kind: "other_domain", text: tr(DIST_MSG.other_domain) };
   if (l.lat == null || l.lon == null) return { kind: "no_coords", text: tr(DIST_MSG.no_coords) };
+  // Un point triangulé (`placerSansPoint`) place l'annonce sur la carte et
+  // sert au rayon ; ce n'est pas la porte. La distance qu'il donne à une
+  // remontée n'est pas mesurée, et ne se dit pas en mètres.
+  if (l.gpsSource === "triangule") return { kind: "triangulated", text: tr(DIST_MSG.triangulated) };
   if (l.distToLiftM != null)
     return {
       kind: "measured",

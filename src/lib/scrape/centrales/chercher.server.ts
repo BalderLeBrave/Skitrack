@@ -18,6 +18,7 @@ import { couverture, phraseCouverture } from "./couverture";
 import { connecteurPour } from "./hotes";
 import { etatDuMoteur } from "./moteurs/etat";
 import { chercherIngenieHote } from "./moteurs/ingenie.server";
+import { chercherOrchestraHote } from "./moteurs/orchestra.server";
 import { ficheCentrale } from "./registre";
 import type { ContexteCentrale, MoteurCentrale, ResultatCentrale } from "./types";
 import type { LiveSearchInput } from "../types";
@@ -88,6 +89,19 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
 
   if (!connecteur?.chercher && fiche.moteur === "Ingénie") {
     const listings: Listing[] = await chercherIngenieHote(ctx, fiche.nom, fiche.host);
+    noterCouverture(fiche.host, fiche.moteur, listings);
+    return {
+      ...commun,
+      listings,
+      interrogee: true,
+      raison: listings.length === 0 ? phrase(fiche.nom, "rien de disponible à ces dates pour ce groupe.") : null,
+    };
+  }
+
+  // Orchestra sans fichier (Praz-sur-Arly). Un fichier sans `chercher`
+  // (Chamonix) ne passe pas ici : son motif à lui est plus précis.
+  if (!connecteur && fiche.moteur === "Orchestra") {
+    const listings: Listing[] = await chercherOrchestraHote(ctx, fiche.nom, fiche.host);
     noterCouverture(fiche.host, fiche.moteur, listings);
     return {
       ...commun,

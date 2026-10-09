@@ -46,7 +46,7 @@ import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
 const GARE_LOINTAINE_M = 40_000;
 import { anciensIds, STATIONS, stationById } from "../stations.ts";
 import { cleBien, cleDuLogement, cleListing, dedoublonnerParBien } from "../stay/poserReleve.ts";
-import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
+import { pointPublie, urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
 import { recopierSoeurs } from "../stay/recopie.ts";
 import { parPrix as parPrixOffre, regrouper, type Logement } from "../stay/regroupement.ts";
 import { estOffreGitesVerifiee } from "../stay/tarif.ts";
@@ -277,6 +277,9 @@ function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
  * se regroupent comme dans Logements, et seule l'offre la moins chère de
  * chacun compte. Sans cela, deux biens suffisaient à atteindre MIN_ANNONCES.
  * Muettes et petites restent des offres : elles ne sont pas proposées.
+ *
+ * Une position triangulée (`gpsSource`) n'est pas une porte mesurée : elle
+ * reste sur la carte de Logements, et elle n'entre pas dans la médiane.
  */
 function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
   const criteres = { travelers: ctx.groupe.trav, rooms: ctx.groupe.rooms };
@@ -287,6 +290,7 @@ function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
   const recevables = listings.map(enrichirListing).filter(
     (l) =>
       offreRecevable(l, ctx) &&
+      l.gpsSource !== "triangule" &&
       gpsPrecis(l) &&
       // Le rayon de 12 km garde la vallée entière : un logement de station est
       // bien plus près d'une remontée. Écarté ici, il n'entre dans aucun compte.
@@ -489,7 +493,7 @@ function sansRemontee(l: Listing): Listing {
   };
 }
 
-export const PARTS = ["airbnb", "gites", "cozy", "centrales", "greengo", "agences"] as const;
+export const PARTS = ["airbnb", "gites", "cozy", "centrales", "greengo", "hometogo", "agences"] as const;
 export type Part = (typeof PARTS)[number];
 
 /** Toutes les sources que chaque part peut rapporter. Les agences n'en
@@ -500,6 +504,7 @@ export const SOURCES_DE_PART: Record<Part, readonly Listing["source"][]> = {
   cozy: ["Abritel", "Booking"],
   centrales: ["Centrale"],
   greengo: ["GreenGo"],
+  hometogo: ["HomeToGo"],
   agences: SOURCES_AGENCES,
 };
 
@@ -602,7 +607,10 @@ export function annoncesDuReleve(input: EntreeReleve): AnnonceRetenue[] {
  *  complétion de l'écran Prix ne part pas pour elle. C'est la seconde passe de Logements qui va chercher
  *  la page de détail quand elle la publie (`stay/completerFiche.server.ts`). */
 export function manqueFiche(l: Listing): boolean {
-  return !gpsPrecis(l) || l.capacity == null || normalizedBedrooms(l) == null;
+  // Un point triangulé (`gpsSource`) ne bouche pas le trou : la médiane ne le
+  // compte pas (`cribler`), la fiche se lit encore pour lui, comme pour une
+  // annonce sans point.
+  return !pointPublie(l) || l.capacity == null || normalizedBedrooms(l) == null;
 }
 
 /**
@@ -620,7 +628,7 @@ export function aCompleter(listings: readonly Listing[], ctx: ContexteReleve): L
   const out: Listing[] = [];
   const recevables = listings
     .map(enrichirListing)
-    .filter((l) => offreRecevable(l, ctx) && !(gpsPrecis(l) && !dansLaStation(l)));
+    .filter((l) => offreRecevable(l, ctx) && !(pointPublie(l) && !dansLaStation(l)));
   for (const l of dedoublonnerParBien(recevables)) {
     if (!manqueFiche(l)) continue;
     if (partyVerdict(l, criteres) === "trop-petit") continue;
@@ -701,7 +709,9 @@ export function connuesDuReleve(listings: readonly Listing[]): FicheConnue[] {
     if (!gpsPrecis(l) || l.capacity == null || l.lat == null || l.lon == null) continue;
     if (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)) continue;
     // Un point de repli Airbnb (page, BAN, jumelage) n'est pas celui de
-    // l'annonce : il ne se mémorise pas comme tel (`repliGps.ts`).
+    // l'annonce : il ne se mémorise pas comme tel (`repliGps.ts`). Une
+    // position triangulée non plus : ce n'est pas la porte du gîte.
+    if (l.gpsSource === "triangule") continue;
     if (l.source === "Airbnb" && l.gpsSource != null && l.gpsSource !== "pdp") continue;
     const cle = cleListing(l);
     if (!cle || vues.has(cle)) continue;

@@ -283,6 +283,22 @@ describe("combler depuis la mémoire : les trous seulement", () => {
     });
   });
 
+  it("un point triangulé cède au point gardé, et n'est plus dit triangulé", () => {
+    const row: Parameters<typeof comblerDepuisMemoire>[0] = {
+      capacity: 4,
+      bedrooms: 1,
+      lat: 45.008,
+      lon: 6.124,
+      gpsSource: "triangule",
+    };
+    assert.equal(comblerDepuisMemoire(row, { capacity: null, bedrooms: null, rooms: null, lat: 45.02, lon: 6.13 }), true);
+    assert.deepEqual([row.lat, row.lon, row.gpsSource], [45.02, 6.13, null]);
+    // Un point publié ne bouge pas.
+    const pin: Parameters<typeof comblerDepuisMemoire>[0] = { capacity: 4, bedrooms: 1, lat: 45.008, lon: 6.124, gpsSource: "pdp" };
+    assert.equal(comblerDepuisMemoire(pin, { capacity: null, bedrooms: null, rooms: null, lat: 45.02, lon: 6.13 }), false);
+    assert.deepEqual([pin.lat, pin.gpsSource], [45.008, "pdp"]);
+  });
+
   it("une valeur du texte cède à un champ structuré gardé, jamais l'inverse", () => {
     const row: Parameters<typeof comblerDepuisMemoire>[0] = {
       capacity: 6,

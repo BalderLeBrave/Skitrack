@@ -30,10 +30,59 @@ test("clé Airbnb : le numéro de chambre de l'URL, à défaut platformId", () =
   assert.equal(clePlateforme(annonce({ id: "abnb-9", source: "Airbnb" })), null);
 });
 
-test("clé Booking : seulement un identifiant d'hôtel numérique", () => {
+test("clé Booking : le slug de la page, sinon le numéro d'hôtel", () => {
+  assert.equal(
+    clePlateforme(
+      annonce({
+        id: "bk-cozy",
+        source: "Booking",
+        platformId: "999",
+        url: "https://www.booking.com/hotel/fr/Chalet-Neige.fr.html?checkin=2027-02-06",
+      }),
+    ),
+    "booking:chalet-neige",
+  );
+  assert.equal(
+    clePlateforme(
+      annonce({
+        id: "bk-4521",
+        source: "Booking",
+        platformId: "4521",
+        url: "https://www.booking.com/hotel/fr/chalet-neige.html",
+      }),
+    ),
+    "booking:chalet-neige",
+  );
   assert.equal(clePlateforme(annonce({ id: "bk-1", source: "Booking", platformId: "4521" })), "booking:4521");
   assert.equal(clePlateforme(annonce({ id: "bk-1", source: "Booking", platformId: "https://x" })), null);
   assert.equal(clePlateforme(annonce({ id: "abr-1", source: "Abritel", platformId: "4521" })), null);
+});
+
+test("deux Booking au même slug : une seule fiche, celle de Cozy", () => {
+  const cozy = annonce({
+    id: "bk-cozy-9",
+    source: "Booking",
+    url: "https://www.booking.com/hotel/fr/chalet-neige.fr.html?label=x",
+    total: 1800,
+    proven: "CozyCozy Booking live",
+  });
+  const direct = annonce({
+    id: "bk-55",
+    source: "Booking",
+    platformId: "55",
+    url: "https://www.booking.com/hotel/fr/chalet-neige.html?checkin=2027-02-06",
+    lat: 45.01,
+    lon: 6.12,
+    total: 1700,
+    proven: "booking live",
+  });
+  const f = fusionner([cozy], [direct]);
+  assert.equal(f.listings.length, 1);
+  assert.equal(f.communes, 1);
+  assert.equal(f.ajoutees, 0);
+  assert.equal(f.listings[0].id, "bk-cozy-9");
+  assert.equal(f.listings[0].lat, 45.01);
+  assert.equal(f.listings[0].total, 1800);
 });
 
 test("un bien des deux côtés : une seule fiche, celle de Cozy, comblée par le direct", () => {

@@ -173,9 +173,10 @@ describe("pages de fiche de l'écran Prix : ce qu'une tranche rend", () => {
     repondre = () => "muet";
     const hote = "muet.exemple.fr";
     const r = await lire([ligne(1, hote), ligne(2, hote), ligne(3, hote)], 42_000);
-    assert.equal(departs.length, 2);
-    assert.deepEqual(trie(r.essayees), ["c-1", "c-2"]);
-    assert.deepEqual(r.laissees, ["c-3"]);
+    // Une seule lecture en vol : la première page muette laisse l'hôte, les suivantes ne partent pas.
+    assert.equal(departs.length, 1);
+    assert.deepEqual(trie(r.essayees), ["c-1"]);
+    assert.deepEqual(trie(r.laissees), ["c-2", "c-3"]);
     assert.deepEqual(r.hotesRefus, [hote]);
   });
 
@@ -327,6 +328,16 @@ describe("poserLecture : la taxe de séjour, une fois", () => {
     assert.equal(poserLecture(row, lect(45)), true);
     assert.equal(row.total, 1045);
     assert.match(row.proven, /taxe de séjour/);
+  });
+
+  it("le point de la page remplace un point triangulé, jamais un point publié", () => {
+    const pin = { ...lect(null), capacity: null, lat: 45.02, lon: 6.13 };
+    const row = ligne(4, "loyer.exemple.fr", { lat: 45.008, lon: 6.124, gpsSource: "triangule" });
+    assert.equal(poserLecture(row, pin), true);
+    assert.deepEqual([row.lat, row.lon, row.gpsSource], [45.02, 6.13, null]);
+    const publie = ligne(5, "loyer.exemple.fr", { lat: 45.008, lon: 6.124 });
+    poserLecture(publie, pin);
+    assert.deepEqual([publie.lat, publie.lon], [45.008, 6.124]);
   });
 
   it("les lits de la page comblent un vide, jamais une valeur déjà là", () => {

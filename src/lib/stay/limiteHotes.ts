@@ -3,18 +3,17 @@
  * limiteur partagé avec Python).
  *
  * `fillFiches` lançait dix lectures à la fois, sans écart, vers des hôtes
- * que rien ne rythmait : une centrale ou abritel.fr recevaient tout d'un coup,
- * et un refus ne changeait rien à la suite (la fiche suivante partait). Désormais :
- * deux lectures au plus en vol par hôte, une seconde au moins entre deux
- * départs vers le même hôte, et l'hôte laissé au premier 429, 403 ou 503.
+ * que rien ne rythmait. Désormais : une lecture en vol par hôte, deux secondes
+ * au moins entre deux départs vers le même hôte, et l'hôte laissé au premier
+ * 429, 403 ou 503.
  *
  * Pur : ni réseau, ni minuterie. L'appelant dort le temps rendu.
  */
 
-/** Lectures en vol à la fois vers un même hôte. */
-export const PAR_HOTE = 2;
+/** Une lecture en vol vers un même hôte. Deux, c'était encore une rafale. */
+export const PAR_HOTE = 1;
 /** Écart minimal entre deux départs vers un même hôte. */
-export const ECART_HOTE_MS = 1_000;
+export const ECART_HOTE_MS = 2_000;
 
 /**
  * Les départs réservés et les refus, par hôte. Une réservation vaut place :

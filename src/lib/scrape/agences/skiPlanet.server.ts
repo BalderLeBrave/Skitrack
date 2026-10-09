@@ -1,12 +1,12 @@
 /**
  * Relevé Ski-Planet (voir `skiPlanet.ts`) : le calendrier de chaque résidence
  * de la station, un par requête, au rythme du site (`stay/taux.server.ts` :
- * une par seconde, quarante par minute) ; puis, pour les résidences qui
+ * une par résidence, deux secondes et trente par minute) ; puis, pour les résidences qui
  * vendent un logement au groupe, le même calendrier forfaits compris.
  *
  * Aucun appel du site ne rend toutes les résidences d'une station : il en
  * faut un par résidence (31 à Avoriaz, 189 à Tignes), et une part de 40 s
- * n'en permet qu'une trentaine. La lecture d'une station, pour des dates,
+ * n'en lit qu'une quinzaine. La lecture d'une station, pour des dates,
  * est donc une tâche à part, une seule à la fois dans le processus : la part
  * la lance, ou la rejoint, attend jusqu'à son échéance et rend ce qui est
  * lu ; la tâche continue après la part, jusqu'au bout de la station ou
@@ -56,7 +56,7 @@ const TACHE_MAX_MS = 15 * 60 * 1000;
 /** La part rend sa réponse un peu avant son échéance. */
 const MARGE_PART_MS = 1_500;
 /** Ce qu'un calendrier coûte en moyenne, réservation du créneau comprise. */
-const CALENDRIER_MS = 1_500;
+const CALENDRIER_MS = 2_500;
 
 type Lu = { a: number; calendrier: CalendrierSkiPlanet };
 type Tache = {

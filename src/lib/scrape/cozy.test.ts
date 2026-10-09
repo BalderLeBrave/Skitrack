@@ -308,6 +308,42 @@ describe("relevé CozyCozy", () => {
     assert.equal(row.platformId, "22782241");
     assert.match(row.url ?? "", /airbnb\.fr\/rooms\/22782241/);
   });
+
+  it("relève aussi la fiche Airbnb d'un bandeau, comptée mais absente du premier niveau", () => {
+    const rows = cozyListings(
+      [
+        {
+          entries: [
+            {
+              type: "resultStrip",
+              groups: [
+                {
+                  accommodationId: 99,
+                  name: "Studio du bandeau",
+                  title: "studio",
+                  highlightedResults: [
+                    {
+                      providerCode: "airbnb",
+                      providerName: "Airbnb",
+                      externalId: "555",
+                      deeplinkUrl: "https://www.airbnb.fr/rooms/555",
+                      totalPrice: { value: 800, currencyCode: "EUR" },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      INPUT,
+      "Airbnb",
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]?.title, "Studio du bandeau");
+    assert.equal(rows[0]?.total, 800);
+    assert.match(rows[0]?.url ?? "", /\/rooms\/555/);
+  });
 });
 
 /**

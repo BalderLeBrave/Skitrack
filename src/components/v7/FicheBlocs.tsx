@@ -158,7 +158,9 @@ export function BlocAcces({
   );
   const aPied = tempsAPied(l.distToPlaceM);
 
-  if (l.lat == null || l.lon == null) {
+  // Un point triangulé n'est pas la porte : l'accès ne se mesure pas plus
+  // que sans point.
+  if (l.lat == null || l.lon == null || l.gpsSource === "triangule") {
     return (
       <section className="fiche7__bloc" aria-labelledby="fiche7-acces">
         <h3 id="fiche7-acces">{tr("Accès aux pistes")}</h3>
@@ -521,7 +523,11 @@ export function BlocEmplacement({ l }: { l: Listing }) {
       ) : (
         <p className="fiche7__absent">{tr("Position non publiée par {source}.", { source: l.source })}</p>
       )}
-      {epingles.length && positionApprochee(l) ? (
+      {epingles.length && l.gpsSource === "triangule" ? (
+        <p className="fiche7__note">
+          {tr("Position triangulée : {source} n'a pas publié de GPS. Ce n'est pas la porte.", { source: l.source })}
+        </p>
+      ) : epingles.length && positionApprochee(l) ? (
         <p className="fiche7__note">{tr("Position approchée publiée par {source}.", { source: l.source })}</p>
       ) : null}
     </section>

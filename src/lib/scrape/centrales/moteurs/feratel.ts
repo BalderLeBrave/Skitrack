@@ -53,12 +53,14 @@
  */
 
 import { motifNomHorsRegle, motifTypeHorsRegle, typeInconnu } from "../regleTypes.ts";
+import { texteDeHtml } from "../../../stay/texteHtml.ts";
 
 /** Ce que la projection demande au service. Un champ inconnu rend un 400. */
 const FERATEL_CHAMPS =
   "id,name,dbCode,categories{id,name},images{id,urls}," +
   "location{coordinate{lat,long},town,district}," +
-  "services{id,name,rooms,bedrooms,products{id,name,price{value}}}";
+  "services{id,name,rooms,bedrooms,products{id,name,price{value}}}," +
+  "description,rating{value,maxValue}";
 
 /**
  * Nombre de résultats par page : deux cents, et non les soixante du composant.
@@ -134,6 +136,17 @@ export type FicheFeratel = {
    * relevé), qui entre dans l'adresse du détail de ses services.
    */
   base: string | null;
+  /**
+   * La description publiée, en texte. Le service l'écrit en HTML Deskline.
+   * `null` quand elle est absente ou vide une fois les balises ôtées.
+   */
+  description: string | null;
+  /**
+   * La note, seulement si `rating.maxValue` vaut 5. Sans cette échelle, ou
+   * sur une autre, rien : un 5 nu n'est pas une note sur 5. Le service ne
+   * publie pas le nombre d'avis à côté.
+   */
+  note: number | null;
 };
 
 /**
@@ -435,6 +448,10 @@ type Hebergement = {
     district?: string | null;
   } | null;
   services?: readonly Service[] | null;
+  /** HTML Deskline. Absent de la projection d'avant le 9 octobre 2026. */
+  description?: string | null;
+  /** `value` et `maxValue` : l'échelle est dans la réponse, pas devinée. */
+  rating?: { value?: unknown; maxValue?: unknown } | null;
 };
 
 /** Réponse du service. `204 No Content` se lit comme une page vide. */
@@ -446,6 +463,26 @@ export type ReponseFeratel = {
 function nombre(v: unknown): number | null {
   const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * La note de l'hébergement, seulement quand le service écrit l'échelle.
+ *
+ * Relevé du 9 octobre 2026 à La Clusaz : `rating.maxValue` vaut 5. Un
+ * `value` seul, ou une autre échelle, ne devient pas une note sur 5.
+ */
+export function noteFeratel(
+  rating: { value?: unknown; maxValue?: unknown } | null | undefined,
+): number | null {
+  const max = nombre(rating?.maxValue);
+  const value = nombre(rating?.value);
+  if (max !== 5 || value == null || value <= 0 || value > 5) return null;
+  return value;
+}
+
+/** La description publiée, en texte. `null` sans HTML ou sans texte. */
+export function descriptionFeratel(v: unknown): string | null {
+  return typeof v === "string" ? texteDeHtml(v) : null;
 }
 
 /**
@@ -595,6 +632,8 @@ export function lireFeratel(reponse: ReponseFeratel): FicheFeratel[] {
       commune: texte(h.location?.town),
       quartier: texte(h.location?.district),
       base: texte(h.dbCode),
+      description: descriptionFeratel(h.description),
+      note: noteFeratel(h.rating),
     });
   }
   return out;

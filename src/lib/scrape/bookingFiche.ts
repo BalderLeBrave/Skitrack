@@ -454,8 +454,9 @@ export function extraitsBooking(
 /**
  * La fiche que la page déjà chargée donne à cette annonce, ou `undefined`
  * quand elle n'en donne pas. Un hôtel ou une chambre ne s'enrichit pas : seul
- * un logement entier retenu par le relevé passe. Une page refusée (403, 429)
- * marque la fiche indisponible, sans rien en tirer.
+ * un logement entier retenu par le relevé passe. Une page refusée (202, 403,
+ * 429) marque la fiche indisponible, sans rien en tirer. Le 202 est le défi
+ * AWS WAF : lu comme une fiche, il rendait « JavaScript is disabled ».
  */
 export function ficheDepuisPageBooking(
   row: Pick<Listing, "lodgingType" | "url">,
@@ -465,7 +466,7 @@ export function ficheDepuisPageBooking(
 ): FicheEnrichie | undefined {
   if (row.lodgingType === "hotel" || row.lodgingType === "chambre") return undefined;
   const recupereLe = maintenant.toISOString();
-  if (statut === 403 || statut === 429) {
+  if (statut === 202 || statut === 403 || statut === 429) {
     return {
       equipements: [],
       avis: null,

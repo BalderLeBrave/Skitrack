@@ -552,16 +552,17 @@
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
+   "corrige": "Le 9 octobre 2026, le widget N'Py (login « n-py ») publie le contour stationgourette.js. Du 6 février 2027, sept nuits : 202 logements, tous dans le contour, date confirmée par le résumé. Le total de ce login suit la durée, mesuré le même jour à Piau (1 100 € puis 2 200 €)."
   },
   "www.n-py.com": {
    "nom": "Grand Tourmalet",
-   "moteur": "Diffusio",
+   "moteur": "Open System",
    "stations": [
     "la-mongie-bareges"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "La page publique ignore la date demandée. Le widget publie deux contours de station, lamongieenstation.js et geo-station-bareges.js, login « n-py ». Du 6 février 2027 : 188 logements à La Mongie et 72 à Barèges, aucune clé en commun, points dans le contour publié. Relevé du 9 octobre 2026."
   },
   "www.chioula.fr": {
    "nom": "Le Chioula",
@@ -591,7 +592,7 @@
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
+   "corrige": "Le 9 octobre 2026, le widget N'Py publie le contour stationluzardiden.js. Du 6 février 2027 : 69 logements, la première page en rend 67 et annonce la suite. Deux points du rectangle sont dans le contour de Barèges : ils sont écartés."
   },
   "peyragudes.com": {
    "nom": "Peyragudes",
@@ -601,7 +602,7 @@
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
+   "corrige": "Le 9 octobre 2026, le widget N'Py publie le contour des deux versants peyragudespiedsdepistespeyresourdeetagudes.js, pas la vallée. Du 6 février 2027 : 129 logements, tous dans le contour."
   },
   "piau-engaly.com": {
    "nom": "Piau-Engaly",
@@ -610,7 +611,8 @@
     "piau-engaly"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "L'accueil charge le widget 1448, login « n-py », contour stationpiauengaly.js. Du 6 février 2027 : 144 logements dans le contour. OSMB-65885-1 vaut 1 100 € sur sept nuits et 2 200 € sur quatorze. Relevé du 9 octobre 2026."
   },
   "resa.saintlary.com": {
    "nom": "Saint Lary",
@@ -632,13 +634,13 @@
   },
   "www.labresse.net": {
    "nom": "La Bresse Hohneck",
-   "moteur": "Open System",
+   "moteur": "Ingénie",
    "stations": [
     "la-bresse-hohneck"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Identifié le 20 septembre 2026 : Open System, cinq empreintes sur sa page d'accueil. L'audit l'avait laissé « inconnu ». Reste à savoir de quelle génération il relève — la moderne rend ses résultats côté serveur, l'ancienne les peint en JavaScript."
+   "corrige": "L'accueil de l'office charge un panier Open System, sans recherche datée. Le 9 octobre 2026, le lien « La Bresse Réservation » mène à reservation.labresse.net, formulaire Ingénie cid 3, catégorie G. Vingt-quatre meublés du 6 février 2027 : le même logement double presque sur quatorze nuits (929 € puis 1 826 €)."
   },
   "www.ballons-hautes-vosges.com": {
    "nom": "Saint Maurice sur Moselle",

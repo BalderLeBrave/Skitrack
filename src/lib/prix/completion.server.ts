@@ -34,8 +34,7 @@ import { airbnbIdOf } from "../stay/enrichir.ts";
 import { comblerDepuisMemoire, type ValeursFiche } from "../stay/memoireFiches.server.ts";
 import { MARQUE_MEMOIRE as MARQUE, qualifierLogement, sourceCapacite, sourceChambres } from "../stay/logement.ts";
 import { cleListing } from "../stay/poserReleve.ts";
-import { gpsPrecis } from "../stay/lodgingFilter.ts";
-import { airbnbComplet } from "../stay/priseFiche.ts";
+import { airbnbComplet, pointPublie } from "../stay/priseFiche.ts";
 import { airbnbSuspendu, manqueFiche, type CandidateFiche, type FicheConnue } from "./calcul.ts";
 
 /** Ce qu'une tranche prend au plus, réponse comprise. */
@@ -293,10 +292,10 @@ async function trancheAirbnb(
         const avis = f.enrichie.avis ? { ...f.enrichie.avis, url: f.enrichie.avis.url ?? row.url ?? undefined } : null;
         row.fiche = { ...f.enrichie, avis, recupereLe: new Date().toISOString() };
       }
-      const sansPoint = !gpsPrecis(row);
+      const sansPoint = !pointPublie(row);
       if (comblerDepuisMemoire(row, f)) {
         Object.assign(row, qualifierLogement(row));
-        if (sansPoint && gpsPrecis(row)) row.gpsSource = "pdp";
+        if (sansPoint && pointPublie(row)) row.gpsSource = "pdp";
         marquer(row, MARQUE_AIRBNB);
       } else if (row.pdpLue && row.capacity == null) {
         // Sans personCapacity : la capacité du titre (`capaciteIntrouvable`).

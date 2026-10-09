@@ -28,6 +28,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { porteFermee, poserRefus } from "../../gardeHote";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
@@ -45,6 +46,7 @@ import {
   typesPrestataireDepuisPage,
   nuitsEntre,
   urlIngenie,
+  equipementsAvecDescription,
   type FicheIngenie,
   type PageIngenie,
 } from "./ingenie";
@@ -139,8 +141,10 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     lon: f.lon,
     locality: f.commune,
     placeName: f.adresse,
-    // Les pictogrammes de la page de résultats déjà lue : présents ou inconnus.
-    amenities: equipements(f.equipements),
+    // Pictogrammes de la page déjà lue, complétés par la description du même
+    // JSON-LD. L'un et l'autre manquent ensemble : la liste reste non lue.
+    amenities: equipements(equipementsAvecDescription(f.equipements, f.description)),
+    ...(f.description ? { description: f.description } : {}),
     proven: `${r.nom} (Ingénie, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuit${
       nuits > 1 ? "s" : ""
     }, ${ctx.guests} pers.${f.etiquette ? ` — étiquette de la centrale : « ${f.etiquette} »` : ""}`,
@@ -174,6 +178,9 @@ async function pageIngenie(
   await centraleAutorise(url);
   const reste = echeance - Date.now();
   if (reste < APPEL_MIN_INGENIE_MS) throw new Error(PLUS_LE_TEMPS);
+  // Un refus récent (429, 403, 503) ferme l'hôte le temps de sa pause.
+  const ferme = porteFermee(url);
+  if (ferme) throw new Error(ferme);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), Math.min(TIMEOUT_MS, reste));
   try {
@@ -190,6 +197,7 @@ async function pageIngenie(
     });
     if (!rep.ok) {
       await rep.body?.cancel();
+      poserRefus(url, rep.status, rep.headers);
       throw new Error(`la centrale a répondu ${rep.status}`);
     }
     return { url: rep.url || url, texte: await rep.text(), cookies: cookiesDe(rep) };

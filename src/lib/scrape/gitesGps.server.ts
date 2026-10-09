@@ -1,5 +1,6 @@
 import type { Listing } from "@/lib/listings";
 import { allowsPath } from "./robots.ts";
+import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
 
 /**
  * Lieu des fiches Gîtes de France. Ne touche ni aux prix ni au devis ITEA.
@@ -19,7 +20,8 @@ import { allowsPath } from "./robots.ts";
 
 const KEY = "FNGF-00M562O4";
 const MAX_FICHES = 40;
-const WORKERS = 8;
+/** Une fiche à la fois : huit ouvriers vers ITEA, c'était un refus assuré. */
+const WORKERS = 1;
 const BUDGET_MS = 16_000;
 const HIT_MS = 24 * 60 * 60 * 1000;
 const MISS_MS = 30 * 60 * 1000;
@@ -147,6 +149,8 @@ export function lieuFromGitesHtml(html: string): LieuGites {
 
 async function fetchHtml(url: string, until: number): Promise<string | null> {
   if (Date.now() >= until) return null;
+  const cadence = await respecterCadence(url, Math.max(0, until - Date.now() - 1_000));
+  if (cadence) throw new Error(`ITEA ${cadence}`);
   const ctrl = new AbortController();
   const wait = setTimeout(() => ctrl.abort(), Math.max(1_000, until - Date.now()));
   try {
@@ -154,10 +158,12 @@ async function fetchHtml(url: string, until: number): Promise<string | null> {
       headers: { "Accept-Language": "fr-FR", "User-Agent": UA },
       signal: ctrl.signal,
     });
+    if (poserRefus(url, res.status, res.headers)) {
+      await res.body?.cancel().catch(() => undefined);
+      throw new Error(`ITEA HTTP ${res.status}`);
+    }
     if (!res.ok) return null;
     return await res.text();
-  } catch {
-    return null;
   } finally {
     clearTimeout(wait);
   }
@@ -208,11 +214,12 @@ export async function fillGitesGps(listings: Listing[]): Promise<number> {
   const targets = need.slice(0, MAX_FICHES);
   const until = Date.now() + BUDGET_MS;
   let cursor = 0;
+  let coupe = false;
   const workers = Math.min(WORKERS, targets.length);
   await Promise.all(
     Array.from({ length: workers }, async () => {
       for (;;) {
-        if (Date.now() >= until) return;
+        if (coupe || Date.now() >= until) return;
         const i = cursor++;
         if (i >= targets.length) return;
         const row = targets[i];
@@ -229,8 +236,9 @@ export async function fillGitesGps(listings: Listing[]): Promise<number> {
           const pose = poserLieu(row, lieu);
           if (pose.gps) filled += 1;
           if (pose.commune) communes += 1;
-        } catch {
-          /* fiche bloquée : on laisse non mesurée */
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          if (estMessageRefus(msg) || /limiteur local/.test(msg)) coupe = true;
         }
       }
     }),

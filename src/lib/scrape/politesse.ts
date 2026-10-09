@@ -12,6 +12,7 @@
  */
 
 import { robotsAutorise, type VerdictRobots } from "./centrales/robots.ts";
+import { porteFermee, poserRefus } from "./gardeHote.ts";
 import { UA_NAVIGATEUR } from "./navigateur.ts";
 
 /** Le nom sous lequel on lit les règles de `robots.txt` (groupes, Crawl-delay). Il ne part pas dans les requêtes. */
@@ -116,11 +117,17 @@ export function demander(url: string, signal?: AbortSignal, delaiMs?: number): P
   return dansLaFile(
     url,
     async (s) => {
+      const ferme = porteFermee(url);
+      if (ferme) return { ok: false, status: 429, text: "", url };
       const res = await fetch(url, {
         headers: { "user-agent": UA_RELEVE, accept: "text/html,application/xhtml+xml" },
         redirect: "follow",
         signal: s,
       });
+      if (poserRefus(url, res.status, res.headers)) {
+        await res.body?.cancel().catch(() => undefined);
+        return { ok: false, status: res.status, text: "", url };
+      }
       const text = await res.text();
       return { ok: res.ok, status: res.status, text, url };
     },
@@ -133,11 +140,17 @@ export function demanderOctets(url: string, signal?: AbortSignal, delaiMs?: numb
   return dansLaFile(
     url,
     async (s) => {
+      const ferme = porteFermee(url);
+      if (ferme) return { ok: false, status: 429, octets: new Uint8Array(), type: null, url };
       const res = await fetch(url, {
         headers: { "user-agent": UA_RELEVE, accept: "application/pdf,*/*;q=0.8" },
         redirect: "follow",
         signal: s,
       });
+      if (poserRefus(url, res.status, res.headers)) {
+        await res.body?.cancel().catch(() => undefined);
+        return { ok: false, status: res.status, octets: new Uint8Array(), type: res.headers.get("content-type"), url };
+      }
       const octets = new Uint8Array(await res.arrayBuffer());
       return { ok: res.ok, status: res.status, octets, type: res.headers.get("content-type"), url };
     },

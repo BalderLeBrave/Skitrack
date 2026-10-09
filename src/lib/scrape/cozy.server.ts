@@ -2,6 +2,7 @@ import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { sleep } from "./browser.server.ts";
 import { allowsPath } from "./robots.ts";
+import { estMessageRefus, porteFermee, poserRefus } from "./gardeHote.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer, occupancyFromRecord } from "../stay/occupancy.ts";
 
@@ -235,6 +236,22 @@ function entriesOf(json: unknown): unknown[] {
   return [];
 }
 
+function fichesDe(entries: readonly unknown[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  const push = (v: unknown) => {
+    if (v && typeof v === "object") out.push(v as Record<string, unknown>);
+  };
+  for (const e of entries) {
+    push(e);
+    // Un bandeau (`resultStrip`) porte des fiches dans `groups`, parfois
+    // absentes du premier niveau et pourtant comptées dans `filteredCount`.
+    // Les ignorer coupait le relevé en dessous du compteur publié.
+    const groups = e && typeof e === "object" ? (e as { groups?: unknown }).groups : null;
+    if (Array.isArray(groups)) for (const g of groups) push(g);
+  }
+  return out;
+}
+
 type CozyFilters = {
   noBounds: boolean;
   price: [number, number];
@@ -271,7 +288,14 @@ const PAGE_SIZE = 200;
  * soit neuf pages. L'arrêt normal est le compteur `filteredCount`.
  */
 const MAX_PAGES = 15;
-/** Une requête à la fois par domaine, et cette pause entre deux. */
+/**
+ * Une requête à la fois par recherche, et cette pause entre deux. Pas de
+ * créneau dans le journal de taux : les trois recherches d'un grand domaine
+ * (`COZY_SIMULTANEES`) s'y partageaient une requête par seconde, et une partie
+ * des stations n'était plus lue avant l'échéance (Abritel et Booking en
+ * moins). Un refus (403, 429, 503) ferme l'hôte pour tout le processus :
+ * `porteFermee`.
+ */
 const PAUSE_MS = 300;
 /** La recherche Cozy se remplit en arrière-plan : on l'attend au plus ce temps. */
 const ATTENTE_COMPLETE_MS = 10_000;
@@ -295,9 +319,11 @@ async function pullPage(
   // côté Node la laisserait courir chez Cozy, et la suivante partirait avant
   // la fin de la précédente. Sans délai, une requête qui pendait retenait tout
   // l'aller, et avec lui le relevé Airbnb direct qui l'attend.
-  return page.evaluate(
-    async ({ sid, base, providerCodes, from, count, delai }) =>
-      fetch("/api/getResultList", {
+  const garde = porteFermee("https://www.cozycozy.com/");
+  if (garde) throw new Error(`Cozy ${garde}`);
+  const brut = await page.evaluate(
+    async ({ sid, base, providerCodes, from, count, delai }) => {
+      const r = await fetch("/api/getResultList", {
         method: "POST",
         headers: { "content-type": "application/json" },
         signal: AbortSignal.timeout(delai),
@@ -313,9 +339,18 @@ async function pullPage(
           excludeAds: false,
           prefixAccommodationIds: [],
         }),
-      }).then((r) => r.json()),
+      });
+      if (r.status === 403 || r.status === 429 || r.status === 503) return { __refus: r.status };
+      return r.json();
+    },
     { sid: searchId, base: filters, providerCodes: codes, from: offset, count, delai: delaiMs },
   );
+  if (brut && typeof brut === "object" && typeof (brut as { __refus?: unknown }).__refus === "number") {
+    const status = (brut as { __refus: number }).__refus;
+    poserRefus("https://www.cozycozy.com/", status);
+    throw new Error(`Cozy HTTP ${status}`);
+  }
+  return brut;
 }
 
 /**
@@ -576,14 +611,22 @@ export async function collecterCozy(
     if (!complete) console.warn("[cozy] recherche encore incomplète — arrêt sur la page incomplète");
     for (const code of codes) {
       if (Date.now() >= echeance) break;
-      const res = await paginerFournisseur(tirage(code), echeance);
-      for (const p of res.pages) {
-        payloads.push(p && typeof p === "object" ? { ...(p as object), fournisseur: code } : p);
+      try {
+        const res = await paginerFournisseur(tirage(code), echeance);
+        for (const p of res.pages) {
+          payloads.push(p && typeof p === "object" ? { ...(p as object), fournisseur: code } : p);
+        }
+        annonces[code] = res.annonces;
+        arrets[code] = res.arret;
+        const cible = res.annonces != null ? ` sur ${res.annonces} annoncées` : " (compteur non publié)";
+        console.info(`[cozy] ${code} ${res.releves} fiches${cible} — ${res.arret}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        arrets[code] = msg;
+        console.warn(`[cozy] ${code} arrêté — ${msg}`);
+        if (estMessageRefus(msg) || /limiteur local/.test(msg)) break;
+        throw err;
       }
-      annonces[code] = res.annonces;
-      arrets[code] = res.arret;
-      const cible = res.annonces != null ? ` sur ${res.annonces} annoncées` : " (compteur non publié)";
-      console.info(`[cozy] ${code} ${res.releves} fiches${cible} — ${res.arret}`);
     }
     console.info(`[cozy] ${payloads.length} paquets · ${entryCount(payloads)} fiches`);
   } finally {
@@ -639,9 +682,9 @@ export function cozyListings(
   const seen = new Set<string>();
   for (const json of payloads) {
     if (!json || typeof json !== "object") continue;
-    const list = Array.isArray((json as { entries?: unknown }).entries)
-      ? ((json as { entries: unknown[] }).entries)
-      : [];
+    const list = fichesDe(
+      Array.isArray((json as { entries?: unknown }).entries) ? ((json as { entries: unknown[] }).entries) : [],
+    );
     for (const raw of list) {
       if (!raw || typeof raw !== "object") continue;
       const e = raw as Record<string, unknown>;

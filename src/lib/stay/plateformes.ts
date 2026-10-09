@@ -21,6 +21,7 @@ export const ORDRE_PLATEFORMES = [
   "Booking",
   "Abritel",
   "GreenGo",
+  "HomeToGo",
 ] as const;
 
 export type SujetPlateforme = {

@@ -833,3 +833,60 @@ describe("la description et les équipements d'une fiche déjà ouverte", () => 
     assert.equal(relue.amenities?.find((e) => e.cle === "wifi")?.valeur, "oui");
   });
 });
+
+describe("la suite de Logements : une annonce ouverte pendant un arrêt du catalogue", () => {
+  const rooms = (n: number): Listing =>
+    ligne(n, "www.airbnb.fr", {
+      id: `abnb-${n}`,
+      source: "Airbnb",
+      url: `https://www.airbnb.fr/rooms/${n}`,
+      lat: 45.03604,
+      lon: 6.11436,
+    });
+  const ordre = () => departs.filter((d) => d.url.includes("/rooms/")).map((d) => Number(/rooms\/(\d+)/.exec(d.url)?.[1]));
+  const attendreFin = async () => {
+    for (let i = 0; i < 400 && etatSuiteAirbnb().enCours; i++) await new Promise((ok) => setTimeout(ok, 500));
+  };
+
+  it("une recherche nouvelle pendant le passage : l'annonce ouverte, puis la file de la recherche", async () => {
+    // Le passage de l'annonce ouverte attend la fin d'un relevé ; une
+    // recherche nouvelle lève l'arrêt et met ses pages en tête pendant ce
+    // temps. Le `finally` remettait l'arrêt sans condition et lisait la tête
+    // de file : une page de la recherche au lieu de l'annonce ouverte, puis
+    // plus rien jusqu'à la recherche suivante.
+    const { marquerRefusFichesAirbnb, pendantReleveAirbnb, prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    mock.timers.tick(20 * 60_000);
+    repondre = () => ({ html: page(`<script>{"personCapacity":4,"bedroomCount":2}</script>`) });
+    marquerRefusFichesAirbnb();
+    let finir: () => void = () => undefined;
+    const tache = silence(async () => {
+      const releve = pendantReleveAirbnb(() => new Promise<void>((ok) => (finir = ok)));
+      assert.equal(prioriserSuiteAirbnb([rooms(4500999)]), 1);
+      await fillFiches([rooms(4500001), rooms(4500002), rooms(4500003), rooms(4500004)], 30_000, { vue: "station-c" });
+      finir();
+      await releve;
+      await attendreFin();
+    });
+    await jouer(tache, 50);
+    assert.deepEqual(ordre(), [4500999, 4500001, 4500002, 4500003, 4500004]);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+  });
+
+  it("sans recherche nouvelle, l'annonce ouverte part seule et le catalogue reste arrêté", async () => {
+    const { marquerRefusFichesAirbnb, prioriserSuiteAirbnb } = await import("./completerFiche.server.ts");
+    mock.timers.tick(20 * 60_000);
+    repondre = () => ({ html: page(`<script>{"personCapacity":4,"bedroomCount":2}</script>`) });
+    marquerRefusFichesAirbnb();
+    await jouer(
+      silence(async () => {
+        assert.equal(prioriserSuiteAirbnb([rooms(4500998)]), 1);
+        await attendreFin();
+        // La relecture de l'écran ne relance pas le catalogue arrêté.
+        await fillFiches([rooms(4500011)], 0, { vue: "station-c", relecture: true });
+        await attendreFin();
+      }),
+      50,
+    );
+    assert.deepEqual(ordre(), [4500998]);
+  });
+});

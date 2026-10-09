@@ -1404,6 +1404,11 @@ async function deroulerSuiteAirbnb(opts?: { uneFiche?: boolean }): Promise<void>
   suiteAirbnbEnCours = true;
   // Une annonce ouverte pendant un arrêt ne rouvre pas le catalogue.
   if (!uneFiche) suiteArreteeParRefus = false;
+  // L'annonce ouverte (`prioriserSuiteAirbnb` vient de la mettre seule en
+  // file) : c'est elle qu'on lit, même si une recherche nouvelle, qui lève
+  // l'arrêt pendant qu'on attend le relevé ou le limiteur, met ses pages
+  // devant elle.
+  const ouverte = uneFiche ? (suiteAirbnb.keys().next().value as string | undefined) : undefined;
   let fin = Date.now() + SUITE_AIRBNB_MAX_MS;
   const compte: Compte = { lues: 0 };
   const essais = new Map<string, number>();
@@ -1453,7 +1458,8 @@ async function deroulerSuiteAirbnb(opts?: { uneFiche?: boolean }): Promise<void>
         await dormir(Math.min(airbnbCircuitRestantMs() + 5_000, fin - Date.now()));
         continue;
       }
-      const [k, row] = suiteAirbnb.entries().next().value as [string, Listing];
+      const k = ouverte && suiteAirbnb.has(ouverte) ? ouverte : (suiteAirbnb.keys().next().value as string);
+      const row = suiteAirbnb.get(k) as Listing;
       // Déjà lue depuis sa mise en file (une recherche, une annonce ouverte) :
       // le cache la tient, elle ne se redemande pas.
       const urlSuite = ficheUrlOf(row);
@@ -1517,7 +1523,13 @@ async function deroulerSuiteAirbnb(opts?: { uneFiche?: boolean }): Promise<void>
   } finally {
     vider();
     suiteAirbnbEnCours = false;
-    if (uneFiche) suiteArreteeParRefus = true;
+    // L'arrêt n'a été levé pendant ce passage que par une recherche nouvelle
+    // (`fillFiches`, coupe-circuit fermé) ; ses pages, mises en file pendant
+    // qu'on tournait, n'ont pas lancé de suite (`suiteAirbnbEnCours`) : elle
+    // part maintenant, au même rythme. Remettre l'arrêt sans condition les
+    // gelait jusqu'à la recherche d'après. Un refus entre-temps
+    // (`marquerRefusFichesAirbnb`, ou le nôtre) a remis l'arrêt : rien ne part.
+    if (uneFiche && !suiteArreteeParRefus && suiteAirbnb.size > 0) void deroulerSuiteAirbnb();
     console.info(
       `[fiche] Airbnb en tâche de fond : ${compte.lues} pages lues, ${comblees} annonce(s) complétée(s), ${suiteAirbnb.size} restante(s)${arret ? `, arrêt : ${arret}` : ""}`,
     );

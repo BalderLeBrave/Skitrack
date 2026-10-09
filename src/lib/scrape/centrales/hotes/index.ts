@@ -8,11 +8,11 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-neuf ; vingt-huit en ont un ici. Vingt d'entre eux s'interrogent
- * vraiment et couvrent trente-quatre stations ; les huit autres racontent un
+ * soixante-neuf ; vingt-neuf en ont un ici. Vingt-sept d'entre eux s'interrogent
+ * vraiment et couvrent quarante-neuf stations ; les deux autres racontent un
  * empêchement qui leur est propre, et que la phrase de leur moteur dirait mal.
  *
- * Pour les quarante et une autres centrales, `registre.ts` sait déjà nommer le
+ * Pour les quarante autres centrales, `registre.ts` sait déjà nommer le
  * moteur. Celles d'Ingénie sans fichier passent par `chercherIngenieHote`.
  * Celles d'Orchestra sans fichier passent par `chercherOrchestraHote` : les
  * destinations sont les liens que l'accueil publie. Pour les autres,
@@ -44,6 +44,7 @@ import { piauEngaly } from "./piauEngaly";
 import { pralognan } from "./pralognan";
 import { saintFrancoisLongchamp } from "./saintFrancoisLongchamp";
 import { sainteFoyTarentaise } from "./sainteFoyTarentaise";
+import { valfrejus } from "./valfrejus";
 import { valberg } from "./valberg";
 import { valdAllos } from "./valdAllos";
 import { valmeinier } from "./valmeinier";
@@ -78,16 +79,19 @@ const TOUS: readonly Connecteur[] = [
   lesContamines,
   valmeinier,
   valdAllos,
-  // Open System, génération ancienne, et sites sans moteur interrogeable.
+  // Open System, génération ancienne : le widget publie un loginAPI.
   lesSybelles,
   devoluy,
-  alpeDuGrandSerre,
-  valmorel,
   ax3Domaines,
-  piauEngaly,
-  // Montgenèvre : même génération ancienne. Chamonix : catalogue Orchestra
-  // sans identifiant de logement.
   montgenevre,
+  valmorel,
+  // Valfréjus : la page datée que son site publie sur Haute Maurienne.
+  valfrejus,
+  // Sites dont l'empreinte n'est qu'un widget panier, sans recherche datée.
+  alpeDuGrandSerre,
+  piauEngaly,
+  // Chamonix : les identifiants sont sur la page de résultats, le prix sur
+  // le calendrier.
   chamonix,
 ];
 

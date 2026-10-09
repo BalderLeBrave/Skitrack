@@ -51,10 +51,12 @@ import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   cartesOrchestra,
+  cartesSerpOrchestra,
   destinationsDeStation,
   destinationsPubliees,
   ficheOrchestra,
   horsRegleOrchestra,
+  lienSuiteSerp,
   nuitsOrchestra,
   prixOrchestra,
   refOrchestra,
@@ -108,6 +110,11 @@ export type ReglageOrchestra = {
   destinations: Record<string, readonly string[]>;
   /** Ce qu'on interroge pour une station absente de la table. */
   parDefaut: readonly string[];
+  /**
+   * Cartes déjà lues (page `/serp`). Elles remplacent les destinations.
+   * Le prix reste celui du calendrier.
+   */
+  cartes?: readonly CarteOrchestra[];
 };
 
 const catalogues = new Map<string, { at: number; valeur: CarteOrchestra[] }>();
@@ -386,12 +393,14 @@ function enListing(
 export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchestra): Promise<Listing[]> {
   const t0 = Date.now();
   const base = ctx.base.replace(/\/+$/, "");
-  const destinations = r.destinations[ctx.stationId] ?? r.parDefaut;
+  const destinations = r.cartes ? [] : (r.destinations[ctx.stationId] ?? r.parDefaut);
   const refus: string[] = [];
   let coupe = false;
   let pagesLues = 0;
 
-  const listes = await parGroupes(destinations, async (d) => {
+  const listes = r.cartes
+    ? [r.cartes]
+    : await parGroupes(destinations, async (d) => {
     if (coupe) return [] as CarteOrchestra[];
     try {
       const cartes = await catalogue(base, d);
@@ -523,5 +532,54 @@ export async function chercherOrchestraHote(
     cle: cleDepuisHote(host),
     destinations: {},
     parDefaut: slugs,
+  });
+}
+
+/**
+ * Orchestra dont les identifiants sont sur la page de résultats, pas sur
+ * une page de destination. Le lien « voir plus » est suivi tant qu'il est
+ * publié. Le prix « à partir de » de la page n'est pas un total : le
+ * calendrier l'est.
+ */
+export async function chercherOrchestraSerp(
+  ctx: ContexteCentrale,
+  nom: string,
+  host: string,
+  depart: { chemin: string; lieu: string },
+): Promise<Listing[]> {
+  const base = ctx.base.replace(/\/+$/, "");
+  const cartes: CarteOrchestra[] = [];
+  const vus = new Set<string>();
+  const deja = new Set<string>();
+  let url = new URL(depart.chemin, `${base}/`).toString();
+  let pages = 0;
+  for (let i = 0; i < 6; i++) {
+    if (deja.has(url)) break;
+    deja.add(url);
+    const html = (await json(url, true)) as string;
+    pages += 1;
+    for (const c of cartesSerpOrchestra(html, depart.lieu)) {
+      if (vus.has(c.id)) continue;
+      vus.add(c.id);
+      cartes.push(c);
+    }
+    const suite = lienSuiteSerp(html);
+    if (!suite) break;
+    url = new URL(suite, url).toString();
+  }
+  if (cartes.length === 0) {
+    throw new Error(
+      pages === 0
+        ? "aucune page de résultats"
+        : "les pages de résultats n'ont publié aucun identifiant de logement",
+    );
+  }
+  return chercherOrchestra(ctx, {
+    host,
+    nom,
+    cle: cleDepuisHote(host),
+    destinations: {},
+    parDefaut: [],
+    cartes,
   });
 }

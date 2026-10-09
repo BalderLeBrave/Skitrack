@@ -3,16 +3,18 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   cartesOrchestra,
+  cartesSerpOrchestra,
   dateOrchestra,
+  destinationsDeStation,
+  destinationsPubliees,
   ficheOrchestra,
   horsRegleOrchestra,
+  lienSuiteSerp,
   nuitsOrchestra,
   prixOrchestra,
   refOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
-  destinationsPubliees,
-  destinationsDeStation,
 } from "./orchestra.ts";
 
 describe("Orchestra : la référence publiée du logement", () => {
@@ -23,6 +25,65 @@ describe("Orchestra : la référence publiée du logement", () => {
     assert.equal(refOrchestra(chemin("/location/chalet-les-pins-86645")), "86645");
     assert.equal(refOrchestra(chemin("/location/2-pieces-ref-ccdt052-99999")), "86645");
     assert.equal(refOrchestra({ id: "86645", chemin: null }), "86645");
+  });
+});
+
+describe("Orchestra : page de résultats, calendrier rangé par durée", () => {
+  const PAGE = `<article><div class="cpt-favorite" data-product='{"id":"4751","title":"Pierre & Vacances","accommodation":"Appartement","stationLocation":"Chamonix-Mont-Blanc","url":"/fr/produit-4751","img":"https://img.exemple/a.jpg"}'></div></article>
+<article data-product='{"id":"9","title":"Les Houches","accommodation":"Appartement","stationLocation":"Les Houches","url":"/fr/produit-9"}'></article>
+<div class="see-more"><a href="/fr/serp?page=2&byPage=20" class="elem-button--default see-more-results">voir plus</a></div>`;
+
+  it("lit l'identifiant et ignore le voisin d'une autre station", () => {
+    const cartes = cartesSerpOrchestra(PAGE, "chamonix");
+    assert.equal(cartes.length, 1);
+    assert.equal(cartes[0]?.id, "4751");
+    assert.equal(cartes[0]?.titre, "Pierre & Vacances");
+    assert.equal(cartes[0]?.type, "Appartement");
+    assert.equal(cartes[0]?.chemin, "/fr/produit-4751");
+    assert.equal(lienSuiteSerp(PAGE), "/fr/serp?page=2&byPage=20");
+    assert.equal(lienSuiteSerp("<p>rien</p>"), null);
+  });
+
+  it("le prix est celui du lot qui couvre le groupe, et il suit la durée", () => {
+    const cal = {
+      availabilities: {
+        XXX: {
+          "8-7": {
+            "02-2027": {
+              "06": {
+                price: 1258,
+                byHousing: true,
+                nightNb: 7,
+                categories: {
+                  studio: { price: 1258, categoryLabel: "Studio 4 personnes", categoryCode: "S", maxPax: 4, minPax: 1, status: "Available" },
+                  grand: { price: 2721, categoryLabel: "Appartement 7 personnes", categoryCode: "G", maxPax: 7, minPax: 1, status: "Available" },
+                },
+              },
+            },
+          },
+          "15-14": {
+            "02-2027": {
+              "06": {
+                price: 2620,
+                byHousing: true,
+                nightNb: 14,
+                categories: {
+                  studio: { price: 2620, categoryLabel: "Studio 4 personnes", categoryCode: "S", maxPax: 4, minPax: 1, status: "Available" },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const quatre = prixOrchestra(cal, { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 4 });
+    assert.equal(quatre?.total, 1258);
+    assert.equal(quatre?.parLogement, true);
+    assert.equal(quatre?.nuits, 7);
+    const six = prixOrchestra(cal, { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 6 });
+    assert.equal(six?.total, 2721);
+    const quatorze = prixOrchestra(cal, { checkIn: "2027-02-06", checkOut: "2027-02-20", guests: 4 });
+    assert.equal(quatorze?.total, 2620);
   });
 });
 

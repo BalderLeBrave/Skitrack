@@ -289,6 +289,56 @@ export function cartesOrchestra(page: string): CarteOrchestra[] {
 }
 
 /**
+ * Les logements d'une page de résultats Orchestra (`/fr/serp`), lus dans
+ * `data-product`. Le prix « à partir de » de cette page n'est pas lu : il
+ * n'est pas daté. L'identifiant, lui, sert au calendrier.
+ *
+ * `lieu`, quand il est donné, écarte une carte dont `stationLocation` ne le
+ * contient pas. La page est déjà filtrée ; ceci empêche qu'une suite mélange
+ * deux stations.
+ */
+export function cartesSerpOrchestra(page: string, lieu?: string): CarteOrchestra[] {
+  const out: CarteOrchestra[] = [];
+  const re = /data-product\s*=\s*(?:'([^']*)'|"([^"]*)")/gi;
+  const voulu = lieu?.trim().toLowerCase() ?? "";
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(page)) !== null) {
+    const brut = desechapper(m[1] ?? m[2] ?? "");
+    let o: {
+      id?: unknown;
+      title?: unknown;
+      url?: unknown;
+      img?: unknown;
+      accommodation?: unknown;
+      stationLocation?: unknown;
+    };
+    try {
+      o = JSON.parse(brut) as typeof o;
+    } catch {
+      continue;
+    }
+    const id = typeof o.id === "string" || typeof o.id === "number" ? String(o.id) : "";
+    const titre = typeof o.title === "string" ? desechapper(o.title).trim() : "";
+    if (!id || !titre) continue;
+    const station = typeof o.stationLocation === "string" ? o.stationLocation.toLowerCase() : "";
+    if (voulu && !station.includes(voulu)) continue;
+    const chemin = typeof o.url === "string" && o.url.startsWith("/") ? (o.url.split(/[?#]/)[0] ?? null) : null;
+    const photo = typeof o.img === "string" && /^https?:\/\//i.test(o.img) ? o.img : null;
+    const type = typeof o.accommodation === "string" && o.accommodation.trim() ? desechapper(o.accommodation).trim() : null;
+    out.push({ id, titre, chemin, photo, type });
+  }
+  return out;
+}
+
+/** Le lien « voir plus » publié sur la page, ou `null`. On ne fabrique pas le suivant. */
+export function lienSuiteSerp(page: string): string | null {
+  const m = /<a\b[^>]*\bsee-more-results\b[^>]*>/i.exec(page);
+  if (!m) return null;
+  const href = /\bhref\s*=\s*"([^"]+)"/i.exec(m[0])?.[1] ?? /\bhref\s*=\s*'([^']+)'/i.exec(m[0])?.[1];
+  return href ? desechapper(href) : null;
+}
+
+/**
  * La référence que la centrale publie pour un logement : celle de son URL
  * (« …-ref-ccdt052-86645 », la même que « ref CCDT052 » sur la carte), en
  * minuscules comme le calendrier l'écrit. Sans elle, le numéro du logement,
@@ -486,6 +536,10 @@ export function ficheOrchestra(page: string): FicheOrchestra {
 type Categorie = {
   categoryLabel?: unknown;
   categoryCode?: unknown;
+  price?: unknown;
+  maxPax?: unknown;
+  minPax?: unknown;
+  status?: unknown;
 };
 type Jour = {
   price?: unknown;
@@ -555,6 +609,16 @@ export function prixOrchestra(calendrier: unknown, d: DemandeOrchestra): OffreOr
   const jour = m[3] ?? "";
   const groupe = Math.max(1, Math.trunc(d.guests));
 
+  // Chamonix range la durée au premier niveau (`8-7`, puis le mois). La Plagne
+  // y range la bande de capacité, et la durée en dessous. On distingue sur
+  // la forme de la clé enfant, pas sur le nom de la centrale.
+  const enfant = Object.values(sansTransport)
+    .map((v) => (v && typeof v === "object" ? Object.keys(v)[0] : ""))
+    .find((k) => k);
+  if (enfant && /^\d{2}-\d{4}$/.test(enfant)) {
+    return prixDureeDabord(sansTransport[duree], mois, jour, nuits, groupe);
+  }
+
   let meilleure: OffreOrchestra | null = null;
   let sansPrix: OffreOrchestra | null = null;
   for (const [bande, durees] of Object.entries(sansTransport)) {
@@ -577,6 +641,56 @@ export function prixOrchestra(calendrier: unknown, d: DemandeOrchestra): OffreOr
       bandeMax: nombre(e.maxPax) ?? max,
       categorie: cat.libelle,
       codeProduit: cat.code,
+      parLogement: typeof e.byHousing === "boolean" ? e.byHousing : null,
+      nuits: couvre,
+    };
+    if (offre.total <= 0) {
+      sansPrix ??= offre;
+      continue;
+    }
+    if (meilleure && meilleure.total <= offre.total) continue;
+    meilleure = offre;
+  }
+  return meilleure ?? sansPrix;
+}
+
+/**
+ * Calendrier qui range la durée avant le mois.
+ *
+ * Chaque catégorie du jour est un lot, avec son prix et ses bornes. Le prix
+ * du jour, lui, est le moins cher de tous les lots : le prendre pour un
+ * groupe qui n'entre pas dans le plus petit lot afficherait le prix d'un
+ * autre. On garde le moins cher des lots dont les bornes couvrent le groupe.
+ */
+function prixDureeDabord(
+  noeud: Record<string, Record<string, Jour>> | undefined,
+  mois: string,
+  jour: string,
+  nuits: number,
+  groupe: number,
+): OffreOrchestra | null {
+  const e = noeud?.[mois]?.[jour];
+  if (!e) return null;
+  const couvre = nombre(e.nightNb);
+  if (couvre != null && couvre !== nuits) return null;
+  const cats = Object.values(e.categories ?? {});
+  const lots = cats.length > 0 ? cats : [e];
+  let meilleure: OffreOrchestra | null = null;
+  let sansPrix: OffreOrchestra | null = null;
+  for (const lot of lots) {
+    const status = lot.status ?? e.status;
+    if (typeof status === "string" && status !== "Available") continue;
+    const min = nombre(lot.minPax) ?? nombre(e.minPax) ?? 1;
+    const max = nombre(lot.maxPax) ?? nombre(e.maxPax);
+    if (max == null || groupe < min || groupe > max) continue;
+    const total = nombre(lot.price);
+    const cat = categorieDuJour({ categories: { lot } });
+    const offre: OffreOrchestra = {
+      total: total != null && total > 0 ? total : 0,
+      bandeMin: min,
+      bandeMax: max,
+      categorie: typeof lot.categoryLabel === "string" ? lot.categoryLabel : cat.libelle,
+      codeProduit: typeof lot.categoryCode === "string" ? lot.categoryCode : cat.code,
       parLogement: typeof e.byHousing === "boolean" ? e.byHousing : null,
       nuits: couvre,
     };

@@ -8,12 +8,12 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-neuf ; trente-quatre en ont un ici. Trente-trois d'entre eux
- * s'interrogent vraiment et couvrent cinquante-cinq stations ; l'autre
- * raconte un empêchement qui lui est propre, et que la phrase de son moteur
- * dirait mal.
+ * soixante-neuf ; trente-six en ont un ici. Trente-trois d'entre eux
+ * s'interrogent vraiment et couvrent cinquante-cinq stations ; les trois
+ * autres racontent un empêchement qui leur est propre, et que la phrase de
+ * leur moteur dirait mal.
  *
- * Pour les trente-cinq autres centrales, `registre.ts` sait déjà nommer le
+ * Pour les trente-trois autres centrales, `registre.ts` sait déjà nommer le
  * moteur. Celles d'Ingénie sans fichier passent par `chercherIngenieHote`.
  * Celles d'Orchestra sans fichier passent par `chercherOrchestraHote` : les
  * destinations sont les liens que l'accueil publie. Pour les autres,
@@ -35,6 +35,7 @@ import { gourette } from "./gourette";
 import { grandTourmalet } from "./grandTourmalet";
 import { hauteMaurienneVanoise } from "./hauteMaurienneVanoise";
 import { isola2000 } from "./isola2000";
+import { karellis } from "./karellis";
 import { laBresse } from "./laBresse";
 import { laClusaz } from "./laClusaz";
 import { laPlagne } from "./laPlagne";
@@ -48,6 +49,7 @@ import { paysDesEcrins } from "./paysDesEcrins";
 import { peyragudes } from "./peyragudes";
 import { piauEngaly } from "./piauEngaly";
 import { pralognan } from "./pralognan";
+import { prazDeLys } from "./prazDeLys";
 import { saintFrancoisLongchamp } from "./saintFrancoisLongchamp";
 import { sainteFoyTarentaise } from "./sainteFoyTarentaise";
 import { valfrejus } from "./valfrejus";
@@ -101,8 +103,10 @@ const TOUS: readonly Connecteur[] = [
   grandTourmalet,
   // Valfréjus : la page datée que son site publie sur Haute Maurienne.
   valfrejus,
-  // Site dont l'empreinte n'est qu'un widget panier, sans recherche datée.
+  // Sites dont on a lu la recherche, et qui ne rendent pas un total de séjour.
   alpeDuGrandSerre,
+  prazDeLys,
+  karellis,
   // Chamonix : les identifiants sont sur la page de résultats, le prix sur
   // le calendrier.
   chamonix,

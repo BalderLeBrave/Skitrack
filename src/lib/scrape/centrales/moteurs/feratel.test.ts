@@ -8,8 +8,10 @@ import {
   corpsRechercheFeratel,
   FERATEL_PAR_PAGE,
   horsRegleFeratel,
+  descriptionFeratel,
   lireDetailsFeratel,
   lireFeratel,
+  noteFeratel,
   sessionFeratel,
   typeEcarteFeratel,
   typeFeratel,
@@ -380,6 +382,8 @@ describe("Deskline / Feratel : pièces, chambres, type et lieu que la liste publ
     assert.ok(champs.includes("services{id,name,rooms,bedrooms,products{"), champs);
     assert.ok(champs.includes("categories{id,name}"), champs);
     assert.ok(champs.includes("location{coordinate{lat,long},town,district}"), champs);
+    assert.ok(champs.includes("description"), champs);
+    assert.ok(champs.includes("rating{value,maxValue}"), champs);
     assert.doesNotMatch(champs, /maxPersons|occupancy|size/);
   });
 
@@ -821,5 +825,63 @@ describe("Deskline / Feratel : les détails, un à la fois, puis en tâche de fo
     assert.equal(attentes, 4);
     assert.deepEqual(lus, ["a", "b", "c"]);
     assert.equal(l.arret, "échéance");
+  });
+});
+
+describe("Deskline / Feratel : description et note que la liste publie", () => {
+  const HTML =
+    "<!-- xmlns:d='http://deskline.net/deskline/markup/' -->\r<br />" +
+    "<d:h2>Bel appartement au calme pour 6 personnes. </d:h2>\r<br />" +
+    "<d:p>Sauna et casier à skis. <d:br>Terrasse.</d:p>";
+
+  it("retire le balisage Deskline et garde le texte", () => {
+    const d = descriptionFeratel(HTML) ?? "";
+    assert.match(d, /^Bel appartement au calme pour 6 personnes\./);
+    assert.match(d, /Sauna et casier à skis\.\nTerrasse\./);
+    assert.equal(d.includes("<"), false);
+    assert.equal(descriptionFeratel(""), null);
+    assert.equal(descriptionFeratel(null), null);
+  });
+
+  it("reprend la note seulement quand l'échelle publiée est 5", () => {
+    assert.equal(noteFeratel({ value: 4.4, maxValue: 5 }), 4.4);
+    assert.equal(noteFeratel({ value: 8, maxValue: 10 }), null);
+    assert.equal(noteFeratel({ value: 5 }), null);
+    assert.equal(noteFeratel({ value: 0, maxValue: 5 }), null);
+    assert.equal(noteFeratel(null), null);
+  });
+
+  it("pose description et note sur la fiche, et rien quand le service se tait", () => {
+    const [fiche] = lireFeratel({
+      data: [
+        {
+          id: "avec",
+          name: "La Mandarine 3",
+          description: HTML,
+          rating: { value: 4.4, maxValue: 5 },
+          services: [{ name: "Appartement", products: [{ id: "p", name: "La Mandarine 3", price: { value: 900 } }] }],
+        },
+        {
+          id: "sans",
+          name: "Sans texte",
+          rating: { value: 9, maxValue: 10 },
+          services: [{ name: "Studio", products: [{ id: "q", name: "Sans texte", price: { value: 400 } }] }],
+        },
+      ],
+    });
+    const sans = lireFeratel({
+      data: [
+        {
+          id: "sans",
+          name: "Sans texte",
+          rating: { value: 9, maxValue: 10 },
+          services: [{ name: "Studio", products: [{ id: "q", name: "Sans texte", price: { value: 400 } }] }],
+        },
+      ],
+    })[0];
+    assert.match(fiche?.description ?? "", /Sauna et casier à skis/);
+    assert.equal(fiche?.note, 4.4);
+    assert.equal(sans?.description, null);
+    assert.equal(sans?.note, null);
   });
 });

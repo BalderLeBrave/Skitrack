@@ -36,6 +36,7 @@
 
 import type { Listing } from "@/lib/listings";
 import { memoireFiches } from "@/lib/stay/memoireFiches.server";
+import { equipements, depuisTexte } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
@@ -504,6 +505,10 @@ function enListing(
     // Confins ») : les seuls repères des logements sans coordonnées.
     locality: f.commune,
     placeName: f.quartier,
+    ...(f.description
+      ? { description: f.description, amenities: equipements(depuisTexte(f.description)) }
+      : {}),
+    ...(f.note != null ? { rating: f.note } : {}),
     proven: `${r.nom} (Deskline / Feratel, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.service ? ` — ${f.service}` : ""
     }${f.produit && f.produit !== f.titre ? ` — produit vendu : ${f.produit}` : ""}`,

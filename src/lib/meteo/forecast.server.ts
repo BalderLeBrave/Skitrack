@@ -153,15 +153,30 @@ function colonne(
 }
 
 type Releve = {
-  daily?: object;
-  hourly?: { time?: string[] };
+  daily?: { time?: string[]; [colonne: string]: unknown };
+  hourly?: { time?: string[]; [colonne: string]: unknown };
 };
+
+/**
+ * Une colonne du modèle des chutes, complétée jour par jour par celle du
+ * CEPMMT quand elle est vide. Arpège Europe ne prévoit que quatre jours :
+ * au-delà, ses colonnes sont nulles, et la bande des quatorze jours restait
+ * vide en France. Le CEPMMT est déjà dans la même réponse : aucune requête de
+ * plus.
+ */
+function serie(table: object | undefined, nom: string, choix: ChoixModele): (number | null)[] | undefined {
+  const a = colonne(table, nom, choix.chutes, choix.suffixe);
+  if (!choix.suffixe) return a;
+  const b = colonne(table, nom, choix.sol, true);
+  if (!a || !b) return a ?? b;
+  return Array.from({ length: Math.max(a.length, b.length) }, (_, k) => a[k] ?? b[k] ?? null);
+}
 
 function slotAt(point: Releve, hour: string, choix: ChoixModele, jour: string): ForecastSlot {
   const i = slotIndex(point, hour, jour);
   if (i < 0) return EMPTY_SLOT(hour);
-  const temp = colonne(point.hourly, "temperature_2m", choix.chutes, choix.suffixe);
-  const code = colonne(point.hourly, "weather_code", choix.chutes, choix.suffixe);
+  const temp = serie(point.hourly, "temperature_2m", choix);
+  const code = serie(point.hourly, "weather_code", choix);
   return {
     hour,
     temp: round(temp?.[i]),
@@ -172,14 +187,14 @@ function slotAt(point: Releve, hour: string, choix: ChoixModele, jour: string): 
 export function levelOf(point: Releve, altitudeM: number, choix: ChoixModele, jour = dateParis()): ForecastLevel {
   const d = point.daily;
   const time = d?.time ?? [];
-  const snow = colonne(d, "snowfall_sum", choix.chutes, choix.suffixe);
-  const rain = colonne(d, "rain_sum", choix.chutes, choix.suffixe);
-  const precip = colonne(d, "precipitation_sum", choix.chutes, choix.suffixe);
-  const tmax = colonne(d, "temperature_2m_max", choix.chutes, choix.suffixe);
-  const tmin = colonne(d, "temperature_2m_min", choix.chutes, choix.suffixe);
-  const wind = colonne(d, "wind_speed_10m_max", choix.chutes, choix.suffixe);
+  const snow = serie(d, "snowfall_sum", choix);
+  const rain = serie(d, "rain_sum", choix);
+  const precip = serie(d, "precipitation_sum", choix);
+  const tmax = serie(d, "temperature_2m_max", choix);
+  const tmin = serie(d, "temperature_2m_min", choix);
+  const wind = serie(d, "wind_speed_10m_max", choix);
   const depth = colonne(d, "snow_depth_max", choix.sol, choix.suffixe);
-  const code = colonne(d, "weather_code", choix.chutes, choix.suffixe);
+  const code = serie(d, "weather_code", choix);
   const days: ForecastDay[] = time.map((iso, k) => ({
     date: iso,
     tempMax: round(tmax?.[k]),
@@ -260,7 +275,10 @@ export async function fetchForecastPair(
   const low = Math.round(villageM);
   const high = Math.round(summitM);
   const choix = choixModele(lat, lon);
-  const key = `${lat.toFixed(3)},${lon.toFixed(3)},${low},${high},${choix.sourceChutes}`;
+  // Le jour de Paris dans la clé : les créneaux et l'isotherme sont ceux de ce
+  // jour. Gardé 3 h par-dessus minuit, le relevé de la veille donnait ses
+  // créneaux à côté du jour courant que l'écran choisit (`jourCourant`).
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)},${low},${high},${choix.sourceChutes},${dateParis()}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
 

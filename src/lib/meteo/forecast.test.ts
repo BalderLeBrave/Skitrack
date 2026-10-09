@@ -87,4 +87,42 @@ describe("neige — le modèle qui suit l'altitude, pas ICON", () => {
     assert.equal(niveau.morning.temp, -8);
     assert.notEqual(niveau.days[1].depthCm, 1);
   });
+
+  it("au-delà des quatre jours d'Arpège, le CEPMMT de la même réponse prend le relais", () => {
+    const niveau = levelOf(
+      {
+        daily: {
+          time: ["2026-10-09", "2026-10-14"],
+          // Arpège Europe s'arrête à quatre jours : ses colonnes sont nulles ensuite.
+          snowfall_sum_meteofrance_arpege_europe: [3.1, null],
+          rain_sum_meteofrance_arpege_europe: [0, null],
+          temperature_2m_max_meteofrance_arpege_europe: [-2.4, null],
+          temperature_2m_min_meteofrance_arpege_europe: [-7.6, null],
+          wind_speed_10m_max_meteofrance_arpege_europe: [20, null],
+          weather_code_meteofrance_arpege_europe: [71, null],
+          snowfall_sum_ecmwf_ifs: [9.9, 4.27],
+          rain_sum_ecmwf_ifs: [1, 0.4],
+          temperature_2m_max_ecmwf_ifs: [0, -3.4],
+          temperature_2m_min_ecmwf_ifs: [-5, -10.6],
+          wind_speed_10m_max_ecmwf_ifs: [30, 41],
+          weather_code_ecmwf_ifs: [3, 73],
+          snow_depth_max_ecmwf_ifs: [0.3, 0.42],
+        },
+      },
+      3600,
+      choixModele(45.009, 6.122),
+      "2026-10-09",
+    );
+    // Arpège d'abord, quand il publie.
+    assert.equal(niveau.days[0].snowCm, 3.1);
+    assert.equal(niveau.days[0].tempMax, -2);
+    // Ensuite, le CEPMMT plutôt que rien.
+    assert.deepEqual(
+      [niveau.days[1].snowCm, niveau.days[1].rainMm, niveau.days[1].tempMax, niveau.days[1].tempMin],
+      [4.3, 0.4, -3, -11],
+    );
+    assert.equal(niveau.days[1].windMaxKmh, 41);
+    assert.equal(niveau.days[1].depthCm, 42);
+    assert.notEqual(niveau.days[1].kind, skyKindOf(null));
+  });
 });

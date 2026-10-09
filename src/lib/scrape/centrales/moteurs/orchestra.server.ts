@@ -44,7 +44,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
+import { estMessageRefus, poserRefus, respecterCadence } from "../../gardeHote";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
@@ -83,6 +83,13 @@ const FICHE_TIMEOUT_MS = 8_000;
 const FICHES_AVANT_MS = 30_000;
 /** Après un refus (403, 429, 503), les fiches de la centrale attendent. */
 const FICHE_PAUSE_MS = 60 * 60 * 1000;
+/**
+ * Les calendriers d'une grande centrale (La Plagne, une centaine) ne tiennent
+ * pas dans la part s'ils s'espacent. On en lit ce que le délai permet, le
+ * reste ensuite, un à la fois. L'écran Prix ne lance pas cette suite.
+ */
+const BUDGET_CALENDRIERS_MS = 36_000;
+const SUITE_CALENDRIERS_MS = 8 * 60 * 1000;
 
 export type ReglageOrchestra = {
   host: string;
@@ -106,9 +113,11 @@ const calendriers = new Map<string, { at: number; valeur: unknown }>();
 const fiches = new Map<string, { at: number; valeur: FicheOrchestra }>();
 /** L'heure du dernier refus d'une fiche, par centrale. */
 const refusFiches = new Map<string, number>();
+/** Suites de calendriers déjà lancées, par origine de centrale. */
+const suitesCalendriers = new Set<string>();
 async function json(url: string, texte = false, delai = TIMEOUT_MS): Promise<unknown> {
-  const ferme = porteFermee(url);
-  if (ferme) throw new Error(ferme);
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) throw new Error(garde);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), delai);
@@ -171,6 +180,33 @@ async function calendrier(base: string, id: string, ctx: ContexteCentrale): Prom
   const valeur = await json(urlCalendrierOrchestra(base, id, ctx));
   calendriers.set(cle, { at: Date.now(), valeur });
   return valeur;
+}
+
+function calendrierFrais(base: string, id: string, now = Date.now()): boolean {
+  const hit = calendriers.get(`${base}|${id}`);
+  return Boolean(hit && now - hit.at < CALENDRIER_TTL_MS);
+}
+
+/** Les calendriers manqués par le délai, un à la fois. Un refus arrête. */
+async function suiteCalendriers(base: string, ids: readonly string[], ctx: ContexteCentrale): Promise<void> {
+  const fin = Date.now() + SUITE_CALENDRIERS_MS;
+  try {
+    for (const id of ids) {
+      if (Date.now() >= fin) break;
+      if (calendrierFrais(base, id)) continue;
+      try {
+        await calendrier(base, id, ctx);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (estMessageRefus(msg) || /limiteur local/.test(msg)) {
+          console.warn(`[centrale] ${base} : suite des calendriers arrêtée — ${msg}`);
+          break;
+        }
+      }
+    }
+  } finally {
+    suitesCalendriers.delete(base);
+  }
 }
 
 /**
@@ -359,7 +395,7 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       refus.push(`${d} : ${msg}`);
-      if (estMessageRefus(msg)) coupe = true;
+      if (estMessageRefus(msg) || /limiteur local/.test(msg)) coupe = true;
       return [] as CarteOrchestra[];
     }
   });
@@ -392,15 +428,29 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
   }
 
   let coupeOffres = false;
+  let arretSuite = false;
   const offres = await parGroupes(cartes, async (c) => {
     if (coupeOffres) return null;
+    // Un calendrier déjà lu ne part pas : on peut encore en tirer le prix.
+    if (Date.now() - t0 >= BUDGET_CALENDRIERS_MS && !calendrierFrais(base, c.id)) return null;
     try {
       return prixOrchestra(await calendrier(base, c.id, ctx), ctx);
     } catch (err) {
-      if (estMessageRefus(err instanceof Error ? err.message : String(err))) coupeOffres = true;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (estMessageRefus(msg) || /limiteur local/.test(msg)) {
+        coupeOffres = true;
+        arretSuite = true;
+      }
       return null;
     }
   });
+
+  const manquants = cartes.map((c) => c.id).filter((id) => !calendrierFrais(base, id));
+  if (ctx.domaine === true && !arretSuite && manquants.length > 0 && !suitesCalendriers.has(base)) {
+    suitesCalendriers.add(base);
+    console.info(`[centrale] ${r.host} : ${manquants.length} calendrier(s) en suite`);
+    void suiteCalendriers(base, manquants, ctx);
+  }
 
   // Seuls les logements qui ont une offre à ces dates ouvrent leur fiche.
   const fichesLues = await lireFiches(

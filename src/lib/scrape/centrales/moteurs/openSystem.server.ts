@@ -31,7 +31,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
+import { estMessageRefus, poserRefus, respecterCadence } from "../../gardeHote";
 import { phrasesRegle } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -72,8 +72,8 @@ type Page = { chemin: string; fiches: FicheOpenSystem[]; refus: string | null };
 
 async function unePage(base: string, chemin: string, ctx: ContexteCentrale): Promise<Page> {
   const url = urlOpenSystem(base, chemin, ctx);
-  const ferme = porteFermee(url);
-  if (ferme) return { chemin, fiches: [], refus: ferme };
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) return { chemin, fiches: [], refus: garde };
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -110,7 +110,7 @@ async function toutesLesPages(base: string, ctx: ContexteCentrale, rubriques: re
       const chemin = rubriques[i];
       if (chemin === undefined) return;
       sorties[i] = await unePage(base, chemin, ctx);
-      if (sorties[i]?.refus && estMessageRefus(sorties[i].refus ?? "")) coupe = true;
+      if (sorties[i]?.refus && (estMessageRefus(sorties[i].refus ?? "") || /limiteur local/.test(sorties[i].refus ?? ""))) coupe = true;
     }
   };
   await Promise.all(Array.from({ length: Math.min(FRONT, rubriques.length) }, ouvrier));

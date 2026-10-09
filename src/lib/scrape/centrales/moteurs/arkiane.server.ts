@@ -33,7 +33,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { porteFermee, poserRefus } from "../../gardeHote";
+import { estMessageRefus, poserRefus, respecterCadence } from "../../gardeHote";
 import { aTourDeRole, noterFin } from "../cadence";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
@@ -109,8 +109,8 @@ function cookiesDe(r: Response): string {
 
 async function ouvrir(marchand: string, langue: string): Promise<string> {
   const url = `${marchand}/${langue}/`;
-  const ferme = porteFermee(url);
-  if (ferme) throw new Error(ferme);
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) throw new Error(garde);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -137,8 +137,8 @@ async function chercherPage(
   corps: URLSearchParams,
 ): Promise<string> {
   const url = `${marchand}/${langue}/Home/RefreshAvailabilities`;
-  const ferme = porteFermee(url);
-  if (ferme) throw new Error(ferme);
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) throw new Error(garde);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -185,8 +185,11 @@ async function detailLot(
   cookies: string,
   formulaire: NonNullable<FicheArkiane["detail"]>,
 ): Promise<{ statut: number; page: string | null }> {
-  const ferme = porteFermee(url);
-  if (ferme) return { statut: 429, page: null };
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) {
+    if (estMessageRefus(garde)) return { statut: 429, page: null };
+    throw new Error(garde);
+  }
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), DETAIL_TIMEOUT_MS);

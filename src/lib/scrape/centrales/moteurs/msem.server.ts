@@ -22,7 +22,7 @@ import { memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
+import { estMessageRefus, poserRefus, respecterCadence } from "../../gardeHote";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
@@ -84,8 +84,8 @@ export type ReglageMsem = {
 
 const catalogues = new Map<string, { at: number; valeur: CatalogueMsem }>();
 async function json(url: string, corps?: Record<string, unknown>, delaiMs = TIMEOUT_MS): Promise<unknown> {
-  const ferme = porteFermee(url);
-  if (ferme) throw new Error(ferme);
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) throw new Error(garde);
   await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), delaiMs);
@@ -261,7 +261,7 @@ async function monter(
         )) as OffresMsem;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        if (estMessageRefus(msg)) break;
+        if (estMessageRefus(msg) || /limiteur local/.test(msg)) break;
         offres = null;
       }
     }

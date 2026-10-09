@@ -24,6 +24,8 @@ export function cleHote(url: string): string {
   if (/(^|\.)hometogo\./.test(host)) return "hometogo";
   if (host.includes("cozycozy.")) return "cozy";
   if (host.endsWith("greengo.voyage")) return "greengo";
+  if (host.endsWith("msem.tech")) return "msem";
+  if (host.endsWith("deskline.net")) return "feratel";
   return host;
 }
 

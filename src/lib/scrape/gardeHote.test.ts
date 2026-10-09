@@ -22,6 +22,8 @@ describe("garde d'hôte", () => {
     assert.equal(cleHote("https://widget-fngf.itea.fr/fiche.html"), "gites");
     assert.equal(cleHote("https://www.hometogo.fr/search/x"), "hometogo");
     assert.equal(cleHote("https://www.cozycozy.com/"), "cozy");
+    assert.equal(cleHote("https://services.msem.tech/catalogue"), "msem");
+    assert.equal(cleHote("https://webapi.deskline.net/x"), "feratel");
     assert.equal(cleHote("https://reservation.exemple.fr/"), "reservation.exemple.fr");
   });
 

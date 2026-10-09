@@ -39,7 +39,7 @@ import { memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { equipements, depuisTexte } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
+import { estMessageRefus, poserRefus, respecterCadence } from "../../gardeHote";
 import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
 import { compter, phrasesRegle } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
@@ -236,8 +236,8 @@ async function json(
   corps?: Record<string, unknown>,
   delaiMs = TIMEOUT_MS,
 ): Promise<{ statut: number; valeur: unknown }> {
-  const ferme = porteFermee(url);
-  if (ferme) throw new Error(ferme);
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) throw new Error(garde);
   // La passerelle ne sert même pas son `robots.txt` sans ces en-têtes : sans
   // eux elle rend 400. On les envoie pour lire le fichier, pas pour s'arrêter.
   await centraleAutorise(url, entetesPasserelle(session));

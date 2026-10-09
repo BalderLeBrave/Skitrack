@@ -35,6 +35,13 @@ const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
   cozy: { gapMs: 1_000, maxHits: 50 },
   hometogo: { gapMs: 1_000, maxHits: 40 },
   /**
+   * `services.msem.tech` sert toutes les centrales MSEM. Deux stations d'un
+   * domaine partaient ensemble. Deux secondes, trente par minute.
+   */
+  msem: { gapMs: 2_000, maxHits: 30 },
+  /** `webapi.deskline.net` sert Feratel, une file pour tout le parc. */
+  feratel: { gapMs: 2_000, maxHits: 30 },
+  /**
    * L'API GraphQL de GreenGo : une recherche, puis un détail par hôte gardé.
    * Le défaut, écrit ici pour que l'écran Prix le lise (`attente.ts`) et que
    * personne ne le relève sans le voir : aucun 429 observé, mais une

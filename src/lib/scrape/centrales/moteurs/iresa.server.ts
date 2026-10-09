@@ -18,7 +18,7 @@ import type { Listing } from "@/lib/listings";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
-import { porteFermee, poserRefus } from "../../gardeHote";
+import { poserRefus, respecterCadence } from "../../gardeHote";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -60,8 +60,8 @@ async function permis(url: string): Promise<void> {
 }
 
 async function formulaire(url: string): Promise<{ jeton: string; cookies: string }> {
-  const ferme = porteFermee(url);
-  if (ferme) throw new Error(ferme);
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) throw new Error(garde);
   await permis(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -86,8 +86,8 @@ async function formulaire(url: string): Promise<{ jeton: string; cookies: string
 }
 
 async function soumettre(url: string, cookies: string, corps: Record<string, string>): Promise<string> {
-  const ferme = porteFermee(url);
-  if (ferme) throw new Error(ferme);
+  const garde = await respecterCadence(url, 5_000);
+  if (garde) throw new Error(garde);
   await permis(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);

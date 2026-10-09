@@ -26,6 +26,7 @@ import {
   airbnbListePrioritaire,
   generationReleveAirbnb,
   marquerRefusFichesAirbnb,
+  nouveauReleveAirbnb,
   tenirPagesAirbnb,
   tenirPdpAirbnb,
 } from "@/lib/stay/completerFiche.server";
@@ -641,9 +642,19 @@ const inflight = new Map<string, Promise<LiveSearchResult>>();
 
 /** Pages de suite par appel, après le relevé que l'écran attend. */
 const PAGES_PAR_TOUR = 8;
-/** Plafond de pages en plus des 12 du relevé interactif. */
-const PAGES_SUITE_MAX = 72;
+/**
+ * Pages en plus des 12 du relevé. Huit stations (3 Vallées, Portes du
+ * Soleil) à ~7 pages, plus les quarts d'une emprise pleine : 12 + 96 couvrent
+ * le domaine sans dépasser ~10 requêtes par minute.
+ */
+const PAGES_SUITE_MAX = 96;
 const TOUR_SUITE_MS = 90_000;
+/**
+ * Tant que la suite ou les fiches tournent, un nouveau passage sur la station
+ * ne doit pas relancer 12 StaysSearch : le cache de 15 min expirerait pendant
+ * les fiches, et ce second relevé tombait dans le limiteur.
+ */
+const CACHE_PENDANT_SUITE_MS = 2 * 60 * 60_000;
 
 function dormir(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -681,10 +692,16 @@ function ajouterAuCache(key: string, rows: Listing[]): number {
   return neuf.length;
 }
 
-function raccourcirCache(key: string): void {
+function poserTtl(key: string, ttl: number): void {
   const hit = cache.get(key);
   if (!hit) return;
-  cache.set(key, { ...hit, at: Date.now(), ttl: Math.min(hit.ttl, CACHE_MS) });
+  cache.set(key, { ...hit, at: Date.now(), ttl });
+}
+
+function finirCache(key: string, gen: number, refus: boolean): void {
+  // Une recherche plus récente tient déjà cette clé : on ne raccourcit pas son cache.
+  if (generationReleveAirbnb() !== gen) return;
+  poserTtl(key, refus ? CACHE_MS : CACHE_AIRBNB_MS);
 }
 
 function listingsDuCache(key: string): Listing[] {
@@ -719,6 +736,7 @@ async function paginerSuite(
       if (generationReleveAirbnb() !== gen) return "laisse";
     }
     const tour = await scrapeAirbnbSuite(input, curseur, PAGES_PAR_TOUR, Date.now() + TOUR_SUITE_MS);
+    if (generationReleveAirbnb() !== gen) return "laisse";
     budget += PAGES_PAR_TOUR;
     const ajout = ajouterAuCache(key, locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now())));
     if (ajout) console.info(`[airbnb] suite +${ajout} annonce(s)`);
@@ -742,9 +760,9 @@ async function paginerSuite(
  * PDP, une à une. Rien de tout cela pendant un relevé de liste. Un refus
  * arrête les deux et raccourcit le cache.
  */
-function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: SuiteReste | null): void {
-  const gen = generationReleveAirbnb();
+function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: SuiteReste | null, gen: number): void {
   const lacherPages = tenirPagesAirbnb();
+  poserTtl(key, CACHE_PENDANT_SUITE_MS);
   void (async () => {
     let issue: "ok" | "refus" | "laisse" = "ok";
     let lacherPdp: (() => void) | null = null;
@@ -765,19 +783,25 @@ function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: Suite
     }
     if (issue === "refus") {
       marquerRefusFichesAirbnb();
-      raccourcirCache(key);
+      finirCache(key, gen, true);
       return;
     }
-    if (!lacherPdp) return;
+    if (!lacherPdp) {
+      finirCache(key, gen, false);
+      return;
+    }
     try {
       const lu = await lireFichesLentes(listingsDuCache(key), input, () => generationReleveAirbnb() !== gen);
       if (lu === "refus") {
         marquerRefusFichesAirbnb();
-        raccourcirCache(key);
+        finirCache(key, gen, true);
+      } else {
+        finirCache(key, gen, false);
       }
     } catch (err) {
       console.warn("[airbnb] fiches", err instanceof Error ? err.message : err);
       marquerRefusFichesAirbnb();
+      finirCache(key, gen, true);
     } finally {
       lacherPdp();
     }
@@ -825,6 +849,12 @@ export async function runLiveSearch(
   if (hit && Date.now() - hit.at < ttl) return hit.result;
   const pending = inflight.get(key);
   if (pending) return pending;
+  // Seulement un relevé qui part : un coup de cache ne doit pas arrêter les pages et les fiches déjà en cours.
+  let gen = generationReleveAirbnb();
+  if (part === "airbnb" || part === "all" || part === "browser") {
+    nouveauReleveAirbnb();
+    gen = generationReleveAirbnb();
+  }
   const promise = actuallyRun(input, part)
     .then((brut) => {
       const extra = brut as LiveSearchResult & { reste?: SuiteReste | null };
@@ -840,11 +870,16 @@ export async function runLiveSearch(
       // Une relance tombée pendant une pause (coupe-circuit, limiteur) rend un
       // relevé dégradé : il ne remplace pas un relevé complet encore valable.
       const avant = cache.get(key);
-      if (avant && avant.ttl > CACHE_MS && at - avant.at < avant.ttl && degrade) return avant.result;
+      if (avant && avant.ttl > CACHE_MS && at - avant.at < avant.ttl && degrade) {
+        // Le coup raté ne remplace pas le relevé. On réarme les 90 s : sinon
+        // chaque « Relancer » repart tout de suite dans le limiteur.
+        poserTtl(key, avant.ttl);
+        return avant.result;
+      }
       const ttl = suitePages ? CACHE_AIRBNB_MS : degrade ? CACHE_MS : CACHE_AIRBNB_MS;
       cache.set(key, { at, ttl, result });
       for (const [k, v] of cache) if (Date.now() - v.at >= v.ttl) cache.delete(k);
-      if (suitePages || suiteFiches) poursuivreApresReleve(key, input, suitePages ? reste : null);
+      if (suitePages || suiteFiches) poursuivreApresReleve(key, input, suitePages ? reste : null, gen);
       return result;
     })
     .finally(() => {

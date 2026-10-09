@@ -1284,7 +1284,7 @@ function lancerSuiteAirbnb(rows: readonly Listing[], enTete = false): number {
 
 /** Les relevés de liste Airbnb en cours dans le processus (`pendantReleveAirbnb`). */
 let relevesAirbnbEnCours = 0;
-/** Génération du dernier relevé de liste : une suite de pages plus ancienne s'arrête. */
+/** Génération du dernier relevé parti sur le réseau : une suite plus ancienne s'arrête. Un coup servi par le cache n'en change pas. */
 let generationReleve = 0;
 /** Pagination de suite et fiches PDP lentes : la suite HTML leur laisse le limiteur. */
 let pagesAirbnbEnCours = 0;
@@ -1318,7 +1318,6 @@ export function demanderCreneauAirbnb(dureeMs = 15_000): void {
  */
 export async function pendantReleveAirbnb<T>(f: () => Promise<T>): Promise<T> {
   relevesAirbnbEnCours += 1;
-  generationReleve += 1;
   try {
     return await f();
   } finally {
@@ -1326,12 +1325,21 @@ export async function pendantReleveAirbnb<T>(f: () => Promise<T>): Promise<T> {
   }
 }
 
+/**
+ * Un relevé qui interroge vraiment Airbnb, pas le cache : les suites de pages
+ * et de fiches plus anciennes s'arrêtent. Un simple retour sur la station,
+ * servi par le cache, ne doit pas les interrompre.
+ */
+export function nouveauReleveAirbnb(): void {
+  generationReleve += 1;
+}
+
 /** Vrai pendant un relevé de liste, ou tant que l'écran Prix a demandé le créneau. */
 export function airbnbListePrioritaire(): boolean {
   return relevesAirbnbEnCours > 0 || Date.now() < creneauDemandeJusqua;
 }
 
-/** Le relevé de liste en cours, pour qu'une suite plus ancienne s'arrête. */
+/** Le relevé parti sur le réseau, pour qu'une suite plus ancienne s'arrête. */
 export function generationReleveAirbnb(): number {
   return generationReleve;
 }
@@ -1401,7 +1409,7 @@ async function deroulerSuiteAirbnb(opts?: { uneFiche?: boolean }): Promise<void>
   suiteAirbnbEnCours = true;
   // Une annonce ouverte pendant un arrêt ne rouvre pas le catalogue.
   if (!uneFiche) suiteArreteeParRefus = false;
-  const fin = Date.now() + SUITE_AIRBNB_MAX_MS;
+  let fin = Date.now() + SUITE_AIRBNB_MAX_MS;
   const compte: Compte = { lues: 0 };
   const essais = new Map<string, number>();
   const dormir = (ms: number) => new Promise((r) => setTimeout(r, Math.max(0, ms)));

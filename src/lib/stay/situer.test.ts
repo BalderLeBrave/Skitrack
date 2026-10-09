@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Listing } from "../listings.ts";
 import {
+  distRemonteePublieeM,
   estPointPublie,
   mesuresPubliees,
   reperesNommes,
@@ -13,6 +14,7 @@ import { stationById } from "../stations.ts";
 import { completudeOf } from "./completude.ts";
 import { airbnbComplet, troisChampsAirbnb } from "./priseFiche.ts";
 import { distanceOf } from "../v7.ts";
+import { distFiltrableM } from "./lodgingFilter.ts";
 
 function ann(over: Partial<Listing> = {}): Listing {
   return {
@@ -222,5 +224,18 @@ describe("une position triangulée n'est pas une donnée publiée", () => {
     assert.equal(m.liftName, null);
     const pin = ann({ lat: 45.01, lon: 6.12, distToLiftM: 120 });
     assert.equal(mesuresPubliees(pin), pin);
+  });
+
+  it("filtre et tri par distance : rien depuis un point triangulé, la mesure depuis un point publié", () => {
+    assert.ok(station);
+    const brute = sansPoint();
+    const [sit] = placerSansPoint([brute], station!);
+    // Le point placé donne bien une distance : le filtre ne doit pas la lire.
+    assert.equal(typeof distFiltrableM(sit!), "number");
+    assert.equal(distRemonteePublieeM(sit!), null);
+    // Comme l'annonce avant placement.
+    assert.equal(distRemonteePublieeM(brute), distFiltrableM(brute));
+    const pin = ann({ lat: 45.01, lon: 6.12, distToLiftM: 120 });
+    assert.equal(distRemonteePublieeM(pin), 120);
   });
 });

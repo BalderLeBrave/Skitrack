@@ -38,6 +38,7 @@ import {
   ecrireLaissees,
   hoteDe,
   plausible,
+  pointPublie,
   raisonDeLaisser,
   urlPropre,
   urlsPartagees,
@@ -218,12 +219,15 @@ export function poserLecture(
     Object.assign(row, qualifierLogement(row));
     if (row.capacity != null) changed = true;
   }
-  if (!plausible(row.lat, row.lon) && plausible(lect.lat, lect.lon)) {
+  // Un point triangulé (`stay/situer.ts`) n'est publié par personne : celui
+  // de la page le remplace, comme un point absent.
+  if (!pointPublie(row) && plausible(lect.lat, lect.lon)) {
     row.lat = lect.lat;
     row.lon = lect.lon;
     // Airbnb : le point dit d'où il vient (`repliGps.ts`). Un point de la
     // liste n'est jamais touché : on n'arrive ici que sans lui.
     if (lect.gpsSource) row.gpsSource = lect.gpsSource;
+    else if (row.gpsSource === "triangule") row.gpsSource = null;
     changed = true;
   }
   if (!row.locality && lect.locality) {

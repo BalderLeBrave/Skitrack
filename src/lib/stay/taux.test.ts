@@ -191,6 +191,20 @@ describe("journal de taux : GreenGo", () => {
   });
 });
 
+describe("journal de taux : Ski-Planet", () => {
+  it("une seconde d'écart, quarante par minute : la part de l'écran Prix lit une trentaine de calendriers", () => {
+    const chemin = journalNeuf();
+    const a = taux.reserverTaux("skiplanet", 10_000);
+    const b = taux.reserverTaux("skiplanet", 10_000);
+    assert.ok(a.waitMs < 100);
+    assert.ok(b.waitMs > 900 && b.waitMs <= 1_100, `second créneau à ${b.waitMs} ms`);
+    const now = Math.floor(Date.now() / 1000) * 1000;
+    const hits = Array.from({ length: 39 }, (_, i) => now - 50_000 + i * 1_000);
+    writeFileSync(chemin, JSON.stringify({ skiplanet: { hits: hits.map((t) => t / 1000), until: 0 } }));
+    assert.equal(taux.attentePlacesMs("skiplanet", 1, now), 0, "la quarantième place reste libre");
+  });
+});
+
 describe("coupe-circuit Airbnb côté Node", () => {
   it("s'ouvre 45 s au moins et garde une pause plus longue déjà posée", () => {
     journalNeuf();

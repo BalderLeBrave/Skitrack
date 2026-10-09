@@ -27,7 +27,7 @@ import type { Station } from "../stations.ts";
 import { STATIONS } from "../stations.ts";
 import { VILLAGES } from "../villages.ts";
 import { attachAccess } from "../access.ts";
-import { gpsPrecis } from "./lodgingFilter.ts";
+import { distFiltrableM, gpsPrecis } from "./lodgingFilter.ts";
 
 export type RepereNomme = { nom: string; lat: number; lon: number };
 
@@ -157,6 +157,17 @@ export function mesuresPubliees<T extends Listing>(l: T): T {
     searchedLiftM: null,
     searchedLiftName: null,
   };
+}
+
+/**
+ * La distance à une remontée que le filtre « Distance à une remontée » et le
+ * tri par distance lisent : celle d'un point publié seulement. Un point
+ * triangulé la tire du repère ou de la station ; la carte dit « distance non
+ * mesurée » (`distanceOf`), le filtre l'écarte et le tri la met en queue,
+ * comme une annonce sans point avant la triangulation.
+ */
+export function distRemonteePublieeM(l: Listing): number | null {
+  return distFiltrableM(mesuresPubliees(l));
 }
 
 /**

@@ -50,11 +50,15 @@ const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
   greengo: { gapMs: 2_000, maxHits: 20 },
   /**
    * Les appels internes de Ski-Planet (`calendrier-residence.php`), un par
-   * résidence. La tâche continue après la part et reprend le fil en mémoire :
-   * deux secondes et trente par minute, le même écart que les autres hôtes.
-   * Aucun refus observé sur plus de 300 appels à 2 s d'écart le 26 septembre 2026.
+   * résidence : une page de résultats du site en lance dix d'un coup. Une
+   * requête par seconde, quarante par minute, reste en deçà de ce qu'un
+   * visiteur qui feuillette lui fait envoyer. Aucun refus observé sur plus
+   * de 300 appels à 2 s d'écart le 26 septembre 2026. Ralenti à deux
+   * secondes, la part de 40 s de l'écran Prix ne lisait plus qu'une
+   * quinzaine de calendriers au lieu d'une trentaine, et la station suivante
+   * arrête la tâche : autant d'annonces de moins dans la médiane.
    */
-  skiplanet: { gapMs: 2_000, maxHits: 30 },
+  skiplanet: { gapMs: 1_000, maxHits: 40 },
 };
 
 type Row = { hits?: unknown; until?: unknown };

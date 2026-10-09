@@ -43,7 +43,6 @@ import { aEquipement, noteAuMoins, noteSur5De } from "@/lib/stay/ficheEnrichie";
 import { noteSur5Lbl } from "@/lib/note";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
-  distFiltrableM,
   DIST_PALIERS_M,
   geoReasonFor,
   gpsPrecis,
@@ -92,7 +91,7 @@ import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { voisinDansListe } from "@/lib/stay/visionneuse";
 import { jumelageGpsAirbnb } from "@/lib/stay/recopie";
-import { estPointPublie, placerSansPoint } from "@/lib/stay/situer";
+import { distRemonteePublieeM, estPointPublie, placerSansPoint } from "@/lib/stay/situer";
 import { photosDeResidence } from "@/lib/stay/photoResidence";
 import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
@@ -977,7 +976,9 @@ function LogementsStation({ s }: { s: Station }) {
       id: "dist",
       // Un palier de la barre garde son nom : « Pied des pistes », « ≤ 500 m ».
       label: DIST_PALIERS_M.some((m) => palierPose(dist, m)) ? palierDistLbl(dist[1]) : lfLbl("dist", dist),
-      fn: (l) => dansPlage(distFiltrableM(l), dist, RANGE.dist.b),
+      // Un point triangulé ne mesure rien (`distanceOf` le dit) : il ne passe
+      // pas un palier de distance, comme une annonce sans point.
+      fn: (l) => dansPlage(distRemonteePublieeM(l), dist, RANGE.dist.b),
       remove: () => patchLf({ dist: null }),
     });
   const srcOn = Object.keys(lf.src).filter((k) => lf.src[k]);
@@ -1041,7 +1042,7 @@ function LogementsStation({ s }: { s: Station }) {
     pp: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     total: (a, b) => parMesure(apres(a.total), apres(b.total), lsens),
     cap: (a, b) => parMesure(a.capacity ?? null, b.capacity ?? null, lsens),
-    dist: (a, b) => parMesure(distFiltrableM(a), distFiltrableM(b), lsens),
+    dist: (a, b) => parMesure(distRemonteePublieeM(a), distRemonteePublieeM(b), lsens),
     alt: (a, b) => parMesure(altDe(a)?.m, altDe(b)?.m, lsens),
     note: (a, b) => parMesure(noteSur5De(a), noteSur5De(b), lsens),
     trous: (a, b) => {

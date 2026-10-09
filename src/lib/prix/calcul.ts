@@ -46,7 +46,7 @@ import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
 const GARE_LOINTAINE_M = 40_000;
 import { anciensIds, STATIONS, stationById } from "../stations.ts";
 import { cleBien, cleDuLogement, cleListing, dedoublonnerParBien } from "../stay/poserReleve.ts";
-import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
+import { pointPublie, urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
 import { recopierSoeurs } from "../stay/recopie.ts";
 import { parPrix as parPrixOffre, regrouper, type Logement } from "../stay/regroupement.ts";
 import { estOffreGitesVerifiee } from "../stay/tarif.ts";
@@ -607,7 +607,10 @@ export function annoncesDuReleve(input: EntreeReleve): AnnonceRetenue[] {
  *  complétion de l'écran Prix ne part pas pour elle. C'est la seconde passe de Logements qui va chercher
  *  la page de détail quand elle la publie (`stay/completerFiche.server.ts`). */
 export function manqueFiche(l: Listing): boolean {
-  return !gpsPrecis(l) || l.capacity == null || normalizedBedrooms(l) == null;
+  // Un point triangulé (`gpsSource`) ne bouche pas le trou : la médiane ne le
+  // compte pas (`cribler`), la fiche se lit encore pour lui, comme pour une
+  // annonce sans point.
+  return !pointPublie(l) || l.capacity == null || normalizedBedrooms(l) == null;
 }
 
 /**
@@ -625,7 +628,7 @@ export function aCompleter(listings: readonly Listing[], ctx: ContexteReleve): L
   const out: Listing[] = [];
   const recevables = listings
     .map(enrichirListing)
-    .filter((l) => offreRecevable(l, ctx) && !(gpsPrecis(l) && !dansLaStation(l)));
+    .filter((l) => offreRecevable(l, ctx) && !(pointPublie(l) && !dansLaStation(l)));
   for (const l of dedoublonnerParBien(recevables)) {
     if (!manqueFiche(l)) continue;
     if (partyVerdict(l, criteres) === "trop-petit") continue;

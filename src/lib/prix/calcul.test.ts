@@ -3163,6 +3163,19 @@ describe("complétion : les annonces à compléter", () => {
     assert.equal(aCompleter([annonce({ lat: 0, lon: 0 })], CTX).length, 1);
   });
 
+  it("un point triangulé ne bouche pas le trou : l'annonce reste à compléter, comme sans point", () => {
+    // Le point de la station, posé faute de GPS publié (`stay/situer.ts`).
+    const pin = annonce({ gpsSource: "triangule", distToLiftM: 3000 });
+    assert.equal(manqueFiche(pin), true);
+    assert.deepEqual(
+      aCompleter([pin], CTX).map((l) => l.id),
+      aCompleter([annonce({ lat: null, lon: null, distToLiftM: null, distToSlopesM: null })], CTX).map((l) => l.id),
+    );
+    assert.equal(aCompleter([pin], CTX).length, 1);
+    // Le même point publié se juge : à 3 km d'une remontée, rien à compléter.
+    assert.equal(aCompleter([{ ...pin, gpsSource: null }], CTX).length, 0);
+  });
+
   const horsCrible: [string, Listing][] = [
     ["un repli sur le relevé figé", sansRien({ proven: "Relevé Airbnb, repli relevé 3 sept." })],
     ["une devise autre que l’euro", sansRien({ currency: "CHF" })],

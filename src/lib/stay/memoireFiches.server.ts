@@ -458,6 +458,8 @@ export type SujetMemoire = {
   beds?: number | null;
   lat: number | null;
   lon: number | null;
+  /** `triangule` : un point posé sans source (`stay/situer.ts`), un trou à combler. */
+  gpsSource?: string | null;
   fiche?: FicheEnrichie | null;
 };
 
@@ -479,10 +481,13 @@ export function comblerDepuisMemoire(row: SujetMemoire, m: ValeursFiche): boolea
     row.lon != null &&
     Number.isFinite(row.lat) &&
     Number.isFinite(row.lon) &&
-    !(row.lat === 0 && row.lon === 0);
+    !(row.lat === 0 && row.lon === 0) &&
+    // Un point triangulé n'est publié par personne : le point gardé le remplace.
+    row.gpsSource !== "triangule";
   if (!point && m.lat != null && m.lon != null) {
     row.lat = m.lat;
     row.lon = m.lon;
+    if (row.gpsSource === "triangule") row.gpsSource = null;
     pose = true;
   }
   // Les lits, dans un vide seulement : jamais ceux que l'annonce publie.

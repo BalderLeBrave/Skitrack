@@ -330,6 +330,16 @@ describe("poserLecture : la taxe de séjour, une fois", () => {
     assert.match(row.proven, /taxe de séjour/);
   });
 
+  it("le point de la page remplace un point triangulé, jamais un point publié", () => {
+    const pin = { ...lect(null), capacity: null, lat: 45.02, lon: 6.13 };
+    const row = ligne(4, "loyer.exemple.fr", { lat: 45.008, lon: 6.124, gpsSource: "triangule" });
+    assert.equal(poserLecture(row, pin), true);
+    assert.deepEqual([row.lat, row.lon, row.gpsSource], [45.02, 6.13, null]);
+    const publie = ligne(5, "loyer.exemple.fr", { lat: 45.008, lon: 6.124 });
+    poserLecture(publie, pin);
+    assert.deepEqual([publie.lat, publie.lon], [45.008, 6.124]);
+  });
+
   it("les lits de la page comblent un vide, jamais une valeur déjà là", () => {
     const row = ligne(3, "loyer.exemple.fr");
     assert.equal(poserLecture(row, { ...lect(null), capacity: null, beds: 4 }), true);

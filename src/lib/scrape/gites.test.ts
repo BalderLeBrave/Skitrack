@@ -9,6 +9,8 @@ import {
   listingDeFiche,
   listingDeTuile,
   ficheAvecDevis,
+  couvrirTuiles,
+  lireFichesEnRetard,
   nombreDeResultats,
   occupancyFromGitesHtml,
   pageSuivante,
@@ -345,6 +347,112 @@ describe("annonce Gîtes de France", () => {
     assert.equal(l.capacity, null);
     assert.equal(l.bedrooms, null);
     assert.doesNotMatch(l.proven, /position publiée/);
+  });
+});
+
+describe("suite ITEA : la fiche des dates, après la tuile", () => {
+  it("une fiche déjà lue remplace la tuile du même gîte, et rien d'autre", () => {
+    const tuileL = listingDeTuile(tuile({ capacite: "6 personnes" }), "38G40102", INPUT);
+    const autre = listingDeTuile(
+      tuile({ title: "L'autre", url: "https://www.gites-de-france.com/fr/x-73g10001" }),
+      "73G10001",
+      INPUT,
+    );
+    const ficheL = listingDeFiche(
+      tuile({ capacite: "6 personnes" }),
+      fiche({ description: "Au calme", total: 900, currency: "EUR" }),
+      "38G40102",
+      INPUT,
+    );
+    const couvert = couvrirTuiles([tuileL, autre], [ficheL]);
+    assert.equal(couvert.length, 2);
+    assert.equal(couvert[0]?.description, "Au calme");
+    assert.equal(couvert[0]?.total, 900);
+    assert.equal(couvert[1]?.id, "73G10001");
+    assert.match(couvert[1]?.proven ?? "", /fiche ITEA non lue/);
+  });
+
+  it("un refus ITEA arrête la suite, sans relancer la fiche suivante", async () => {
+    const appels: string[] = [];
+    const bilan = await lireFichesEnRetard(
+      [
+        { tile: tuile(), code: "38G40102" },
+        { tile: tuile({ url: "https://www.gites-de-france.com/fr/x-73g10001" }), code: "73G10001" },
+      ],
+      INPUT,
+      1_000_000,
+      {
+        maintenant: () => 0,
+        attendre: async () => undefined,
+        relever: async (code) => {
+          appels.push(code);
+          throw new Error("ITEA HTTP 429");
+        },
+      },
+    );
+    assert.deepEqual(appels, ["38G40102"]);
+    assert.equal(bilan.arret, "refus");
+    assert.equal(bilan.listings.length, 0);
+  });
+
+  it("trois échecs d'affilée arrêtent ; un hors-périmètre n'en est pas un", async () => {
+    const appels: string[] = [];
+    const reste = ["38G40102", "73G10001", "74G10002", "05G10003", "06G10004"].map((code) => ({
+      tile: tuile({ url: `https://www.gites-de-france.com/fr/x-${code.toLowerCase()}` }),
+      code,
+    }));
+    const bilan = await lireFichesEnRetard(reste, INPUT, 1_000_000, {
+      maintenant: () => 0,
+      attendre: async () => undefined,
+      relever: async (code) => {
+        appels.push(code);
+        if (code === "38G40102") return null;
+        throw new Error("délai");
+      },
+    });
+    assert.deepEqual(appels, ["38G40102", "73G10001", "74G10002", "05G10003"]);
+    assert.equal(bilan.arret, "refus");
+    assert.equal(bilan.listings.length, 0);
+  });
+
+  it("pose la description de la fiche, et le total seulement s'il est publié pour ces dates", async () => {
+    const notes: string[] = [];
+    const bilan = await lireFichesEnRetard(
+      [{ tile: tuile({ capacite: "8 personnes" }), code: "38G40102" }],
+      INPUT,
+      1_000_000,
+      {
+        maintenant: () => 0,
+        attendre: async () => undefined,
+        noter: (l) => notes.push(l.id),
+        relever: async () =>
+          fiche({
+            description: "Grand gîte aménagé",
+            total: 0,
+            avis: { noteSource: null, echelleSource: null, nombre: "3", extraits: [] },
+          }),
+      },
+    );
+    assert.deepEqual(notes, ["38G40102"]);
+    assert.equal(bilan.arret, "fin");
+    assert.equal(bilan.listings[0]?.description, "Grand gîte aménagé");
+    assert.equal(bilan.listings[0]?.fiche?.avis?.nombre, 3);
+    assert.equal(bilan.listings[0]?.total, 0);
+    assert.match(bilan.listings[0]?.proven ?? "", /aucun prix publié à ces dates/);
+  });
+
+  it("passée l'échéance, aucune fiche n'est demandée", async () => {
+    let appels = 0;
+    const bilan = await lireFichesEnRetard([{ tile: tuile(), code: "38G40102" }], INPUT, 10, {
+      maintenant: () => 10,
+      attendre: async () => undefined,
+      relever: async () => {
+        appels += 1;
+        return null;
+      },
+    });
+    assert.equal(appels, 0);
+    assert.equal(bilan.arret, "échéance");
   });
 });
 

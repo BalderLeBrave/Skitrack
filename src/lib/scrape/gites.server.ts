@@ -22,9 +22,10 @@ import { communeGites } from "./gitesCommunes.ts";
  * `MAX_FICHES` est un budget de politesse envers `widget-fngf.itea.fr`, un
  * hôte tiers : ce n'est pas un filtre sur les résultats. Au-delà de ces
  * vingt-quatre fiches, et quand ITEA ne répond pas, la tuile de recherche
- * sort quand même — titre, type, photo, position et ligne de capacité, total
- * à zéro. Le prix, la description et les avis ne viennent que de la fiche ;
- * ils ne sont pas inventés à sa place.
+ * sort tout de suite — titre, type, photo, position et ligne de capacité,
+ * total à zéro. La description, les avis et le devis des dates choisies
+ * vivent sur la fiche : ils sont lus ensuite, une fiche à la fois, et un
+ * refus (403, 429, 503) arrête cette suite. Rien n'est inventé à sa place.
  */
 const MAX_PAGES = 6;
 const BUDGET_PAGES_MS = 20_000;
@@ -568,10 +569,16 @@ async function relever(
   // recherche avec lui ; un délai par appel laissait trois appels lents
   // déborder ensemble.
   const signal = () => AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_FICHE_MS, fin - Date.now())));
-  const html = await fetch(gitesWidgetUrl(code), {
+  const rep = await fetch(gitesWidgetUrl(code), {
     headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
     signal: signal(),
-  }).then((r) => r.text());
+  });
+  // Un refus se respecte : on ne lit pas la page de défi comme une fiche vide.
+  if (rep.status === 403 || rep.status === 429 || rep.status === 503) {
+    await rep.body?.cancel().catch(() => undefined);
+    throw new Error(`ITEA HTTP ${rep.status}`);
+  }
+  const html = await rep.text();
   const occupancy = occupancyFromGitesHtml(html);
   const lieu = lieuFromGitesHtml(html);
   retenirLieuGites(code, lieu);
@@ -753,6 +760,139 @@ export function listingDeTuile(tile: Tile, code: string, input: LiveSearchInput)
   };
 }
 
+/** Entre deux fiches de la suite : un seul ouvrier, plus lent que les quatre du relevé. */
+const PAUSE_SUITE_GITES_MS = 2_000;
+/** La suite ne dure pas plus. Au-delà, la recherche suivante reprend le reste. */
+const SUITE_GITES_MAX_MS = 8 * 60 * 1000;
+/** Ce qui a été lu vaut une heure : les disponibilités bougent. */
+const DUREE_MEMOIRE_GITES_MS = 60 * 60 * 1000;
+
+export type ResteGites = { tile: Tile; code: string };
+
+export type OutilsSuiteGites = {
+  relever: (code: string, checkIn: string, checkOut: string, guests: number, fin: number) => Promise<Fiche | null>;
+  attendre: (ms: number) => Promise<void>;
+  maintenant: () => number;
+  /** Posé dès qu'une fiche est lue, pour que l'écran n'attende pas la fin. */
+  noter?: (listing: Listing) => void;
+};
+
+export type BilanSuiteGites = {
+  listings: Listing[];
+  arret: "fin" | "refus" | "échéance";
+  lues: number;
+};
+
+/**
+ * Les fiches ITEA que le budget interactif n'a pas lues.
+ *
+ * Une à la fois, `PAUSE_SUITE_GITES_MS` entre deux. Un HTTP 403, 429 ou 503
+ * arrête tout de suite, sans reprise. Trois autres échecs d'affilée aussi.
+ * `null` est un hors-périmètre déclaré par la source, pas un échec.
+ * L'échéance rend ce qui a déjà été lu.
+ */
+export async function lireFichesEnRetard(
+  reste: readonly ResteGites[],
+  input: LiveSearchInput,
+  echeance: number,
+  o: OutilsSuiteGites,
+): Promise<BilanSuiteGites> {
+  const listings: Listing[] = [];
+  let echecs = 0;
+  for (let i = 0; i < reste.length; i++) {
+    if (o.maintenant() >= echeance) return { listings, arret: "échéance", lues: i };
+    if (echecs >= ECHECS_DISJONCTEUR) return { listings, arret: "refus", lues: i };
+    await o.attendre(PAUSE_SUITE_GITES_MS);
+    if (o.maintenant() >= echeance) return { listings, arret: "échéance", lues: i };
+    const { tile, code } = reste[i]!;
+    try {
+      const fiche = await o.relever(code, input.checkIn, input.checkOut, input.guests, echeance);
+      echecs = 0;
+      if (fiche) {
+        const listing = listingDeFiche(tile, fiche, code, input);
+        listings.push(listing);
+        o.noter?.(listing);
+      }
+    } catch (err) {
+      echecs += 1;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/HTTP (403|429|503)/.test(msg) || echecs >= ECHECS_DISJONCTEUR) {
+        return { listings, arret: "refus", lues: i + 1 };
+      }
+    }
+  }
+  return { listings, arret: "fin", lues: reste.length };
+}
+
+type MemoireGites = { a: number; listings: Listing[]; enCours: boolean; finie: boolean };
+const gitesGlobal = globalThis as typeof globalThis & { __skitrackSuiteGites__?: Map<string, MemoireGites> };
+
+function memoiresGites(): Map<string, MemoireGites> {
+  return (gitesGlobal.__skitrackSuiteGites__ ??= new Map());
+}
+
+export function cleSuiteGites(input: Pick<LiveSearchInput, "stationId" | "checkIn" | "checkOut" | "guests">): string {
+  return `${input.stationId}|${input.checkIn}|${input.checkOut}|${input.guests}`;
+}
+
+/** Les fiches déjà lues en tâche de fond pour ces dates. Aucun appel réseau. */
+export function lireMemoireGites(input: Pick<LiveSearchInput, "stationId" | "checkIn" | "checkOut" | "guests">): Listing[] {
+  const cle = cleSuiteGites(input);
+  const s = memoiresGites().get(cle);
+  if (!s) return [];
+  if (!s.enCours && Date.now() - s.a > DUREE_MEMOIRE_GITES_MS) {
+    memoiresGites().delete(cle);
+    return [];
+  }
+  return s.listings;
+}
+
+/** La fiche lue remplace la tuile du même identifiant. Rien d'autre n'est ajouté. */
+export function couvrirTuiles(tuiles: readonly Listing[], memoire: readonly Listing[]): Listing[] {
+  if (memoire.length === 0) return [...tuiles];
+  const par = new Map(memoire.map((l) => [l.id, l]));
+  return tuiles.map((l) => par.get(l.id) ?? l);
+}
+
+function lancerSuiteGites(input: LiveSearchInput, reste: readonly ResteGites[]): void {
+  if (reste.length === 0) return;
+  const map = memoiresGites();
+  for (const s of map.values()) if (s.enCours) return;
+  const cle = cleSuiteGites(input);
+  const etat = map.get(cle);
+  if (etat?.finie && Date.now() - etat.a < DUREE_MEMOIRE_GITES_MS) return;
+  const connus = new Set((etat?.listings ?? []).map((l) => l.id));
+  const encore = reste.filter((r) => !connus.has(r.code));
+  if (encore.length === 0) return;
+  const listings = [...(etat?.listings ?? [])];
+  map.set(cle, { a: Date.now(), listings, enCours: true, finie: false });
+  const echeance = Date.now() + SUITE_GITES_MAX_MS;
+  void lireFichesEnRetard(encore, input, echeance, {
+    relever,
+    attendre: sleep,
+    maintenant: () => Date.now(),
+    noter: (l) => {
+      listings.push(l);
+      const s = map.get(cle);
+      if (s) s.a = Date.now();
+    },
+  })
+    .then((b) => {
+      map.set(cle, {
+        a: Date.now(),
+        listings,
+        enCours: false,
+        // Une échéance se reprend à la recherche suivante. Un refus, non.
+        finie: b.arret !== "échéance",
+      });
+      console.info(`[gites] suite ${cle} : ${b.listings.length} fiche(s), arrêt « ${b.arret} »`);
+    })
+    .catch(() => {
+      const s = map.get(cle);
+      if (s) s.enCours = false;
+    });
+}
+
 export type OptionsGites = {
   /** Instant absolu (`Date.now()`) après lequel aucune fiche ITEA n'est plus lancée. */
   finFiches?: number;
@@ -861,7 +1001,7 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
   const need = candidats.slice(0, MAX_FICHES);
   if (candidats.length > need.length) {
     console.info(
-      `[gites] ${candidats.length - need.length} tuile(s) au-delà du budget ITEA de ${MAX_FICHES} : elles sortiront depuis la tuile, sans devis`,
+      `[gites] ${candidats.length - need.length} tuile(s) au-delà du budget ITEA de ${MAX_FICHES} : la tuile sort tout de suite, la fiche se lit ensuite`,
     );
   }
   const out: Listing[] = [];
@@ -918,19 +1058,26 @@ export async function scrapeGites(page: Page, input: LiveSearchInput, opts: Opti
     console.info(`[gites] ${horsPerimetre} hors périmètre · ${manquees} fiche(s) illisibles${coupe}`);
   }
   let depuisTuile = 0;
+  const reste: ResteGites[] = [];
   for (const tile of candidats) {
     const code = codeFromUrl(tile.url);
     if (!code || deja.has(code)) continue;
     deja.add(code);
     out.push(listingDeTuile(tile, code, input));
+    reste.push({ tile, code });
     depuisTuile += 1;
   }
   if (depuisTuile) {
-    console.info(`[gites] ${depuisTuile} tuile(s) sans fiche ITEA : annonce sans prix, description ni avis`);
+    console.info(
+      `[gites] ${depuisTuile} tuile(s) sans fiche ITEA pour l'instant : description, avis et devis des dates lues ensuite, une à une`,
+    );
   }
+  const memoire = lireMemoireGites(input);
+  lancerSuiteGites(input, reste);
   // `total: 0` veut dire « prix non publié », pas « gratuit » : ces annonces
-  // passent après celles qui portent un prix, jamais devant.
-  return out.sort((a, b) => {
+  // passent après celles qui portent un prix, jamais devant. Une fiche déjà
+  // lue en tâche de fond remplace sa tuile, sans rien ajouter d'autre.
+  return couvrirTuiles(out, memoire).sort((a, b) => {
     const pa = a.total > 0 ? a.total : null;
     const pb = b.total > 0 ? b.total : null;
     if (pa == null && pb == null) return 0;

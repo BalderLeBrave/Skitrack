@@ -77,7 +77,8 @@
  * `capacity` reste vide, et l'écran dit « Non renseigné ».
  */
 
-import { depuisListe, type EquipementsLus } from "../../../stay/equipements.ts";
+import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
+import { texteDeHtml } from "../../../stay/texteHtml.ts";
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheIngenie = {
@@ -125,6 +126,12 @@ export type FicheIngenie = {
    * `stay/equipements.ts`. `null` : la fiche n'a pas de zone de pictogrammes.
    */
   equipements: EquipementsLus | null;
+  /**
+   * La description du JSON-LD de la fiche, sur la page de résultats déjà lue
+   * pour ces dates. Vide chez la centrale (`""`) vaut `null`. Elle ne sert
+   * pas de capacité : « classé pour 4 personnes » n'est pas « 4 personnes ».
+   */
+  description: string | null;
 };
 
 export type DemandeIngenie = {
@@ -700,18 +707,6 @@ function tarifDe(fragment: string): TarifIngenie | null {
 }
 
 /**
- * Lit une page de résultats.
- *
- * Une fiche **sans bloc de tarif** n'est pas rendue : la centrale la connaît,
- * mais elle ne la vend pas à ces dates-là. Sans dates, la page n'en porte
- * aucun, et c'est ainsi qu'on sait que ces prix sont datés. Une fiche dont le
- * bloc dit « à partir de 0 € » n'est pas rendue non plus : le planning de la
- * centrale n'a alors aucun tarif pour la semaine, la location se traite par
- * courriel avec le propriétaire (Val d'Allos, 30 septembre 2026 : 11 fiches
- * sur 11, `data-semaine-tarif` vide). Consigne du propriétaire : un logement
- * sans prix n'est pas gardé.
- */
-/**
  * Les pictogrammes d'équipements d'une fiche, dans la page de résultats déjà
  * lue. Un pictogramme présent vaut « oui » ; la centrale n'affiche pas les
  * absents, qui restent inconnus. `null` sans zone de pictogrammes.
@@ -723,6 +718,53 @@ export function equipementsIngenie(fragment: string): EquipementsLus | null {
   return depuisListe(titres);
 }
 
+/**
+ * La description publiée dans le JSON-LD de la fiche (`LocalBusiness.description`).
+ *
+ * La page de résultats datée la porte déjà : on ne va pas la chercher ailleurs.
+ * Un JSON illisible — un retour chariot brut dans le texte — ne se reconstitue
+ * pas : la description reste `null`, le lieu se lit encore à part.
+ */
+export function descriptionIngenie(fragment: string): string | null {
+  for (const m of fragment.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
+    const brut = m[1] ?? "";
+    let texte: unknown = null;
+    try {
+      texte = (JSON.parse(brut) as { description?: unknown }).description;
+    } catch {
+      texte = null;
+    }
+    const lu = typeof texte === "string" ? texteDeHtml(texte) : null;
+    if (lu) return lu;
+  }
+  return null;
+}
+
+/**
+ * Pictogrammes d'abord, puis ce que la description nomme. Sans l'un ni l'autre,
+ * `null` : une fiche muette n'est pas une fiche « sans équipement ».
+ */
+export function equipementsAvecDescription(
+  pictos: EquipementsLus | null,
+  description: string | null,
+): EquipementsLus | null {
+  const texte = description ? depuisTexte(description) : null;
+  if (!pictos && (!texte || Object.keys(texte).length === 0)) return null;
+  return fusionner(pictos, texte);
+}
+
+/**
+ * Lit une page de résultats.
+ *
+ * Une fiche **sans bloc de tarif** n'est pas rendue : la centrale la connaît,
+ * mais elle ne la vend pas à ces dates-là. Sans dates, la page n'en porte
+ * aucun, et c'est ainsi qu'on sait que ces prix sont datés. Une fiche dont le
+ * bloc dit « à partir de 0 € » n'est pas rendue non plus : le planning de la
+ * centrale n'a alors aucun tarif pour la semaine, la location se traite par
+ * courriel avec le propriétaire (Val d'Allos, 30 septembre 2026 : 11 fiches
+ * sur 11, `data-semaine-tarif` vide). Consigne du propriétaire : un logement
+ * sans prix n'est pas gardé.
+ */
 export function lireIngenie(page: string): FicheIngenie[] {
   const par = new Map<string, FicheIngenie>();
   for (const fragment of fragmentsIngenie(page)) {
@@ -767,6 +809,7 @@ export function lireIngenie(page: string): FicheIngenie[] {
       ...lieuIngenie(fragment),
       ...occupationAfficheeIngenie(fragment),
       equipements: equipementsIngenie(fragment),
+      description: descriptionIngenie(fragment),
     });
   }
   return [...par.values()];

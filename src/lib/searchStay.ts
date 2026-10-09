@@ -218,6 +218,28 @@ export const lireSuiteBooking = createServerFn({ method: "POST" })
     return lireCacheBooking({ ...data, domaine: true });
   });
 
+/**
+ * Les fiches Gîtes lues après la réponse interactive (suite ITEA, une à la
+ * fois). Aucun appel ici : la suite tourne déjà, ou elle ne tourne pas.
+ */
+export const lireSuiteGites = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      stationName: z.string().min(1),
+      lat: z.number(),
+      lon: z.number(),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      guests: z.number().int().min(1).max(30),
+      bedrooms: z.number().int().min(0).max(20),
+    }),
+  )
+  .handler(async ({ data }): Promise<Listing[]> => {
+    const { lireMemoireGites } = await import("./scrape/gites.server");
+    return lireMemoireGites(data);
+  });
+
 /** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, devis ITEA daté. */
 export const completerReleve = createServerFn({ method: "POST" })
   .validator(

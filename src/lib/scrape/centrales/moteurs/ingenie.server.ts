@@ -45,6 +45,7 @@ import {
   typesPrestataireDepuisPage,
   nuitsEntre,
   urlIngenie,
+  equipementsAvecDescription,
   type FicheIngenie,
   type PageIngenie,
 } from "./ingenie";
@@ -139,8 +140,10 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     lon: f.lon,
     locality: f.commune,
     placeName: f.adresse,
-    // Les pictogrammes de la page de résultats déjà lue : présents ou inconnus.
-    amenities: equipements(f.equipements),
+    // Pictogrammes de la page déjà lue, complétés par la description du même
+    // JSON-LD. L'un et l'autre manquent ensemble : la liste reste non lue.
+    amenities: equipements(equipementsAvecDescription(f.equipements, f.description)),
+    ...(f.description ? { description: f.description } : {}),
     proven: `${r.nom} (Ingénie, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuit${
       nuits > 1 ? "s" : ""
     }, ${ctx.guests} pers.${f.etiquette ? ` — étiquette de la centrale : « ${f.etiquette} »` : ""}`,

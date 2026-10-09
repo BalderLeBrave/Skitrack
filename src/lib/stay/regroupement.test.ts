@@ -176,3 +176,18 @@ test("l'ordre d'entrée est gardé : un tri fait avant reste valable", () => {
   );
   assert.equal(sourcesLbl(g[0]), "Airbnb");
 });
+
+test("une position triangulée ne relie pas deux biens de même titre trop éloignés", () => {
+  // Les 2 Alpes : Abritel et Booking à ~240 m, un Airbnb sans GPS posé sur la
+  // station entre les deux. Trois logements, comme sans la triangulation.
+  const titre = "Appartement 4 personnes vue pistes";
+  const g = regrouper([
+    annonce({ id: "abr-1", source: "Abritel", title: titre, lat: 45.009, lon: 6.1205, proven: cozy("Abritel") }),
+    annonce({ id: "bk-2", source: "Booking", title: titre, lat: 45.009, lon: 6.1235, proven: cozy("Booking") }),
+    annonce({ id: "abnb-3", source: "Airbnb", title: titre, lat: 45.009, lon: 6.122, gpsSource: "triangule" }),
+  ]);
+  assert.deepEqual(
+    g.map((x) => x.offres.map((o) => o.id)),
+    [["abr-1"], ["bk-2"], ["abnb-3"]],
+  );
+});

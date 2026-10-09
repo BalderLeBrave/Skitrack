@@ -131,7 +131,7 @@ def test_une_seule_page_d_avis_par_fiche_qui_en_annonce():
     pdp.lire_page_avis = page
     try:
         with _isole(lambda i, n: _avec_fiche(nombre=0 if n == 2 else 120)):
-            out = pdp.run_fiches(_demande(ids=["111111", "222222", "333333"]))
+            out = pdp.run_fiches(_demande(ids=["111111", "222222", "333333"], avis=True))
     finally:
         pdp.lire_page_avis = ancien
     assert appels == ["111111", "333333"], "pas d'appel pour une fiche sans avis, un seul par fiche"
@@ -151,7 +151,7 @@ def test_avis_indisponibles_plus_aucun_appel_d_avis_dans_la_tranche():
     pdp.lire_page_avis = page
     try:
         with _isole(lambda i, n: _avec_fiche()):
-            out = pdp.run_fiches(_demande(ids=["111111", "222222"]))
+            out = pdp.run_fiches(_demande(ids=["111111", "222222"], avis=True))
     finally:
         pdp.lire_page_avis = ancien
     assert appels == ["111111"], "pas de boucle sur un hash rejeté"
@@ -168,7 +168,7 @@ def test_un_refus_sur_les_avis_arrete_la_tranche_et_garde_la_fiche():
     pdp.lire_page_avis = page
     try:
         with _isole(lambda i, n: _avec_fiche()) as appels:
-            out = pdp.run_fiches(_demande(ids=["111111", "222222"]))
+            out = pdp.run_fiches(_demande(ids=["111111", "222222"], avis=True))
     finally:
         pdp.lire_page_avis = ancien
     assert appels == ["111111"]
@@ -347,7 +347,30 @@ def test_les_avis_deja_dans_la_fiche_restent_si_la_page_ne_donne_rien():
         pdp.lire_page_avis = page
         try:
             with _isole(lambda i, n: _avec_fiche(extraits=deja)):
-                out = pdp.run_fiches(_demande(ids=["111111"]))
+                out = pdp.run_fiches(_demande(ids=["111111"], avis=True))
         finally:
             pdp.lire_page_avis = ancien
         assert out["fiches"]["111111"]["enrichie"]["avis"]["extraits"] == deja
+
+
+def test_par_defaut_aucune_page_d_avis():
+    # Une requête de plus par fiche, et un refus qui viderait les relevés :
+    # la page d'avis ne part que sur demande expresse (`avis: true`).
+    appels: list[str] = []
+    ancien = pdp.lire_page_avis
+
+    def page(lid, **_kw):
+        appels.append(lid)
+        return extraits_avis(_avis())
+
+    pdp.lire_page_avis = page
+    try:
+        for extra in ({}, {"avis": False}, {"avis": "oui"}):
+            with _isole(lambda i, n: _avec_fiche(extraits=[{"texte": "Déjà là."}])) as fiches:
+                out = pdp.run_fiches(_demande(ids=["111111", "222222"], **extra))
+            assert fiches == ["111111", "222222"]
+            assert out["lues"] == 2, "une requête par fiche, pas deux"
+            assert out["fiches"]["111111"]["enrichie"]["avis"]["extraits"] == [{"texte": "Déjà là."}]
+    finally:
+        pdp.lire_page_avis = ancien
+    assert appels == []

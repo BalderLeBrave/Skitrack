@@ -60,6 +60,7 @@ import {
   nuitsOrchestra,
   prixOrchestra,
   refOrchestra,
+  suiteSerpOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
   type CarteOrchestra,
@@ -511,7 +512,15 @@ export async function chercherOrchestraSerp(
   for (let i = 0; i < 6; i++) {
     if (deja.has(url)) break;
     deja.add(url);
-    const html = (await json(url, true)) as string;
+    let html: string;
+    try {
+      html = (await json(url, true)) as string;
+    } catch (err) {
+      if (suiteSerpOrchestra(cartes.length) === "lever") throw err;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[centrale] ${host} : page suivante muette — ${msg}`);
+      break;
+    }
     pages += 1;
     for (const c of cartesSerpOrchestra(html, depart.lieu)) {
       if (vus.has(c.id)) continue;

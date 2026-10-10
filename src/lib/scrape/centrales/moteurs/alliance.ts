@@ -204,6 +204,15 @@ export function blocSuivant(bloc: number, rs: number): number | null {
   return rs;
 }
 
+/**
+ * Une page muette, ou qui ne chiffre pas le séjour demandé.
+ * La première lève : il n'y a rien à montrer. Les suivantes s'arrêtent
+ * et les pages déjà lues restent.
+ */
+export function suiteAlliance(pagesDeja: number): "lever" | "arreter" {
+  return pagesDeja > 0 ? "arreter" : "lever";
+}
+
 function objetJson(source: string): unknown {
   const texte = source.trim().replace(/^\uFEFF/, "");
   const appel = texte.match(/^[^(]*\(/);

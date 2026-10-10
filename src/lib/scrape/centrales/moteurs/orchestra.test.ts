@@ -13,6 +13,7 @@ import {
   nuitsOrchestra,
   prixOrchestra,
   refOrchestra,
+  suiteSerpOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
 } from "./orchestra.ts";
@@ -594,5 +595,10 @@ describe("Orchestra : destinations publiées, pas inventées", () => {
     ]);
     assert.deepEqual(destinationsDeStation("", ["megeve"], "praz-sur-arly"), []);
     assert.deepEqual(destinationsDeStation("/fr", ["chamonix", "les-houches"], "chamonix"), ["chamonix"]);
+  });
+
+  it("une page suivante muette s'arrête ; la première lève", () => {
+    assert.equal(suiteSerpOrchestra(0), "lever");
+    assert.equal(suiteSerpOrchestra(3), "arreter");
   });
 });

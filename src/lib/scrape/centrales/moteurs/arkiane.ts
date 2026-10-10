@@ -228,6 +228,14 @@ function texteArkiane(fragment: string): string {
 }
 
 /**
+ * Une page de résultats suivante qui ne répond pas.
+ * La première lève. Les suivantes s'arrêtent : les lots déjà lus restent.
+ */
+export function suiteArkiane(page: number): "lever" | "arreter" {
+  return page > 1 ? "arreter" : "lever";
+}
+
+/**
  * Découpe la réponse en cartes.
  *
  * Le conteneur est `card availability`. Se caler sur le formulaire de détail,

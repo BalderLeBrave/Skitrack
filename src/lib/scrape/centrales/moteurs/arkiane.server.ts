@@ -47,6 +47,7 @@ import {
   horsRegleArkiane,
   lireArkiane,
   lireDetailArkiane,
+  suiteArkiane,
   type DetailArkiane,
   type FicheArkiane,
 } from "./arkiane";
@@ -392,7 +393,15 @@ export async function chercherArkiane(ctx: ContexteCentrale, r: ReglageArkiane):
   let tronque = false;
   for (let skip = 1; skip <= PAGES_MAX; skip += 1) {
     if (skip > 1) await pause(PAUSE_PAGE_MS);
-    const page = await chercherPage(marchand, r.langue, cookies, corpsArkiane(ctx, skip));
+    let page: string;
+    try {
+      page = await chercherPage(marchand, r.langue, cookies, corpsArkiane(ctx, skip));
+    } catch (err) {
+      if (suiteArkiane(skip) === "lever") throw err;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[centrale] ${r.host} : page ${skip} muette — ${msg}`);
+      break;
+    }
     pages += 1;
     // Les cartes, avant tri : une page peut être pleine de cartes que
     // `lireArkiane` écarte, et c'est sa taille à elle qui dit s'il y a une suite.

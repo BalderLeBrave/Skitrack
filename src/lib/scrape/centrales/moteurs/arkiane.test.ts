@@ -12,6 +12,7 @@ import {
   horsRegleArkiane,
   lireArkiane,
   lireDetailArkiane,
+  suiteArkiane,
   titreArkiane,
   typeEcarteArkiane,
 } from "./arkiane.ts";
@@ -410,5 +411,10 @@ describe("Arkiane : description et équipements du détail, sur un relevé réel
   it("la description complète : la terrasse, et « draps fournis, linge de toilette non fourni » vaut linge fourni", () => {
     assert.equal(d.equipements!.balcon, "oui");
     assert.equal(d.equipements!.linge, "oui");
+  });
+
+  it("une page suivante muette s'arrête ; la première lève", () => {
+    assert.equal(suiteArkiane(1), "lever");
+    assert.equal(suiteArkiane(2), "arreter");
   });
 });

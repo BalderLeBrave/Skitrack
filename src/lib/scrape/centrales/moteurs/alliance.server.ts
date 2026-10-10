@@ -20,6 +20,7 @@ import {
   lireZoneAlliance,
   logementsAlliance,
   requeteAlliance,
+  suiteAlliance,
   urlRechercheAlliance,
   type CatalogueAlliance,
   type ReponseAlliance,
@@ -154,14 +155,15 @@ async function pages(
       reponse = lireDisposAlliance(await lire(url));
     } catch (err) {
       const quoi = err instanceof Error ? err.message : String(err);
-      if (sorties.length === 0) throw err;
+      if (suiteAlliance(sorties.length) === "lever") throw err;
       console.warn(`[centrale] ${r.host} : page ${bloc} muette — ${quoi}`);
       break;
     }
     if (reponse.nuits !== nuits || !dateConfirmee(reponse.dateAnnoncee, ctx.checkIn)) {
-      throw new Error(
-        `la recherche a chiffré ${reponse.dateAnnoncee ?? "une autre date"} sur ${reponse.nuits ?? "?"} nuits, pas le séjour demandé`,
-      );
+      const quoi = `la recherche a chiffré ${reponse.dateAnnoncee ?? "une autre date"} sur ${reponse.nuits ?? "?"} nuits, pas le séjour demandé`;
+      if (suiteAlliance(sorties.length) === "lever") throw new Error(quoi);
+      console.warn(`[centrale] ${r.host} : page ${bloc} hors séjour — ${quoi}`);
+      break;
     }
     sorties.push(reponse);
     const suivant = blocSuivant(bloc, reponse.rs);

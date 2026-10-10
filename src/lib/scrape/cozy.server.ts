@@ -519,6 +519,14 @@ export function cozyAnnonces(payloads: readonly unknown[], provider: CozyProvide
   return null;
 }
 
+/**
+ * Un refus ou le limiteur arrête les fournisseurs suivants.
+ * Une autre erreur (délai, page illisible) n'efface pas ce qui est déjà lu.
+ */
+export function erreurArreteCozy(msg: string): boolean {
+  return estMessageRefus(msg) || /limiteur local/.test(msg);
+}
+
 /** Un aller Cozy, avec, par fournisseur, ce qu'il annonce et pourquoi on s'est arrêté. */
 export type CollecteCozy = {
   payloads: unknown[];
@@ -624,8 +632,7 @@ export async function collecterCozy(
         const msg = err instanceof Error ? err.message : String(err);
         arrets[code] = msg;
         console.warn(`[cozy] ${code} arrêté — ${msg}`);
-        if (estMessageRefus(msg) || /limiteur local/.test(msg)) break;
-        throw err;
+        if (erreurArreteCozy(msg)) break;
       }
     }
     console.info(`[cozy] ${payloads.length} paquets · ${entryCount(payloads)} fiches`);

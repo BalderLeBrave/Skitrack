@@ -313,8 +313,23 @@ async function releverCozy(input: LiveSearchInput, reports: SourceReport[], list
     echeance + MARGE_COZY_MS,
     "CozyCozy",
   );
-  const coupe = (p: "abritel" | "booking") =>
-    arrets[p] == null ? "Cozy coupé par l'échéance avant ce fournisseur" : arrets[p] === "échéance" ? "Cozy coupé par l'échéance" : undefined;
+  const coupe = (p: "abritel" | "booking") => {
+    const a = arrets[p];
+    if (a == null) return "Cozy coupé par l'échéance avant ce fournisseur";
+    if (a === "échéance") return "Cozy coupé par l'échéance";
+    // Arrêts normaux de pagination : la liste est ce qu'elle est. Le reste
+    // (délai, page illisible) se dit, sans jeter les autres fournisseurs.
+    if (
+      a === "compteur atteint" ||
+      a === "page vide" ||
+      a === "page incomplète" ||
+      a === "page sans fiche nouvelle" ||
+      a.startsWith("garde-fou")
+    ) {
+      return undefined;
+    }
+    return a;
+  };
   pushReport(reports, listings, "Abritel", cozyListings(payloads, input, "Abritel"), Date.now() - t0, {
     annoncees: annonces.abritel ?? null,
     note: coupe("abritel"),

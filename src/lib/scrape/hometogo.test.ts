@@ -12,6 +12,7 @@ import {
   idsSansDetail,
   lireDetailsEnRetard,
   lotsDe,
+  continuerDomaine,
   DETAIL_NON_LU,
   LOT_DETAILS,
 } from "./hometogo.ts";
@@ -95,6 +96,7 @@ describe("note et prix", () => {
 
   it("lit un total en euros, et un « dès » n'en est pas un", () => {
     assert.deepEqual(prixAffiche("1 610 €"), { total: 1610, currency: "EUR", indicatif: false });
+    assert.deepEqual(prixAffiche("1 610,50 €"), { total: 1610.5, currency: "EUR", indicatif: false });
     assert.deepEqual(prixAffiche("dès 43 €"), { total: 0, currency: "EUR", indicatif: true });
     assert.equal(prixAffiche("1610"), null);
   });
@@ -178,6 +180,54 @@ describe("offre", () => {
     assert.equal(row?.total, 0);
     assert.equal(row?.priceIndicative, true);
     assert.equal(row?.priceLabel, "14 €");
+  });
+
+  it("lit le montant affiché quand totalRaw n'est pas publié", () => {
+    const row = offreEnListing(
+      {
+        id: "abc123",
+        title: "Chalet",
+        price: { exact: true, mode: "totalPrice", currency: "EUR", display: "6 321 €" },
+      },
+      INPUT,
+      "5460aec004a18",
+      7,
+    );
+    assert.equal(row?.total, 6321);
+    assert.equal(row?.pricedCheckIn, INPUT.checkIn);
+    assert.equal(row?.pricedCheckOut, INPUT.checkOut);
+    assert.equal(typeof row?.scannedAt, "number");
+  });
+
+  it("date un total exact, et ne date pas une offre sans prix", () => {
+    const date = offreEnListing(
+      {
+        id: "abc123",
+        title: "Chalet",
+        price: { exact: true, mode: "totalPrice", totalRaw: 6321, currency: "EUR", display: "6 321 €" },
+      },
+      INPUT,
+      "5460aec004a18",
+      7,
+    );
+    assert.equal(date?.pricedCheckIn, "2027-02-06");
+    assert.equal(date?.pricedCheckOut, "2027-02-13");
+    assert.ok(date?.scannedAt != null && Date.now() - date.scannedAt < 5_000);
+    const sans = offreEnListing({ id: "abc123", title: "Chalet" }, INPUT, "5460aec004a18", 7);
+    assert.equal(sans?.total, 0);
+    assert.equal(sans?.pricedCheckIn, undefined);
+    assert.equal(sans?.scannedAt, undefined);
+  });
+});
+
+describe("domaine", () => {
+  it("une page illisible n'arrête pas la station suivante ; un refus ou l'échéance, si", () => {
+    assert.equal(continuerDomaine(null, false), true);
+    assert.equal(continuerDomaine("HTTP 400", false), true);
+    assert.equal(continuerDomaine("réponse illisible", false), true);
+    assert.equal(continuerDomaine("échéance", false), false);
+    assert.equal(continuerDomaine("HTTP 429", true), false);
+    assert.equal(continuerDomaine("HTTP 403", true), false);
   });
 });
 

@@ -26,6 +26,7 @@ import {
   OPERATION_DETAIL,
   OPERATION_RECHERCHE,
   detailler,
+  detaillerMalgre,
   greengoListings,
   hoteGarde,
   lireDetail,
@@ -141,7 +142,7 @@ export async function releverGreenGo(input: LiveSearchInput, opts: { echeance: n
   const adultes = Math.max(1, Math.trunc(input.guests));
   /** L'heure de lecture du détail de chaque hôte : un détail du cache a jusqu'à 15 min. */
   const lus = new Map<string, number>();
-  const suite = await detailler(raison ? [] : gardes.slice(0, MAX_DETAILS), async (h) => {
+  const suite = await detailler(detaillerMalgre(raison) ? gardes.slice(0, MAX_DETAILS) : [], async (h) => {
     const cle = [h.slug, input.checkIn, input.checkOut, adultes].join("|");
     const deja = cacheDetails.get(cle);
     if (deja && Date.now() - deja.at < CACHE_DETAIL_MS) {

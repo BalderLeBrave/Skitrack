@@ -3,17 +3,17 @@
  * page par page, puis le détail des offres que la liste laisse creuses.
  *
  * Le GET ne part pas par le `fetch` de Node : la page HTML reçoit un défi
- * Cloudflare (HTTP 403, « Just a moment »). `urllib` lit la recherche JSON
- * que robots.txt autorise (`/search/{id}?fsid=…&_format=json`) : elle répond,
- * l'interstitiel non. Une requête à la fois, une seconde entre deux pendant
- * la recherche. Le détail qui n'a pas tenu dans le délai part ensuite, un lot
- * toutes les deux secondes, huit minutes au plus. Un vrai 403, un 429 ou un
- * 503 arrête, sans second essai. L'écran Prix ne lance pas cette suite.
- * L'échéance rend ce qui est déjà lu.
+ * Cloudflare (HTTP 403, « Just a moment »). Le Playwright du projet, le même
+ * que les autres sources, lit alors la page. `urllib` lit la recherche JSON
+ * que robots.txt autorise (`/search/{id}?fsid=…&_format=json`). Une requête à
+ * la fois, une seconde entre deux pendant la recherche. Le détail qui n'a pas
+ * tenu dans le délai part ensuite, un lot toutes les deux secondes, huit
+ * minutes au plus. Un vrai 403, un 429 ou un 503 arrête, sans second essai.
+ * L'écran Prix ne lance pas cette suite. L'échéance rend ce qui est déjà lu.
  */
 
 import type { Listing } from "@/lib/listings";
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,7 @@ import { qualifierLogement } from "../stay/logement.ts";
 import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
 import { allowsPath } from "./robots.ts";
 import { sansDoublons, stationsDuReleve } from "./domaine.ts";
+import { withBrowser } from "./browser.server.ts";
 import { envWorker, trouverPython } from "./python.server.ts";
 import type { LiveSearchInput } from "./types";
 import {
@@ -75,95 +76,43 @@ const SUITE_MAX_MS = 8 * 60 * 1000;
 const MEMOIRE_MS = 60 * 60 * 1000;
 const ICI = dirname(fileURLToPath(import.meta.url));
 
-function scriptPasser(): string | null {
-  const candidats = [
-    join(process.cwd(), "scrape/hometogo/passer.mjs"),
-    join(ICI, "../../../scrape/hometogo/passer.mjs"),
-  ];
-  return candidats.find((p) => existsSync(p)) ?? null;
-}
-
-type PagePassee = { ok?: boolean; id?: number; error?: string; status?: number; texte?: string; cfMitigated?: string | null };
-
-let passer: ChildProcessWithoutNullStreams | null = null;
-let passerTampon = "";
-let passerSeq = 0;
-const passerAttentes = new Map<number, (msg: PagePassee) => void>();
-
-function assurerPasser(): ChildProcessWithoutNullStreams | null {
-  if (passer && passer.exitCode == null && !passer.killed) return passer;
-  const script = scriptPasser();
-  if (!script) return null;
-  const child = spawn(process.execPath, [script], {
-    cwd: dirname(script),
-    env: envWorker(process.env.CHROME_PATH ? { CHROME_PATH: process.env.CHROME_PATH } : {}),
-    windowsHide: true,
-  });
-  child.stdout.setEncoding("utf8");
-  child.stdout.on("data", (bloc: string) => {
-    passerTampon += bloc;
-    let coupe = passerTampon.indexOf("\n");
-    while (coupe >= 0) {
-      const ligne = passerTampon.slice(0, coupe).trim();
-      passerTampon = passerTampon.slice(coupe + 1);
-      coupe = passerTampon.indexOf("\n");
-      if (!ligne) continue;
-      let msg: PagePassee;
-      try {
-        msg = JSON.parse(ligne) as PagePassee;
-      } catch {
-        continue;
-      }
-      const att = msg.id != null ? passerAttentes.get(msg.id) : undefined;
-      if (att && msg.id != null) {
-        passerAttentes.delete(msg.id);
-        att(msg);
-      }
-    }
-  });
-  child.on("close", () => {
-    for (const [id, att] of passerAttentes) {
-      passerAttentes.delete(id);
-      att({ ok: false, id, error: "navigateur fermé" });
-    }
-    if (passer === child) passer = null;
-  });
-  child.stderr.on("data", () => undefined);
-  child.stdin.on("error", () => undefined);
-  passer = child;
-  return child;
-}
-
-/** La page HTML, dans la session qui a passé le défi. `null` si elle n'est pas là. */
-async function lireNavigateur(url: string, timeoutMs: number): Promise<CorpsLu | null> {
-  const child = assurerPasser();
-  if (!child) return null;
-  const id = ++passerSeq;
-  const msg = await new Promise<PagePassee>((resolve) => {
-    const timer = setTimeout(() => {
-      passerAttentes.delete(id);
-      resolve({ ok: false, error: "échéance" });
-    }, timeoutMs + 3_000);
-    passerAttentes.set(id, (recu) => {
-      clearTimeout(timer);
-      resolve(recu);
-    });
-    child.stdin.write(`${JSON.stringify({ id, url, timeout: Math.max(3, timeoutMs / 1000) })}\n`);
-  });
-  if (!msg.ok || typeof msg.status !== "number" || typeof msg.texte !== "string") return null;
-  return {
-    status: msg.status,
-    texte: msg.texte,
-    cfMitigated: typeof msg.cfMitigated === "string" ? msg.cfMitigated : null,
-    retryAfter: null,
-  };
-}
 function scriptLire(): string | null {
   const candidats = [join(process.cwd(), "scrape/hometogo/lire.py"), join(ICI, "../../../scrape/hometogo/lire.py")];
   return candidats.find((p) => existsSync(p)) ?? null;
 }
 
 type CorpsLu = { status: number; texte: string; cfMitigated: string | null; retryAfter: string | null };
+
+/** La page HTML, par le Playwright déjà utilisé pour les autres sources. */
+async function lireNavigateur(url: string, timeoutMs: number): Promise<CorpsLu | null> {
+  try {
+    const lu = await withBrowser(async (open) => {
+      const page = await open();
+      const res = await page.goto(url, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+      const fin = Date.now() + timeoutMs;
+      let html = await page.content();
+      while (Date.now() < fin && !pagePubliee(html, await page.title())) {
+        await page.waitForTimeout(500);
+        html = await page.content();
+      }
+      return { html, statut: res?.status() ?? 0, titre: await page.title() };
+    });
+    const pageLue = pagePubliee(lu.html, lu.titre);
+    const defi = !pageLue && /Just a moment|Un instant/.test(lu.html.slice(0, 3_000));
+    return {
+      status: pageLue ? 200 : defi ? 403 : lu.statut,
+      texte: lu.html,
+      cfMitigated: defi ? "challenge" : null,
+      retryAfter: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function pagePubliee(html: string, titre: string): boolean {
+  return html.includes('"locationId"') && html.length > 50_000 && !/instant|moment/i.test(titre);
+}
 
 function acceptDe(url: string): string {
   return url.includes("_format=json") || url.includes("/searchdetails/")
@@ -237,8 +186,8 @@ async function lire(url: string, echeance: number): Promise<{ status: number; te
   const lu = await lireHttp(url, Math.max(1_000, Math.min(DELAI_MS, reste)));
   if ("motif" in lu) return lu;
   if (estInterstitielCloudflare(lu.status, lu.cfMitigated, lu.texte)) {
-    // Le défi n'est pas un refus. La page de la station est relue une fois
-    // dans la session qui le passe. La recherche JSON, elle, répond déjà.
+    // Le défi n'est pas un refus. Playwright, le même que les autres sources,
+    // relit la page de la station. La recherche JSON, elle, répond déjà.
     const pageStation = !u.pathname.startsWith("/search");
     if (pageStation && reste > 8_000) {
       const passe = await lireNavigateur(url, Math.min(20_000, reste));

@@ -18,6 +18,17 @@ import { eurosPublie } from "../stay/tarif.ts";
 
 export const ORIGINE_HOMETOGO = "https://www.hometogo.fr";
 
+/**
+ * Un HTTP 403 dont le corps est le défi Cloudflare (« Just a moment »),
+ * pas une réponse de HomeToGo. Ce n'est pas un refus : on ne ferme pas l'hôte.
+ */
+export function estInterstitielCloudflare(status: number, cfMitigated: string | null, texte: string): boolean {
+  if (status !== 403 && status !== 503) return false;
+  if ((cfMitigated ?? "").trim().toLowerCase() === "challenge") return true;
+  const tete = texte.slice(0, 1500);
+  return tete.includes("Just a moment...") && tete.includes("challenges.cloudflare.com");
+}
+
 /** Offres demandées ensemble à `/searchdetails` : le lot du site (12). */
 export const LOT_DETAILS = 12;
 /** Garde-fou, pas une lecture de la source. L'arrêt normal est la dernière page. */

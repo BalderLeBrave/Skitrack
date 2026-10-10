@@ -2,21 +2,27 @@
  * Relevé HomeToGo : la page du lieu, puis la recherche JSON autorisée,
  * page par page, puis le détail des offres que la liste laisse creuses.
  *
+ * Le GET ne part pas par le `fetch` de Node : il reçoit un défi Cloudflare
+ * (HTTP 403, « Just a moment ») sur chaque page. `urllib` reçoit la page.
  * Une requête à la fois, une seconde entre deux pendant la recherche. Ce qui
  * n'a pas été détaillé dans le délai part ensuite, un lot toutes les deux
- * secondes, huit minutes au plus. Un 403, un 429 ou un 503 arrête, sans
+ * secondes, huit minutes au plus. Un vrai 403, un 429 ou un 503 arrête, sans
  * second essai. L'écran Prix ne lance pas cette suite. L'échéance de la
  * recherche rend ce qui est déjà lu.
  */
 
 import type { Listing } from "@/lib/listings";
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { attachAccess } from "../access.ts";
 import { stationById } from "../stations.ts";
 import { qualifierLogement } from "../stay/logement.ts";
-import { UA_NAVIGATEUR } from "./navigateur.ts";
 import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
 import { allowsPath } from "./robots.ts";
 import { sansDoublons, stationsDuReleve } from "./domaine.ts";
+import { envWorker, trouverPython } from "./python.server.ts";
 import type { LiveSearchInput } from "./types";
 import {
   LOT_DETAILS,
@@ -24,6 +30,7 @@ import {
   PAGES_MAX,
   avecDetailOuNon,
   compteurPublie,
+  estInterstitielCloudflare,
   fondreOffre,
   idsSansDetail,
   lieuDepuisHtml,
@@ -38,13 +45,6 @@ import {
   type LieuHomeToGo,
 } from "./hometogo.ts";
 
-const PAUSE_MS = 1_000;
-const DELAI_MS = 15_000;
-/** La suite de détails, après la réponse : plus lente que la recherche. */
-const PAUSE_SUITE_MS = 2_000;
-const SUITE_MAX_MS = 8 * 60 * 1000;
-const MEMOIRE_MS = 60 * 60 * 1000;
-
 export type ReleveHomeToGo = {
   listings: Listing[];
   /** Le plus grand compteur publié sur les recherches qui ont abouti. */
@@ -58,6 +58,83 @@ function dormir(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+const PAUSE_MS = 1_000;
+const DELAI_MS = 15_000;
+/** La suite de détails, après la réponse : plus lente que la recherche. */
+const PAUSE_SUITE_MS = 2_000;
+const SUITE_MAX_MS = 8 * 60 * 1000;
+const MEMOIRE_MS = 60 * 60 * 1000;
+const ICI = dirname(fileURLToPath(import.meta.url));
+
+function scriptLire(): string | null {
+  const candidats = [join(process.cwd(), "scrape/hometogo/lire.py"), join(ICI, "../../../scrape/hometogo/lire.py")];
+  return candidats.find((p) => existsSync(p)) ?? null;
+}
+
+type CorpsLu = { status: number; texte: string; cfMitigated: string | null; retryAfter: string | null };
+
+function acceptDe(url: string): string {
+  return url.includes("_format=json") || url.includes("/searchdetails/")
+    ? "application/json, text/plain;q=0.9"
+    : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+}
+
+/** Un GET. Node est un défi Cloudflare ; Python `urllib` lit la page. */
+async function lireHttp(url: string, timeoutMs: number): Promise<CorpsLu | Arret> {
+  const script = scriptLire();
+  if (!script) return { motif: "defi", detail: "lecteur HomeToGo introuvable" };
+  const python = await trouverPython(dirname(script), []);
+  if (!python) return { motif: "defi", detail: "aucun Python 3 trouvé" };
+  const raw = await new Promise<{ out: string; err: string }>((resolve) => {
+    const chunks: Buffer[] = [];
+    const errChunks: Buffer[] = [];
+    let fini = false;
+    const rendre = (extra = "") => {
+      if (fini) return;
+      fini = true;
+      clearTimeout(timer);
+      resolve({
+        out: Buffer.concat(chunks).toString("utf8").trim(),
+        err: `${Buffer.concat(errChunks).toString("utf8").trim()}${extra}`,
+      });
+    };
+    const child = spawn(python.cmd, [...python.args, script], {
+      env: envWorker({}),
+      cwd: dirname(script),
+      windowsHide: true,
+    });
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      rendre("\néchéance");
+    }, timeoutMs + 2_000);
+    child.stdout.on("data", (c: Buffer) => chunks.push(c));
+    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
+    child.on("error", (err) => rendre(`\n${err.message}`));
+    child.on("close", () => rendre());
+    child.stdin.on("error", () => undefined);
+    child.stdin.end(JSON.stringify({ url, timeout: Math.max(1, timeoutMs / 1000), accept: acceptDe(url) }));
+  });
+  if (!raw.out) {
+    const fin = raw.err.trim().split(/\r?\n/).pop() ?? "";
+    return { motif: "defi", detail: /échéance/.test(fin) ? "échéance" : fin.slice(0, 160) || "lecteur HomeToGo muet" };
+  }
+  let parsed: { ok?: boolean; error?: string; status?: unknown; texte?: unknown; cfMitigated?: unknown; retryAfter?: unknown };
+  try {
+    parsed = JSON.parse(raw.out) as typeof parsed;
+  } catch {
+    return { motif: "defi", detail: "réponse illisible" };
+  }
+  if (!parsed.ok || typeof parsed.status !== "number" || typeof parsed.texte !== "string") {
+    return { motif: "defi", detail: typeof parsed.error === "string" ? parsed.error.slice(0, 160) : "réponse illisible" };
+  }
+  return {
+    status: parsed.status,
+    texte: parsed.texte,
+    cfMitigated: typeof parsed.cfMitigated === "string" ? parsed.cfMitigated : null,
+    retryAfter: typeof parsed.retryAfter === "string" ? parsed.retryAfter : null,
+  };
+}
+
 async function lire(url: string, echeance: number): Promise<{ status: number; texte: string } | Arret> {
   const reste = echeance - Date.now();
   if (reste < 1_000) return { motif: "defi", detail: "échéance" };
@@ -65,28 +142,17 @@ async function lire(url: string, echeance: number): Promise<{ status: number; te
   await allowsPath(u.origin, `${u.pathname}${u.search}`);
   const garde = await respecterCadence(url, Math.min(5_000, Math.max(0, reste - 1_000)));
   if (garde) return { motif: estMessageRefus(garde) ? "refus" : "defi", detail: garde };
-  try {
-    const res = await fetch(url, {
-      headers: {
-        accept: "application/json,text/html;q=0.9",
-        "accept-language": "fr-FR,fr;q=0.9",
-        "user-agent": UA_NAVIGATEUR,
-        cookie: "c=EUR; meas=metric",
-      },
-      redirect: "follow",
-      signal: AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_MS, reste))),
-    });
-    const texte = await res.text();
-    if (res.status === 403 || res.status === 429 || res.status === 503) {
-      poserRefus(url, res.status, res.headers);
-      return { motif: "refus", detail: `HTTP ${res.status}` };
-    }
-    if (res.status !== 200) return { motif: "defi", detail: `HTTP ${res.status}` };
-    return { status: res.status, texte };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return { motif: "defi", detail: /abort|timeout/i.test(msg) ? "échéance" : msg };
+  const lu = await lireHttp(url, Math.max(1_000, Math.min(DELAI_MS, reste)));
+  if ("motif" in lu) return lu;
+  if (estInterstitielCloudflare(lu.status, lu.cfMitigated, lu.texte)) {
+    return { motif: "defi", detail: "interstitiel Cloudflare" };
   }
+  if (lu.status === 403 || lu.status === 429 || lu.status === 503) {
+    poserRefus(url, lu.status, lu.retryAfter ? { "retry-after": lu.retryAfter } : null);
+    return { motif: "refus", detail: `HTTP ${lu.status}` };
+  }
+  if (lu.status !== 200) return { motif: "defi", detail: `HTTP ${lu.status}` };
+  return { status: lu.status, texte: lu.texte };
 }
 
 function estArret(v: { status: number; texte: string } | Arret): v is Arret {
@@ -113,6 +179,7 @@ async function resoudreLieu(
   if (hit && Date.now() - hit.at < LIEU_MS) return hit.lieu;
   let trouve: LieuHomeToGo | null = null;
   let arret: Arret | null = null;
+  let interstitiel: Arret | null = null;
   for (const slug of slugsLieu(input.stationName)) {
     if (Date.now() >= echeance) {
       arret = { motif: "defi", detail: "échéance" };
@@ -126,6 +193,7 @@ async function resoudreLieu(
         arret = lu;
         break;
       }
+      if (lu.detail === "interstitiel Cloudflare") interstitiel = lu;
       continue;
     }
     const lieu = lieuDepuisHtml(lu.texte, input.stationName);
@@ -134,8 +202,14 @@ async function resoudreLieu(
       break;
     }
   }
-  if (!arret) lieux.set(input.stationId, { at: Date.now(), lieu: trouve });
-  return arret ?? trouve;
+  if (trouve) {
+    lieux.set(input.stationId, { at: Date.now(), lieu: trouve });
+    return trouve;
+  }
+  if (arret) return arret;
+  if (interstitiel) return interstitiel;
+  lieux.set(input.stationId, { at: Date.now(), lieu: null });
+  return null;
 }
 
 function urlRecherche(lieu: LieuHomeToGo, input: LiveSearchInput, nuitsSejour: number, page: number): string {

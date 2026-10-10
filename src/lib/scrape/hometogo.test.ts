@@ -13,6 +13,7 @@ import {
   lireDetailsEnRetard,
   lotsDe,
   continuerDomaine,
+  estInterstitielCloudflare,
   DETAIL_NON_LU,
   LOT_DETAILS,
 } from "./hometogo.ts";
@@ -228,6 +229,18 @@ describe("domaine", () => {
     assert.equal(continuerDomaine("échéance", false), false);
     assert.equal(continuerDomaine("HTTP 429", true), false);
     assert.equal(continuerDomaine("HTTP 403", true), false);
+    assert.equal(continuerDomaine("interstitiel Cloudflare", false), true);
+  });
+
+  it("un défi Cloudflare n'est pas un refus de HomeToGo", () => {
+    assert.equal(estInterstitielCloudflare(403, "challenge", "<title>Just a moment...</title>"), true);
+    assert.equal(
+      estInterstitielCloudflare(403, null, "<title>Just a moment...</title> challenges.cloudflare.com"),
+      true,
+    );
+    assert.equal(estInterstitielCloudflare(403, null, "<html>forbidden</html>"), false);
+    assert.equal(estInterstitielCloudflare(200, "challenge", "Just a moment... challenges.cloudflare.com"), false);
+    assert.equal(estInterstitielCloudflare(429, "challenge", "Just a moment..."), false);
   });
 });
 

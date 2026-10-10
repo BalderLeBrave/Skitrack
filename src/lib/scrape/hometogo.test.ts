@@ -14,6 +14,11 @@ import {
   lotsDe,
   continuerDomaine,
   estInterstitielCloudflare,
+  AMORCE_HOMETOGO,
+  carteNavigation,
+  noeudNomme,
+  noeudsDuNom,
+  retenirLieu,
   DETAIL_NON_LU,
   LOT_DETAILS,
 } from "./hometogo.ts";
@@ -241,6 +246,104 @@ describe("domaine", () => {
     assert.equal(estInterstitielCloudflare(403, null, "<html>forbidden</html>"), false);
     assert.equal(estInterstitielCloudflare(200, "challenge", "Just a moment... challenges.cloudflare.com"), false);
     assert.equal(estInterstitielCloudflare(429, "challenge", "Just a moment..."), false);
+  });
+});
+
+const NAV = {
+  filters: {
+    destination_navigation: {
+      sublocations: {
+        nodes: [
+          { id: "5931591661956", label: "Alpes du Nord", link: { fsid: AMORCE_HOMETOGO.fsid } },
+          { id: "5460aebfe6f31", label: "Isère", link: { fsid: AMORCE_HOMETOGO.fsid } },
+          { id: "606f3cfb62002", label: "Les Deux Alpes", link: { fsid: AMORCE_HOMETOGO.fsid } },
+          { id: "5460aec004a18", label: "Les Deux Alpes", link: { fsid: AMORCE_HOMETOGO.fsid } },
+          { id: "53903dd5ae712", label: "Chamonix-Mont-Blanc", link: { fsid: AMORCE_HOMETOGO.fsid } },
+          { id: "pas-un-id", label: "Fantôme", link: { fsid: AMORCE_HOMETOGO.fsid } },
+        ],
+      },
+    },
+  },
+  topSuggestions: { suggestions: [{ id: "5460aeb1b0bf2", trail: "", shortTitle: "France" }] },
+  analyticsSnowPlow: { search: { location: "France/Auvergne-Rhône-Alpes/Isère/Les Deux Alpes" } },
+  searchSummary: { locationCountRaw: 2237 },
+};
+
+describe("lieu via la recherche JSON autorisée", () => {
+  it("l'amorce est la paire publiée par la page Les Deux Alpes", () => {
+    assert.deepEqual(lieuDepuisHtml(HTML, "Les 2 Alpes"), AMORCE_HOMETOGO);
+  });
+
+  it("lit les nœuds, la racine et le chemin, et écarte un identifiant illisible", () => {
+    const carte = carteNavigation(NAV);
+    assert.equal(carte.racine, "5460aeb1b0bf2");
+    assert.equal(carte.trail, "France/Auvergne-Rhône-Alpes/Isère/Les Deux Alpes");
+    assert.equal(carte.locationCount, 2237);
+    assert.equal(carte.noeuds.some((n) => n.label === "Fantôme"), false);
+    assert.equal(noeudNomme(carte.noeuds, "Alpes du Nord")?.id, "5931591661956");
+  });
+
+  it("« Les 2 Alpes » vise les deux lieux publiés sous ce nom, pas un choix unique", () => {
+    const carte = carteNavigation(NAV);
+    assert.deepEqual(
+      noeudsDuNom(carte.noeuds, "Les 2 Alpes").map((n) => n.id),
+      ["606f3cfb62002", "5460aec004a18"],
+    );
+  });
+
+  it("un seul préfixe relie Chamonix à Chamonix-Mont-Blanc ; deux préfixes ne choisissent pas", () => {
+    const carte = carteNavigation(NAV);
+    assert.equal(noeudNomme(carte.noeuds, "Chamonix")?.id, "53903dd5ae712");
+    const deux = [
+      ...carte.noeuds,
+      { id: "11111111", label: "Chamonix Sud", fsid: AMORCE_HOMETOGO.fsid },
+    ];
+    assert.equal(noeudNomme(deux, "Chamonix"), null);
+  });
+
+  it("deux homonymes : le chemin le plus court, puis le plus petit compteur publié", () => {
+    const fsid = AMORCE_HOMETOGO.fsid;
+    assert.equal(
+      retenirLieu(
+        [
+          {
+            locationId: "5460aec53a52f",
+            fsid,
+            trail: "France/Auvergne-Rhône-Alpes/Savoie/Saint-Martin-de-Belleville/Val Thorens",
+            locationCount: 4356,
+          },
+          {
+            locationId: "5adf3059cf03a",
+            fsid,
+            trail: "France/Auvergne-Rhône-Alpes/Savoie/Val Thorens",
+            locationCount: 699,
+          },
+        ],
+        "Val Thorens",
+      )?.locationId,
+      "5adf3059cf03a",
+    );
+    assert.equal(
+      retenirLieu(
+        [
+          {
+            locationId: "606f3cfb62002",
+            fsid,
+            trail: "France/Auvergne-Rhône-Alpes/Isère/Les Deux Alpes",
+            locationCount: 2300,
+          },
+          {
+            locationId: "5460aec004a18",
+            fsid,
+            trail: "France/Auvergne-Rhône-Alpes/Isère/Les Deux Alpes",
+            locationCount: 2237,
+          },
+        ],
+        "Les 2 Alpes",
+      )?.locationId,
+      "5460aec004a18",
+    );
+    assert.equal(retenirLieu([], "Tignes"), null);
   });
 });
 

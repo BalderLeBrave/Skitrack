@@ -56,6 +56,13 @@ describe("lieu HomeToGo", () => {
     assert.equal(lieuDepuisHtml("<html></html>", "Les 2 Alpes"), null);
   });
 
+  it("lit la page rendue : chemin, locationId et fsid du lien, même échappés", () => {
+    const rendu = `<link rel="preload" href="/search/5460aec004a18?fsid=81055cb257acb87e5e8899435d3c5318&_format=json">
+"location":"France\\/Auvergne-Rhône-Alpes\\/Isère\\/Les Deux Alpes","locationId":"5460aec004a18"`;
+    assert.deepEqual(lieuDepuisHtml(rendu, "Les 2 Alpes"), AMORCE_HOMETOGO);
+    assert.equal(lieuDepuisHtml(rendu, "Tignes"), null);
+  });
+
   it("essaie le slug en toutes lettres avant le chiffre", () => {
     assert.deepEqual(slugsLieu("Les 2 Alpes"), ["les-deux-alpes", "les-2-alpes"]);
   });

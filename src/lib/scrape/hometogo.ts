@@ -122,8 +122,16 @@ export type LieuHomeToGo = { locationId: string; fsid: string };
 /**
  * L'identifiant de lieu et le `fsid` publiés dans la page de la station,
  * seulement si le dernier maillon du lieu publié est cette station.
+ *
+ * Deux formes publiées : le bloc `location-data-json` (seoDocumentId),
+ * ou la page rendue (`locationId` à côté du chemin, `fsid` dans le lien
+ * de recherche). L'une ne remplace pas l'autre.
  */
 export function lieuDepuisHtml(html: string, stationName: string): LieuHomeToGo | null {
+  return lieuDepuisBloc(html, stationName) ?? lieuDepuisRendu(html, stationName);
+}
+
+function lieuDepuisBloc(html: string, stationName: string): LieuHomeToGo | null {
   const bloc = html.match(/<script[^>]*id="location-data-json"[^>]*>([\s\S]*?)<\/script>/i)?.[1];
   if (!bloc) return null;
   let data: { locationId?: unknown; seoDocumentId?: unknown } | null = null;
@@ -139,6 +147,20 @@ export function lieuDepuisHtml(html: string, stationName: string): LieuHomeToGo 
   const chemin = html.match(/"location":"([^"]+)"/)?.[1] ?? "";
   const dernier = chemin.split("/").pop() ?? "";
   if (!dernier || plierLieu(dernier) !== plierLieu(stationName)) return null;
+  return { locationId, fsid };
+}
+
+/** La page rendue après le défi : le chemin, l'identifiant, et le fsid du lien. */
+function lieuDepuisRendu(html: string, stationName: string): LieuHomeToGo | null {
+  const texte = html.replace(/\\\//g, "/");
+  const couple = /"location":"([^"]+)"\s*,\s*"locationId":"([0-9a-f]{8,})"/i.exec(texte);
+  if (!couple) return null;
+  const dernier = couple[1]!.split("/").pop() ?? "";
+  if (!dernier || plierLieu(dernier) !== plierLieu(stationName)) return null;
+  const locationId = couple[2]!;
+  const fsid =
+    texte.match(/[?&]fsid=([0-9a-f]{16,})/i)?.[1] ?? texte.match(/"fsid":"([0-9a-f]{16,})"/i)?.[1] ?? "";
+  if (!/^[0-9a-f]{16,}$/i.test(fsid)) return null;
   return { locationId, fsid };
 }
 

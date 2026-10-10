@@ -34,6 +34,7 @@ import {
   offresDe,
   pageSuivante,
   slugsLieu,
+  continuerDomaine,
   type LieuHomeToGo,
 } from "./hometogo.ts";
 
@@ -425,6 +426,7 @@ export async function releverHomeToGo(input: LiveSearchInput, opts: { echeance: 
   let raison: string | null = null;
   let refus = false;
   const manques: string[] = [];
+  const accrocs: string[] = [];
   const stations = stationsDuReleve(input);
   for (const st of stations) {
     if (Date.now() >= opts.echeance) {
@@ -445,19 +447,21 @@ export async function releverHomeToGo(input: LiveSearchInput, opts: { echeance: 
     listings.push(...tour.listings);
     if (tour.reste.offres.length) restes.push({ input: st, lieu, offres: tour.reste.offres });
     if (stations.length === 1) annoncees = tour.annoncees;
-    if (tour.refus) refus = true;
-    if (tour.raison) {
+    if (!continuerDomaine(tour.raison, tour.refus)) {
+      if (tour.refus) refus = true;
       raison = tour.raison;
       break;
     }
+    if (tour.raison) accrocs.push(`${st.stationName} : ${tour.raison}`);
   }
   if (!refus) lancerSuiteHomeToGo(input, restes);
   const nSuite = restes.reduce((s, r) => s + r.offres.length, 0);
   const noteSuite = !refus && input.domaine && nSuite > 0 ? `détail en suite : ${nSuite}` : null;
   const noteLieu = manques.length ? `${manques.join(", ")} : lieu non publié par HomeToGo` : null;
+  const noteAccroc = accrocs.length ? accrocs.join(" · ") : null;
   return {
     listings: sansDoublons(listings),
     annoncees,
-    raison: [raison && raison !== "échéance" ? `arrêté en route — ${raison}` : raison, noteSuite, noteLieu].filter(Boolean).join(" · ") || null,
+    raison: [raison && raison !== "échéance" ? `arrêté en route — ${raison}` : raison, noteAccroc, noteSuite, noteLieu].filter(Boolean).join(" · ") || null,
   };
 }

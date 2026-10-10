@@ -15,6 +15,7 @@ import {
   occupancyFromGitesHtml,
   pageSuivante,
   prixDuTableau,
+  prixPublieDuSejour,
   scrapeGites,
   searchUrl,
   situerAnnoncesGites,
@@ -146,6 +147,24 @@ describe("tableau de prix ITEA", () => {
       812,
     );
   });
+
+  it("garde un total publié à côté de contactSiNonVendable, et refuse le JSON sans total", () => {
+    const vendu = `<script>contactSiNonVendable</script><span class="sp_montantPrixTotal" data-prix="727.44">727,44 €</span>`;
+    assert.equal(prixPublieDuSejour(vendu)?.total, 727.44);
+    assert.equal(
+      prixPublieDuSejour(
+        '{"contactSiNonVendable":"centrale","prixLoc":"4070 &euro;","lblPrixLoc":"Location pour 1 semaine"}',
+      ),
+      null,
+    );
+  });
+
+  it("lit le texte du montant quand data-prix n'est pas publié", () => {
+    assert.equal(
+      prixPublieDuSejour('<span class="sp_montantPrixTotal">1\u202f610,50\u00a0€</span>')?.total,
+      1610.5,
+    );
+  });
 });
 
 describe("fiche ITEA", () => {
@@ -218,6 +237,9 @@ describe("annonce Gîtes de France", () => {
     );
     assert.equal(l.capacity, 4);
     assert.equal(l.total, 512);
+    assert.equal(l.pricedCheckIn, INPUT.checkIn);
+    assert.equal(l.pricedCheckOut, INPUT.checkOut);
+    assert.equal(typeof l.scannedAt, "number");
   });
 
   it("sort aussi quand aucune capacité n'est publiée, sans nombre inventé", () => {
@@ -230,6 +252,7 @@ describe("annonce Gîtes de France", () => {
     const l = listingDeFiche(tuile(), fiche(), "38G40102", INPUT);
     assert.equal(l.total, 0);
     assert.equal(l.priceLabel, null);
+    assert.equal(l.pricedCheckIn, undefined);
     assert.match(l.proven, /aucun prix publié/);
   });
 

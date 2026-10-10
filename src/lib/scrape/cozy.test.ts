@@ -6,6 +6,7 @@ import {
   cozyListings,
   idsFiches,
   paginerFournisseur,
+  erreurArreteCozy,
   rangPrix,
   type Horloge,
   type Tirage,
@@ -465,6 +466,14 @@ describe("pagination CozyCozy", () => {
     const res = await paginerFournisseur(src.tirer, 700, h);
     assert.equal(res.arret, "échéance");
     assert.ok(res.pages.length >= 1 && res.pages.length < 8);
+  });
+
+  it("un refus arrête les fournisseurs suivants ; un délai ne les efface pas", () => {
+    assert.equal(erreurArreteCozy("Cozy HTTP 429"), true);
+    assert.equal(erreurArreteCozy("pause après un refus"), true);
+    assert.equal(erreurArreteCozy("limiteur local : 2 s"), true);
+    assert.equal(erreurArreteCozy("timed out after 503 ms"), false);
+    assert.equal(erreurArreteCozy("page illisible"), false);
   });
 
   it("rapporte le compteur du fournisseur demandé, jamais un zéro inventé", () => {

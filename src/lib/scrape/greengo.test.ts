@@ -8,6 +8,7 @@ import {
   OPERATION_DETAIL,
   OPERATION_RECHERCHE,
   detailler,
+  detaillerMalgre,
   emprise,
   equipementsGreenGo,
   greengoListings,
@@ -255,6 +256,47 @@ describe("GreenGo : lecture", () => {
         ["b", null, false],
       ],
     );
+  });
+
+  it("lit le total que la source publie en nombre, pas seulement en chaîne", () => {
+    const logements = lireDetail(
+      detail({
+        __typename: "HostingAdvertFromSingleAccommodationPublicSlice",
+        singleAccommodation: {
+          id: "n",
+          name: "Studio",
+          bookingPricing: { totalPrice: { forStayUnrounded: 928.4, forStayRounded: 928 } },
+          nonbookableReasons: [],
+        },
+      }),
+    );
+    assert.equal(logements[0]?.total, 928);
+    const arrondi = lireDetail(
+      detail({
+        __typename: "HostingAdvertFromSingleAccommodationPublicSlice",
+        singleAccommodation: {
+          id: "r",
+          name: "Studio",
+          bookingPricing: { totalPrice: { forStayRounded: "1 149" } },
+          nonbookableReasons: [],
+        },
+      }),
+    );
+    assert.equal(arrondi[0]?.total, 1149);
+  });
+});
+
+describe("détail après une recherche interrompue", () => {
+  it("une page illisible ne coupe pas les hôtes déjà lus ; un refus ou l'échéance, si", () => {
+    assert.equal(detaillerMalgre(undefined), true);
+    assert.equal(detaillerMalgre("HTTP 500"), true);
+    assert.equal(detaillerMalgre("GraphQL : champ inconnu"), true);
+    assert.equal(detaillerMalgre("timed out after 503 ms"), true);
+    assert.equal(detaillerMalgre("HTTP 429 — pause 45 s"), false);
+    assert.equal(detaillerMalgre("HTTP 403"), false);
+    assert.equal(detaillerMalgre("échéance"), false);
+    assert.equal(detaillerMalgre("limiteur local (3 s à attendre)"), false);
+    assert.equal(detaillerMalgre("pause après un refus (45 s à attendre)"), false);
   });
 });
 

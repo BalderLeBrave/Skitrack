@@ -13,6 +13,7 @@ import { communeGites } from "./gitesCommunes.ts";
 import { STATIONS } from "../stations.ts";
 import { VILLAGES } from "../villages.ts";
 import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
+import { devisItea } from "../stay/tarif.ts";
 import { noterTabItea, noterWidgetItea, tabIteaEnCache, widgetIteaEnCache } from "../stay/completerDevis.server.ts";
 
 /**
@@ -477,6 +478,24 @@ export function prixDuTableau(html: string): PrixSejour | null {
   return candidats[0];
 }
 
+/**
+ * Le prix de séjour publié pour ces dates.
+ *
+ * Un JSON `contactSiNonVendable` sans total marqué n'en est pas un
+ * (`prixLoc` est un tarif de catalogue). Si la même réponse porte
+ * `sp_montantPrixTotal`, ce total reste : le mot seul ne l'efface pas.
+ * Quand le tableau n'a pas de `data-prix`, le lecteur du devis
+ * (`devisItea`) reprend le texte du montant, ou le loyer plus la taxe.
+ */
+export function prixPublieDuSejour(tab: string): PrixSejour | null {
+  if (/contactSiNonVendable/i.test(tab) && !/sp_montantPrixTotal/i.test(tab)) return null;
+  const tableau = prixDuTableau(tab);
+  if (tableau) return tableau;
+  const devis = devisItea(tab);
+  if (!devis) return null;
+  return { total: devis.total, label: devis.label, currency: deviseDuTexte(devis.label) };
+}
+
 export type Fiche = {
   /** Total du séjour. `0` = la source n'a publié aucun prix à ces dates. */
   total: number;
@@ -666,7 +685,7 @@ async function relever(
   // « contactSiNonVendable » : la source ne vend pas ce séjour en ligne à ces
   // dates. Elle ne publie donc pas de prix, ce qui se dit `total: 0` — et non
   // par la disparition de l'annonce.
-  const prix = /contactSiNonVendable/.test(tab) ? null : prixDuTableau(tab);
+  const prix = prixPublieDuSejour(tab);
   if (!prix) return sansDevis;
   // Le devis ne remplace que le prix. Recopier les champs un à un avait
   // laissé l'avis du JSON-LD sur le chemin sans prix, et l'avait perdu dès
@@ -744,6 +763,11 @@ export function listingDeFiche(
     lon: gpsFiche ? fiche.lieu.lon : tile.lon,
     locality: fiche.lieu.locality,
     proven: gpsFiche ? `${proven} · GPS ITEA` : proven,
+    // Même règle que HomeToGo : sans dates, le filtre « disponible » retire
+    // le gîte dès que la suite remplace la tuile.
+    ...(fiche.total > 0
+      ? { pricedCheckIn: input.checkIn, pricedCheckOut: input.checkOut, scannedAt: Date.now() }
+      : {}),
   };
 }
 

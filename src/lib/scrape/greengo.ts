@@ -429,8 +429,7 @@ export function lireDetail(json: unknown): LogementGreenGo[] {
     const id = texte(u?.id);
     if (!u || !id) continue;
     const prix = obj(obj(u.bookingPricing)?.totalPrice);
-    const brut = typeof prix?.forStayUnrounded === "string" ? Number(prix.forStayUnrounded) : Number.NaN;
-    const total = Number.isFinite(brut) && brut > 0 ? Math.round(brut) : typeof prix?.forStayRounded === "number" && prix.forStayRounded > 0 ? prix.forStayRounded : null;
+    const total = montantSejour(prix?.forStayUnrounded) ?? montantSejour(prix?.forStayRounded);
     out.push({
       id,
       nom: texte(u.name) ?? "",
@@ -453,6 +452,27 @@ export function lireDetail(json: unknown): LogementGreenGo[] {
 
 /** Un arrêt du relevé entier : refus du site, échéance, limiteur. Jamais repris. */
 export class ArretGreenGo extends Error {}
+
+/**
+ * Après une recherche interrompue, les hôtes déjà lus ont-ils encore leur détail ?
+ *
+ * Un refus, l'échéance ou le limiteur : non, on ne rappelle pas l'hôte.
+ * Une page illisible (HTTP 500, GraphQL) : oui, le temps qui reste. Sans cela
+ * les hôtes de la première page sortaient sans total, et le filtre de dispo
+ * les cachait tous.
+ */
+export function detaillerMalgre(raison: string | undefined): boolean {
+  if (!raison) return true;
+  return !/HTTP (403|429|503)\b|répondu (403|429|503)\b|bloqué \((403|429|503)\)|pause après un refus|limiteur local|échéance/.test(
+    raison,
+  );
+}
+
+/** Le total de séjour publié, nombre ou chaîne. `null` s'il n'est pas un montant. */
+function montantSejour(v: unknown): number | null {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(/\s/g, "").replace(",", ".")) : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+}
 
 /** Des échecs d'hôtes à la suite : c'est le site qui a changé, pas l'hôte. */
 const ECHECS_DE_SUITE = 2;

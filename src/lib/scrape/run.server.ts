@@ -313,21 +313,38 @@ async function releverCozy(input: LiveSearchInput, reports: SourceReport[], list
     echeance + MARGE_COZY_MS,
     "CozyCozy",
   );
-  const coupe = (p: "abritel" | "booking") =>
-    arrets[p] == null ? "Cozy coupé par l'échéance avant ce fournisseur" : arrets[p] === "échéance" ? "Cozy coupé par l'échéance" : undefined;
+  const echeanceCozy = (p: "abritel" | "booking") => arrets[p] == null || arrets[p] === "échéance";
+  const noteCozy = (p: "abritel" | "booking") => {
+    const a = arrets[p];
+    if (a == null) return "Cozy coupé par l'échéance avant ce fournisseur";
+    if (a === "échéance") return "Cozy coupé par l'échéance";
+    // Arrêts normaux de pagination : la liste est ce qu'elle est. Le reste
+    // (délai, page illisible) se dit. Ce n'est pas une échéance : le repli
+    // direct de Booking peut encore partir sur un vrai zéro.
+    if (
+      a === "compteur atteint" ||
+      a === "page vide" ||
+      a === "page incomplète" ||
+      a === "page sans fiche nouvelle" ||
+      a.startsWith("garde-fou")
+    ) {
+      return undefined;
+    }
+    return a;
+  };
   pushReport(reports, listings, "Abritel", cozyListings(payloads, input, "Abritel"), Date.now() - t0, {
     annoncees: annonces.abritel ?? null,
-    note: coupe("abritel"),
+    note: noteCozy("abritel"),
   });
   const viaCozy = cozyListings(payloads, input, "Booking");
   await withBrowser(async (open) => {
     let booking = viaCozy;
-    let note = coupe("booking");
+    let note = noteCozy("booking");
     const reste = () => ECHEANCE_PART_MS + t0 - Date.now();
     // Le relevé direct ne remplace Cozy que sur un vrai zéro — Cozy interrogé
     // jusqu'au bout — et s'il reste le temps de le faire : un zéro dû à
     // l'échéance lançait un repli de 12 s après les 40 s de la part.
-    if (booking.length === 0 && !note && reste() > 15_000) {
+    if (booking.length === 0 && !echeanceCozy("booking") && reste() > 15_000) {
       const py = await scrapeBookingPythonDetaille(input, Math.min(12_000, reste() - 3_000));
       booking = py.listings;
       note = py.raison ? `repli direct : ${py.raison}` : "repli sur le relevé direct (Cozy vide)";

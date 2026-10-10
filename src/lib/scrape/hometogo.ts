@@ -14,7 +14,7 @@ import type { Listing } from "@/lib/listings";
 import { depuisListe, equipements } from "../stay/equipements.ts";
 import { annoncer } from "../stay/occupancy.ts";
 import { texteDeHtml } from "../stay/texteHtml.ts";
-import type { LiveSearchInput } from "./types";
+import { eurosPublie } from "../stay/tarif.ts";
 
 export const ORIGINE_HOMETOGO = "https://www.hometogo.fr";
 
@@ -211,15 +211,21 @@ function deviseDe(symbole: string): string | null {
   return null;
 }
 
-/** Un prix écrit « 1 610 € ». « dès » ou « à partir » n'est pas un total. */
+/** Un prix écrit « 1 610 € » ou « 1 610,50 € ». « dès » ou « à partir » n'est pas un total. */
 export function prixAffiche(display: string): { total: number; currency: string; indicatif: boolean } | null {
   const devise = deviseDe(display);
   if (!devise) return null;
   const indicatif = /à partir|dès|\bfrom\b/i.test(display);
-  const chiffres = display.replace(/[^\d]/g, "");
-  if (!chiffres) return null;
-  const total = Number(chiffres);
-  if (!Number.isSafeInteger(total) || total <= 0) return null;
+  let total: number | null = null;
+  if (devise === "EUR") {
+    // La virgule décimale reste une virgule : « 1 610,50 € » n'est pas 161 050.
+    total = eurosPublie(display);
+  } else {
+    const chiffres = display.replace(/[^\d]/g, "");
+    const n = chiffres ? Number(chiffres) : NaN;
+    total = Number.isSafeInteger(n) && n > 0 ? n : null;
+  }
+  if (total == null || !(total > 0)) return null;
   return indicatif ? { total: 0, currency: devise, indicatif: true } : { total, currency: devise, indicatif: false };
 }
 
@@ -230,8 +236,11 @@ function prixDe(o: Record<string, unknown>): { total: number; currency: string; 
     const label = texte(p.display) ?? texte(p.total);
     const devise = typeof p.currency === "string" && /^[A-Z]{3}$/.test(p.currency) ? p.currency : label ? deviseDe(label) : null;
     const brut = typeof p.totalRaw === "number" && p.totalRaw > 0 ? Math.round(p.totalRaw) : null;
-    if (p.mode === "totalPrice" && p.exact === true && brut != null && devise) {
-      return { total: brut, currency: devise, indicatif: null, label };
+    if (p.mode === "totalPrice" && p.exact === true && devise) {
+      if (brut != null) return { total: brut, currency: devise, indicatif: null, label };
+      // `totalRaw` absent : le montant affiché (« 6 321 € ») est quand même publié.
+      const lu = label ? prixAffiche(label) : null;
+      if (lu && !lu.indicatif && lu.total > 0) return { total: lu.total, currency: lu.currency, indicatif: null, label };
     }
     if (p.mode === "totalPrice" && p.exact === false) {
       return { total: 0, currency: devise || "EUR", indicatif: true, label };
@@ -396,6 +405,11 @@ export function offreEnListing(
     rating,
     reviewCount,
     proven: `HomeToGo live ${input.checkIn}→${input.checkOut}`,
+    // Le filtre « disponible » ne garde qu'un total daté. Sans ces champs,
+    // la suite de détails remplaçait l'annonce et l'écran la retirait.
+    ...(prix.total > 0
+      ? { pricedCheckIn: input.checkIn, pricedCheckOut: input.checkOut, scannedAt: Date.now() }
+      : {}),
   };
 }
 
@@ -403,4 +417,16 @@ export function offreEnListing(
 export function fondreOffre(liste: Record<string, unknown>, detail: Record<string, unknown> | null): Record<string, unknown> {
   if (!detail) return liste;
   return { ...liste, ...detail, id: liste.id ?? detail.id };
+}
+
+/**
+ * La station suivante d'un grand domaine est-elle encore interrogée ?
+ *
+ * Un refus (403, 429, 503) ou l'échéance arrête : on ne relance pas.
+ * Une page illisible d'une station n'empêche pas de lire la suivante.
+ */
+export function continuerDomaine(raison: string | null, refus: boolean): boolean {
+  if (refus) return false;
+  if (raison == null) return true;
+  return raison !== "échéance";
 }

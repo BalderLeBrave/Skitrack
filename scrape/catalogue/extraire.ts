@@ -100,7 +100,9 @@ async function traiter(c: (typeof cibles)[number]) {
     avecChambres: r.fiches.filter((f) => f.chambres != null).length,
     avecGps: r.fiches.filter((f) => f.lat != null).length,
     avecPhoto: r.fiches.filter((f) => f.photos.length > 0).length,
-    avecTarif: r.fiches.filter((f) => f.tarifs.some((t) => !t.plancher)).length,
+    // Prix fermes seulement : un « à partir de » n'est jamais compté.
+    avecTarif: r.fiches.filter((f) => f.tarifs.length > 0).length,
+    planchersEcartes: r.fiches.reduce((n, f) => n + f.planchersEcartes, 0),
     avecTotalDate: r.fiches.filter((f) => f.totalSejour).length,
     interditsRobots: r.interditsRobots,
     refus: r.refus,

@@ -17,11 +17,11 @@
       "avecGps": 0,
       "avecPhoto": 4,
       "avecTarif": 0,
-      "avecTarifOuPlancher": 0,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 1
+      "erreurs": 1,
+      "planchersEcartes": 0
     },
     {
       "host": "booking.prazsurarly.com",
@@ -39,11 +39,11 @@
       "avecGps": 0,
       "avecPhoto": 0,
       "avecTarif": 0,
-      "avecTarifOuPlancher": 0,
       "avecTotalDate": 0,
       "interditsRobots": 1,
       "refus": 0,
-      "erreurs": 1
+      "erreurs": 1,
+      "planchersEcartes": 0
     },
     {
       "host": "font-romeu.fr",
@@ -61,11 +61,11 @@
       "avecGps": 0,
       "avecPhoto": 24,
       "avecTarif": 1,
-      "avecTarifOuPlancher": 6,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 1
+      "erreurs": 2,
+      "planchersEcartes": 9
     },
     {
       "host": "lesangles.com",
@@ -83,11 +83,11 @@
       "avecGps": 0,
       "avecPhoto": 0,
       "avecTarif": 0,
-      "avecTarifOuPlancher": 0,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 1,
-      "erreurs": 1
+      "erreurs": 1,
+      "planchersEcartes": 0
     },
     {
       "host": "sites.valdabondance.com",
@@ -105,11 +105,11 @@
       "avecGps": 0,
       "avecPhoto": 0,
       "avecTarif": 0,
-      "avecTarifOuPlancher": 0,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 0
+      "erreurs": 0,
+      "planchersEcartes": 0
     },
     {
       "host": "www.chioula.fr",
@@ -127,11 +127,11 @@
       "avecGps": 0,
       "avecPhoto": 1,
       "avecTarif": 0,
-      "avecTarifOuPlancher": 0,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 0
+      "erreurs": 0,
+      "planchersEcartes": 0
     },
     {
       "host": "www.haut-giffre.fr",
@@ -148,12 +148,12 @@
       "avecChambres": 93,
       "avecGps": 0,
       "avecPhoto": 102,
-      "avecTarif": 25,
-      "avecTarifOuPlancher": 48,
+      "avecTarif": 24,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 1
+      "erreurs": 2,
+      "planchersEcartes": 23
     },
     {
       "host": "www.mole-brasses.com",
@@ -170,12 +170,12 @@
       "avecChambres": 54,
       "avecGps": 64,
       "avecPhoto": 68,
-      "avecTarif": 14,
-      "avecTarifOuPlancher": 48,
+      "avecTarif": 12,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 0
+      "erreurs": 1,
+      "planchersEcartes": 126
     },
     {
       "host": "www.sancy.com",
@@ -193,12 +193,12 @@
       "avecChambres": 1275,
       "avecGps": 1357,
       "avecPhoto": 1356,
-      "avecTarif": 731,
-      "avecTarifOuPlancher": 1209,
+      "avecTarif": 712,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 17
+      "erreurs": 18,
+      "planchersEcartes": 2310
     },
     {
       "host": "www.valleesdegavarnie.com",
@@ -215,12 +215,12 @@
       "avecChambres": 222,
       "avecGps": 425,
       "avecPhoto": 419,
-      "avecTarif": 46,
-      "avecTarifOuPlancher": 58,
+      "avecTarif": 39,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 2
+      "erreurs": 3,
+      "planchersEcartes": 21
     }
   ]
 }

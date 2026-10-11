@@ -29,7 +29,7 @@ Relevé du 11 octobre 2026. Deux cibles : les **centrales sans connecteur** (fic
 ## Ce qui n'est pas inventé
 
 - Les chambres ne sont **jamais déduites des pièces** : un « 3 pièces » reste `pieces: 3, chambres: null`, via `occupancyFromText`.
-- Un prix « à partir de », « dès » ou une fourchette « 1 190 à 1 980 € » est un **plancher** (`plancher: true`, bas de la fourchette).
+- **Aucun « à partir de » n'est un prix** (consigne du propriétaire du 11 octobre 2026). Ne sont jamais rangés dans `tarifs` : « à partir de », « dès », « from », les fourchettes (« 1 190 à 1 980 € », « entre 80 € et 92 € », « de 60 €/nuit à 70 €/nuit »), les repas et les tarifs enfant. Ces lignes sont seulement comptées (`planchersEcartes`). Une fiche qui n'a qu'un « à partir de » n'a pas de prix.
 - Ces sites n'ont pas de moteur de réservation : ils publient une **grille** (« Semaine : 650 € + taxe de séjour »), rangée dans `tarifs`. `totalSejour` n'est rempli que si la page écrit un total avec ses deux dates. Aucun site de cette liste ne le fait en lecture directe.
 - Une coordonnée hors de France métropolitaine (0,0, lat/lon inversées) est écartée.
 
@@ -37,21 +37,21 @@ Relevé du 11 octobre 2026. Deux cibles : les **centrales sans connecteur** (fic
 
 `npm run catalogue:centrales -- --concurrence 10`
 
-| Hôte | Moteur | URL | Fiches | Capacité | Chambres | GPS | Photo | Tarif publié | Grille ou plancher | Note |
+| Hôte | Moteur | URL | Fiches | Capacité | Chambres | GPS | Photo | Prix ferme | Seulement « à partir de » | Note |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | beuil.fr | aucun | 10 | 4 | 2 | 4 | 0 | 4 | 0 | 0 |  |
 | booking.prazsurarly.com | Orchestra | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | robots.txt `Disallow: /` : rien lu |
-| font-romeu.fr | aucun | 115 | 88 | 85 | 38 | 0 | 24 | 1 | 6 | carte en JavaScript : pas de GPS ; 64 fiches n'avaient que les images du menu |
+| font-romeu.fr | aucun | 115 | 88 | 85 | 38 | 0 | 24 | 1 | 5 | carte en JavaScript : pas de GPS ; 64 fiches n'avaient que les images du menu |
 | lesangles.com | aucun | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 403 : hôte fermé |
 | sites.valdabondance.com | aucun | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | URL opaques : Firecrawl nécessaire |
 | www.chioula.fr | aucun | 6 | 1 | 1 | 0 | 0 | 1 | 0 | 0 |  |
-| www.haut-giffre.fr | aucun | 110 | 102 | 40 | 93 | 0 | 102 | 25 | 48 | position de l’office retirée des 102 fiches |
-| www.mole-brasses.com | aucun | 74 | 70 | 44 | 54 | 64 | 68 | 14 | 48 |  |
-| www.sancy.com | Diffusio | 1377 | 1361 | 1297 | 1275 | 1357 | 1356 | 731 | 1209 |  |
-| www.valleesdegavarnie.com | Tourinsoft | 425 | 425 | 203 | 222 | 425 | 419 | 46 | 58 |  |
-| **Total** | | **2117** | **2051** | **1672** | **1686** | **1846** | **1974** | **817** | **1369** | |
+| www.haut-giffre.fr | aucun | 110 | 102 | 40 | 93 | 0 | 102 | 24 | 23 | position de l’office retirée des 102 fiches |
+| www.mole-brasses.com | aucun | 74 | 70 | 44 | 54 | 64 | 68 | 12 | 34 |  |
+| www.sancy.com | Diffusio | 1377 | 1361 | 1297 | 1275 | 1357 | 1356 | 712 | 479 |  |
+| www.valleesdegavarnie.com | Tourinsoft | 425 | 425 | 203 | 222 | 425 | 419 | 39 | 18 |  |
+| **Total** |  | **2117** | **2051** | **1672** | **1686** | **1846** | **1974** | **788** | **559** |  |
 
-« Photo » compte les fiches qui gardent une photo du logement une fois le décor du site retiré (voir plus bas). « Tarif publié » : au moins une ligne de grille qui n'est pas un plancher. Aucune fiche n'a de total daté : ces sites n'ont pas de moteur de réservation.
+« Photo » compte les fiches qui gardent une photo du logement une fois le décor du site retiré (voir plus bas). « Prix ferme » : au moins une ligne de grille ferme (« Semaine : 650 € »), jamais un « à partir de ». « Seulement « à partir de » » : fiches dont la page ne donne qu'un plancher ou une fourchette : elles n'ont pas de prix. Aucune fiche n'a de total daté : ces sites n'ont pas de moteur de réservation.
 
 Le détail de chaque hôte est dans `scrape/catalogue/sortie/<hôte>.json`.
 

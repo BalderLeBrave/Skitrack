@@ -26,6 +26,7 @@
   "urls": 425,
   "fiches": [
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-5/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -62,6 +63,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-n4-dans-residence-lombree/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT N°4 DANS RÉSIDENCE « L’OMBRÉE »",
@@ -90,6 +92,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-105-dans-residence-europe/",
       "lecteur": "lecture",
       "titre": "STUDIO 105 DANS RESIDENCE « EUROPE »",
@@ -112,6 +115,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-13/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -138,6 +142,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-le-ptit-toy/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES « LE P’TIT TOY »",
@@ -175,6 +180,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chez-saousse/",
       "lecteur": "lecture",
       "titre": "CHEZ SAOUSSE",
@@ -212,6 +218,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/largelesien/",
       "lecteur": "lecture",
       "titre": "L’ARGELÉSIEN",
@@ -229,6 +236,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-210-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 210 DANS RÉSIDENCE RICHELIEU",
@@ -252,14 +260,14 @@
         {
           "libelle": "nuit suppl : 375€",
           "montant": 375,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-208-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 208 DANS RÉSIDENCE RICHELIEU",
@@ -282,14 +290,14 @@
         {
           "libelle": "nuit suppl : 375€",
           "montant": 375,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-310-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 310 DANS RÉSIDENCE RICHELIEU",
@@ -323,14 +331,14 @@
         {
           "libelle": "nuit suppl : 425€",
           "montant": 425,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-110-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 110 DANS RÉSIDENCE RICHELIEU",
@@ -363,14 +371,14 @@
         {
           "libelle": "nuit suppl : 425€",
           "montant": 425,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-102-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 102 DANS RÉSIDENCE RICHELIEU",
@@ -400,14 +408,14 @@
         {
           "libelle": "nuit suppl : 425€",
           "montant": 425,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-306-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 306 DANS RÉSIDENCE RICHELIEU",
@@ -434,6 +442,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-103-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 103 DANS RÉSIDENCE RICHELIEU",
@@ -458,14 +467,14 @@
         {
           "libelle": "nuit supp 160€",
           "montant": 160,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-304-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 304 DANS RÉSIDENCE RICHELIEU",
@@ -488,14 +497,14 @@
         {
           "libelle": "nuit suppl : 220€",
           "montant": 220,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-203-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 203 DANS RÉSIDENCE RICHELIEU",
@@ -521,14 +530,14 @@
         {
           "libelle": "2 nuits min. //160€ nuit sup",
           "montant": 160,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-100-dans-residence-richelieu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 100 DANS RÉSIDENCE RICHELIEU",
@@ -554,14 +563,14 @@
         {
           "libelle": "nuit suppl : 425€",
           "montant": 425,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -591,6 +600,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/lechappee-des-pics/",
       "lecteur": "lecture",
       "titre": "L’ECHAPPÉE DES PICS",
@@ -619,6 +629,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-6/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -644,6 +655,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -672,14 +684,14 @@
         {
           "libelle": "50€/nuit suppl.",
           "montant": 50,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-7/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -704,6 +716,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-8/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -731,6 +744,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/1040-tourmalet-chambres-dhotes/",
       "lecteur": "lecture",
       "titre": "1040 TOURMALET – CHAMBRES D’HOTES",
@@ -757,6 +771,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/chez-pierre-dagos-2/",
       "lecteur": "lecture",
       "titre": "CHEZ PIERRE D’AGOS",
@@ -788,6 +803,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-mayou/",
       "lecteur": "lecture",
       "titre": "MAISON MAYOU",
@@ -819,6 +835,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-15/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -847,6 +864,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE",
@@ -871,14 +889,14 @@
         {
           "libelle": "50€/nuit supplémentaire",
           "montant": 50,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-16/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -904,6 +922,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-plante-appartement-n1/",
       "lecteur": "lecture",
       "titre": "MAISON PLANTÉ APPARTEMENT N°1",
@@ -935,6 +954,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-14/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -964,6 +984,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-12/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -993,6 +1014,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/lys/",
       "lecteur": "lecture",
       "titre": "LYS",
@@ -1024,6 +1046,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-11/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -1058,6 +1081,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-de-trabes/",
       "lecteur": "lecture",
       "titre": "GRANGE DE TRABÉS",
@@ -1090,6 +1114,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio/",
       "lecteur": "lecture",
       "titre": "STUDIO",
@@ -1118,6 +1143,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/gite-la-ribere/",
       "lecteur": "lecture",
       "titre": "GITE LA RIBERE",
@@ -1139,18 +1165,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/193be71bb70c0725b73758b1f001a630-exterieur2-fourtine-bareges-HautesPyrenees-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "A partir de 1254€ hors vac scolaires. -10% sur tarif public vacances scolaires",
-          "montant": 1254,
-          "unite": "autre",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-chalets-dartalens-chalet-perce-neige/",
       "lecteur": "lecture",
       "titre": "LES CHALETS D’ARTALENS – CHALET PERCE NEIGE",
@@ -1176,6 +1196,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-chalets-dartalens-chalet-edelweiss/",
       "lecteur": "lecture",
       "titre": "LES CHALETS D’ARTALENS – CHALET EDELWEISS",
@@ -1201,6 +1222,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-du-hautacam/",
       "lecteur": "lecture",
       "titre": "GÎTE DU HAUTACAM",
@@ -1232,6 +1254,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-neouvielle-1040-tourmalet/",
       "lecteur": "lecture",
       "titre": "GITE NEOUVIELLE – 1040 TOURMALET",
@@ -1253,6 +1276,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-cairn-1040-tourmalet/",
       "lecteur": "lecture",
       "titre": "GITE CAIRN – 1040 TOURMALET",
@@ -1275,6 +1299,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-bastan-1040-tourmalet/",
       "lecteur": "lecture",
       "titre": "GITE BASTAN – 1040 TOURMALET",
@@ -1304,6 +1329,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-bolou-1040-tourmalet/",
       "lecteur": "lecture",
       "titre": "GITE BOLOU – 1040 TOURMALET",
@@ -1324,6 +1350,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-grange-du-riou/",
       "lecteur": "lecture",
       "titre": "LA GRANGE DU RIOU",
@@ -1348,6 +1375,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-so-de-clot-2/",
       "lecteur": "lecture",
       "titre": "GÎTE SO DE CLOT 2",
@@ -1371,6 +1399,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/refuge-de-pailha/",
       "lecteur": "lecture",
       "titre": "REFUGE DE PAILHA",
@@ -1398,6 +1427,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/domaine-de-beaucens/",
       "lecteur": "lecture",
       "titre": "DOMAINE DE BEAUCENS",
@@ -1429,6 +1459,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-ayre-1040-tourmalet/",
       "lecteur": "lecture",
       "titre": "GITE AYRE – 1040 TOURMALET",
@@ -1448,6 +1479,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-ardiden-1040-tourmalet/",
       "lecteur": "lecture",
       "titre": "GITE ARDIDEN – 1040 TOURMALET",
@@ -1465,6 +1497,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-au-son-du-rioulet/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT « AU SON DU RIOULET »",
@@ -1493,6 +1526,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-et-mouley-le-moulin/",
       "lecteur": "lecture",
       "titre": "GITE ET MOULEY (LE MOULIN)",
@@ -1522,6 +1556,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-pyrenees-nature/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT PYRENEES NATURE",
@@ -1552,18 +1587,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/13b363406471f86ca894d41af60c07ed-Lit-superpose-alcove-2-380x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "Min 2 nuits - nuit supp. entre 80€ et 92€/nuit",
-          "montant": 80,
-          "unite": "sejour",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/villa-gavarnie/",
       "lecteur": "lecture",
       "titre": "VILLA GAVARNIE",
@@ -1601,6 +1630,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-la-coste-du-hautacam-balcon-sur-les-pyrenees/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LA COSTE DU HAUTACAM – BALCON SUR LES PYRENEES",
@@ -1638,6 +1668,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/cabanes-perchees-des-pyrenees/",
       "lecteur": "lecture",
       "titre": "CABANES PERCHEES DES PYRENEES",
@@ -1675,6 +1706,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-lamatacam/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT « LAMATACAM »",
@@ -1705,6 +1737,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/gite-detape-lamatacam/",
       "lecteur": "lecture",
       "titre": "GITE D’ETAPE LAMATACAM",
@@ -1735,6 +1768,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-loiseau-bleu/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT L’OISEAU BLEU",
@@ -1772,6 +1806,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RESIDENCE",
@@ -1799,6 +1834,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-petite-maison-des-pyrenees/",
       "lecteur": "lecture",
       "titre": "LA PETITE MAISON DES PYRENEES",
@@ -1827,6 +1863,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-le-barderou/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RESIDENCE LE BARDEROU",
@@ -1855,6 +1892,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-23/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -1883,6 +1921,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-et-tucoy/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON « ET-TUCOY »",
@@ -1903,6 +1942,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-les-pleiades/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LES PLÉÏADES",
@@ -1926,6 +1966,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -1949,6 +1990,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-de-lardounieres/",
       "lecteur": "lecture",
       "titre": "GRANGE DE L’ARDOUNIERES",
@@ -1979,6 +2021,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-soumaoute-1-14-personnes/",
       "lecteur": "lecture",
       "titre": "LE SOUMAOUTE 1 (14 PERSONNES)",
@@ -2016,6 +2059,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-les-canaries/",
       "lecteur": "lecture",
       "titre": "STUDIO LES CANARIES",
@@ -2041,6 +2085,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/o-val-des-thermes/",
       "lecteur": "lecture",
       "titre": "O VAL DES THERMES",
@@ -2074,6 +2119,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-bellevue-avec-piscine/",
       "lecteur": "lecture",
       "titre": "GITE BELLEVUE AVEC PISCINE",
@@ -2110,6 +2156,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-19/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -2127,6 +2174,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-rioulet/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RESIDENCE « RIOULET »",
@@ -2153,6 +2201,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-petit-grustois/",
       "lecteur": "lecture",
       "titre": "LE PETIT GRUSTOIS",
@@ -2179,6 +2228,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-rose-des-sables/",
       "lecteur": "lecture",
       "titre": "LA ROSE DES SABLES",
@@ -2207,6 +2257,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/hotel-le-central/",
       "lecteur": "lecture",
       "titre": "HOTEL LE CENTRAL",
@@ -2244,6 +2295,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-moulin-2/",
       "lecteur": "lecture",
       "titre": "LE MOULIN",
@@ -2270,6 +2322,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/relais-disaby/",
       "lecteur": "lecture",
       "titre": "RELAIS D’ISABY",
@@ -2293,6 +2346,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-le-bordarriben/",
       "lecteur": "lecture",
       "titre": "CHALET LE BORDARRIBEN",
@@ -2330,6 +2384,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-plante-appartement-n5/",
       "lecteur": "lecture",
       "titre": "MAISON PLANTÉ APPARTEMENT N°5",
@@ -2360,6 +2415,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-petit-paradis/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT PETIT PARADIS",
@@ -2386,14 +2442,14 @@
         {
           "libelle": "Tarifs pour 2 nuits / nuit supplémentaire 80€",
           "montant": 80,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/lhelios-1/",
       "lecteur": "lecture",
       "titre": "L’HELIOS 1",
@@ -2421,14 +2477,14 @@
         {
           "libelle": "Hors juil/août. tarif valable pour 2 à 4 pers si pers sup 50€/pers/sem",
           "montant": 50,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-barzun-n1/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON BARZUN (N°1)",
@@ -2458,20 +2514,19 @@
         {
           "libelle": "saison hiver du 1 décembre à la fermeture de la station 7000€",
           "montant": 7000,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         },
         {
           "libelle": "nuit suppl. 118€",
           "montant": 118,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-barzun-n3/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON BARZUN (N°3)",
@@ -2507,20 +2562,19 @@
         {
           "libelle": "Tarif 3 nuits min (5 nuits max) l'hiver hvs. nuit suppl. 97€ .",
           "montant": 97,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         },
         {
           "libelle": "Tarifs valables pour 2 personnes max. 60€/sem/pers sup.",
           "montant": 60,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-barzun-n2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON BARZUN (N°2)",
@@ -2556,14 +2610,14 @@
         {
           "libelle": "nuit suppl. 150€",
           "montant": 150,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chez-kaporal/",
       "lecteur": "lecture",
       "titre": "CHEZ KAPORAL",
@@ -2595,6 +2649,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-2/",
       "lecteur": "lecture",
       "titre": "STUDIO",
@@ -2623,6 +2678,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/soum-de-lase/",
       "lecteur": "lecture",
       "titre": "SOUM DE L’ASE",
@@ -2645,6 +2701,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-iris-2/",
       "lecteur": "lecture",
       "titre": "LES IRIS",
@@ -2662,6 +2719,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-bernatoire/",
       "lecteur": "lecture",
       "titre": "LA BERNATOIRE",
@@ -2686,6 +2744,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-20/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -2710,6 +2769,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-18/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -2733,22 +2793,16 @@
       "equipements": [],
       "tarifs": [
         {
-          "libelle": "à partir de — 51 à 77 € la nuit supplémentaire.",
-          "montant": 51,
-          "unite": "nuit",
-          "plancher": true
-        },
-        {
           "libelle": "Tarif valable pour 2 personnes, au delà 50€/sem /pers supplémentaire",
           "montant": 50,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-alain/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT ALAIN",
@@ -2774,6 +2828,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-4/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -2804,6 +2859,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-chalet-pax/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT « CHALET PAX »",
@@ -2833,6 +2889,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-degadan/",
       "lecteur": "lecture",
       "titre": "LE DEGADAN",
@@ -2861,6 +2918,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-ufia/",
       "lecteur": "lecture",
       "titre": "CHALET UFIA",
@@ -2886,22 +2944,16 @@
       "equipements": [],
       "tarifs": [
         {
-          "libelle": "à partir de — nuit supp. de 113€ à 155€ en fonction de la période",
-          "montant": 113,
-          "unite": "nuit",
-          "plancher": true
-        },
-        {
           "libelle": "Tarif 4 personnes au-delà supplément de 70€/personne/nuit",
           "montant": 70,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RESIDENCE",
@@ -2936,6 +2988,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-de-caractere-dans-village/",
       "lecteur": "lecture",
       "titre": "MAISON DE CARACTERE DANS VILLAGE",
@@ -2964,6 +3017,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/le-gypaete/",
       "lecteur": "lecture",
       "titre": "LE GYPAÈTE",
@@ -3000,6 +3054,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chez-fanou/",
       "lecteur": "lecture",
       "titre": "CHEZ FANOU",
@@ -3017,6 +3072,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-grange-de-la-coumette/",
       "lecteur": "lecture",
       "titre": "LA GRANGE DE LA COUMETTE",
@@ -3050,6 +3106,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-nid-joli/",
       "lecteur": "lecture",
       "titre": "LE NID JOLI",
@@ -3076,6 +3133,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-3/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -3099,6 +3157,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambre-dhotes-en-coeur-de-ferme/",
       "lecteur": "lecture",
       "titre": "CHAMBRE D’HÔTES – EN COEUR DE FERME",
@@ -3124,6 +3183,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-garrap/",
       "lecteur": "lecture",
       "titre": "MAISON GARRAP",
@@ -3152,6 +3212,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-bouvreuil/",
       "lecteur": "lecture",
       "titre": "LE BOUVREUIL",
@@ -3188,6 +3249,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambre-dhotes-les-ruisseaux/",
       "lecteur": "lecture",
       "titre": "CHAMBRE D’HÔTES – LES RUISSEAUX",
@@ -3222,6 +3284,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chez-philou-4-chambres/",
       "lecteur": "lecture",
       "titre": "CHEZ PHILOU – 4 CHAMBRES",
@@ -3250,6 +3313,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chez-philou-3-chambres/",
       "lecteur": "lecture",
       "titre": "CHEZ PHILOU – 3 CHAMBRES",
@@ -3278,6 +3342,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-le-nid-du-moineau/",
       "lecteur": "lecture",
       "titre": "GITE LE NID DU MOINEAU",
@@ -3306,6 +3371,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-lasserre/",
       "lecteur": "lecture",
       "titre": "MAISON LASSERRE",
@@ -3337,6 +3403,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-10/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -3363,6 +3430,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-9/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -3394,6 +3462,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-petit-hautacam/",
       "lecteur": "lecture",
       "titre": "LE PETIT HAUTACAM",
@@ -3424,6 +3493,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/letoile-du-berger/",
       "lecteur": "lecture",
       "titre": "L’ETOILE DU BERGER",
@@ -3458,14 +3528,14 @@
         {
           "libelle": "Minimum 2 nuits, 350€ la nuit supp.",
           "montant": 350,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-mont-de-gez-2/",
       "lecteur": "lecture",
       "titre": "« LE MONT DE GEZ »",
@@ -3498,6 +3568,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/villa-bellevue/",
       "lecteur": "lecture",
       "titre": "VILLA « BELLEVUE »",
@@ -3535,6 +3606,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/lhadastoise/",
       "lecteur": "lecture",
       "titre": "L’HADASTOISE",
@@ -3563,6 +3635,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-8/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -3600,6 +3673,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/sit/sixt-location-de-vehicules-aeroport/",
       "lecteur": "lecture",
       "titre": "SIXT LOCATION DE VEHICULES- AÉROPORT",
@@ -3617,6 +3691,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/sit/sixt-location-de-vehicules/",
       "lecteur": "lecture",
       "titre": "SIXT LOCATION DE VÉHICULES",
@@ -3636,6 +3711,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-bois-de-marie/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RESIDENCE BOIS DE MARIE",
@@ -3664,6 +3740,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -3697,6 +3774,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-maison-du-parc/",
       "lecteur": "lecture",
       "titre": "LA MAISON DU PARC",
@@ -3732,6 +3810,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-estaing/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT ESTAING",
@@ -3765,6 +3844,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-hautacam-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT HAUTACAM",
@@ -3792,6 +3872,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-pic-du-midi-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT PIC DU MIDI",
@@ -3822,6 +3903,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-viscos/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT VISCOS",
@@ -3849,6 +3931,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/logis-hotel-le-beau-site/",
       "lecteur": "lecture",
       "titre": "LOGIS HOTEL LE BEAU SITE",
@@ -3882,6 +3965,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/logis-hotel-le-miramont/",
       "lecteur": "lecture",
       "titre": "LOGIS HOTEL LE MIRAMONT",
@@ -3914,6 +3998,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/logis-hotel-les-cimes/",
       "lecteur": "lecture",
       "titre": "LOGIS HOTEL LES CIMES",
@@ -3947,6 +4032,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/so-de-pere/",
       "lecteur": "lecture",
       "titre": "SO DE PÉRÉ",
@@ -3981,6 +4067,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/centre-de-vacances-de-la-dordogne/",
       "lecteur": "lecture",
       "titre": "CENTRE DE VACANCES DE LA DORDOGNE",
@@ -4015,6 +4102,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/residence-pyrenees-zenith/",
       "lecteur": "lecture",
       "titre": "RESIDENCE PYRENEES ZENITH",
@@ -4034,6 +4122,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/hotel-du-cirque-et-de-la-cascade/",
       "lecteur": "lecture",
       "titre": "HÔTEL DU CIRQUE ET DE LA CASCADE",
@@ -4064,6 +4153,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-mirabelle/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RESIDENCE MIRABELLE",
@@ -4101,6 +4191,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/les-moulins-disaby/",
       "lecteur": "lecture",
       "titre": "LES MOULINS D’ISABY",
@@ -4130,6 +4221,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-1-dans-maison/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 1 DANS MAISON",
@@ -4161,20 +4253,19 @@
         {
           "libelle": "60€/nuit supplémentaire. pas de we \"été vacances scolaires\" 4 nuits mini",
           "montant": 60,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         },
         {
           "libelle": "Tarifs valables pour 2 personnes. 1500€ \"été vacances scolaires\"",
           "montant": 1500,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-5-dans-residence-prada/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 5 DANS RÉSIDENCE PRADA",
@@ -4194,18 +4285,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/102ad00d06fb6ce1f256396214a3f396-IMG20230330143038-380x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "2 nuits minimum, nuit supplémentaire : de 50€/nuit à 55€/nuit",
-          "montant": 50,
-          "unite": "sejour",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-1-dans-villa-maitena/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 1 DANS VILLA MAÏTENA",
@@ -4234,6 +4319,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-de-village-authentique-du-18eme/",
       "lecteur": "lecture",
       "titre": "MAISON DE VILLAGE AUTHENTIQUE DU 18ÈME",
@@ -4270,6 +4356,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-le-poupe/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LE POUPE",
@@ -4296,6 +4383,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-col-du-tourmalet/",
       "lecteur": "lecture",
       "titre": "LE COL DU TOURMALET",
@@ -4325,6 +4413,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/auberge-les-cimes/",
       "lecteur": "lecture",
       "titre": "AUBERGE LES CIMES",
@@ -4360,6 +4449,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-place-ideale/",
       "lecteur": "lecture",
       "titre": "LA PLACE IDEALE",
@@ -4396,6 +4486,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-dangleterre-3/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE D’ANGLETERRE",
@@ -4424,6 +4515,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-rouge-gorge/",
       "lecteur": "lecture",
       "titre": "GITE ROUGE GORGE",
@@ -4454,6 +4546,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-le-clos-st-michel/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LE CLOS ST MICHEL",
@@ -4483,6 +4576,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-n183/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT N°183",
@@ -4505,6 +4599,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-maison-suspendue/",
       "lecteur": "lecture",
       "titre": "LA MAISON SUSPENDUE",
@@ -4531,6 +4626,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-maison-refuge/",
       "lecteur": "lecture",
       "titre": "LA MAISON REFUGE",
@@ -4559,6 +4655,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/le-nid-douillet/",
       "lecteur": "lecture",
       "titre": "LE NID DOUILLET",
@@ -4581,18 +4678,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/67282386d814b1dfbf706de9ec04c2d0-mme-lemoine-rioulet-bareges-20-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — nuit suppl. de 75€ à 85€",
-          "montant": 75,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/maison-lacalle/",
       "lecteur": "lecture",
       "titre": "MAISON LACALLE",
@@ -4625,18 +4716,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/94372bec3ced8c091ceed66e1d01cc25-image00036-747x560.jpeg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Tarif 2 nuits, 180€ à 250€ la nuit supplémentaire",
-          "montant": 180,
-          "unite": "sejour",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-eth-berie/",
       "lecteur": "lecture",
       "titre": "MAISON ETH BERIE",
@@ -4664,20 +4749,19 @@
         {
           "libelle": "595 € tarif basse saison",
           "montant": 595,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         },
         {
           "libelle": "700 € tarif haute saison",
           "montant": 700,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-la-munia/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES « LA MUNIA »",
@@ -4706,6 +4790,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/roxelo/",
       "lecteur": "lecture",
       "titre": "ROXELO",
@@ -4735,6 +4820,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-bouhacagne/",
       "lecteur": "lecture",
       "titre": "GITE BOUHACAGNE",
@@ -4761,6 +4847,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-farby/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON FARBY",
@@ -4792,6 +4879,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-poumes/",
       "lecteur": "lecture",
       "titre": "MAISON POUMES",
@@ -4829,6 +4917,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-chez-pepe-et-meme/",
       "lecteur": "lecture",
       "titre": "MAISON CHEZ PÉPÉ ET MÉMÉ",
@@ -4866,6 +4955,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-le-tilhos-appartement/",
       "lecteur": "lecture",
       "titre": "GÎTE LE TILHOS – APPARTEMENT",
@@ -4890,6 +4980,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-maison-sempe/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES « MAISON SEMPÉ »",
@@ -4923,6 +5014,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-grange-des-thermes/",
       "lecteur": "lecture",
       "titre": "LA GRANGE DES THERMES",
@@ -4960,6 +5052,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-cerbillona/",
       "lecteur": "lecture",
       "titre": "LE CERBILLONA",
@@ -4996,6 +5089,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/lestibere/",
       "lecteur": "lecture",
       "titre": "L’ESTIBÈRE",
@@ -5019,6 +5113,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/latchou/",
       "lecteur": "lecture",
       "titre": "L’ATCHOU",
@@ -5056,6 +5151,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-soumaoute-4-personnes/",
       "lecteur": "lecture",
       "titre": "LE SOUMAOUTE (4 PERSONNES)",
@@ -5084,14 +5180,14 @@
         {
           "libelle": "Mini 2 nuits /60€ par nuit sup.",
           "montant": 60,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-soumaoute-8-pers/",
       "lecteur": "lecture",
       "titre": "LE SOUMAOUTE (8 PERS)",
@@ -5126,14 +5222,14 @@
         {
           "libelle": "Mini 2 nuits / 75€ par nuit sup",
           "montant": 75,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/lescapade-2/",
       "lecteur": "lecture",
       "titre": "L’ESCAPADE",
@@ -5170,6 +5266,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/le-saugue/",
       "lecteur": "lecture",
       "titre": "LE SAUGUÉ",
@@ -5196,6 +5293,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/la-grange-de-holle-2/",
       "lecteur": "lecture",
       "titre": "LA GRANGE DE HOLLE",
@@ -5221,6 +5319,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/le-haugarou/",
       "lecteur": "lecture",
       "titre": "LE HAUGAROU",
@@ -5258,6 +5357,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/refuge-de-la-glere/",
       "lecteur": "lecture",
       "titre": "REFUGE DE LA GLÈRE",
@@ -5280,6 +5380,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/la-salamandre-2/",
       "lecteur": "lecture",
       "titre": "LA SALAMANDRE",
@@ -5305,6 +5406,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/le-desman/",
       "lecteur": "lecture",
       "titre": "LE DESMAN",
@@ -5332,18 +5434,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/7b1e3104b5338d32a51c297dad6b0d86-HPGS13-LE-DESMAN---GAVARNIE--7DB3D74C-F92F-4CE6-A9CC-4B7A61D8B118-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "Tarif pension complète enfant : 39 €",
-          "montant": 39,
-          "unite": "autre",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/le-maillet/",
       "lecteur": "lecture",
       "titre": "LE MAILLET",
@@ -5363,6 +5459,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/hotel-de-la-poste/",
       "lecteur": "lecture",
       "titre": "HÔTEL DE LA POSTE",
@@ -5390,6 +5487,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/lalphee-2/",
       "lecteur": "lecture",
       "titre": "L’ALPHÉE",
@@ -5426,6 +5524,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/le-terminus/",
       "lecteur": "lecture",
       "titre": "LE TERMINUS",
@@ -5458,6 +5557,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/le-compostelle/",
       "lecteur": "lecture",
       "titre": "LE COMPOSTELLE",
@@ -5489,6 +5589,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/la-breche-de-roland-2/",
       "lecteur": "lecture",
       "titre": "LA BRÈCHE DE ROLAND",
@@ -5525,6 +5626,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/la-grange-aux-marmottes-2/",
       "lecteur": "lecture",
       "titre": "LA GRANGE AUX MARMOTTES",
@@ -5561,6 +5663,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/les-cimes-3/",
       "lecteur": "lecture",
       "titre": "LES CIMES",
@@ -5596,6 +5699,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/le-cabaliros/",
       "lecteur": "lecture",
       "titre": "LE CABALIROS",
@@ -5631,6 +5735,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hotels/le-tourmalet/",
       "lecteur": "lecture",
       "titre": "LE TOURMALET",
@@ -5667,6 +5772,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-neouvielle-3/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE NÉOUVIELLE",
@@ -5695,6 +5801,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/le-welcome/",
       "lecteur": "lecture",
       "titre": "LE WELCOME",
@@ -5721,18 +5828,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/4755b2c734d97311468f8512ecf29575-Gite-le-welcome-mme-rojas-17-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "Entre 65 € et 85 € par nuit selon période avec minimum de 2 nuits",
-          "montant": 65,
-          "unite": "sejour",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/lechappee-belle/",
       "lecteur": "lecture",
       "titre": "L’ÉCHAPPÉE BELLE",
@@ -5769,6 +5870,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-maison-soupiets/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – MAISON SOUPIETS",
@@ -5805,6 +5907,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/au-coin-des-thermes/",
       "lecteur": "lecture",
       "titre": "AU COIN DES THERMES",
@@ -5832,6 +5935,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-campbieilh/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT CAMPBIEILH",
@@ -5863,6 +5967,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-les-cabanets-4-personnes/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LES CABANETS (4 PERSONNES)",
@@ -5890,6 +5995,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-ardiden/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON ARDIDEN",
@@ -5919,6 +6025,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-ayre-4/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE AYRÉ",
@@ -5947,6 +6054,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-souriche/",
       "lecteur": "lecture",
       "titre": "MAISON SOURICHE",
@@ -5974,14 +6082,14 @@
         {
           "libelle": "Hors vacances scolaires pour 3 personnes . au-delà 50 € par pers.supp.",
           "montant": 50,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-les-tilleuls-studio/",
       "lecteur": "lecture",
       "titre": "CHALET LES TILLEULS (STUDIO)",
@@ -6015,6 +6123,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-les-floralies/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LES FLORALIES",
@@ -6040,6 +6149,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-ets-splas/",
       "lecteur": "lecture",
       "titre": "MAISON ETS SPLAS",
@@ -6066,6 +6176,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-prada/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE PRADA",
@@ -6088,18 +6199,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/de6b3d9a0f1868d9e480939ceca58c82-20240711-165510-1--747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "2 nuits min, nuit supplémentaire : de 60€/nuit à 70€/nuit",
-          "montant": 60,
-          "unite": "sejour",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-ramond/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE RAMOND",
@@ -6132,6 +6237,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-les-cabanets-2-personnes/",
       "lecteur": "lecture",
       "titre": "STUDIO LES CABANETS (2 PERSONNES)",
@@ -6160,6 +6266,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-ayre/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE AYRÉ",
@@ -6191,6 +6298,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-ayre-3/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE AYRÉ",
@@ -6215,6 +6323,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-artigalas-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE ARTIGALAS",
@@ -6238,6 +6347,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-munia/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON MUNIA",
@@ -6266,6 +6376,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-ardiden/",
       "lecteur": "lecture",
       "titre": "GÎTE ARDIDEN",
@@ -6294,14 +6405,14 @@
         {
           "libelle": "Tarif valable pour 2 pers et uniquement hors juil/août. 200€/pers. sup.",
           "montant": 200,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-lestibere/",
       "lecteur": "lecture",
       "titre": "MAISON L’ESTIBÈRE",
@@ -6328,6 +6439,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-6/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE",
@@ -6357,6 +6469,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-helios-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE HÉLIOS",
@@ -6388,6 +6501,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-europe/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE EUROPE",
@@ -6424,6 +6538,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-le-pitou/",
       "lecteur": "lecture",
       "titre": "GÎTE LE PITOU",
@@ -6455,6 +6570,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-cabaliros/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE CABALIROS",
@@ -6484,6 +6600,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-les-gentianes/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LES GENTIANES",
@@ -6521,6 +6638,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-le-gentilhome/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LE GENTIL’HOME",
@@ -6550,6 +6668,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-le-grand-tetras/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LE GRAND TÉTRAS",
@@ -6577,6 +6696,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-la-cordee-p/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LA CORDÉE P",
@@ -6610,14 +6730,14 @@
         {
           "libelle": "(du samedi au samedi) saison été 490€ saison hiver 590€ hors saison 350€",
           "montant": 490,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-la-cordee-m/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LA CORDÉE M",
@@ -6639,14 +6759,14 @@
         {
           "libelle": "(du samedi au samedi) saison été 490€ saison hiver 590€ hors saison 350€",
           "montant": 490,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-coumely/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT COUMELY",
@@ -6679,6 +6799,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-lacure/",
       "lecteur": "lecture",
       "titre": "GÎTE LACURE",
@@ -6713,6 +6834,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-la-condorinette/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LA CONDORINETTE",
@@ -6738,6 +6860,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-oustal/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE OUSTAL",
@@ -6773,6 +6896,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-eth-berye-petit/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – ETH BÉRYÈ PETIT",
@@ -6810,6 +6934,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-so-de-clot-1/",
       "lecteur": "lecture",
       "titre": "GÎTE SO DE CLOT 1",
@@ -6840,6 +6965,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-artigalas/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE ARTIGALAS",
@@ -6868,6 +6994,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 2,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-les-balcons-de-bareges/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LES BALCONS DE BARÈGES",
@@ -6891,24 +7018,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/20b8eac62c58364ff96290116c4aeac0-MmsCamera-2024-12-03-14-46-20-380x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Mini 2 nuits. nuit sup. de 60€ à 110€",
-          "montant": 60,
-          "unite": "sejour",
-          "plancher": true
-        },
-        {
-          "libelle": "à partir de — Pour 4 personnes maxi. pers. sup. 30€ à 40€/nuit",
-          "montant": 30,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-la-maison-du-torrent/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS LA MAISON DU TORRENT",
@@ -6942,6 +7057,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-le-balcon-du-parc/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LE BALCON DU PARC",
@@ -6975,6 +7091,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-5/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE",
@@ -6999,6 +7116,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-chalet-mina/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – CHALET MINA",
@@ -7033,6 +7151,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-villa-victoria/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE VILLA VICTORIA",
@@ -7054,6 +7173,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-le-lodge-du-hautacam/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LE LODGE DU HAUTACAM",
@@ -7087,6 +7207,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/cabane-forestiere/",
       "lecteur": "lecture",
       "titre": "CABANE FORESTIÈRE",
@@ -7107,6 +7228,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-le-balcon-des-cimes/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LE BALCON DES CIMES",
@@ -7144,6 +7266,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-balaguere/",
       "lecteur": "lecture",
       "titre": "MAISON BALAGUÈRE",
@@ -7176,14 +7299,14 @@
         {
           "libelle": "nuit suppl : 750€",
           "montant": 750,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-le-campbieilh/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LE CAMPBIEILH",
@@ -7210,6 +7333,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-les-gerbes/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LES GERBES",
@@ -7241,6 +7365,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-camelat/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – CAMELAT",
@@ -7269,6 +7394,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-lastazou/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – L’ASTAZOU",
@@ -7305,6 +7431,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-le-chalet-des-hauts-bois/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES – LE CHALET DES HAUTS BOIS",
@@ -7330,6 +7457,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-val-des-thermes-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE VAL DES THERMES",
@@ -7353,6 +7481,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-ayre-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE AYRÉ",
@@ -7383,6 +7512,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-hautacam/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT HAUTACAM",
@@ -7409,6 +7539,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-gavarnie/",
       "lecteur": "lecture",
       "titre": "GÎTE GAVARNIE",
@@ -7444,6 +7575,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-3/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE",
@@ -7468,6 +7600,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-neouvielle/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE NÉOUVIELLE",
@@ -7491,18 +7624,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/74e02419870c484d42e79fb1fb2d154c-vue-sur-residence-640x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — 35€ à 60€/nuit supplémentaire.",
-          "montant": 35,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-le-lac-bleu/",
       "lecteur": "lecture",
       "titre": "GÎTE LE LAC BLEU",
@@ -7540,6 +7667,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-layzi/",
       "lecteur": "lecture",
       "titre": "GÎTE L’AYZI",
@@ -7564,6 +7692,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-les-floralies-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LES FLORALIES",
@@ -7587,14 +7716,14 @@
         {
           "libelle": "95€/nuit supplémentaire",
           "montant": 95,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-ayre-2/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE AYRÉ",
@@ -7618,6 +7747,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-chez-colette/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT CHEZ COLETTE",
@@ -7645,6 +7775,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-le-lienz/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LE LIENZ",
@@ -7668,6 +7799,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-les-ecureuils/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE LES ÉCUREUILS",
@@ -7696,14 +7828,14 @@
         {
           "libelle": "Mini 2 nuits hvs.60€ à 65€ la nuit supplémentaire.",
           "montant": 65,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-la-sanaga/",
       "lecteur": "lecture",
       "titre": "MAISON LA SANAGA",
@@ -7733,6 +7865,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-le-pimene-2eme-etage/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LE PIMÉNÉ (2ÈME ÉTAGE)",
@@ -7760,6 +7893,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-le-petit-gite-refuge/",
       "lecteur": "lecture",
       "titre": "STUDIO LE PETIT GÎTE REFUGE",
@@ -7792,6 +7926,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-le-cabaliros/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LE CABALIROS",
@@ -7823,14 +7958,14 @@
         {
           "libelle": "60 euros la nuit supplémentaire",
           "montant": 60,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-le-berierot/",
       "lecteur": "lecture",
       "titre": "GÎTE LE BERIEROT",
@@ -7863,6 +7998,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grand-gite-le-cueyla/",
       "lecteur": "lecture",
       "titre": "GRAND GÎTE LE CUEYLA",
@@ -7896,6 +8032,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-oncet/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT ONCET",
@@ -7919,6 +8056,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-dans-residence-ayre-5/",
       "lecteur": "lecture",
       "titre": "STUDIO DANS RÉSIDENCE AYRÉ",
@@ -7942,6 +8080,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-les-bois-de-marie/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LES BOIS DE MARIE",
@@ -7969,6 +8108,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-les-sarradets/",
       "lecteur": "lecture",
       "titre": "MAISON LES SARRADETS",
@@ -7995,6 +8135,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-chez-andriou/",
       "lecteur": "lecture",
       "titre": "GÎTE CHEZ ANDRIOU",
@@ -8031,6 +8172,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-pibeste/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT PIBESTE",
@@ -8058,6 +8200,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-clos-saint-michel/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE CLOS SAINT-MICHEL",
@@ -8085,6 +8228,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-ramond-2/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE RAMOND",
@@ -8115,18 +8259,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/2b66c3a4a4f0d1639b542047e1e6453e-20240128-125525-380x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "Tarif 3 nuits min - nuit supp entre 90€ et 129€ en fonction de la saison",
-          "montant": 90,
-          "unite": "sejour",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-les-terres-neres/",
       "lecteur": "lecture",
       "titre": "GÎTE LES TERRES NERES",
@@ -8164,6 +8302,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-le-castillon/",
       "lecteur": "lecture",
       "titre": "MAISON LE CASTILLON",
@@ -8201,6 +8340,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/bergerie-cledes/",
       "lecteur": "lecture",
       "titre": "BERGERIE CLEDES",
@@ -8236,6 +8376,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-le-petit-gite/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LE PETIT GÎTE",
@@ -8265,6 +8406,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-ladret/",
       "lecteur": "lecture",
       "titre": "MAISON L’ADRET",
@@ -8295,6 +8437,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-le-bois-de-marie/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LE BOIS DE MARIE",
@@ -8324,18 +8467,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/edd4fbcc0d53b0ae702fdc29289d653e-appartement-bareges-Robin-sylviane-9-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — nuit suppl. de 200€ à 300€ selon période",
-          "montant": 200,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-minbielle/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON MINBIELLE",
@@ -8372,14 +8509,14 @@
         {
           "libelle": "500 kwh inclus puis payant tarif local. tarif pour 2 pers. si plus 10€/pers/j.",
           "montant": 10,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-deth-pecoumet/",
       "lecteur": "lecture",
       "titre": "GÎTE DETH PÉCOUMET",
@@ -8414,6 +8551,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-madamete/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT MADAMÈTE",
@@ -8436,6 +8574,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-pic-du-midi/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT PIC DU MIDI",
@@ -8461,6 +8600,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-ardiden/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT ARDIDEN",
@@ -8484,6 +8624,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-greziolles/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT GREZIOLLES",
@@ -8513,6 +8654,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-neouvielle/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT NÉOUVIELLE",
@@ -8538,6 +8680,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-lyser/",
       "lecteur": "lecture",
       "titre": "GÎTE L’YSER",
@@ -8567,6 +8710,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-chez-welter/",
       "lecteur": "lecture",
       "titre": "GÎTE CHEZ WELTER",
@@ -8601,6 +8745,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-castera/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT CASTERA",
@@ -8629,6 +8774,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-le-bureau-de-poste/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LE BUREAU DE POSTE",
@@ -8662,6 +8808,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-lasbos/",
       "lecteur": "lecture",
       "titre": "MAISON LASBOS",
@@ -8698,6 +8845,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/gite-de-fanfan/",
       "lecteur": "lecture",
       "titre": "GÎTE DE FANFAN",
@@ -8722,18 +8870,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/2216e0a32c57c5efa25274b233cf227c-ORIGINALE-Darroze-F-Gite-Fanfan--4--747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — 90€ à 110€ la nuit supp. selon la période.",
-          "montant": 90,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/gite-stella-matutina/",
       "lecteur": "lecture",
       "titre": "GÎTE STELLA MATUTINA",
@@ -8758,18 +8900,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/d47462efd4a0e60f2c08e5fc545fe2a8-8G8A1720-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "Les 2 nuits, nuit suppl. entre 320€ et 350€",
-          "montant": 320,
-          "unite": "sejour",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-layre/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT L’AYRÉ",
@@ -8794,6 +8930,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-lucile-b/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LUCILE.B",
@@ -8829,14 +8966,14 @@
         {
           "libelle": "Tarif pour 2 adultes. si personne supplémentaire ajouter 50 euros",
           "montant": 50,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-couleurs-nature/",
       "lecteur": "lecture",
       "titre": "GÎTE COULEURS NATURE",
@@ -8874,6 +9011,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-mitoyenne-aster/",
       "lecteur": "lecture",
       "titre": "MAISON MITOYENNE ASTER",
@@ -8906,6 +9044,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-le-pibeste/",
       "lecteur": "lecture",
       "titre": "STUDIO LE PIBESTE",
@@ -8934,6 +9073,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-parenthese-du-tourmalet-hellebore/",
       "lecteur": "lecture",
       "titre": "LA PARENTHÈSE DU TOURMALET – HELLÉBORE",
@@ -8964,6 +9104,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-parenthese-du-tourmalet-oxalys/",
       "lecteur": "lecture",
       "titre": "LA PARENTHÈSE DU TOURMALET – OXALYS",
@@ -8991,6 +9132,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-parenthese-du-tourmalet-alba/",
       "lecteur": "lecture",
       "titre": "LA PARENTHÈSE DU TOURMALET – ALBA",
@@ -9022,6 +9164,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-parenthese-du-tourmalet-epicea/",
       "lecteur": "lecture",
       "titre": "LA PARENTHÈSE DU TOURMALET- ÉPICÉA",
@@ -9053,6 +9196,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-cabaliros/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT CABALIROS",
@@ -9081,6 +9225,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/langelique/",
       "lecteur": "lecture",
       "titre": "L’ANGÉLIQUE",
@@ -9114,6 +9259,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-astazou/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE ASTAZOU",
@@ -9151,6 +9297,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/gite-de-lurp/",
       "lecteur": "lecture",
       "titre": "GÎTE DE LURP",
@@ -9182,18 +9329,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/6daf8dfddef632f9675080f3673bd824-SIT-VillaDeLurp-Aoustin--24--747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — 300€ à 350€ la nuit supplémentaire selon période",
-          "montant": 300,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-val-des-thermes/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE VAL DES THERMES",
@@ -9229,6 +9370,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-du-pere-emile/",
       "lecteur": "lecture",
       "titre": "GRANGE DU PÈRE ÉMILE",
@@ -9265,6 +9407,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-11/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE",
@@ -9290,6 +9433,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-17/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -9320,6 +9464,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-13/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -9350,6 +9495,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-de-spandelles/",
       "lecteur": "lecture",
       "titre": "GÎTE DE SPANDELLES",
@@ -9386,6 +9532,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/leterle-maison-de-montagne/",
       "lecteur": "lecture",
       "titre": "L’ÉTERLE – MAISON DE MONTAGNE",
@@ -9422,6 +9569,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-le-pimene/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LE PIMENÉ",
@@ -9449,6 +9597,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-les-cabanets/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT LES CABANETS",
@@ -9475,6 +9624,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-neouvielle/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE NÉOUVIELLE",
@@ -9502,6 +9652,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-ayre/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE AYRÉ",
@@ -9527,6 +9678,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-artouste/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE ARTOUSTE",
@@ -9553,6 +9705,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-balcons-de-bareges/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE BALCONS DE BARÈGES",
@@ -9583,6 +9736,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-petit-clos/",
       "lecteur": "lecture",
       "titre": "MAISON PETIT CLOS",
@@ -9611,6 +9765,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-serenite/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT SÉRÉNITÉ",
@@ -9638,18 +9793,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/c9169d8f0ebb563ebb6f149232cf56bf-SIT-Senelier--1--747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — 60 à 95€/nuit suppl.",
-          "montant": 60,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT",
@@ -9681,6 +9830,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-10/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -9706,6 +9856,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-le-gentilhome/",
       "lecteur": "lecture",
       "titre": "GÎTE LE GENTIL’HOME",
@@ -9733,6 +9884,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-le-mousqueton/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE LE MOUSQUETON",
@@ -9761,6 +9913,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-du-pere-victor/",
       "lecteur": "lecture",
       "titre": "GRANGE DU PÈRE VICTOR",
@@ -9791,6 +9944,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-du-pere-henri/",
       "lecteur": "lecture",
       "titre": "GRANGE DU PÈRE HENRI",
@@ -9820,6 +9974,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-la-rocaille/",
       "lecteur": "lecture",
       "titre": "GÎTE LA ROCAILLE",
@@ -9857,6 +10012,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-le-boucail/",
       "lecteur": "lecture",
       "titre": "GRANGE LE BOUCAÏL",
@@ -9885,6 +10041,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-villa-josy/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT VILLA JOSY",
@@ -9917,6 +10074,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-3-chambres/",
       "lecteur": "lecture",
       "titre": "CHALET (3 CHAMBRES)",
@@ -9937,18 +10095,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/871370bff1006b3d5bceec057994c4b0-exterieur2-fourtine-bareges-HautesPyrenees-3-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "A partir de 1104€ hors vacances scolaires pour 1 à 4 personnes.",
-          "montant": 1104,
-          "unite": "autre",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-2-chambres/",
       "lecteur": "lecture",
       "titre": "CHALET (2 CHAMBRES)",
@@ -9969,18 +10121,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/a49e2525821ce15b5b0524168b53fa81-exterieur2-fourtine-bareges-HautesPyrenees-2-747x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "A partir de 849€ hors vacances scolaires pour 2 pers.",
-          "montant": 849,
-          "unite": "autre",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/yourtes-de-gavarnie-gedre/",
       "lecteur": "lecture",
       "titre": "YOURTES DE GAVARNIE-GÈDRE",
@@ -10014,6 +10160,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-tipis-indiens/",
       "lecteur": "lecture",
       "titre": "LES TIPIS INDIENS",
@@ -10042,6 +10189,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-deths-parpalhols/",
       "lecteur": "lecture",
       "titre": "MAISON DETHS PARPALHOLS",
@@ -10072,14 +10220,14 @@
         {
           "libelle": "2 nuits mini et 115€ la nuit supplémentaire",
           "montant": 115,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-lianes/",
       "lecteur": "lecture",
       "titre": "LES LIANES",
@@ -10110,6 +10258,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-rives-du-gave-dazun/",
       "lecteur": "lecture",
       "titre": "LES RIVES DU GAVE D’AZUN",
@@ -10141,14 +10290,14 @@
         {
           "libelle": "75€ la nuit supp. hors edf",
           "montant": 75,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-maison-ardiden/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT MAISON ARDIDEN",
@@ -10175,6 +10324,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-10/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RESIDENCE",
@@ -10202,6 +10352,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-arouade/",
       "lecteur": "lecture",
       "titre": "MAISON AROUADE",
@@ -10239,6 +10390,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-cachame/",
       "lecteur": "lecture",
       "titre": "GÎTE CACHAME",
@@ -10276,6 +10428,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/aux-destaing-croises/",
       "lecteur": "lecture",
       "titre": "AUX D’ESTAING CROISÉS",
@@ -10313,6 +10466,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-langevine/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT L’ANGEVINE",
@@ -10346,6 +10500,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-mont-de-gez/",
       "lecteur": "lecture",
       "titre": "LE MONT DE GEZ",
@@ -10369,6 +10524,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-casaou/",
       "lecteur": "lecture",
       "titre": "GRANGE CASAOU",
@@ -10403,6 +10559,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-la-brigaille/",
       "lecteur": "lecture",
       "titre": "GRANGE LA BRIGAILLE",
@@ -10436,6 +10593,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-n181/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT (N°181)",
@@ -10457,6 +10615,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-n182/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT (N°182)",
@@ -10478,6 +10637,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-mitoyenne/",
       "lecteur": "lecture",
       "titre": "MAISON MITOYENNE",
@@ -10503,6 +10663,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/le-chalet-du-soulor/",
       "lecteur": "lecture",
       "titre": "LE CHALET DU SOULOR",
@@ -10536,6 +10697,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-refuge-4/",
       "lecteur": "lecture",
       "titre": "LE REFUGE",
@@ -10562,6 +10724,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-de-charme-le-bercail/",
       "lecteur": "lecture",
       "titre": "GRANGE DE CHARME LE BERCAIL",
@@ -10595,20 +10758,19 @@
         {
           "libelle": "Minimum 3 nuits (200 € / nuit)",
           "montant": 200,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         },
         {
           "libelle": "Réduction de 90€ pour 3 semaines",
           "montant": 90,
-          "unite": "sejour",
-          "plancher": false
+          "unite": "sejour"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-la-grange-de-la-loi/",
       "lecteur": "lecture",
       "titre": "GÎTE « LA GRANGE DE LA LOI »",
@@ -10636,6 +10798,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/studio-la-cabane-des-marmottes/",
       "lecteur": "lecture",
       "titre": "STUDIO LA CABANE DES MARMOTTES",
@@ -10663,14 +10826,14 @@
         {
           "libelle": "Tarif cure pour 2 personnes, au delà = 25€/personne/nuit suppl.",
           "montant": 25,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-residence-bieouzac/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS RÉSIDENCE BIEOUZAC",
@@ -10699,6 +10862,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/bera-lutz/",
       "lecteur": "lecture",
       "titre": "BERA LUTZ",
@@ -10735,6 +10899,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/lescale-du-pibeste/",
       "lecteur": "lecture",
       "titre": "L’ESCALE DU PIBESTE",
@@ -10772,6 +10937,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/refuge-daygues-cluses/",
       "lecteur": "lecture",
       "titre": "REFUGE D’AYGUES-CLUSES",
@@ -10798,6 +10964,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/cote-piscine/",
       "lecteur": "lecture",
       "titre": "CÔTÉ PISCINE",
@@ -10821,6 +10988,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-petit-chalet/",
       "lecteur": "lecture",
       "titre": "LE PETIT CHALET",
@@ -10844,6 +11012,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-rive-du-gave/",
       "lecteur": "lecture",
       "titre": "GÎTE RIVE DU GAVE",
@@ -10874,6 +11043,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-du-cabe/",
       "lecteur": "lecture",
       "titre": "GRANGE DU CABÉ",
@@ -10910,6 +11080,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-le-hautacam/",
       "lecteur": "lecture",
       "titre": "CHALET LE HAUTACAM",
@@ -10940,6 +11111,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-le-tourmalet/",
       "lecteur": "lecture",
       "titre": "CHALET LE TOURMALET",
@@ -10969,6 +11141,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-le-viscos/",
       "lecteur": "lecture",
       "titre": "CHALET LE VISCOS",
@@ -10998,6 +11171,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-le-cabaliros/",
       "lecteur": "lecture",
       "titre": "CHALET LE CABALIROS",
@@ -11027,6 +11201,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-le-vignemale/",
       "lecteur": "lecture",
       "titre": "CHALET LE VIGNEMALE",
@@ -11056,6 +11231,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-le-gabizos/",
       "lecteur": "lecture",
       "titre": "CHALET LE GABIZOS",
@@ -11085,6 +11261,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/refuge-de-migouelou/",
       "lecteur": "lecture",
       "titre": "REFUGE DE MIGOUELOU",
@@ -11115,6 +11292,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-petite-grange/",
       "lecteur": "lecture",
       "titre": "LA PETITE GRANGE",
@@ -11147,6 +11325,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-balcons-de-lyse/",
       "lecteur": "lecture",
       "titre": "LES BALCONS DE L’YSE",
@@ -11169,6 +11348,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/village-vacances-ceveo/",
       "lecteur": "lecture",
       "titre": "VILLAGE VACANCES CEVEO",
@@ -11197,6 +11377,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-parenthese-du-tourmalet-iberis/",
       "lecteur": "lecture",
       "titre": "LA PARENTHÈSE DU TOURMALET – IBÉRIS",
@@ -11233,6 +11414,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-rhododendrons/",
       "lecteur": "lecture",
       "titre": "LES RHODODENDRONS",
@@ -11267,6 +11449,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-edelweiss/",
       "lecteur": "lecture",
       "titre": "LES EDELWEISS",
@@ -11295,6 +11478,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-iris/",
       "lecteur": "lecture",
       "titre": "LES IRIS",
@@ -11327,6 +11511,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-lys/",
       "lecteur": "lecture",
       "titre": "LES LYS",
@@ -11361,6 +11546,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/la-grange-au-bois/",
       "lecteur": "lecture",
       "titre": "LA GRANGE AU BOIS",
@@ -11394,6 +11580,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/le-hameau-rollot/",
       "lecteur": "lecture",
       "titre": "LE HAMEAU ROLLOT",
@@ -11428,6 +11615,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/hebergements-collectifs/refuge-du-larribet/",
       "lecteur": "lecture",
       "titre": "REFUGE DU LARRIBET",
@@ -11454,6 +11642,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/domaine-du-val-de-roland/",
       "lecteur": "lecture",
       "titre": "DOMAINE DU VAL DE ROLAND",
@@ -11486,6 +11675,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/cabane-perce-neige/",
       "lecteur": "lecture",
       "titre": "CABANE PERCE NEIGE",
@@ -11515,6 +11705,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-toys-roulottes-roulotte-ancolie/",
       "lecteur": "lecture",
       "titre": "LES TOY’S ROULOTTES – ROULOTTE ANCOLIE",
@@ -11551,6 +11742,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-gentianes/",
       "lecteur": "lecture",
       "titre": "LES GENTIANES",
@@ -11587,6 +11779,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-grange/",
       "lecteur": "lecture",
       "titre": "LA GRANGE",
@@ -11623,6 +11816,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-moulin/",
       "lecteur": "lecture",
       "titre": "LE MOULIN",
@@ -11653,6 +11847,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-eslias/",
       "lecteur": "lecture",
       "titre": "MAISON ESLIAS",
@@ -11682,6 +11877,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-hautacam/",
       "lecteur": "lecture",
       "titre": "LE HAUTACAM",
@@ -11718,6 +11914,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-cornemuse/",
       "lecteur": "lecture",
       "titre": "GRANGE CORNEMUSÉ",
@@ -11747,6 +11944,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-refuge/",
       "lecteur": "lecture",
       "titre": "LE REFUGE",
@@ -11782,6 +11980,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/cabane-martagon/",
       "lecteur": "lecture",
       "titre": "CABANE MARTAGON",
@@ -11808,6 +12007,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/la-petite-maison/",
       "lecteur": "lecture",
       "titre": "LA PETITE MAISON",
@@ -11837,6 +12037,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-haure/",
       "lecteur": "lecture",
       "titre": "MAISON HAURE",
@@ -11862,6 +12063,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-bois/",
       "lecteur": "lecture",
       "titre": "CHALET BOIS",
@@ -11884,6 +12086,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chambres-dhotes-dannie/",
       "lecteur": "lecture",
       "titre": "CHAMBRES D’HÔTES D’ANNIE",
@@ -11921,6 +12124,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-toys-roulottes-roulotte-gentiane/",
       "lecteur": "lecture",
       "titre": "LES TOY’S ROULOTTES – ROULOTTE GENTIANE",
@@ -11943,6 +12147,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-toys-roulottes-roulotte-rhododendron/",
       "lecteur": "lecture",
       "titre": "LES TOY’S ROULOTTES – ROULOTTE RHODODENDRON",
@@ -11966,6 +12171,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/grange-de-nadau/",
       "lecteur": "lecture",
       "titre": "GRANGE DE NADAU",
@@ -12001,6 +12207,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-prebende/",
       "lecteur": "lecture",
       "titre": "GÎTE PRÉBENDÉ",
@@ -12037,6 +12244,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/cabane-iris/",
       "lecteur": "lecture",
       "titre": "CABANE IRIS",
@@ -12059,6 +12267,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-eth-souet/",
       "lecteur": "lecture",
       "titre": "GÎTE ETH SOUËT",
@@ -12094,6 +12303,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-laubine/",
       "lecteur": "lecture",
       "titre": "MAISON L’AUBINE",
@@ -12124,6 +12334,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite/",
       "lecteur": "lecture",
       "titre": "GÎTE",
@@ -12149,6 +12360,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-enco-deth-terralh/",
       "lecteur": "lecture",
       "titre": "GÎTE ENÇO DETH TERRALH",
@@ -12185,6 +12397,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-14/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -12212,6 +12425,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/les-toys-roulottes-roulotte-edelweiss/",
       "lecteur": "lecture",
       "titre": "LES TOY’S ROULOTTES – ROULOTTE EDELWEISS",
@@ -12238,6 +12452,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-le-bergons/",
       "lecteur": "lecture",
       "titre": "MAISON LE BERGONS",
@@ -12265,6 +12480,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-moulin-le-petit-nid/",
       "lecteur": "lecture",
       "titre": "LE MOULIN LE PETIT NID",
@@ -12296,6 +12512,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/le-moulin-de-ladya/",
       "lecteur": "lecture",
       "titre": "LE MOULIN DE LADYA",
@@ -12324,6 +12541,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-25/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12348,6 +12566,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-du-haut/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DU HAUT",
@@ -12379,6 +12598,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.valleesdegavarnie.com/locations/maison-12/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -12399,18 +12619,12 @@
         "https://www.valleesdegavarnie.com/wp-content/uploads/tourinsoft/eb291d4d2f80aea29cf8ccc8db2e32fb-20230815-184937-1--380x560.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — de 20€ à 25€/personne suppl/nuit.",
-          "montant": 20,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-24/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12438,6 +12652,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/chalet-pigoulet/",
       "lecteur": "lecture",
       "titre": "CHALET PIGOULET",
@@ -12469,6 +12684,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-23/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12501,6 +12717,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/gite-tourmalet/",
       "lecteur": "lecture",
       "titre": "GÎTE TOURMALET",
@@ -12534,14 +12751,14 @@
         {
           "libelle": "Tarif valable pour 2 pers et uniquement hors juil/août. 200€/pers.sup.",
           "montant": 200,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-21/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12564,6 +12781,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-20/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12586,6 +12804,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-16/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12608,6 +12827,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-11/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12637,6 +12857,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-7/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -12668,6 +12889,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-le-pailha/",
       "lecteur": "lecture",
       "titre": "MAISON LE PAILHA",
@@ -12702,6 +12924,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-du-forgeron/",
       "lecteur": "lecture",
       "titre": "MAISON DU FORGERON",
@@ -12737,6 +12960,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-6/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -12765,6 +12989,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-5/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -12792,6 +13017,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-9/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12817,6 +13043,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-7/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12845,6 +13072,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-traditionnelle-de-village/",
       "lecteur": "lecture",
       "titre": "MAISON TRADITIONNELLE DE VILLAGE",
@@ -12877,6 +13105,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/appartement-dans-maison-5/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS MAISON",
@@ -12907,6 +13136,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-3/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -12938,6 +13168,7 @@
       "releveLe": "2026-10-10T23:19:18.654Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.valleesdegavarnie.com/locations/maison-2/",
       "lecteur": "lecture",
       "titre": "MAISON",
@@ -12972,8 +13203,7 @@
         {
           "libelle": "50€ la nuit supplémentaire.",
           "montant": 50,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
@@ -12985,7 +13215,8 @@
   "refus": 0,
   "erreurs": [
     "fiches renormalisées le 2026-10-11T00:27:00.473Z (unités, planchers, suppléments)",
-    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)"
+    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)",
+    "« à partir de » et fourchettes retirés des tarifs le 2026-10-11 (21 lignes)"
   ],
   "reprises": 0,
   "decor": {

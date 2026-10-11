@@ -21,6 +21,7 @@ import {
   ficheParlante,
   normaliserFiche,
   retirerDecorDuSite,
+  retirerPlanchers,
   retirerPositionsDuSite,
   PROMPT_LOGEMENT,
   type DecorSite,
@@ -204,7 +205,7 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
     n += 1;
     const vieille = avant.get(url);
     if (vieille && reprenable(vieille, lastmod[url], o.fraicheurJours)) {
-      r.fiches.push(vieille);
+      r.fiches.push(retirerPlanchers(vieille));
       r.reprises += 1;
       o.surFiche?.(n, urls.length, url);
       continue;

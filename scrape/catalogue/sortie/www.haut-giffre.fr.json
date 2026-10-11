@@ -39,6 +39,7 @@
   "urls": 110,
   "fiches": [
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/residence-odalys-le-buet/",
       "lecteur": "lecture",
       "titre": "Résidence Odalys - Le Buet",
@@ -58,6 +59,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/abri-dhiver-au-refuge-de-folly/",
       "lecteur": "lecture",
       "titre": "Abri d'hiver au refuge de Folly",
@@ -78,6 +80,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/residence-les-chalets-du-bois-de-champelle/",
       "lecteur": "lecture",
       "titre": "Résidence Les Chalets du Bois de Champelle",
@@ -101,6 +104,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/refuge-du-grenairon/",
       "lecteur": "lecture",
       "titre": "Refuge du Grenairon",
@@ -124,6 +128,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/refuge-des-fonts/",
       "lecteur": "lecture",
       "titre": "Refuge des Fonts",
@@ -146,6 +151,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/residence-vacanceole-grand-massif/",
       "lecteur": "lecture",
       "titre": "Résidence Vacancéole – Grand Massif***",
@@ -168,14 +174,14 @@
         {
           "libelle": "Semaine en appartement 4 pers. : 362 €",
           "montant": 362,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/village-vacances-cap-france-le-salvagny/",
       "lecteur": "lecture",
       "titre": "Village Vacances Cap France Le Salvagny",
@@ -199,18 +205,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/17833876-diaporama-721x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "Tarif adulte de 504€ pour une semaine en pension complète (560€-10%).",
-          "montant": 504,
-          "unite": "semaine",
-          "plancher": false
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/chalet-le-sauvageon/",
       "lecteur": "lecture",
       "titre": "Chalet Le Sauvageon",
@@ -234,6 +234,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/residence-coeur-des-alpes/",
       "lecteur": "lecture",
       "titre": "Résidence Coeur des Alpes",
@@ -252,18 +253,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/8199749-diaporama-722x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 600€ à 1480 €",
-          "montant": 600,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/gite-la-cassandrine/",
       "lecteur": "lecture",
       "titre": "Gîte La Cassandrine",
@@ -287,6 +282,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/residence-vacanceole-le-grand-morillon/",
       "lecteur": "lecture",
       "titre": "Résidence Vacancéole - Le Grand Morillon",
@@ -307,14 +303,14 @@
         {
           "libelle": "Semaine en appartement 4 pers. : 446 €",
           "montant": 446,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/gite-auberge-de-salvagny/",
       "lecteur": "lecture",
       "titre": "Gîte Auberge de Salvagny",
@@ -333,24 +329,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/7185355-diaporama-640x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Nuitée : de 32€ à 47 €",
-          "montant": 32,
-          "unite": "nuit",
-          "plancher": true
-        },
-        {
-          "libelle": "à partir de — Nuitée + petit-déjeuner : de 39€ à 54 €",
-          "montant": 39,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/gite-balneo-chalet-les-amaryllis/",
       "lecteur": "lecture",
       "titre": "Gite Balneo Chalet Les Amaryllis",
@@ -369,18 +353,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/9590642-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 600€ à 1480 €",
-          "montant": 600,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/refuge-de-la-golese/",
       "lecteur": "lecture",
       "titre": "Refuge de la Golèse",
@@ -404,6 +382,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/refuge-de-chardonniere/",
       "lecteur": "lecture",
       "titre": "Refuge de Chardonnière",
@@ -422,20 +401,19 @@
         {
           "libelle": "Nuitée seule 20 €",
           "montant": 20,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         },
         {
           "libelle": "Nuitée + Déjeuner 30 €.",
           "montant": 30,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/refuge-de-bostan/",
       "lecteur": "lecture",
       "titre": "Refuge de Bostan",
@@ -459,6 +437,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/refuge-du-folly/",
       "lecteur": "lecture",
       "titre": "Refuge Haute-Savoie : Refuge du Folly",
@@ -482,6 +461,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/residence-la-renardiere/",
       "lecteur": "lecture",
       "titre": "Résidence la Renardière",
@@ -505,6 +485,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/village-vacances-cap-france-le-berouze/",
       "lecteur": "lecture",
       "titre": "Village vacances Cap France Le Bérouze",
@@ -532,14 +513,14 @@
         {
           "libelle": "100€ la chambre double PREMIUM pour 2 personnes en B&B. Il nous reste à ce jour 6 chambres disponible.",
           "montant": 100,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/hebergement-groupe/refuge-du-lac-de-gers/",
       "lecteur": "lecture",
       "titre": "Refuge du lac de Gers",
@@ -558,20 +539,19 @@
         {
           "libelle": "Nuitée : 27 €",
           "montant": 27,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         },
         {
           "libelle": "Nuitée : 30 €",
           "montant": 30,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-liserable-didelle-pascale/",
       "lecteur": "lecture",
       "titre": "Chalet L'Isérable - Didelle Pascale",
@@ -587,18 +567,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/14635702-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Nuitée : de 500€ à 600 €",
-          "montant": 500,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-pomme-oubliee-bouvet-yung-mee/",
       "lecteur": "lecture",
       "titre": "La Pomme Oubliée - Bouvet Yung Mee",
@@ -622,6 +596,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-aspique/",
       "lecteur": "lecture",
       "titre": "Chalet Aspique",
@@ -649,14 +624,14 @@
         {
           "libelle": "Nuitée : 800 €",
           "montant": 800,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/tu-sais-quoi/",
       "lecteur": "lecture",
       "titre": "Tu Sais Quoi",
@@ -679,14 +654,14 @@
         {
           "libelle": "Semaine : 1100 €",
           "montant": 1100,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/les-niveoles-mutin-josette/",
       "lecteur": "lecture",
       "titre": "Les Nivéoles - Mutin josette",
@@ -710,6 +685,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-du-bois-lombard/",
       "lecteur": "lecture",
       "titre": "Chalet du Bois Lombard",
@@ -730,6 +706,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-de-charme-au-balcon-de-verchaix/",
       "lecteur": "lecture",
       "titre": "Chalet de Charme**** Au Balcon de Verchaix",
@@ -748,18 +725,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/32615561-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 2800€ à 6300 €",
-          "montant": 2800,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-chalet-de-jo-teinturier-florence-2/",
       "lecteur": "lecture",
       "titre": "Le Chalet de Jo - Teinturier Florence",
@@ -783,6 +754,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-mazot-2/",
       "lecteur": "lecture",
       "titre": "le Mazot",
@@ -806,6 +778,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-pomme-de-pin/",
       "lecteur": "lecture",
       "titre": "La Pomme de pin",
@@ -829,6 +802,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-gaffinel-coste-yves/",
       "lecteur": "lecture",
       "titre": "Le Gaffinel - Coste Yves",
@@ -851,6 +825,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-cabiote/",
       "lecteur": "lecture",
       "titre": "La Cabiote",
@@ -874,18 +849,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/39662913-diaporama-853x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Nuitée : de 125€ à 160 €",
-          "montant": 125,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/les-soldanelles-des-alpes/",
       "lecteur": "lecture",
       "titre": "Les Soldanelles des Alpes",
@@ -909,6 +878,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/alps-accommodation-chalet-toubkal/",
       "lecteur": "lecture",
       "titre": "Alps Accommodation - Chalet Toubkal",
@@ -931,18 +901,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/13027536-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1846€ à 5699 €",
-          "montant": 1846,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-gentiane/",
       "lecteur": "lecture",
       "titre": "La Gentiane",
@@ -966,6 +930,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/ourson-1-n20-rimez-herve/",
       "lecteur": "lecture",
       "titre": "Ourson 1 N°20 - Rimez Hervé",
@@ -988,14 +953,14 @@
         {
           "libelle": "Semaine : 550 €",
           "montant": 550,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-la-comtoise/",
       "lecteur": "lecture",
       "titre": "Chalet La Comtoise",
@@ -1022,6 +987,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-refuge-des-lhottis-aux-hameaux-du-giffre-chalet-64/",
       "lecteur": "lecture",
       "titre": "Le refuge des Lhottis aux Hameaux du Giffre - Chalet 64",
@@ -1045,6 +1011,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chambres-dhotes-du-mont/",
       "lecteur": "lecture",
       "titre": "Chambres d'hôtes du Mont",
@@ -1068,6 +1035,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-buet/",
       "lecteur": "lecture",
       "titre": "Le Buet",
@@ -1091,6 +1059,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/gite-leyetaz/",
       "lecteur": "lecture",
       "titre": "Gite Leyetaz",
@@ -1114,6 +1083,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-ferme-des-fontany-2/",
       "lecteur": "lecture",
       "titre": "La Ferme des Fontany",
@@ -1140,14 +1110,14 @@
         {
           "libelle": "Semaine : 3900 €",
           "montant": 3900,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-lys-de-martagon/",
       "lecteur": "lecture",
       "titre": "Le Lys de Martagon",
@@ -1171,6 +1141,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-grange-aux-mesanges-gite-sittelle-deage-marie/",
       "lecteur": "lecture",
       "titre": "La Grange aux mésanges - Gîte Sittelle - Deage marie",
@@ -1191,18 +1162,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/9245604-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 650€ à 2000 €",
-          "montant": 650,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/wiesner-aude/",
       "lecteur": "lecture",
       "titre": "Wiesner Aude",
@@ -1225,14 +1190,14 @@
         {
           "libelle": "Semaine : 650 €",
           "montant": 650,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-marcelly/",
       "lecteur": "lecture",
       "titre": "Le Marcelly",
@@ -1256,6 +1221,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalets-pastels-e12/",
       "lecteur": "lecture",
       "titre": "Chalets Pastels E12",
@@ -1279,6 +1245,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-sabot-de-venus/",
       "lecteur": "lecture",
       "titre": "Le Sabot de Venus",
@@ -1302,6 +1269,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-leau-vive-appartement-le-galetas/",
       "lecteur": "lecture",
       "titre": "Chalet L'eau vive - Appartement Le Galetas",
@@ -1324,14 +1292,14 @@
         {
           "libelle": "Nuitée : 95 €",
           "montant": 95,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-grange-aux-mesanges-gite-charbonniere-deage-marie/",
       "lecteur": "lecture",
       "titre": "La Grange aux mésanges - Gîte Charbonnière - Deage marie",
@@ -1354,14 +1322,14 @@
         {
           "libelle": "Semaine : 650 €",
           "montant": 650,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/edelweiss-n4-guerold-laurent/",
       "lecteur": "lecture",
       "titre": "Edelweiss n°4 - Guerold Laurent",
@@ -1385,6 +1353,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/grand-horizon-1-n213-colin-jean-claude/",
       "lecteur": "lecture",
       "titre": "Grand Horizon 1 n°213 - Colin Jean Claude",
@@ -1405,6 +1374,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-le-radbouet/",
       "lecteur": "lecture",
       "titre": "Chalet le Radbouet",
@@ -1424,6 +1394,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-grange-aux-mesanges-gite-nonnette-deage-marie/",
       "lecteur": "lecture",
       "titre": "La Grange aux mésanges - Gîte Nonnette - Deage marie",
@@ -1452,6 +1423,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-rimez-herve/",
       "lecteur": "lecture",
       "titre": "Chalet - Rimez Hervé",
@@ -1474,14 +1446,14 @@
         {
           "libelle": "Semaine : 1850 €",
           "montant": 1850,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-la-bartavelle/",
       "lecteur": "lecture",
       "titre": "Chalet La Bartavelle",
@@ -1505,6 +1477,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/alps-accommodation-chalet-booboo/",
       "lecteur": "lecture",
       "titre": "Alps Accommodation - Chalet Booboo",
@@ -1532,6 +1505,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/alps-accommodation-les-niveoles-a12/",
       "lecteur": "lecture",
       "titre": "Alps Accommodation - Les Nivéoles A12",
@@ -1555,18 +1529,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/1760959-diaporama.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1089€ à 2508 €",
-          "montant": 1089,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/edelweiss-n12-ackermans-cheuvart/",
       "lecteur": "lecture",
       "titre": "Edelweiss n°12 - Ackermans Cheuvart",
@@ -1590,6 +1558,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/alps-accommodation-le-mazot/",
       "lecteur": "lecture",
       "titre": "Alps Accommodation - Le Mazot",
@@ -1612,18 +1581,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/16601855-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 803€ à 2718 €",
-          "montant": 803,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/ledelweiss/",
       "lecteur": "lecture",
       "titre": "L'Edelweiss",
@@ -1647,6 +1610,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/alps-accommodation-chalet-moccand/",
       "lecteur": "lecture",
       "titre": "Alps Accommodation - Chalet Moccand",
@@ -1670,18 +1634,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/36545442-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1827€ à 7344 €",
-          "montant": 1827,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/edelweiss-n46-47-herve-pascale/",
       "lecteur": "lecture",
       "titre": "Edelweiss n°46/47 - Hervé Pascale",
@@ -1704,14 +1662,14 @@
         {
           "libelle": "Nuitée : 100 €",
           "montant": 100,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/appartement-ch8-alps-accommodation/",
       "lecteur": "lecture",
       "titre": "Appartement CH8 - Alps Accommodation.",
@@ -1735,18 +1693,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/36542744-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1618€ à 3572 €",
-          "montant": 1618,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-penthouse-alps-accommodation/",
       "lecteur": "lecture",
       "titre": "Le Penthouse - Alps Accommodation",
@@ -1770,18 +1722,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/35247701-diaporama.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1593€ à 8396 €",
-          "montant": 1593,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-la-rbatte-jacquier-frederique/",
       "lecteur": "lecture",
       "titre": "Chalet La R'batte - Jacquier Frédérique",
@@ -1802,6 +1748,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/b11-jardin-alpin-alps-accommodation/",
       "lecteur": "lecture",
       "titre": "B11 Jardin Alpin - Alps Accommodation",
@@ -1825,18 +1772,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/36543083-diaporama.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1024€ à 4338 €",
-          "montant": 1024,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/dome-geodesique/",
       "lecteur": "lecture",
       "titre": "Dôme géodésique",
@@ -1859,6 +1800,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/appartement-les-niveoles-b9-alps-accommodation/",
       "lecteur": "lecture",
       "titre": "Appartement les Niveoles B9 - Alps Accommodation",
@@ -1882,18 +1824,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/36544018-diaporama.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 860€ à 1720 €",
-          "montant": 860,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-chalet-du-haut-giffre-appartement-oxalis/",
       "lecteur": "lecture",
       "titre": "Le chalet du haut-Giffre - Appartement Oxalis",
@@ -1917,6 +1853,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/leymat-julien/",
       "lecteur": "lecture",
       "titre": "Leymat Julien",
@@ -1940,6 +1877,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-chalet-du-haut-giffre-appartement-hellebore/",
       "lecteur": "lecture",
       "titre": "Le Chalet du Haut-Giffre - Appartement Hellébore",
@@ -1963,6 +1901,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/appartement-mills-degat/",
       "lecteur": "lecture",
       "titre": "Appartement Mills-Degat",
@@ -1985,14 +1924,14 @@
         {
           "libelle": "Nuitée : 50 €",
           "montant": 50,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-sisu-alps-accommodation/",
       "lecteur": "lecture",
       "titre": "Chalet Sisu - Alps Accommodation",
@@ -2021,6 +1960,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-chalet-du-haut-giffre-appartement-carline/",
       "lecteur": "lecture",
       "titre": "Le Chalet du haut-Giffre - Appartement Carline",
@@ -2044,6 +1984,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/grne-53/",
       "lecteur": "lecture",
       "titre": "GRNE 53",
@@ -2065,14 +2006,14 @@
         {
           "libelle": "Nuitée : 100 €",
           "montant": 100,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-etoile-alps-accommodation/",
       "lecteur": "lecture",
       "titre": "Chalet Étoile - Alps Accommodation",
@@ -2095,18 +2036,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/35600248-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1999€ à 6939 €",
-          "montant": 1999,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/alps-accommodation-chalet-taylor/",
       "lecteur": "lecture",
       "titre": "Alps Accommodation - Chalet Taylor",
@@ -2135,6 +2070,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/alp-accommodation-chalet-sole-mio/",
       "lecteur": "lecture",
       "titre": "Alp Accommodation - Chalet Sole Mio",
@@ -2157,18 +2093,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/35102011-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 2990€ à 7750 €",
-          "montant": 2990,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-leden-criou/",
       "lecteur": "lecture",
       "titre": "Chalet l'Eden Criou",
@@ -2192,6 +2122,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/ludogite-les-bois-dessous/",
       "lecteur": "lecture",
       "titre": "Ludogîte® Les Bois Dessous",
@@ -2206,18 +2137,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/18371818-diaporama-1200x900.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Les séjours se font pour 2 nuits minimum aux tarifs suivants de 790€ à 1690€ selon la période.",
-          "montant": 790,
-          "unite": "sejour",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/appartement-suite-hotel-le-morillon/",
       "lecteur": "lecture",
       "titre": "Appartement suite - Hotel le Morillon",
@@ -2237,6 +2162,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/appartement-meleze-hotel-le-morillon/",
       "lecteur": "lecture",
       "titre": "Appartement Meleze - Hôtel Le Morillon",
@@ -2256,6 +2182,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-rbatte-appartement-4-6-personnes/",
       "lecteur": "lecture",
       "titre": "La R'batte appartement 4/6 personnes",
@@ -2275,6 +2202,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/appt-4-pers-chalet-la-rbatte/",
       "lecteur": "lecture",
       "titre": "Appt 4 pers - Chalet La R'Batte",
@@ -2294,6 +2222,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-havre-de-paix-bailly-michael/",
       "lecteur": "lecture",
       "titre": "Le Havre de Paix - Bailly Michael",
@@ -2316,20 +2245,19 @@
         {
           "libelle": "Nuitée : 130 €",
           "montant": 130,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         },
         {
           "libelle": "Semaine : 750 €",
           "montant": 750,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-leau-vive-appartement-la-faverge/",
       "lecteur": "lecture",
       "titre": "Chalet l'Eau Vive - Appartement La Faverge",
@@ -2352,14 +2280,14 @@
         {
           "libelle": "Nuitée : 110 €",
           "montant": 110,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/la-remise-2/",
       "lecteur": "lecture",
       "titre": "La Remise",
@@ -2383,6 +2311,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-kassy-alps-accommodation/",
       "lecteur": "lecture",
       "titre": "Chalet Kassy - Alps Accommodation",
@@ -2405,18 +2334,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/35247319-diaporama.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 2200€ à 5906 €",
-          "montant": 2200,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-grand-gaby-benzoni-ilse/",
       "lecteur": "lecture",
       "titre": "Le Grand Gaby - Benzoni Ilse",
@@ -2445,6 +2368,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/le-mazot-du-paradis/",
       "lecteur": "lecture",
       "titre": "Le Mazot du Paradis",
@@ -2468,18 +2392,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/41915260-diaporama-360x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Semaine : de 1000€ à 2000 €",
-          "montant": 1000,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-vivaldaim-ovo-network/",
       "lecteur": "lecture",
       "titre": "Chalet Vivaldaim - OVO Network",
@@ -2510,20 +2428,19 @@
         {
           "libelle": "La semaine du 12 au 19 janvier : votre chalet à 4491€ au lieu de 4990€",
           "montant": 4491,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         },
         {
           "libelle": "La semaine du 2 au 9 mars : votre chalet à 5802€ au lieu de 6990€",
           "montant": 5802,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/grand-morillon-n203-maier-rene/",
       "lecteur": "lecture",
       "titre": "Grand Morillon n°203 - Maier René",
@@ -2546,14 +2463,14 @@
         {
           "libelle": "Semaine : 750 €",
           "montant": 750,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-keramis-ovo-network/",
       "lecteur": "lecture",
       "titre": "Chalet Keramis - OVO Network",
@@ -2585,32 +2502,29 @@
         {
           "libelle": "La semaine du 12 au 19 janvier 2025 : votre chalet à 3771€ au lieu de 4190€.",
           "montant": 3771,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         },
         {
           "libelle": "La semaine du 2 au 9 février : votre chalet à 7461€ au lieu de 8290€",
           "montant": 7461,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         },
         {
           "libelle": "La semaine du 23 février au 2 mars : votre chalet à 7642€ au lieu de 8990€",
           "montant": 7642,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         },
         {
           "libelle": "La semaine du 2 au 9 mars : votre chalet à 7192€ au lieu de 8990€",
           "montant": 7192,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-morris-ovo-network/",
       "lecteur": "lecture",
       "titre": "Chalet Morris - OVO Network",
@@ -2639,26 +2553,24 @@
         {
           "libelle": "La semaine du 1er au 8 février : votre chalet à 3562€ au lieu de 4190€.",
           "montant": 3562,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         },
         {
           "libelle": "La semaine du 1er au 8 mars : votre chalet à 3832€ au lieu de 4790€",
           "montant": 3832,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         },
         {
           "libelle": "La semaine du 8 au15 mars : votre chalet à 3352€ au lieu de 4190€",
           "montant": 3352,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-jornata-ovo-network/",
       "lecteur": "lecture",
       "titre": "Chalet Jornata - OVO Network",
@@ -2691,6 +2603,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/chalet-biola-vu-ovo-network/",
       "lecteur": "lecture",
       "titre": "Chalet Biola Vu - OVO Network",
@@ -2715,14 +2628,14 @@
         {
           "libelle": "Semaine : 2190 €",
           "montant": 2190,
-          "unite": "semaine",
-          "plancher": false
+          "unite": "semaine"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/appartement-michelle-et-patrick-vallier/",
       "lecteur": "lecture",
       "titre": "Appartement Michelle et Patrick Vallier",
@@ -2741,14 +2654,14 @@
         {
           "libelle": "Nuitée : 110 €",
           "montant": 110,
-          "unite": "nuit",
-          "plancher": false
+          "unite": "nuit"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://www.haut-giffre.fr/chambres-hotes-et-gites/logans-loft/",
       "lecteur": "lecture",
       "titre": "Logan's Loft",
@@ -2772,6 +2685,7 @@
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/hotel/hotel-le-morillon/",
       "lecteur": "lecture",
       "titre": "Hôtel Le Morillon",
@@ -2790,18 +2704,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/27223447-diaporama-719x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "À partir de 180€ / nuit Du 20 décembre 2025 au 30 avril 2026",
-          "montant": 180,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/hotel/annexe-de-lhotel-neige-et-roc/",
       "lecteur": "lecture",
       "titre": "Annexe de l’hôtel Neige et Roc",
@@ -2825,18 +2733,12 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/28957631-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "À partir de 130€ / nuit Du 30 mai 2024 au 8 septembre 2024",
-          "montant": 130,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://www.haut-giffre.fr/hotel/hotel-chalet-de-charme-neige-et-roc/",
       "lecteur": "lecture",
       "titre": "Hôtel-Chalet de charme Neige et Roc",
@@ -2859,14 +2761,7 @@
         "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/28957141-diaporama-720x480.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "À partir de 130€ / nuit Du 1 juin 2024 au 10 septembre 2024",
-          "montant": 130,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.788Z"
     }
@@ -2875,7 +2770,8 @@
   "interditsRobots": 0,
   "refus": 0,
   "erreurs": [
-    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)"
+    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)",
+    "« à partir de » et fourchettes retirés des tarifs le 2026-10-11 (23 lignes)"
   ],
   "reprises": 0,
   "decor": {

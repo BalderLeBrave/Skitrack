@@ -5,8 +5,10 @@ import {
   ficheDepuisHtml,
   ficheParlante,
   normaliserFiche,
+  natureTarif,
   photosNettes,
   retirerDecorDuSite,
+  retirerPlanchers,
   type FicheCatalogue,
 } from "./catalogue.ts";
 
@@ -28,13 +30,11 @@ describe("catalogue des centrales sans connecteur", () => {
     assert.equal(f.lon, 2.792383);
     assert.deepEqual(f.photos, ["https://cdn.laetis.fr/i/sancy/detail/4966779.jpg"]);
     assert.deepEqual(
-      f.tarifs.map((t) => [t.montant, t.unite, t.plancher]),
-      [
-        [650, "semaine", false],
-        [1190, "sejour", true],
-      ],
-      "la caution n'est pas un tarif ; une fourchette est un plancher, sur plusieurs semaines",
+      f.tarifs.map((t) => [t.montant, t.unite]),
+      [[650, "semaine"]],
+      "la caution n'est pas un tarif ; une fourchette n'est pas un prix",
     );
+    assert.equal(f.planchersEcartes, 1);
     assert.equal(f.totalSejour, null, "une grille n'est pas un total daté");
     assert.ok(ficheParlante(f));
   });
@@ -71,10 +71,12 @@ describe("catalogue des centrales sans connecteur", () => {
     assert.equal(f.chambres, 3);
     assert.equal(f.lat, null, "0,0 n'est pas en France");
     assert.deepEqual(f.photos, ["https://www.chioula.fr/a.jpg"]);
-    assert.deepEqual(f.tarifs.map((t) => [t.montant, t.unite, t.plancher]), [
-      [420, "semaine", true],
-      [980, "semaine", false],
-    ]);
+    assert.deepEqual(
+      f.tarifs.map((t) => [t.montant, t.unite]),
+      [[980, "semaine"]],
+      "« À partir de 420 € » n'est pas un prix",
+    );
+    assert.equal(f.planchersEcartes, 1);
     assert.deepEqual(f.totalSejour, { montant: 1450, arrivee: "2027-02-13", depart: "2027-02-20", nuits: 7 });
   });
 
@@ -112,10 +114,11 @@ describe("relevé du 11 octobre 2026 : corrections", () => {
       "https://www.sancy.com/fr/fiche/hebergement-locatif/x/",
       "lecture",
     );
-    assert.deepEqual(f.tarifs.map((t) => [t.montant, t.unite, t.plancher]), [
-      [220, "sejour", false],
-      [690, "semaine", false],
+    assert.deepEqual(f.tarifs.map((t) => [t.montant, t.unite]), [
+      [220, "sejour"],
+      [690, "semaine"],
     ]);
+    assert.equal(f.planchersEcartes, 0, "« Tarifs des semaines » n'est pas un « dès »");
   });
 
   it("l'office de tourisme ne donne ni son nom ni sa position à la fiche", () => {
@@ -191,5 +194,46 @@ describe("positions communes à tout un site", () => {
     retirerDecorDuSite(seule, r.decor);
     assert.deepEqual(seule[0].photos, ["https://x.fr/p/20.jpg"]);
     assert.equal(seule[0].titre, "Chalet 20");
+  });
+
+  it("aucun « à partir de », aucune fourchette, aucun supplément n'est un prix", () => {
+    for (const l of [
+      "À partir de 420 €",
+      "Forfait cure à partir 950€. selon période (nous consulter)",
+      "Dès 380 € la semaine",
+      "Min 2 nuits - nuit supp. entre 80€ et 92€/nuit",
+      "Le tarif varie entre 550€ et 780€ la semaine selon la période",
+      "2 nuits min, nuit supplémentaire : de 60€/nuit à 70€/nuit",
+      "WE : de 180 € (Basse Saison) à 300 € (Haute Saison)",
+      "à partir de — 3 semaines : 1190 à 1980 €.",
+    ]) {
+      assert.equal(natureTarif(l), "plancher", l);
+    }
+    for (const l of ["De 3 à 6 ans : 23 € par enfant, par jour,", "Petit déjeuner : 15 €", "Caution : 300 €"]) {
+      assert.equal(natureTarif(l), "hors-loyer", l);
+    }
+    for (const l of [
+      "Semaine : 650 € + taxe de séjour",
+      "Tarif 700 € la semaine à partir du 1er mai",
+      "De 3 à 4 nuits : 62 €/nuit/personne",
+      "Minimum 2 nuits, 350€ la nuit supp.",
+      "Week-end 2 nuits : 490 €, 3 nuits : 650 € et 4 nuits : 790 € jusqu'à 8 personnes",
+    ]) {
+      assert.equal(natureTarif(l), "ferme", l);
+    }
+  });
+
+  it("remet à la règle une fiche d'un relevé antérieur", () => {
+    const vieille = {
+      ...normaliserFiche({}, "https://x.fr/h/", "lecture", QUAND),
+      tarifs: [
+        { libelle: "Semaine : 650 €", montant: 650, unite: "semaine" as const },
+        { libelle: "à partir de — 1190 à 1980 €", montant: 1190, unite: "sejour" as const, plancher: true },
+        { libelle: "Petit déjeuner : 15 €", montant: 15, unite: "autre" as const },
+      ],
+    };
+    const f = retirerPlanchers(vieille);
+    assert.deepEqual(f.tarifs, [{ libelle: "Semaine : 650 €", montant: 650, unite: "semaine" }]);
+    assert.equal(f.planchersEcartes, 1);
   });
 });

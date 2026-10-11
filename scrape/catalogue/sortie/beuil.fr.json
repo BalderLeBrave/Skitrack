@@ -24,6 +24,7 @@
   "urls": 10,
   "fiches": [
     {
+      "planchersEcartes": 0,
       "url": "https://beuil.fr/gite-nature-montagne-9710/",
       "lecteur": "lecture",
       "titre": "Emilie Groeneveld",
@@ -45,6 +46,7 @@
       "releveLe": "2026-10-11T00:21:55.736Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://beuil.fr/gites-communaux/",
       "lecteur": "lecture",
       "titre": "Administrateur SICTIAM",
@@ -65,6 +67,7 @@
       "releveLe": "2026-10-11T00:21:55.736Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://beuil.fr/hebergements/",
       "lecteur": "lecture",
       "titre": "Office de tourisme",
@@ -88,6 +91,7 @@
       "releveLe": "2026-10-11T00:21:55.736Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://beuil.fr/hotels/",
       "lecteur": "lecture",
       "titre": "Office de tourisme",

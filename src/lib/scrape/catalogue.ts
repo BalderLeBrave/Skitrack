@@ -9,11 +9,15 @@
  *   Open Graph et texte de la page, lus par les parseurs du dépôt.
  *
  * Les deux passent par `normaliserFiche` : un nombre hors bornes, une
- * coordonnée hors de France, un prix « à partir de » présenté comme total
- * sont écartés. Les sites sans moteur de réservation (relevés du 11 octobre
- * 2026 : Sancy, Font-Romeu, Haut-Giffre…) publient une grille (« Semaine :
- * 650 € + taxe de séjour ») : elle est gardée comme grille, jamais comme
- * total daté. Un total n'est retenu que si la page écrit ses deux dates.
+ * coordonnée hors de France sont écartés, et **aucun « à partir de » n'est un
+ * prix** : un plancher (« à partir de », « dès », « from ») ou une fourchette
+ * (« 1 190 à 1 980 € ») n'entre ni dans `tarifs` ni dans `totalSejour` ; il
+ * est seulement compté (`planchersEcartes`). Consigne du propriétaire du
+ * 11 octobre 2026 : de vrais prix, pas de « à partir de ». Les sites sans
+ * moteur de réservation (Sancy, Font-Romeu, Haut-Giffre…) publient une grille
+ * ferme (« Semaine : 650 € + taxe de séjour ») : elle est gardée comme grille,
+ * jamais comme total daté. Un total n'est retenu que si la page écrit ses
+ * deux dates.
  */
 
 import { occupancyFromText } from "../stay/occupancy.ts";
@@ -24,8 +28,6 @@ export type TarifPublie = {
   libelle: string;
   montant: number;
   unite: UniteTarif;
-  /** « à partir de », « dès », « from » : un plancher, pas un prix. */
-  plancher: boolean;
 };
 
 export type TotalSejour = { montant: number; arrivee: string; depart: string; nuits: number };
@@ -43,7 +45,10 @@ export type FicheCatalogue = {
   lon: number | null;
   photos: string[];
   equipements: string[];
+  /** Prix fermes publiés par la page : jamais un « à partir de ». */
   tarifs: TarifPublie[];
+  /** Lignes « à partir de », « dès » ou fourchettes lues puis écartées. */
+  planchersEcartes: number;
   totalSejour: TotalSejour | null;
   releveLe: string;
 };
@@ -53,7 +58,8 @@ export type FicheCatalogue = {
 export const PROMPT_LOGEMENT =
   "Fiche d'un hébergement touristique. Recopie uniquement ce que la page écrit : " +
   "ne déduis rien, ne convertis pas les pièces en chambres, laisse null ce qui n'est pas écrit. " +
-  "Pour les tarifs, recopie chaque ligne publiée avec son libellé exact (période, « à partir de »…). " +
+  "Pour les tarifs, recopie chaque ligne publiée avec son libellé exact (période, « à partir de »…) : " +
+  "les prix « à partir de », « dès » et les fourchettes seront écartés, ne les présente pas comme des prix fermes. " +
   "Ne remplis total_sejour que si la page affiche un prix total pour des dates d'arrivée et de départ précises.";
 
 export const SCHEMA_LOGEMENT = {
@@ -98,7 +104,28 @@ export const SCHEMA_LOGEMENT = {
 /** « à partir de », « dès », « from » : un plancher. « des » (l'article) et
  *  « minimum » (« 4 jours minimum ») n'en sont pas : relevé Sancy du
  *  11 octobre 2026, « Tarifs des semaines » passait pour un plancher. */
-const PLANCHER = /(a partir de|à partir de|à compter de|\bdès\b|\bfrom\b|starting at)/i;
+const PLANCHER = /(a partir(?! du\b| des\b)|à partir(?! du\b| des\b)|à compter de|\bdès\b|\bfrom\b|starting at)/i;
+
+/** Une fourchette n'est pas un prix : « entre 80 € et 92 € », « de 60 €/nuit
+ *  à 70 €/nuit », « de 180 € (basse saison) à 300 € » (relevé du 11 octobre
+ *  2026, Mole-Brasses, Sancy). */
+const FOURCHETTES = [
+  /\bentre\s+\d[\d\s.,]*\s*(?:€|eur)?[^.;:]{0,25}?\bet\s+\d/i,
+  /\bde\s+\d[\d\s.,]*\s*(?:€|eur)[^.;:]{0,30}?\sà\s+\d[\d\s.,]*\s*(?:€|eur)/i,
+];
+
+/** Ni un loyer ni un séjour : repas, suppléments, tarif d'un enfant selon
+ *  son âge (« De 3 à 6 ans : 23 € par enfant », « Petit déjeuner : 15 € »). */
+const HORS_LOYER =
+  /(petits?[- ]d[ée]jeuners?|demi[- ]pension|pension compl[eè]te|\brepas\b|table d'h[ôo]te|\d+\s*(?:à|-)\s*\d+\s*ans\b|^[\s•*–-]*(?:caution|d[ée]p[ôo]t de garantie|m[ée]nage|draps|linge|animaux?|chiens?|taxe de s[ée]jour|frais de dossier|enfants?\b))/i;
+
+/** Ce qu'est une ligne de tarif : un prix ferme, un « à partir de » (ou une
+ *  fourchette), ou autre chose qu'un loyer. */
+export function natureTarif(libelle: string): "ferme" | "plancher" | "hors-loyer" {
+  if (HORS_LOYER.test(libelle)) return "hors-loyer";
+  if (PLANCHER.test(libelle) || FOURCHETTES.some((re) => re.test(libelle))) return "plancher";
+  return "ferme";
+}
 
 function entier(v: unknown, min: number, max: number): number | null {
   const n = typeof v === "string" ? Number(v.replace(",", ".")) : v;
@@ -208,6 +235,7 @@ export function normaliserFiche(
   const geoOk = coordonneesPlausibles(lat, lon);
 
   const tarifs: TarifPublie[] = [];
+  let planchersEcartes = 0;
   for (const t of Array.isArray(brut.tarifs) ? brut.tarifs : []) {
     if (!t || typeof t !== "object") continue;
     const o = t as Record<string, unknown>;
@@ -216,7 +244,14 @@ export function normaliserFiche(
     if (!libelle || montant == null) continue;
     const u = unite(o.unite, libelle);
     if (montant < MINIMUM[u]) continue;
-    tarifs.push({ libelle, montant, unite: u, plancher: PLANCHER.test(libelle) });
+    // « À partir de », « dès », une fourchette : pas un prix.
+    const nature = natureTarif(libelle);
+    if (nature === "hors-loyer") continue;
+    if (nature === "plancher") {
+      planchersEcartes += 1;
+      continue;
+    }
+    tarifs.push({ libelle, montant, unite: u });
   }
 
   let totalSejour: TotalSejour | null = null;
@@ -256,8 +291,23 @@ export function normaliserFiche(
     photos,
     equipements,
     tarifs,
+    planchersEcartes,
     totalSejour,
     releveLe,
+  };
+}
+
+/**
+ * Une fiche d'un relevé antérieur, remise à la règle : ses « à partir de »
+ * (marqués `plancher` ou reconnus au libellé) sortent de `tarifs`.
+ */
+export function retirerPlanchers(f: FicheCatalogue): FicheCatalogue {
+  const garde = f.tarifs.filter((t) => natureTarif(t.libelle) !== "hors-loyer");
+  const fermes = garde.filter((t) => !(t as { plancher?: boolean }).plancher && natureTarif(t.libelle) === "ferme");
+  return {
+    ...f,
+    tarifs: fermes.map(({ libelle, montant, unite }) => ({ libelle, montant, unite })),
+    planchersEcartes: (f.planchersEcartes ?? 0) + garde.length - fermes.length,
   };
 }
 
@@ -337,8 +387,8 @@ function tarifsDuTexte(texte: string): Array<{ libelle: string; montant_eur: num
     if (/caution|d[eé]p[oô]t de garantie|arrhes|acompte|frais de dossier|m[eé]nage|draps|linge|animal|taxe de s[eé]jour\s*:/i.test(ligne)) continue;
     const f = FOURCHETTE.exec(ligne);
     if (f) {
-      // Le bas d'une fourchette est un plancher : libellé marqué pour
-      // `normaliserFiche`, qui le range comme tel.
+      // Une fourchette n'est pas un prix : libellé marqué pour
+      // `normaliserFiche`, qui la compte parmi les planchers écartés.
       const bas = lireMontant(f[1], f[2]);
       if (Number.isFinite(bas)) out.push({ libelle: `à partir de — ${ligne}`, montant_eur: bas });
       continue;

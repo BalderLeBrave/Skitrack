@@ -50,6 +50,7 @@
   "urls": 115,
   "fiches": [
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/chalet-montana/",
       "lecteur": "lecture",
       "titre": "Chalet Montana",
@@ -75,6 +76,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/chalet-prestige-font-romeu/",
       "lecteur": "lecture",
       "titre": "CHALET PRESTIGE FONT-ROMEU",
@@ -94,6 +96,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/le-chalet-de-lecureuil-bleu/",
       "lecteur": "lecture",
       "titre": "Le chalet de l'écureuil bleu",
@@ -129,6 +132,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/chez-christine-et-fabrice/",
       "lecteur": "lecture",
       "titre": "Gîte Chez Christine et Fabrice",
@@ -154,6 +158,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/la-petite-chapelle/",
       "lecteur": "lecture",
       "titre": "La Petite Chapelle",
@@ -177,6 +182,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-hoteliere-le-pic-de-lours-lalliance-de-lours/",
       "lecteur": "lecture",
       "titre": "Résidence hôtelière le Pic de l'Ours - L'alliance de l'Ours",
@@ -203,6 +209,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/agence-peyrot-2/",
       "lecteur": "lecture",
       "titre": "Agence Peyrot",
@@ -222,6 +229,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://font-romeu.fr/hebergements/les-cabanes-huttopia-font-romeu/",
       "lecteur": "lecture",
       "titre": "Les Chalets Huttopia de Font-Romeu ***",
@@ -241,18 +249,12 @@
         "https://font-romeu.fr/wp-content/uploads/2024/11/HUTTOPIA-HIVER4.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Cabane (pour 6 personnes) : de 133€ à 256€/nuit.",
-          "montant": 133,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-les-balcons-du-soleil/",
       "lecteur": "lecture",
       "titre": "Résidence Les balcons du soleil",
@@ -279,6 +281,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-the-catalogne/",
       "lecteur": "lecture",
       "titre": "Résidence The Catalogne",
@@ -302,6 +305,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-les-cimes/",
       "lecteur": "lecture",
       "titre": "Résidence les Cimes",
@@ -325,6 +329,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-torremagne/",
       "lecteur": "lecture",
       "titre": "Résidence Torremagne",
@@ -360,6 +365,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-lagrange-vacances-le-pic-de-lours/",
       "lecteur": "lecture",
       "titre": "Résidence Lagrange Vacances - Le pic de l'Ours",
@@ -384,6 +390,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-goelia-le-domaine-de-castella/",
       "lecteur": "lecture",
       "titre": "Résidence Goelia - Le domaine de Castella",
@@ -409,6 +416,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 2,
       "url": "https://font-romeu.fr/hebergements/chalet-kusi-wasi/",
       "lecteur": "lecture",
       "titre": "CHALET KUSI WASI *****",
@@ -434,24 +442,12 @@
         "https://font-romeu.fr/wp-content/uploads/2024/09/Teraza-View-002-1024x768.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "- Hors vacances : à partir de 800€/nuit",
-          "montant": 800,
-          "unite": "nuit",
-          "plancher": true
-        },
-        {
-          "libelle": "- Vacances scolaires : à partir de 1000€/nuit",
-          "montant": 1000,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 4,
       "url": "https://font-romeu.fr/hebergements/les-chalets-huttopia/",
       "lecteur": "lecture",
       "titre": "Camping Huttopia Font-Romeu ***",
@@ -482,36 +478,12 @@
         "https://font-romeu.fr/wp-content/uploads/2021/11/231.Huttopia_Font-Romeu-ManuReyboz-1.jpg-1-1024x683.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Tentes Bonaventure (2 personnes, sans salle de bain) : de 50€ à 102€/nuit",
-          "montant": 50,
-          "unite": "nuit",
-          "plancher": true
-        },
-        {
-          "libelle": "à partir de — Tentes Canadienne (5 personnes, sans salle de bain) : de 68€ à 174€/nuit",
-          "montant": 68,
-          "unite": "nuit",
-          "plancher": true
-        },
-        {
-          "libelle": "à partir de — Tente Trappeur (5 personnes, avec salle de bain) : de 92€ à 210€/nuit",
-          "montant": 92,
-          "unite": "nuit",
-          "plancher": true
-        },
-        {
-          "libelle": "à partir de — Cabane (6 personnes, avec salle de bain) : de 133€ à 259€/nuit",
-          "montant": 133,
-          "unite": "nuit",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/gite-de-sejour-le-logis-catalan/",
       "lecteur": "lecture",
       "titre": "Gîte de séjour le logis catalan - Vacances Evasion",
@@ -536,6 +508,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://font-romeu.fr/hebergements/chalet-lecrin/",
       "lecteur": "lecture",
       "titre": "CHALET L'ÉCRIN ***** WELLNESS SPA",
@@ -557,18 +530,12 @@
         "https://font-romeu.fr/wp-content/uploads/2022/10/image10.jpg"
       ],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — De 8500 € à 16000 € / semaine selon la période",
-          "montant": 8500,
-          "unite": "semaine",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-pierre-vacances-le-pedrou/",
       "lecteur": "lecture",
       "titre": "Résidence Pierre & Vacances - Le Pedrou",
@@ -594,6 +561,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-odalys-vacances-mille-soleils/",
       "lecteur": "lecture",
       "titre": "Résidence Odalys Vacances Mille Soleils",
@@ -620,6 +588,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/aire-de-camping-car/",
       "lecteur": "lecture",
       "titre": "Aire de camping-car",
@@ -638,20 +607,19 @@
         {
           "libelle": "- 10€ TTC ( hors taxe de séjour ) en basse saison.",
           "montant": 10,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         },
         {
           "libelle": "- 13.30€ TTC ( taxe de séjour incluse ) en haute saison.",
           "montant": 13.3,
-          "unite": "autre",
-          "plancher": false
+          "unite": "autre"
         }
       ],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/creps-cnea-centre-national-dentrainement-en-altitude/",
       "lecteur": "lecture",
       "titre": "CREPS-CNEA (CENTRE NATIONAL D’ENTRAINEMENT EN ALTITUDE)",
@@ -671,6 +639,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/residence-goelia-les-chalets-du-belvedere/",
       "lecteur": "lecture",
       "titre": "Résidence Goélia - Les chalets du Belvédère",
@@ -698,6 +667,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/hebergements/le-grand-tetras/",
       "lecteur": "lecture",
       "titre": "Le Grand Tetras",
@@ -725,6 +695,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-t2-5/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT T2",
@@ -742,6 +713,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/grau-andre-6/",
       "lecteur": "lecture",
       "titre": "GRAU ANDRÉ",
@@ -759,6 +731,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/grand-appartement-confortable-dans-petite-residence-privee-4/",
       "lecteur": "lecture",
       "titre": "GRAND APPARTEMENT CONFORTABLE DANS PETITE RÉSIDENCE PRIVÉE",
@@ -776,6 +749,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/grand-appartement-tres-confortable-centre-station-4/",
       "lecteur": "lecture",
       "titre": "GRAND APPARTEMENT TRÈS CONFORTABLE CENTRE STATION",
@@ -793,6 +767,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-dans-petite-residence-familiale-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DANS PETITE RÉSIDENCE FAMILIALE",
@@ -810,6 +785,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/reynes-genevieve-13/",
       "lecteur": "lecture",
       "titre": "REYNES GENEVIÈVE",
@@ -827,6 +803,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-spacieux-dans-residence-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT SPACIEUX DANS RESIDENCE",
@@ -844,6 +821,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-spacieux-et-convivial-dans-petite-residence-privee-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT SPACIEUX ET CONVIVIAL DANS PETITE RÉSIDENCE PRIVÉE",
@@ -861,6 +839,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/sol-nixen-4/",
       "lecteur": "lecture",
       "titre": "SOL NIXEN",
@@ -878,6 +857,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-plein-sud-confortable-et-spatieux-dans-petite-residence-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT PLEIN SUD, CONFORTABLE ET SPATIEUX DANS PETITE RÉSIDENCE",
@@ -895,6 +875,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-confortable-plein-sud-petite-residence-privee-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT CONFORTABLE, PLEIN SUD, PETITE RÉSIDENCE PRIVÉE",
@@ -912,6 +893,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-tres-confortable-vue-exceptionnelle-dans-residence-privee-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT TRÈS CONFORTABLE, VUE EXCEPTIONNELLE, DANS RÉSIDENCE PRIVÉE",
@@ -929,6 +911,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-finlandais-4/",
       "lecteur": "lecture",
       "titre": "CHALET FINLANDAIS",
@@ -946,6 +929,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-dumayne-4/",
       "lecteur": "lecture",
       "titre": "RESIDENCE DUMAYNE",
@@ -963,6 +947,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-au-coeur-de-la-station-4/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT AU COEUR DE LA STATION",
@@ -980,6 +965,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/les-rosiers/",
       "lecteur": "lecture",
       "titre": "LES ROSIERS",
@@ -997,6 +983,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-arc-en-ciel-2-4/",
       "lecteur": "lecture",
       "titre": "RÉSIDENCE ARC EN CIEL 2",
@@ -1014,6 +1001,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/gousse-lagoguet-marie-noelle-et-jacqueline-5/",
       "lecteur": "lecture",
       "titre": "GOUSSE-LAGOGUET MARIE-NOËLLE ET JACQUELINE",
@@ -1031,6 +1019,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/triep-hourguet-alain-5/",
       "lecteur": "lecture",
       "titre": "TRIEP HOURGUET ALAIN",
@@ -1048,6 +1037,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/cotton-michel-5/",
       "lecteur": "lecture",
       "titre": "COTTON MICHEL",
@@ -1065,6 +1055,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/ginoulhac-jarrosson-5/",
       "lecteur": "lecture",
       "titre": "GINOULHAC - JARROSSON",
@@ -1082,6 +1073,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/verges-jean-5/",
       "lecteur": "lecture",
       "titre": "VERGES JEAN",
@@ -1099,6 +1091,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-banya-5/",
       "lecteur": "lecture",
       "titre": "CHALET BANYA",
@@ -1116,6 +1109,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-lesquirol-5/",
       "lecteur": "lecture",
       "titre": "CHALET L'ESQUIROL",
@@ -1133,6 +1127,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/blanc-alain-chapelle-st-paul-5/",
       "lecteur": "lecture",
       "titre": "BLANC ALAIN / CHAPELLE ST PAUL",
@@ -1150,6 +1145,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/les-soldanelles-5/",
       "lecteur": "lecture",
       "titre": "LES SOLDANELLES",
@@ -1167,6 +1163,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/t2-bis-4/",
       "lecteur": "lecture",
       "titre": "T2 BIS",
@@ -1184,6 +1181,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/terrasse-du-soleil-4/",
       "lecteur": "lecture",
       "titre": "TERRASSE DU SOLEIL",
@@ -1201,6 +1199,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/perez-philippe-13/",
       "lecteur": "lecture",
       "titre": "PEREZ PHILIPPE",
@@ -1218,6 +1217,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/les-gelinottes/",
       "lecteur": "lecture",
       "titre": "LES GÉLINOTTES",
@@ -1235,6 +1235,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/perez-stephanie-philippe-2/",
       "lecteur": "lecture",
       "titre": "PEREZ STÉPHANIE & PHILIPPE",
@@ -1252,6 +1253,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/gumbau-helene-5/",
       "lecteur": "lecture",
       "titre": "GUMBAU HELENE",
@@ -1269,6 +1271,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/terrasse-des-sorbiers-au-soleil-5/",
       "lecteur": "lecture",
       "titre": "TERRASSE DES SORBIERS AU SOLEIL",
@@ -1286,6 +1289,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/location-loree-du-bois-4/",
       "lecteur": "lecture",
       "titre": "LOCATION L'ORÉE DU BOIS",
@@ -1303,6 +1307,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/duhamel-antoine-5/",
       "lecteur": "lecture",
       "titre": "DUHAMEL ANTOINE",
@@ -1320,6 +1325,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/beniguel-didier-5/",
       "lecteur": "lecture",
       "titre": "BENIGUEL DIDIER",
@@ -1337,6 +1343,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-le-lymic-4/",
       "lecteur": "lecture",
       "titre": "CHALET LE LYMIC",
@@ -1354,6 +1361,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/les-soleiades/",
       "lecteur": "lecture",
       "titre": "LES SOLEIADES",
@@ -1371,6 +1379,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/hogommat-herve-7/",
       "lecteur": "lecture",
       "titre": "HOGOMMAT HERVÉ",
@@ -1388,6 +1397,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/bonnafoux-christian-brigitte/",
       "lecteur": "lecture",
       "titre": "BONNAFOUX CHRISTIAN & BRIGITTE",
@@ -1405,6 +1415,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/petit-sandrine-6/",
       "lecteur": "lecture",
       "titre": "PETIT SANDRINE",
@@ -1422,6 +1433,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/faure-5/",
       "lecteur": "lecture",
       "titre": "FAURE",
@@ -1439,6 +1451,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/le-jardin-de-font-romeu-5/",
       "lecteur": "lecture",
       "titre": "LE JARDIN DE FONT-ROMEU",
@@ -1456,6 +1469,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/jousse-marie-christine/",
       "lecteur": "lecture",
       "titre": "JOUSSE MARIE-CHRISTINE",
@@ -1473,6 +1487,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/menin-francoise-et-jean-louis-5/",
       "lecteur": "lecture",
       "titre": "MENIN FRANÇOISE ET JEAN-LOUIS",
@@ -1490,6 +1505,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-cervus-5/",
       "lecteur": "lecture",
       "titre": "CHALET CERVUS",
@@ -1507,6 +1523,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/les-claudiettes-6/",
       "lecteur": "lecture",
       "titre": "LES CLAUDIETTES",
@@ -1524,6 +1541,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/tathos-5/",
       "lecteur": "lecture",
       "titre": "TATHOS",
@@ -1541,6 +1559,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-nid-des-ecureuils-4/",
       "lecteur": "lecture",
       "titre": "CHALET NID DES ECUREUILS",
@@ -1558,6 +1577,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/la-salamandre-4/",
       "lecteur": "lecture",
       "titre": "LA SALAMANDRE",
@@ -1575,6 +1595,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-du-bas-5/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT DU BAS",
@@ -1592,6 +1613,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/le-chalet-des-petits-buis-4/",
       "lecteur": "lecture",
       "titre": "LE CHALET DES PETITS BUIS",
@@ -1609,6 +1631,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/bouthet-5/",
       "lecteur": "lecture",
       "titre": "BOUTHET",
@@ -1626,6 +1649,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 1,
       "url": "https://font-romeu.fr/loueurs_particuliers/bosom-olivier-5/",
       "lecteur": "lecture",
       "titre": "BOSOM OLIVIER",
@@ -1638,18 +1662,12 @@
       "lon": null,
       "photos": [],
       "equipements": [],
-      "tarifs": [
-        {
-          "libelle": "à partir de — Location à la semaine uniquement. Tarif de 600 à 1300€ et prix dégressif pour 2 ou 3 semaines consécutives.",
-          "montant": 600,
-          "unite": "sejour",
-          "plancher": true
-        }
-      ],
+      "tarifs": [],
       "totalSejour": null,
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/de-pauw-4/",
       "lecteur": "lecture",
       "titre": "DE PAUW",
@@ -1667,6 +1685,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/bernes-catherine-3/",
       "lecteur": "lecture",
       "titre": "BERNES CATHERINE",
@@ -1684,6 +1703,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/orazur/",
       "lecteur": "lecture",
       "titre": "ORAZUR",
@@ -1701,6 +1721,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/campredon/",
       "lecteur": "lecture",
       "titre": "CAMPREDON",
@@ -1718,6 +1739,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-133/",
       "lecteur": "lecture",
       "titre": "APPARTEMENT 133",
@@ -1735,6 +1757,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-capeille/",
       "lecteur": "lecture",
       "titre": "CHALET CAPEILLE",
@@ -1752,6 +1775,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-les-cailloux/",
       "lecteur": "lecture",
       "titre": "RESIDENCE LES CAILLOUX",
@@ -1769,6 +1793,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-aspones/",
       "lecteur": "lecture",
       "titre": "CHALET ASPONES",
@@ -1786,6 +1811,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-la-soucarrade/",
       "lecteur": "lecture",
       "titre": "RESIDENCE LA SOUCARRADE",
@@ -1803,6 +1829,7 @@
       "releveLe": "2026-10-11T00:21:55.783Z"
     },
     {
+      "planchersEcartes": 0,
       "url": "https://font-romeu.fr/loueurs_particuliers/le-llory-font-romeu/",
       "lecteur": "lecture",
       "titre": "LE LLORY FONT-ROMEU",
@@ -1824,7 +1851,8 @@
   "interditsRobots": 0,
   "refus": 0,
   "erreurs": [
-    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)"
+    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)",
+    "« à partir de » et fourchettes retirés des tarifs le 2026-10-11 (9 lignes)"
   ],
   "reprises": 0,
   "decor": {

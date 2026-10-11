@@ -22,6 +22,7 @@
   "urls": 6,
   "fiches": [
     {
+      "planchersEcartes": 0,
       "url": "https://www.chioula.fr/location-du-chioula.html",
       "lecteur": "lecture",
       "titre": "LOCATION DU CHIOULA",

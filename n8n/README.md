@@ -19,6 +19,6 @@ Trois workflows à importer dans n8n (menu ⋯ → Import from File). Aucun n'es
 - robots.txt est lu avant tout appel : un `Disallow` écarte la page, un `Disallow: /` (même hors groupe, comme booking.prazsurarly.com) écarte l'hôte.
 - Un 401, 403 ou 429 rendu par le site écarte l'hôte (lesangles.com répond 403 : il n'est pas lu).
 - Une fiche à la fois, avec une pause égale au `Crawl-delay` publié (2 s au moins).
-- Les bornes de `src/lib/scrape/catalogue.ts` et `src/lib/forfaits/firecrawlForfait.ts` sont recopiées dans les nœuds « Normaliser » et « Borner » : rien n'est inventé. Un prix « à partir de » reste un plancher, et un total de séjour n'est gardé que si la page écrit ses deux dates.
+- Les bornes de `src/lib/scrape/catalogue.ts` et `src/lib/forfaits/firecrawlForfait.ts` sont recopiées dans les nœuds « Normaliser » et « Borner » : rien n'est inventé. Un prix « à partir de », « dès » ou une fourchette n'est jamais un prix : il est écarté et compté (`planchersEcartes`). Un total de séjour n'est gardé que si la page écrit ses deux dates.
 
 `MAX_FICHES` (nœud « Cibles ») borne le coût Firecrawl : 200 fiches par hôte par défaut, soit au plus 2 000 crédits par relevé pour les 10 hôtes.

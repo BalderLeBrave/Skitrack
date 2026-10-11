@@ -129,7 +129,12 @@ const PAS_TARIFS =
  *  ouvre pas. Un nom muet (`sitemap2.xml`, `tourinsoft-sitemap.xml`,
  *  `sitemap-diffusio-fr.xml`) s'ouvre : il peut tout contenir. */
 const SITEMAP_HORS_SUJET =
-  /(post_tag|category|categorie|author|auteur|attachment|media|image|video|agenda|evenement|event|news|actualite|blog|restaurant|activite|randonnee|commerce|patrimoine|faq)[-_]?(?:sitemap|\d|\.xml)/;
+  /(post_tag|category|categorie|author|auteur|attachment|media|image|video|agenda|evenement|event|news|actualite|blog|restaurant|restauration|activite|randonnee|commerce|commercesservices|commerces_services|patrimoine|patrimoine-culturel|patrimoine-naturel|faq|loisir|webcam|producteur|equipement|fetesmanifestation|bloc|document|type_cuisine)s?[-_]?(?:sitemap|\d|\.xml)/;
+/** Sitemaps de taxonomies WordPress (`type_hebergements-sitemap.xml`,
+ *  `categories_patrimoines-sitemap.xml`, `theme_loisirs-sitemap.xml`) : ils
+ *  listent des pages de rubrique, jamais une fiche ni une grille. Relevé
+ *  font-romeu.fr du 11 octobre 2026 : 18 de ses 29 sitemaps. */
+const SITEMAP_TAXONOMIE = /(?:^|\/)(?:type|types|categorie|categories|category|theme|themes|tag|tags)[-_][\w-]*sitemap/;
 
 /**
  * Un sitemap nommé pour le profil : `hebergements-sitemap.xml`,
@@ -140,6 +145,7 @@ const SITEMAP_HORS_SUJET =
  */
 export function sitemapDedie(url: string, profil: Profil): boolean {
   const c = cheminPlie(url).split("/").pop() ?? "";
+  if (SITEMAP_TAXONOMIE.test(c)) return false;
   if (profil === "hebergement") return /(heberg|loueur|locati|logement|hotel|gite|meubl|residence|camping|diffusio|tourinsoft|apidae|sitra|\bsit\b|fiche)/.test(c);
   return /(forfait|tarif|skipass|ticket|product|produit|boutique|shop)/.test(c);
 }
@@ -163,9 +169,19 @@ export function interditToutSansGroupe(texte: string | null): boolean {
 
 export function sitemapUtile(url: string, profil: Profil): boolean {
   const c = cheminPlie(url);
-  if (SITEMAP_HORS_SUJET.test(c)) return false;
+  if (SITEMAP_HORS_SUJET.test(c) || SITEMAP_TAXONOMIE.test(c)) return false;
   if (profil === "tarifs" && /heberg|loueur|locati|hotel/.test(c)) return false;
   return true;
+}
+
+/**
+ * Un sitemap qui peut être un index (`sitemap.xml`, `sitemap_index.xml`,
+ * `wp-sitemap.xml`, `…index…`) : il peut mener à un sitemap dédié, on l'ouvre
+ * même quand des fiches sont déjà trouvées.
+ */
+export function sitemapIndexProbable(url: string): boolean {
+  const c = cheminPlie(url).split("/").pop() ?? "";
+  return /index/.test(c) || /^(?:wp-)?sitemap\.xml(?:\.gz)?$/.test(c);
 }
 
 export function urlDuProfil(url: string, profil: Profil): boolean {
@@ -174,25 +190,70 @@ export function urlDuProfil(url: string, profil: Profil): boolean {
   return TARIFS.test(c) && !PAS_TARIFS.test(c);
 }
 
+/** Langues étrangères reconnues en préfixe de chemin (`/en/`) ou en
+ *  sous-domaine (`nl.la-plagne.com`, `it.chamonix.com`, `en.chamrousse.com`). */
+const LANGUES = new Set(["en", "de", "it", "nl", "es", "pt", "ca", "ru", "pl", "da", "sv", "no", "cs", "zh", "ja", "fr"]);
+
+/** La langue que l'URL affiche, ou `null` quand elle n'en dit rien. */
+export function langueUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const seg = u.pathname.split("/")[1] ?? "";
+    if (/^[a-z]{2}(?:-[a-z]{2})?$/i.test(seg)) return seg.toLowerCase().slice(0, 2);
+    const sous = u.hostname.toLowerCase().split(".");
+    if (sous.length >= 3 && LANGUES.has(sous[0])) return sous[0];
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Début de la saison d'hiver en cours : 2026 d'août 2026 à juillet 2027. */
+function debutSaison(maintenant: Date): number {
+  return maintenant.getUTCMonth() >= 7 ? maintenant.getUTCFullYear() : maintenant.getUTCFullYear() - 1;
+}
+
 /**
  * Une page tarifs plutôt qu'une autre : « /forfaits/tarifs-hiver » avant
  * « /boutique ». Plus le score est haut, plus la page a de chances d'être la
  * grille publique. Le chemin court l'emporte à score égal (une page de
  * rubrique plutôt qu'un article).
  */
-export function scoreTarifs(url: string): number {
+export function scoreTarifs(url: string, maintenant = new Date()): number {
   const c = cheminPlie(url);
   let s = 0;
   if (/forfait/.test(c)) s += 4;
-  if (/tarif|prix|price/.test(c)) s += 4;
+  // « prix » : le prix d'un forfait, pas un prix littéraire (« remise du prix
+  // Michel Galabru », « prix roman jeunesse », Alpe d'Huez et Les Arcs le
+  // 11 octobre 2026) ni un « petit prix » d'hébergement.
+  if (/tarif|price/.test(c) || (/prix/.test(c) && !/remise-d|prix-(?:roman|litt|d-interpretation|interpretation)|petit-prix|prix-(?:reduit|gele|givre|fondu|mini)/.test(c))) s += 4;
   if (/skipass|ski-pass|lift-?pass|lift-?ticket/.test(c)) s += 3;
   if (/hiver|winter|saison|season/.test(c)) s += 1;
-  if (/\bete\b|summer|vtt|bike|piscine|luge|pieton|pedestrian|raquette|nordique|ski-de-fond|biathlon/.test(c)) s -= 4;
+  if (/\bete\b|summer|vtt|bike|velo|piscine|luge|pieton|pedestrian|raquette|nordique|ski-de-fond|biathlon/.test(c)) s -= 4;
   if (/grand-prix|prix-du|remise-des-prix|concours/.test(c)) s -= 6;
+  // Une activité qui publie ses tarifs n'est pas le domaine skiable
+  // (« commando-games-tarifs-et-horaires », « tarifs-golf », « tarif
+  // exceptionnel au tennis », la patinoire).
+  if (/golf|tennis|patinoire|commando|paintball|accrobranche|parapente|bowling|cinema|musee|spa\b|escalade|canyoning|rafting|parking|navette|secours/.test(c)) s -= 6;
+  // Les points de vente, caisses et bornes : où acheter, pas combien.
+  if (/points?-de-vente|verkooppunt|verkoopspunt|caisse|borne|distributeur|guichet/.test(c)) s -= 6;
+  // Agenda, actualités, délibérations, conditions de vente, séminaires,
+  // bons plans d'hébergement : la page parle de forfaits sans en donner la
+  // grille publique.
+  if (/\/(?:agenda|actualites?|news|evenements?|tous-les-evenements|video_webtv|webtv|faq)\/|deliberation|conseil-municipal|conditions-(?:generales-)?de-vente|\bcgv\b|seminaire|incentive|entreprise|organismes|groupes?\b|immoforfait|airbnb|bons?-plans?-logement|ventes?-flash/.test(c)) s -= 4;
+  // Une saison passée (« preventes-des-forfaits-de-ski-hiver-2022-2023 »).
+  const annees = [...c.matchAll(/(?<!\d)(20\d{2})(?!\d)/g)].map((m) => Number(m[1]));
+  if (annees.length && Math.max(...annees) < debutSaison(maintenant)) s -= 5;
   // Une même page en anglais, italien, allemand, néerlandais : la française
-  // passe devant (`/winter/…/buy-your-skipass/` derrière `/hiver/…`).
-  if (/\/(en|de|it|nl|es|pt|ca)\//.test(c)) s -= 3;
-  if (/winter|inverno|skiing|buy-|getting|deals|kaufen|acquist|sciare|kopen/.test(c)) s -= 3;
+  // passe devant (`/winter/…/buy-your-skipass/` derrière `/hiver/…`), en
+  // chemin comme en sous-domaine (`nl.la-plagne.com`).
+  const langue = langueUrl(url);
+  if (langue && langue !== "fr") s -= 3;
+  if (/winter|inverno|skiing|buy-|getting|deals|kaufen|acquist|sciare|kopen|ontdekken/.test(c)) s -= 3;
+  // Ni forfait, ni ski, ni remontées, ni hiver : un « tarifs » sans contexte
+  // n'est la grille que s'il est à la racine du site (`/tarifs.html`).
+  const profondeur = c.split("/").filter(Boolean).length;
+  if (!/forfait|ski|remontee|domaine|lift|hiver|winter|neige|snow|pass/.test(c) && profondeur > 1) s -= 5;
   s -= Math.min(3, (c.match(/\//g)?.length ?? 0) / 3);
   return s;
 }
@@ -220,20 +281,13 @@ export function dedoublonner(urls: Iterable<string>): string[] {
 /**
  * Une page par logement, dans la langue du site : font-romeu.fr publie
  * chaque fiche en quatre langues (`/hebergements/`, `/ca/hebergements/`,
- * `/es/alojamientos/`, `/en/…`). Quand des URL sans préfixe de langue (ou en
- * `/fr/`) existent, les variantes étrangères sont retirées.
+ * `/es/alojamientos/`, `/en/…`), chamonix.com sur `it.`, `de.`, `es.`.
+ * Quand des URL sans marque de langue (ou en `fr`) existent, les variantes
+ * étrangères, en chemin comme en sous-domaine, sont retirées.
  */
 export function preferFrancais(urls: string[]): string[] {
-  const langue = (u: string): string | null => {
-    try {
-      const seg = new URL(u).pathname.split("/")[1] ?? "";
-      return /^[a-z]{2}(?:-[a-z]{2})?$/i.test(seg) ? seg.toLowerCase().slice(0, 2) : null;
-    } catch {
-      return null;
-    }
-  };
   const fr = urls.filter((u) => {
-    const l = langue(u);
+    const l = langueUrl(u);
     return l === null || l === "fr";
   });
   return fr.length ? fr : urls;

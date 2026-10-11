@@ -52,7 +52,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/chalet-montana/",
       "lecteur": "lecture",
-      "titre": "Chalet Montana - Font-Romeu",
+      "titre": "Chalet Montana",
       "type": null,
       "commune": null,
       "capacite": 16,
@@ -62,9 +62,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/8046134.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/4895758-1024x768.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/4895767-1024x768.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/5324593-1024x768.jpg",
@@ -80,7 +77,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/chalet-prestige-font-romeu/",
       "lecteur": "lecture",
-      "titre": "CHALET PRESTIGE FONT-ROMEU - Font-Romeu",
+      "titre": "CHALET PRESTIGE FONT-ROMEU",
       "type": null,
       "commune": null,
       "capacite": 19,
@@ -89,10 +86,7 @@
       "lat": null,
       "lon": null,
       "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2024/04/ST-Bernard-3-004.png",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
+        "https://font-romeu.fr/wp-content/uploads/2024/04/ST-Bernard-3-004.png"
       ],
       "equipements": [],
       "tarifs": [],
@@ -102,7 +96,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/le-chalet-de-lecureuil-bleu/",
       "lecteur": "lecture",
-      "titre": "Le chalet de l'écureuil bleu - Font-Romeu",
+      "titre": "Le chalet de l'écureuil bleu",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -112,9 +106,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/image-1d25432b6cd140949f35a1115d54d284.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/ecureuil-bleu-1-1024x574.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/ecureuil-bleu-3.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/ecureuil-bleu-4.jpg",
@@ -140,7 +131,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/chez-christine-et-fabrice/",
       "lecteur": "lecture",
-      "titre": "Gîte Chez Christine et Fabrice - Font-Romeu",
+      "titre": "Gîte Chez Christine et Fabrice",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -150,9 +141,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/20230120_100929-scaled.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/20230119_164438-1024x768.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/20230125_162107-1024x768.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/20240702_153305-accueil-002-1024x461.jpg",
@@ -168,7 +156,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/la-petite-chapelle/",
       "lecteur": "lecture",
-      "titre": "La Petite Chapelle - Font-Romeu",
+      "titre": "La Petite Chapelle",
       "type": null,
       "commune": null,
       "capacite": 10,
@@ -178,9 +166,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/la-petite-chapelle-1.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/la-petite-chapelle-2-1024x644.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/la-petite-chapelle-5-1024x641.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/la-petite-chapelle-4-1024x646.jpg",
@@ -194,7 +179,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-hoteliere-le-pic-de-lours-lalliance-de-lours/",
       "lecteur": "lecture",
-      "titre": "Résidence hôtelière le Pic de l'Ours - L'alliance de l'Ours - Font-Romeu",
+      "titre": "Résidence hôtelière le Pic de l'Ours - L'alliance de l'Ours",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -204,9 +189,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/RESIDENCE-LE-PIC-DE-LOURS-COULEUR-SUD-14-.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pic-de-l-Ours-L-Alliance-de-l-ours-2-1024x591.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pic-de-l-Ours-L-Alliance-de-l-ours-6-1024x768.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pic-de-l-Ours-L-Alliance-de-l-ours-5-1024x632.jpg",
@@ -223,7 +205,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/agence-peyrot-2/",
       "lecteur": "lecture",
-      "titre": "Agence Peyrot - Font-Romeu",
+      "titre": "Agence Peyrot",
       "type": null,
       "commune": null,
       "capacite": 13,
@@ -232,10 +214,7 @@
       "lat": null,
       "lon": null,
       "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2025/11/Peyrotcles-scaled.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
+        "https://font-romeu.fr/wp-content/uploads/2025/11/Peyrotcles-scaled.jpg"
       ],
       "equipements": [],
       "tarifs": [],
@@ -245,7 +224,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/les-cabanes-huttopia-font-romeu/",
       "lecteur": "lecture",
-      "titre": "Les Chalets Huttopia de Font-Romeu *** - Font-Romeu",
+      "titre": "Les Chalets Huttopia de Font-Romeu ***",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -255,9 +234,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2024/11/cabane.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2024/11/091.Huttopia_Font-Romeu-ManuReyboz.jpg-scaled.jpg",
         "https://font-romeu.fr/wp-content/uploads/2024/11/HUTTOPIA-HIVER.jpg",
         "https://font-romeu.fr/wp-content/uploads/2024/11/HUTTOPIA-HIVER2-1024x681.jpg",
@@ -279,7 +255,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-les-balcons-du-soleil/",
       "lecteur": "lecture",
-      "titre": "Résidence Les balcons du soleil - Font-Romeu",
+      "titre": "Résidence Les balcons du soleil",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -289,9 +265,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/les-Balcons-du-Soleil-hiver-2.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Balcon-01.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Les-Balconsdu-Soleil-hiver-1.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Balcon-exterieur-09-921x1024.jpg",
@@ -308,7 +281,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-the-catalogne/",
       "lecteur": "lecture",
-      "titre": "Résidence The Catalogne - Font-Romeu",
+      "titre": "Résidence The Catalogne",
       "type": null,
       "commune": null,
       "capacite": 2,
@@ -318,9 +291,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/The-Catalogne-3.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/The-Catalogne-4.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/The-Catalogne-2.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/The-Catalogne-1.jpg",
@@ -334,7 +304,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-les-cimes/",
       "lecteur": "lecture",
-      "titre": "Résidence les Cimes - Font-Romeu",
+      "titre": "Résidence les Cimes",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -344,9 +314,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/Les-Cimes-1.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Les-Cimes-2.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Les-Cimes-5-e1690102961280.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Les-Cimes-4.jpg",
@@ -360,7 +327,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-torremagne/",
       "lecteur": "lecture",
-      "titre": "Résidence Torremagne - Font-Romeu",
+      "titre": "Résidence Torremagne",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -370,9 +337,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/torremagne1.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/torre12-1024x650.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/torre1-1024x648.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/torre2-1024x647.jpg",
@@ -398,7 +362,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-lagrange-vacances-le-pic-de-lours/",
       "lecteur": "lecture",
-      "titre": "Résidence Lagrange Vacances - Le pic de l'Ours - Font-Romeu",
+      "titre": "Résidence Lagrange Vacances - Le pic de l'Ours",
       "type": null,
       "commune": null,
       "capacite": 2,
@@ -408,9 +372,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pic-de-l-Ours-1.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pic-de-l-Ours-2.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pic-de-l-Ours-6.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pic-de-l-Ours-5.jpg",
@@ -425,7 +386,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-goelia-le-domaine-de-castella/",
       "lecteur": "lecture",
-      "titre": "Résidence Goelia - Le domaine de Castella - Font-Romeu",
+      "titre": "Résidence Goelia - Le domaine de Castella",
       "type": null,
       "commune": null,
       "capacite": 2,
@@ -435,9 +396,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/GOELIA-1-e1690101374498.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Goelia-Font-Romeu-2.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Goelia-Font-Romeu-3.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/nps-fontromeu207.jpg",
@@ -453,7 +411,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/chalet-kusi-wasi/",
       "lecteur": "lecture",
-      "titre": "CHALET KUSI WASI ***** - Font-Romeu",
+      "titre": "CHALET KUSI WASI *****",
       "type": null,
       "commune": null,
       "capacite": null,
@@ -463,9 +421,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2024/09/Fachada-Chalet-2-002-scaled.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2024/09/Comedor-Escalera-002-1024x768.jpg",
         "https://font-romeu.fr/wp-content/uploads/2024/09/Dining-Room-2-002-768x1024.jpg",
         "https://font-romeu.fr/wp-content/uploads/2024/09/Kitchen-5-002-1024x768.jpg",
@@ -499,7 +454,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/les-chalets-huttopia/",
       "lecteur": "lecture",
-      "titre": "Camping Huttopia Font-Romeu *** - Font-Romeu",
+      "titre": "Camping Huttopia Font-Romeu ***",
       "type": null,
       "commune": null,
       "capacite": 2,
@@ -509,9 +464,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/11/HUTTOPIA_-_CAMPING_-_FONT_ROMEU-_Manu_Reyboz-74676-scaled.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/11/055.Huttopia_Font-Romeu-ManuReyboz.jpg-scaled.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/11/101.Huttopia_Font-Romeu-ManuReyboz-1.jpg-1-1024x668.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/11/107.Huttopia_Font-Romeu-ManuReyboz-1.jpg-1-1024x681.jpg",
@@ -562,7 +514,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/gite-de-sejour-le-logis-catalan/",
       "lecteur": "lecture",
-      "titre": "Gîte de séjour le logis catalan - Vacances Evasion - Font-Romeu",
+      "titre": "Gîte de séjour le logis catalan - Vacances Evasion",
       "type": null,
       "commune": null,
       "capacite": 36,
@@ -572,9 +524,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/logiscatalan3.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/logiscatalan1.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Logis-Catalan-3-2.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Logis-Catalan-2-2.jpg",
@@ -589,7 +538,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/chalet-lecrin/",
       "lecteur": "lecture",
-      "titre": "CHALET L'ÉCRIN ***** WELLNESS SPA - Font-Romeu",
+      "titre": "CHALET L'ÉCRIN ***** WELLNESS SPA",
       "type": null,
       "commune": null,
       "capacite": null,
@@ -599,9 +548,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2022/10/image3-3.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2022/10/image4.jpg",
         "https://font-romeu.fr/wp-content/uploads/2022/10/image5.jpg",
         "https://font-romeu.fr/wp-content/uploads/2022/10/image6.jpg",
@@ -625,7 +571,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-pierre-vacances-le-pedrou/",
       "lecteur": "lecture",
-      "titre": "Résidence Pierre & Vacances - Le Pedrou - Font-Romeu",
+      "titre": "Résidence Pierre & Vacances - Le Pedrou",
       "type": null,
       "commune": null,
       "capacite": 8,
@@ -635,9 +581,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/Residence-Le-Pedrou-1-2.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/unnamed-9.webp",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pedrou-0.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/Le-Pedrou-6.jpg",
@@ -653,7 +596,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-odalys-vacances-mille-soleils/",
       "lecteur": "lecture",
-      "titre": "Résidence Odalys Vacances Mille Soleils - Font-Romeu",
+      "titre": "Résidence Odalys Vacances Mille Soleils",
       "type": null,
       "commune": null,
       "capacite": 2,
@@ -663,9 +606,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/location-ski-font-romeu-residence-odalys-mille-soleils-9.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/FONTROMEU-PISCINE-3960.webp",
         "https://font-romeu.fr/wp-content/uploads/2021/10/location-ski-font-romeu-residence-odalys-mille-soleils-4.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/location-ski-font-romeu-residence-odalys-mille-soleils-6.jpg",
@@ -682,7 +622,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/aire-de-camping-car/",
       "lecteur": "lecture",
-      "titre": "Aire de camping-car - Font-Romeu",
+      "titre": "Aire de camping-car",
       "type": null,
       "commune": null,
       "capacite": null,
@@ -691,10 +631,7 @@
       "lat": null,
       "lon": null,
       "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/10/CAMPING-CAR2-e1690106291926.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
+        "https://font-romeu.fr/wp-content/uploads/2021/10/CAMPING-CAR2-e1690106291926.jpg"
       ],
       "equipements": [],
       "tarifs": [
@@ -717,7 +654,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/creps-cnea-centre-national-dentrainement-en-altitude/",
       "lecteur": "lecture",
-      "titre": "CREPS-CNEA (CENTRE NATIONAL D’ENTRAINEMENT EN ALTITUDE) - Font-Romeu",
+      "titre": "CREPS-CNEA (CENTRE NATIONAL D’ENTRAINEMENT EN ALTITUDE)",
       "type": null,
       "commune": null,
       "capacite": 20,
@@ -726,10 +663,7 @@
       "lat": null,
       "lon": null,
       "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/IMG_1166.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
+        "https://font-romeu.fr/wp-content/uploads/2021/11/IMG_1166.jpg"
       ],
       "equipements": [],
       "tarifs": [],
@@ -739,7 +673,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/residence-goelia-les-chalets-du-belvedere/",
       "lecteur": "lecture",
-      "titre": "Résidence Goélia - Les chalets du Belvédère - Font-Romeu",
+      "titre": "Résidence Goélia - Les chalets du Belvédère",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -749,9 +683,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/11/Nemea-Les-Chalets-du-Belvedere-2.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/11/12095148-huge.webp",
         "https://font-romeu.fr/wp-content/uploads/2021/11/Nemea4.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/11/Nemea3.jpg",
@@ -769,7 +700,7 @@
     {
       "url": "https://font-romeu.fr/hebergements/le-grand-tetras/",
       "lecteur": "lecture",
-      "titre": "Le Grand Tetras - Font-Romeu",
+      "titre": "Le Grand Tetras",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -779,9 +710,6 @@
       "lon": null,
       "photos": [
         "https://font-romeu.fr/wp-content/uploads/2021/10/gt-scaled-e1727776242669.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/gt2-1024x683.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/gt3-1024x577.jpg",
         "https://font-romeu.fr/wp-content/uploads/2021/10/gt4-scaled-e1727776091629-1024x551.jpg",
@@ -799,7 +727,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-t2-5/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT T2 - Font-Romeu",
+      "titre": "APPARTEMENT T2",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -807,12 +735,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -821,7 +744,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/grau-andre-6/",
       "lecteur": "lecture",
-      "titre": "GRAU ANDRÉ - Font-Romeu",
+      "titre": "GRAU ANDRÉ",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -829,12 +752,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -843,7 +761,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/grand-appartement-confortable-dans-petite-residence-privee-4/",
       "lecteur": "lecture",
-      "titre": "GRAND APPARTEMENT CONFORTABLE DANS PETITE RÉSIDENCE PRIVÉE - Font-Romeu",
+      "titre": "GRAND APPARTEMENT CONFORTABLE DANS PETITE RÉSIDENCE PRIVÉE",
       "type": null,
       "commune": null,
       "capacite": 9,
@@ -851,12 +769,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -865,7 +778,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/grand-appartement-tres-confortable-centre-station-4/",
       "lecteur": "lecture",
-      "titre": "GRAND APPARTEMENT TRÈS CONFORTABLE CENTRE STATION - Font-Romeu",
+      "titre": "GRAND APPARTEMENT TRÈS CONFORTABLE CENTRE STATION",
       "type": null,
       "commune": null,
       "capacite": 9,
@@ -873,12 +786,7 @@
       "pieces": 4,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -887,7 +795,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-dans-petite-residence-familiale-4/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT DANS PETITE RÉSIDENCE FAMILIALE - Font-Romeu",
+      "titre": "APPARTEMENT DANS PETITE RÉSIDENCE FAMILIALE",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -895,12 +803,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -909,7 +812,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/reynes-genevieve-13/",
       "lecteur": "lecture",
-      "titre": "REYNES GENEVIÈVE - Font-Romeu",
+      "titre": "REYNES GENEVIÈVE",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -917,12 +820,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -931,7 +829,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-spacieux-dans-residence-4/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT SPACIEUX DANS RESIDENCE - Font-Romeu",
+      "titre": "APPARTEMENT SPACIEUX DANS RESIDENCE",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -939,12 +837,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -953,7 +846,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-spacieux-et-convivial-dans-petite-residence-privee-4/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT SPACIEUX ET CONVIVIAL DANS PETITE RÉSIDENCE PRIVÉE - Font-Romeu",
+      "titre": "APPARTEMENT SPACIEUX ET CONVIVIAL DANS PETITE RÉSIDENCE PRIVÉE",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -961,12 +854,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -975,7 +863,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/sol-nixen-4/",
       "lecteur": "lecture",
-      "titre": "SOL NIXEN - Font-Romeu",
+      "titre": "SOL NIXEN",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -983,12 +871,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -997,7 +880,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-plein-sud-confortable-et-spatieux-dans-petite-residence-4/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT PLEIN SUD, CONFORTABLE ET SPATIEUX DANS PETITE RÉSIDENCE - Font-Romeu",
+      "titre": "APPARTEMENT PLEIN SUD, CONFORTABLE ET SPATIEUX DANS PETITE RÉSIDENCE",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1005,12 +888,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1019,7 +897,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-confortable-plein-sud-petite-residence-privee-4/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT CONFORTABLE, PLEIN SUD, PETITE RÉSIDENCE PRIVÉE - Font-Romeu",
+      "titre": "APPARTEMENT CONFORTABLE, PLEIN SUD, PETITE RÉSIDENCE PRIVÉE",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -1027,12 +905,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1041,7 +914,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-tres-confortable-vue-exceptionnelle-dans-residence-privee-4/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT TRÈS CONFORTABLE, VUE EXCEPTIONNELLE, DANS RÉSIDENCE PRIVÉE - Font-Romeu",
+      "titre": "APPARTEMENT TRÈS CONFORTABLE, VUE EXCEPTIONNELLE, DANS RÉSIDENCE PRIVÉE",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -1049,12 +922,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1063,7 +931,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-finlandais-4/",
       "lecteur": "lecture",
-      "titre": "CHALET FINLANDAIS - Font-Romeu",
+      "titre": "CHALET FINLANDAIS",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1071,12 +939,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1085,7 +948,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-dumayne-4/",
       "lecteur": "lecture",
-      "titre": "RESIDENCE DUMAYNE - Font-Romeu",
+      "titre": "RESIDENCE DUMAYNE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1093,12 +956,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1107,7 +965,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-au-coeur-de-la-station-4/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT AU COEUR DE LA STATION - Font-Romeu",
+      "titre": "APPARTEMENT AU COEUR DE LA STATION",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -1115,12 +973,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1129,7 +982,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/les-rosiers/",
       "lecteur": "lecture",
-      "titre": "LES ROSIERS - Font-Romeu",
+      "titre": "LES ROSIERS",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1137,12 +990,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1151,7 +999,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-arc-en-ciel-2-4/",
       "lecteur": "lecture",
-      "titre": "RÉSIDENCE ARC EN CIEL 2 - Font-Romeu",
+      "titre": "RÉSIDENCE ARC EN CIEL 2",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1159,12 +1007,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1173,7 +1016,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/gousse-lagoguet-marie-noelle-et-jacqueline-5/",
       "lecteur": "lecture",
-      "titre": "GOUSSE-LAGOGUET MARIE-NOËLLE ET JACQUELINE - Font-Romeu",
+      "titre": "GOUSSE-LAGOGUET MARIE-NOËLLE ET JACQUELINE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1181,12 +1024,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1195,7 +1033,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/triep-hourguet-alain-5/",
       "lecteur": "lecture",
-      "titre": "TRIEP HOURGUET ALAIN - Font-Romeu",
+      "titre": "TRIEP HOURGUET ALAIN",
       "type": null,
       "commune": null,
       "capacite": 3,
@@ -1203,12 +1041,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1217,7 +1050,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/cotton-michel-5/",
       "lecteur": "lecture",
-      "titre": "COTTON MICHEL - Font-Romeu",
+      "titre": "COTTON MICHEL",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1225,12 +1058,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1239,7 +1067,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/ginoulhac-jarrosson-5/",
       "lecteur": "lecture",
-      "titre": "GINOULHAC - JARROSSON - Font-Romeu",
+      "titre": "GINOULHAC - JARROSSON",
       "type": null,
       "commune": null,
       "capacite": 8,
@@ -1247,12 +1075,7 @@
       "pieces": 4,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1261,7 +1084,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/verges-jean-5/",
       "lecteur": "lecture",
-      "titre": "VERGES JEAN - Font-Romeu",
+      "titre": "VERGES JEAN",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1269,12 +1092,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1283,7 +1101,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-banya-5/",
       "lecteur": "lecture",
-      "titre": "CHALET BANYA - Font-Romeu",
+      "titre": "CHALET BANYA",
       "type": null,
       "commune": null,
       "capacite": 10,
@@ -1291,12 +1109,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1305,7 +1118,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-lesquirol-5/",
       "lecteur": "lecture",
-      "titre": "CHALET L'ESQUIROL - Font-Romeu",
+      "titre": "CHALET L'ESQUIROL",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1313,12 +1126,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1327,7 +1135,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/blanc-alain-chapelle-st-paul-5/",
       "lecteur": "lecture",
-      "titre": "BLANC ALAIN / CHAPELLE ST PAUL - Font-Romeu",
+      "titre": "BLANC ALAIN / CHAPELLE ST PAUL",
       "type": null,
       "commune": null,
       "capacite": 10,
@@ -1335,12 +1143,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1349,7 +1152,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/les-soldanelles-5/",
       "lecteur": "lecture",
-      "titre": "LES SOLDANELLES - Font-Romeu",
+      "titre": "LES SOLDANELLES",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1357,12 +1160,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1371,7 +1169,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/t2-bis-4/",
       "lecteur": "lecture",
-      "titre": "T2 BIS - Font-Romeu",
+      "titre": "T2 BIS",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1379,12 +1177,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1393,7 +1186,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/terrasse-du-soleil-4/",
       "lecteur": "lecture",
-      "titre": "TERRASSE DU SOLEIL - Font-Romeu",
+      "titre": "TERRASSE DU SOLEIL",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -1401,12 +1194,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1415,7 +1203,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/perez-philippe-13/",
       "lecteur": "lecture",
-      "titre": "PEREZ PHILIPPE - Font-Romeu",
+      "titre": "PEREZ PHILIPPE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1423,12 +1211,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1437,7 +1220,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/les-gelinottes/",
       "lecteur": "lecture",
-      "titre": "LES GÉLINOTTES - Font-Romeu",
+      "titre": "LES GÉLINOTTES",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -1445,12 +1228,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1459,7 +1237,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/perez-stephanie-philippe-2/",
       "lecteur": "lecture",
-      "titre": "PEREZ STÉPHANIE & PHILIPPE - Font-Romeu",
+      "titre": "PEREZ STÉPHANIE & PHILIPPE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1467,12 +1245,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1481,7 +1254,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/gumbau-helene-5/",
       "lecteur": "lecture",
-      "titre": "GUMBAU HELENE - Font-Romeu",
+      "titre": "GUMBAU HELENE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1489,12 +1262,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1503,7 +1271,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/terrasse-des-sorbiers-au-soleil-5/",
       "lecteur": "lecture",
-      "titre": "TERRASSE DES SORBIERS AU SOLEIL - Font-Romeu",
+      "titre": "TERRASSE DES SORBIERS AU SOLEIL",
       "type": null,
       "commune": null,
       "capacite": 5,
@@ -1511,12 +1279,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1525,7 +1288,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/location-loree-du-bois-4/",
       "lecteur": "lecture",
-      "titre": "LOCATION L'ORÉE DU BOIS - Font-Romeu",
+      "titre": "LOCATION L'ORÉE DU BOIS",
       "type": null,
       "commune": null,
       "capacite": 10,
@@ -1533,12 +1296,7 @@
       "pieces": 4,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1547,7 +1305,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/duhamel-antoine-5/",
       "lecteur": "lecture",
-      "titre": "DUHAMEL ANTOINE - Font-Romeu",
+      "titre": "DUHAMEL ANTOINE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1555,12 +1313,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1569,7 +1322,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/beniguel-didier-5/",
       "lecteur": "lecture",
-      "titre": "BENIGUEL DIDIER - Font-Romeu",
+      "titre": "BENIGUEL DIDIER",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1577,12 +1330,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1591,7 +1339,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-le-lymic-4/",
       "lecteur": "lecture",
-      "titre": "CHALET LE LYMIC - Font-Romeu",
+      "titre": "CHALET LE LYMIC",
       "type": null,
       "commune": null,
       "capacite": 12,
@@ -1599,12 +1347,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1613,7 +1356,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/les-soleiades/",
       "lecteur": "lecture",
-      "titre": "LES SOLEIADES - Font-Romeu",
+      "titre": "LES SOLEIADES",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1621,12 +1364,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1635,7 +1373,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/hogommat-herve-7/",
       "lecteur": "lecture",
-      "titre": "HOGOMMAT HERVÉ - Font-Romeu",
+      "titre": "HOGOMMAT HERVÉ",
       "type": null,
       "commune": null,
       "capacite": 7,
@@ -1643,12 +1381,7 @@
       "pieces": 4,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1657,7 +1390,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/bonnafoux-christian-brigitte/",
       "lecteur": "lecture",
-      "titre": "BONNAFOUX CHRISTIAN & BRIGITTE - Font-Romeu",
+      "titre": "BONNAFOUX CHRISTIAN & BRIGITTE",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1665,12 +1398,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1679,7 +1407,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/petit-sandrine-6/",
       "lecteur": "lecture",
-      "titre": "PETIT SANDRINE - Font-Romeu",
+      "titre": "PETIT SANDRINE",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1687,12 +1415,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1701,7 +1424,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/faure-5/",
       "lecteur": "lecture",
-      "titre": "FAURE - Font-Romeu",
+      "titre": "FAURE",
       "type": null,
       "commune": null,
       "capacite": 12,
@@ -1709,12 +1432,7 @@
       "pieces": 6,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1723,7 +1441,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/le-jardin-de-font-romeu-5/",
       "lecteur": "lecture",
-      "titre": "LE JARDIN DE FONT-ROMEU - Font-Romeu",
+      "titre": "LE JARDIN DE FONT-ROMEU",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1731,12 +1449,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1745,7 +1458,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/jousse-marie-christine/",
       "lecteur": "lecture",
-      "titre": "JOUSSE MARIE-CHRISTINE - Font-Romeu",
+      "titre": "JOUSSE MARIE-CHRISTINE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1753,12 +1466,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1767,7 +1475,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/menin-francoise-et-jean-louis-5/",
       "lecteur": "lecture",
-      "titre": "MENIN FRANÇOISE ET JEAN-LOUIS - Font-Romeu",
+      "titre": "MENIN FRANÇOISE ET JEAN-LOUIS",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1775,12 +1483,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1789,7 +1492,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-cervus-5/",
       "lecteur": "lecture",
-      "titre": "CHALET CERVUS - Font-Romeu",
+      "titre": "CHALET CERVUS",
       "type": null,
       "commune": null,
       "capacite": 8,
@@ -1797,12 +1500,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1811,7 +1509,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/les-claudiettes-6/",
       "lecteur": "lecture",
-      "titre": "LES CLAUDIETTES - Font-Romeu",
+      "titre": "LES CLAUDIETTES",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -1819,12 +1517,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1833,7 +1526,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/tathos-5/",
       "lecteur": "lecture",
-      "titre": "TATHOS - Font-Romeu",
+      "titre": "TATHOS",
       "type": null,
       "commune": null,
       "capacite": 2,
@@ -1841,12 +1534,7 @@
       "pieces": 1,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1855,7 +1543,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-nid-des-ecureuils-4/",
       "lecteur": "lecture",
-      "titre": "CHALET NID DES ECUREUILS - Font-Romeu",
+      "titre": "CHALET NID DES ECUREUILS",
       "type": null,
       "commune": null,
       "capacite": 8,
@@ -1863,12 +1551,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1877,7 +1560,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/la-salamandre-4/",
       "lecteur": "lecture",
-      "titre": "LA SALAMANDRE - Font-Romeu",
+      "titre": "LA SALAMANDRE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1885,12 +1568,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1899,7 +1577,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-du-bas-5/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT DU BAS - Font-Romeu",
+      "titre": "APPARTEMENT DU BAS",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1907,12 +1585,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1921,7 +1594,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/le-chalet-des-petits-buis-4/",
       "lecteur": "lecture",
-      "titre": "LE CHALET DES PETITS BUIS - Font-Romeu",
+      "titre": "LE CHALET DES PETITS BUIS",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1929,12 +1602,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1943,7 +1611,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/bouthet-5/",
       "lecteur": "lecture",
-      "titre": "BOUTHET - Font-Romeu",
+      "titre": "BOUTHET",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -1951,12 +1619,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -1965,7 +1628,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/bosom-olivier-5/",
       "lecteur": "lecture",
-      "titre": "BOSOM OLIVIER - Font-Romeu",
+      "titre": "BOSOM OLIVIER",
       "type": null,
       "commune": null,
       "capacite": 8,
@@ -1973,12 +1636,7 @@
       "pieces": 4,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [
         {
@@ -1994,7 +1652,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/de-pauw-4/",
       "lecteur": "lecture",
-      "titre": "DE PAUW - Font-Romeu",
+      "titre": "DE PAUW",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -2002,12 +1660,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2016,7 +1669,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/bernes-catherine-3/",
       "lecteur": "lecture",
-      "titre": "BERNES CATHERINE - Font-Romeu",
+      "titre": "BERNES CATHERINE",
       "type": null,
       "commune": null,
       "capacite": 9,
@@ -2024,12 +1677,7 @@
       "pieces": 5,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2038,7 +1686,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/orazur/",
       "lecteur": "lecture",
-      "titre": "ORAZUR - Font-Romeu",
+      "titre": "ORAZUR",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -2046,12 +1694,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2060,7 +1703,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/campredon/",
       "lecteur": "lecture",
-      "titre": "CAMPREDON - Font-Romeu",
+      "titre": "CAMPREDON",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -2068,12 +1711,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2082,7 +1720,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/appartement-133/",
       "lecteur": "lecture",
-      "titre": "APPARTEMENT 133 - Font-Romeu",
+      "titre": "APPARTEMENT 133",
       "type": null,
       "commune": null,
       "capacite": 1,
@@ -2090,12 +1728,7 @@
       "pieces": 2,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2104,7 +1737,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-capeille/",
       "lecteur": "lecture",
-      "titre": "CHALET CAPEILLE - Font-Romeu",
+      "titre": "CHALET CAPEILLE",
       "type": null,
       "commune": null,
       "capacite": 8,
@@ -2112,12 +1745,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2126,7 +1754,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-les-cailloux/",
       "lecteur": "lecture",
-      "titre": "RESIDENCE LES CAILLOUX - Font-Romeu",
+      "titre": "RESIDENCE LES CAILLOUX",
       "type": null,
       "commune": null,
       "capacite": 6,
@@ -2134,12 +1762,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2148,7 +1771,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/chalet-aspones/",
       "lecteur": "lecture",
-      "titre": "CHALET ASPONES - Font-Romeu",
+      "titre": "CHALET ASPONES",
       "type": null,
       "commune": null,
       "capacite": 9,
@@ -2156,12 +1779,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2170,7 +1788,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/residence-la-soucarrade/",
       "lecteur": "lecture",
-      "titre": "RESIDENCE LA SOUCARRADE - Font-Romeu",
+      "titre": "RESIDENCE LA SOUCARRADE",
       "type": null,
       "commune": null,
       "capacite": 4,
@@ -2178,12 +1796,7 @@
       "pieces": 3,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2192,7 +1805,7 @@
     {
       "url": "https://font-romeu.fr/loueurs_particuliers/le-llory-font-romeu/",
       "lecteur": "lecture",
-      "titre": "LE LLORY FONT-ROMEU - Font-Romeu",
+      "titre": "LE LLORY FONT-ROMEU",
       "type": null,
       "commune": null,
       "capacite": 7,
@@ -2200,12 +1813,7 @@
       "pieces": null,
       "lat": null,
       "lon": null,
-      "photos": [
-        "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
-        "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
-      ],
+      "photos": [],
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
@@ -2215,5 +1823,19 @@
   "muettes": 27,
   "interditsRobots": 0,
   "refus": 0,
-  "erreurs": []
+  "erreurs": [
+    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)"
+  ],
+  "reprises": 0,
+  "decor": {
+    "photos": [
+      "https://font-romeu.fr/wp-content/uploads/2021/11/FONT-ROMEU-guide-accueil-hiver-2021-2022-couv.jpg",
+      "https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg",
+      "https://font-romeu.fr/wp-content/uploads/2022/04/divertir-menu.jpg",
+      "https://font-romeu.fr/wp-content/uploads/2022/04/famille-menu.jpg"
+    ],
+    "finsTitre": [
+      "Font-Romeu"
+    ]
+  }
 }

@@ -18,6 +18,7 @@ import {
   sitemapsDeRobots,
   interditToutSansGroupe,
   sitemapDedie,
+  sitemapIndexProbable,
   sitemapsParDefaut,
   sitemapUtile,
   urlDuProfil,
@@ -31,6 +32,10 @@ export type Decouverte = {
   sitemaps: string[];
   /** Pages du profil, autorisées par robots.txt. */
   urls: string[];
+  /** `<lastmod>` publié pour une page de `urls`, quand le sitemap le donne. */
+  lastmod: Record<string, string>;
+  /** Sitemaps non ouverts : leurs pages n'auraient pas été retenues. */
+  sautes: number;
   /** Pages du sitemap (tous profils) vues au total. */
   vues: number;
   /** Pages ou sitemaps écartés par une règle robots.txt. */
@@ -67,6 +72,8 @@ export async function decouvrirParSitemap(
     profil,
     sitemaps: [],
     urls: [],
+    lastmod: {},
+    sautes: 0,
     vues: 0,
     interditsRobots: 0,
     racineInterdite: false,
@@ -92,14 +99,23 @@ export async function decouvrirParSitemap(
   // ne sont pas des fiches.
   const dediees: string[] = [];
   const generiques: string[] = [];
+  const lastmod = new Map<string, string>();
   // Les sitemaps dédiés s'ouvrent d'abord : `maxSitemaps` ne doit pas être
   // épuisé par les articles.
   const ranger = () => file.sort((a, b) => Number(sitemapDedie(b, profil)) - Number(sitemapDedie(a, profil)));
   ranger();
-  while (file.length > 0 && ouverts.size < maxSitemaps && dediees.length < maxUrls) {
+  while (file.length > 0 && ouverts.size < maxSitemaps && (profil === "hebergement" ? dediees.length : dediees.length + generiques.length) < maxUrls) {
     if (opts.signal?.aborted) break;
     const sm = file.shift()!;
     if (ouverts.has(sm)) continue;
+    // Des fiches sont déjà venues d'un sitemap dédié : celles d'un sitemap
+    // générique (`post-`, `page-`, `restaurations-`) seraient écartées à la
+    // fin. On ne l'ouvre pas, sauf s'il peut être un index (font-romeu.fr,
+    // 11 octobre 2026 : 29 sitemaps ouverts, 4 utiles, deux secondes chacun).
+    if (profil === "hebergement" && dediees.length > 0 && !sitemapDedie(sm, profil) && !sitemapIndexProbable(sm)) {
+      d.sautes += 1;
+      continue;
+    }
     ouverts.add(sm);
     const v = await verdictPoli(sm);
     if (!v.autorise) {
@@ -144,18 +160,36 @@ export async function decouvrirParSitemap(
     const dedie = sitemapDedie(sm, profil);
     for (const e of lu.entrees) {
       if (new URL(e.loc).origin !== origine && !memeSite(e.loc, origine)) continue;
-      if (dedie || urlDuProfil(e.loc, profil)) (dedie ? dediees : generiques).push(e.loc);
+      if (!(dedie || urlDuProfil(e.loc, profil))) continue;
+      (dedie ? dediees : generiques).push(e.loc);
+      // Clé normalisée comme les URL retenues (`dedoublonner`).
+      const cle = dedoublonner([e.loc])[0];
+      if (e.lastmod && !lastmod.has(cle)) lastmod.set(cle, e.lastmod);
     }
   }
 
   // Un flux dédié (Diffusio, Tourinsoft) mêle hébergements, restaurants et
   // activités : le profil trie quand son chemin parle.
   const duProfil = dediees.filter((u) => urlDuProfil(u, profil));
-  const trouves = dediees.length ? (duProfil.length ? duProfil : dediees) : generiques;
+  // Tarifs : une boutique (`product-sitemap.xml`) ne cache pas la grille de
+  // `page-sitemap.xml` ; `scoreTarifs` classe le tout ensuite.
+  const trouves =
+    profil === "tarifs"
+      ? [...duProfil, ...generiques]
+      : dediees.length
+        ? duProfil.length
+          ? duProfil
+          : dediees
+        : generiques;
   for (const u of preferFrancais(dedoublonner(trouves)).slice(0, maxUrls)) {
     const v = await verdictPoli(u);
-    if (v.autorise) d.urls.push(u);
-    else d.interditsRobots += 1;
+    if (!v.autorise) {
+      d.interditsRobots += 1;
+      continue;
+    }
+    d.urls.push(u);
+    const lm = lastmod.get(u);
+    if (lm) d.lastmod[u] = lm;
   }
   return d;
 }

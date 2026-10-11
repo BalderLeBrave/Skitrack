@@ -57,8 +57,7 @@
       "lon": null,
       "photos": [
         "https://beuil.fr/wp-content/uploads/2017/12/Messenger_creation_7208727649918874876.jpeg",
-        "https://secure.gravatar.com/avatar/af952c279ff47ceea19701c977c62243f22ac8d18e6678a4beaadd1b44b0130a?s=96&d=mm&r=g",
-        "https://beuil.fr/wp-content/uploads/2017/12/Messenger_creation_7208727649918874876-1200x600.jpeg"
+        "https://secure.gravatar.com/avatar/af952c279ff47ceea19701c977c62243f22ac8d18e6678a4beaadd1b44b0130a?s=96&d=mm&r=g"
       ],
       "equipements": [],
       "tarifs": [],
@@ -79,7 +78,6 @@
       "photos": [
         "https://beuil.fr/wp-content/uploads/2023/03/443892-0_2107_24c6690397f5efc3026653738a7c8708.jpg",
         "https://secure.gravatar.com/avatar/babc031a978ad82aff335ba7819d73742b8222e95e1d6563167d6f12eff9c1f6?s=96&d=mm&r=g",
-        "https://beuil.fr/wp-content/uploads/2023/03/443892-0_2107_24c6690397f5efc3026653738a7c8708-1200x600.jpg",
         "https://beuil.fr/wp-content/uploads/2017/12/Messenger_creation_7208727649918874876-960x750.jpeg",
         "https://beuil.fr/wp-content/uploads/2023/02/1000029403-960x750.jpg",
         "https://beuil.fr/wp-content/uploads/2023/03/Photo-beuil-1-couverture-960x750.jpg"
@@ -118,5 +116,12 @@
   "muettes": 6,
   "interditsRobots": 0,
   "refus": 0,
-  "erreurs": []
+  "erreurs": [
+    "fiches renormalisées le 2026-10-11 (photos en double ou du décor du site, titres)"
+  ],
+  "reprises": 0,
+  "decor": {
+    "photos": [],
+    "finsTitre": []
+  }
 }

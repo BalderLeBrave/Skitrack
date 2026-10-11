@@ -18,5 +18,10 @@
   "refus": 0,
   "erreurs": [
     "robots.txt interdit la racine (aucune règle) : rien n'est lu"
-  ]
+  ],
+  "reprises": 0,
+  "decor": {
+    "photos": [],
+    "finsTitre": []
+  }
 }

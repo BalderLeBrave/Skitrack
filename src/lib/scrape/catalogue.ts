@@ -158,10 +158,42 @@ function photo(v: unknown, base: string): string | null {
     const u = new URL(v.trim(), base);
     if (u.protocol !== "https:" && u.protocol !== "http:") return null;
     if (/logo|sprite|icon|pictogram|placeholder|\.svg($|\?)/i.test(u.pathname)) return null;
+    // Avatars d'auteur (gravatar), vignettes de menu (`Rando-menu.jpg`, sur
+    // les 88 fiches de font-romeu.fr le 11 octobre 2026), pixels espions.
+    if (/gravatar|avatar|[-_]menu\.|\/menu\/|emoji|spacer|pixel\.|blank\./i.test(u.hostname + u.pathname)) return null;
     return u.toString();
   } catch {
     return null;
   }
+}
+
+/** `photo-1200x766.jpg` → largeur 1200 ; `null` sans taille dans le nom. */
+function tailleNommee(url: string): { cle: string; largeur: number | null } {
+  const m = /^(.*?)-(\d{1,4})x(\d{1,4})(\.\w+)(\?.*)?$/.exec(url);
+  if (!m) return { cle: url, largeur: null };
+  return { cle: `${m[1]}${m[4]}`, largeur: Number(m[2]) };
+}
+
+/**
+ * Une photo par image : WordPress publie la même en plusieurs tailles
+ * (`-1200x766`, `-752x480`), on garde la plus grande à la place de la
+ * première vue. Une vignette nommée de moins de 200 px de large (`-89x70`,
+ * `-0x80`) est un picto, pas une photo du logement.
+ */
+export function photosNettes(urls: string[]): string[] {
+  const ordre: string[] = [];
+  const meilleure = new Map<string, { url: string; largeur: number }>();
+  for (const u of urls) {
+    const { cle, largeur } = tailleNommee(u);
+    if (largeur != null && largeur < 200) continue;
+    const l = largeur ?? Number.MAX_SAFE_INTEGER;
+    const vue = meilleure.get(cle);
+    if (!vue) {
+      ordre.push(cle);
+      meilleure.set(cle, { url: u, largeur: l });
+    } else if (l > vue.largeur) meilleure.set(cle, { url: u, largeur: l });
+  }
+  return ordre.map((c) => meilleure.get(c)!.url);
 }
 
 /** La fiche, bornée. `brut` suit `SCHEMA_LOGEMENT`, quel que soit le lecteur. */
@@ -201,9 +233,9 @@ export function normaliserFiche(
     }
   }
 
-  const photos = [
+  const photos = photosNettes([
     ...new Set((Array.isArray(brut.photos) ? brut.photos : []).map((p) => photo(p, url)).filter((p): p is string => !!p)),
-  ].slice(0, 20);
+  ]).slice(0, 20);
   const equipements = [
     ...new Set(
       (Array.isArray(brut.equipements) ? brut.equipements : []).map((e) => chaine(e, 80)).filter((e): e is string => !!e),
@@ -280,7 +312,7 @@ function jsonLd(html: string): Record<string, unknown>[] {
 }
 
 function meta(html: string, prop: string): string | null {
-  const re = new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]*>`, "i");
+  const re = new RegExp(`<meta[^>]+(?:property|name|itemprop)=["']${prop}["'][^>]*>`, "i");
   const tag = re.exec(html)?.[0];
   const c = tag && /content=["']([^"']*)["']/i.exec(tag);
   return c ? decoder(c[1]).trim() || null : null;
@@ -339,7 +371,9 @@ export function ficheDepuisHtml(html: string, url: string, releveLe?: string): F
     // L'office de tourisme se décrit lui-même sur chaque fiche (Haut-Giffre,
     // 11 octobre 2026 : `TouristInformationCenter`, son nom et sa position sur
     // les 110 fiches). Ni son nom ni sa position ne sont ceux du logement.
-    if (/BreadcrumbList|WebSite|Organization|WebPage|SearchAction|TouristInformationCenter|GovernmentOffice|ImageObject|FAQPage|Event/i.test(t)) continue;
+    // L'auteur de la page non plus (beuil.fr : « Administrateur SICTIAM »,
+    // « Emilie Groeneveld » en titre de fiche, `@type: Person`).
+    if (/BreadcrumbList|WebSite|Organization|WebPage|SearchAction|TouristInformationCenter|GovernmentOffice|ImageObject|FAQPage|Event|Person|ProfilePage|Comment/i.test(t)) continue;
     if (!titre && typeof o.name === "string") titre = o.name;
     const geo = o.geo as Record<string, unknown> | undefined;
     if (geo && lat == null) {
@@ -368,8 +402,12 @@ export function ficheDepuisHtml(html: string, url: string, releveLe?: string): F
     photos.push(m[1]);
     if (photos.length >= 25) break;
   }
-  lat ??= meta(html, "place:location:latitude") ?? meta(html, "geo.position")?.split(/[;,]/)[0];
-  lon ??= meta(html, "place:location:longitude") ?? meta(html, "geo.position")?.split(/[;,]/)[1];
+  lat ??= meta(html, "place:location:latitude") ?? meta(html, "latitude") ?? meta(html, "geo.position")?.split(/[;,]/)[0];
+  lon ??= meta(html, "place:location:longitude") ?? meta(html, "longitude") ?? meta(html, "geo.position")?.split(/[;,]/)[1];
+  if (lat == null) {
+    const p = positionDansLaPage(html);
+    if (p) [lat, lon] = p;
+  }
 
   // Capacité et chambres : seulement les lignes qui les nomment, pas toute la
   // page (un menu « Chalets 12 personnes » ne décrit pas cette fiche).
@@ -397,10 +435,84 @@ export function ficheDepuisHtml(html: string, url: string, releveLe?: string): F
   );
 }
 
+/** Une carte posée par un script ou un lien d'itinéraire : Leaflet
+ *  (`L.marker([45.1, 6.6])`), Google Maps (`LatLng(…)`, `?q=lat,lon`,
+ *  `@lat,lon`, `destination=`), OpenStreetMap (`mlat=…&mlon=…`), ou un objet
+ *  `{ lat: …, lng: … }`. Une position commune à tout le site (l'office) est
+ *  retirée ensuite par `retirerPositionsDuSite`. */
+const POSITIONS: RegExp[] = [
+  /L\.marker\(\s*\[\s*(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})\s*\]/i,
+  /google\.maps\.LatLng\(\s*(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})\s*\)/i,
+  /google\.[a-z.]+\/maps[^"'\s<>]*?[?&;](?:q|ll|daddr|destination|query)=(-?\d{1,2}\.\d{3,})(?:,|%2C)\s*(-?\d{1,3}\.\d{3,})/i,
+  /google\.[a-z.]+\/maps\/[^"'\s<>]*@(-?\d{1,2}\.\d{3,}),(-?\d{1,3}\.\d{3,})/i,
+  /openstreetmap\.org\/[^"'\s<>]*?mlat=(-?\d{1,2}\.\d{3,})&(?:amp;)?mlon=(-?\d{1,3}\.\d{3,})/i,
+  /["']?lat(?:itude)?["']?\s*[:=]\s*["']?(-?\d{1,2}\.\d{3,})["']?\s*,\s*["']?(?:lng|lon|long|longitude)["']?\s*[:=]\s*["']?(-?\d{1,3}\.\d{3,})/i,
+];
+
+function positionDansLaPage(html: string): [number, number] | null {
+  for (const re of POSITIONS) {
+    const m = re.exec(html);
+    if (!m) continue;
+    const lat = Number(m[1]);
+    const lon = Number(m[2]);
+    if (coordonneesPlausibles(lat, lon)) return [lat, lon];
+  }
+  return null;
+}
+
 /** La fiche dit-elle quelque chose d'utile ? Une page de liste ou d'erreur
  *  n'a ni capacité, ni chambres, ni tarif, ni coordonnées. */
 export function ficheParlante(f: FicheCatalogue): boolean {
   return f.capacite != null || f.chambres != null || f.pieces != null || f.tarifs.length > 0 || f.lat != null;
+}
+
+/**
+ * Le décor du site, retiré des fiches : une photo vue sur plus d'une fiche
+ * sur dix (cinq au moins) est un logo, un bandeau ou un carrousel « vous
+ * aimerez aussi » (11 octobre 2026 : le logo FEDER sur 375 des 425 fiches de
+ * Gavarnie, trois vignettes de menu sur les 88 de Font-Romeu) ; une fin de
+ * titre commune à plus de la moitié (« - Haut-Giffre Tourisme ») est le nom
+ * du site. Une résidence qui partage ses photos entre quelques lots reste.
+ */
+export type DecorSite = { photos: string[]; finsTitre: string[] };
+
+export function retirerDecorDuSite(
+  fiches: FicheCatalogue[],
+  connu: Partial<DecorSite> = {},
+): { photos: number; titres: number; decor: DecorSite } {
+  // Le décor relevé la fois précédente le reste : les fiches reprises n'en
+  // portent plus, il ne passerait plus le seuil sur les seules fiches relues.
+  const seuil = Math.max(5, fiches.length / 10);
+  const vues = new Map<string, number>();
+  for (const f of fiches) for (const p of new Set(f.photos)) vues.set(p, (vues.get(p) ?? 0) + 1);
+  const decor = new Set(connu.photos ?? []);
+  for (const [p, n] of vues) if (n >= seuil) decor.add(p);
+  let photos = 0;
+  for (const f of fiches) {
+    const avant = f.photos.length;
+    f.photos = f.photos.filter((p) => !decor.has(p));
+    photos += avant - f.photos.length;
+  }
+
+  const fin = (t: string) => /\s[-–|]\s((?:(?!\s[-–|]\s).)+)$/.exec(t)?.[1]?.trim() ?? null;
+  const fins = new Map<string, number>();
+  for (const f of fiches) {
+    const s = f.titre ? fin(f.titre) : null;
+    if (s) fins.set(s, (fins.get(s) ?? 0) + 1);
+  }
+  const finsSite = new Set(connu.finsTitre ?? []);
+  for (const [s, n] of fins) if (n >= 5 && n > fiches.length / 2) finsSite.add(s);
+  let titres = 0;
+  for (const f of fiches) {
+    const s = f.titre ? fin(f.titre) : null;
+    if (!s || !finsSite.has(s)) continue;
+    const court = f.titre!.slice(0, f.titre!.lastIndexOf(s)).replace(/\s[-–|]\s*$/, "").trim();
+    if (court) {
+      f.titre = court;
+      titres += 1;
+    }
+  }
+  return { photos, titres, decor: { photos: [...decor].sort(), finsTitre: [...finsSite].sort() } };
 }
 
 /**

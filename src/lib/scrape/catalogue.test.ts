@@ -1,6 +1,14 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { coordonneesPlausibles, ficheDepuisHtml, ficheParlante, normaliserFiche } from "./catalogue.ts";
+import {
+  coordonneesPlausibles,
+  ficheDepuisHtml,
+  ficheParlante,
+  normaliserFiche,
+  photosNettes,
+  retirerDecorDuSite,
+  type FicheCatalogue,
+} from "./catalogue.ts";
 
 const QUAND = "2026-10-11T00:00:00.000Z";
 
@@ -130,5 +138,58 @@ describe("positions communes à tout un site", () => {
   it("garde une résidence de plusieurs appartements", () => {
     const f = [...Array.from({ length: 8 }, () => fiche(45.506104, 2.862574)), ...Array.from({ length: 20 }, (_, i) => fiche(45.5 + i / 100, 2.8))];
     assert.equal(retirerPositionsDuSite(f), 0);
+  });
+
+  it("une photo par image, la plus grande ; ni vignette, ni menu, ni avatar", () => {
+    const w = "https://www.haut-giffre.fr/wp-content/uploads/wpetourisme/";
+    assert.deepEqual(
+      photosNettes([`${w}11287648-diaporama-752x480.jpg`, `${w}11287648-diaporama-1200x766.jpg`, `${w}5940080-diaporama-250x140.jpg`, `${w}toutourisme-89x70.jpg`, `${w}feder-1-0x80.jpg`]),
+      [`${w}11287648-diaporama-1200x766.jpg`, `${w}5940080-diaporama-250x140.jpg`],
+    );
+    const f = normaliserFiche(
+      { photos: ["https://font-romeu.fr/wp-content/uploads/2022/04/Rando-menu.jpg", "https://secure.gravatar.com/avatar/a594?s=96", "https://font-romeu.fr/wp-content/uploads/2021/10/8046134.jpg"] },
+      "https://font-romeu.fr/hebergements/chalet-montana/",
+      "lecture",
+      QUAND,
+    );
+    assert.deepEqual(f.photos, ["https://font-romeu.fr/wp-content/uploads/2021/10/8046134.jpg"]);
+  });
+
+  it("l'auteur de la page n'est pas le titre de la fiche (beuil.fr)", () => {
+    const html = `<script type="application/ld+json">{"@graph":[{"@type":"Person","name":"Administrateur SICTIAM"},{"@type":"LodgingBusiness","name":"Gîte nature montagne"}]}</script>`;
+    assert.equal(ficheDepuisHtml(html, "https://beuil.fr/gite-nature-montagne-9710/", QUAND).titre, "Gîte nature montagne");
+  });
+
+  it("lit la position d'une carte Leaflet ou d'un lien d'itinéraire", () => {
+    const leaflet = `<h1>Chalet 6 personnes</h1><script>var m = L.marker([42.5043, 2.0367]).addTo(carte);</script>`;
+    const f = ficheDepuisHtml(leaflet, "https://font-romeu.fr/hebergements/a/", QUAND);
+    assert.deepEqual([f.lat, f.lon], [42.5043, 2.0367]);
+    const lien = `<h1>Gîte 4 personnes</h1><a href="https://www.google.com/maps/dir/?api=1&amp;destination=46.0757,6.7246">Itinéraire</a>`;
+    const g = ficheDepuisHtml(lien, "https://www.haut-giffre.fr/chambres-hotes-et-gites/a/", QUAND);
+    assert.deepEqual([g.lat, g.lon], [46.0757, 6.7246]);
+    const objet = `<h1>Studio 2 personnes</h1><script>window.fiche = {"lat":"46.2601","lng":"6.5703"};</script>`;
+    assert.deepEqual([ficheDepuisHtml(objet, "https://x.fr/a", QUAND).lat, ficheDepuisHtml(objet, "https://x.fr/a", QUAND).lon], [46.2601, 6.5703]);
+    const ailleurs = `<h1>Studio</h1><script>L.marker([40.7128, -74.006])</script>`;
+    assert.equal(ficheDepuisHtml(ailleurs, "https://x.fr/a", QUAND).lat, null, "hors de France : écartée");
+  });
+
+  it("retire le décor du site : logo commun, nom du site en fin de titre", () => {
+    const fiche = (i: number, photos: string[]): FicheCatalogue => ({
+      ...normaliserFiche({ titre: `Chalet ${i} - Haut-Giffre Tourisme` }, `https://x.fr/h/${i}/`, "lecture", QUAND),
+      photos,
+    });
+    const fiches = Array.from({ length: 12 }, (_, i) => fiche(i, [`https://x.fr/p/${i}.jpg`, "https://x.fr/feder.jpg"]));
+    fiches.push({ ...fiche(12, ["https://x.fr/p/12.jpg"]), titre: "Résidence Odalys - Le Buet" });
+    const r = retirerDecorDuSite(fiches);
+    assert.equal(r.photos, 12);
+    assert.deepEqual(fiches[0].photos, ["https://x.fr/p/0.jpg"]);
+    assert.equal(fiches[0].titre, "Chalet 0");
+    assert.equal(fiches[12].titre, "Résidence Odalys - Le Buet", "une fin de titre propre au logement reste");
+    assert.deepEqual(r.decor, { photos: ["https://x.fr/feder.jpg"], finsTitre: ["Haut-Giffre Tourisme"] });
+    // Relevé suivant : une seule fiche relue, le décor connu s'applique encore.
+    const seule = [fiche(20, ["https://x.fr/p/20.jpg", "https://x.fr/feder.jpg"])];
+    retirerDecorDuSite(seule, r.decor);
+    assert.deepEqual(seule[0].photos, ["https://x.fr/p/20.jpg"]);
+    assert.equal(seule[0].titre, "Chalet 20");
   });
 });

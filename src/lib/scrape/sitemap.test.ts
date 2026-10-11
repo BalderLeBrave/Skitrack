@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import {
   dedoublonner,
   interditToutSansGroupe,
+  langueUrl,
   lireSitemap,
   preferFrancais,
   scoreTarifs,
   sitemapDedie,
+  sitemapIndexProbable,
   sitemapsDeRobots,
   sitemapUtile,
   urlDuProfil,
@@ -102,5 +104,82 @@ describe("sitemaps", () => {
 
   it("dédoublonne sans fragment", () => {
     assert.deepEqual(dedoublonner(["https://x.fr/a#b", "https://x.fr/a", "https://x.fr/c"]), ["https://x.fr/a", "https://x.fr/c"]);
+  });
+
+  it("n'ouvre ni les taxonomies ni les rubriques au pluriel (font-romeu.fr, haut-giffre.fr)", () => {
+    for (const sm of [
+      "https://font-romeu.fr/type_hebergements-sitemap.xml",
+      "https://font-romeu.fr/categories_patrimoines-sitemap.xml",
+      "https://font-romeu.fr/theme_loisirs-sitemap.xml",
+      "https://font-romeu.fr/restaurations-sitemap.xml",
+      "https://font-romeu.fr/evenements-sitemap.xml",
+      "https://font-romeu.fr/commerces_services-sitemap.xml",
+      "https://www.haut-giffre.fr/webcam-sitemap.xml",
+      "https://www.haut-giffre.fr/producteurs-sitemap.xml",
+    ]) {
+      assert.ok(!sitemapUtile(sm, "hebergement"), sm);
+    }
+    assert.ok(!sitemapDedie("https://font-romeu.fr/type_hebergements-sitemap.xml", "hebergement"));
+    assert.ok(sitemapUtile("https://www.haut-giffre.fr/hebergements-locatif-sitemap.xml", "hebergement"));
+    assert.ok(sitemapUtile("https://x.fr/forfaits-saison-sitemap.xml", "tarifs"));
+    assert.ok(sitemapUtile("https://www.haut-giffre.fr/domaines-skiables-sitemap.xml", "tarifs"));
+  });
+
+  it("reconnaît un index probable", () => {
+    assert.ok(sitemapIndexProbable("https://x.fr/sitemap.xml"));
+    assert.ok(sitemapIndexProbable("https://x.fr/sitemap_index.xml"));
+    assert.ok(sitemapIndexProbable("https://x.fr/wp-sitemap.xml"));
+    assert.ok(!sitemapIndexProbable("https://x.fr/post-sitemap.xml"));
+  });
+
+  it("lit la langue en chemin comme en sous-domaine", () => {
+    assert.equal(langueUrl("https://nl.la-plagne.com/ontdekken/"), "nl");
+    assert.equal(langueUrl("http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski"), "it");
+    assert.equal(langueUrl("https://www.sancy.com/fr/fiche/x/"), "fr");
+    assert.equal(langueUrl("https://sites.valdabondance.com/a"), null);
+    assert.equal(langueUrl("https://en.chamrousse.com/alpine-ski-pass-prices.html"), "en");
+    assert.deepEqual(
+      preferFrancais([
+        "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      ]),
+      ["http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"],
+    );
+  });
+
+  it("écarte des pages tarifs ce que le relevé du 11 octobre 2026 retenait à tort", () => {
+    const quand = new Date("2026-10-11T00:00:00Z");
+    for (const u of [
+      "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-moriond-7124132/",
+      "https://www.avoriaz.com/fiche/caisse-vente-de-forfaits-centre-station/",
+      "https://www.prazdelys-sommand.com/commerce-et-service/borne-automatique-de-forfaits-les-molliettes/",
+      "https://www.alpedhuez.com/fr/video_webtv/fah2016-remise-du-prix-michel-galabru-prix-interpretation/",
+      "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/prix-roman-jeunesse-la-vache-qui-lit-2026",
+      "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-prix-litteraire-paysages-ecrits-chambery-fr-5793684/",
+      "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/",
+      "https://www.gap-bayard.com/tarifs-golf",
+      "https://beuil.fr/tarif-exceptionnel-au-tennis-des-launes/",
+      "https://www.lescontamines.com/hiver/ouverture-des-preventes-des-forfaits-de-ski-hiver-2024-2025",
+      "https://www.montclar.fr/deliberations-conseil-municipal/i/84987139/deliberation-tarifs-secours-sur-piste",
+      "https://www.lesarcs.com/fr/seminaires-incentives-evenements-dentreprise/forfaits-de-groupes",
+    ]) {
+      assert.ok(scoreTarifs(u, quand) <= 0, `${u} : ${scoreTarifs(u, quand)}`);
+    }
+    for (const u of [
+      "https://www.avoriaz.com/decouvrir/les-incontournables/tarifs-des-forfaits-hiver/",
+      "https://www.chioula.fr/tarifs.html",
+      "https://www.lelioran.com/hiver/les-tarifs/",
+      "https://www.lescontamines.com/hiver/preventes-des-forfaits-de-ski-hiver-2026-2027-c-est-en-ligne",
+      "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+    ]) {
+      assert.ok(scoreTarifs(u, quand) > 0, `${u} : ${scoreTarifs(u, quand)}`);
+    }
+    assert.ok(
+      scoreTarifs("http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski", quand) >
+        scoreTarifs("http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski", quand),
+    );
   });
 });

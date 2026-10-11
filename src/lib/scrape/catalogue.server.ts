@@ -20,8 +20,10 @@ import {
   ficheDepuisHtml,
   ficheParlante,
   normaliserFiche,
+  retirerDecorDuSite,
   retirerPositionsDuSite,
   PROMPT_LOGEMENT,
+  type DecorSite,
   SCHEMA_LOGEMENT,
   type FicheCatalogue,
 } from "./catalogue.ts";
@@ -56,6 +58,14 @@ export type OptionsCatalogue = {
   /** Méthodes de découverte essayées dans l'ordre, jusqu'à la première qui trouve. */
   decouverte?: Decouvreur[];
   maxFiches?: number;
+  /**
+   * Fiches du relevé précédent. Une fiche dont le sitemap publie un
+   * `<lastmod>` antérieur à sa lecture n'a pas changé : elle est reprise
+   * telle quelle, sans requête.
+   */
+  precedent?: Pick<ResultatCatalogue, "fiches" | "decor"> | null;
+  /** Reprend aussi, sans `<lastmod>`, une fiche lue il y a moins de ce nombre de jours. */
+  fraicheurJours?: number;
   signal?: AbortSignal;
   /** Appelé après chaque fiche, pour un journal de progression. */
   surFiche?: (n: number, total: number, url: string) => void;
@@ -66,9 +76,13 @@ export type ResultatCatalogue = {
   releveLe: string;
   methode: Decouvreur | null;
   lecteur: "firecrawl" | "lecture";
-  sitemap: Pick<Decouverte, "sitemaps" | "vues" | "interditsRobots" | "racineInterdite" | "refus"> | null;
+  sitemap: Pick<Decouverte, "sitemaps" | "vues" | "interditsRobots" | "racineInterdite" | "refus" | "sautes"> | null;
   urls: number;
   fiches: FicheCatalogue[];
+  /** Fiches reprises du relevé précédent, sans requête. */
+  reprises: number;
+  /** Décor du site retiré des fiches : logo, menu, carrousel, nom du site en fin de titre. */
+  decor: DecorSite;
   muettes: number;
   interditsRobots: number;
   refus: number;
@@ -79,7 +93,20 @@ export async function extraireCatalogue(cible: CibleCatalogue, o: OptionsCatalog
   const r = await extraireBrut(cible, o);
   const retirees = retirerPositionsDuSite(r.fiches);
   if (retirees) r.erreurs.push(`${retirees} position(s) commune(s) à tout le site retirée(s)`);
+  const decor = retirerDecorDuSite(r.fiches, o.precedent?.decor ?? {});
+  r.decor = decor.decor;
   return r;
+}
+
+/** La fiche précédente vaut-elle encore ? */
+function reprenable(f: FicheCatalogue, lastmod: string | undefined, fraicheurJours: number | undefined): boolean {
+  const lu = Date.parse(f.releveLe);
+  if (!Number.isFinite(lu)) return false;
+  if (lastmod) {
+    const m = Date.parse(lastmod);
+    if (Number.isFinite(m)) return m <= lu;
+  }
+  return fraicheurJours != null && Date.now() - lu < fraicheurJours * 86_400_000;
 }
 
 async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise<ResultatCatalogue> {
@@ -98,6 +125,8 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
     sitemap: null,
     urls: 0,
     fiches: [],
+    reprises: 0,
+    decor: { photos: [], finsTitre: [] },
     muettes: 0,
     interditsRobots: 0,
     refus: 0,
@@ -112,6 +141,7 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
   }
 
   let urls: string[] = [];
+  let lastmod: Record<string, string> = {};
   for (const m of ordre) {
     if (o.signal?.aborted) break;
     if (m === "sitemap") {
@@ -122,6 +152,7 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
         interditsRobots: d.interditsRobots,
         racineInterdite: d.racineInterdite,
         refus: d.refus,
+        sautes: d.sautes,
       };
       r.erreurs.push(...d.erreurs);
       r.interditsRobots += d.interditsRobots;
@@ -130,6 +161,7 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
         break; // le serveur a refusé : on ne tente pas d'autre voie
       }
       urls = d.urls;
+      lastmod = d.lastmod;
     } else if (m === "carte" && lecteur === "firecrawl") {
       const c = await carteFirecrawl(origine, { recherche: "hébergement location", signal: o.signal });
       r.interditsRobots += c.interdits;
@@ -165,10 +197,18 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
 
   urls = dedoublonner(urls).slice(0, max);
   r.urls = urls.length;
+  const avant = new Map((o.precedent?.fiches ?? []).filter((f) => f.lecteur === lecteur).map((f) => [f.url, f]));
   let n = 0;
   for (const url of urls) {
     if (o.signal?.aborted) break;
     n += 1;
+    const vieille = avant.get(url);
+    if (vieille && reprenable(vieille, lastmod[url], o.fraicheurJours)) {
+      r.fiches.push(vieille);
+      r.reprises += 1;
+      o.surFiche?.(n, urls.length, url);
+      continue;
+    }
     try {
       if (lecteur === "firecrawl") {
         const l = await lireAvecFirecrawl(url, { schema: SCHEMA_LOGEMENT, prompt: PROMPT_LOGEMENT, signal: o.signal });

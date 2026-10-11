@@ -24,5 +24,10 @@
   "refus": 1,
   "erreurs": [
     "https://lesangles.com/sitemap_index.xml : refus 403, découverte arrêtée"
-  ]
+  ],
+  "reprises": 0,
+  "decor": {
+    "photos": [],
+    "finsTitre": []
+  }
 }

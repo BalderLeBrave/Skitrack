@@ -5,16 +5,24 @@
  *   npm run catalogue:centrales -- --hote www.sancy.com --max 50
  *   npm run catalogue:centrales -- --lecteur firecrawl --decouverte sitemap,carte,parcours
  *   npm run catalogue:centrales -- --lister            # cibles seules, sans requête
- *   npm run catalogue:centrales -- --concurrence 5     # cinq hôtes à la fois
+ *   npm run catalogue:centrales -- --concurrence 1     # un hôte à la fois
+ *   npm run catalogue:centrales -- --complet           # relit tout, sans reprise
+ *   npm run catalogue:centrales -- --frais 7           # reprend les fiches de moins de 7 jours
  *
  * Écrit `scrape/catalogue/sortie/<hôte>.json` (fiches) et
  * `scrape/catalogue/sortie/resume.json` (bilan par hôte). Le lecteur
  * Firecrawl est pris si `FIRECRAWL_API_KEY` est posée, la lecture directe
  * sinon. robots.txt est respecté : une page interdite n'est pas lue, un
  * refus du serveur arrête l'hôte.
+ *
+ * Les hôtes avancent ensemble (huit au plus) : chacun garde sa file polie,
+ * une requête à la fois, au `Crawl-delay` publié. Le relevé dure le temps de
+ * l'hôte le plus long, et non plus la somme de tous. Une fiche dont le
+ * sitemap publie un `<lastmod>` antérieur au relevé précédent est reprise
+ * sans requête ; `--complet` relit tout (après un changement du lecteur).
  */
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -22,6 +30,7 @@ import {
   extraireCatalogue,
   type Decouvreur,
   type Lecteur,
+  type ResultatCatalogue,
 } from "../../src/lib/scrape/catalogue.server.ts";
 
 const ICI = dirname(fileURLToPath(import.meta.url));
@@ -36,11 +45,25 @@ const hotes = option("hote")?.split(",").filter(Boolean) ?? null;
 const max = Number(option("max") ?? "") || undefined;
 const lecteur = (option("lecteur") ?? "auto") as Lecteur;
 const decouverte = option("decouverte")?.split(",").filter(Boolean) as Decouvreur[] | undefined;
-// Plusieurs hôtes à la fois : chacun garde sa propre file polie
-// (`dansLaFile`, une requête à la fois par hôte, au Crawl-delay publié).
-const concurrence = Math.max(1, Number(option("concurrence") ?? "1") || 1);
+const complet = process.argv.includes("--complet");
+const fraicheurJours = Number(option("frais") ?? "") || undefined;
 
 const cibles = ciblesSansConnecteur().filter((c) => !hotes || hotes.includes(c.host));
+// Plusieurs hôtes à la fois : chacun garde sa propre file polie
+// (`dansLaFile`, une requête à la fois par hôte, au Crawl-delay publié).
+const concurrence = Math.max(1, Number(option("concurrence") ?? "") || Math.min(8, cibles.length));
+
+function precedent(host: string): Pick<ResultatCatalogue, "fiches" | "decor"> | null {
+  if (complet) return null;
+  const f = join(SORTIE, `${host}.json`);
+  if (!existsSync(f)) return null;
+  try {
+    const r = JSON.parse(readFileSync(f, "utf8")) as Partial<ResultatCatalogue>;
+    return Array.isArray(r.fiches) ? { fiches: r.fiches, decor: r.decor ?? { photos: [], finsTitre: [] } } : null;
+  } catch {
+    return null;
+  }
+}
 
 if (process.argv.includes("--lister")) {
   for (const c of cibles) console.log(`${c.host.padEnd(36)} ${c.moteur.padEnd(12)} ${c.nom} (${c.stations.join(", ")})`);
@@ -55,6 +78,8 @@ async function traiter(c: (typeof cibles)[number]) {
     lecteur,
     decouverte,
     maxFiches: max,
+    precedent: precedent(c.host),
+    fraicheurJours,
     surFiche: (n, total) => {
       if (concurrence === 1 && (n % 10 === 0 || n === total)) process.stdout.write(`  ${n}/${total}\r`);
     },
@@ -68,6 +93,8 @@ async function traiter(c: (typeof cibles)[number]) {
     lecteur: r.lecteur,
     urls: r.urls,
     fiches: r.fiches.length,
+    reprises: r.reprises,
+    sitemapsSautes: r.sitemap?.sautes ?? 0,
     muettes: r.muettes,
     avecCapacite: r.fiches.filter((f) => f.capacite != null).length,
     avecChambres: r.fiches.filter((f) => f.chambres != null).length,
@@ -81,7 +108,7 @@ async function traiter(c: (typeof cibles)[number]) {
   };
   resume.push(ligne);
   console.log(
-    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · tarif ${ligne.avecTarif} · robots ${ligne.interditsRobots} · refus ${ligne.refus}`,
+    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL (${ligne.reprises} reprises) · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · tarif ${ligne.avecTarif} · robots ${ligne.interditsRobots} · refus ${ligne.refus}`,
   );
 }
 let suivant = 0;

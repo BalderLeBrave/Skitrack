@@ -20,7 +20,7 @@ import { extractForfaits } from "../src/lib/forfaits/extract.ts";
 import { forfaitDepuisFirecrawl, PROMPT_FORFAIT, SCHEMA_FORFAIT } from "../src/lib/forfaits/firecrawlForfait.ts";
 import { grilleCoherente, MAX_DECOUVERTES, type PagesTarifs } from "../src/lib/forfaits/pagesTarifs.ts";
 import { demander, verdictPoli } from "../src/lib/scrape/politesse.ts";
-import { decouvrirParSitemap } from "../src/lib/scrape/sitemap.server.ts";
+import { decouvrirParSitemap, type Decouverte } from "../src/lib/scrape/sitemap.server.ts";
 import { scoreTarifs } from "../src/lib/scrape/sitemap.ts";
 import { cleFirecrawl, lireAvecFirecrawl } from "../src/lib/scrape/firecrawl.server.ts";
 
@@ -38,6 +38,43 @@ const concurrence = Math.max(1, Number(option("concurrence") ?? "6") || 6);
 
 const domaines = FORFAIT_CATALOG.filter((d) => d.website && (!sources || sources.includes(d.slug)));
 
+// Plusieurs domaines partagent un site (la-plagne.com pour cinq, chamonix.com
+// pour cinq, lesrousses.com pour cinq : 168 domaines, 114 sites, relevé du
+// 11 octobre 2026). Le site est découvert une fois, chaque page lue une fois.
+const decouvertes = new Map<string, Promise<Decouverte>>();
+function decouvrir(site: string): Promise<Decouverte> {
+  const cle = new URL(site).origin.replace("://www.", "://");
+  let p = decouvertes.get(cle);
+  if (!p) {
+    p = decouvrirParSitemap(site, "tarifs", { maxSitemaps: 25, maxUrls: 3_000 });
+    decouvertes.set(cle, p);
+  }
+  return p;
+}
+type Lu = { x: { j1: number | null; j6: number | null; enf6: number | null; kind: string } | null; refus: boolean; erreur: string | null };
+const lectures = new Map<string, Promise<Lu>>();
+function lirePage(url: string): Promise<Lu> {
+  let p = lectures.get(url);
+  if (!p) {
+    p = lireUnePage(url);
+    lectures.set(url, p);
+  }
+  return p;
+}
+async function lireUnePage(url: string): Promise<Lu> {
+  if (lecteur === "firecrawl") {
+    const r = await lireAvecFirecrawl(url, { schema: SCHEMA_FORFAIT, prompt: PROMPT_FORFAIT, markdown: true });
+    if (!r.ok) return { x: null, refus: r.raison === "refus", erreur: `${url} : ${r.detail}` };
+    return { x: forfaitDepuisFirecrawl(r.page.json) ?? (r.page.markdown ? extractForfaits(r.page.markdown) : null), refus: false, erreur: null };
+  }
+  const v = await verdictPoli(url);
+  if (!v.autorise) return { x: null, refus: false, erreur: null };
+  const p = await demander(url, undefined, v.delaiMs);
+  if (p.status === 401 || p.status === 403 || p.status === 429) return { x: null, refus: true, erreur: `${url} : refus ${p.status}` };
+  if (!p.ok) return { x: null, refus: false, erreur: null };
+  return { x: extractForfaits(p.text), refus: false, erreur: null };
+}
+
 type Ligne = {
   slug: string;
   website: string;
@@ -53,7 +90,7 @@ type Ligne = {
 
 async function traiter(d: (typeof domaines)[number]): Promise<Ligne> {
   const site = d.website!.startsWith("http") ? d.website! : `https://${d.website}`;
-  const dec = await decouvrirParSitemap(site, "tarifs", { maxSitemaps: 25, maxUrls: 3_000 });
+  const dec = await decouvrir(site);
   const pages = dec.urls
     .map((u) => ({ u, s: scoreTarifs(u) }))
     .filter((x) => x.s > 0)
@@ -74,32 +111,12 @@ async function traiter(d: (typeof domaines)[number]): Promise<Ligne> {
   if (lire && !dec.refus) {
     l.lu = null;
     for (const url of pages) {
-      if (lecteur === "firecrawl") {
-        const r = await lireAvecFirecrawl(url, { schema: SCHEMA_FORFAIT, prompt: PROMPT_FORFAIT, markdown: true });
-        if (!r.ok) {
-          l.erreurs.push(`${url} : ${r.detail}`);
-          if (r.raison === "refus") break;
-          continue;
-        }
-        const x = forfaitDepuisFirecrawl(r.page.json) ?? (r.page.markdown ? extractForfaits(r.page.markdown) : null);
-        if (x && grilleCoherente(x)) {
-          l.lu = { url, ...x };
-          break;
-        }
-      } else {
-        const v = await verdictPoli(url);
-        if (!v.autorise) continue;
-        const p = await demander(url, undefined, v.delaiMs);
-        if (p.status === 401 || p.status === 403 || p.status === 429) {
-          l.erreurs.push(`${url} : refus ${p.status}`);
-          break;
-        }
-        if (!p.ok) continue;
-        const x = extractForfaits(p.text);
-        if (x && grilleCoherente(x)) {
-          l.lu = { url, ...x };
-          break;
-        }
+      const r = await lirePage(url);
+      if (r.erreur) l.erreurs.push(r.erreur);
+      if (r.refus) break;
+      if (r.x && grilleCoherente(r.x)) {
+        l.lu = { url, ...r.x };
+        break;
       }
     }
   }

@@ -24,5 +24,10 @@
   "muettes": 0,
   "interditsRobots": 0,
   "refus": 0,
-  "erreurs": []
+  "erreurs": [],
+  "reprises": 0,
+  "decor": {
+    "photos": [],
+    "finsTitre": []
+  }
 }

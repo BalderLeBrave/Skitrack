@@ -21,7 +21,7 @@
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 0
+      "erreurs": 1
     },
     {
       "host": "booking.prazsurarly.com",
@@ -59,13 +59,13 @@
       "avecCapacite": 85,
       "avecChambres": 38,
       "avecGps": 0,
-      "avecPhoto": 88,
+      "avecPhoto": 24,
       "avecTarif": 1,
       "avecTarifOuPlancher": 6,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 0
+      "erreurs": 1
     },
     {
       "host": "lesangles.com",
@@ -153,7 +153,7 @@
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 0
+      "erreurs": 1
     },
     {
       "host": "www.mole-brasses.com",
@@ -214,13 +214,13 @@
       "avecCapacite": 203,
       "avecChambres": 222,
       "avecGps": 425,
-      "avecPhoto": 425,
+      "avecPhoto": 419,
       "avecTarif": 46,
       "avecTarifOuPlancher": 58,
       "avecTotalDate": 0,
       "interditsRobots": 0,
       "refus": 0,
-      "erreurs": 1
+      "erreurs": 2
     }
   ]
 }

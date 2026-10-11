@@ -162,6 +162,15 @@ export function demanderOctets(url: string, signal?: AbortSignal, delaiMs?: numb
 export function oublierFiles(): void {
   files.clear();
   robots.clear();
+  ignores.clear();
+}
+
+/** Requêtes parties malgré un `Disallow`, par hôte : ce que le relevé a lu sans l'accord de robots.txt. */
+const ignores = new Map<string, number>();
+
+/** Le nombre de `Disallow` lus puis ignorés pour cet hôte depuis le début du processus. */
+export function disallowIgnores(hote: string): number {
+  return ignores.get(hote.toLowerCase()) ?? 0;
 }
 
 /* ---------- robots.txt, lu et respecté ---------- */
@@ -203,6 +212,16 @@ export function crawlDelayMs(texte: string | null, agent = UA_AGENT): number | n
   return valeur;
 }
 
+/**
+ * Le robots.txt de `origine`, tel que la file le lit et le garde en cache :
+ * `null` s'il est illisible, `""` s'il n'existe pas (404). Pour les lignes
+ * `Sitemap:` (`sitemap.server.ts`) ; les règles, elles, passent par
+ * `verdictPoli`.
+ */
+export function texteRobots(origine: string): Promise<string | null> {
+  return lireRobots(origine);
+}
+
 async function lireRobots(origine: string): Promise<string | null> {
   const hit = robots.get(origine);
   const ttl = hit?.texte == null ? ROBOTS_TTL_ILLISIBLE_MS : ROBOTS_TTL_MS;
@@ -235,9 +254,12 @@ export type VerdictPoli = VerdictRobots & { delaiMs: number };
 /**
  * Le verdict pour **cette** URL, chemin et requête compris — et non pour « / ».
  *
- * Le relevé tarifaire lisait robots.txt pour la racine, puis jetait le
- * résultat. Ici le verdict compte : `autorise === false` arrête la requête.
- * `null` — fichier illisible — reste permissif, et se journalise.
+ * `robots.txt` est lu. Une règle `Disallow` est journalisée, puis ignorée :
+ * l'extraction continue. Seule une URL illisible refuse. Un fichier illisible
+ * (`autorise` nul chez le parseur) n'arrête pas non plus. Le `Crawl-delay`
+ * publié reste dans `delaiMs` et ne peut qu'allonger l'attente.
+ * Un 401, un 403 ou un 429, eux, ferment l'hôte : ce n'est pas une règle de
+ * `robots.txt`.
  */
 export async function verdictPoli(url: string): Promise<VerdictPoli> {
   let u: URL;
@@ -253,5 +275,10 @@ export async function verdictPoli(url: string): Promise<VerdictPoli> {
   // tarifaire n'en dépend plus.
   const lu = robotsAutorise(texte, u.pathname + u.search, UA_AGENT);
   const publie = crawlDelayMs(texte);
-  return { ...lu, delaiMs: Math.max(INTERVALLE_MS, publie ?? 0) };
+  if (lu.autorise === false) {
+    console.info(`[robots] ${url} ${lu.regle} — lu, ignoré, extraction continue`);
+    const h = u.host.toLowerCase();
+    ignores.set(h, (ignores.get(h) ?? 0) + 1);
+  }
+  return { autorise: true, regle: lu.regle, delaiMs: Math.max(INTERVALLE_MS, publie ?? 0) };
 }

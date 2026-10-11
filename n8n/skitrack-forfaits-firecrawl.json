@@ -1,0 +1,271 @@
+{
+  "name": "Skitrack — grilles de forfaits (Firecrawl)",
+  "nodes": [
+    {
+      "id": "00000000-0000-4000-8000-000000000020",
+      "name": "Le 1er du mois",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtDayOfMonth": 1,
+              "triggerAtHour": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000021",
+      "name": "pagesTarifs.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/BalderLeBrave/Skitrack/master/src/lib/forfaits/pagesTarifs.json",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000022",
+      "name": "Une page par domaine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Première page découverte par sitemap pour chaque domaine (npm run forfaits:sitemap).\nconst pages = $json.pages || {};\nreturn Object.entries(pages).filter(([, u]) => Array.isArray(u) && u.length).map(([slug, u]) => ({ json: { slug, url: u[0], autres: u.slice(1) } }));"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000023",
+      "name": "Une page à la fois",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "options": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000024",
+      "name": "Lire la grille (Firecrawl)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        120
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: $json.url, onlyMainContent: false, blockAds: true, timeout: 60000, formats: [{ type: 'json', schema: {\"type\":\"object\",\"properties\":{\"saison\":{\"type\":[\"string\",\"null\"]},\"adulte_1_jour\":{\"type\":[\"number\",\"null\"]},\"adulte_6_jours\":{\"type\":[\"number\",\"null\"]},\"enfant_6_jours\":{\"type\":[\"number\",\"null\"]},\"age_enfant\":{\"type\":[\"string\",\"null\"]},\"a_partir_de\":{\"type\":\"boolean\"}}}, prompt: \"Grille publique des forfaits de ski alpin de la saison d'hiver. Recopie uniquement les prix écrits, en euros, au tarif public guichet (pas les promotions en ligne, pas les « à partir de »). Laisse null ce que la page n'écrit pas. Ignore l'été, les piétons, le ski de fond et la luge.\" }] }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Firecrawl (Authorization: Bearer fc-…)"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000025",
+      "name": "Borner",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        120
+      ],
+      "parameters": {
+        "jsCode": "// Mêmes bornes que src/lib/forfaits/firecrawlForfait.ts.\nconst src = $('Une page à la fois').item.json; const d = $json.data || {}; const j = d.json || {};\nconst b = (v, a, z) => typeof v === 'number' && isFinite(v) && v >= a && v <= z ? Math.round(v * 100) / 100 : null;\nconst statut = d.metadata?.statusCode ?? null;\nif (!$json.success || (statut && statut >= 400)) return [{ json: { ...src, erreur: $json.error || ('HTTP ' + statut) } }];\nif (j.a_partir_de === true) return [{ json: { ...src, erreur: 'prix « à partir de »' } }];\nconst j1 = b(j.adulte_1_jour, 15, 150); let j6 = b(j.adulte_6_jours, 60, 700); let enf6 = b(j.enfant_6_jours, 30, 600);\nif (j1 != null && j6 != null && j6 <= j1) j6 = null;\nif (enf6 != null && j6 != null && enf6 > j6) enf6 = null;\nreturn [{ json: { slug: src.slug, url: src.url, saison: j.saison ?? null, j1, j6, enf6, ageEnfant: j.age_enfant ?? null, releveLe: new Date().toISOString() } }];"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000027",
+      "name": "Pause",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        120
+      ],
+      "parameters": {
+        "amount": 3
+      },
+      "webhookId": "00000000-0000-4000-8000-000000000026"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000028",
+      "name": "Toutes les grilles",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        880,
+        -140
+      ],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "domaines",
+        "options": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000029",
+      "name": "Fichier JSON",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        -140
+      ],
+      "parameters": {
+        "operation": "toJson",
+        "mode": "once",
+        "options": {
+          "fileName": "={{ 'forfaits-firecrawl-' + $now.toFormat('yyyy-LL-dd') + '.json' }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Le 1er du mois": {
+      "main": [
+        [
+          {
+            "node": "pagesTarifs.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pagesTarifs.json": {
+      "main": [
+        [
+          {
+            "node": "Une page par domaine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Une page par domaine": {
+      "main": [
+        [
+          {
+            "node": "Une page à la fois",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Une page à la fois": {
+      "main": [
+        [
+          {
+            "node": "Toutes les grilles",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lire la grille (Firecrawl)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire la grille (Firecrawl)": {
+      "main": [
+        [
+          {
+            "node": "Borner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Borner": {
+      "main": [
+        [
+          {
+            "node": "Pause",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pause": {
+      "main": [
+        [
+          {
+            "node": "Une page à la fois",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toutes les grilles": {
+      "main": [
+        [
+          {
+            "node": "Fichier JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "notes": "Lit pagesTarifs.json depuis GitHub (branche master). Même identifiant Header Auth Firecrawl."
+  },
+  "tags": []
+}

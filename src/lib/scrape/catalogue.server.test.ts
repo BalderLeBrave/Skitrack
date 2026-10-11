@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { oublierFiles } from "./politesse.ts";
-import { extraireCatalogue } from "./catalogue.server.ts";
+import { extraireCatalogue, preciserCentrales } from "./catalogue.server.ts";
 import { normaliserFiche } from "./catalogue.ts";
 
 describe("extraction d'une centrale sans connecteur", () => {
@@ -46,5 +46,13 @@ describe("extraction d'une centrale sans connecteur", () => {
       globalThis.fetch = vrai;
       oublierFiles();
     }
+  });
+
+  it("une centrale de réservation prend le moteur que le registre lui connaît", () => {
+    const f = (url: string) => normaliserFiche({ reservation: { moteur: "", url } }, "https://x.fr/h/", "lecture");
+    const fiches = [f("https://reservation.lescontamines.com/fiche/x"), f("https://reservation.inconnue-station.fr/")];
+    preciserCentrales(fiches);
+    assert.equal(fiches[0].reservation?.moteur, "Ingénie");
+    assert.equal(fiches[1].reservation?.moteur, "Centrale de réservation");
   });
 });

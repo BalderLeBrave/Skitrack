@@ -1,8 +1,16 @@
-import { describe, it } from "node:test";
+import { after, describe, it } from "node:test";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import assert from "node:assert/strict";
 import { oublierFiles } from "./politesse.ts";
 import { normaliserFiche, type FicheCatalogue } from "./catalogue.ts";
 import { totauxDates } from "./catalogue.totaux.server.ts";
+
+// Un refus simulé pose une pause dans le journal de cadence partagé
+// (`stay/taux.server.ts`) : il ne doit pas fermer ITEA pour la machine.
+process.env.SKITRACK_TAUX = join(tmpdir(), `skitrack-taux-test-${process.pid}.json`);
+after(() => rmSync(process.env.SKITRACK_TAUX!, { force: true }));
 
 const QUAND = "2026-10-11T00:00:00.000Z";
 const SEJOUR = { arrivee: "2027-02-13", depart: "2027-02-20", personnes: 4 };
@@ -16,7 +24,7 @@ function gite(code: string, capacite = 6): FicheCatalogue {
   );
 }
 
-type Appel = { url: string; methode: string; corps: string };
+type Appel = { url: string; methode: string; corps: string; cookie: string };
 
 function simuler(robots: string, reponses: (a: Appel) => Response): { appels: Appel[]; rendre: () => void } {
   const appels: Appel[] = [];
@@ -24,7 +32,8 @@ function simuler(robots: string, reponses: (a: Appel) => Response): { appels: Ap
   globalThis.fetch = (async (u: string | URL | Request, init?: RequestInit) => {
     const url = String(u instanceof Request ? u.url : u);
     if (url.endsWith("/robots.txt")) return new Response(robots, { status: 200 });
-    const a = { url, methode: init?.method ?? "GET", corps: String(init?.body ?? "") };
+    const h = (init?.headers ?? {}) as Record<string, string>;
+    const a = { url, methode: init?.method ?? "GET", corps: String(init?.body ?? ""), cookie: h.cookie ?? "" };
     appels.push(a);
     return reponses(a);
   }) as typeof fetch;
@@ -99,6 +108,67 @@ describe("totaux datés des fiches du catalogue", () => {
       assert.equal(b.demandes, 1, "le second devis n'est pas demandé");
       assert.equal(s.appels.length, 1);
       assert.ok(fiches.every((f) => f.totalSejour == null));
+    } finally {
+      s.rendre();
+    }
+  });
+
+  it("Ingénie : une session par centrale, puis le total du panier de chaque logement", async () => {
+    const o = "https://reservation.lescontamines.com";
+    const s = simuler("User-agent: *\nDisallow: /admin/", (a) => {
+      const u = new URL(a.url);
+      const action = u.searchParams.get("action");
+      if (action === "result") {
+        return new Response(`<html>${"x".repeat(500)}</html>`, { status: 200, headers: { "set-cookie": "PHPSESSID=abc; Path=/" } });
+      }
+      if (action === "detailTarifsPrestationAjax") {
+        return new Response(`<form><input type="hidden" name="prestation" value="${u.searchParams.get("prestation")}"><input type="hidden" name="dateDebut" value="13/02/2027">${" ".repeat(200)}</form>`, { status: 200 });
+      }
+      if (action === "calculerTotalPrestationAjax") return new Response('{"success":1,"data":{"total":1450.5}}', { status: 200 });
+      return new Response("", { status: 404 });
+    });
+    try {
+      const fiche = (p: string) =>
+        normaliserFiche(
+          { titre: p, capacite_personnes: 6, reservation: { moteur: "", url: `${o}/fiche/PRESTATION-G-${p}?cid=7` } },
+          `https://x.fr/h/${p}/`,
+          "lecture",
+          QUAND,
+        );
+      const fiches = [fiche("101-1"), fiche("102-1")].map((f) => ({ ...f, reservation: { ...f.reservation!, moteur: "Ingénie" } }));
+      const b = await totauxDates(fiches, SEJOUR);
+      assert.equal(b.obtenus, 2);
+      assert.deepEqual(fiches[0].totalSejour, {
+        montant: 1450.5,
+        arrivee: "2027-02-13",
+        depart: "2027-02-20",
+        nuits: 7,
+        source: "Ingénie, total du panier, 4 pers.",
+      });
+      assert.equal(s.appels.filter((a) => /action=result/.test(a.url)).length, 1, "une seule recherche datée pour la centrale");
+      const paniers = s.appels.filter((a) => /calculerTotalPrestationAjax/.test(a.url));
+      assert.equal(paniers.length, 2);
+      assert.ok(paniers.every((a) => /PHPSESSID=abc/.test(a.cookie)), "la session suit jusqu'au panier");
+      assert.match(paniers[0].url, /prestation=G-101-1/);
+    } finally {
+      s.rendre();
+    }
+  });
+
+  it("Ingénie : un Disallow sur la recherche datée arrête la fiche", async () => {
+    const s = simuler("User-agent: *\nDisallow: /booking", () => new Response("", { status: 200 }));
+    try {
+      const f = normaliserFiche(
+        { titre: "A", reservation: { moteur: "", url: "https://reservation.lescontamines.com/fiche/PRESTATION-G-1-1?cid=7" } },
+        "https://x.fr/h/a/",
+        "lecture",
+        QUAND,
+      );
+      const fiches = [{ ...f, reservation: { ...f.reservation!, moteur: "Ingénie" } }];
+      const b = await totauxDates(fiches, SEJOUR);
+      assert.equal(b.interditsRobots, 1);
+      assert.equal(s.appels.length, 0, "aucune requête vers /booking");
+      assert.equal(fiches[0].totalSejour, null);
     } finally {
       s.rendre();
     }

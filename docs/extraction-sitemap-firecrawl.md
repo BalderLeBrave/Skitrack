@@ -103,13 +103,14 @@ Consigne du propriétaire du 11 octobre 2026 : de vrais prix, pas de « à parti
   - un moteur que le dépôt connaît : Open System, Ingénie, MSEM, Deskline, Elloha, Orchestra, Arkiane, Gîtes de France, Booking.com, Airbnb ou Abritel ;
   - la centrale de réservation de la station (`reservation.combloux.com`, `www.lesarcs-reservation.com`…).
 
-  Le moteur du logement passe devant la centrale de la station. Sans lien, un numéro de gîte labellisé écrit dans la page (« n° 63G1234 ») mène au widget Gîtes de France. Le résumé compte `avecReservation` et `moteursReservation` par hôte.
+  Le moteur du logement passe devant la centrale de la station. Une centrale repérée par son nom d'hôte prend le moteur que lui connaît le registre (`moteurs.data.json` : 28 centrales Ingénie, 14 Open System…). Sans lien, un numéro de gîte labellisé écrit dans la page (« n° 63G1234 ») mène au widget Gîtes de France. Le résumé compte `avecReservation` et `moteursReservation` par hôte.
 - **Totaux datés** (`catalogue.totaux.server.ts`). Le séjour par défaut va du samedi 13 au samedi 20 février 2027, pour 4 personnes au plus et jamais plus que la capacité de la fiche. Les options sont `--dates AAAA-MM-JJ,AAAA-MM-JJ`, `--personnes N` et `--sans-totaux`.
   - Les fiches Gîtes de France reçoivent le total du devis ITEA, avec le lecteur `devisItea` de l'écran Logements : loyer et taxe de séjour, avec sa provenance dans `totalSejour.source`.
-  - Chaque requête passe par `verdictPoli` (un `Disallow` arrête la fiche) et par la file polie. Un refus 401, 403 ou 429 arrête les devis suivants.
+  - Les fiches Ingénie reçoivent le total que calcule le panier de la centrale (`calculerTotalPrestationAjax`, lu par `totalPanierJson`). Une seule recherche datée est faite par centrale, sa session sert aux paniers de toutes ses fiches, et seul le total du panier est retenu. Beaucoup de centrales Ingénie interdisent `/booking` dans robots.txt : leurs fiches restent alors sans total.
+  - Chaque requête passe par `verdictPoli` (un `Disallow` arrête la fiche) et par la file polie. Un refus 401, 403 ou 429 arrête les devis suivants de l'hôte qui a refusé.
   - Un gîte occupé ou « à demander » reste sans total.
   - Le résumé donne `avecTotalDate` pour le séjour demandé et `totaux` : fiches éligibles, devis demandés, obtenus, repris, sans total, refus.
-- **Pas encore de devis** pour les autres moteurs. Ingénie demande une session et un panier, et les centrales passent par des connecteurs qui ne s'arrêtent pas sur un `Disallow`. Leurs fiches gardent leur lien et leur grille ferme.
+- **Pas encore de devis** pour les autres moteurs (Open System, MSEM, Elloha, Orchestra…). Leurs connecteurs de centrale ne s'arrêtent pas sur un `Disallow`, et je ne les ai donc pas branchés. Leurs fiches gardent leur lien et leur grille ferme.
 - **Ce qui ne donnera pas de total.** D'après `centrales/moteurs/etat.ts`, Diffusio (Sancy) et Tourinsoft (Gavarnie) publient une grille sans dates. Leurs fiches labellisées Gîtes de France, elles, auront le total du widget.
 - **Les sorties actuelles** portent `reservation: null` et aucun total : les deux se remplissent au prochain relevé en ligne (`--complet`).
 

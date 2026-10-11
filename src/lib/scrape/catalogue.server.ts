@@ -101,6 +101,7 @@ export async function extraireCatalogue(cible: CibleCatalogue, o: OptionsCatalog
   if (retirees) r.erreurs.push(`${retirees} position(s) commune(s) à tout le site retirée(s)`);
   const decor = retirerDecorDuSite(r.fiches, o.precedent?.decor ?? {});
   r.decor = decor.decor;
+  preciserCentrales(r.fiches);
   // Le moteur de réservation est un autre hôte que l'office : un refus de
   // l'office n'empêche pas de demander leurs devis aux fiches déjà lues.
   if (o.sejour) {
@@ -108,6 +109,20 @@ export async function extraireCatalogue(cible: CibleCatalogue, o: OptionsCatalog
     r.interditsRobots += r.totaux.interditsRobots;
   }
   return r;
+}
+
+/**
+ * Une « centrale de réservation » repérée par son nom d'hôte prend le moteur
+ * que le registre lui connaît (`moteurs.data.json` : 28 centrales Ingénie,
+ * 14 Open System…) : c'est lui qui dit quel devis demander.
+ */
+export function preciserCentrales(fiches: FicheCatalogue[]): void {
+  const hotes = (moteurs as { hotes: Record<string, EntreeMoteur> }).hotes;
+  for (const f of fiches) {
+    if (f.reservation?.moteur !== "Centrale de réservation") continue;
+    const moteur = hotes[new URL(f.reservation.url).host]?.moteur;
+    if (moteur && moteur !== "aucun" && moteur !== "inconnu") f.reservation = { ...f.reservation, moteur };
+  }
 }
 
 /** La fiche précédente vaut-elle encore ? */

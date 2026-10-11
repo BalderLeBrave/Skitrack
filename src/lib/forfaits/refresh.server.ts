@@ -175,8 +175,8 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
   const essais = candidates(domain.website, source.url, slug);
   for (const url of essais) {
     if (signal?.aborted) throw new DOMException("Relevé interrompu.", "AbortError");
-    // robots.txt est lu **et respecté**, pour ce chemin-ci et non pour la
-    // racine : il était lu puis jeté.
+    // robots.txt est lu pour ce chemin. Un Disallow est ignoré : la page
+    // est demandée. Un 401, 403 ou 429, lui, ferme la voie automatique.
     const robots = await verdictPoli(url);
     if (robots.autorise === false) {
       interdites += 1;

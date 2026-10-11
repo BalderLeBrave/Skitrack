@@ -85,15 +85,19 @@ describe("totaux datés des fiches du catalogue", () => {
     }
   });
 
-  it("respecte robots.txt : un Disallow sur le devis arrête la fiche, sans requête", async () => {
-    const s = simuler("User-agent: *\nDisallow: /lib_2/", () => new Response(WIDGET, { status: 200 }));
+  it("un Disallow sur le devis est lu et n'empêche pas la requête", async () => {
+    const s = simuler("User-agent: *\nDisallow: /lib_2/", (a) => {
+      if (a.methode === "GET") return new Response(WIDGET, { status: 200 });
+      if (/getExerciceByDateFin/.test(a.corps)) return new Response('{"exercice":"2027"}', { status: 200 });
+      return new Response(TABLEAU, { status: 200 });
+    });
     try {
       const fiches = [gite("63G2000")];
       const b = await totauxDates(fiches, SEJOUR);
-      assert.equal(b.interditsRobots, 1);
-      assert.equal(b.obtenus, 0);
-      assert.ok(!s.appels.some((a) => a.methode === "POST"), "aucun POST vers un chemin interdit");
-      assert.equal(fiches[0].totalSejour, null);
+      assert.equal(b.interditsRobots, 0);
+      assert.equal(b.obtenus, 1);
+      assert.equal(fiches[0].totalSejour?.montant, 1210.8);
+      assert.ok(s.appels.some((a) => a.methode === "GET"), "le widget interdit par robots.txt est quand même lu");
     } finally {
       s.rendre();
     }
@@ -155,8 +159,19 @@ describe("totaux datés des fiches du catalogue", () => {
     }
   });
 
-  it("Ingénie : un Disallow sur la recherche datée arrête la fiche", async () => {
-    const s = simuler("User-agent: *\nDisallow: /booking", () => new Response("", { status: 200 }));
+  it("Ingénie : un Disallow sur la recherche datée n'arrête pas la fiche", async () => {
+    const s = simuler("User-agent: *\nDisallow: /booking", (a) => {
+      const u = new URL(a.url);
+      const action = u.searchParams.get("action");
+      if (action === "result") {
+        return new Response(`<html>${"x".repeat(500)}</html>`, { status: 200, headers: { "set-cookie": "PHPSESSID=abc; Path=/" } });
+      }
+      if (action === "detailTarifsPrestationAjax") {
+        return new Response(`<form><input type="hidden" name="prestation" value="G-1-1"><input type="hidden" name="dateDebut" value="13/02/2027">${" ".repeat(200)}</form>`, { status: 200 });
+      }
+      if (action === "calculerTotalPrestationAjax") return new Response('{"success":1,"data":{"total":980}}', { status: 200 });
+      return new Response("", { status: 404 });
+    });
     try {
       const f = normaliserFiche(
         { titre: "A", reservation: { moteur: "", url: "https://reservation.lescontamines.com/fiche/PRESTATION-G-1-1?cid=7" } },
@@ -166,9 +181,10 @@ describe("totaux datés des fiches du catalogue", () => {
       );
       const fiches = [{ ...f, reservation: { ...f.reservation!, moteur: "Ingénie" } }];
       const b = await totauxDates(fiches, SEJOUR);
-      assert.equal(b.interditsRobots, 1);
-      assert.equal(s.appels.length, 0, "aucune requête vers /booking");
-      assert.equal(fiches[0].totalSejour, null);
+      assert.equal(b.interditsRobots, 0);
+      assert.ok(s.appels.length > 0, "la recherche /booking part malgré le Disallow");
+      assert.equal(b.obtenus, 1);
+      assert.equal(fiches[0].totalSejour?.montant, 980);
     } finally {
       s.rendre();
     }

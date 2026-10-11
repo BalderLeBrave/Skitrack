@@ -3,10 +3,10 @@
  * nomme (ou les emplacements usuels), index ouverts un par un, chaque URL
  * jugée par `verdictPoli` avant d'être retenue.
  *
- * Ce qui arrête : une règle `Disallow` (l'URL n'est pas retenue, le sitemap
- * n'est pas ouvert), un refus du serveur (401, 403, 429 : `poserRefus` ferme
- * la porte de l'hôte, `demander` n'y retourne plus). Rien n'est contourné :
- * pas d'autre agent, pas de proxy, pas de second essai sur un refus.
+ * Un `Disallow` est lu et ignoré : la page reste. Ce qui arrête : un refus
+ * du serveur (401, 403, 429 : `poserRefus` ferme la porte de l'hôte,
+ * `demander` n'y retourne plus). Pas d'autre agent, pas de proxy, pas de
+ * second essai sur un refus.
  */
 
 import { gunzipSync } from "node:zlib";
@@ -83,10 +83,9 @@ export async function decouvrirParSitemap(
 
   const racine = await verdictPoli(`${origine}/`);
   const robots = await texteRobots(origine);
+  // `Disallow: /`, avec ou sans groupe, est lu. Il n'arrête pas la découverte.
   if (!racine.autorise || interditToutSansGroupe(robots)) {
-    d.racineInterdite = true;
-    d.erreurs.push(`robots.txt : ${racine.regle ?? "Disallow: / pour tous"}`);
-    return d;
+    d.erreurs.push(`robots.txt : ${racine.regle ?? "Disallow: /"} — lu, ignoré`);
   }
 
   const file = sitemapsDeRobots(robots, origine);

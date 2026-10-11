@@ -14,8 +14,8 @@
  * Écrit `scrape/catalogue/sortie/<hôte>.json` (fiches) et
  * `scrape/catalogue/sortie/resume.json` (bilan par hôte). Le lecteur
  * Firecrawl est pris si `FIRECRAWL_API_KEY` est posée, la lecture directe
- * sinon. robots.txt est respecté : une page interdite n'est pas lue, un
- * refus du serveur arrête l'hôte.
+ * sinon. `robots.txt` est lu : un `Disallow` n'empêche pas la lecture. Un
+ * refus du serveur (401, 403, 429) arrête l'hôte, sans second essai.
  *
  * Les hôtes avancent ensemble (huit au plus) : chacun garde sa file polie,
  * une requête à la fois, au `Crawl-delay` publié. Le relevé dure le temps de

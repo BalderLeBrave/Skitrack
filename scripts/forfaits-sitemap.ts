@@ -8,8 +8,8 @@
  *
  * Écrit `src/lib/forfaits/pagesTarifs.json` (essayé par `refresh.server.ts`
  * avant les chemins devinés) et `docs/sources/forfaits-sitemap-<date>.json`
- * (rapport). robots.txt est respecté pour chaque sitemap et chaque page ; un
- * refus (401, 403, 429) arrête le domaine.
+ * (rapport). `robots.txt` est lu pour chaque sitemap et chaque page ; un
+ * `Disallow` n'écarte pas l'URL. Un refus (401, 403, 429) arrête le domaine.
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";

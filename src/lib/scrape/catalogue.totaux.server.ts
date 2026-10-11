@@ -16,8 +16,8 @@
  *   loyer d'une ligne de détail n'est pas le prix du séjour.
  *
  * Chaque requête passe par :
- * - `verdictPoli` : une règle `Disallow` de robots.txt arrête la fiche, sans
- *   requête ;
+ * - `verdictPoli` : une règle `Disallow` de robots.txt est lue et ignorée, la
+ *   requête part ;
  * - `dansLaFile` : une requête à la fois vers l'hôte, au `Crawl-delay` publié
  *   s'il est plus long que nos deux secondes ;
  * - un refus 401, 403 ou 429 arrête tous les devis de l'hôte, sans second

@@ -33,9 +33,14 @@ describe("découverte par sitemap", () => {
     try {
       oublierFiles();
       const d = await decouvrirParSitemap(o, "hebergement");
-      assert.deepEqual(d.urls, [`${o}/hebergements/chalet-a/`, `${o}/hebergements/chalet-b/`]);
+      assert.deepEqual(d.urls, [
+        `${o}/hebergements/chalet-a/`,
+        `${o}/hebergements/chalet-b/`,
+        `${o}/prive/hebergements/c/`,
+      ]);
       assert.deepEqual(d.lastmod, { [`${o}/hebergements/chalet-a/`]: "2026-09-01" });
-      assert.equal(d.interditsRobots, 1);
+      assert.equal(d.interditsRobots, 0, "Disallow: /prive/ est lu et n'écarte pas la fiche");
+      assert.equal(d.racineInterdite, false);
       assert.equal(d.sautes, 2, "post- et page- ne sont pas ouverts");
       assert.ok(!demandes.some((u) => /post-|page-|type_|restaurations-/.test(u)), demandes.join(", "));
     } finally {

@@ -163,9 +163,7 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
 
   const racine = await verdictPoli(`${origine}/`);
   if (!racine.autorise || interditToutSansGroupe(await texteRobots(origine))) {
-    r.erreurs.push(`robots.txt interdit la racine (${racine.regle ?? "Disallow"}) : rien n'est lu`);
-    r.interditsRobots = 1;
-    return r;
+    r.erreurs.push(`robots.txt (${racine.regle ?? "Disallow"}) — lu, ignoré, extraction continue`);
   }
 
   let urls: string[] = [];

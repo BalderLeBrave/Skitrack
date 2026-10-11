@@ -245,9 +245,12 @@ export type VerdictPoli = VerdictRobots & { delaiMs: number };
 /**
  * Le verdict pour **cette** URL, chemin et requête compris — et non pour « / ».
  *
- * Le relevé tarifaire lisait robots.txt pour la racine, puis jetait le
- * résultat. Ici le verdict compte : `autorise === false` arrête la requête.
- * `null` — fichier illisible — reste permissif, et se journalise.
+ * `robots.txt` est lu. Une règle `Disallow` est journalisée, puis ignorée :
+ * l'extraction continue. Seule une URL illisible refuse. Un fichier illisible
+ * (`autorise` nul chez le parseur) n'arrête pas non plus. Le `Crawl-delay`
+ * publié reste dans `delaiMs` et ne peut qu'allonger l'attente.
+ * Un 401, un 403 ou un 429, eux, ferment l'hôte : ce n'est pas une règle de
+ * `robots.txt`.
  */
 export async function verdictPoli(url: string): Promise<VerdictPoli> {
   let u: URL;
@@ -263,5 +266,8 @@ export async function verdictPoli(url: string): Promise<VerdictPoli> {
   // tarifaire n'en dépend plus.
   const lu = robotsAutorise(texte, u.pathname + u.search, UA_AGENT);
   const publie = crawlDelayMs(texte);
-  return { ...lu, delaiMs: Math.max(INTERVALLE_MS, publie ?? 0) };
+  if (lu.autorise === false) {
+    console.info(`[robots] ${url} ${lu.regle} — lu, ignoré, extraction continue`);
+  }
+  return { autorise: true, regle: lu.regle, delaiMs: Math.max(INTERVALLE_MS, publie ?? 0) };
 }

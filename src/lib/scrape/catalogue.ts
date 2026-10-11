@@ -30,7 +30,14 @@ export type TarifPublie = {
   unite: UniteTarif;
 };
 
-export type TotalSejour = { montant: number; arrivee: string; depart: string; nuits: number };
+export type TotalSejour = {
+  montant: number;
+  arrivee: string;
+  depart: string;
+  nuits: number;
+  /** D'où vient le total quand ce n'est pas la page : « Gîtes de France (ITEA), loyer et taxe de séjour ». */
+  source?: string;
+};
 
 /** Le moteur de réservation vers lequel la fiche envoie : la seule voie vers
  *  un total daté, puisque la page n'en publie pas. */
@@ -342,6 +349,14 @@ const MOTEURS_RESERVATION: Array<[RegExp, string]> = [
   [/(?:^|\.)abritel\.fr$/, "Abritel"],
 ];
 
+/** La centrale de réservation d'une station, sur son propre sous-domaine :
+ *  `reservation.combloux.com`, `www.lesarcs-reservation.com`,
+ *  `www.chatelreservation.com` (hôtes relevés dans le dépôt). */
+const CENTRALE_RESERVATION = /^(?:www\.)?(?:reservations?|resa|reserver)[.-]|(?:^|[.-])(?:reservations?|resa)\.[a-z]{2,}$|(?<!p)reservation\.[a-z]{2,}$/;
+
+/** Le numéro d'un gîte labellisé, tel que Gîtes de France l'écrit : `63G1234`. */
+const CODE_GITES = /\b(\d{2}G\d{3,})\b/;
+
 /** Images, feuilles de style, CDN : un hôte de moteur qui ne mène pas à une réservation. */
 const PAS_UNE_RESERVATION = /\.(?:jpe?g|png|webp|gif|svg|css)(?:$|\?)|^(?:img|images|static|cdn)\./i;
 
@@ -352,6 +367,7 @@ export function moteurDeReservation(href: string, base: string): Reservation | n
     if (PAS_UNE_RESERVATION.test(u.hostname) || PAS_UNE_RESERVATION.test(u.pathname)) return null;
     const h = u.hostname.toLowerCase();
     for (const [re, moteur] of MOTEURS_RESERVATION) if (re.test(h)) return { moteur, url: u.toString() };
+    if (CENTRALE_RESERVATION.test(h)) return { moteur: "Centrale de réservation", url: u.toString() };
     return null;
   } catch {
     return null;
@@ -364,11 +380,25 @@ function reservationValide(v: unknown): Reservation | null {
   return typeof o.url === "string" && typeof o.moteur === "string" ? moteurDeReservation(o.url, o.url) : null;
 }
 
-/** Le premier lien, cadre ou widget de la page qui mène à un moteur connu. */
+/**
+ * Le lien, cadre ou widget de la page qui mène à un moteur connu. Un moteur
+ * nommé (Gîtes de France, Elloha…) passe devant une centrale de station : il
+ * vise le logement, la centrale souvent la station entière. Sans lien, un
+ * numéro de gîte labellisé écrit dans la page (« Gîtes de France n° 63G1234 »)
+ * mène au widget de réservation Gîtes de France.
+ */
 function reservationDansLaPage(html: string, url: string): Reservation | null {
+  let centrale: Reservation | null = null;
   for (const m of html.matchAll(/<(?:a|iframe|script|form)\b[^>]*?\s(?:href|src|action|data-url)=["']([^"']+)["']/gi)) {
     const r = moteurDeReservation(m[1], url);
-    if (r) return r;
+    if (!r) continue;
+    if (r.moteur !== "Centrale de réservation") return r;
+    centrale ??= r;
+  }
+  if (centrale) return centrale;
+  if (/g[iî]tes\s+de\s+france/i.test(html)) {
+    const code = CODE_GITES.exec(texteVisible(html))?.[1];
+    if (code) return { moteur: "Gîtes de France", url: `https://widget-fngf.itea.fr/fiche-${code}.html` };
   }
   return null;
 }

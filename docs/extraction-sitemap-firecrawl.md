@@ -99,9 +99,19 @@ Les sorties de `scrape/catalogue/sortie/` ont été renormalisées hors ligne (p
 Consigne du propriétaire du 11 octobre 2026 : de vrais prix, pas de « à partir de ».
 
 - **Ce qui est fait.** Le catalogue ne garde que des prix fermes (voir plus haut). Le calcul de prix de l'application ignorait déjà tout prix marqué `priceIndicative` : les « à partir de » d'Ingénie, d'Orchestra ou de Booking ne servent jamais de total (`src/lib/prix/calcul.ts`).
-- **Où chercher un total daté.** Une page d'office n'en publie pas. Chaque fiche note désormais son lien de réservation (`reservation : { moteur, url }`) quand il mène à un moteur que le dépôt connaît : Open System, Ingénie, MSEM, Deskline, Elloha, Orchestra, Arkiane, Gîtes de France, Booking.com, Airbnb ou Abritel. Le résumé compte `avecReservation` et `moteursReservation` par hôte. Les sorties actuelles portent `reservation: null` : le champ se remplit au prochain relevé (`--complet`).
-- **Ce qui ne donnera pas de total.** D'après `centrales/moteurs/etat.ts`, Diffusio (Sancy, 1 361 fiches) et Tourinsoft (Gavarnie, 425) publient une grille sans dates. Pour eux, la grille ferme est le prix le plus juste.
-- **Étape suivante.** Interroger, pour une date de référence (par défaut du samedi 13 au samedi 20 février 2027, 7 nuits), le moteur de chaque fiche qui en a un. Le verdict robots.txt est rendu avant chaque requête, et une fiche refusée reste sans prix. Cette étape demande un relevé en ligne.
+- **Liens de réservation.** Chaque fiche note son lien de réservation (`reservation : { moteur, url }`) quand il mène à l'un des moteurs suivants :
+  - un moteur que le dépôt connaît : Open System, Ingénie, MSEM, Deskline, Elloha, Orchestra, Arkiane, Gîtes de France, Booking.com, Airbnb ou Abritel ;
+  - la centrale de réservation de la station (`reservation.combloux.com`, `www.lesarcs-reservation.com`…).
+
+  Le moteur du logement passe devant la centrale de la station. Sans lien, un numéro de gîte labellisé écrit dans la page (« n° 63G1234 ») mène au widget Gîtes de France. Le résumé compte `avecReservation` et `moteursReservation` par hôte.
+- **Totaux datés** (`catalogue.totaux.server.ts`). Le séjour par défaut va du samedi 13 au samedi 20 février 2027, pour 4 personnes au plus et jamais plus que la capacité de la fiche. Les options sont `--dates AAAA-MM-JJ,AAAA-MM-JJ`, `--personnes N` et `--sans-totaux`.
+  - Les fiches Gîtes de France reçoivent le total du devis ITEA, avec le lecteur `devisItea` de l'écran Logements : loyer et taxe de séjour, avec sa provenance dans `totalSejour.source`.
+  - Chaque requête passe par `verdictPoli` (un `Disallow` arrête la fiche) et par la file polie. Un refus 401, 403 ou 429 arrête les devis suivants.
+  - Un gîte occupé ou « à demander » reste sans total.
+  - Le résumé donne `avecTotalDate` pour le séjour demandé et `totaux` : fiches éligibles, devis demandés, obtenus, repris, sans total, refus.
+- **Pas encore de devis** pour les autres moteurs. Ingénie demande une session et un panier, et les centrales passent par des connecteurs qui ne s'arrêtent pas sur un `Disallow`. Leurs fiches gardent leur lien et leur grille ferme.
+- **Ce qui ne donnera pas de total.** D'après `centrales/moteurs/etat.ts`, Diffusio (Sancy) et Tourinsoft (Gavarnie) publient une grille sans dates. Leurs fiches labellisées Gîtes de France, elles, auront le total du widget.
+- **Les sorties actuelles** portent `reservation: null` et aucun total : les deux se remplissent au prochain relevé en ligne (`--complet`).
 
 ## Firecrawl et n8n
 

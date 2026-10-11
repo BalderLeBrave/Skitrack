@@ -28,6 +28,7 @@ import {
   SCHEMA_LOGEMENT,
   type FicheCatalogue,
 } from "./catalogue.ts";
+import { totauxDates, type BilanTotaux, type Sejour } from "./catalogue.totaux.server.ts";
 import {
   carteFirecrawl,
   cleFirecrawl,
@@ -67,6 +68,8 @@ export type OptionsCatalogue = {
   precedent?: Pick<ResultatCatalogue, "fiches" | "decor"> | null;
   /** Reprend aussi, sans `<lastmod>`, une fiche lue il y a moins de ce nombre de jours. */
   fraicheurJours?: number;
+  /** Séjour dont on demande le total daté aux moteurs des fiches ; `null` : aucun devis. */
+  sejour?: Sejour | null;
   signal?: AbortSignal;
   /** Appelé après chaque fiche, pour un journal de progression. */
   surFiche?: (n: number, total: number, url: string) => void;
@@ -85,6 +88,8 @@ export type ResultatCatalogue = {
   /** Décor du site retiré des fiches : logo, menu, carrousel, nom du site en fin de titre. */
   decor: DecorSite;
   muettes: number;
+  /** Devis datés demandés aux moteurs des fiches, et ce qu'ils ont rendu. */
+  totaux: BilanTotaux | null;
   interditsRobots: number;
   refus: number;
   erreurs: string[];
@@ -96,6 +101,12 @@ export async function extraireCatalogue(cible: CibleCatalogue, o: OptionsCatalog
   if (retirees) r.erreurs.push(`${retirees} position(s) commune(s) à tout le site retirée(s)`);
   const decor = retirerDecorDuSite(r.fiches, o.precedent?.decor ?? {});
   r.decor = decor.decor;
+  // Le moteur de réservation est un autre hôte que l'office : un refus de
+  // l'office n'empêche pas de demander leurs devis aux fiches déjà lues.
+  if (o.sejour) {
+    r.totaux = await totauxDates(r.fiches, o.sejour, o.signal);
+    r.interditsRobots += r.totaux.interditsRobots;
+  }
   return r;
 }
 
@@ -129,6 +140,7 @@ async function extraireBrut(cible: CibleCatalogue, o: OptionsCatalogue): Promise
     reprises: 0,
     decor: { photos: [], finsTitre: [] },
     muettes: 0,
+    totaux: null,
     interditsRobots: 0,
     refus: 0,
     erreurs: [],

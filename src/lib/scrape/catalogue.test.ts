@@ -255,4 +255,27 @@ describe("positions communes à tout un site", () => {
     assert.equal(moteurDeReservation("https://www.booking.com.evil.test/", "https://x.fr"), null);
     assert.equal(ficheDepuisHtml("<h1>Studio 2 personnes</h1>", "https://x.fr/a", QUAND).reservation, null);
   });
+
+  it("repère aussi la centrale de la station et le numéro d'un gîte labellisé", () => {
+    for (const [u, m] of [
+      ["https://reservation.combloux.com/fr/", "Centrale de réservation"],
+      ["https://www.lesarcs-reservation.com/", "Centrale de réservation"],
+      ["https://www.chatelreservation.com/", "Centrale de réservation"],
+      ["https://widget-fngf.itea.fr/fiche-63G1234.html", "Gîtes de France"],
+    ] as const) {
+      assert.equal(moteurDeReservation(u, "https://x.fr")?.moteur, m, u);
+    }
+    assert.equal(moteurDeReservation("https://www.sancy.com/fr/fiche/x/", "https://x.fr"), null);
+    assert.equal(moteurDeReservation("https://www.theresa.com/", "https://x.fr"), null);
+    assert.equal(moteurDeReservation("https://www.preservation.org/", "https://x.fr"), null);
+    // Le moteur du logement passe devant la centrale de la station.
+    const deux = `<h1>Gîte 4 personnes</h1><a href="https://reservation.combloux.com/">Centrale</a><a href="https://www.gites-de-france.com/fr/auvergne/63G1234">Réserver</a>`;
+    assert.equal(ficheDepuisHtml(deux, "https://x.fr/a", QUAND).reservation?.moteur, "Gîtes de France");
+    // Sans lien, le numéro écrit dans la page mène au widget Gîtes de France.
+    const texte = `<h1>Gîte 4 personnes</h1><p>Label Gîtes de France 3 épis — n° 63G1234</p>`;
+    assert.deepEqual(ficheDepuisHtml(texte, "https://x.fr/a", QUAND).reservation, {
+      moteur: "Gîtes de France",
+      url: "https://widget-fngf.itea.fr/fiche-63G1234.html",
+    });
+  });
 });

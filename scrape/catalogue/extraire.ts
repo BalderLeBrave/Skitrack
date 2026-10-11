@@ -8,6 +8,8 @@
  *   npm run catalogue:centrales -- --concurrence 1     # un hôte à la fois
  *   npm run catalogue:centrales -- --complet           # relit tout, sans reprise
  *   npm run catalogue:centrales -- --frais 7           # reprend les fiches de moins de 7 jours
+ *   npm run catalogue:centrales -- --dates 2027-02-13,2027-02-20 --personnes 4
+ *   npm run catalogue:centrales -- --sans-totaux       # aucun devis daté
  *
  * Écrit `scrape/catalogue/sortie/<hôte>.json` (fiches) et
  * `scrape/catalogue/sortie/resume.json` (bilan par hôte). Le lecteur
@@ -32,6 +34,7 @@ import {
   type Lecteur,
   type ResultatCatalogue,
 } from "../../src/lib/scrape/catalogue.server.ts";
+import { SEJOUR_PAR_DEFAUT, sejourValide, type Sejour } from "../../src/lib/scrape/catalogue.totaux.server.ts";
 
 const ICI = dirname(fileURLToPath(import.meta.url));
 const SORTIE = process.env.SKITRACK_CATALOGUE_SORTIE ?? join(ICI, "sortie");
@@ -47,6 +50,15 @@ const lecteur = (option("lecteur") ?? "auto") as Lecteur;
 const decouverte = option("decouverte")?.split(",").filter(Boolean) as Decouvreur[] | undefined;
 const complet = process.argv.includes("--complet");
 const fraicheurJours = Number(option("frais") ?? "") || undefined;
+// Le séjour dont on demande le total daté aux moteurs des fiches.
+const [arrivee, depart] = (option("dates") ?? `${SEJOUR_PAR_DEFAUT.arrivee},${SEJOUR_PAR_DEFAUT.depart}`).split(",");
+const sejour: Sejour | null = process.argv.includes("--sans-totaux")
+  ? null
+  : { arrivee: arrivee ?? "", depart: depart ?? "", personnes: Number(option("personnes") ?? SEJOUR_PAR_DEFAUT.personnes) };
+if (sejour && !sejourValide(sejour)) {
+  console.error(`Séjour invalide : --dates ${arrivee},${depart} --personnes ${sejour.personnes}`);
+  process.exit(1);
+}
 
 const cibles = ciblesSansConnecteur().filter((c) => !hotes || hotes.includes(c.host));
 // Plusieurs hôtes à la fois : chacun garde sa propre file polie
@@ -80,6 +92,7 @@ async function traiter(c: (typeof cibles)[number]) {
     maxFiches: max,
     precedent: precedent(c.host),
     fraicheurJours,
+    sejour,
     surFiche: (n, total) => {
       if (concurrence === 1 && (n % 10 === 0 || n === total)) process.stdout.write(`  ${n}/${total}\r`);
     },
@@ -108,14 +121,24 @@ async function traiter(c: (typeof cibles)[number]) {
     moteursReservation: Object.fromEntries(
       [...r.fiches.reduce((m, f) => (f.reservation ? m.set(f.reservation.moteur, (m.get(f.reservation.moteur) ?? 0) + 1) : m), new Map<string, number>())].sort(),
     ),
-    avecTotalDate: r.fiches.filter((f) => f.totalSejour).length,
+    // Total daté pour le séjour demandé, jamais un « à partir de ».
+    avecTotalDate: r.fiches.filter((f) => sejour && f.totalSejour?.arrivee === sejour.arrivee && f.totalSejour.depart === sejour.depart).length,
+    totaux: r.totaux && {
+      sejour: r.totaux.sejour,
+      eligibles: r.totaux.eligibles,
+      demandes: r.totaux.demandes,
+      obtenus: r.totaux.obtenus,
+      repris: r.totaux.repris,
+      sansTotal: r.totaux.sansTotal,
+      refus: r.totaux.refus,
+    },
     interditsRobots: r.interditsRobots,
     refus: r.refus,
     erreurs: r.erreurs.length,
   };
   resume.push(ligne);
   console.log(
-    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL (${ligne.reprises} reprises) · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · prix ferme ${ligne.avecTarif} · réservation ${ligne.avecReservation} · robots ${ligne.interditsRobots} · refus ${ligne.refus}`,
+    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL (${ligne.reprises} reprises) · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · prix ferme ${ligne.avecTarif} · réservation ${ligne.avecReservation} · total daté ${ligne.avecTotalDate} · robots ${ligne.interditsRobots} · refus ${ligne.refus}`,
   );
 }
 let suivant = 0;

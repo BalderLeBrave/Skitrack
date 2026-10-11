@@ -94,6 +94,15 @@ Ce qui reste à faire avec une clé Firecrawl :
 
 Les sorties de `scrape/catalogue/sortie/` ont été renormalisées hors ligne (photos et titres). Elles n'ont pas été relevées à nouveau : les nouvelles positions et les titres JSON-LD n'apparaîtront qu'au prochain relevé (`--complet`).
 
+## Vers de vrais totaux datés
+
+Consigne du propriétaire du 11 octobre 2026 : de vrais prix, pas de « à partir de ».
+
+- **Ce qui est fait.** Le catalogue ne garde que des prix fermes (voir plus haut). Le calcul de prix de l'application ignorait déjà tout prix marqué `priceIndicative` : les « à partir de » d'Ingénie, d'Orchestra ou de Booking ne servent jamais de total (`src/lib/prix/calcul.ts`).
+- **Où chercher un total daté.** Une page d'office n'en publie pas. Chaque fiche note désormais son lien de réservation (`reservation : { moteur, url }`) quand il mène à un moteur que le dépôt connaît : Open System, Ingénie, MSEM, Deskline, Elloha, Orchestra, Arkiane, Gîtes de France, Booking.com, Airbnb ou Abritel. Le résumé compte `avecReservation` et `moteursReservation` par hôte. Les sorties actuelles portent `reservation: null` : le champ se remplit au prochain relevé (`--complet`).
+- **Ce qui ne donnera pas de total.** D'après `centrales/moteurs/etat.ts`, Diffusio (Sancy, 1 361 fiches) et Tourinsoft (Gavarnie, 425) publient une grille sans dates. Pour eux, la grille ferme est le prix le plus juste.
+- **Étape suivante.** Interroger, pour une date de référence (par défaut du samedi 13 au samedi 20 février 2027, 7 nuits), le moteur de chaque fiche qui en a un. Le verdict robots.txt est rendu avant chaque requête, et une fiche refusée reste sans prix. Cette étape demande un relevé en ligne.
+
 ## Firecrawl et n8n
 
 - Clé : `FIRECRAWL_API_KEY`, ou l'écran Clés. Sans clé, tout fonctionne en lecture directe.

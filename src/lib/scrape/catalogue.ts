@@ -32,6 +32,10 @@ export type TarifPublie = {
 
 export type TotalSejour = { montant: number; arrivee: string; depart: string; nuits: number };
 
+/** Le moteur de réservation vers lequel la fiche envoie : la seule voie vers
+ *  un total daté, puisque la page n'en publie pas. */
+export type Reservation = { moteur: string; url: string };
+
 export type FicheCatalogue = {
   url: string;
   lecteur: "firecrawl" | "lecture";
@@ -50,6 +54,8 @@ export type FicheCatalogue = {
   /** Lignes « à partir de », « dès » ou fourchettes lues puis écartées. */
   planchersEcartes: number;
   totalSejour: TotalSejour | null;
+  /** Lien de réservation repéré sur la page, ou `null`. */
+  reservation: Reservation | null;
   releveLe: string;
 };
 
@@ -75,6 +81,7 @@ export const SCHEMA_LOGEMENT = {
     longitude: { type: ["number", "null"] },
     photos: { type: "array", items: { type: "string" } },
     equipements: { type: "array", items: { type: "string" } },
+    lien_reservation: { type: ["string", "null"], description: "adresse du bouton « Réserver » ou du moteur de réservation, telle que la page l'écrit" },
     tarifs: {
       type: "array",
       items: {
@@ -293,6 +300,7 @@ export function normaliserFiche(
     tarifs,
     planchersEcartes,
     totalSejour,
+    reservation: reservationValide(brut.reservation ?? (typeof brut.lien_reservation === "string" ? { url: brut.lien_reservation, moteur: "" } : null)),
     releveLe,
   };
 }
@@ -308,7 +316,61 @@ export function retirerPlanchers(f: FicheCatalogue): FicheCatalogue {
     ...f,
     tarifs: fermes.map(({ libelle, montant, unite }) => ({ libelle, montant, unite })),
     planchersEcartes: (f.planchersEcartes ?? 0) + garde.length - fermes.length,
+    reservation: f.reservation ?? null,
   };
+}
+
+/* ---------- Moteur de réservation de la fiche ---------- */
+
+/**
+ * Les moteurs que le dépôt connaît déjà (connecteurs de `centrales/moteurs/`,
+ * relevés de `stay/`), par leur hôte. Une fiche d'office qui pointe vers l'un
+ * d'eux peut donner un vrai total daté ; une fiche sans lien n'a que sa
+ * grille.
+ */
+const MOTEURS_RESERVATION: Array<[RegExp, string]> = [
+  [/(?:^|\.)(?:open-system\.fr|for-system\.com)$/, "Open System"],
+  [/(?:^|\.)ingenie\.fr$/, "Ingénie"],
+  [/(?:^|\.)msem\.tech$/, "MSEM"],
+  [/(?:^|\.)deskline\.net$/, "Deskline / Feratel"],
+  [/(?:^|\.)elloha\.com$/, "Elloha"],
+  [/(?:^|\.)orchestra-platform\.com$/, "Orchestra"],
+  [/(?:^|\.)(?:arkiane\.com|locvacances\.com)$/, "Arkiane"],
+  [/(?:^|\.)(?:gites-de-france\.com|itea\.fr)$/, "Gîtes de France"],
+  [/(?:^|\.)booking\.com$/, "Booking.com"],
+  [/(?:^|\.)airbnb\.(?:fr|com)$/, "Airbnb"],
+  [/(?:^|\.)abritel\.fr$/, "Abritel"],
+];
+
+/** Images, feuilles de style, CDN : un hôte de moteur qui ne mène pas à une réservation. */
+const PAS_UNE_RESERVATION = /\.(?:jpe?g|png|webp|gif|svg|css)(?:$|\?)|^(?:img|images|static|cdn)\./i;
+
+export function moteurDeReservation(href: string, base: string): Reservation | null {
+  try {
+    const u = new URL(decoder(href).trim(), base);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+    if (PAS_UNE_RESERVATION.test(u.hostname) || PAS_UNE_RESERVATION.test(u.pathname)) return null;
+    const h = u.hostname.toLowerCase();
+    for (const [re, moteur] of MOTEURS_RESERVATION) if (re.test(h)) return { moteur, url: u.toString() };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function reservationValide(v: unknown): Reservation | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  return typeof o.url === "string" && typeof o.moteur === "string" ? moteurDeReservation(o.url, o.url) : null;
+}
+
+/** Le premier lien, cadre ou widget de la page qui mène à un moteur connu. */
+function reservationDansLaPage(html: string, url: string): Reservation | null {
+  for (const m of html.matchAll(/<(?:a|iframe|script|form)\b[^>]*?\s(?:href|src|action|data-url)=["']([^"']+)["']/gi)) {
+    const r = moteurDeReservation(m[1], url);
+    if (r) return r;
+  }
+  return null;
 }
 
 /* ---------- Lecture locale, sans clé ---------- */
@@ -478,6 +540,7 @@ export function ficheDepuisHtml(html: string, url: string, releveLe?: string): F
       longitude: typeof lon === "string" ? Number(lon) : lon,
       photos,
       tarifs: tarifsDuTexte(texte),
+      reservation: reservationDansLaPage(html, url),
     },
     url,
     "lecture",

@@ -103,6 +103,11 @@ async function traiter(c: (typeof cibles)[number]) {
     // Prix fermes seulement : un « à partir de » n'est jamais compté.
     avecTarif: r.fiches.filter((f) => f.tarifs.length > 0).length,
     planchersEcartes: r.fiches.reduce((n, f) => n + f.planchersEcartes, 0),
+    // Fiches qui mènent à un moteur de réservation : la voie vers un total daté.
+    avecReservation: r.fiches.filter((f) => f.reservation).length,
+    moteursReservation: Object.fromEntries(
+      [...r.fiches.reduce((m, f) => (f.reservation ? m.set(f.reservation.moteur, (m.get(f.reservation.moteur) ?? 0) + 1) : m), new Map<string, number>())].sort(),
+    ),
     avecTotalDate: r.fiches.filter((f) => f.totalSejour).length,
     interditsRobots: r.interditsRobots,
     refus: r.refus,
@@ -110,7 +115,7 @@ async function traiter(c: (typeof cibles)[number]) {
   };
   resume.push(ligne);
   console.log(
-    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL (${ligne.reprises} reprises) · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · tarif ${ligne.avecTarif} · robots ${ligne.interditsRobots} · refus ${ligne.refus}`,
+    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL (${ligne.reprises} reprises) · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · prix ferme ${ligne.avecTarif} · réservation ${ligne.avecReservation} · robots ${ligne.interditsRobots} · refus ${ligne.refus}`,
   );
 }
 let suivant = 0;

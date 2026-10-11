@@ -21,7 +21,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 1,
-      "planchersEcartes": 0
+      "planchersEcartes": 0,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "booking.prazsurarly.com",
@@ -43,7 +45,9 @@
       "interditsRobots": 1,
       "refus": 0,
       "erreurs": 1,
-      "planchersEcartes": 0
+      "planchersEcartes": 0,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "font-romeu.fr",
@@ -65,7 +69,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 2,
-      "planchersEcartes": 9
+      "planchersEcartes": 9,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "lesangles.com",
@@ -87,7 +93,9 @@
       "interditsRobots": 0,
       "refus": 1,
       "erreurs": 1,
-      "planchersEcartes": 0
+      "planchersEcartes": 0,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "sites.valdabondance.com",
@@ -109,7 +117,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 0,
-      "planchersEcartes": 0
+      "planchersEcartes": 0,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "www.chioula.fr",
@@ -131,7 +141,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 0,
-      "planchersEcartes": 0
+      "planchersEcartes": 0,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "www.haut-giffre.fr",
@@ -153,7 +165,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 2,
-      "planchersEcartes": 23
+      "planchersEcartes": 23,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "www.mole-brasses.com",
@@ -175,7 +189,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 1,
-      "planchersEcartes": 126
+      "planchersEcartes": 126,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "www.sancy.com",
@@ -198,7 +214,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 18,
-      "planchersEcartes": 2310
+      "planchersEcartes": 2310,
+      "avecReservation": 0,
+      "moteursReservation": {}
     },
     {
       "host": "www.valleesdegavarnie.com",
@@ -220,7 +238,9 @@
       "interditsRobots": 0,
       "refus": 0,
       "erreurs": 3,
-      "planchersEcartes": 21
+      "planchersEcartes": 21,
+      "avecReservation": 0,
+      "moteursReservation": {}
     }
   ]
 }

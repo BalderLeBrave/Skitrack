@@ -43,7 +43,8 @@
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
-      "releveLe": "2026-10-11T00:21:55.736Z"
+      "releveLe": "2026-10-11T00:21:55.736Z",
+      "reservation": null
     },
     {
       "planchersEcartes": 0,
@@ -64,7 +65,8 @@
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
-      "releveLe": "2026-10-11T00:21:55.736Z"
+      "releveLe": "2026-10-11T00:21:55.736Z",
+      "reservation": null
     },
     {
       "planchersEcartes": 0,
@@ -88,7 +90,8 @@
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
-      "releveLe": "2026-10-11T00:21:55.736Z"
+      "releveLe": "2026-10-11T00:21:55.736Z",
+      "reservation": null
     },
     {
       "planchersEcartes": 0,
@@ -114,7 +117,8 @@
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
-      "releveLe": "2026-10-11T00:21:55.736Z"
+      "releveLe": "2026-10-11T00:21:55.736Z",
+      "reservation": null
     }
   ],
   "muettes": 6,

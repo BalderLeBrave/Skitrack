@@ -5,6 +5,7 @@ import {
   ficheDepuisHtml,
   ficheParlante,
   normaliserFiche,
+  moteurDeReservation,
   natureTarif,
   photosNettes,
   retirerDecorDuSite,
@@ -235,5 +236,23 @@ describe("positions communes à tout un site", () => {
     const f = retirerPlanchers(vieille);
     assert.deepEqual(f.tarifs, [{ libelle: "Semaine : 650 €", montant: 650, unite: "semaine" }]);
     assert.equal(f.planchersEcartes, 1);
+  });
+
+  it("repère le moteur de réservation vers lequel la fiche envoie", () => {
+    const html = `<h1>Chalet 6 personnes</h1>
+      <img src="https://img.for-system.com/photo.jpg">
+      <a href="/contact/">Contact</a>
+      <a class="btn" href="https://reservation.elloha.com/Widget/BookingEngine/abc?culture=fr-FR&amp;idPublication=1">Réserver</a>
+      <a href="https://www.gites-de-france.com/fr/x">Gîtes de France</a>`;
+    const f = ficheDepuisHtml(html, "https://font-romeu.fr/hebergements/a/", QUAND);
+    assert.deepEqual(f.reservation, {
+      moteur: "Elloha",
+      url: "https://reservation.elloha.com/Widget/BookingEngine/abc?culture=fr-FR&idPublication=1",
+    });
+    assert.equal(moteurDeReservation("https://img.for-system.com/photo.jpg", "https://x.fr"), null, "une image n'est pas une réservation");
+    assert.equal(moteurDeReservation("https://www.ingenie.fr/booking?cid=12", "https://x.fr")?.moteur, "Ingénie");
+    assert.equal(moteurDeReservation("https://reservationpralognan.locvacances.com/fr/", "https://x.fr")?.moteur, "Arkiane");
+    assert.equal(moteurDeReservation("https://www.booking.com.evil.test/", "https://x.fr"), null);
+    assert.equal(ficheDepuisHtml("<h1>Studio 2 personnes</h1>", "https://x.fr/a", QUAND).reservation, null);
   });
 });

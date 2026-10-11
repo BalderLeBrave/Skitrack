@@ -39,7 +39,8 @@
       "equipements": [],
       "tarifs": [],
       "totalSejour": null,
-      "releveLe": "2026-10-11T00:21:55.786Z"
+      "releveLe": "2026-10-11T00:21:55.786Z",
+      "reservation": null
     }
   ],
   "muettes": 5,

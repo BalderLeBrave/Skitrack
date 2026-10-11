@@ -1,0 +1,122 @@
+{
+  "cible": {
+    "host": "beuil.fr",
+    "nom": "Beuil – Les Launes",
+    "moteur": "aucun",
+    "stations": [
+      "beuil-les-launes"
+    ]
+  },
+  "releveLe": "2026-10-11T00:21:55.736Z",
+  "methode": "sitemap",
+  "lecteur": "lecture",
+  "sitemap": {
+    "sitemaps": [
+      "https://beuil.fr/sitemap_index.xml",
+      "https://beuil.fr/post-sitemap.xml",
+      "https://beuil.fr/page-sitemap.xml"
+    ],
+    "vues": 343,
+    "interditsRobots": 0,
+    "racineInterdite": false,
+    "refus": null
+  },
+  "urls": 10,
+  "fiches": [
+    {
+      "url": "https://beuil.fr/gite-nature-montagne-9710/",
+      "lecteur": "lecture",
+      "titre": "Emilie Groeneveld",
+      "type": null,
+      "commune": null,
+      "capacite": 44,
+      "chambres": 7,
+      "pieces": null,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://beuil.fr/wp-content/uploads/2024/06/1-scaled-e1718012135801.jpg",
+        "https://secure.gravatar.com/avatar/a594d18a8fb3a522ff345b31503d288a513789453ecd04383f09ad3c704f7a6a?s=96&d=mm&r=g",
+        "https://beuil.fr/wp-content/uploads/2024/06/1-1200x600.jpg"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.736Z"
+    },
+    {
+      "url": "https://beuil.fr/gites-communaux/",
+      "lecteur": "lecture",
+      "titre": "Administrateur SICTIAM",
+      "type": null,
+      "commune": null,
+      "capacite": 2,
+      "chambres": 0,
+      "pieces": 2,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://beuil.fr/wp-content/uploads/2017/12/Messenger_creation_7208727649918874876.jpeg",
+        "https://secure.gravatar.com/avatar/af952c279ff47ceea19701c977c62243f22ac8d18e6678a4beaadd1b44b0130a?s=96&d=mm&r=g",
+        "https://beuil.fr/wp-content/uploads/2017/12/Messenger_creation_7208727649918874876-1200x600.jpeg"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.736Z"
+    },
+    {
+      "url": "https://beuil.fr/hebergements/",
+      "lecteur": "lecture",
+      "titre": "Office de tourisme",
+      "type": null,
+      "commune": null,
+      "capacite": null,
+      "chambres": 0,
+      "pieces": 3,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://beuil.fr/wp-content/uploads/2023/03/443892-0_2107_24c6690397f5efc3026653738a7c8708.jpg",
+        "https://secure.gravatar.com/avatar/babc031a978ad82aff335ba7819d73742b8222e95e1d6563167d6f12eff9c1f6?s=96&d=mm&r=g",
+        "https://beuil.fr/wp-content/uploads/2023/03/443892-0_2107_24c6690397f5efc3026653738a7c8708-1200x600.jpg",
+        "https://beuil.fr/wp-content/uploads/2017/12/Messenger_creation_7208727649918874876-960x750.jpeg",
+        "https://beuil.fr/wp-content/uploads/2023/02/1000029403-960x750.jpg",
+        "https://beuil.fr/wp-content/uploads/2023/03/Photo-beuil-1-couverture-960x750.jpg"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.736Z"
+    },
+    {
+      "url": "https://beuil.fr/hotels/",
+      "lecteur": "lecture",
+      "titre": "Office de tourisme",
+      "type": null,
+      "commune": null,
+      "capacite": null,
+      "chambres": 11,
+      "pieces": null,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://beuil.fr/wp-content/uploads/2023/03/Photo-beuil-1-couverture-scaled.jpg",
+        "https://secure.gravatar.com/avatar/babc031a978ad82aff335ba7819d73742b8222e95e1d6563167d6f12eff9c1f6?s=96&d=mm&r=g",
+        "https://beuil.fr/wp-content/uploads/2023/03/Photo-beuil-1-couverture-1200x600.jpg",
+        "https://beuil.fr/wp-content/uploads/2021/11/Lescapade-1-960x750.jpg",
+        "https://beuil.fr/wp-content/uploads/2019/07/PHOTO-FACADE-960x750.jpg",
+        "https://beuil.fr/wp-content/uploads/2017/12/20170205-192019-1024x576.jpg",
+        "https://beuil.fr/wp-content/uploads/2017/12/HOTEL-222_835-1.jpg"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.736Z"
+    }
+  ],
+  "muettes": 6,
+  "interditsRobots": 0,
+  "refus": 0,
+  "erreurs": []
+}

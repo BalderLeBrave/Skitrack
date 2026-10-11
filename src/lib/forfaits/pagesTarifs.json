@@ -1,0 +1,481 @@
+{
+  "at": "2026-10-10T23:28:07.140Z",
+  "source": "npm run forfaits:sitemap",
+  "pages": {
+    "aime-2000": [
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+      "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+      "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+    ],
+    "alpe-d-huez-grand-domaine": [
+      "https://www.alpedhuez.com/fr/activites/forfaits/",
+      "https://www.alpedhuez.com/fr/video_webtv/fah2016-remise-du-prix-michel-galabru-prix-interpretation/",
+      "https://www.alpedhuez.com/fr/decouvrir/destination-famille/forfait-famille/",
+      "https://www.alpedhuez.com/fr/skipass/"
+    ],
+    "alpe-du-grand-serre": [
+      "https://www.matheysine-tourisme.com/fr/alpedugrandserre/forfaits/forfait-saison/",
+      "https://www.matheysine-tourisme.com/fr/forfait-solidaire-alpe-du-grand-serre/",
+      "https://www.matheysine-tourisme.com/fr/alpedugrandserre/forfaits/",
+      "https://www.matheysine-tourisme.com/fr/alpedugrandserre/forfaits/assurance/"
+    ],
+    "arette-la-pierre-saint-martin": [
+      "https://www.lapierrestmartin.com/ski/les-forfaits/",
+      "https://www.lapierrestmartin.com/ski/les-forfaits/ski/",
+      "https://www.lapierrestmartin.com/ski/les-forfaits/espace-debutant/",
+      "https://www.lapierrestmartin.com/preparer-mon-sejour/ski/forfaits-ski/"
+    ],
+    "avoriaz-1800": [
+      "https://www.avoriaz.com/decouvrir/les-incontournables/tarifs-des-forfaits-hiver/",
+      "https://www.avoriaz.com/activites-hiver/ski-et-snow/acheter-son-forfait-de-ski-en-ligne-a-avoriaz--nos-conseils-et-astuces/",
+      "https://www.avoriaz.com/fiche/caisse-vente-de-forfaits-centre-station/",
+      "https://www.avoriaz.com/fiche/caisse-vente-de-forfaits-quartier-falaise/"
+    ],
+    "bellefontaine": [
+      "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+    ],
+    "beuil-les-launes": [
+      "https://beuil.fr/tarif-exceptionnel-au-tennis-des-launes/"
+    ],
+    "bisanne-1500": [
+      "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+      "https://www.lessaisies.com/une-fois-sur-place/les-saisies-sous-la-neige/ski-et-activites/acheter-mon-forfait-de-ski/"
+    ],
+    "bois-d-amont-les-rousses-nordique": [
+      "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+    ],
+    "bourg-saint-maurice-les-arcs": [
+      "https://www.lesarcs.com/fr/point-de-vente-de-forfaits-transarc",
+      "https://www.lesarcs.com/fr/seminaires-incentives-evenements-dentreprise/forfaits-de-groupes",
+      "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/prix-roman-jeunesse-la-vache-qui-lit-2026",
+      "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/depouillement-du-prix-de-la-vache-qui-lit"
+    ],
+    "chamonix-le-brevent-flegere": [
+      "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+    ],
+    "chamonix-le-tour-balme": [
+      "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+    ],
+    "chamonix-les-grands-montets": [
+      "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+    ],
+    "champagny-en-vanoise": [
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+      "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+      "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+    ],
+    "chamrousse": [
+      "https://en.chamrousse.com/alpine-ski-pass-prices.html",
+      "https://en.chamrousse.com/nordic-ski-pass-prices.html",
+      "https://www.chamrousse.com/forfait-ski-hiver-chamrousse.html",
+      "https://www.chamrousse.com/caisse-hiver-chamrousse-1700-et-distributeurs-automatiques-forfait.html"
+    ],
+    "chamrousse-1750": [
+      "https://en.chamrousse.com/alpine-ski-pass-prices.html",
+      "https://en.chamrousse.com/nordic-ski-pass-prices.html",
+      "https://www.chamrousse.com/forfait-ski-hiver-chamrousse.html",
+      "https://www.chamrousse.com/caisse-hiver-chamrousse-1700-et-distributeurs-automatiques-forfait.html"
+    ],
+    "correncon-en-vercors": [
+      "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/prevente-forfaits/",
+      "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/"
+    ],
+    "courchevel": [
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-moriond-7124132/",
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-la-tania-7124087/",
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-le-praz-alpinium-7124107/",
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-courchevel-la-croisette-7114625/"
+    ],
+    "courchevel-1550-le-praz": [
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-moriond-7124132/",
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-la-tania-7124087/",
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-le-praz-alpinium-7124107/",
+      "https://courchevel.com/fr/a/point-de-vente-forfaits-courchevel-la-croisette-7114625/"
+    ],
+    "crest-voland-cohennoz": [
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-centrale-crest-voland-fr-3395247/",
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-cernix-cohennoz-fr-3395240/",
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-village-crest-voland-fr-3395248/"
+    ],
+    "flaine": [
+      "https://www.flaine.com/forfaits-ski/"
+    ],
+    "flumet-val-d-arly": [
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-centrale-crest-voland-fr-3395247/",
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-cernix-cohennoz-fr-3395240/",
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-village-crest-voland-fr-3395248/"
+    ],
+    "gap-bayard": [
+      "https://www.gap-bayard.com/tarifs-golf"
+    ],
+    "gourette": [
+      "https://www.gourette.com/la-station-en-hiver/le-ski/acheter-son-forfait-de-ski/",
+      "https://www.gourette.com/forfait-ski-gourette/",
+      "https://www.gourette.com/organismes-entreprises/immoforfait/"
+    ],
+    "grand-tourmalet": [
+      "https://www.n-py.com/fr/faq/forfaits-saison",
+      "https://www.n-py.com/fr/gourette/forfaits-ski/forfait-saison",
+      "https://www.n-py.com/fr/cauterets/forfaits-ski/forfait-saison",
+      "https://www.n-py.com/fr/peyragudes/forfaits-ski/forfait-saison"
+    ],
+    "hauteluce": [
+      "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+      "https://www.lessaisies.com/une-fois-sur-place/les-saisies-sous-la-neige/ski-et-activites/acheter-mon-forfait-de-ski/"
+    ],
+    "la-feclaz": [
+      "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-prix-litteraire-paysages-ecrits-chambery-fr-5793684/",
+      "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-6e-prix-paysages-ecrits-de-la-fondation-facim-chambery-fr-6796655/",
+      "https://www.chamberymontagnes.com/preparer/sejours/cles-en-main/votre-sejour-vacanceole-a-petit-prix-pendant-la-grande-odyssee-la-feclaz-fr-6086155/"
+    ],
+    "la-joue-du-loup": [
+      "https://www.ledevoluy.com/hiver/ski-et-glisse/le-domaine-alpin/les-tarifs/",
+      "https://www.ledevoluy.com/hiver/ski-et-glisse/securite-et-infos-legales/conditions-de-vente-forfaits/"
+    ],
+    "la-plagne": [
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+      "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+      "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+    ],
+    "la-rosiere-1850": [
+      "https://www.larosiere.net/forfaits-de-ski/",
+      "https://www.larosiere.net/forfait-remontees-mecaniques/"
+    ],
+    "la-rosiere-san-bernardo": [
+      "https://www.larosiere.net/forfaits-de-ski/",
+      "https://www.larosiere.net/forfait-remontees-mecaniques/"
+    ],
+    "la-toussuire-les-sybelles": [
+      "https://la-toussuire.com/je-profite-en-hiver/ski-et-glisse/nos-forfaits-de-ski-la-toussuire-domaine-des-sybelles/"
+    ],
+    "lamoura": [
+      "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+    ],
+    "landry": [
+      "https://www.peisey-vallandry.com/point-de-vente-forfaits.html"
+    ],
+    "lans-en-vercors": [
+      "https://www.vercors-experience.com/ski-lans-en-vercors-alpin-tarifs-forfaits.html",
+      "https://www.vercors-experience.com/ventes-flash-8-au-12-octobre-forfaits-saison-nordic-pass-vercors-hiver-ou-4-saisons.html",
+      "https://www.vercors-experience.com/ski-lans-en-vercors-nordique-tarifs-forfaits-seances-cartes.html"
+    ],
+    "le-chioula": [
+      "https://www.chioula.fr/tarifs.html",
+      "https://www.chioula.fr/tarifs-station-le-chioula.html"
+    ],
+    "le-devoluy-superdevoluy": [
+      "https://www.ledevoluy.com/hiver/ski-et-glisse/le-domaine-alpin/les-tarifs/",
+      "https://www.ledevoluy.com/hiver/ski-et-glisse/securite-et-infos-legales/conditions-de-vente-forfaits/"
+    ],
+    "le-grand-bornand": [
+      "https://www.legrandbornand.com/quoi-faire/sports-loisirs-bien-etre/sports-dhiver/ski-alpin/tarifs/",
+      "https://www.legrandbornand.com/quoi-faire/sports-loisirs-bien-etre/sports-dhiver/ski-alpin/acheter-son-forfait-sur-place/",
+      "https://www.legrandbornand.com/decouvrir/le-bo-mag/quel-forfait-pour-les-cours-de-ski/",
+      "https://www.legrandbornand.com/quoi-faire/sports-loisirs-bien-etre/sports-dhiver/ski-alpin/forfaits-de-ski-alpin/snowtubing/"
+    ],
+    "le-lioran": [
+      "https://www.lelioran.com/forfait-saison/",
+      "https://www.lelioran.com/hiver/les-tarifs/",
+      "https://www.lelioran.com/forfait-debutant/",
+      "https://www.lelioran.com/hiver/skipass/"
+    ],
+    "le-lioran-super-lioran": [
+      "https://www.lelioran.com/forfait-saison/",
+      "https://www.lelioran.com/hiver/les-tarifs/",
+      "https://www.lelioran.com/forfait-debutant/",
+      "https://www.lelioran.com/hiver/skipass/"
+    ],
+    "le-mont-dore": [
+      "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/tarifs-forfaits-ski-de-descente-mont-dore/",
+      "https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-super-besse/",
+      "https://www.sancy.com/decouvrir/toutes-les-communes/chastreix/chastreix-sancy-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-chastreix-sancy/",
+      "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/achat-rechargement-forfaits-ski-descente-mont-dore/"
+    ],
+    "le-pleynet": [
+      "https://www.les7laux.com/winter/ski-slides/ski/forfaits-tarifs/",
+      "https://www.les7laux.com/hiver/offre-pack-bus-et-forfait-a-seulement-3950e-skiez-aux-7-laux-depuis-chambery/",
+      "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+      "https://www.les7laux.com/hiver/ski-alpin-nordique-autres-glisses/ski/forfaits-tarifs/"
+    ],
+    "les-2-alpes": [
+      "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/acheter-mon-ski-pass/",
+      "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/nos-bons-plans-ski-pass/"
+    ],
+    "les-7-laux": [
+      "https://www.les7laux.com/winter/ski-slides/ski/forfaits-tarifs/",
+      "https://www.les7laux.com/hiver/offre-pack-bus-et-forfait-a-seulement-3950e-skiez-aux-7-laux-depuis-chambery/",
+      "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+      "https://www.les7laux.com/hiver/ski-alpin-nordique-autres-glisses/ski/forfaits-tarifs/"
+    ],
+    "les-arcs-peisey-vallandry": [
+      "https://www.lesarcs.com/fr/point-de-vente-de-forfaits-transarc",
+      "https://www.lesarcs.com/fr/seminaires-incentives-evenements-dentreprise/forfaits-de-groupes",
+      "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/prix-roman-jeunesse-la-vache-qui-lit-2026",
+      "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/depouillement-du-prix-de-la-vache-qui-lit"
+    ],
+    "les-brasses": [
+      "https://lesbrasses.com/preventes-2026-2027-forfaits-ski/"
+    ],
+    "les-contamines-montjoie": [
+      "https://www.lescontamines.com/hiver/bon-plan-votre-forfait-saison-ski-de-fond-a-petit-prix",
+      "https://www.lescontamines.com/hiver/ouverture-des-preventes-des-forfaits-de-ski-hiver-2024-2025",
+      "https://www.lescontamines.com/hiver/ouverture-des-preventes-des-forfaits-de-ski-hiver-2022-2023",
+      "https://www.lescontamines.com/hiver/preventes-des-forfaits-de-ski-hiver-2026-2027-c-est-en-ligne"
+    ],
+    "les-deux-alpes-1800": [
+      "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/acheter-mon-ski-pass/",
+      "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/nos-bons-plans-ski-pass/"
+    ],
+    "les-gets-morzine": [
+      "https://www.lesgets.com/forfaits/",
+      "https://www.lesgets.com/golf/horaires-douvertures-et-tarifs/",
+      "https://www.lesgets.com/offres/20-sur-vos-forfaits-de-ski-en-janvier-et-mars-les-gets-fr-6311146/",
+      "https://www.lesgets.com/offres/toutes-nos-promos-pour-un-sejour-a-prix-tout-doux-les-gets-fr-6311143/"
+    ],
+    "les-houches": [
+      "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+    ],
+    "les-orres": [
+      "http://lesorres.com/forfaits-de-ski-pour-les-familles",
+      "http://lesorres.com/appli/forfait-sejours",
+      "http://lesorres.com/infos-pratiques/points-de-vente-infos-forfaits",
+      "http://lesorres.com/skier-aux-orres/le-domaine-skiable/les-forfaits-de-ski"
+    ],
+    "les-rousses": [
+      "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+    ],
+    "les-saisies-espace-diamant": [
+      "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+      "https://www.lessaisies.com/une-fois-sur-place/les-saisies-sous-la-neige/ski-et-activites/acheter-mon-forfait-de-ski/"
+    ],
+    "luz-ardiden": [
+      "https://luz-ardiden.com/offres-specialesold/forfait-saison-2026-2027/",
+      "https://luz-ardiden.com/offres-specialesold/forfait-saison-2026-2027/famille-premium/",
+      "https://luz-ardiden.com/offres-specialesold/forfait-saison-2026-2027/famille-classic/",
+      "https://luz-ardiden.com/forfaits-ski-old/"
+    ],
+    "manigod-la-croix-fry": [
+      "https://www.manigod.com/tarifs-forfaits-ski-manigod-prix-des-forfaits.html",
+      "https://en.manigod.com/ski-pass-rates-manigod.html",
+      "https://de.manigod.com/preise-fur-skipasse-manigod.html"
+    ],
+    "meribel": [
+      "https://www.meribel.net/family-flex-forfait-ski-famille/",
+      "https://www.meribel.net/forfaits-de-ski-meribel-et-3-vallees/",
+      "https://www.meribel.net/apidae/distributeur-de-forfaits-meribel-centre/",
+      "https://www.meribel.net/apidae/borne-dachat-et-de-retrait-des-forfaits/"
+    ],
+    "meribel-mottaret": [
+      "https://www.meribel.net/family-flex-forfait-ski-famille/",
+      "https://www.meribel.net/forfaits-de-ski-meribel-et-3-vallees/",
+      "https://www.meribel.net/apidae/distributeur-de-forfaits-meribel-centre/",
+      "https://www.meribel.net/apidae/borne-dachat-et-de-retrait-des-forfaits/"
+    ],
+    "mont-dore-chastreix": [
+      "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/tarifs-forfaits-ski-de-descente-mont-dore/",
+      "https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-super-besse/",
+      "https://www.sancy.com/decouvrir/toutes-les-communes/chastreix/chastreix-sancy-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-chastreix-sancy/",
+      "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/achat-rechargement-forfaits-ski-descente-mont-dore/"
+    ],
+    "montchavin-les-coches": [
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+      "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+      "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+    ],
+    "montclar-saint-jean": [
+      "https://www.montclar.fr/deliberations-conseil-municipal/i/84986816/deliberation-patinoire-tarifs-saison-2024-2025",
+      "https://www.montclar.fr/deliberations-conseil-municipal/i/82924977/deliberation-tarifs-des-remontees-mecaniques-pour-la-saison-2024-2025-seance-du-10-septembre-2024",
+      "https://www.montclar.fr/deliberations-conseil-municipal/i/84987139/deliberation-tarifs-secours-sur-piste"
+    ],
+    "morillon": [
+      "https://www.grand-massif.com/offres-ski/tarifs-forfaits-ski/",
+      "https://www.grand-massif.com/offres-ski/tarifs-forfait-debutant/",
+      "https://www.grand-massif.com/offres-ski/saison-prix-gele/",
+      "https://www.grand-massif.com/forfait-handi-ski/"
+    ],
+    "notre-dame-de-bellecombe": [
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-centrale-crest-voland-fr-3395247/",
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-cernix-cohennoz-fr-3395240/",
+      "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-village-crest-voland-fr-3395248/"
+    ],
+    "orcieres-merlette-1850": [
+      "https://www.orcieres.com/offres/forfait-saison-orcieres-fr-5996706/"
+    ],
+    "oz-en-oisans": [
+      "https://www.oz-en-oisans.com/hiver/sejour/je-reserve-mon-sejour/jachete-mon-forfait/"
+    ],
+    "peisey-nancroix": [
+      "https://www.peisey-vallandry.com/point-de-vente-forfaits.html"
+    ],
+    "peyragudes": [
+      "https://peyragudes.com/forfaits-ski/",
+      "https://peyragudes.com/toutes-les-activites/location-velo-plus-forfait/"
+    ],
+    "piau-engaly": [
+      "https://piau-engaly.com/forfaits/"
+    ],
+    "plagne-bellecote": [
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+      "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+      "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+      "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+    ],
+    "porte-puymorens": [
+      "https://www.porte-puymorens.net/tout-savoir-sur-la-patinoire-de-la-garde-horaires-douverture-tarifs-dentree-et-activites-proposees/"
+    ],
+    "pra-loup-val-d-allos": [
+      "https://www.praloup.com/sorganiser/acheter-forfait/",
+      "https://www.praloup.com/fiche/point-skipass-express-molanes/",
+      "https://www.praloup.com/fiche/point-skipass-express-clapiers/",
+      "https://www.praloup.com/fiche/point-skipass-express-plateau-1600/"
+    ],
+    "prapoutel-les-7-laux": [
+      "https://www.les7laux.com/winter/ski-slides/ski/forfaits-tarifs/",
+      "https://www.les7laux.com/hiver/offre-pack-bus-et-forfait-a-seulement-3950e-skiez-aux-7-laux-depuis-chambery/",
+      "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+      "https://www.les7laux.com/hiver/ski-alpin-nordique-autres-glisses/ski/forfaits-tarifs/"
+    ],
+    "praz-de-lys-sommand": [
+      "https://www.prazdelys-sommand.com/bon_plan/nordic-pass-prix-fondus/",
+      "https://www.prazdelys-sommand.com/commerce-et-service/borne-automatique-de-forfaits-les-molliettes/",
+      "https://www.prazdelys-sommand.com/commerce-et-service/borne-automatique-de-forfaits-residences-de-sommand/",
+      "https://www.prazdelys-sommand.com/commerce-et-service/borne-automatique-de-forfaits-front-de-neige-de-sommand/"
+    ],
+    "praz-sur-arly": [
+      "http://www.prazsurarly.com/fr/tarifs-forfait-6-jours-et-espace-diamant-jusqu-a-30",
+      "http://www.prazsurarly.com/fr/forfait-saison-espace-diamant",
+      "http://www.prazsurarly.com/fr/Forfait%20Saison%20Val%20d%27Arly",
+      "http://www.prazsurarly.com/fr/mon-forfait-de-ski"
+    ],
+    "premanon": [
+      "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+    ],
+    "puy-saint-vincent": [
+      "https://www.paysdesecrins.com/forfaits-de-ski/",
+      "https://www.paysdesecrins.com/fiche/ecrins-de-ski-2-jours-offre-jeunes-parents-1-forfait-pour-2-station-de-pelvoux-vallouise/"
+    ],
+    "risoul-1850": [
+      "https://www.risoul.com/achat-tarifs-forfaits.html",
+      "https://www.risoul.com/grand-ski-a-prix-givres.html",
+      "https://www.risoul.com/tarifs-preferentiels-risoul-resa.html"
+    ],
+    "saint-francois-longchamp": [
+      "https://www.saintfrancoislongchamp.com/mon-chalet-a-la-montagne-airbnb-bon-plans-logement-en-savoie/sejour-a-prix-reduit-centres-de-vacances-station-de-ski/",
+      "https://www.saintfrancoislongchamp.com/mon-chalet-a-la-montagne-airbnb-bon-plans-logement-en-savoie/residences-goelia-odalys-location-de-vacances-a-petit-prix/"
+    ],
+    "saint-gervais-le-bettex": [
+      "https://www.saintgervais.com/reserver-mon-sejour/forfait/"
+    ],
+    "saint-lary-soulan": [
+      "https://www.saintlary.com/hiver/a-faire-sur-place/glisse/domaine-skiable/les-forfaits-de-ski/",
+      "https://www.saintlary.com/invierno/para-hacer-in-situ/diapositiva/zona-de-esqui/forfaits-de-esqui/"
+    ],
+    "saint-nicolas-de-veroce": [
+      "https://www.saintgervais.com/reserver-mon-sejour/forfait/"
+    ],
+    "sainte-foy-tarentaise": [
+      "https://www.saintefoy-tarentaise.com/a-faire/activites-hiver/ski-et-snowboard/forfaits-de-ski/"
+    ],
+    "samoens-le-grand-massif": [
+      "https://www.samoens.com/forfaits-de-ski-et-tarifs/",
+      "https://www.samoens.com/ski-pass-and-prices/",
+      "https://www.samoens.com/week-end-a-prix-doux/",
+      "https://www.samoens.com/achetez-votre-forfait-de-ski/"
+    ],
+    "savoie-grand-revard": [
+      "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-prix-litteraire-paysages-ecrits-chambery-fr-5793684/",
+      "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-6e-prix-paysages-ecrits-de-la-fondation-facim-chambery-fr-6796655/",
+      "https://www.chamberymontagnes.com/preparer/sejours/cles-en-main/votre-sejour-vacanceole-a-petit-prix-pendant-la-grande-odyssee-la-feclaz-fr-6086155/"
+    ],
+    "superbagneres-luchon": [
+      "https://www.haute-garonne-montagne.com/forfait-saison-hiver-2025-2026-prevente-exclusive/"
+    ],
+    "superdevoluy-la-joue-du-loup": [
+      "https://www.ledevoluy.com/hiver/ski-et-glisse/le-domaine-alpin/les-tarifs/",
+      "https://www.ledevoluy.com/hiver/ski-et-glisse/securite-et-infos-legales/conditions-de-vente-forfaits/"
+    ],
+    "tignes-le-lac": [
+      "https://www.tignes.net/ski/forfaits-ski",
+      "https://www.tignes.net/ski/forfaits-ski/achats",
+      "https://www.tignes.net/ski/forfaits-ski/ski-a-la-carte",
+      "https://www.tignes.net/ski/forfaits-ski/avantages-tignes"
+    ],
+    "tignes-les-brevieres": [
+      "https://www.tignes.net/ski/forfaits-ski",
+      "https://www.tignes.net/ski/forfaits-ski/achats",
+      "https://www.tignes.net/ski/forfaits-ski/ski-a-la-carte",
+      "https://www.tignes.net/ski/forfaits-ski/avantages-tignes"
+    ],
+    "tignes-val-d-isere": [
+      "https://www.tignes.net/ski/forfaits-ski",
+      "https://www.tignes.net/ski/forfaits-ski/achats",
+      "https://www.tignes.net/ski/forfaits-ski/ski-a-la-carte",
+      "https://www.tignes.net/ski/forfaits-ski/avantages-tignes"
+    ],
+    "val-d-allos-la-foux": [
+      "https://www.valdallos.com/skipass.html"
+    ],
+    "val-d-allos-le-seignus": [
+      "https://www.valdallos.com/skipass.html"
+    ],
+    "val-d-isere": [
+      "https://www.valdisere.com/preparer-mon-sejour/acheter-mon-forfait/",
+      "https://www.valdisere.com/guide-du-village/point-de-vente-skipass-fornet-val-disere-fr-4358489/",
+      "https://www.valdisere.com/guide-du-village/point-de-vente-skipass-solaise-val-disere-fr-4358520/",
+      "https://www.valdisere.com/guide-du-village/point-de-vente-skipass-val-village-val-disere-fr-4358453/"
+    ],
+    "valloire-galibier-thabor": [
+      "https://www.valloire.net/profiter-de-valloire/le-ski/se-preparer-a-skier/forfaits-de-ski-valloire/"
+    ],
+    "vallorcine": [
+      "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+      "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+    ],
+    "valmorel-le-grand-domaine": [
+      "https://www.valmorel.com/activites-hiver/ski-glisse/forfaits-ski-alpin/"
+    ],
+    "vars-les-claux": [
+      "https://www.vars.com/hiver/a-faire-sur-place/ski-et-glisse/la-station-le-domaine-skiable/acheter-mon-forfait/"
+    ],
+    "vars-risoul-la-foret-blanche": [
+      "https://www.vars.com/hiver/a-faire-sur-place/ski-et-glisse/la-station-le-domaine-skiable/acheter-mon-forfait/"
+    ],
+    "vaujany": [
+      "https://reservation-sejour.vaujany.com/forfaits/",
+      "https://www.vaujany.com/fr/les-forfaits/",
+      "https://accommodation.vaujany.com/ski-passes/"
+    ],
+    "villard-de-lans-correncon": [
+      "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/prevente-forfaits/",
+      "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/"
+    ],
+    "villard-de-lans-cote-2000": [
+      "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/prevente-forfaits/",
+      "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/"
+    ],
+    "villaroger": [
+      "https://www.lesarcs.com/fr/point-de-vente-de-forfaits-transarc",
+      "https://www.lesarcs.com/fr/seminaires-incentives-evenements-dentreprise/forfaits-de-groupes",
+      "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/prix-roman-jeunesse-la-vache-qui-lit-2026",
+      "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/depouillement-du-prix-de-la-vache-qui-lit"
+    ]
+  }
+}

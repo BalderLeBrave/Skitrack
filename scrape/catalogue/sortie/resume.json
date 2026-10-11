@@ -1,0 +1,226 @@
+{
+  "at": "2026-10-11T00:27:00.512Z",
+  "hotes": [
+    {
+      "host": "beuil.fr",
+      "moteur": "aucun",
+      "stations": [
+        "beuil-les-launes"
+      ],
+      "methode": "sitemap",
+      "lecteur": "lecture",
+      "urls": 10,
+      "fiches": 4,
+      "muettes": 6,
+      "avecCapacite": 2,
+      "avecChambres": 4,
+      "avecGps": 0,
+      "avecPhoto": 4,
+      "avecTarif": 0,
+      "avecTarifOuPlancher": 0,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 0
+    },
+    {
+      "host": "booking.prazsurarly.com",
+      "moteur": "Orchestra",
+      "stations": [
+        "praz-sur-arly"
+      ],
+      "methode": null,
+      "lecteur": "lecture",
+      "urls": 0,
+      "fiches": 0,
+      "muettes": 0,
+      "avecCapacite": 0,
+      "avecChambres": 0,
+      "avecGps": 0,
+      "avecPhoto": 0,
+      "avecTarif": 0,
+      "avecTarifOuPlancher": 0,
+      "avecTotalDate": 0,
+      "interditsRobots": 1,
+      "refus": 0,
+      "erreurs": 1
+    },
+    {
+      "host": "font-romeu.fr",
+      "moteur": "aucun",
+      "stations": [
+        "font-romeu-pyrenees-2000"
+      ],
+      "methode": "sitemap",
+      "lecteur": "lecture",
+      "urls": 115,
+      "fiches": 88,
+      "muettes": 27,
+      "avecCapacite": 85,
+      "avecChambres": 38,
+      "avecGps": 0,
+      "avecPhoto": 88,
+      "avecTarif": 1,
+      "avecTarifOuPlancher": 6,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 0
+    },
+    {
+      "host": "lesangles.com",
+      "moteur": "aucun",
+      "stations": [
+        "les-angles"
+      ],
+      "methode": null,
+      "lecteur": "lecture",
+      "urls": 0,
+      "fiches": 0,
+      "muettes": 0,
+      "avecCapacite": 0,
+      "avecChambres": 0,
+      "avecGps": 0,
+      "avecPhoto": 0,
+      "avecTarif": 0,
+      "avecTarifOuPlancher": 0,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 1,
+      "erreurs": 1
+    },
+    {
+      "host": "sites.valdabondance.com",
+      "moteur": "aucun",
+      "stations": [
+        "abondance"
+      ],
+      "methode": null,
+      "lecteur": "lecture",
+      "urls": 0,
+      "fiches": 0,
+      "muettes": 0,
+      "avecCapacite": 0,
+      "avecChambres": 0,
+      "avecGps": 0,
+      "avecPhoto": 0,
+      "avecTarif": 0,
+      "avecTarifOuPlancher": 0,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 0
+    },
+    {
+      "host": "www.chioula.fr",
+      "moteur": "aucun",
+      "stations": [
+        "le-chioula"
+      ],
+      "methode": "sitemap",
+      "lecteur": "lecture",
+      "urls": 6,
+      "fiches": 1,
+      "muettes": 5,
+      "avecCapacite": 1,
+      "avecChambres": 0,
+      "avecGps": 0,
+      "avecPhoto": 1,
+      "avecTarif": 0,
+      "avecTarifOuPlancher": 0,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 0
+    },
+    {
+      "host": "www.haut-giffre.fr",
+      "moteur": "aucun",
+      "stations": [
+        "sixt-fer-a-cheval"
+      ],
+      "methode": "sitemap",
+      "lecteur": "lecture",
+      "urls": 110,
+      "fiches": 102,
+      "muettes": 8,
+      "avecCapacite": 40,
+      "avecChambres": 93,
+      "avecGps": 0,
+      "avecPhoto": 102,
+      "avecTarif": 25,
+      "avecTarifOuPlancher": 48,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 0
+    },
+    {
+      "host": "www.mole-brasses.com",
+      "moteur": "aucun",
+      "stations": [
+        "les-brasses"
+      ],
+      "methode": "sitemap",
+      "lecteur": "lecture",
+      "urls": 74,
+      "fiches": 70,
+      "muettes": 4,
+      "avecCapacite": 44,
+      "avecChambres": 54,
+      "avecGps": 64,
+      "avecPhoto": 68,
+      "avecTarif": 14,
+      "avecTarifOuPlancher": 48,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 0
+    },
+    {
+      "host": "www.sancy.com",
+      "moteur": "Diffusio",
+      "stations": [
+        "besse-super-besse",
+        "le-mont-dore"
+      ],
+      "methode": "sitemap",
+      "lecteur": "lecture",
+      "urls": 1377,
+      "fiches": 1361,
+      "muettes": 0,
+      "avecCapacite": 1297,
+      "avecChambres": 1275,
+      "avecGps": 1357,
+      "avecPhoto": 1356,
+      "avecTarif": 731,
+      "avecTarifOuPlancher": 1209,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 17
+    },
+    {
+      "host": "www.valleesdegavarnie.com",
+      "moteur": "Tourinsoft",
+      "stations": [
+        "gavarnie-gedre"
+      ],
+      "methode": "sitemap",
+      "lecteur": "lecture",
+      "urls": 425,
+      "fiches": 425,
+      "muettes": 0,
+      "avecCapacite": 203,
+      "avecChambres": 222,
+      "avecGps": 425,
+      "avecPhoto": 425,
+      "avecTarif": 46,
+      "avecTarifOuPlancher": 58,
+      "avecTotalDate": 0,
+      "interditsRobots": 0,
+      "refus": 0,
+      "erreurs": 1
+    }
+  ]
+}

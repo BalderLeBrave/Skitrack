@@ -20,6 +20,7 @@
 import { demander, verdictPoli } from "../scrape/politesse.ts";
 import { domainBySlug, estimateForfait, FORFAIT_CATALOG } from "./catalog.ts";
 import { extractForfaits } from "./extract.ts";
+import { grilleCoherente, ordreCandidats, pagesDecouvertes } from "./pagesTarifs.ts";
 import { applyExtracted, DEFAULT_TTL_MS, emptyRow, isStale, markFailure, markStaleIfNeeded } from "./store.ts";
 import {
   echec as noterEchec,
@@ -122,7 +123,7 @@ export function reactiverForfait(slug: string): EtatSource {
 /** Les pages à essayer, **la voie qui a marché en premier**. Elle était
  *  mémorisée dans `sourceUrl` et jamais relue : chaque relevé repartait du
  *  premier chemin de la liste. */
-function candidates(website: string, retenue: string | null): string[] {
+function candidates(website: string, retenue: string | null, slug?: string): string[] {
   const raw = website.trim().startsWith("http") ? website.trim() : `https://${website.trim()}`;
   let origin: string;
   try {
@@ -130,13 +131,10 @@ function candidates(website: string, retenue: string | null): string[] {
   } catch {
     return [];
   }
-  const seen: string[] = [];
-  if (retenue) seen.push(retenue);
-  for (const path of CANDIDATE_PATHS) {
-    const url = path === "" ? raw : `${origin}${path}`;
-    if (!seen.includes(url)) seen.push(url);
-  }
-  return seen;
+  const devinees = CANDIDATE_PATHS.map((path) => (path === "" ? raw : `${origin}${path}`));
+  // Les pages que le sitemap du domaine publie passent avant les chemins
+  // devinés (`pagesTarifs.ts`).
+  return ordreCandidats(retenue, slug ? pagesDecouvertes(slug) : [], devinees);
 }
 
 export type Resultat = {
@@ -174,7 +172,7 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
   let cause = "Aucun tarif lisible.";
   let interdites = 0;
   let expirations = 0;
-  const essais = candidates(domain.website, source.url);
+  const essais = candidates(domain.website, source.url, slug);
   for (const url of essais) {
     if (signal?.aborted) throw new DOMException("Relevé interrompu.", "AbortError");
     // robots.txt est lu **et respecté**, pour ce chemin-ci et non pour la
@@ -213,6 +211,11 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
       const extracted = extractForfaits(page.text);
       if (!extracted) {
         cause = "Page lue, aucun tarif reconnu.";
+        source = noter(source, { at: quand, url, issue: "illisible", statut: page.status, message: cause });
+        continue;
+      }
+      if (url !== source.url && pagesDecouvertes(slug).includes(url) && !grilleCoherente(extracted)) {
+        cause = "Page du sitemap lue, grille incohérente.";
         source = noter(source, { at: quand, url, issue: "illisible", statut: page.status, message: cause });
         continue;
       }

@@ -1,0 +1,28 @@
+{
+  "cible": {
+    "host": "lesangles.com",
+    "nom": "Les Angles",
+    "moteur": "aucun",
+    "stations": [
+      "les-angles"
+    ]
+  },
+  "releveLe": "2026-10-11T00:21:55.784Z",
+  "methode": null,
+  "lecteur": "lecture",
+  "sitemap": {
+    "sitemaps": [],
+    "vues": 0,
+    "interditsRobots": 0,
+    "racineInterdite": false,
+    "refus": 403
+  },
+  "urls": 0,
+  "fiches": [],
+  "muettes": 0,
+  "interditsRobots": 0,
+  "refus": 1,
+  "erreurs": [
+    "https://lesangles.com/sitemap_index.xml : refus 403, découverte arrêtée"
+  ]
+}

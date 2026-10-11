@@ -1,0 +1,48 @@
+{
+  "cible": {
+    "host": "www.chioula.fr",
+    "nom": "Le Chioula",
+    "moteur": "aucun",
+    "stations": [
+      "le-chioula"
+    ]
+  },
+  "releveLe": "2026-10-11T00:21:55.786Z",
+  "methode": "sitemap",
+  "lecteur": "lecture",
+  "sitemap": {
+    "sitemaps": [
+      "https://www.chioula.fr/sitemap.xml"
+    ],
+    "vues": 78,
+    "interditsRobots": 0,
+    "racineInterdite": false,
+    "refus": null
+  },
+  "urls": 6,
+  "fiches": [
+    {
+      "url": "https://www.chioula.fr/location-du-chioula.html",
+      "lecteur": "lecture",
+      "titre": "LOCATION DU CHIOULA",
+      "type": null,
+      "commune": null,
+      "capacite": 10,
+      "chambres": null,
+      "pieces": null,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://www.chioula.fr/medias/images/prestataires/loc1-9118.jpg"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.786Z"
+    }
+  ],
+  "muettes": 5,
+  "interditsRobots": 0,
+  "refus": 0,
+  "erreurs": []
+}

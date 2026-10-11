@@ -87,6 +87,21 @@ export const CLES: readonly Cle[] = [
     essayable: false,
     facultative: true,
   },
+  {
+    id: "firecrawl",
+    env: ["FIRECRAWL_API_KEY", "SKITRACK_FIRECRAWL_API_KEY"],
+    label: aTraduire("Clé API Firecrawl"),
+    sert: aTraduire("Lit par Firecrawl les fiches des centrales sans connecteur et les pages tarifs des domaines, découvertes par leur sitemap, dans le respect de robots.txt."),
+    sans: aTraduire("Les fiches et les pages tarifs sont lues directement : JSON-LD, balises et texte de la page. Les pages rendues en JavaScript restent muettes."),
+    obtenir: {
+      texte: aTraduire("Tableau de bord Firecrawl : API Keys, copier la clé"),
+      url: "https://www.firecrawl.dev/app/api-keys",
+    },
+    secret: true,
+    exemple: aTraduire("fc- suivi d’une trentaine de caractères"),
+    essayable: false,
+    facultative: true,
+  },
 ];
 
 export function cleParId(id: string): Cle | undefined {

@@ -1,0 +1,22 @@
+{
+  "cible": {
+    "host": "booking.prazsurarly.com",
+    "nom": "Praz-sur-Arly",
+    "moteur": "Orchestra",
+    "stations": [
+      "praz-sur-arly"
+    ]
+  },
+  "releveLe": "2026-10-11T00:21:55.782Z",
+  "methode": null,
+  "lecteur": "lecture",
+  "sitemap": null,
+  "urls": 0,
+  "fiches": [],
+  "muettes": 0,
+  "interditsRobots": 1,
+  "refus": 0,
+  "erreurs": [
+    "robots.txt interdit la racine (aucune règle) : rien n'est lu"
+  ]
+}

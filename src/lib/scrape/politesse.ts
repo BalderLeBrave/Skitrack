@@ -203,6 +203,16 @@ export function crawlDelayMs(texte: string | null, agent = UA_AGENT): number | n
   return valeur;
 }
 
+/**
+ * Le robots.txt de `origine`, tel que la file le lit et le garde en cache :
+ * `null` s'il est illisible, `""` s'il n'existe pas (404). Pour les lignes
+ * `Sitemap:` (`sitemap.server.ts`) ; les règles, elles, passent par
+ * `verdictPoli`.
+ */
+export function texteRobots(origine: string): Promise<string | null> {
+  return lireRobots(origine);
+}
+
 async function lireRobots(origine: string): Promise<string | null> {
   const hit = robots.get(origine);
   const ttl = hit?.texte == null ? ROBOTS_TTL_ILLISIBLE_MS : ROBOTS_TTL_MS;

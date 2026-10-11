@@ -1,0 +1,28 @@
+{
+  "cible": {
+    "host": "sites.valdabondance.com",
+    "nom": "Abondance",
+    "moteur": "aucun",
+    "stations": [
+      "abondance"
+    ]
+  },
+  "releveLe": "2026-10-11T00:21:55.785Z",
+  "methode": null,
+  "lecteur": "lecture",
+  "sitemap": {
+    "sitemaps": [
+      "http://sites.valdabondance.com/sitemap.xml"
+    ],
+    "vues": 1191,
+    "interditsRobots": 0,
+    "racineInterdite": false,
+    "refus": null
+  },
+  "urls": 0,
+  "fiches": [],
+  "muettes": 0,
+  "interditsRobots": 0,
+  "refus": 0,
+  "erreurs": []
+}

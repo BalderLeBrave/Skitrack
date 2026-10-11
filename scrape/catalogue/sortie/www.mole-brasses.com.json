@@ -1,0 +1,2434 @@
+{
+  "cible": {
+    "host": "www.mole-brasses.com",
+    "nom": "Les Brasses",
+    "moteur": "aucun",
+    "stations": [
+      "les-brasses"
+    ]
+  },
+  "releveLe": "2026-10-11T00:21:55.789Z",
+  "methode": "sitemap",
+  "lecteur": "lecture",
+  "sitemap": {
+    "sitemaps": [
+      "https://www.mole-brasses.com/fr/sitemap.xml",
+      "https://www.mole-brasses.com/en/sitemap.xml"
+    ],
+    "vues": 2212,
+    "interditsRobots": 0,
+    "racineInterdite": false,
+    "refus": null
+  },
+  "urls": 74,
+  "fiches": [
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements",
+      "lecteur": "lecture",
+      "titre": "Explorez !",
+      "type": null,
+      "commune": null,
+      "capacite": 3,
+      "chambres": 1,
+      "pieces": 1,
+      "lat": null,
+      "lon": null,
+      "photos": [],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/selections/toutourisme-hebergement",
+      "lecteur": "lecture",
+      "titre": "Toutourisme hebergement",
+      "type": null,
+      "commune": null,
+      "capacite": 30,
+      "chambres": 4,
+      "pieces": null,
+      "lat": null,
+      "lon": null,
+      "photos": [],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/location-saisonniere-appartement-entree-independante",
+      "lecteur": "lecture",
+      "titre": "Location saisonnière - Appartement entrée indépendante",
+      "type": null,
+      "commune": "Saint-Jean-de-Tholome",
+      "capacite": 4,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.114333,
+      "lon": 6.397296,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/26318/24318555",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/26318/24318555"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : 65 € (Jusqu'à 4 personnes, 1 chambre avec lit double de 140 + canapé convertible jusqu'à 2 adultes",
+          "montant": 65,
+          "unite": "nuit",
+          "plancher": false
+        },
+        {
+          "libelle": "Personne supplémentaire : 15 € (Chambre supplémentaire disponible à la location 15€ / nuitée (même niveau que l'appartement, accès indépendant)).",
+          "montant": 15,
+          "unite": "nuit",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/peillohomes-lappartement",
+      "lecteur": "lecture",
+      "titre": "Peillo'Homes - L'appartement",
+      "type": null,
+      "commune": "Peillonnex",
+      "capacite": null,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.133579,
+      "lon": 6.392186,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/957/9323284",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/957/9323284"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 770 à 970 €.",
+          "montant": 770,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/studio-mezzanine-les-places",
+      "lecteur": "lecture",
+      "titre": "Studio Mezzanine - Les Places",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": 4,
+      "chambres": 0,
+      "pieces": 1,
+      "lat": 46.183007,
+      "lon": 6.438415,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1997/6671395",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1997/6671395"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Tarif à titre indicatif : de 250 € à 400 €",
+          "montant": 250,
+          "unite": "autre",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/auberge-de-megevette-hotel",
+      "lecteur": "lecture",
+      "titre": "Auberge de Mégevette - Hotel",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.199479,
+      "lon": 6.498045,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/685/7094330",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/685/7094330"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "De 3 à 6 ans : 23 € par enfant, par jour,",
+          "montant": 23,
+          "unite": "autre",
+          "plancher": false
+        },
+        {
+          "libelle": "De 7 à 12 ans : 28 € par enfant, par jour.",
+          "montant": 28,
+          "unite": "autre",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/coeur-de-haute-savoie",
+      "lecteur": "lecture",
+      "titre": "Coeur de Haute-Savoie",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.155665,
+      "lon": 6.422774,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/12169/35296894",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/12169/35296894"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-des-sometys",
+      "lecteur": "lecture",
+      "titre": "Gîte des Sometys",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": null,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.172074,
+      "lon": 6.500054,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1983/56621",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1983/56621"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 190 à 490 €",
+          "montant": 190,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/les-chalets-de-ludran",
+      "lecteur": "lecture",
+      "titre": "Les Chalets de Ludran",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": 8,
+      "pieces": null,
+      "lat": 46.169952,
+      "lon": 6.396875,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/962/12887890",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/962/12887890"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : 125 €.",
+          "montant": 125,
+          "unite": "nuit",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-miribel",
+      "lecteur": "lecture",
+      "titre": "Gîte Miribel",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.198475,
+      "lon": 6.49748,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/6188/30491250",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/6188/30491250"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 188 à 238 €",
+          "montant": 188,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 188 à 238 €",
+          "montant": 188,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 296 à 375 €",
+          "montant": 296,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 375 à 590 €.",
+          "montant": 375,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 188 à 238 €",
+          "montant": 188,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 296 à 375 €",
+          "montant": 296,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 375 à 590 €.",
+          "montant": 375,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-chez-marjophine",
+      "lecteur": "lecture",
+      "titre": "Gîte Chez Marjophine",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": 4,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.189506,
+      "lon": 6.42082,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/34150/35296932",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/34150/35296932"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/o-songes-de-saxel",
+      "lecteur": "lecture",
+      "titre": "Ô Songes de Saxel",
+      "type": null,
+      "commune": "Saxel",
+      "capacite": null,
+      "chambres": 6,
+      "pieces": null,
+      "lat": 46.24196,
+      "lon": 6.394602,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/2e2106d5-2c10-43ee-816a-1f5e5d2609f4/42164258",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/2e2106d5-2c10-43ee-816a-1f5e5d2609f4/42164258"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/location-chalet-de-montagne-avec-vue-sur-le-mont-blanc",
+      "lecteur": "lecture",
+      "titre": "Location Chalet de montagne avec vue sur le Mont Blanc",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.175818,
+      "lon": 6.477764,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/talloires",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/undefined"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Semaine : à partir de 742 €.",
+          "montant": 742,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "A partir de 742€/personne et par semaine",
+          "montant": 742,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/la-grange-aux-souvenirs",
+      "lecteur": "lecture",
+      "titre": "La grange aux souvenirs",
+      "type": null,
+      "commune": "Saint-Jeoire",
+      "capacite": 5,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.167377,
+      "lon": 6.469114,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1995/29930484",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1995/29930484"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 595 à 890 €.",
+          "montant": 595,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 595 à 890 €.",
+          "montant": 595,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 595 à 890 €.",
+          "montant": 595,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/appartement-mole-onnion-sevillon",
+      "lecteur": "lecture",
+      "titre": "Appartement Môle - Onnion (Sévillon)",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": 3,
+      "lat": 46.188946,
+      "lon": 6.504906,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/58624/34161996",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/58624/34161996"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : à partir de 70 € (Prix charges comprises",
+          "montant": 70,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "Mois : à partir de 750 € (Prix charges comprises.).",
+          "montant": 750,
+          "unite": "mois",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/le-chalet-des-pierres",
+      "lecteur": "lecture",
+      "titre": "Le Chalet des Pierres",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.157091,
+      "lon": 6.414093,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/877/4762961",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/877/4762961"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Nuitée : de 80 à 100 €.",
+          "montant": 80,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Nuitée : de 80 à 100 €.",
+          "montant": 80,
+          "unite": "nuit",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/studio-cabine-n214-residence-fleur-des-alpes",
+      "lecteur": "lecture",
+      "titre": "Studio Cabine n°214 - Résidence Fleur des Alpes",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": 5,
+      "chambres": 0,
+      "pieces": 1,
+      "lat": 46.181687,
+      "lon": 6.440131,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1015/12560940",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1015/12560940"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/yourte-quebequoise-haute-savoie",
+      "lecteur": "lecture",
+      "titre": "Yourte Québéquoise Haute-Savoie",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": 2,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.170737,
+      "lon": 6.467814,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/10401/17949673",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/10401/17949673"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : à partir de 95 € (Minimum 2 nuitées)",
+          "montant": 95,
+          "unite": "sejour",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/studio-residence-le-chamois-dor",
+      "lecteur": "lecture",
+      "titre": "Studio - Résidence \"Le Chamois d&#x27;Or\"",
+      "type": null,
+      "commune": null,
+      "capacite": 2,
+      "chambres": 0,
+      "pieces": 1,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/2000/6871026"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 280 à 400 €.",
+          "montant": 280,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/la-ferme-de-quinette",
+      "lecteur": "lecture",
+      "titre": "La Ferme de Quinette",
+      "type": null,
+      "commune": "Fillinges",
+      "capacite": 9,
+      "chambres": 6,
+      "pieces": null,
+      "lat": 46.178669,
+      "lon": 6.36475,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/42066/38508686",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/42066/38508686"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 972 à 1 330 €",
+          "montant": 972,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Capacité maximum acceptée : 13 personnes (avec supplément de 245€ par personne supplémentaire et par semaine).",
+          "montant": 245,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "à partir de — Week-end : de 972 à 1 330 €",
+          "montant": 972,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 1 910 à 3 152 €",
+          "montant": 1910,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 3 350 à 4 600 €.",
+          "montant": 3350,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Week-end : 1 330 €",
+          "montant": 1330,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Mid-week : 3 152 €",
+          "montant": 3152,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "à partir de — Semaine : de 3 990 à 4 600 €.",
+          "montant": 3990,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/appartement-plaine-joux-onnion-sevillon",
+      "lecteur": "lecture",
+      "titre": "Appartement Plaine-Joux - Onnion (Sévillon)",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": 2,
+      "chambres": 1,
+      "pieces": 1,
+      "lat": 46.188743,
+      "lon": 6.504859,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/58625/34162184",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/58625/34162184"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Semaine : à partir de 250 € (Prix charges comprises)",
+          "montant": 250,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Mois : à partir de 400 € (Prix charges comprises).",
+          "montant": 400,
+          "unite": "mois",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-du-vrai-monde",
+      "lecteur": "lecture",
+      "titre": "Gîte du vrai monde",
+      "type": null,
+      "commune": "Fillinges",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.156667,
+      "lon": 6.33763,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/31137/27226809",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/31137/27226809"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Repas : à partir de 15 € (Un repas peut être réservé le soir de votre arrivée ainsi qu'un petit déjeuner le 1er matin. Puis sur demande lors de votre séjour.)",
+          "montant": 15,
+          "unite": "autre",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Nuitée : de 145 à 180 € (Prix dégressifs en fonction du nombre de nuitées.).",
+          "montant": 145,
+          "unite": "nuit",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/aire-de-service-camping-car-a-viuz-en-sallaz",
+      "lecteur": "lecture",
+      "titre": "Aire de service camping car à Viuz en Sallaz",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.142945,
+      "lon": 6.416834,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/products/5d4ff239-e4a6-44b1-a4ed-bbb8c661b256/42765649",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/products/5d4ff239-e4a6-44b1-a4ed-bbb8c661b256/42765649"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chalet-degre-6",
+      "lecteur": "lecture",
+      "titre": "Chalet Degré 6",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": 12,
+      "chambres": 6,
+      "pieces": null,
+      "lat": 46.172253,
+      "lon": 6.472016,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/2007/30928404",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/2007/30928404"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 1 400 à 2 675 €.",
+          "montant": 1400,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 1 400 à 2 675 €.",
+          "montant": 1400,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 1 400 à 2 675 €.",
+          "montant": 1400,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/le-chalet",
+      "lecteur": "lecture",
+      "titre": "Le Chalet",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": 6,
+      "chambres": 3,
+      "pieces": null,
+      "lat": 46.197216,
+      "lon": 6.461614,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/10365/28095966",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/10365/28095966"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 475 à 960 €.",
+          "montant": 475,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 475 à 960 €.",
+          "montant": 475,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 475 à 960 €.",
+          "montant": 475,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/hotel-la-ferme-du-lac",
+      "lecteur": "lecture",
+      "titre": "Hôtel la Ferme du Lac",
+      "type": null,
+      "commune": "Thyez",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.077341,
+      "lon": 6.54586,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/16864/41736782",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/16864/41736782"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/appartement-residence-la-sapiniere",
+      "lecteur": "lecture",
+      "titre": "Appartement Résidence La Sapinière",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": 4,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.168183,
+      "lon": 6.47558,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/906/23476056",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/906/23476056"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Nuitée : de 50 à 60 €.",
+          "montant": 50,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "50€/nuit hors vacances scolaire",
+          "montant": 50,
+          "unite": "nuit",
+          "plancher": false
+        },
+        {
+          "libelle": "60€/nuit pendant vacances scolaires.",
+          "montant": 60,
+          "unite": "nuit",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-grange-dor",
+      "lecteur": "lecture",
+      "titre": "Gite Grange D'or",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": null,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.182994,
+      "lon": 6.447119,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/products/702a5223-981c-4b7d-a42b-07b24f198e94/42838785",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/products/702a5223-981c-4b7d-a42b-07b24f198e94/42838785"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/meuble-sympathique-t3",
+      "lecteur": "lecture",
+      "titre": "Meublé Sympathique T3",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": 2,
+      "pieces": 3,
+      "lat": 46.148124,
+      "lon": 6.410356,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/8461/35297331",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/8461/35297331"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/maison-independante-a-peillonnex",
+      "lecteur": "lecture",
+      "titre": "Maison Indépendante à Peillonnex",
+      "type": null,
+      "commune": "Peillonnex",
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": 3,
+      "lat": 46.135247,
+      "lon": 6.392331,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/864/29525964",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/864/29525964"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Tarif à titre indicatif : 700 € la semaine du 1er mai au 30 septembre et 800 € la semaine du 1er octobre au 30 avril.",
+          "montant": 700,
+          "unite": "semaine",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/edelweiss-appartement-a-megevette",
+      "lecteur": "lecture",
+      "titre": "Edelweiss - Appartement à Mégevette",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 2,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.198475,
+      "lon": 6.49748,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1987/30491165",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1987/30491165"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 113 à 153 €",
+          "montant": 113,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 113 à 153 €",
+          "montant": 113,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 178 à 241 €",
+          "montant": 178,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 225 à 340 €.",
+          "montant": 225,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 113 à 153 €",
+          "montant": 113,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 178 à 241 €",
+          "montant": 178,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 225 à 340 €.",
+          "montant": 225,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/studio-cabine-n217-residence-fleurs-des-alpes",
+      "lecteur": "lecture",
+      "titre": "Studio Cabine n°217 - Résidence Fleurs des Alpes",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": 0,
+      "pieces": 1,
+      "lat": 46.181403,
+      "lon": 6.441337,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/855/2046376",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/855/2046376"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Semaine : à partir de 490 €.",
+          "montant": 490,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "490€ la semaine en période scolaire",
+          "montant": 490,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "60€/ nuit hors saison",
+          "montant": 60,
+          "unite": "nuit",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/appartement-de-charme-ledelweiss",
+      "lecteur": "lecture",
+      "titre": "Appartement de charme ''L'Edelweiss''",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.154848,
+      "lon": 6.404729,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1014/12895130",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1014/12895130"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/studio-cabine-senelier-residence-fleurs-des-alpes",
+      "lecteur": "lecture",
+      "titre": "Studio cabine Senelier - Résidence Fleurs des Alpes",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": 4,
+      "chambres": 1,
+      "pieces": 1,
+      "lat": 46.181498,
+      "lon": 6.440473,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/786/25593829",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/786/25593829"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 260 à 480 €.",
+          "montant": 260,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Tarif à titre indicatif : de 260 € à 480 €.",
+          "montant": 260,
+          "unite": "autre",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 260 à 480 €.",
+          "montant": 260,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Tarif à titre indicatif : de 260 € à 480 €.",
+          "montant": 260,
+          "unite": "autre",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/cabane-du-vrai-monde",
+      "lecteur": "lecture",
+      "titre": "Cabane du Vrai Monde",
+      "type": null,
+      "commune": "Fillinges",
+      "capacite": 4,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.15678,
+      "lon": 6.3377,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/61849/35122075",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/61849/35122075"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Week-end : 333 €",
+          "montant": 333,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Mid-week : 637 €",
+          "montant": 637,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "Week-end : 333 €",
+          "montant": 333,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Mid-week : 637 €",
+          "montant": 637,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "Semaine : 1 014 €.",
+          "montant": 1014,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Week-end : 340 €",
+          "montant": 340,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Mid-week : 578 €",
+          "montant": 578,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "Semaine : 952 €.",
+          "montant": 952,
+          "unite": "semaine",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chalet-la-chaine-dor",
+      "lecteur": "lecture",
+      "titre": "Chalet la Chaîne d'Or",
+      "type": null,
+      "commune": "Saint-Jeoire",
+      "capacite": 10,
+      "chambres": 4,
+      "pieces": null,
+      "lat": 46.174526,
+      "lon": 6.450155,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/42065/29793932",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/42065/29793932"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 980 à 2 300 €.",
+          "montant": 980,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 980 à 2 300 €.",
+          "montant": 980,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 1 080 à 2 350 €.",
+          "montant": 1080,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-la-maisonnette",
+      "lecteur": "lecture",
+      "titre": "Gîte \"La Maisonnette\"",
+      "type": null,
+      "commune": null,
+      "capacite": 5,
+      "chambres": 2,
+      "pieces": null,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/820/29300157"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Mid-week : 672 €",
+          "montant": 672,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "à partir de — Semaine : de 495 à 850 €.",
+          "montant": 495,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Mid-week : 672 €",
+          "montant": 672,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "à partir de — Semaine : de 495 à 850 €.",
+          "montant": 495,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 495 à 850 €.",
+          "montant": 495,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/au-chalet-du-mole",
+      "lecteur": "lecture",
+      "titre": "Au Chalet du Môle",
+      "type": null,
+      "commune": "Saint-Jean-de-Tholome",
+      "capacite": null,
+      "chambres": 4,
+      "pieces": null,
+      "lat": 46.106716,
+      "lon": 6.415676,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1046/12846180",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1046/12846180"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/residence-le-chamoix-dor-appartement-mondon",
+      "lecteur": "lecture",
+      "titre": "Résidence Le Chamoix D&#x27;Or - Appartement \"Mondon\"",
+      "type": null,
+      "commune": null,
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/10332/32619203"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : à partir de 60 € (Le tarif de notre logement commence à partir de ...",
+          "montant": 60,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "Nuitée : à partir de 60 € (Le tarif de notre logement commence à partir de 60€ par nuit. Les prix peuvent varier en fonction des périodes, de la saison et de la durée du séjour.",
+          "montant": 60,
+          "unite": "nuit",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chalet-de-la-vuagere",
+      "lecteur": "lecture",
+      "titre": "Chalet de la Vuagère",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": 15,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.180276,
+      "lon": 6.444769,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/738/908364",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/738/908364"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chalet-video-projecteur-et-terrasse-proche-ski",
+      "lecteur": "lecture",
+      "titre": "Chalet - video projecteur et terrasse - proche ski",
+      "type": null,
+      "commune": "Saint-Jeoire",
+      "capacite": 4,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.146985,
+      "lon": 6.470882,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/9c52dc21-f696-495b-886f-bd84de6a4ddf/40502861",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/9c52dc21-f696-495b-886f-bd84de6a4ddf/40502861"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/la-crete-de-marcellaz",
+      "lecteur": "lecture",
+      "titre": "La Crête de Marcellaz",
+      "type": null,
+      "commune": "Marcellaz",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 48.92351,
+      "lon": 2.27824,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/21636/35442675",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/21636/35442675"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chalet-jum-14-couchages",
+      "lecteur": "lecture",
+      "titre": "Chalet JUM - 14 couchages",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": 14,
+      "chambres": 5,
+      "pieces": null,
+      "lat": 46.18632,
+      "lon": 6.4413,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/12355/33843883",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/12355/33843883"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Week-end : 900 € (Arrivée le vendredi soir à partir de 16h - Départ le dimanche avant 14h).",
+          "montant": 900,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Week-end : 1 210 € (Arrivée le vendredi à partir de 16h. Départ le dimanche avant 14h)",
+          "montant": 1210,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Semaine : 4 420 € (Arrivée possible le samedi ou le dimanche. Pas de location semaine sur la semaine du nouvel an).",
+          "montant": 4420,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Week-end : 900 € (Arrivée le vendredi à partir de 16h - Départ le dimanche avant 14h).",
+          "montant": 900,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Semaine : 3 320 € (Arrivée possible le samedi ou le dimanche.).",
+          "montant": 3320,
+          "unite": "semaine",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/meuble-chantal-curton",
+      "lecteur": "lecture",
+      "titre": "Meublé - Chantal Curton",
+      "type": null,
+      "commune": "Saint-Jeoire",
+      "capacite": null,
+      "chambres": 3,
+      "pieces": null,
+      "lat": 46.16663,
+      "lon": 6.469689,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/30905/27227034",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/30905/27227034"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 450 à 800 € (tarif spécial hors vacances scolaires).",
+          "montant": 450,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/latelier-de-charly",
+      "lecteur": "lecture",
+      "titre": "L'Atelier de Charly",
+      "type": null,
+      "commune": "Peillonnex",
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.132332,
+      "lon": 6.375322,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/2001/29731645",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/2001/29731645"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Mid-week : de 711 à 790 €",
+          "montant": 711,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 711 à 790 €",
+          "montant": 711,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 900 à 1 200 €.",
+          "montant": 900,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 711 à 869 €",
+          "montant": 711,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 900 à 1 200 €.",
+          "montant": 900,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-et-chambres-dhotes-le-jorat",
+      "lecteur": "lecture",
+      "titre": "Gîte et Chambres d'hôtes - Le Jorat",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": 30,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.184336,
+      "lon": 6.434579,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/904/5609988",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/904/5609988"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : à partir de 70 € (Minimum deux nuits. Petit déjeuner inclus en cha...",
+          "montant": 70,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "Nuitée : à partir de 70 € (Minimum deux nuits. Petit déjeuner inclus en chambre d'hôtes.)",
+          "montant": 70,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "Animaux : 10 € (10€ / Sejour).",
+          "montant": 10,
+          "unite": "autre",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/studio-evasion-pres-des-pistes",
+      "lecteur": "lecture",
+      "titre": "Studio Evasion près des pistes",
+      "type": null,
+      "commune": "Saint-Jeoire",
+      "capacite": 3,
+      "chambres": 1,
+      "pieces": 1,
+      "lat": 46.164497,
+      "lon": 6.471928,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/ae39d8ef-9a1a-4cce-a3db-046b7dd165a9/40380629",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/ae39d8ef-9a1a-4cce-a3db-046b7dd165a9/40380629"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/fresnay",
+      "lecteur": "lecture",
+      "titre": "Fresnay",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 3,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.198475,
+      "lon": 6.49748,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/6189/30491193",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/6189/30491193"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 163 à 203 €",
+          "montant": 163,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 163 à 203 €",
+          "montant": 163,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 257 à 320 €",
+          "montant": 257,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 325 à 465 €.",
+          "montant": 325,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 163 à 203 €",
+          "montant": 163,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 257 à 320 €",
+          "montant": 257,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 325 à 465 €.",
+          "montant": 325,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/le-cabanon-du-vouan",
+      "lecteur": "lecture",
+      "titre": "Le cabanon du Vouan",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.159168,
+      "lon": 6.388341,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1996/30347008",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1996/30347008"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 211 à 345 €",
+          "montant": 211,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 211 à 345 €",
+          "montant": 211,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 300 à 545 €",
+          "montant": 300,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 490 à 840 €.",
+          "montant": 490,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 275 à 370 €",
+          "montant": 275,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 435 à 585 €",
+          "montant": 435,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 550 à 940 €.",
+          "montant": 550,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-la-soleillette",
+      "lecteur": "lecture",
+      "titre": "Gîte La Soleillette",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.191039,
+      "lon": 6.424595,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/733/8901584",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/733/8901584"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-le-jottis",
+      "lecteur": "lecture",
+      "titre": "Gîte le Jottis",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.198475,
+      "lon": 6.49748,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/6187/30491063",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/6187/30491063"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 188 à 238 €",
+          "montant": 188,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 188 à 238 €",
+          "montant": 188,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 296 à 375 €",
+          "montant": 296,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 375 à 590 €.",
+          "montant": 375,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 188 à 238 €",
+          "montant": 188,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 296 à 375 €",
+          "montant": 296,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 375 à 590 €.",
+          "montant": 375,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/les-pierres",
+      "lecteur": "lecture",
+      "titre": "Les Pierres",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 5,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.216702,
+      "lon": 6.499261,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/6797/29929271",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/6797/29929271"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 395 à 730 €.",
+          "montant": 395,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 395 à 730 €.",
+          "montant": 395,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 395 à 730 €.",
+          "montant": 395,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/le-seilly",
+      "lecteur": "lecture",
+      "titre": "Le Seilly",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": null,
+      "chambres": 0,
+      "pieces": 1,
+      "lat": 46.163814,
+      "lon": 6.389777,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/65799/36948173",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/65799/36948173"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 350 à 450 € (Tarif Vacances scolaires et hors vacances scolair...",
+          "montant": 350,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "Prix vacances scolaires 450 euros Autres périodes 350 euros.",
+          "montant": 450,
+          "unite": "autre",
+          "plancher": false
+        },
+        {
+          "libelle": "à partir de — Semaine : de 350 à 450 € (Tarif Vacances scolaires et hors vacances scolaires).",
+          "montant": 350,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/le-mole-gites-de-france",
+      "lecteur": "lecture",
+      "titre": "Le Môle - Gîtes de France",
+      "type": null,
+      "commune": "Faucigny",
+      "capacite": 6,
+      "chambres": 3,
+      "pieces": null,
+      "lat": 46.12596130371094,
+      "lon": 6.351230144500732,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/53035/32610266",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/53035/32610266"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 850 à 1 930 €.",
+          "montant": 850,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 850 à 1 930 €.",
+          "montant": 850,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 850 à 4 470 €.",
+          "montant": 850,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gites-a-saint-jean-de-tholome-gaiana",
+      "lecteur": "lecture",
+      "titre": "Gîtes à Saint Jean de Tholome GAÏANA",
+      "type": null,
+      "commune": "Saint-Jean-de-Tholome",
+      "capacite": null,
+      "chambres": 5,
+      "pieces": null,
+      "lat": 46.10108,
+      "lon": 6.435245,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/11374/20767127",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/11374/20767127"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : à partir de 86 € (Nous avons trois appartements : Mirabelle (2p), ...",
+          "montant": 86,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "Nuitée : à partir de 86 € (Nous avons trois appartements : Mirabelle (2p), Boosty (5p) et Cheyenne (4p)).",
+          "montant": 86,
+          "unite": "nuit",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/appartement-miribel-onnion-sevillon",
+      "lecteur": "lecture",
+      "titre": "Appartement Miribel - Onnion (Sévillon)",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": 3,
+      "lat": 46.188843,
+      "lon": 6.505066,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/58626/35963973",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/58626/35963973"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : 70 € (Tarif charges comprises",
+          "montant": 70,
+          "unite": "nuit",
+          "plancher": false
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/centre-de-vacances-saint-francois",
+      "lecteur": "lecture",
+      "titre": "Centre de vacances Saint François",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.188026,
+      "lon": 6.441228,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/6860/25840902",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/6860/25840902"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/tiny-alpea",
+      "lecteur": "lecture",
+      "titre": "Tiny Alpea",
+      "type": null,
+      "commune": "Fillinges",
+      "capacite": 3,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.152141,
+      "lon": 6.344802,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/d49326b6-a3fa-49c4-8099-9ea1f1b03965/42164549",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/d49326b6-a3fa-49c4-8099-9ea1f1b03965/42164549"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Nuitée : à partir de 75 € (A partir de...",
+          "montant": 75,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "Nuitée : à partir de 75 € (A partir de...",
+          "montant": 75,
+          "unite": "nuit",
+          "plancher": true
+        },
+        {
+          "libelle": "La nuit est à partir de 75€ pour deux personnes.",
+          "montant": 75,
+          "unite": "nuit",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chalet-lomy",
+      "lecteur": "lecture",
+      "titre": "Chalet Lomy",
+      "type": null,
+      "commune": "Fillinges",
+      "capacite": 10,
+      "chambres": 4,
+      "pieces": null,
+      "lat": 46.169529,
+      "lon": 6.35082,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/779/28834229",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/779/28834229"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 600 à 1 200 €",
+          "montant": 600,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 600 à 1 200 €",
+          "montant": 600,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 600 à 1 896 €",
+          "montant": 600,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 1 500 à 2 800 €.",
+          "montant": 1500,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 900 à 1 200 €",
+          "montant": 900,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 1 185 à 1 896 €",
+          "montant": 1185,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 1 500 à 2 400 €.",
+          "montant": 1500,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-la-ferme-des-chavannes",
+      "lecteur": "lecture",
+      "titre": "Gîte La ferme des Chavannes",
+      "type": null,
+      "commune": "Onnion",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.174872,
+      "lon": 6.480333,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/21638/35296979",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/21638/35296979"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/appartement-marguerite-maison-dufresne",
+      "lecteur": "lecture",
+      "titre": "Appartement \"Marguerite\" Maison Dufresne",
+      "type": null,
+      "commune": null,
+      "capacite": 4,
+      "chambres": 2,
+      "pieces": null,
+      "lat": null,
+      "lon": null,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/9792/17805457"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — De 88€ à 118€ / nuit ( minimum 3 nuitées)",
+          "montant": 88,
+          "unite": "sejour",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chalet-belle-vue",
+      "lecteur": "lecture",
+      "titre": "Chalet Belle Vue",
+      "type": null,
+      "commune": "Bogève",
+      "capacite": 5,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.192699,
+      "lon": 6.445664,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1994/28727458",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1994/28727458"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 500 à 700 €.",
+          "montant": 500,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 500 à 700 €.",
+          "montant": 500,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 500 à 700 €.",
+          "montant": 500,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/gite-rhododendron",
+      "lecteur": "lecture",
+      "titre": "Gite Rhododendron",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 6,
+      "chambres": 3,
+      "pieces": null,
+      "lat": 46.1984748840332,
+      "lon": 6.4974799156188965,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/6186/30491020",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/6186/30491020"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Week-end : de 283 à 353 €",
+          "montant": 283,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 283 à 353 €",
+          "montant": 283,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 446 à 557 €",
+          "montant": 446,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 565 à 870 €.",
+          "montant": 565,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 283 à 353 €",
+          "montant": 283,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 446 à 557 €",
+          "montant": 446,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 565 à 870 €.",
+          "montant": 565,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/mr-et-mme-meynet-cordonnier-patricia-et-max",
+      "lecteur": "lecture",
+      "titre": "Mr et Mme MEYNET-CORDONNIER Patricia et Max",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 5,
+      "chambres": 1,
+      "pieces": null,
+      "lat": 46.214542,
+      "lon": 6.497447,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/1986/28909899",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/1986/28909899"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "Week-end : 135 €",
+          "montant": 135,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Mid-week : 213 €",
+          "montant": 213,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "Week-end : 135 €",
+          "montant": 135,
+          "unite": "semaine",
+          "plancher": false
+        },
+        {
+          "libelle": "Mid-week : 213 €",
+          "montant": 213,
+          "unite": "sejour",
+          "plancher": false
+        },
+        {
+          "libelle": "à partir de — Semaine : de 270 à 420 €.",
+          "montant": 270,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Week-end : de 135 à 221 €",
+          "montant": 135,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Mid-week : de 213 à 269 €",
+          "montant": 213,
+          "unite": "sejour",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 270 à 420 €.",
+          "montant": 270,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/studio-vue-montagne",
+      "lecteur": "lecture",
+      "titre": "Studio vue montagne",
+      "type": null,
+      "commune": "Saint-Jeoire",
+      "capacite": 4,
+      "chambres": 1,
+      "pieces": 1,
+      "lat": 46.16413,
+      "lon": 6.472041,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/ea9ad1c0-36db-4623-8786-cfc938f237e0/40381183",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/ea9ad1c0-36db-4623-8786-cfc938f237e0/40381183"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/le-petit-cabanon",
+      "lecteur": "lecture",
+      "titre": "Le Petit Cabanon",
+      "type": null,
+      "commune": "Viuz-en-Sallaz",
+      "capacite": 6,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.155459,
+      "lon": 6.415837,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/943/8772149",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/943/8772149"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Nuitée : de 140 à 200 €.",
+          "montant": 140,
+          "unite": "nuit",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/chez-lea",
+      "lecteur": "lecture",
+      "titre": "Chez Léa",
+      "type": null,
+      "commune": "Mégevette",
+      "capacite": 6,
+      "chambres": 3,
+      "pieces": null,
+      "lat": 46.213299,
+      "lon": 6.50307,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/products/f488e4fa-57c7-4472-a6f1-2fc58306bf04/42562863",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/products/f488e4fa-57c7-4472-a6f1-2fc58306bf04/42562863"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 650 à 1 100 €.",
+          "montant": 650,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 650 à 1 100 €.",
+          "montant": 650,
+          "unite": "semaine",
+          "plancher": true
+        },
+        {
+          "libelle": "à partir de — Semaine : de 650 à 1 100 €.",
+          "montant": 650,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/campanile-findrol-savoie-leman-open-hotel",
+      "lecteur": "lecture",
+      "titre": "Campanile Findrol Savoie Leman - Open Hôtel",
+      "type": null,
+      "commune": "Fillinges",
+      "capacite": null,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.15068,
+      "lon": 6.321249,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/909/18318371",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/909/18318371"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/hotel-les-sapins",
+      "lecteur": "lecture",
+      "titre": "Hôtel Les Sapins",
+      "type": null,
+      "commune": "Saint-Jeoire",
+      "capacite": 2,
+      "chambres": null,
+      "pieces": null,
+      "lat": 46.137018,
+      "lon": 6.462015,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/accommodations/819/817026",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/accommodations/819/817026"
+      ],
+      "equipements": [],
+      "tarifs": [],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    },
+    {
+      "url": "https://www.mole-brasses.com/fr/hebergements/peillohomes-le-loft",
+      "lecteur": "lecture",
+      "titre": "Peillo'Homes - Le loft",
+      "type": null,
+      "commune": "Peillonnex",
+      "capacite": null,
+      "chambres": 2,
+      "pieces": null,
+      "lat": 46.133579,
+      "lon": 6.392186,
+      "photos": [
+        "https://res.cloudinary.com/resalocal-prod/image/upload/services/rental_accommodation/958/9054875",
+        "https://res.cloudinary.com/resalocal-prod/image/upload/f_auto,q_70,dpr_auto,c_fill,g_auto:subject,w_1200,h_630/services/rental_accommodation/958/9054875"
+      ],
+      "equipements": [],
+      "tarifs": [
+        {
+          "libelle": "à partir de — Semaine : de 970 à 770 €.",
+          "montant": 970,
+          "unite": "semaine",
+          "plancher": true
+        }
+      ],
+      "totalSejour": null,
+      "releveLe": "2026-10-11T00:21:55.789Z"
+    }
+  ],
+  "muettes": 4,
+  "interditsRobots": 0,
+  "refus": 0,
+  "erreurs": []
+}

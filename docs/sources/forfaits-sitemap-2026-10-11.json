@@ -1,0 +1,2804 @@
+{
+  "at": "2026-10-10T23:28:07.140Z",
+  "lecteur": "lecture",
+  "bilan": {
+    "domaines": 168,
+    "avecSitemap": 130,
+    "avecPageTarifs": 100,
+    "lus": 24,
+    "refus": 6,
+    "robots": 17,
+    "incoherentesEcartees": 22
+  },
+  "domaines": [
+    {
+      "slug": "abondance",
+      "website": "https://sites.valdabondance.com/",
+      "sitemaps": 1,
+      "vues": 1191,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "aime-2000",
+      "website": "https://www.la-plagne.com/",
+      "sitemaps": 8,
+      "vues": 13981,
+      "pages": [
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+        "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+        "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte",
+        "j1": 21,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "alpe-d-huez-grand-domaine",
+      "website": "https://www.alpedhuez.com/fr/",
+      "sitemaps": 11,
+      "vues": 4638,
+      "pages": [
+        "https://www.alpedhuez.com/fr/activites/forfaits/",
+        "https://www.alpedhuez.com/fr/video_webtv/fah2016-remise-du-prix-michel-galabru-prix-interpretation/",
+        "https://www.alpedhuez.com/fr/decouvrir/destination-famille/forfait-famille/",
+        "https://www.alpedhuez.com/fr/skipass/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "alpe-du-grand-serre",
+      "website": "https://www.matheysine-tourisme.com/fr/",
+      "sitemaps": 2,
+      "vues": 473,
+      "pages": [
+        "https://www.matheysine-tourisme.com/fr/alpedugrandserre/forfaits/forfait-saison/",
+        "https://www.matheysine-tourisme.com/fr/forfait-solidaire-alpe-du-grand-serre/",
+        "https://www.matheysine-tourisme.com/fr/alpedugrandserre/forfaits/",
+        "https://www.matheysine-tourisme.com/fr/alpedugrandserre/forfaits/assurance/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.matheysine-tourisme.com/fr/alpedugrandserre/forfaits/assurance/",
+        "j1": 50,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "areches-beaufort",
+      "website": "https://www.areches-beaufort.com/",
+      "sitemaps": 11,
+      "vues": 484,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "arette-la-pierre-saint-martin",
+      "website": "https://www.lapierrestmartin.com/",
+      "sitemaps": 2,
+      "vues": 805,
+      "pages": [
+        "https://www.lapierrestmartin.com/ski/les-forfaits/",
+        "https://www.lapierrestmartin.com/ski/les-forfaits/ski/",
+        "https://www.lapierrestmartin.com/ski/les-forfaits/espace-debutant/",
+        "https://www.lapierrestmartin.com/preparer-mon-sejour/ski/forfaits-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.lapierrestmartin.com/ski/les-forfaits/ski/",
+        "j1": 37,
+        "j6": 37,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "auris-en-oisans",
+      "website": "https://www.auris-en-oisans.fr/",
+      "sitemaps": 11,
+      "vues": 533,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "auron",
+      "website": "https://www.stationsnicecotedazur.com/fr/auron",
+      "sitemaps": 5,
+      "vues": 260,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "aussois",
+      "website": "https://www.aussois.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "avoriaz-1800",
+      "website": "https://www.avoriaz.com/",
+      "sitemaps": 1,
+      "vues": 2170,
+      "pages": [
+        "https://www.avoriaz.com/decouvrir/les-incontournables/tarifs-des-forfaits-hiver/",
+        "https://www.avoriaz.com/activites-hiver/ski-et-snow/acheter-son-forfait-de-ski-en-ligne-a-avoriaz--nos-conseils-et-astuces/",
+        "https://www.avoriaz.com/fiche/caisse-vente-de-forfaits-centre-station/",
+        "https://www.avoriaz.com/fiche/caisse-vente-de-forfaits-quartier-falaise/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.avoriaz.com/decouvrir/les-incontournables/tarifs-des-forfaits-hiver/",
+        "j1": 43,
+        "j6": 104.3,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "ax-3-domaines",
+      "website": "https://www.ax-ski.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "barcelonnette-le-sauze",
+      "website": "https://www.sauze.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": 403,
+      "erreurs": [
+        "https://www.sauze.com/sitemap_index.xml : refus 403, découverte arrêtée"
+      ]
+    },
+    {
+      "slug": "bareges-la-mongie",
+      "website": "https://www.bareges.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "bellefontaine",
+      "website": "https://www.lesrousses.com/",
+      "sitemaps": 8,
+      "vues": 908,
+      "pages": [
+        "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "bessans",
+      "website": "https://www.bessans.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "besse-super-besse",
+      "website": "https://superbesse.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://superbesse.com/sitemap.xml : ni index ni liste d'URL"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "beuil-les-launes",
+      "website": "https://beuil.fr/",
+      "sitemaps": 3,
+      "vues": 343,
+      "pages": [
+        "https://beuil.fr/tarif-exceptionnel-au-tennis-des-launes/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "bisanne-1500",
+      "website": "https://www.lessaisies.com/",
+      "sitemaps": 5,
+      "vues": 3350,
+      "pages": [
+        "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+        "https://www.lessaisies.com/une-fois-sur-place/les-saisies-sous-la-neige/ski-et-activites/acheter-mon-forfait-de-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+        "j1": 46,
+        "j6": 46,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "bois-d-amont-les-rousses-nordique",
+      "website": "https://www.lesrousses.com/",
+      "sitemaps": 8,
+      "vues": 908,
+      "pages": [
+        "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "bonneval-sur-arc",
+      "website": "https://www.bonneval-sur-arc.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "bourg-saint-maurice-les-arcs",
+      "website": "https://www.lesarcs.com/",
+      "sitemaps": 4,
+      "vues": 5114,
+      "pages": [
+        "https://www.lesarcs.com/fr/point-de-vente-de-forfaits-transarc",
+        "https://www.lesarcs.com/fr/seminaires-incentives-evenements-dentreprise/forfaits-de-groupes",
+        "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/prix-roman-jeunesse-la-vache-qui-lit-2026",
+        "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/depouillement-du-prix-de-la-vache-qui-lit"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "brides-les-bains",
+      "website": "https://www.brides-les-bains.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://www.brides-les-bains.com/sitemap_index.xml : HTTP 503"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "chamonix-le-brevent-flegere",
+      "website": "https://www.chamonix.com/",
+      "sitemaps": 6,
+      "vues": 8070,
+      "pages": [
+        "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "chamonix-le-tour-balme",
+      "website": "https://www.chamonix.com/",
+      "sitemaps": 6,
+      "vues": 8070,
+      "pages": [
+        "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "chamonix-les-grands-montets",
+      "website": "https://www.chamonix.com/",
+      "sitemaps": 6,
+      "vues": 8070,
+      "pages": [
+        "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "champagny-en-vanoise",
+      "website": "https://www.la-plagne.com/champagny-en-vanoise",
+      "sitemaps": 8,
+      "vues": 13981,
+      "pages": [
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+        "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+        "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte",
+        "j1": 21,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "chamrousse",
+      "website": "https://www.chamrousse.com/",
+      "sitemaps": 3,
+      "vues": 5548,
+      "pages": [
+        "https://en.chamrousse.com/alpine-ski-pass-prices.html",
+        "https://en.chamrousse.com/nordic-ski-pass-prices.html",
+        "https://www.chamrousse.com/forfait-ski-hiver-chamrousse.html",
+        "https://www.chamrousse.com/caisse-hiver-chamrousse-1700-et-distributeurs-automatiques-forfait.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "chamrousse-1750",
+      "website": "https://www.chamrousse.com/",
+      "sitemaps": 3,
+      "vues": 5548,
+      "pages": [
+        "https://en.chamrousse.com/alpine-ski-pass-prices.html",
+        "https://en.chamrousse.com/nordic-ski-pass-prices.html",
+        "https://www.chamrousse.com/forfait-ski-hiver-chamrousse.html",
+        "https://www.chamrousse.com/caisse-hiver-chamrousse-1700-et-distributeurs-automatiques-forfait.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "chatel",
+      "website": "https://www.chatel.com/",
+      "sitemaps": 3,
+      "vues": 2621,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://www.chatel.com/sitemap_index.xml : HTTP 500"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "combloux",
+      "website": "https://www.combloux.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": 403,
+      "erreurs": [
+        "https://www.combloux.com/sitemap_index.xml : refus 403, découverte arrêtée"
+      ]
+    },
+    {
+      "slug": "combloux-la-princesse",
+      "website": "https://www.combloux.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": 403,
+      "erreurs": [
+        "https://www.combloux.com/sitemap_index.xml : refus 403, découverte arrêtée"
+      ]
+    },
+    {
+      "slug": "correncon-en-vercors",
+      "website": "https://www.villarddelans-correnconenvercors.com/la-destination/decouvrez-deux-villages-stations-villard-et-correncon/correncon-en-vercors/",
+      "sitemaps": 3,
+      "vues": 1329,
+      "pages": [
+        "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/prevente-forfaits/",
+        "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/",
+        "j1": 32,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "courchevel",
+      "website": "https://courchevel.com/fr/",
+      "sitemaps": 3,
+      "vues": 3128,
+      "pages": [
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-moriond-7124132/",
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-la-tania-7124087/",
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-le-praz-alpinium-7124107/",
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-courchevel-la-croisette-7114625/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "courchevel-1550-le-praz",
+      "website": "https://courchevel.com/fr/",
+      "sitemaps": 3,
+      "vues": 2246,
+      "pages": [
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-moriond-7124132/",
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-de-ski-la-tania-7124087/",
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-le-praz-alpinium-7124107/",
+        "https://courchevel.com/fr/a/point-de-vente-forfaits-courchevel-la-croisette-7114625/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "crest-voland-cohennoz",
+      "website": "https://www.valdarly-montblanc.com/villages-stations/crest-voland-cohennoz/",
+      "sitemaps": 8,
+      "vues": 6852,
+      "pages": [
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-centrale-crest-voland-fr-3395247/",
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-cernix-cohennoz-fr-3395240/",
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-village-crest-voland-fr-3395248/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "espace-nordique-du-capcir",
+      "website": "https://www.capcir-nordique.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "flaine",
+      "website": "https://www.flaine.com/",
+      "sitemaps": 5,
+      "vues": 1630,
+      "pages": [
+        "https://www.flaine.com/forfaits-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.flaine.com/forfaits-ski/",
+        "j1": 60.7,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "flumet-val-d-arly",
+      "website": "https://www.valdarly-montblanc.com/",
+      "sitemaps": 8,
+      "vues": 6852,
+      "pages": [
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-centrale-crest-voland-fr-3395247/",
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-cernix-cohennoz-fr-3395240/",
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-village-crest-voland-fr-3395248/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "font-romeu-pyrenees-2000",
+      "website": "https://font-romeu.fr/",
+      "sitemaps": 25,
+      "vues": 2167,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "gap-bayard",
+      "website": "https://www.gap-bayard.com/",
+      "sitemaps": 1,
+      "vues": 274,
+      "pages": [
+        "https://www.gap-bayard.com/tarifs-golf"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "gavarnie-gedre",
+      "website": "https://www.valleesdegavarnie.com/",
+      "sitemaps": 5,
+      "vues": 1537,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "gourette",
+      "website": "https://www.gourette.com/",
+      "sitemaps": 18,
+      "vues": 891,
+      "pages": [
+        "https://www.gourette.com/la-station-en-hiver/le-ski/acheter-son-forfait-de-ski/",
+        "https://www.gourette.com/forfait-ski-gourette/",
+        "https://www.gourette.com/organismes-entreprises/immoforfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.gourette.com/la-station-en-hiver/le-ski/acheter-son-forfait-de-ski/",
+        "j1": 45,
+        "j6": 243,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "grand-tourmalet",
+      "website": "https://www.n-py.com/fr/stations/grand-tourmalet-bareges-la-mongie",
+      "sitemaps": 1,
+      "vues": 7926,
+      "pages": [
+        "https://www.n-py.com/fr/faq/forfaits-saison",
+        "https://www.n-py.com/fr/gourette/forfaits-ski/forfait-saison",
+        "https://www.n-py.com/fr/cauterets/forfaits-ski/forfait-saison",
+        "https://www.n-py.com/fr/peyragudes/forfaits-ski/forfait-saison"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.n-py.com/fr/cauterets/forfaits-ski/forfait-saison",
+        "j1": 399,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "hauteluce",
+      "website": "https://www.lessaisies.com/",
+      "sitemaps": 5,
+      "vues": 3350,
+      "pages": [
+        "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+        "https://www.lessaisies.com/une-fois-sur-place/les-saisies-sous-la-neige/ski-et-activites/acheter-mon-forfait-de-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+        "j1": 46,
+        "j6": 46,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "hirmentaz-bellevaux",
+      "website": "https://www.hirmentaz.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "iraty",
+      "website": "https://chalets-iraty.com/",
+      "sitemaps": 3,
+      "vues": 47,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "isola-2000",
+      "website": "https://isola2000.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://isola2000.com/wp-sitemap.xml : HTTP 404"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "jougne-metabief",
+      "website": "https://metabief.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "la-chapelle-d-abondance",
+      "website": "https://sites.valdabondance.com/",
+      "sitemaps": 1,
+      "vues": 1191,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "la-clusaz",
+      "website": "https://www.laclusaz.com/",
+      "sitemaps": 8,
+      "vues": 2576,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "la-feclaz",
+      "website": "https://www.chamberymontagnes.com/savoiegrandrevard/",
+      "sitemaps": 15,
+      "vues": 13505,
+      "pages": [
+        "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-prix-litteraire-paysages-ecrits-chambery-fr-5793684/",
+        "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-6e-prix-paysages-ecrits-de-la-fondation-facim-chambery-fr-6796655/",
+        "https://www.chamberymontagnes.com/preparer/sejours/cles-en-main/votre-sejour-vacanceole-a-petit-prix-pendant-la-grande-odyssee-la-feclaz-fr-6086155/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "la-joue-du-loup",
+      "website": "https://www.ledevoluy.com/",
+      "sitemaps": 5,
+      "vues": 3252,
+      "pages": [
+        "https://www.ledevoluy.com/hiver/ski-et-glisse/le-domaine-alpin/les-tarifs/",
+        "https://www.ledevoluy.com/hiver/ski-et-glisse/securite-et-infos-legales/conditions-de-vente-forfaits/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "la-norma",
+      "website": "https://www.la-norma.fr/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "la-plagne",
+      "website": "https://www.la-plagne.com/",
+      "sitemaps": 8,
+      "vues": 13981,
+      "pages": [
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+        "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+        "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte",
+        "j1": 21,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "la-rosiere-1850",
+      "website": "https://www.larosiere.net/",
+      "sitemaps": 8,
+      "vues": 1547,
+      "pages": [
+        "https://www.larosiere.net/forfaits-de-ski/",
+        "https://www.larosiere.net/forfait-remontees-mecaniques/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.larosiere.net/forfaits-de-ski/",
+        "j1": 59,
+        "j6": 301,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "la-rosiere-san-bernardo",
+      "website": "https://www.larosiere.net/",
+      "sitemaps": 8,
+      "vues": 1547,
+      "pages": [
+        "https://www.larosiere.net/forfaits-de-ski/",
+        "https://www.larosiere.net/forfait-remontees-mecaniques/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.larosiere.net/forfaits-de-ski/",
+        "j1": 59,
+        "j6": 301,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "la-toussuire-les-sybelles",
+      "website": "https://www.la-toussuire.com/",
+      "sitemaps": 3,
+      "vues": 1473,
+      "pages": [
+        "https://la-toussuire.com/je-profite-en-hiver/ski-et-glisse/nos-forfaits-de-ski-la-toussuire-domaine-des-sybelles/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://la-toussuire.com/je-profite-en-hiver/ski-et-glisse/nos-forfaits-de-ski-la-toussuire-domaine-des-sybelles/",
+        "j1": 59.3,
+        "j6": 301.2,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "lamoura",
+      "website": "https://www.lesrousses.com/",
+      "sitemaps": 8,
+      "vues": 908,
+      "pages": [
+        "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "landry",
+      "website": "https://www.peisey-vallandry.com/",
+      "sitemaps": 1,
+      "vues": 497,
+      "pages": [
+        "https://www.peisey-vallandry.com/point-de-vente-forfaits.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "lans-en-vercors",
+      "website": "https://www.vercors-experience.com/lans-en-vercors.html",
+      "sitemaps": 1,
+      "vues": 1861,
+      "pages": [
+        "https://www.vercors-experience.com/ski-lans-en-vercors-alpin-tarifs-forfaits.html",
+        "https://www.vercors-experience.com/ventes-flash-8-au-12-octobre-forfaits-saison-nordic-pass-vercors-hiver-ou-4-saisons.html",
+        "https://www.vercors-experience.com/ski-lans-en-vercors-nordique-tarifs-forfaits-seances-cartes.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-chioula",
+      "website": "https://www.chioula.fr/",
+      "sitemaps": 1,
+      "vues": 78,
+      "pages": [
+        "https://www.chioula.fr/tarifs.html",
+        "https://www.chioula.fr/tarifs-station-le-chioula.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-corbier-les-sybelles",
+      "website": "https://www.le-corbier.com/",
+      "sitemaps": 25,
+      "vues": 1164,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-devoluy-superdevoluy",
+      "website": "https://www.ledevoluy.com/",
+      "sitemaps": 5,
+      "vues": 3252,
+      "pages": [
+        "https://www.ledevoluy.com/hiver/ski-et-glisse/le-domaine-alpin/les-tarifs/",
+        "https://www.ledevoluy.com/hiver/ski-et-glisse/securite-et-infos-legales/conditions-de-vente-forfaits/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-grand-bornand",
+      "website": "https://www.legrandbornand.com/",
+      "sitemaps": 3,
+      "vues": 1806,
+      "pages": [
+        "https://www.legrandbornand.com/quoi-faire/sports-loisirs-bien-etre/sports-dhiver/ski-alpin/tarifs/",
+        "https://www.legrandbornand.com/quoi-faire/sports-loisirs-bien-etre/sports-dhiver/ski-alpin/acheter-son-forfait-sur-place/",
+        "https://www.legrandbornand.com/decouvrir/le-bo-mag/quel-forfait-pour-les-cours-de-ski/",
+        "https://www.legrandbornand.com/quoi-faire/sports-loisirs-bien-etre/sports-dhiver/ski-alpin/forfaits-de-ski-alpin/snowtubing/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-haut-pilat",
+      "website": "https://www.pilat-tourisme.fr/",
+      "sitemaps": 19,
+      "vues": 3579,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-lac-blanc-1200",
+      "website": "https://www.lac-blanc.com/",
+      "sitemaps": 17,
+      "vues": 5959,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-lac-blanc-orbey",
+      "website": "https://www.lac-blanc.com/",
+      "sitemaps": 17,
+      "vues": 5959,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "le-lioran",
+      "website": "https://www.lelioran.com/",
+      "sitemaps": 3,
+      "vues": 53,
+      "pages": [
+        "https://www.lelioran.com/forfait-saison/",
+        "https://www.lelioran.com/hiver/les-tarifs/",
+        "https://www.lelioran.com/forfait-debutant/",
+        "https://www.lelioran.com/hiver/skipass/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.lelioran.com/hiver/les-tarifs/",
+        "j1": 42.9,
+        "j6": 223.3,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "le-lioran-super-lioran",
+      "website": "https://www.lelioran.com/",
+      "sitemaps": 3,
+      "vues": 53,
+      "pages": [
+        "https://www.lelioran.com/forfait-saison/",
+        "https://www.lelioran.com/hiver/les-tarifs/",
+        "https://www.lelioran.com/forfait-debutant/",
+        "https://www.lelioran.com/hiver/skipass/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.lelioran.com/hiver/les-tarifs/",
+        "j1": 42.9,
+        "j6": 223.3,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "le-mont-dore",
+      "website": "https://www.sancy.com/",
+      "sitemaps": 3,
+      "vues": 3425,
+      "pages": [
+        "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/tarifs-forfaits-ski-de-descente-mont-dore/",
+        "https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-super-besse/",
+        "https://www.sancy.com/decouvrir/toutes-les-communes/chastreix/chastreix-sancy-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-chastreix-sancy/",
+        "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/achat-rechargement-forfaits-ski-descente-mont-dore/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/tarifs-forfaits-ski-de-descente-mont-dore/",
+        "j1": 183.5,
+        "j6": 212.4,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "le-mourtis-boutx",
+      "website": "https://www.lemourtis.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "le-pleynet",
+      "website": "https://www.les7laux.com/",
+      "sitemaps": 7,
+      "vues": 5657,
+      "pages": [
+        "https://www.les7laux.com/winter/ski-slides/ski/forfaits-tarifs/",
+        "https://www.les7laux.com/hiver/offre-pack-bus-et-forfait-a-seulement-3950e-skiez-aux-7-laux-depuis-chambery/",
+        "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+        "https://www.les7laux.com/hiver/ski-alpin-nordique-autres-glisses/ski/forfaits-tarifs/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+        "j1": null,
+        "j6": 403,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "le-sauze-super-sauze",
+      "website": "https://www.sauze.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": 403,
+      "erreurs": [
+        "https://www.sauze.com/sitemap_index.xml : refus 403, découverte arrêtée"
+      ]
+    },
+    {
+      "slug": "lelex-crozet",
+      "website": "https://www.paysdegex-montsjura.com/station-monts-jura/",
+      "sitemaps": 15,
+      "vues": 2991,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-2-alpes",
+      "website": "https://www.les2alpes.com/",
+      "sitemaps": 5,
+      "vues": 3737,
+      "pages": [
+        "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/acheter-mon-ski-pass/",
+        "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/nos-bons-plans-ski-pass/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/acheter-mon-ski-pass/",
+        "j1": 308,
+        "j6": 333,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "les-7-laux",
+      "website": "https://www.les7laux.com/",
+      "sitemaps": 7,
+      "vues": 5657,
+      "pages": [
+        "https://www.les7laux.com/winter/ski-slides/ski/forfaits-tarifs/",
+        "https://www.les7laux.com/hiver/offre-pack-bus-et-forfait-a-seulement-3950e-skiez-aux-7-laux-depuis-chambery/",
+        "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+        "https://www.les7laux.com/hiver/ski-alpin-nordique-autres-glisses/ski/forfaits-tarifs/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+        "j1": null,
+        "j6": 403,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "les-angles",
+      "website": "https://lesangles.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": 403,
+      "erreurs": [
+        "https://lesangles.com/sitemap_index.xml : refus 403, découverte arrêtée"
+      ]
+    },
+    {
+      "slug": "les-arcs-peisey-vallandry",
+      "website": "https://www.lesarcs.com/",
+      "sitemaps": 4,
+      "vues": 5114,
+      "pages": [
+        "https://www.lesarcs.com/fr/point-de-vente-de-forfaits-transarc",
+        "https://www.lesarcs.com/fr/seminaires-incentives-evenements-dentreprise/forfaits-de-groupes",
+        "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/prix-roman-jeunesse-la-vache-qui-lit-2026",
+        "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/depouillement-du-prix-de-la-vache-qui-lit"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-brasses",
+      "website": "https://lesbrasses.com/",
+      "sitemaps": 5,
+      "vues": 15,
+      "pages": [
+        "https://lesbrasses.com/preventes-2026-2027-forfaits-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-carroz-d-araches",
+      "website": "https://www.lescarroz.com/",
+      "sitemaps": 4,
+      "vues": 254,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-contamines-montjoie",
+      "website": "https://www.lescontamines.com/",
+      "sitemaps": 12,
+      "vues": 2083,
+      "pages": [
+        "https://www.lescontamines.com/hiver/bon-plan-votre-forfait-saison-ski-de-fond-a-petit-prix",
+        "https://www.lescontamines.com/hiver/ouverture-des-preventes-des-forfaits-de-ski-hiver-2024-2025",
+        "https://www.lescontamines.com/hiver/ouverture-des-preventes-des-forfaits-de-ski-hiver-2022-2023",
+        "https://www.lescontamines.com/hiver/preventes-des-forfaits-de-ski-hiver-2026-2027-c-est-en-ligne"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-deux-alpes-1800",
+      "website": "https://www.les2alpes.com/",
+      "sitemaps": 5,
+      "vues": 3737,
+      "pages": [
+        "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/acheter-mon-ski-pass/",
+        "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/nos-bons-plans-ski-pass/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.les2alpes.com/hiver/skier-aux-2-alpes/preparer-sa-journee-de-ski/acheter-mon-ski-pass/",
+        "j1": 308,
+        "j6": 333,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "les-gets-morzine",
+      "website": "https://www.lesgets.com/",
+      "sitemaps": 5,
+      "vues": 3956,
+      "pages": [
+        "https://www.lesgets.com/forfaits/",
+        "https://www.lesgets.com/golf/horaires-douvertures-et-tarifs/",
+        "https://www.lesgets.com/offres/20-sur-vos-forfaits-de-ski-en-janvier-et-mars-les-gets-fr-6311146/",
+        "https://www.lesgets.com/offres/toutes-nos-promos-pour-un-sejour-a-prix-tout-doux-les-gets-fr-6311143/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.lesgets.com/forfaits/",
+        "j1": 50,
+        "j6": 276,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "les-houches",
+      "website": "https://www.chamonix.com/la-vallee/les-stations-villages/les-houches",
+      "sitemaps": 6,
+      "vues": 8070,
+      "pages": [
+        "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-karellis",
+      "website": "https://www.karellis.com/",
+      "sitemaps": 17,
+      "vues": 295,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-menuires-saint-martin",
+      "website": "https://lesmenuires.com/fr/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-orres",
+      "website": "https://www.lesorres.com/",
+      "sitemaps": 3,
+      "vues": 2603,
+      "pages": [
+        "http://lesorres.com/forfaits-de-ski-pour-les-familles",
+        "http://lesorres.com/appli/forfait-sejours",
+        "http://lesorres.com/infos-pratiques/points-de-vente-infos-forfaits",
+        "http://lesorres.com/skier-aux-orres/le-domaine-skiable/les-forfaits-de-ski"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "http://lesorres.com/forfaits-de-ski-pour-les-familles",
+        "j1": 45.5,
+        "j6": 239,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "les-plans-d-hotonnes",
+      "website": "https://www.plateauderetord.fr/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "les-rousses",
+      "website": "https://www.lesrousses.com/",
+      "sitemaps": 8,
+      "vues": 908,
+      "pages": [
+        "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "les-saisies-espace-diamant",
+      "website": "https://www.lessaisies.com/",
+      "sitemaps": 5,
+      "vues": 3350,
+      "pages": [
+        "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+        "https://www.lessaisies.com/une-fois-sur-place/les-saisies-sous-la-neige/ski-et-activites/acheter-mon-forfait-de-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.lessaisies.com/reserver-mon-sejour/les-forfaits/",
+        "j1": 46,
+        "j6": 46,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "luz-ardiden",
+      "website": "https://luz-ardiden.com/",
+      "sitemaps": 4,
+      "vues": 56,
+      "pages": [
+        "https://luz-ardiden.com/offres-specialesold/forfait-saison-2026-2027/",
+        "https://luz-ardiden.com/offres-specialesold/forfait-saison-2026-2027/famille-premium/",
+        "https://luz-ardiden.com/offres-specialesold/forfait-saison-2026-2027/famille-classic/",
+        "https://luz-ardiden.com/forfaits-ski-old/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "manigod-la-croix-fry",
+      "website": "https://www.manigod.com/",
+      "sitemaps": 3,
+      "vues": 1194,
+      "pages": [
+        "https://www.manigod.com/tarifs-forfaits-ski-manigod-prix-des-forfaits.html",
+        "https://en.manigod.com/ski-pass-rates-manigod.html",
+        "https://de.manigod.com/preise-fur-skipasse-manigod.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "meaudre",
+      "website": "https://www.autrans-meaudre.fr/",
+      "sitemaps": 2,
+      "vues": 103,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "megeve-evasion-mont-blanc",
+      "website": "https://www.megeve-tourisme.fr/",
+      "sitemaps": 16,
+      "vues": 812,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "megeve-rochebrune",
+      "website": "https://www.megeve-tourisme.fr/",
+      "sitemaps": 16,
+      "vues": 812,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "meribel",
+      "website": "https://www.meribel.net/",
+      "sitemaps": 21,
+      "vues": 3514,
+      "pages": [
+        "https://www.meribel.net/family-flex-forfait-ski-famille/",
+        "https://www.meribel.net/forfaits-de-ski-meribel-et-3-vallees/",
+        "https://www.meribel.net/apidae/distributeur-de-forfaits-meribel-centre/",
+        "https://www.meribel.net/apidae/borne-dachat-et-de-retrait-des-forfaits/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.meribel.net/family-flex-forfait-ski-famille/",
+        "j1": null,
+        "j6": 323.9,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "meribel-mottaret",
+      "website": "https://www.meribel.net/",
+      "sitemaps": 21,
+      "vues": 3514,
+      "pages": [
+        "https://www.meribel.net/family-flex-forfait-ski-famille/",
+        "https://www.meribel.net/forfaits-de-ski-meribel-et-3-vallees/",
+        "https://www.meribel.net/apidae/distributeur-de-forfaits-meribel-centre/",
+        "https://www.meribel.net/apidae/borne-dachat-et-de-retrait-des-forfaits/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.meribel.net/family-flex-forfait-ski-famille/",
+        "j1": null,
+        "j6": 323.9,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "metabief-mont-d-or",
+      "website": "https://metabief.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "mijoux",
+      "website": "https://www.paysdegex-montsjura.com/station-monts-jura/",
+      "sitemaps": 15,
+      "vues": 2991,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "mont-dore-chastreix",
+      "website": "https://www.sancy.com/",
+      "sitemaps": 3,
+      "vues": 3425,
+      "pages": [
+        "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/tarifs-forfaits-ski-de-descente-mont-dore/",
+        "https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-super-besse/",
+        "https://www.sancy.com/decouvrir/toutes-les-communes/chastreix/chastreix-sancy-station-de-ski-et-sports-hiver/tarifs-forfaits-ski-descente-chastreix-sancy/",
+        "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/achat-rechargement-forfaits-ski-descente-mont-dore/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/mont-dore-station-ski-et-sports-hiver/tarifs-forfaits-ski-de-descente-mont-dore/",
+        "j1": 183.5,
+        "j6": 212.4,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "montchavin-les-coches",
+      "website": "https://www.la-plagne.com/",
+      "sitemaps": 8,
+      "vues": 13981,
+      "pages": [
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+        "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+        "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte",
+        "j1": 21,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "montclar-saint-jean",
+      "website": "https://www.montclar.fr/",
+      "sitemaps": 15,
+      "vues": 178,
+      "pages": [
+        "https://www.montclar.fr/deliberations-conseil-municipal/i/84986816/deliberation-patinoire-tarifs-saison-2024-2025",
+        "https://www.montclar.fr/deliberations-conseil-municipal/i/82924977/deliberation-tarifs-des-remontees-mecaniques-pour-la-saison-2024-2025-seance-du-10-septembre-2024",
+        "https://www.montclar.fr/deliberations-conseil-municipal/i/84987139/deliberation-tarifs-secours-sur-piste"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "montgenevre-voie-lactee",
+      "website": "https://montgenevre.com/",
+      "sitemaps": 6,
+      "vues": 339,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://montgenevre.com/sitemap.rss : ni index ni liste d'URL"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "monts-jura-mijoux-lelex",
+      "website": "https://www.paysdegex-montsjura.com/station-monts-jura/",
+      "sitemaps": 15,
+      "vues": 2991,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "morillon",
+      "website": "https://www.grand-massif.com/",
+      "sitemaps": 6,
+      "vues": 795,
+      "pages": [
+        "https://www.grand-massif.com/offres-ski/tarifs-forfaits-ski/",
+        "https://www.grand-massif.com/offres-ski/tarifs-forfait-debutant/",
+        "https://www.grand-massif.com/offres-ski/saison-prix-gele/",
+        "https://www.grand-massif.com/forfait-handi-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.grand-massif.com/offres-ski/tarifs-forfaits-ski/",
+        "j1": 63,
+        "j6": 55,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "morzine-avoriaz",
+      "website": "https://www.morzine-avoriaz.com/",
+      "sitemaps": 14,
+      "vues": 933,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "notre-dame-de-bellecombe",
+      "website": "https://www.valdarly-montblanc.com/",
+      "sitemaps": 8,
+      "vues": 6852,
+      "pages": [
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-centrale-crest-voland-fr-3395247/",
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-cernix-cohennoz-fr-3395240/",
+        "https://www.valdarly-montblanc.com/offres/point-de-vente-forfaits-caisse-remontees-mecaniques-village-crest-voland-fr-3395248/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "orcieres-merlette-1850",
+      "website": "https://www.orcieres.com/",
+      "sitemaps": 5,
+      "vues": 3489,
+      "pages": [
+        "https://www.orcieres.com/offres/forfait-saison-orcieres-fr-5996706/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "orelle",
+      "website": "https://www.orelle.net/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://www.orelle.net/sitemap.xml : HTTP 404"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "oz-en-oisans",
+      "website": "https://www.oz-en-oisans.com/",
+      "sitemaps": 4,
+      "vues": 2218,
+      "pages": [
+        "https://www.oz-en-oisans.com/hiver/sejour/je-reserve-mon-sejour/jachete-mon-forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "peisey-nancroix",
+      "website": "https://www.peisey-vallandry.com/",
+      "sitemaps": 1,
+      "vues": 497,
+      "pages": [
+        "https://www.peisey-vallandry.com/point-de-vente-forfaits.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "peyragudes",
+      "website": "https://peyragudes.com/",
+      "sitemaps": 3,
+      "vues": 105,
+      "pages": [
+        "https://peyragudes.com/forfaits-ski/",
+        "https://peyragudes.com/toutes-les-activites/location-velo-plus-forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://peyragudes.com/forfaits-ski/",
+        "j1": 27,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "piau-engaly",
+      "website": "https://piau-engaly.com/",
+      "sitemaps": 2,
+      "vues": 109,
+      "pages": [
+        "https://piau-engaly.com/forfaits/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://piau-engaly.com/forfaits/",
+        "j1": 45,
+        "j6": 243,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "plagne-bellecote",
+      "website": "https://www.la-plagne.com/",
+      "sitemaps": 8,
+      "vues": 13981,
+      "pages": [
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-montchavin",
+        "https://nl.la-plagne.com/ontdekken/praktisch/winkels-en-diensten/verkoopspunt-van-skipassen-forfaits-les-coches",
+        "https://www.la-plagne.com/decouvrir-la-plagne/pratique/points-de-vente-de-forfaits-hiver",
+        "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://de.la-plagne.com/la-plagne-entdecken/tarife-und-sommerfahrplane-der-skilifte",
+        "j1": 21,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "plateau-des-glieres",
+      "website": "https://www.plateaudesglieres.fr/",
+      "sitemaps": 5,
+      "vues": 44,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "porte-puymorens",
+      "website": "https://www.porte-puymorens.net/",
+      "sitemaps": 5,
+      "vues": 49,
+      "pages": [
+        "https://www.porte-puymorens.net/tout-savoir-sur-la-patinoire-de-la-garde-horaires-douverture-tarifs-dentree-et-activites-proposees/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "pra-loup-val-d-allos",
+      "website": "https://www.praloup.com/",
+      "sitemaps": 4,
+      "vues": 1169,
+      "pages": [
+        "https://www.praloup.com/sorganiser/acheter-forfait/",
+        "https://www.praloup.com/fiche/point-skipass-express-molanes/",
+        "https://www.praloup.com/fiche/point-skipass-express-clapiers/",
+        "https://www.praloup.com/fiche/point-skipass-express-plateau-1600/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "prapoutel-les-7-laux",
+      "website": "https://www.les7laux.com/",
+      "sitemaps": 7,
+      "vues": 5657,
+      "pages": [
+        "https://www.les7laux.com/winter/ski-slides/ski/forfaits-tarifs/",
+        "https://www.les7laux.com/hiver/offre-pack-bus-et-forfait-a-seulement-3950e-skiez-aux-7-laux-depuis-chambery/",
+        "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+        "https://www.les7laux.com/hiver/ski-alpin-nordique-autres-glisses/ski/forfaits-tarifs/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.les7laux.com/hiver/recherche/a-voir/acheter-recharger-mon-forfait/",
+        "j1": null,
+        "j6": 403,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "praz-de-lys-sommand",
+      "website": "https://www.prazdelys-sommand.com/",
+      "sitemaps": 21,
+      "vues": 3571,
+      "pages": [
+        "https://www.prazdelys-sommand.com/bon_plan/nordic-pass-prix-fondus/",
+        "https://www.prazdelys-sommand.com/commerce-et-service/borne-automatique-de-forfaits-les-molliettes/",
+        "https://www.prazdelys-sommand.com/commerce-et-service/borne-automatique-de-forfaits-residences-de-sommand/",
+        "https://www.prazdelys-sommand.com/commerce-et-service/borne-automatique-de-forfaits-front-de-neige-de-sommand/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "praz-sur-arly",
+      "website": "https://www.prazsurarly.com/fr",
+      "sitemaps": 1,
+      "vues": 708,
+      "pages": [
+        "http://www.prazsurarly.com/fr/tarifs-forfait-6-jours-et-espace-diamant-jusqu-a-30",
+        "http://www.prazsurarly.com/fr/forfait-saison-espace-diamant",
+        "http://www.prazsurarly.com/fr/Forfait%20Saison%20Val%20d%27Arly",
+        "http://www.prazsurarly.com/fr/mon-forfait-de-ski"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "http://www.prazsurarly.com/fr/mon-forfait-de-ski",
+        "j1": 36.5,
+        "j6": 208,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "premanon",
+      "website": "https://www.lesrousses.com/",
+      "sitemaps": 8,
+      "vues": 908,
+      "pages": [
+        "https://www.lesrousses.com/activites-station-des-rousses/commando-games/commando-games-tarifs-et-horaires/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "puy-saint-vincent",
+      "website": "https://www.paysdesecrins.com/",
+      "sitemaps": 10,
+      "vues": 6889,
+      "pages": [
+        "https://www.paysdesecrins.com/forfaits-de-ski/",
+        "https://www.paysdesecrins.com/fiche/ecrins-de-ski-2-jours-offre-jeunes-parents-1-forfait-pour-2-station-de-pelvoux-vallouise/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "risoul-1850",
+      "website": "https://www.risoul.com/",
+      "sitemaps": 2,
+      "vues": 1826,
+      "pages": [
+        "https://www.risoul.com/achat-tarifs-forfaits.html",
+        "https://www.risoul.com/grand-ski-a-prix-givres.html",
+        "https://www.risoul.com/tarifs-preferentiels-risoul-resa.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "rochejean",
+      "website": "https://metabief.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "saint-francois-longchamp",
+      "website": "https://www.saintfrancoislongchamp.com/",
+      "sitemaps": 7,
+      "vues": 1395,
+      "pages": [
+        "https://www.saintfrancoislongchamp.com/mon-chalet-a-la-montagne-airbnb-bon-plans-logement-en-savoie/sejour-a-prix-reduit-centres-de-vacances-station-de-ski/",
+        "https://www.saintfrancoislongchamp.com/mon-chalet-a-la-montagne-airbnb-bon-plans-logement-en-savoie/residences-goelia-odalys-location-de-vacances-a-petit-prix/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "saint-gervais-le-bettex",
+      "website": "https://www.saintgervais.com/",
+      "sitemaps": 4,
+      "vues": 2177,
+      "pages": [
+        "https://www.saintgervais.com/reserver-mon-sejour/forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "saint-jean-d-arves",
+      "website": "https://www.saintjeandarves.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "saint-jean-d-aulps",
+      "website": "https://www.saintjeandaulps.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "saint-lary-soulan",
+      "website": "https://www.saintlary.com/",
+      "sitemaps": 6,
+      "vues": 4685,
+      "pages": [
+        "https://www.saintlary.com/hiver/a-faire-sur-place/glisse/domaine-skiable/les-forfaits-de-ski/",
+        "https://www.saintlary.com/invierno/para-hacer-in-situ/diapositiva/zona-de-esqui/forfaits-de-esqui/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "saint-martin-de-belleville",
+      "website": "https://st-martin-belleville.com/fr/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "saint-nicolas-de-veroce",
+      "website": "https://www.saintgervais.com/",
+      "sitemaps": 4,
+      "vues": 2177,
+      "pages": [
+        "https://www.saintgervais.com/reserver-mon-sejour/forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "saint-sorlin-d-arves",
+      "website": "https://www.saintsorlindarves.com/",
+      "sitemaps": 1,
+      "vues": 3,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "sainte-foy-tarentaise",
+      "website": "https://www.saintefoy-tarentaise.com/",
+      "sitemaps": 3,
+      "vues": 1169,
+      "pages": [
+        "https://www.saintefoy-tarentaise.com/a-faire/activites-hiver/ski-et-snowboard/forfaits-de-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.saintefoy-tarentaise.com/a-faire/activites-hiver/ski-et-snowboard/forfaits-de-ski/",
+        "j1": 46,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "samoens-le-grand-massif",
+      "website": "https://www.samoens.com/",
+      "sitemaps": 8,
+      "vues": 5467,
+      "pages": [
+        "https://www.samoens.com/forfaits-de-ski-et-tarifs/",
+        "https://www.samoens.com/ski-pass-and-prices/",
+        "https://www.samoens.com/week-end-a-prix-doux/",
+        "https://www.samoens.com/achetez-votre-forfait-de-ski/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "savoie-grand-revard",
+      "website": "https://www.chamberymontagnes.com/savoiegrandrevard/",
+      "sitemaps": 15,
+      "vues": 13505,
+      "pages": [
+        "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-prix-litteraire-paysages-ecrits-chambery-fr-5793684/",
+        "https://www.chamberymontagnes.com/agenda/tout-agenda/remise-du-6e-prix-paysages-ecrits-de-la-fondation-facim-chambery-fr-6796655/",
+        "https://www.chamberymontagnes.com/preparer/sejours/cles-en-main/votre-sejour-vacanceole-a-petit-prix-pendant-la-grande-odyssee-la-feclaz-fr-6086155/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "serre-chevalier-briancon-1200",
+      "website": "https://www.serre-chevalier.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "serre-chevalier-chantemerle-1350",
+      "website": "https://www.serre-chevalier.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "serre-chevalier-le-monetier-1500",
+      "website": "https://www.serre-chevalier.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "serre-chevalier-vallee",
+      "website": "https://www.serre-chevalier.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "serre-chevalier-villeneuve-1400",
+      "website": "https://www.serre-chevalier.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "sixt-fer-a-cheval",
+      "website": "https://www.haut-giffre.fr/",
+      "sitemaps": 14,
+      "vues": 1353,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "super-besse-le-sancy",
+      "website": "https://superbesse.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://superbesse.com/sitemap.xml : ni index ni liste d'URL"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "superbagneres-luchon",
+      "website": "https://www.haute-garonne-montagne.com/luchon-superbagneres/",
+      "sitemaps": 5,
+      "vues": 207,
+      "pages": [
+        "https://www.haute-garonne-montagne.com/forfait-saison-hiver-2025-2026-prevente-exclusive/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "superdevoluy-la-joue-du-loup",
+      "website": "https://www.ledevoluy.com/",
+      "sitemaps": 5,
+      "vues": 3252,
+      "pages": [
+        "https://www.ledevoluy.com/hiver/ski-et-glisse/le-domaine-alpin/les-tarifs/",
+        "https://www.ledevoluy.com/hiver/ski-et-glisse/securite-et-infos-legales/conditions-de-vente-forfaits/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "termignon",
+      "website": "https://www.haute-maurienne-vanoise.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "tignes-le-lac",
+      "website": "https://www.tignes.net/",
+      "sitemaps": 8,
+      "vues": 687,
+      "pages": [
+        "https://www.tignes.net/ski/forfaits-ski",
+        "https://www.tignes.net/ski/forfaits-ski/achats",
+        "https://www.tignes.net/ski/forfaits-ski/ski-a-la-carte",
+        "https://www.tignes.net/ski/forfaits-ski/avantages-tignes"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.tignes.net/ski/forfaits-ski",
+        "j1": 50,
+        "j6": 402,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "tignes-les-brevieres",
+      "website": "https://www.tignes.net/",
+      "sitemaps": 8,
+      "vues": 687,
+      "pages": [
+        "https://www.tignes.net/ski/forfaits-ski",
+        "https://www.tignes.net/ski/forfaits-ski/achats",
+        "https://www.tignes.net/ski/forfaits-ski/ski-a-la-carte",
+        "https://www.tignes.net/ski/forfaits-ski/avantages-tignes"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.tignes.net/ski/forfaits-ski",
+        "j1": 50,
+        "j6": 402,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "tignes-val-d-isere",
+      "website": "https://www.tignes.net/",
+      "sitemaps": 8,
+      "vues": 687,
+      "pages": [
+        "https://www.tignes.net/ski/forfaits-ski",
+        "https://www.tignes.net/ski/forfaits-ski/achats",
+        "https://www.tignes.net/ski/forfaits-ski/ski-a-la-carte",
+        "https://www.tignes.net/ski/forfaits-ski/avantages-tignes"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.tignes.net/ski/forfaits-ski",
+        "j1": 50,
+        "j6": 402,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "val-cenis-haute-maurienne",
+      "website": "https://www.haute-maurienne-vanoise.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "val-d-allos-la-foux",
+      "website": "https://www.valdallos.com/",
+      "sitemaps": 1,
+      "vues": 557,
+      "pages": [
+        "https://www.valdallos.com/skipass.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "val-d-allos-le-seignus",
+      "website": "https://www.valdallos.com/",
+      "sitemaps": 1,
+      "vues": 557,
+      "pages": [
+        "https://www.valdallos.com/skipass.html"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "val-d-azun",
+      "website": "https://www.valdazun.com/",
+      "sitemaps": 1,
+      "vues": 67,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "val-d-isere",
+      "website": "https://www.valdisere.com/",
+      "sitemaps": 5,
+      "vues": 3086,
+      "pages": [
+        "https://www.valdisere.com/preparer-mon-sejour/acheter-mon-forfait/",
+        "https://www.valdisere.com/guide-du-village/point-de-vente-skipass-fornet-val-disere-fr-4358489/",
+        "https://www.valdisere.com/guide-du-village/point-de-vente-skipass-solaise-val-disere-fr-4358520/",
+        "https://www.valdisere.com/guide-du-village/point-de-vente-skipass-val-village-val-disere-fr-4358453/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.valdisere.com/preparer-mon-sejour/acheter-mon-forfait/",
+        "j1": 67,
+        "j6": 90,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "val-thorens",
+      "website": "https://www.valthorens.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "val-thorens-orelle",
+      "website": "https://www.valthorens.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "valberg",
+      "website": "https://www.valberg.com/",
+      "sitemaps": 12,
+      "vues": 589,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "valfrejus",
+      "website": "https://www.valfrejus.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": true,
+      "refus": null,
+      "erreurs": [
+        "robots.txt : robots.txt illisible"
+      ],
+      "lu": null
+    },
+    {
+      "slug": "valloire-galibier-thabor",
+      "website": "https://www.valloire.net/",
+      "sitemaps": 5,
+      "vues": 2102,
+      "pages": [
+        "https://www.valloire.net/profiter-de-valloire/le-ski/se-preparer-a-skier/forfaits-de-ski-valloire/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "https://www.valloire.net/sitemap.rss : ni index ni liste d'URL"
+      ],
+      "lu": {
+        "url": "https://www.valloire.net/profiter-de-valloire/le-ski/se-preparer-a-skier/forfaits-de-ski-valloire/",
+        "j1": null,
+        "j6": 278.5,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "vallorcine",
+      "website": "https://www.chamonix.com/la-vallee/les-stations-villages/vallorcine",
+      "sitemaps": 6,
+      "vues": 8070,
+      "pages": [
+        "http://it.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://de.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://es.chamonix.com/activites/hiver/ski/forfaits-de-ski",
+        "http://www.chamonix.com/activites/hiver/ski/forfaits-de-ski"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "valmeinier",
+      "website": "https://www.valmeinier.com/",
+      "sitemaps": 0,
+      "vues": 0,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": 403,
+      "erreurs": [
+        "https://www.valmeinier.com/sitemap_index.xml : refus 403, découverte arrêtée"
+      ]
+    },
+    {
+      "slug": "valmorel-le-grand-domaine",
+      "website": "https://www.valmorel.com/",
+      "sitemaps": 7,
+      "vues": 2163,
+      "pages": [
+        "https://www.valmorel.com/activites-hiver/ski-glisse/forfaits-ski-alpin/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [
+        "grille incohérente écartée (grilleCoherente)"
+      ],
+      "lu": null,
+      "luEcarte": {
+        "url": "https://www.valmorel.com/activites-hiver/ski-glisse/forfaits-ski-alpin/",
+        "j1": 29.85,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "vars-les-claux",
+      "website": "https://www.vars.com/",
+      "sitemaps": 4,
+      "vues": 2340,
+      "pages": [
+        "https://www.vars.com/hiver/a-faire-sur-place/ski-et-glisse/la-station-le-domaine-skiable/acheter-mon-forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.vars.com/hiver/a-faire-sur-place/ski-et-glisse/la-station-le-domaine-skiable/acheter-mon-forfait/",
+        "j1": 46.4,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "vars-risoul-la-foret-blanche",
+      "website": "https://www.vars.com/",
+      "sitemaps": 4,
+      "vues": 2340,
+      "pages": [
+        "https://www.vars.com/hiver/a-faire-sur-place/ski-et-glisse/la-station-le-domaine-skiable/acheter-mon-forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.vars.com/hiver/a-faire-sur-place/ski-et-glisse/la-station-le-domaine-skiable/acheter-mon-forfait/",
+        "j1": 46.4,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "vaujany",
+      "website": "https://www.vaujany.com/fr/",
+      "sitemaps": 3,
+      "vues": 414,
+      "pages": [
+        "https://reservation-sejour.vaujany.com/forfaits/",
+        "https://www.vaujany.com/fr/les-forfaits/",
+        "https://accommodation.vaujany.com/ski-passes/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "villard-de-lans-correncon",
+      "website": "https://www.villarddelans-correnconenvercors.com/",
+      "sitemaps": 3,
+      "vues": 1329,
+      "pages": [
+        "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/prevente-forfaits/",
+        "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/",
+        "j1": 32,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "villard-de-lans-cote-2000",
+      "website": "https://www.villarddelans-correnconenvercors.com/",
+      "sitemaps": 3,
+      "vues": 1329,
+      "pages": [
+        "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/prevente-forfaits/",
+        "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": {
+        "url": "https://www.villarddelans-correnconenvercors.com/activites/ski-et-activites-de-neige/acheter-mon-forfait/",
+        "j1": 32,
+        "j6": null,
+        "enf6": null,
+        "kind": "pattern"
+      }
+    },
+    {
+      "slug": "villard-reculas",
+      "website": "https://www.villard-reculas.com/",
+      "sitemaps": 14,
+      "vues": 125,
+      "pages": [],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    },
+    {
+      "slug": "villaroger",
+      "website": "https://www.lesarcs.com/",
+      "sitemaps": 4,
+      "vues": 5114,
+      "pages": [
+        "https://www.lesarcs.com/fr/point-de-vente-de-forfaits-transarc",
+        "https://www.lesarcs.com/fr/seminaires-incentives-evenements-dentreprise/forfaits-de-groupes",
+        "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/prix-roman-jeunesse-la-vache-qui-lit-2026",
+        "https://www.lesarcs.com/fr/que-faire-aux-arcs/tous-les-evenements/depouillement-du-prix-de-la-vache-qui-lit"
+      ],
+      "interditsRobots": 0,
+      "racineInterdite": false,
+      "refus": null,
+      "erreurs": [],
+      "lu": null
+    }
+  ]
+}

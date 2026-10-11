@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { crawlDelayMs, dansLaFile, demander, INTERVALLE_MS, oublierFiles, UA_AGENT, UA_RELEVE } from "./politesse.ts";
+import { crawlDelayMs, dansLaFile, demander, disallowIgnores, INTERVALLE_MS, oublierFiles, UA_AGENT, UA_RELEVE, verdictPoli } from "./politesse.ts";
 import { UA_NAVIGATEUR } from "./navigateur.ts";
 
 describe("politesse du relevé tarifaire", () => {
@@ -104,5 +104,21 @@ describe("politesse du relevé tarifaire", () => {
       ),
       /^Error: Délai dépassé/,
     );
+  });
+
+  it("compte les Disallow lus puis ignorés, par hôte", async () => {
+    const vrai = globalThis.fetch;
+    globalThis.fetch = (async () => new Response("User-agent: *\nDisallow: /prive/", { status: 200 })) as typeof fetch;
+    try {
+      oublierFiles();
+      const v = await verdictPoli("https://compte.test/prive/a");
+      assert.equal(v.autorise, true, "depuis 20a7fcb, un Disallow ne bloque pas");
+      await verdictPoli("https://compte.test/public/b");
+      assert.equal(disallowIgnores("compte.test"), 1);
+      assert.equal(disallowIgnores("autre.test"), 0);
+    } finally {
+      globalThis.fetch = vrai;
+      oublierFiles();
+    }
   });
 });

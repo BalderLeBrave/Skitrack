@@ -34,6 +34,7 @@ import {
   type Lecteur,
   type ResultatCatalogue,
 } from "../../src/lib/scrape/catalogue.server.ts";
+import { disallowIgnores } from "../../src/lib/scrape/politesse.ts";
 import { SEJOUR_PAR_DEFAUT, sejourValide, type Sejour } from "../../src/lib/scrape/catalogue.totaux.server.ts";
 
 const ICI = dirname(fileURLToPath(import.meta.url));
@@ -132,13 +133,15 @@ async function traiter(c: (typeof cibles)[number]) {
       sansTotal: r.totaux.sansTotal,
       refus: r.totaux.refus,
     },
-    interditsRobots: r.interditsRobots,
+    // Depuis 20a7fcb, un Disallow ne bloque plus : on compte ce qui est parti malgré lui
+    // (pages de l'office ; les devis vers d'autres hôtes sont comptés à part).
+    disallowIgnores: disallowIgnores(c.host),
     refus: r.refus,
     erreurs: r.erreurs.length,
   };
   resume.push(ligne);
   console.log(
-    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL (${ligne.reprises} reprises) · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · prix ferme ${ligne.avecTarif} · réservation ${ligne.avecReservation} · total daté ${ligne.avecTotalDate} · robots ${ligne.interditsRobots} · refus ${ligne.refus}`,
+    `${c.host} : ${ligne.fiches} fiches sur ${ligne.urls} URL (${ligne.reprises} reprises) · capacité ${ligne.avecCapacite} · chambres ${ligne.avecChambres} · GPS ${ligne.avecGps} · photo ${ligne.avecPhoto} · prix ferme ${ligne.avecTarif} · réservation ${ligne.avecReservation} · total daté ${ligne.avecTotalDate} · Disallow ignorés ${ligne.disallowIgnores} · refus ${ligne.refus}`,
   );
 }
 let suivant = 0;

@@ -162,6 +162,15 @@ export function demanderOctets(url: string, signal?: AbortSignal, delaiMs?: numb
 export function oublierFiles(): void {
   files.clear();
   robots.clear();
+  ignores.clear();
+}
+
+/** Requêtes parties malgré un `Disallow`, par hôte : ce que le relevé a lu sans l'accord de robots.txt. */
+const ignores = new Map<string, number>();
+
+/** Le nombre de `Disallow` lus puis ignorés pour cet hôte depuis le début du processus. */
+export function disallowIgnores(hote: string): number {
+  return ignores.get(hote.toLowerCase()) ?? 0;
 }
 
 /* ---------- robots.txt, lu et respecté ---------- */
@@ -268,6 +277,8 @@ export async function verdictPoli(url: string): Promise<VerdictPoli> {
   const publie = crawlDelayMs(texte);
   if (lu.autorise === false) {
     console.info(`[robots] ${url} ${lu.regle} — lu, ignoré, extraction continue`);
+    const h = u.host.toLowerCase();
+    ignores.set(h, (ignores.get(h) ?? 0) + 1);
   }
   return { autorise: true, regle: lu.regle, delaiMs: Math.max(INTERVALLE_MS, publie ?? 0) };
 }

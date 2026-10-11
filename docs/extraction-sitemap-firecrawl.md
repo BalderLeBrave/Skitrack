@@ -20,8 +20,8 @@ Relevé du 11 octobre 2026. Deux cibles : les **centrales sans connecteur** (fic
 
 ## Politesse
 
-- robots.txt est lu et **respecté** pour chaque sitemap et chaque page : une règle `Disallow` écarte l'URL sans requête.
-- booking.prazsurarly.com publie une seule ligne, `Disallow:/`, sans `User-agent`. La norme ignore une règle hors groupe ; on applique quand même l'intention du site : rien n'est lu.
+- robots.txt est lu pour chaque sitemap, chaque page et chaque devis. Depuis `20a7fcb` (choix du propriétaire), une règle `Disallow` est journalisée (`[robots] … lu, ignoré`) mais n'arrête plus la requête. Avant ce commit, elle écartait l'URL.
+- booking.prazsurarly.com publie une seule ligne, `Disallow:/`, sans `User-agent`. Au relevé du 11 octobre, fait avant `20a7fcb`, rien n'y a été lu.
 - lesangles.com répond 403 : l'hôte est fermé dès ce refus, sans second essai, sans autre agent et sans proxy.
 - Une requête à la fois par hôte, 2 s au moins entre deux, ou plus si le `Crawl-delay` publié l'exige. Les hôtes avancent en parallèle (huit au plus par défaut, `--concurrence` pour changer) : la cadence par hôte ne change pas.
 - Avec Firecrawl : `maxConcurrency: 1` et `delay` égal au `Crawl-delay` pour un crawl. Un 401, 403 ou 429 rendu par le site ferme l'hôte, et on ne demande jamais de proxy « renforcé ».
@@ -106,11 +106,11 @@ Consigne du propriétaire du 11 octobre 2026 : de vrais prix, pas de « à parti
   Le moteur du logement passe devant la centrale de la station. Une centrale repérée par son nom d'hôte prend le moteur que lui connaît le registre (`moteurs.data.json` : 28 centrales Ingénie, 14 Open System…). Sans lien, un numéro de gîte labellisé écrit dans la page (« n° 63G1234 ») mène au widget Gîtes de France. Le résumé compte `avecReservation` et `moteursReservation` par hôte.
 - **Totaux datés** (`catalogue.totaux.server.ts`). Le séjour par défaut va du samedi 13 au samedi 20 février 2027, pour 4 personnes au plus et jamais plus que la capacité de la fiche. Les options sont `--dates AAAA-MM-JJ,AAAA-MM-JJ`, `--personnes N` et `--sans-totaux`.
   - Les fiches Gîtes de France reçoivent le total du devis ITEA, avec le lecteur `devisItea` de l'écran Logements : loyer et taxe de séjour, avec sa provenance dans `totalSejour.source`.
-  - Les fiches Ingénie reçoivent le total que calcule le panier de la centrale (`calculerTotalPrestationAjax`, lu par `totalPanierJson`). Une seule recherche datée est faite par centrale, sa session sert aux paniers de toutes ses fiches, et seul le total du panier est retenu. Beaucoup de centrales Ingénie interdisent `/booking` dans robots.txt : leurs fiches restent alors sans total.
-  - Chaque requête passe par `verdictPoli` (un `Disallow` arrête la fiche) et par la file polie. Un refus 401, 403 ou 429 arrête les devis suivants de l'hôte qui a refusé.
+  - Les fiches Ingénie reçoivent le total que calcule le panier de la centrale (`calculerTotalPrestationAjax`, lu par `totalPanierJson`). Une seule recherche datée est faite par centrale, sa session sert aux paniers de toutes ses fiches, et seul le total du panier est retenu. Beaucoup de centrales Ingénie interdisent `/booking` dans robots.txt : depuis `20a7fcb`, cette règle est journalisée et le devis est demandé.
+  - Chaque requête passe par `verdictPoli` (un `Disallow` est journalisé, sans arrêter la fiche depuis `20a7fcb`) et par la file polie. Un refus 401, 403 ou 429 arrête les devis suivants de l'hôte qui a refusé.
   - Un gîte occupé ou « à demander » reste sans total.
-  - Le résumé donne `avecTotalDate` pour le séjour demandé et `totaux` : fiches éligibles, devis demandés, obtenus, repris, sans total, refus.
-- **Pas encore de devis** pour les autres moteurs (Open System, MSEM, Elloha, Orchestra…). Leurs connecteurs de centrale ne s'arrêtent pas sur un `Disallow`, et je ne les ai donc pas branchés. Leurs fiches gardent leur lien et leur grille ferme.
+  - Le résumé donne `disallowIgnores` par hôte (pages de l'office lues malgré un `Disallow`), `avecTotalDate` pour le séjour demandé et `totaux` : fiches éligibles, devis demandés, obtenus, repris, sans total, refus.
+- **Pas encore de devis** pour les autres moteurs (Open System, MSEM, Elloha, Orchestra…). Leurs connecteurs cherchent une station entière à des dates, pas un logement. Il faudrait rapprocher leurs annonces des fiches. D'ici là, leurs fiches gardent leur lien et leur grille ferme.
 - **Ce qui ne donnera pas de total.** D'après `centrales/moteurs/etat.ts`, Diffusio (Sancy) et Tourinsoft (Gavarnie) publient une grille sans dates. Leurs fiches labellisées Gîtes de France, elles, auront le total du widget.
 - **Les sorties actuelles** portent `reservation: null` et aucun total : les deux se remplissent au prochain relevé en ligne (`--complet`).
 

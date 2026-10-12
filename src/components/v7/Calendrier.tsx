@@ -11,7 +11,8 @@
  * `stay/calendar.ts`, déjà testée.
  */
 
-import { Icon } from "@/components/Icon";
+import type { ReactNode } from "react";
+import { IconeDroite, IconeGauche } from "@/components/maquette";
 import { tr } from "@/lib/i18n";
 import { setStayRange, STAY_BOUNDS } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
@@ -36,12 +37,12 @@ function daysBetween(a: string, b: string): number {
 
 export function Calendrier({
   plage,
-  hauteur = 40,
   onPose,
+  pied,
 }: {
   plage: Plage;
-  /** Hauteur d'une case : 40 sur l'accueil, 38 dans le panneau de séjour. */
-  hauteur?: number;
+  /** À droite sous les deux mois : le récapitulatif du séjour. */
+  pied?: ReactNode;
   /** Appelé quand la plage complète est posée. */
   onPose?: () => void;
 }) {
@@ -73,14 +74,14 @@ export function Calendrier({
       : tr("Choisissez la date d’arrivée. 21 nuits au plus.");
 
   const Mois = ({ ym }: { ym: YearMonth }) => (
-    <div className="cal__mois">
-      <span className="cal__titre">{monthLabel(ym)}</span>
-      <div className="cal__jours">
+    <div className="acc-cal__mois">
+      <b className="acc-cal__titre">{monthLabel(ym)}</b>
+      <div className="acc-cal__grille">
         {joursCourts().map((j, i) => (
-          <span key={i}>{j}</span>
+          <span key={`j${i}`} className="acc-cal__sem">
+            {j}
+          </span>
         ))}
-      </div>
-      <div className="cal__grille">
         {monthGrid(ym)
           .flat()
           .map((iso, i) => {
@@ -90,12 +91,10 @@ export function Calendrier({
             const inside = !pending && iso > from && iso < to;
             const past = iso < today;
             const cls = [
-              "cal__jour",
-              isFrom || isTo ? "cal__jour--borne" : null,
-              inside ? "cal__jour--dedans" : null,
-              isFrom && !isTo && !pending ? "cal__jour--debut" : null,
-              isTo ? "cal__jour--fin" : null,
-              past ? "cal__jour--passe" : null,
+              "acc-cal__jour",
+              isFrom || isTo ? "acc-cal__jour--borne" : null,
+              inside ? "acc-cal__jour--dedans" : null,
+              past ? "acc-cal__jour--passe" : null,
             ]
               .filter(Boolean)
               .join(" ");
@@ -104,7 +103,6 @@ export function Calendrier({
                 key={iso}
                 type="button"
                 className={cls}
-                style={{ height: hauteur }}
                 disabled={past}
                 aria-pressed={isFrom || isTo}
                 onClick={() => pick(iso)}
@@ -118,28 +116,33 @@ export function Calendrier({
   );
 
   return (
-    <div className="cal">
-      <div className="cal__deux">
+    <div className="acc-cal">
+      <div className="acc-cal__deux">
         <button
           type="button"
-          className="cal__nav cal__nav--prec"
+          className="acc-cal__nav acc-cal__nav--prec"
+          aria-label={tr("Mois précédent")}
           title={tr("Mois précédent")}
           onClick={() => plage.setMois(shiftMonth(mois, -1))}
         >
-          <Icon name="chevron-gauche" taille={12} />
+          <IconeGauche taille={14} epaisseur={2.4} />
         </button>
         <button
           type="button"
-          className="cal__nav cal__nav--suiv"
+          className="acc-cal__nav acc-cal__nav--suiv"
+          aria-label={tr("Mois suivant")}
           title={tr("Mois suivant")}
           onClick={() => plage.setMois(shiftMonth(mois, 1))}
         >
-          <Icon name="chevron-droite" taille={12} />
+          <IconeDroite taille={14} epaisseur={2.4} />
         </button>
         <Mois ym={mois} />
         <Mois ym={mois2} />
       </div>
-      <span className="cal__hint">{hint}</span>
+      <div className="acc-cal__pied">
+        <span className="acc-cal__hint">{hint}</span>
+        {pied}
+      </div>
     </div>
   );
 }

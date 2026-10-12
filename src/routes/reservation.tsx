@@ -1,24 +1,29 @@
-/** Réservation – maquette v7 (`SKITRACK v7 - App.dc.html`, bloc RÉSERVATION).
+/** Réservation (Skitrack App.dc.html:649-672, script 1247-1252).
  *
- *  Le logement retenu, la station et le séjour, ce que le récapitulatif ne dit
- *  pas ; à droite, le coût poste par poste, l'action chez la source, la case
- *  « réservé », la copie et le lien de partage. Skitrack ne prend pas de
- *  paiement. Station retenue et logement choisi viennent du parcours ;
- *  l'annonce est celle du relevé ou de la recherche en direct. */
+ *  Le séjour en titre, le lien à copier, puis le logement retenu en rangée :
+ *  photo, titre, station et logement, offre et prix confirmé, total et part
+ *  par personne, « Retirer » et « Réserver » chez la source. Dessous, le coût
+ *  poste par poste (logement, forfaits du groupe), la case « réservé » et la
+ *  copie du récapitulatif. Skitrack ne prend pas de paiement. Station retenue
+ *  et logement choisi viennent du parcours ; l'annonce est celle du relevé ou
+ *  de la recherche en direct. */
 
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Icon } from "@/components/Icon";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Coquille } from "@/components/Coquille";
-import { ImageSlot } from "@/components/v6/ImageSlot";
+import { lieuDe, photosDe } from "@/components/favoris/annonceCarte";
+import { VideFavoris } from "@/components/favoris/communs";
+import { PICTO_CORBEILLE, PICTO_EXTERNE, PICTO_LIEN, useCopie } from "@/components/favoris/outils";
+import { IconeCoche, IconeCroix, IconeGauche, Trace } from "@/components/maquette";
 import { useGo } from "@/components/v6/go";
 import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
+import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
 import { resolveListing } from "@/lib/accommodation";
 import { libellesForfait, mentionForfait } from "@/lib/forfaits/prixSejour";
 import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { dire, langue, tr } from "@/lib/i18n";
+import { langue, tr } from "@/lib/i18n";
 import {
   datesLbl,
   eurCents,
@@ -30,49 +35,60 @@ import {
 } from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import {
-  altLbl,
-  aStation,
-  bedLbl,
-  capLbl,
-  crumbDomaine,
-  distanceOf,
-  firmOf,
-  kmLbl,
-  mediaTon,
-  prixLbl,
-} from "@/lib/v7";
+import { aStation, bedLbl, capLbl, firmOf, prixLbl, prixPersLbl } from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
 
+/* Le parcours est gardé dans le navigateur : le serveur ne connaît ni la
+   station ni le logement retenus. L'écran attend le montage pour ne pas
+   montrer « Aucun logement retenu » le temps d'une image. */
 function Reservation() {
+  const [monte, setMonte] = useState(false);
+  useEffect(() => setMonte(true), []);
+  return (
+    <Coquille>
+      <main className="fv-main fv-main--resa" id="s-booking" data-screen-label="3 Réservation">
+        {monte ? <EcranReservation /> : null}
+      </main>
+    </Coquille>
+  );
+}
+
+function EcranReservation() {
   const go = useGo();
   const P = useParcours();
   const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
   const s = P.stationId ? stationById(P.stationId) : undefined;
   const l = P.lodgeId ? resolveListing(P.lodgeId) : undefined;
   const prix = usePrixForfait(s);
+  const { copie, copier } = useCopie();
+  const [ouvert, setOuvert] = useState(false);
 
-  // Sans logement, la maquette renvoie où on le choisit, avec le bandeau.
-  // L'état est relu dans le magasin : au premier rendu du navigateur, le
-  // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
-  useEffect(() => {
-    const { stationId: st, lodgeId: lo } = useParcours.getState();
-    if (!st) {
-      P.say(dire("nav.lodgingLocked"));
-      void go("compare");
-    } else if (!lo || !resolveListing(lo)) {
-      P.say(dire("nav.bookingLocked"));
-      void go("lodging");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s?.id, l?.id]);
+  const titre = (
+    <h1 className="fv-h1 fv-h1--resa">
+      {datesLbl(checkIn, checkOut, nights)} · {groupLbl(trav, rooms, enfants)}
+    </h1>
+  );
+  const modifier = (
+    <button
+      type="button"
+      className="fv-pilule"
+      data-sejour-ouvre
+      onClick={() => P.setStayOpen(!P.stayOpen)}
+    >
+      {tr("Modifier")}
+    </button>
+  );
 
   if (!s || !l) {
     return (
-      <Coquille>
-        <main className="v7main" id="s-booking" data-screen-label="3 Réservation" />
-      </Coquille>
+      <>
+        <div className="fv-tete">
+          {titre}
+          <div className="fv-outils">{modifier}</div>
+        </div>
+        <VideFavoris titre={tr("Aucun logement retenu")} />
+      </>
     );
   }
 
@@ -88,7 +104,8 @@ function Reservation() {
   const forfaitsCompris = forfaitInclus(l);
   const passGroupN = forfaitsCompris ? 0 : (pass?.total ?? 0);
   const totalN = l.total + passGroupN;
-  const d = distanceOf(l);
+  const photo = photosDe(l)[0]?.src ?? null;
+  const pp = prixPersLbl(l, trav);
 
   const recap = () =>
     [
@@ -109,280 +126,220 @@ function Reservation() {
     void navigator.clipboard?.writeText(recap());
     P.say(tr("Récapitulatif copié."));
   };
-  const copyLink = () => {
-    const link = `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&e=${enfants}&r=${rooms}`;
-    void navigator.clipboard?.writeText(link);
-    P.say(tr("Lien de partage copié."));
+  const copyLink = () =>
+    void copier(
+      `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&e=${enfants}&r=${rooms}`,
+    );
+  const marquerReserve = () => {
+    P.setBooked(true);
+    P.say(tr("Ouverture de l’annonce sur {source}. Le récapitulatif est marqué « réservé ».", { source: l.source }));
   };
-  const reserver = () => {
-    if (l.url) {
-      window.open(l.url, "_blank", "noopener");
-      P.setBooked(true);
-      P.say(tr("Ouverture de l’annonce sur {source}. Le récapitulatif est marqué « réservé ».", { source: l.source }));
-    } else {
-      P.say(tr("Annonce sans lien : la réservation se fait à la main, puis se marque ici."));
-    }
+  const retirer = () => {
+    P.chooseLodge(null);
+    P.say(tr("Logement retiré de la réservation."));
   };
 
   return (
-    <Coquille>
-      <main className="v7main" id="s-booking" data-screen-label="3 Réservation">
-        <a
-          href="/logements"
-          className="v7retour"
-          onClick={(e) => {
-            e.preventDefault();
-            void go("lodging");
-          }}
-        >
-          <Icon name="chevron-gauche" taille={14} />
-          {tr("Logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })}
-        </a>
-        <header className="v7tete">
-          <span className="v7surtitre">{tr("Étape 3 · Réservation")}</span>
-          <h1>{tr("Récapitulatif du séjour")}</h1>
-        </header>
+    <>
+      <a
+        href="/logements"
+        className="fv-retour"
+        onClick={(e) => {
+          e.preventDefault();
+          void go("lodging");
+        }}
+      >
+        <IconeGauche taille={14} epaisseur={2.4} />
+        {tr("Logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })}
+      </a>
+      <div className="fv-tete">
+        {titre}
+        <div className="fv-outils">
+          {modifier}
+          <button type="button" className="fv-pilule fv-pilule--haute" onClick={copyLink} aria-live="polite">
+            <Trace d={PICTO_LIEN} taille={14} epaisseur={2} />
+            {copie ? tr("Lien copié") : tr("Copier le lien")}
+          </button>
+        </div>
+      </div>
 
-        {P.shared ? (
-          <div className="bandeau7 bandeau7--partage">
-            <span>
-              <b>{tr("Récapitulatif partagé.")}</b>{" "}
-              {tr("Station, logement, dates et voyageurs viennent du lien ; ils remplacent votre séjour en cours.")}
-            </span>
-            <button type="button" className="v7fermer" aria-label={tr("Fermer")} onClick={() => P.setShared(false)}>
-              <Icon name="croix" taille={12} />
+      {P.shared ? (
+        <div className="fv-bandeau" role="status">
+          <b>{tr("Récapitulatif partagé.")}</b>
+          <button type="button" className="fv-bandeau__x" aria-label={tr("Fermer")} onClick={() => P.setShared(false)}>
+            <IconeCroix taille={11} epaisseur={2.6} />
+          </button>
+        </div>
+      ) : null}
+
+      {P.booked ? (
+        <div className="fv-bandeau fv-bandeau--ok" role="status">
+          <IconeCoche />
+          <b>{tr("Séjour marqué comme réservé")}</b>
+          <a
+            href="/"
+            className="fv-bandeau__lien"
+            onClick={(e) => {
+              e.preventDefault();
+              P.restart();
+              void go("home");
+            }}
+          >
+            {tr("Préparer un autre séjour")}
+          </a>
+        </div>
+      ) : null}
+
+      <section className="fv-resa" aria-label={tr("Logement retenu")}>
+        <div className="fv-resa__rang">
+          <button type="button" className="fv-resa__photo" aria-label={l.title} onClick={() => setOuvert(true)}>
+            {photo ? <img src={photo} alt="" loading="lazy" decoding="async" /> : null}
+          </button>
+          <div className="fv-resa__corps">
+            <button type="button" className="fv-resa__titre" onClick={() => setOuvert(true)}>
+              {l.title}
             </button>
-          </div>
-        ) : null}
-
-        {P.booked ? (
-          <div className="bandeau7 bandeau7--reserve">
-            <span className="bandeau7__coche">
-              <Icon name="coche" taille={18} />
+            <span className="fv-resa__ligne">
+              <Link to="/stations/$id" params={{ id: s.id }} className="fv-resa__station">
+                {s.name}
+              </Link>
+              {" · "}
+              {[capLbl(l), bedLbl(l), lieuDe(l)].join(" · ")}
             </span>
-            <div>
-              <strong>{tr("Séjour marqué comme réservé")}</strong>
-              <span>
-                {tr("La confirmation et le paiement sont chez {source}. Le récapitulatif garde le prix relevé.", {
-                  source: l.source,
-                })}
+            <div className="fv-resa__puces">
+              <span className="fv-resa__offre">
+                {l.source} {prixLbl(l)}
               </span>
+              {firm ? (
+                <span className="fv-resa__ferme">
+                  <i />
+                  {tr("Prix confirmé pour vos dates")}
+                </span>
+              ) : (
+                <span className="fv-resa__incertain" title={availabilityLabel(availabilityOf(l, stay))}>
+                  {tr("Disponibilité non confirmée")}
+                </span>
+              )}
+              <a
+                href="/logements"
+                className="fv-lien"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void go("lodging");
+                }}
+              >
+                {tr("Changer")}
+              </a>
             </div>
-            <a
-              href="/"
-              onClick={(e) => {
-                e.preventDefault();
-                P.restart();
-                void go("home");
-              }}
-            >
-              {tr("Préparer un autre séjour")}
-              <Icon name="fleche-droite" taille={14} />
-            </a>
           </div>
-        ) : null}
-
-        <div className="bgrid7">
-          <div className="bgrid7__main">
-            <section className="bk7">
-              <div className={`bk7__media lodge7__media--${mediaTon(l)}`}>
-                {l.photo ? (
-                  <ImageSlot shape="rect" id={`v7app-bk-${l.id}`} placeholder={tr("Photo de l’annonce")} className="lodge7__slot" src={l.photo} />
-                ) : (
-                  <span>{tr("Pas de photo dans l’annonce")}</span>
-                )}
-              </div>
-              <div className="bk7__corps">
-                <div className="bk7__tete">
-                  <div>
-                    <span className="bk7__ref">
-                      {tr("Logement")} · {l.source} · {tr("réf. {ref}", { ref: l.id })}
-                    </span>
-                    <h2>{l.title}</h2>
-                  </div>
-                  <a
-                    href="/logements"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      void go("lodging");
-                    }}
-                  >
-                    {tr("Changer")}
-                  </a>
-                </div>
-                <div className="bk7__faits">
-                  <span>{capLbl(l)}</span>
-                  <span>{bedLbl(l)}</span>
-                  <span className="absent">{d.text}</span>
-                </div>
-                {firm ? (
-                  <div className="bk7__ok">
-                    <Icon name="coche" taille={16} />
-                    <span>
-                      <b>{tr("Prix relevé pour vos dates.")}</b>{" "}
-                      {tr("La source a tarifé cette annonce pour ce séjour. La source fera foi.")}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="bk7__alerte">
-                    <Icon name="alerte" taille={16} />
-                    <span>
-                      <b>{tr("Disponibilité non confirmée.")}</b> {availabilityLabel(availabilityOf(l, stay))}.{" "}
-                      {tr("La source fera foi.")}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <div className="bgrid7__deux">
-              <section className="carte7-sect carte7-sect--serre">
-                <div className="carte7-sect__ligne">
-                  <span>{tr("Station")}</span>
-                  <a
-                    href={`/stations/${s.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      void go("fiche", { id: s.id });
-                    }}
-                  >
-                    {tr("Fiche")}
-                  </a>
-                </div>
-                <strong className="carte7-sect__grand">{s.name}</strong>
-                <span className="carte7-sect__texte carte7-sect__texte--petit">
-                  {crumbDomaine(s)}
-                </span>
-                <span className="carte7-sect__chiffres">
-                  {altLbl(s) ?? tr("altitudes non relevées")} ·{" "}
-                  {kmLbl(s) ? (
-                    <>
-                      {kmLbl(s)} <small>{tr("de pistes, domaine")}</small>
-                    </>
-                  ) : (
-                    tr("kilomètres de pistes non publiés")
-                  )}
-                </span>
-              </section>
-              <section className="carte7-sect carte7-sect--serre">
-                <div className="carte7-sect__ligne">
-                  <span>{tr("Séjour")}</span>
-                  <a
-                    href="#"
-                    data-sejour-ouvre
-                    onClick={(e) => {
-                      e.preventDefault();
-                      P.setStayOpen(!P.stayOpen);
-                    }}
-                  >
-                    {tr("Modifier")}
-                  </a>
-                </div>
-                <strong className="carte7-sect__grand">{datesLbl(checkIn, checkOut, nights)}</strong>
-                <span className="carte7-sect__texte carte7-sect__texte--petit">
-                  {groupLbl(trav, rooms, enfants)}
-                </span>
-                <span className={`carte7-sect__chiffres${forfaitsCompris || pass?.total != null ? "" : " absent"}`}>
-                  {/* Le prix, sa période, ses bornes, son forfait et sa
-                      source ; l'indicateur discret quand il est peu fiable. */}
-                  {forfaitsCompris ? (
-                    tr("Forfaits compris dans le prix du logement")
-                  ) : pass?.total != null && adulte && lib ? (
-                    <>
-                      {`${pass.libelle}${tr(" : ")}${pass.detail}. ${mentionForfait(adulte)}. ${lib.source}. `}
-                      {lib.faible ? <FiabiliteFaible raisons={lib.raisons} /> : null}
-                    </>
-                  ) : prix.forfaits?.adulte.statut === "grille-ancienne" ? (
-                    tr("Forfait non publié : le dernier tarif connu a plus de trois saisons")
-                  ) : (
-                    tr("Forfaits non relevés pour ce domaine")
-                  )}
-                </span>
-              </section>
+          <div className="fv-resa__droite">
+            <div className="fv-resa__prix">
+              <b>{prixLbl(l)}</b>
+              {pp ? <span>{tr("{prix} / pers.", { prix: pp })}</span> : null}
             </div>
-
+            <div className="fv-resa__actions">
+              <button type="button" className="fv-rond" aria-label={tr("Retirer")} title={tr("Retirer")} onClick={retirer}>
+                <Trace d={PICTO_CORBEILLE} taille={14} epaisseur={2} />
+              </button>
+              {l.url ? (
+                <a
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fv-reserver"
+                  title={tr("Réserver sur {source}", { source: l.source })}
+                  onClick={marquerReserve}
+                >
+                  {tr("Réserver")}
+                  <Trace d={PICTO_EXTERNE} taille={11} epaisseur={2.6} />
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="fv-reserver fv-reserver--inerte"
+                  title={tr("Annonce sans lien : réserver à la main")}
+                  onClick={() =>
+                    P.say(tr("Annonce sans lien : la réservation se fait à la main, puis se marque ici."))
+                  }
+                >
+                  {tr("Réserver")}
+                </button>
+              )}
+            </div>
           </div>
+        </div>
 
-          <aside className="aside7 aside7--large">
-            <span className="v7surtitre">{tr("Coût du séjour, poste par poste")}</span>
-            <table className="cout7">
-              <tbody>
-                <tr>
-                  <th>
-                    {tr("Logement")} · {nuitsLbl(nights)}
-                    <span className="cout7__ok">{tr("relevé chez la source")}</span>
-                  </th>
-                  <td className={l.total > 0 ? undefined : "absent"}>{prixLbl(l)}</td>
-                </tr>
-                <tr>
-                  {forfaitsCompris ? (
-                    <>
-                      <th>
-                        {tr("Forfaits")}
-                        <span>{tr("compris dans le prix du logement")}</span>
-                      </th>
-                      <td>{tr("compris")}</td>
-                    </>
-                  ) : (
-                    <>
-                      <th>
-                        {tr("Forfaits")}
-                        {pass?.duree ? ` · ${pass.duree}` : ""}
-                        <span className={pass?.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
-                          {pass?.detail ?? tr("aucun tarif relevé")}
-                        </span>
-                        {pass?.periode ? <span>{pass.periode}</span> : null}
-                        {lib?.faible ? <FiabiliteFaible raisons={lib.raisons} /> : null}
-                      </th>
-                      <td className={pass?.total != null ? undefined : "absent"}>
-                        {pass?.total != null ? montantCents(passGroupN, pass.devise) : (pass?.manque ?? tr("non relevés"))}
-                      </td>
-                    </>
-                  )}
-                </tr>
-                <tr className="cout7__total">
-                  <th>{tr("Total")}</th>
-                  <td className={l.total > 0 ? undefined : "absent"}>
-                    {l.total > 0
-                      ? eurCents(totalN)
-                      : tr("logement non tarifé")}
-                  </td>
-                </tr>
-                <tr className="cout7__pp">
-                  <th>{tr("Par personne, sur {voyageurs}", { voyageurs: travLbl(trav) })}</th>
-                  <td className={l.total > 0 ? undefined : "absent"}>
-                    {l.total > 0 ? eurCents(Math.round((totalN / trav) * 100) / 100) : "–"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <button
-              type="button"
-              className={`btn7 btn7--grand btn7--pleine${l.url ? "" : " btn7--inerte"}`}
-              onClick={reserver}
-            >
-              {l.url ? tr("Réserver sur {source}", { source: l.source }) : tr("Annonce sans lien : réserver à la main")}
-            </button>
-            <label className="cocher7">
+        <div className="fv-cout">
+          <dl className="fv-cout__table">
+            <div>
+              <dt>
+                {tr("Logement")} · {nuitsLbl(nights)}
+              </dt>
+              <dd className={l.total > 0 ? undefined : "fv-muet"}>{prixLbl(l)}</dd>
+            </div>
+            <div>
+              <dt>
+                {tr("Forfaits")}
+                {!forfaitsCompris && pass?.duree ? ` · ${pass.duree}` : ""}
+                <span className={pass?.enfantsAuTarifAdulte ? "fv-cout__alerte" : undefined}>
+                  {forfaitsCompris
+                    ? tr("compris dans le prix du logement")
+                    : pass?.total != null && adulte && lib
+                      ? `${pass.detail} · ${mentionForfait(adulte)} · ${lib.source}`
+                      : prix.forfaits?.adulte.statut === "grille-ancienne"
+                        ? tr("Forfait non publié : le dernier tarif connu a plus de trois saisons")
+                        : (pass?.detail ?? tr("Forfaits non relevés pour ce domaine"))}
+                  {pass?.periode && !forfaitsCompris ? ` · ${pass.periode}` : ""}
+                </span>
+                {lib?.faible && !forfaitsCompris ? <FiabiliteFaible raisons={lib.raisons} /> : null}
+              </dt>
+              <dd className={forfaitsCompris || pass?.total != null ? undefined : "fv-muet"}>
+                {forfaitsCompris
+                  ? tr("compris")
+                  : pass?.total != null
+                    ? montantCents(passGroupN, pass.devise)
+                    : (pass?.manque ?? tr("non relevés"))}
+              </dd>
+            </div>
+            <div className="fv-cout__total">
+              <dt>{tr("Total")}</dt>
+              <dd className={l.total > 0 ? undefined : "fv-muet"}>
+                {l.total > 0 ? eurCents(totalN) : tr("logement non tarifé")}
+              </dd>
+            </div>
+            <div>
+              <dt>{tr("Par personne, sur {voyageurs}", { voyageurs: travLbl(trav) })}</dt>
+              <dd className={l.total > 0 ? undefined : "fv-muet"}>
+                {l.total > 0 ? eurCents(Math.round((totalN / trav) * 100) / 100) : "–"}
+              </dd>
+            </div>
+          </dl>
+          <div className="fv-cout__pied">
+            <label className="fv-case-cocher">
               <input type="checkbox" checked={P.booked} onChange={() => P.setBooked(!P.booked)} />
               {P.booked ? tr("Réservé chez la source") : tr("Marquer comme réservé")}
             </label>
-            <div className="aside7__deux">
-              <button type="button" className="btn7 btn7--fantome" onClick={copyRecap}>
-                {tr("Copier le récapitulatif")}
-              </button>
-              <button type="button" className="btn7 btn7--fantome" onClick={copyLink}>
-                {tr("Copier le lien")}
-              </button>
-            </div>
-            <p className="aside7__note">
-              {tr(
-                "Le lien de partage reprend station, logement, dates et voyageurs : les autres voyageurs voient le même récapitulatif.",
-              )}
-            </p>
-          </aside>
+            <button type="button" className="fv-pilule" onClick={copyRecap}>
+              {tr("Copier le récapitulatif")}
+            </button>
+          </div>
         </div>
-      </main>
-    </Coquille>
+      </section>
+
+      {ouvert ? (
+        <VoletAnnonce
+          l={l}
+          stay={stay}
+          trav={trav}
+          nights={nights}
+          groupe={null}
+          retenu
+          onRetenir={retirer}
+          onFermer={() => setOuvert(false)}
+          onVoirOffre={() => undefined}
+          forfaits={prix.pret ? prix.budget : undefined}
+        />
+      ) : null}
+    </>
   );
 }

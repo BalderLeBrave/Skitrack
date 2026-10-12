@@ -7,7 +7,7 @@
  * muet.
  */
 
-import { Icon } from "@/components/Icon";
+import { Trace } from "@/components/maquette";
 import { tr } from "@/lib/i18n";
 import { STAY_BOUNDS, stepStay, useSejour } from "@/lib/parcours";
 
@@ -15,13 +15,10 @@ export function Compteur({
   k,
   titre,
   regle,
-  encadre = false,
 }: {
   k: "trav" | "enfants" | "rooms";
   titre: string;
   regle: string;
-  /** Dans un cadre à bord (panneau de séjour) plutôt qu'en ligne séparée. */
-  encadre?: boolean;
 }) {
   const { trav, enfants, rooms } = useSejour();
   const value = k === "trav" ? trav : k === "enfants" ? enfants : rooms;
@@ -32,19 +29,19 @@ export function Compteur({
   const moins = k === "rooms" ? tr("{titre}, une de moins", { titre }) : tr("{titre}, un de moins", { titre });
   const plus = k === "rooms" ? tr("{titre}, une de plus", { titre }) : tr("{titre}, un de plus", { titre });
   return (
-    <div className={`compteur${encadre ? " compteur--encadre" : ""}`}>
-      <div className="compteur__texte">
-        <span className="compteur__titre">{titre}</span>
-        <span className="compteur__regle">{regle}</span>
+    <div className="acc-cpt">
+      <div className="acc-cpt__texte">
+        <b className="acc-cpt__titre">{titre}</b>
+        <span className="acc-cpt__regle">{regle}</span>
       </div>
-      <span className="compteur__pas">
+      <span className="acc-cpt__pas">
         <button
           type="button"
           aria-label={moins}
           disabled={value <= b.min}
           onClick={() => stepStay(k, -1)}
         >
-          <Icon name="moins" taille={12} />
+          <Trace d="M5 12h14" taille={12} epaisseur={2.4} />
         </button>
         <b>{value}</b>
         <button
@@ -53,7 +50,7 @@ export function Compteur({
           disabled={value >= b.max}
           onClick={() => stepStay(k, 1)}
         >
-          <Icon name="plus" taille={12} />
+          <Trace d="M12 5v14M5 12h14" taille={12} epaisseur={2.4} />
         </button>
       </span>
     </div>

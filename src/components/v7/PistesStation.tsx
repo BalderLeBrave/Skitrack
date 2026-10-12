@@ -148,77 +148,71 @@ export function PistesStation({ s }: { s: Station }) {
   ];
 
   return (
-    <section className="carte7-sect pistes7">
-      <div className="carte7-sect__tete">
-        <h2>{tr("Pistes")}</h2>
-      </div>
+    <section className="fs-carte fs-pistes">
+      <h2>{tr("Pistes")}</h2>
 
-      <dl className="pistes7__resume">
+      <dl className="fs-pistes__resume">
         {chiffres.map((c) => (
           <div key={c.t}>
             <dt>{c.t}</dt>
-            <dd>
-              <b>{c.v ?? tr("non publié")}</b>
-            </dd>
+            <dd className={c.v == null ? "fs-absent" : undefined}>{c.v ?? tr("non publié")}</dd>
           </div>
         ))}
       </dl>
 
       {share ? (
         <>
-          <div className="carte7-sect__ligne">
-            <span>{tr("Par couleur")}</span>
-          </div>
-          <PartPistes share={share} hauteur={12} />
-          <div className="mix7">
+          <span className="fs-pistes__sur">{tr("Par couleur")}</span>
+          <PartPistes share={share} hauteur={12} className="fs-pistes__barre" />
+          <div className="fs-pistes__mix">
             {COLS.map((c) => {
               // Le nombre de pistes de chaque couleur, quand Skiinfo le publie.
               const n = shareSkiinfo ? counts?.[c.key] : null;
               return (
                 <div key={c.key}>
-                  <span className="mix7__t">
+                  <span className="fs-pistes__coul">
                     <i style={{ background: c.token }} />
                     {tr(c.label)}
                   </span>
                   <b>{share[c.key]} %</b>
-                  <span className="mix7__sub">{n != null ? trN(n, "{n} piste", "{n} pistes", { n: fmt(n) }) : ""}</span>
+                  <span className="fs-pistes__n">{n != null ? trN(n, "{n} piste", "{n} pistes", { n: fmt(n) }) : ""}</span>
                 </div>
               );
             })}
           </div>
         </>
       ) : (
-        <p className="carte7-sect__texte carte7-sect__texte--petit">{tr("Répartition par couleur non publiée.")}</p>
+        <p className="fs-muet">{tr("Répartition par couleur non publiée.")}</p>
       )}
 
       {dispo ? (
         <>
           <button
             type="button"
-            className="pistes7__plus"
+            className="fs-plus"
             aria-expanded={ouvert}
             aria-controls={idDetail}
             onClick={() => setOuvert((o) => !o)}
           >
             {ouvert ? tr("Moins de détails") : tr("Plus de détails")}
-            <Icon name="chevron-bas" taille={16} />
+            <Icon name="chevron-bas" taille={14} />
           </button>
-          <div id={idDetail} className="pistes7__detail" hidden={!ouvert}>
+          <div id={idDetail} className="fs-pistes__detail" hidden={!ouvert}>
             {etat.status === "pret" ? (
               <Detail s={s} entree={entree} data={etat.data} />
             ) : etat.status === "erreur" ? (
-              <p className="carte7-sect__texte carte7-sect__texte--petit">
+              <p className="fs-muet">
                 {tr("Le détail des pistes n’a pas pu être chargé ({cause}). Il le sera à la prochaine ouverture.", {
                   cause: etat.cause,
                 })}
               </p>
             ) : (
-              <p className="carte7-sect__texte carte7-sect__texte--petit">{tr("Chargement du détail des pistes…")}</p>
+              <p className="fs-muet">{tr("Chargement du détail des pistes…")}</p>
             )}
           </div>
         </>
       ) : (
-        <p className="carte7-sect__texte carte7-sect__texte--petit">{tr("Détail piste par piste non disponible.")}</p>
+        <p className="fs-muet">{tr("Détail piste par piste non disponible.")}</p>
       )}
     </section>
   );
@@ -228,7 +222,7 @@ export function PistesStation({ s }: { s: Station }) {
 function Compteurs({ r }: { r: Regroupement }) {
   const t = totauxPistes(r);
   return (
-    <dl className="pistes7__chiffres">
+    <dl className="fs-pistes__chiffres">
       <div>
         <dt>{tr("Pistes")}</dt>
         <dd>{fmt(t.pistes)}</dd>
@@ -265,32 +259,27 @@ function Detail({ s, entree, data }: { s: Station; entree: IndexStation; data: D
   const avecDomaine = partage || entree.fichier !== entree.aire;
 
   return (
-    <div className="pistes7__parties">
-      <div className="pistes7__partie">
-        <div className="carte7-sect__ligne">
-          <h3 className="carte7-sect__h3">{tr("Pistes de {station}", { station: s.name })}</h3>
-        </div>
+    <div className="fs-pistes__parties">
+      <div className="fs-pistes__partie">
+        <h3>{tr("Pistes de {station}", { station: s.name })}</h3>
         <Compteurs r={station} />
         <TablePistes r={station} />
       </div>
 
       {avecDomaine ? (
-        <div className="pistes7__partie pistes7__partie--domaine">
-          <div className="carte7-sect__ligne">
-            <h3 className="carte7-sect__h3">{tr("Domaine {domaine}", { domaine: data.nom })}</h3>
-          </div>
+        <div className="fs-pistes__partie fs-pistes__partie--domaine">
+          <h3>{tr("Domaine {domaine}", { domaine: data.nom })}</h3>
           <Compteurs r={domaine} />
           <button
             type="button"
-            className="pistes7__plus"
+            className="fs-plus fs-plus--simple"
             aria-expanded={domaineOuvert}
             aria-controls={idDomaine}
             onClick={() => setDomaineOuvert((o) => !o)}
           >
             {domaineOuvert ? tr("Masquer les pistes du domaine") : tr("Voir les pistes du domaine")}
-            <Icon name="chevron-bas" taille={16} />
           </button>
-          <div id={idDomaine} className="pistes7__detail" hidden={!domaineOuvert}>
+          <div id={idDomaine} hidden={!domaineOuvert}>
             <TablePistes r={domaine} />
           </div>
         </div>
@@ -325,33 +314,31 @@ function TablePistes({ r }: { r: Regroupement }) {
   const basculer = (c: PisteColor) => setFiltre((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]));
 
   if (pistes.length === 0 && sansNom.length === 0)
-    return <p className="carte7-sect__texte carte7-sect__texte--petit">{tr("Aucune piste de descente relevée ici.")}</p>;
+    return <p className="fs-muet">{tr("Aucune piste de descente relevée ici.")}</p>;
 
   return (
-    <div className="pistes7__table-bloc">
-      <div className="pistes7__filtres" role="group" aria-label={tr("Filtrer par couleur")}>
+    <div className="fs-pistes__bloc">
+      <div className="fs-pistes__filtres" role="group" aria-label={tr("Filtrer par couleur")}>
         <button
           type="button"
-          className={`puce puce--case${filtre.length === 0 ? " puce--on" : ""}`}
+          className={`fs-puce${filtre.length === 0 ? " fs-puce--on" : ""}`}
           aria-pressed={filtre.length === 0}
           onClick={() => setFiltre([])}
         >
           {tr("Toutes")}
-          <span className="puce__n">{fmt(pistes.length)}</span>
+          <span className="fs-puce__n">{fmt(pistes.length)}</span>
         </button>
         {ORDRE_COULEUR.filter((c) => p[c].n > 0).map((c) => (
           <button
             key={c}
             type="button"
-            className={`puce puce--case${filtre.includes(c) ? " puce--on" : ""}`}
+            className={`fs-puce${filtre.includes(c) ? " fs-puce--on" : ""}`}
             aria-pressed={filtre.includes(c)}
             onClick={() => basculer(c)}
           >
-            <span className="mix7__t">
-              <i style={{ background: TOKEN[c] }} />
-              {tr(LIBELLE_PLURIEL[c])}
-            </span>
-            <span className="puce__n">
+            <i className="fs-pastille" style={{ background: TOKEN[c] }} />
+            {tr(LIBELLE_PLURIEL[c])}
+            <span className="fs-puce__n">
               {fmt(p[c].n)} · {p[c].pct} %
             </span>
           </button>
@@ -360,7 +347,7 @@ function TablePistes({ r }: { r: Regroupement }) {
       <Tableau lignes={visibles} tri={tri} trierPar={trierPar} legende={tr("Pistes nommées")} />
       {sansNomVisibles.length ? (
         <>
-          <h4 className="pistes7__h4">{tr("Pistes sans nom ({n})", { n: fmt(sansNomVisibles.length) })}</h4>
+          <h4 className="fs-pistes__h4">{tr("Pistes sans nom ({n})", { n: fmt(sansNomVisibles.length) })}</h4>
           <Tableau lignes={sansNomVisibles} tri={tri} trierPar={trierPar} legende={tr("Pistes sans nom")} />
         </>
       ) : null}
@@ -380,10 +367,10 @@ function Tableau({
   legende: string;
 }) {
   if (lignes.length === 0)
-    return <p className="carte7-sect__texte carte7-sect__texte--petit">{tr("Aucune piste de cette couleur.")}</p>;
+    return <p className="fs-muet">{tr("Aucune piste de cette couleur.")}</p>;
   return (
     <div
-      className={`pistes7__table${lignes.length > 20 ? " pistes7__table--long" : ""}`}
+      className="fs-table"
       role="region"
       aria-label={legende}
       tabIndex={lignes.length > 20 ? 0 : undefined}
@@ -403,8 +390,8 @@ function Tableau({
                   {tri.cle === c.cle ? (
                     <Icon
                       name="chevron-bas"
-                      taille={12}
-                      className={tri.sens === "asc" ? "pistes7__sens pistes7__sens--asc" : "pistes7__sens"}
+                      taille={10}
+                      className={tri.sens === "asc" ? "fs-table__sens fs-table__sens--asc" : "fs-table__sens"}
                     />
                   ) : null}
                 </button>
@@ -421,8 +408,8 @@ function Tableau({
                 {x.nom ?? tr("Sans nom")}
               </th>
               <td data-label={tr("Couleur")}>
-                <span className="pistes7__couleur">
-                  <i data-couleur={x.couleur} style={{ background: PISTE_HEX[x.couleur] }} />
+                <span className="fs-table__couleur">
+                  <i className="fs-pastille" data-couleur={x.couleur} style={{ background: PISTE_HEX[x.couleur] }} />
                   {tr(COULEUR_LIBELLE[x.couleur])}
                 </span>
               </td>

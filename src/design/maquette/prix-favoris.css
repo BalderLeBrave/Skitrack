@@ -1,0 +1,1268 @@
+/* Maquette Airbnb (handoff Claude Design du 12 octobre 2026) : zone « prix-favoris ».
+ *
+ * `.px-` : l'écran Prix (Skitrack App.dc.html:564-600).
+ * `.fv-` : Favoris (602-647) et Réservation (649-672).
+ * Couleurs : jetons de `system.css` et de `socle.css` seulement. */
+
+/* ── Prix : cadre et barre de période ─────────────────────────────────── */
+
+.px-main {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 28px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.px-vue {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.px-barre,
+.px-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Les deux pilules à pas : période (‹ 14 → 21 févr. ›) et nuits (− 7 nuits +). */
+.px-pas {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 42px;
+  padding: 0 6px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+.px-pas:focus-within {
+  border-color: var(--color-ink);
+}
+.px-pas__rond {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.px-pas__rond:hover:not(:disabled) {
+  background: var(--color-puce);
+}
+.px-pas__rond:disabled {
+  color: var(--color-line-commande);
+  cursor: default;
+}
+.px-pas__val,
+.px-periode__lbl {
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+.px-pas__val--nuits {
+  min-width: 64px;
+}
+/* Le libellé de la période porte, invisible au-dessus de lui, le champ de
+   date : un clic ouvre le calendrier, le clavier y tape une arrivée. */
+.px-periode {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 124px;
+  height: 30px;
+  padding: 0 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.px-periode:hover {
+  background: var(--color-puce);
+}
+.px-periode__date {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.px-periode__date::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.px-groupe {
+  font-size: 13.5px;
+  color: var(--color-muted);
+}
+.px-revenir {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--color-marque);
+  border-radius: 999px;
+  background: var(--color-bleu-pale);
+  color: var(--color-marque-texte);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Prix : rangée d'outils ───────────────────────────────────────────── */
+
+/* « Prix connus seulement » : une pilule qui porte son interrupteur. */
+.px-bascule {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 14px 0 8px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.px-bascule:hover {
+  border-color: var(--color-ink);
+}
+.px-effacer {
+  font-size: 13.5px;
+}
+.px-compte {
+  margin-left: auto;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.px-compte:focus,
+.px-actions:focus {
+  outline: none;
+}
+.px-actions {
+  display: inline-flex;
+  align-items: center;
+}
+.px-indice {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.px-relever {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.px-relever:hover {
+  background: var(--color-encre-survol);
+}
+.px-pilule {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.px-pilule:hover {
+  border-color: var(--color-ink);
+}
+.px-encre {
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.px-encre:hover {
+  background: var(--color-encre-survol);
+}
+.px-encre--large {
+  width: 100%;
+  height: 48px;
+}
+
+/* Le budget : un curseur dans une pilule (App.dc.html:593). Sa fourchette
+   complète est dans la fenêtre Filtres. */
+.px-budget {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 46px;
+  padding: 0 18px;
+  flex: 1 1 320px;
+  max-width: 520px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.px-budget__lbl {
+  color: var(--color-muted);
+}
+.px-budget input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--color-ink);
+}
+.px-budget__val {
+  min-width: 72px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Le relevé en cours : une bande bleue, sa jauge et « Arrêter ». */
+.px-course {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: var(--color-bleu-pale);
+  color: var(--color-marque-texte);
+}
+.px-course__ligne {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.px-course__jauge {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-marque) 18%, var(--color-bleu-pale));
+  overflow: hidden;
+}
+.px-course__jauge i {
+  display: block;
+  height: 100%;
+  background: var(--color-marque);
+  transition: width 0.4s;
+}
+.px-course__arreter {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.px-course__sous {
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.px-avis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: var(--color-muted);
+}
+
+/* ── Prix : tableau par station ───────────────────────────────────────── */
+
+.px-table {
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.px-table__defile {
+  overflow-x: auto;
+}
+.px-rang {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 1fr 1fr 1fr 1.2fr;
+  gap: 12px;
+  align-items: center;
+  min-width: 640px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--color-line);
+  font-variant-numeric: tabular-nums;
+}
+.px-rang--tete {
+  border-top: 0;
+}
+.px-cell--droite {
+  display: flex;
+  justify-content: flex-end;
+}
+.px-tri {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+button.px-tri {
+  cursor: pointer;
+}
+button.px-tri:hover,
+.px-tri--on {
+  color: var(--color-ink);
+}
+.px-station {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.px-station__nom {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.px-station__nom:hover {
+  text-decoration: underline;
+}
+.px-station__sous {
+  font-size: 12px;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.px-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 13.5px;
+  color: var(--color-ink);
+}
+.px-cell:focus {
+  outline: none;
+}
+.px-cell--muet {
+  color: var(--color-vue);
+}
+.px-partiel {
+  font-size: 11.5px;
+  color: var(--color-muted);
+}
+.px-valeur {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.px-prix {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.px-prix--muet {
+  color: var(--color-vue);
+}
+.px-etat {
+  font-size: 12.5px;
+  color: var(--color-muted);
+  text-align: right;
+}
+.px-rond {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.px-rond:hover {
+  border-color: var(--color-ink);
+}
+.px-pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--color-line);
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.px-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.px-vide b {
+  font-weight: 600;
+}
+.px-vide--table {
+  padding: 18px 22px;
+  border-top: 1px solid var(--color-line);
+}
+
+/* ── Prix : fenêtre Filtres (choix de lieu) ───────────────────────────── */
+
+.px-choix {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.px-champ {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.px-select {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.px-multi {
+  position: relative;
+}
+.px-multi__bouton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.px-multi__liste {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-modale-centre);
+}
+.px-multi__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.px-multi__option:hover {
+  background: var(--color-puce);
+}
+.px-multi__option input {
+  accent-color: var(--color-ink);
+}
+
+/* ── Liste et carte (Prix par budget, dossier de Favoris) ─────────────── */
+
+.px-deux,
+.fv-deux {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.px-deux__liste {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+.px-deux__liste:focus {
+  outline: none;
+}
+.px-grille,
+.fv-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 32px 18px;
+}
+/* La carte colle sous la barre du haut. `isolation` garde les étages de
+   Leaflet (400 à 1 000) dans la carte : ils passaient sinon par-dessus la
+   barre et les boutons de l'écran. */
+.px-deux__carte,
+.fv-deux__carte {
+  position: sticky;
+  top: 96px;
+  z-index: 0;
+  isolation: isolate;
+  height: calc(100vh - 130px);
+  min-height: 420px;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--color-carte-fond);
+}
+
+@media (max-width: 900px) {
+  .px-deux,
+  .fv-deux {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .px-deux__carte,
+  .fv-deux__carte {
+    position: relative;
+    top: auto;
+    height: 420px;
+  }
+}
+@media (max-width: 640px) {
+  .px-main,
+  .fv-main {
+    padding: 18px 16px 80px;
+  }
+  .px-compte {
+    margin-left: 0;
+    width: 100%;
+  }
+  .px-budget {
+    max-width: none;
+  }
+}
+
+/* ── Favoris : cadre, titres, état vide ───────────────────────────────── */
+
+.fv-main {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px 28px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.fv-main--resa {
+  max-width: 1100px;
+  gap: 22px;
+}
+.fv-h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+.fv-h1--dossier,
+.fv-h1--resa {
+  font-size: 28px;
+}
+.fv-h1--resa {
+  font-variant-numeric: tabular-nums;
+}
+
+.fv-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 24px 0;
+}
+.fv-vide b {
+  font-size: 18px;
+  font-weight: 700;
+}
+.fv-encre {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.fv-encre:hover {
+  background: var(--color-encre-survol);
+}
+.fv-encre:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.fv-encre--moyen {
+  height: 42px;
+  padding: 0 16px;
+  font-size: 13.5px;
+}
+.fv-encre--grand {
+  height: 48px;
+  padding: 0 22px;
+  font-size: 15px;
+}
+
+/* ── Favoris : les dossiers ───────────────────────────────────────────── */
+
+.fv-dossiers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 32px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-dossier {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.fv-dossier:hover .fv-couv {
+  filter: brightness(0.97);
+}
+.fv-dossier__texte {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fv-dossier__texte b {
+  font-size: 16px;
+  font-weight: 700;
+}
+.fv-dossier__texte span {
+  font-size: 13.5px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* La mosaïque carrée : 2fr / 1fr, la grande photo sur deux rangs. */
+.fv-couv {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-dossier);
+}
+.fv-couv__case {
+  overflow: hidden;
+  background: var(--color-photo-fond);
+}
+.fv-couv__case--grande {
+  grid-row: 1 / 3;
+}
+.fv-couv__case--vide {
+  background: var(--color-puce);
+}
+.fv-couv__case img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Favoris : en-tête d'un dossier ───────────────────────────────────── */
+
+.fv-tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.fv-retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  height: 38px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.fv-retour:hover {
+  border-color: var(--color-ink);
+}
+.fv-renommer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fv-renommer input {
+  height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid var(--color-ink);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  outline: none;
+}
+.fv-lien {
+  height: 42px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.fv-compte {
+  font-size: 13.5px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fv-outils {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.fv-pilule {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.fv-pilule:hover {
+  border-color: var(--color-ink);
+}
+.fv-pilule--haute {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 13.5px;
+}
+.fv-pilule--supprimer:hover {
+  border-color: var(--color-danger);
+}
+.fv-pilule--danger {
+  border: 0;
+  background: var(--color-danger);
+  color: var(--color-surface);
+  font-weight: 700;
+}
+.fv-confirmer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fv-bandeau {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: var(--color-bleu-pale);
+  color: var(--color-marque-texte);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.fv-bandeau--ok {
+  background: var(--color-ok);
+  color: var(--color-succes);
+}
+.fv-bandeau__x {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.fv-bandeau__lien {
+  margin-left: auto;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Favoris : liste ──────────────────────────────────────────────────── */
+
+.fv-case {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.fv-case__sejour {
+  font-size: 12px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Favoris : Comparer ───────────────────────────────────────────────── */
+
+.fv-cmp {
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: var(--color-surface);
+  overflow: auto;
+}
+.fv-cmp__rang {
+  display: grid;
+  grid-template-columns: minmax(240px, 2.2fr) repeat(6, minmax(90px, 1fr));
+  gap: 12px;
+  align-items: center;
+  min-width: 860px;
+  padding: 12px 22px;
+  border-top: 1px solid var(--color-line);
+  font-size: 14px;
+}
+.fv-cmp__rang--tete {
+  padding-top: 14px;
+  padding-bottom: 14px;
+  border-top: 0;
+}
+.fv-cmp__rang--tete > span:not(.m8-lu-seul) {
+  display: flex;
+  justify-content: flex-end;
+}
+/* La première colonne garde sa place, même sans titre visible. */
+.fv-cmp__rang--tete::before {
+  content: "";
+}
+.fv-tri {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fv-tri:hover,
+.fv-tri--on {
+  color: var(--color-ink);
+}
+.fv-cmp__logement {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.fv-cmp__vignette {
+  flex: none;
+  width: 64px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-photo-fond);
+}
+.fv-cmp__vignette img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fv-cmp__noms {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.fv-cmp__noms b {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-cmp__noms span {
+  font-size: 12px;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-cmp__val {
+  text-align: right;
+  font-weight: 500;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+.fv-cmp__val--mieux {
+  font-weight: 700;
+  color: var(--color-succes);
+}
+
+/* ── Réservation ──────────────────────────────────────────────────────── */
+
+.fv-resa {
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.fv-resa__rang {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--color-line);
+}
+.fv-resa__photo {
+  flex: none;
+  width: 150px;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--color-photo-fond);
+  cursor: pointer;
+}
+.fv-resa__photo:hover {
+  filter: brightness(0.95);
+}
+.fv-resa__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fv-resa__corps {
+  flex: 1 1 280px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fv-resa__titre {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.fv-resa__ligne {
+  font-size: 13.5px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fv-resa__station {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fv-resa__puces {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.fv-resa__puces .fv-lien {
+  height: auto;
+  padding: 4px 6px;
+  font-size: 12.5px;
+}
+.fv-resa__offre {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-ok);
+  color: var(--color-succes);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.fv-resa__ferme,
+.fv-resa__incertain {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.fv-resa__ferme {
+  color: var(--color-succes);
+}
+.fv-resa__ferme i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-succes);
+}
+.fv-resa__incertain {
+  color: var(--color-muted);
+}
+.fv-resa__droite {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.fv-resa__prix {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.fv-resa__prix b {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.fv-resa__prix span {
+  font-size: 12.5px;
+  color: var(--color-muted);
+}
+.fv-resa__actions {
+  display: flex;
+  gap: 8px;
+}
+.fv-rond {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.fv-rond:hover {
+  border-color: var(--color-ink);
+}
+.fv-reserver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-marque);
+  color: var(--color-cta-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.fv-reserver:hover {
+  background: var(--color-marque-survol);
+}
+.fv-reserver--inerte {
+  background: var(--color-puce);
+  color: var(--color-muted);
+}
+.fv-reserver--inerte:hover {
+  background: var(--color-puce);
+}
+
+/* Le coût poste par poste, sous la rangée. */
+.fv-cout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px;
+}
+.fv-cout__table {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.fv-cout__table > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-line);
+}
+.fv-cout__table > div:first-child {
+  border-top: 0;
+}
+.fv-cout__table dt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.fv-cout__table dt span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.fv-cout__table dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fv-cout__total dt,
+.fv-cout__total dd {
+  font-size: 16px;
+  font-weight: 800;
+}
+.fv-cout__alerte {
+  color: var(--color-alerte-texte) !important;
+}
+.fv-muet {
+  color: var(--color-vue);
+}
+.fv-cout__pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fv-case-cocher {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fv-case-cocher input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-succes);
+}
+
+@media (max-width: 640px) {
+  .fv-outils {
+    margin-left: 0;
+  }
+  .fv-resa__photo {
+    width: 100%;
+  }
+  .fv-resa__droite {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .fv-resa__prix {
+    align-items: flex-start;
+  }
+}

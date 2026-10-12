@@ -1,25 +1,38 @@
 /**
- * Les blocs d'information de la fiche d'annonce (`VoletAnnonce`), dans
- * l'ordre de la colonne de gauche, et la carte de prix de droite.
+ * Les blocs de la fiche d'annonce (`VoletAnnonce`), dans l'ordre de la
+ * colonne de gauche, et la carte de prix de droite. Maquette « Fiche
+ * Logement » du 12 oct. 2026.
  *
- * Rien n'est estimé : une donnée absente se dit absente. Les montants et
- * l'écart viennent des fonctions de l'écran Logements (`prixLbl`,
- * `eurCents`, `montantCents`, `forfaitInclus`, `ecartAvecPrincipale`).
+ * Rien n'est estimé : une donnée absente se dit absente. Les explications
+ * (d'où vient une distance, une altitude, une position) vont en infobulle,
+ * pas à côté de la donnée. Les montants et l'écart viennent des fonctions de
+ * l'écran Logements (`prixLbl`, `eurCents`, `montantCents`, `forfaitInclus`,
+ * `ecartAvecPrincipale`, `totalSejour`).
  */
 
 import { useMemo, useState, type ReactNode } from "react";
 import { Carte, type Epingle, type Segment } from "@/components/Carte";
 import { Icon } from "@/components/Icon";
-import { altitudeAide, altitudeLbl, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
+import { PictoEquipement } from "@/components/v7/fiche/PictoFiche";
+import { resumePrix } from "@/components/v7/fiche/resumePrix";
+import { otherDomainMessage, sectorOf } from "@/lib/access";
+import {
+  altitudeAide,
+  altitudeLbl,
+  positionApprochee,
+  type Altitude,
+} from "@/lib/altitude/altitude";
 import { useAltitudes } from "@/lib/altitude/store";
 import { montantCents } from "@/lib/devises";
 import type { BudgetForfaits } from "@/lib/forfaits/prixSejour";
 import { aTraduire, tr, trN } from "@/lib/i18n";
 import { langueIntl } from "@/lib/i18n/langue";
 import type { Listing } from "@/lib/listings";
-import { liftKindPhrase } from "@/lib/osmAccess";
-import { eurCents, mLbl, nuitsLbl, travLbl } from "@/lib/parcours";
+import { noteSur5Lbl } from "@/lib/note";
+import { eurCents, mLbl, nuitsLbl } from "@/lib/parcours";
 import { difficultyToColor, type PisteColor } from "@/lib/pistes";
+import { provenancePhrase } from "@/lib/provenance";
+import type { Station } from "@/lib/stations";
 import {
   altitudesRemontee,
   arrondiM,
@@ -30,8 +43,13 @@ import {
   type FichierTraces,
 } from "@/lib/stay/accesPistes";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { EQUIPEMENTS_EN_AVANT, EQUIPEMENTS_FICHE, LIBELLE_EQUIPEMENT, type EquipementFiche } from "@/lib/stay/equipements";
+import {
+  EQUIPEMENTS_EN_AVANT,
+  EQUIPEMENTS_FICHE,
+  LIBELLE_EQUIPEMENT,
+  type CleEquipement,
+  type EquipementFiche,
+} from "@/lib/stay/equipements";
 import {
   avisDe,
   conditionsDe,
@@ -40,16 +58,20 @@ import {
   tronquer,
   type ConditionsSejour,
 } from "@/lib/stay/ficheEnrichie";
-import { noteEtAvisLbl, noteSur5Lbl } from "@/lib/note";
+import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { CHAMP_LIBELLE, champsNonIndiques } from "@/lib/stay/nonIndique";
 import { ecartAvecPrincipale, type Logement } from "@/lib/stay/regroupement";
-import { forfaitsAjoutables, parPersonne, totalSejour } from "@/lib/stay/totalSejour";
-import { bedLbl, capLbl, distanceOf, firmOf, prixLbl } from "@/lib/v7";
+import { forfaitsAjoutables } from "@/lib/stay/totalSejour";
+import { bedLbl, capLbl, distanceOf, firmOf, kmLbl, prixLbl } from "@/lib/v7";
 
 type Sejour = { checkIn: string; checkOut: string };
 
-/** Au-delà, la description se replie derrière « Lire toute la description ». */
+/** Au-delà, la description se replie derrière « Lire la suite ». */
 const DESCRIPTION_COURTE = 280;
+/** Au-delà, les équipements se replient derrière « Afficher les N équipements ». */
+const EQUIPEMENTS_COURTS = 12;
+/** La distance qui remplit le trait du schéma d'accès. */
+const SCHEMA_M = 1500;
 
 const PISTE_COULEUR: Record<PisteColor, string> = {
   green: aTraduire("Piste verte"),
@@ -60,84 +82,108 @@ const PISTE_COULEUR: Record<PisteColor, string> = {
 };
 
 const dateCourte = (ms: number) =>
-  new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", year: "numeric" }).format(new Date(ms));
+  new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", year: "numeric" }).format(
+    new Date(ms),
+  );
 
 /** Le type publié, avec sa capitale : Cozy écrit « studio », « appartement ». */
 const majuscule = (s: string) => s.charAt(0).toLocaleUpperCase(langueIntl()) + s.slice(1);
 
-const altM = (m: number) => `${new Intl.NumberFormat(langueIntl(), { maximumFractionDigits: 0 }).format(m)} m`;
+const altM = (m: number) =>
+  `${new Intl.NumberFormat(langueIntl(), { maximumFractionDigits: 0 }).format(m)} m`;
 
-/** 1. Disponibilité, note et avis, type publié. */
-export function BlocBadges({ l, stay }: { l: Listing; stay: Sejour }) {
-  const ferme = firmOf(l, stay);
+/** Le titre : le lieu et la station, le nom, la note, le type, la plateforme. */
+export function BlocTitre({
+  l,
+  station,
+  titreId,
+}: {
+  l: Listing;
+  station: string | null;
+  titreId: string;
+}) {
   const avis = avisDe(l);
-  const noteAvis = avis ? noteEtAvisLbl(avis.noteSur5, avis.nombre) : null;
+  const note = avis ? noteSur5Lbl(avis.noteSur5) : null;
+  const lieu = [sectorOf(l), station].filter((x, i, a): x is string => !!x && a.indexOf(x) === i);
   return (
-    <div className="fiche7__badges">
-      <span className={`fiche7__badge ${ferme ? "fiche7__badge--ok" : "fiche7__badge--alerte"}`}>
-        <Icon name={ferme ? "coche" : "alerte"} taille={13} />
-        {availabilityLabel(availabilityOf(l, stay))}
-      </span>
-      {noteAvis ? (
-        <span className="fiche7__badge">
-          <Icon name="etoile" taille={13} />
-          {noteAvis}
-        </span>
-      ) : null}
-      {l.propertyType?.trim() ? <span className="fiche7__badge">{majuscule(l.propertyType.trim())}</span> : null}
-      {l.priceIndicative ? <span className="fiche7__badge">{tr("Prix « à partir de »")}</span> : null}
+    <div className="fl-titre">
+      {lieu.length ? <span className="fl-titre__lieu">{lieu.join(" · ")}</span> : null}
+      <h1 id={titreId}>{l.title}</h1>
+      <div className="fl-titre__meta">
+        {note || avis?.nombre ? (
+          <span>
+            {note ? <b>{note}</b> : null}
+            {avis?.nombre ? trN(avis.nombre, "{n} avis", "{n} avis") : null}
+          </span>
+        ) : null}
+        {l.propertyType?.trim() ? <span>{majuscule(l.propertyType.trim())}</span> : null}
+        <span title={[provenancePhrase(l), l.proven].filter(Boolean).join("\n")}>{l.source}</span>
+        {l.priceIndicative ? <span className="fl-puce">{tr("Prix « à partir de »")}</span> : null}
+      </div>
     </div>
   );
 }
 
-/** 2. Les quatre faits. */
+/** Les faits clés sur une ligne : capacité, chambres, lits, remontées, altitude. */
 export function BlocFaits({ l, altitude }: { l: Listing; altitude: Altitude | null | undefined }) {
-  const couchage = [bedLbl(l), l.beds != null ? trN(l.beds, "{n} lit", "{n} lits") : null].filter(Boolean).join(" · ");
+  const dist = distanceOf(l);
+  const approchee = positionApprochee(l);
+  const faits: { k: string; v: string; aide?: string }[] = [
+    { k: "cap", v: capLbl(l) },
+    { k: "ch", v: bedLbl(l) },
+    ...(l.beds != null ? [{ k: "lits", v: trN(l.beds, "{n} lit", "{n} lits") }] : []),
+    ...(l.baths != null
+      ? [{ k: "sdb", v: trN(l.baths, "{n} salle de bain", "{n} salles de bain") }]
+      : []),
+    {
+      k: "dist",
+      v:
+        dist.kind === "measured"
+          ? tr("{distance} des remontées", { distance: mLbl(l.distToLiftM) ?? "" })
+          : dist.text,
+      aide: dist.kind === "measured" ? dist.text : undefined,
+    },
+    ...(l.lat != null && l.lon != null
+      ? [
+          {
+            k: "alt",
+            v: altitude
+              ? tr("{altitude} d’altitude", { altitude: altitudeLbl(altitude, approchee) })
+              : altitudeLbl(altitude, approchee),
+            aide: altitudeAide(altitude, approchee),
+          },
+        ]
+      : []),
+  ];
   return (
-    <dl className="fiche7__faits">
-      <div>
-        <dt>{tr("Capacité")}</dt>
-        <dd>{capLbl(l)}</dd>
-      </div>
-      <div>
-        <dt>{tr("Couchage")}</dt>
-        <dd>{couchage}</dd>
-      </div>
-      <div>
-        <dt>{tr("Distance aux remontées")}</dt>
-        <dd>{distanceOf(l).text}</dd>
-      </div>
-      <div title={altitudeAide(altitude, positionApprochee(l))}>
-        <dt>{tr("Altitude")}</dt>
-        <dd>{l.lat != null && l.lon != null ? altitudeLbl(altitude, positionApprochee(l)) : tr("Position non publiée")}</dd>
-      </div>
-    </dl>
+    <p className="fl-faits">
+      {faits.map((f) => (
+        <span key={f.k} title={f.aide}>
+          {f.v}
+        </span>
+      ))}
+    </p>
   );
 }
 
-/** Une ligne de l'accès aux pistes : un pictogramme, un titre, un détail. */
-function Ligne({ icone, titre, children }: { icone: "montagne" | "epingle" | "fleche-droite"; titre: string; children: ReactNode }) {
-  return (
-    <li>
-      <Icon name={icone} taille={16} />
-      <div>
-        <span className="fiche7__acces-titre">{titre}</span>
-        {children}
-      </div>
-    </li>
-  );
-}
-
-/** 3. Du logement à la remontée, la piste la plus proche, le village à pied. */
+/**
+ * Du logement à la remontée la plus proche, en schéma ; dessous, le domaine,
+ * la piste la plus proche et le village. `complements` : des mesures de plus
+ * (la trace GPX de l'écran Traces).
+ */
 export function BlocAcces({
   l,
   altitude,
   traces,
+  station,
+  complements,
 }: {
   l: Listing;
   altitude: Altitude | null | undefined;
   /** Les tracés du domaine : `undefined` pendant le chargement. */
   traces: FichierTraces | null | undefined;
+  station: Station | undefined;
+  complements?: ReactNode;
 }) {
   const approchee = positionApprochee(l);
   const gares = useMemo(
@@ -151,152 +197,166 @@ export function BlocAcces({
   const altA = altDe(gares[0]);
   const altB = altDe(gares[1]);
   const remontee = altitudesRemontee(altA?.m, altB?.m);
-  const lectureGares = (gares[0].lat != null && altA === undefined) || (gares[1].lat != null && altB === undefined);
+  const lectureGares =
+    (gares[0].lat != null && altA === undefined) || (gares[1].lat != null && altB === undefined);
   const piste = useMemo(
-    () => (l.lat != null && l.lon != null && traces ? pisteLaPlusProche(l.lat, l.lon, traces.pistes) : null),
+    () =>
+      l.lat != null && l.lon != null && traces
+        ? pisteLaPlusProche(l.lat, l.lon, traces.pistes)
+        : null,
     [l.lat, l.lon, traces],
   );
   const aPied = tempsAPied(l.distToPlaceM);
-
+  const dist = distanceOf(l);
+  const km = station ? kmLbl(station) : null;
   // Un point triangulé n'est pas la porte : l'accès ne se mesure pas plus
   // que sans point.
-  if (l.lat == null || l.lon == null || l.gpsSource === "triangule") {
-    return (
-      <section className="fiche7__bloc" aria-labelledby="fiche7-acces">
-        <h3 id="fiche7-acces">{tr("Accès aux pistes")}</h3>
-        <p className="fiche7__absent">{tr("Position non publiée par {source} : l’accès aux pistes ne se mesure pas.", { source: l.source })}</p>
-      </section>
-    );
-  }
+  const mesurable = l.lat != null && l.lon != null && l.gpsSource !== "triangule";
+
+  const autre =
+    l.domainFit === "other"
+      ? otherDomainMessage(
+          {
+            searchedId: l.stationId,
+            nearestStationId: l.nearestDomainId ?? null,
+            nearestStationName: l.nearestDomainName ?? null,
+            villageId: l.villageId ?? null,
+            via: l.rattachementVia ?? null,
+            motif: null,
+            distToSearchedPinM: l.distToSlopesM ?? null,
+            distToNearestPinM: l.distToNearestDomainM ?? null,
+            verdict: "other",
+            winterBarrier: l.winterBarrier ?? null,
+          },
+          station?.name ?? l.stationId,
+        )
+      : null;
 
   const pisteM = piste ? arrondiM(piste.m) : null;
+  const pct =
+    l.distToLiftM != null ? Math.min(0.94, Math.max(0.06, l.distToLiftM / SCHEMA_M)) * 100 : null;
+
   return (
-    <section className="fiche7__bloc" aria-labelledby="fiche7-acces">
-      <h3 id="fiche7-acces">{tr("Accès aux pistes")}</h3>
-      <ul className="fiche7__acces">
-        <Ligne icone="fleche-droite" titre={tr("Remontée la plus proche")}>
-          {l.distToLiftM != null ? (
-            <>
-              <b>{tr("{distance} {remontee}", { distance: mLbl(l.distToLiftM) ?? "", remontee: liftKindPhrase(l.liftKind, l.liftName) })}</b>
-              <span>
-                {[
-                  altitude ? tr("logement à {altitude}", { altitude: altM(altitude.m) }) : null,
-                  remontee
-                    ? tr("remontée de {depart} à {arrivee}", { depart: altM(remontee.depart), arrivee: altM(remontee.arrivee) })
-                    : lectureGares
-                      ? tr("altitudes de la remontée en cours de lecture")
-                      : tr("altitudes de la remontée non mesurées"),
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+    <section
+      className="fl-carte fl-acces"
+      aria-label={tr("Accès aux pistes")}
+      title={
+        mesurable && approchee
+          ? tr(
+              "Position approchée : les distances peuvent s’écarter de quelques dizaines de mètres.",
+            )
+          : undefined
+      }
+    >
+      {mesurable && dist.kind === "measured" && pct != null ? (
+        <div className="fl-schema">
+          <div className="fl-schema__bout">
+            <b>{tr("Logement")}</b>
+            <span title={altitudeAide(altitude, approchee)}>
+              {altitudeLbl(altitude, approchee)}
+            </span>
+          </div>
+          <div className="fl-schema__trait" title={dist.text}>
+            <i style={{ width: `${pct}%` }} />
+            <span style={{ left: `${pct}%` }}>{mLbl(l.distToLiftM)}</span>
+          </div>
+          <div className="fl-schema__bout fl-schema__bout--fin">
+            <b>{l.liftName?.trim() || tr("Remontée")}</b>
+            <span className={remontee ? undefined : "fl-absent"}>
+              {remontee
+                ? `${altM(remontee.depart)} → ${altM(remontee.arrivee)}`
+                : lectureGares
+                  ? tr("altitudes de la remontée en cours de lecture")
+                  : tr("altitudes de la remontée non mesurées")}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p className="fl-acces__seul" title={autre ?? undefined}>
+          {dist.text}
+        </p>
+      )}
+      <ul className="fl-acces__ligne">
+        {km ? <li>{tr("{km} de pistes", { km })}</li> : null}
+        {mesurable ? (
+          <li
+            title={
+              piste
+                ? tr("Distance à vol d’oiseau jusqu’au tracé de la piste (OpenSkiMap).")
+                : undefined
+            }
+          >
+            {traces === undefined ? (
+              <span className="fl-absent">{tr("Tracés des pistes en cours de chargement")}</span>
+            ) : traces === null ? (
+              <span className="fl-absent">
+                {tr("Tracés des pistes non disponibles pour cette station")}
               </span>
-            </>
-          ) : (
-            <span className="fiche7__absent">{distanceOf(l).text}</span>
-          )}
-        </Ligne>
-        <Ligne icone="montagne" titre={tr("Piste la plus proche")}>
-          {traces === undefined ? (
-            <span className="fiche7__absent">{tr("Tracés des pistes en cours de chargement")}</span>
-          ) : traces === null ? (
-            <span className="fiche7__absent">{tr("Tracés des pistes non disponibles pour cette station")}</span>
-          ) : piste && pisteM != null ? (
-            <>
-              <b>
+            ) : piste && pisteM != null ? (
+              <>
                 {tr("{piste} à {distance}", {
-                  piste: [tr(PISTE_COULEUR[difficultyToColor(piste.piste.d ?? undefined)]), piste.piste.n ?? piste.piste.r]
+                  piste: [
+                    tr(PISTE_COULEUR[difficultyToColor(piste.piste.d ?? undefined)]),
+                    piste.piste.n ?? piste.piste.r,
+                  ]
                     .filter(Boolean)
                     .join(" "),
                   distance: mLbl(pisteM) ?? "",
                 })}
-                {skisAuxPieds(piste.m, approchee) ? <span className="fiche7__badge fiche7__badge--ok">{tr("Skis aux pieds")}</span> : null}
-              </b>
-              <span>{tr("Distance à vol d’oiseau jusqu’au tracé de la piste (OpenSkiMap).")}</span>
-            </>
-          ) : (
-            <span className="fiche7__absent">{tr("Aucune piste à moins de {distance}", { distance: mLbl(PISTE_MAX_M) ?? "" })}</span>
-          )}
-        </Ligne>
-        <Ligne icone="epingle" titre={tr("Village")}>
-          {l.placeName ? (
-            <>
-              <b>{l.placeName}</b>
-              <span>
-                {l.distToPlaceM != null && aPied
-                  ? aPied.moins
-                    ? tr("{distance}, moins de 5 min à pied", { distance: mLbl(l.distToPlaceM) ?? "" })
-                    : tr("{distance}, {minutes} min à pied", { distance: mLbl(l.distToPlaceM) ?? "", minutes: aPied.minutes })
-                  : tr("distance au village non mesurée")}
+                {skisAuxPieds(piste.m, approchee) ? (
+                  <span className="fl-puce fl-puce--ok">{tr("Skis aux pieds")}</span>
+                ) : null}
+              </>
+            ) : (
+              <span className="fl-absent">
+                {tr("Aucune piste à moins de {distance}", { distance: mLbl(PISTE_MAX_M) ?? "" })}
               </span>
-            </>
-          ) : (
-            <span className="fiche7__absent">{tr("Village le plus proche non mesuré")}</span>
-          )}
-        </Ligne>
+            )}
+          </li>
+        ) : null}
+        {mesurable && l.placeName ? (
+          <li>
+            {[
+              l.placeName,
+              l.distToPlaceM != null && aPied
+                ? aPied.moins
+                  ? tr("{distance}, moins de 5 min à pied", {
+                      distance: mLbl(l.distToPlaceM) ?? "",
+                    })
+                  : tr("{distance}, {minutes} min à pied", {
+                      distance: mLbl(l.distToPlaceM) ?? "",
+                      minutes: aPied.minutes,
+                    })
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </li>
+        ) : null}
+        {complements}
       </ul>
-      {approchee ? (
-        <p className="fiche7__note">
-          {tr("Position approchée : les distances peuvent s’écarter de quelques dizaines de mètres.")}
-        </p>
-      ) : null}
     </section>
   );
 }
 
-/** Une section repliable de la fiche, avec son titre. */
-function Repli({ id, titre, ouverte = true, children }: { id: string; titre: string; ouverte?: boolean; children: ReactNode }) {
-  return (
-    <details className="fiche7__bloc fiche7__repli" open={ouverte}>
-      <summary>
-        <h3 id={id}>{titre}</h3>
-      </summary>
-      <div className="fiche7__repli-corps" role="group" aria-labelledby={id}>
-        {children}
-      </div>
-    </details>
-  );
-}
+/** Les douze clés des collecteurs, vers la table des équipements de la fiche. */
+const ID_DE_CLE: Record<CleEquipement, string> = {
+  balcon: "balcon",
+  cheminee: "cheminee",
+  wifi: "wifi",
+  laveVaisselle: "lave_vaisselle",
+  laveLinge: "lave_linge",
+  linge: "linge_fourni",
+  parking: "parking",
+  casierSkis: "casier_skis",
+  saunaSpa: "sauna_spa",
+  piscine: "piscine",
+  animaux: "animaux",
+  ascenseur: "ascenseur",
+};
 
-/** « Non publié par Airbnb » : un état vide qui ne ressemble pas à une donnée. */
-function NonPublie({ l }: { l: Listing }) {
-  return <p className="fiche7__absent">{tr("Non publié par {source}", { source: l.source })}</p>;
-}
-
-/** « Voir sur Airbnb », vers la page de la source. */
-function VoirSur({ l, url }: { l: Listing; url?: string | null }) {
-  const href = url ?? l.url;
-  if (!href) return null;
-  return (
-    <a className="fiche7__lien" href={href} target="_blank" rel="noopener">
-      {tr("Voir sur {source}", { source: l.source })}
-      <Icon name="externe" taille={11} />
-    </a>
-  );
-}
-
-/** 4a. La description publiée, repliée quand elle est longue. */
-function SectionDescription({ l }: { l: Listing }) {
-  const [entiere, setEntiere] = useState(false);
-  const texte = descriptionDe(l) ?? "";
-  const longue = texte.length > DESCRIPTION_COURTE;
-  return (
-    <Repli id="fiche7-description" titre={tr("Description")}>
-      {texte ? (
-        <>
-          <p className="fiche7__description">{longue && !entiere ? tronquer(texte, DESCRIPTION_COURTE) : texte}</p>
-          {longue ? (
-            <button type="button" className="fiche7__lien" aria-expanded={entiere} onClick={() => setEntiere((o) => !o)}>
-              {entiere ? tr("Replier la description") : tr("Lire toute la description")}
-            </button>
-          ) : null}
-          <VoirSur l={l} />
-        </>
-      ) : (
-        <NonPublie l={l} />
-      )}
-    </Repli>
-  );
-}
+type EtatEquipement = "oui" | "non" | "inconnu";
+type LigneEquipement = { id: string; nom: string; libelle: string; etat: EtatEquipement };
 
 /** Le nom d'un équipement : le libellé français de la table, sinon celui de la source. */
 function nomEquipement(e: EquipementFiche): string {
@@ -304,105 +364,184 @@ function nomEquipement(e: EquipementFiche): string {
   return def ? tr(def.libelle) : e.libelle;
 }
 
-function Pastille({ e }: { e: EquipementFiche }) {
-  const nom = nomEquipement(e);
-  return (
-    <li className={`fiche7__equipement fiche7__equipement--${e.present ? "oui" : "non"}`} title={e.libelle !== nom ? e.libelle : undefined}>
-      <span className="fiche7__pastille" aria-hidden>
-        <Icon name={e.present ? "coche" : "moins"} taille={12} />
-      </span>
-      <span className="fiche7__equipement-nom">{nom}</span>
-      <span className="lecteur7">{e.present ? tr("présent") : tr("absent")}</span>
-    </li>
+/**
+ * Les équipements dans l'ordre de lecture : ceux qu'on met en avant, les
+ * autres présents par groupe, les absents, puis ceux que l'annonce tait
+ * (relevés « inconnu » sur les douze clés des collecteurs).
+ */
+function lignesEquipements(l: Listing): LigneEquipement[] {
+  const liste = equipementsDe(l) ?? [];
+  const presents = liste.filter((e) => e.present);
+  const enAvant = EQUIPEMENTS_EN_AVANT.map((id) => presents.find((e) => e.id === id)).filter(
+    (e): e is EquipementFiche => e != null,
   );
+  const reste = presents
+    .filter((e) => !enAvant.includes(e))
+    .sort((a, b) => (a.groupe ?? "~").localeCompare(b.groupe ?? "~"));
+  const vus = new Set(liste.map((e) => e.id));
+  const taits = (l.amenities ?? [])
+    .filter((e) => e.valeur === "inconnu" && !vus.has(ID_DE_CLE[e.cle]))
+    .map((e): LigneEquipement => {
+      const nom = tr(LIBELLE_EQUIPEMENT[e.cle]);
+      return { id: ID_DE_CLE[e.cle], nom, libelle: nom, etat: "inconnu" };
+    });
+  const ligne = (e: EquipementFiche): LigneEquipement => ({
+    id: e.id,
+    nom: nomEquipement(e),
+    libelle: e.libelle,
+    etat: e.present ? "oui" : "non",
+  });
+  return [
+    ...enAvant.map(ligne),
+    ...reste.map(ligne),
+    ...liste.filter((e) => !e.present).map(ligne),
+    ...taits,
+  ];
 }
 
-/**
- * 4b. Les équipements que la source liste : ceux qu'on met en avant d'abord
- * (télévision, sèche-cheveux, wifi, lave-linge, parking, ski aux pieds), puis
- * par groupe ; enfin ceux que la source dit absents. Ce qu'elle ne mentionne
- * pas n'apparaît pas : ce n'est pas un absent.
- */
-function SectionEquipements({ l }: { l: Listing }) {
-  const liste = equipementsDe(l);
-  const presents = (liste ?? []).filter((e) => e.present);
-  const absents = (liste ?? []).filter((e) => !e.present);
-  const enAvant = EQUIPEMENTS_EN_AVANT.map((id) => presents.find((e) => e.id === id)).filter((e): e is EquipementFiche => e != null);
-  const groupes = new Map<string, EquipementFiche[]>();
-  for (const e of presents) {
-    if (enAvant.includes(e)) continue;
-    const g = e.groupe ? tr(e.groupe) : tr("Autres");
-    groupes.set(g, [...(groupes.get(g) ?? []), e]);
+const ETAT_LECTEUR: Record<EtatEquipement, string> = {
+  oui: aTraduire("présent"),
+  non: aTraduire("absent"),
+  inconnu: aTraduire("non indiqué"),
+};
+
+/** La description publiée, repliée quand elle est longue, puis les équipements en pictogrammes. */
+export function BlocAnnonce({ l }: { l: Listing }) {
+  const [entiere, setEntiere] = useState(false);
+  const [tous, setTous] = useState(false);
+  const texte = descriptionDe(l) ?? "";
+  const longue = texte.length > DESCRIPTION_COURTE;
+  const lignes = useMemo(() => lignesEquipements(l), [l]);
+  const vus = tous ? lignes : lignes.slice(0, EQUIPEMENTS_COURTS);
+  if (!texte && !lignes.length) {
+    return (
+      <section className="fl-carte fl-annonce">
+        <p className="fl-absent">{tr("Non publié par {source}", { source: l.source })}</p>
+      </section>
+    );
   }
   return (
-    <Repli id="fiche7-equipements" titre={tr("Équipements")}>
-      {!liste?.length ? (
-        <NonPublie l={l} />
-      ) : (
+    <section className="fl-carte fl-annonce" aria-label={tr("Description")}>
+      {texte ? (
         <>
-          {enAvant.length ? (
-            <ul className="fiche7__equipements fiche7__equipements--avant" aria-label={tr("Principaux équipements")}>
-              {enAvant.map((e) => (
-                <Pastille key={e.id} e={e} />
-              ))}
-            </ul>
-          ) : null}
-          {[...groupes].map(([g, es]) => (
-            <div key={g} className="fiche7__groupe">
-              <h4 className="fiche7__sous-titre">{g}</h4>
-              <ul className="fiche7__equipements">
-                {es.map((e) => (
-                  <Pastille key={e.id} e={e} />
-                ))}
-              </ul>
-            </div>
-          ))}
-          {absents.length ? (
-            <div className="fiche7__groupe">
-              <h4 className="fiche7__sous-titre">{tr("Absents selon {source}", { source: l.source })}</h4>
-              <ul className="fiche7__equipements">
-                {absents.map((e) => (
-                  <Pastille key={e.id} e={e} />
-                ))}
-              </ul>
-            </div>
+          <p className="fl-annonce__texte">
+            {longue && !entiere ? tronquer(texte, DESCRIPTION_COURTE) : texte}
+          </p>
+          {longue ? (
+            <button
+              type="button"
+              className="fl-lien"
+              aria-expanded={entiere}
+              onClick={() => setEntiere((o) => !o)}
+            >
+              {entiere ? tr("Réduire") : tr("Lire la suite")}
+            </button>
           ) : null}
         </>
-      )}
-    </Repli>
+      ) : null}
+      {lignes.length ? (
+        <>
+          <ul
+            className={`fl-equipements${texte ? "" : " fl-equipements--seuls"}`}
+            aria-label={tr("Équipements")}
+          >
+            {vus.map((e) => (
+              <li
+                key={e.id}
+                className={`fl-equipement fl-equipement--${e.etat}`}
+                title={
+                  e.etat === "oui"
+                    ? e.libelle !== e.nom
+                      ? e.libelle
+                      : undefined
+                    : e.etat === "non"
+                      ? tr("Non")
+                      : tr("Non indiqué")
+                }
+              >
+                <PictoEquipement id={e.id} />
+                <span className="fl-equipement__nom">{e.nom}</span>
+                <span className="lecteur7">{tr(ETAT_LECTEUR[e.etat])}</span>
+              </li>
+            ))}
+          </ul>
+          {lignes.length > EQUIPEMENTS_COURTS ? (
+            <button
+              type="button"
+              className="fl-lien"
+              aria-expanded={tous}
+              onClick={() => setTous((o) => !o)}
+            >
+              {tous ? tr("Réduire") : tr("Afficher les {n} équipements", { n: lignes.length })}
+            </button>
+          ) : null}
+        </>
+      ) : null}
+    </section>
   );
 }
 
-/** 4c. Les avis : « 4,8 / 5 · 120 avis », puis les extraits publiés. */
-function SectionAvis({ l }: { l: Listing }) {
-  const avis = avisDe(l);
-  const resume = avis ? noteEtAvisLbl(avis.noteSur5, avis.nombre) : null;
+/** Une section repliable de la fiche. */
+function Repli({
+  titre,
+  resume,
+  ouverte = false,
+  children,
+}: {
+  titre: string;
+  resume?: string | null;
+  ouverte?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <Repli id="fiche7-avis" titre={tr("Avis")}>
-      {!avis ? (
-        <NonPublie l={l} />
-      ) : (
-        <>
-          <p className="fiche7__avis-resume">
-            {resume ?? (avis.nombre ? trN(avis.nombre, "{n} avis, note non publiée", "{n} avis, note non publiée") : tr("Note non publiée"))}
-          </p>
-          {avis.extraits.length ? (
-            <ul className="fiche7__avis">
-              {avis.extraits.map((x, i) => {
-                const n = noteSur5Lbl(x.noteSur5);
-                const meta = [x.auteur, x.date, n].filter(Boolean).join(" · ");
-                return (
-                  <li key={i}>
-                    <blockquote>{tronquer(x.texte, 400)}</blockquote>
-                    {meta ? <p className="fiche7__note">{meta}</p> : null}
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
-          <VoirSur l={l} url={avis.url} />
-        </>
-      )}
+    <details className="fl-carte fl-repli" open={ouverte}>
+      <summary>
+        <b>{titre}</b>
+        {resume ? <span>{resume}</span> : null}
+        <Icon name="chevron-bas" taille={16} />
+      </summary>
+      <div className="fl-repli__corps">{children}</div>
+    </details>
+  );
+}
+
+/** « Voir sur Airbnb », vers la page de la source. */
+function VoirSur({ l, url }: { l: Listing; url?: string | null }) {
+  const href = url ?? l.url;
+  if (!href) return null;
+  return (
+    <a className="fl-lien" href={href} target="_blank" rel="noopener">
+      {tr("Voir sur {source}", { source: l.source })}
+      <Icon name="externe" taille={11} />
+    </a>
+  );
+}
+
+/** Les avis publiés : la note, le nombre, les extraits. Rien quand la source n'en publie pas. */
+export function BlocAvis({ l }: { l: Listing }) {
+  const avis = avisDe(l);
+  if (!avis || (!avis.extraits.length && !avis.url)) return null;
+  const note = noteSur5Lbl(avis.noteSur5);
+  const resume = [note, avis.nombre ? trN(avis.nombre, "{n} avis", "{n} avis") : null]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <Repli titre={tr("Avis")} resume={resume || null}>
+      {avis.extraits.length ? (
+        <ul className="fl-avis">
+          {avis.extraits.map((x, i) => {
+            const n = noteSur5Lbl(x.noteSur5);
+            const meta = [x.auteur, x.date, n].filter(Boolean).join(" · ");
+            return (
+              <li key={i}>
+                <blockquote>{tronquer(x.texte, 400)}</blockquote>
+                {meta ? <span className="fl-note">{meta}</span> : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      <VoirSur l={l} url={avis.url} />
     </Repli>
   );
 }
@@ -425,74 +564,58 @@ const LIGNES_CONDITIONS: readonly { k: keyof ConditionsSejour; label: string }[]
   { k: "reglement", label: aTraduire("Règlement intérieur") },
 ];
 
-/** 4d. Les conditions, dans les mots de la source. */
-function SectionConditions({ l }: { l: Listing }) {
+/** Les conditions, dans les mots de la source. Rien quand elle n'en publie pas. */
+export function BlocConditions({ l }: { l: Listing }) {
   const c = conditionsDe(l);
-  const lignes = c ? LIGNES_CONDITIONS.filter(({ k }) => c[k] != null) : [];
+  if (!c) return null;
+  const lignes = LIGNES_CONDITIONS.filter(({ k }) => c[k] != null);
   return (
-    <Repli id="fiche7-conditions" titre={tr("Conditions")} ouverte={false}>
-      {!c ? (
-        <NonPublie l={l} />
-      ) : (
-        <>
-          {lignes.length ? (
-            <dl className="fiche7__conditions">
-              {lignes.map(({ k, label }) => {
-                const v = c[k] as string;
-                return (
-                  <div key={k}>
-                    <dt>{tr(label)}</dt>
-                    <dd>{k === "animaux" || k === "fumeurs" || k === "fetes" ? tr(OUI_NON[v] ?? v) : v}</dd>
-                  </div>
-                );
-              })}
-            </dl>
-          ) : null}
-          {c.texteSource ? <p className="fiche7__description">{c.texteSource}</p> : null}
-          <p className="fiche7__note">{tr("Texte publié par {source}, non reformulé.", { source: l.source })}</p>
-        </>
-      )}
+    <Repli titre={tr("Conditions")}>
+      {lignes.length ? (
+        <dl className="fl-conditions">
+          {lignes.map(({ k, label }) => {
+            const v = c[k] as string;
+            return (
+              <div key={k}>
+                <dt>{tr(label)}</dt>
+                <dd>
+                  {k === "animaux" || k === "fumeurs" || k === "fetes" ? tr(OUI_NON[v] ?? v) : v}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+      ) : null}
+      {c.texteSource ? (
+        <p
+          className="fl-annonce__texte"
+          title={tr("Texte publié par {source}, non reformulé.", { source: l.source })}
+        >
+          {c.texteSource}
+        </p>
+      ) : null}
     </Repli>
   );
 }
 
-/** 4. La fiche du logement : description, équipements, avis, conditions. */
-export function BlocFiche({ l }: { l: Listing }) {
-  return (
-    <>
-      <SectionDescription l={l} />
-      <SectionEquipements l={l} />
-      <SectionAvis l={l} />
-      <SectionConditions l={l} />
-    </>
-  );
-}
-
-/** 5. Les champs vides de l'annonce. */
+/** Les champs vides de l'annonce, sur une ligne. */
 export function BlocNonIndique({ l }: { l: Listing }) {
-  const champs = champsNonIndiques(l);
+  const champs = champsNonIndiques(l).map((c) => tr(CHAMP_LIBELLE[c]));
   // Les équipements que l'annonce tait, quand ses équipements ont été relevés.
-  const taits = (l.amenities ?? []).filter((e) => e.valeur === "inconnu");
-  if (!champs.length && !taits.length) return null;
+  const taits = (l.amenities ?? [])
+    .filter((e) => e.valeur === "inconnu")
+    .map((e) => tr(LIBELLE_EQUIPEMENT[e.cle]));
+  const tout = [...champs, ...taits];
+  if (!tout.length) return null;
   return (
-    <section className="fiche7__encadre" aria-labelledby="fiche7-non-indique">
-      <h3 id="fiche7-non-indique">
-        <Icon name="info" taille={15} />
-        {tr("Non indiqué par {source}", { source: l.source })}
-      </h3>
-      <ul>
-        {champs.map((c) => (
-          <li key={c}>{tr(CHAMP_LIBELLE[c])}</li>
-        ))}
-        {taits.map((e) => (
-          <li key={e.cle}>{tr(LIBELLE_EQUIPEMENT[e.cle])}</li>
-        ))}
-      </ul>
+    <section className="fl-manques" title={tr("Non indiqué par {source}", { source: l.source })}>
+      <Icon name="alerte" taille={16} />
+      <span>{tr("Non indiqué : {liste}", { liste: tout.join(", ") })}</span>
     </section>
   );
 }
 
-/** 7. Le logement et sa remontée, reliés par un trait. */
+/** Le logement et sa remontée sur la carte, reliés par un trait. */
 export function BlocEmplacement({ l }: { l: Listing }) {
   const { epingles, segments, trace } = useMemo(() => {
     const ep: Epingle[] = [];
@@ -501,34 +624,64 @@ export function BlocEmplacement({ l }: { l: Listing }) {
     if (l.lat != null && l.lon != null) {
       ep.push({ id: "logement", lat: l.lat, lon: l.lon, titre: l.title, sorte: "logement" });
       if (l.liftLat != null && l.liftLon != null) {
-        ep.push({ id: "remontee", lat: l.liftLat, lon: l.liftLon, titre: l.liftName ?? tr("Remontée"), sorte: "remontee" });
+        ep.push({
+          id: "remontee",
+          lat: l.liftLat,
+          lon: l.liftLon,
+          titre: l.liftName ?? tr("Remontée"),
+          sorte: "remontee",
+        });
         ligne = [
           { lat: l.lat, lon: l.lon },
           { lat: l.liftLat, lon: l.liftLon },
         ];
         if (l.liftOtherLat != null && l.liftOtherLon != null) {
-          sg.push({ id: "remontee", a: [l.liftLat, l.liftLon], b: [l.liftOtherLat, l.liftOtherLon] });
+          sg.push({
+            id: "remontee",
+            a: [l.liftLat, l.liftLon],
+            b: [l.liftOtherLat, l.liftOtherLon],
+          });
         }
       }
     }
     return { epingles: ep, segments: sg, trace: ligne };
   }, [l.lat, l.lon, l.liftLat, l.liftLon, l.liftOtherLat, l.liftOtherLon, l.title, l.liftName]);
+  if (!epingles.length) {
+    return (
+      <section className="fl-carte fl-plan fl-plan--vide">
+        <span>{tr("Position non publiée par {source}.", { source: l.source })}</span>
+      </section>
+    );
+  }
+  const triangulee = l.gpsSource === "triangule";
   return (
-    <section className="fiche7__bloc" aria-labelledby="fiche7-emplacement">
-      <h3 id="fiche7-emplacement">{tr("Emplacement")}</h3>
-      {epingles.length ? (
-        <div className="fiche7__carte">
-          <Carte epingles={epingles} segments={segments} trace={trace} ajuster outils={false} zoom={15} centre={[l.lat as number, l.lon as number]} />
-        </div>
-      ) : (
-        <p className="fiche7__absent">{tr("Position non publiée par {source}.", { source: l.source })}</p>
-      )}
-      {epingles.length && l.gpsSource === "triangule" ? (
-        <p className="fiche7__note">
-          {tr("Position triangulée : {source} n'a pas publié de GPS. Ce n'est pas la porte.", { source: l.source })}
-        </p>
-      ) : epingles.length && positionApprochee(l) ? (
-        <p className="fiche7__note">{tr("Position approchée publiée par {source}.", { source: l.source })}</p>
+    <section className="fl-carte fl-plan" aria-label={tr("Emplacement")}>
+      <Carte
+        epingles={epingles}
+        segments={segments}
+        trace={trace}
+        ajuster
+        outils={false}
+        zoom={15}
+        centre={[l.lat as number, l.lon as number]}
+      />
+      {triangulee ? (
+        <span
+          className="fl-plan__note"
+          title={tr(
+            "Position triangulée : {source} n'a pas publié de GPS. Ce n'est pas la porte.",
+            { source: l.source },
+          )}
+        >
+          {tr("Position triangulée")}
+        </span>
+      ) : positionApprochee(l) ? (
+        <span
+          className="fl-plan__note"
+          title={tr("Position approchée publiée par {source}.", { source: l.source })}
+        >
+          {tr("Position approchée")}
+        </span>
       ) : null}
     </section>
   );
@@ -544,6 +697,8 @@ export function CartePrix({
   forfaitsMotif,
   avecForfaits,
   setAvecForfaits,
+  mode,
+  setMode,
   groupe,
   retenu,
   onRetenir,
@@ -558,62 +713,78 @@ export function CartePrix({
   forfaitsMotif?: string | null;
   avecForfaits: boolean;
   setAvecForfaits: (v: boolean) => void;
+  mode: "total" | "pers";
+  setMode: (m: "total" | "pers") => void;
   groupe: Logement | null;
   retenu: boolean;
   onRetenir: () => void;
   onVoirOffre: (id: string) => void;
   suite?: ReactNode;
 }) {
-  const [mode, setMode] = useState<"total" | "pers">("total");
-  const { total, forfaitsAjoutes } = totalSejour(l, forfaits, avecForfaits);
-  const parPers = parPersonne(total, trav);
+  const prix = resumePrix(l, forfaits, avecForfaits, trav, nights, mode);
   const inclus = forfaitInclus(l);
+  const ajoutables = forfaitsAjoutables(l, forfaits);
   const ferme = firmOf(l, stay);
   const moinsChere = groupe && groupe.principale.id !== l.id ? groupe.principale : null;
   const ecart = moinsChere ? ecartAvecPrincipale(l, moinsChere) : null;
+  const aideForfaits =
+    !inclus && forfaits?.total != null
+      ? [
+          forfaits.periode ?? forfaits.periodeCourte,
+          forfaits.enfantsAuTarifAdulte
+            ? tr("enfants au tarif adulte, tarif enfant non communiqué")
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · ") || undefined
+      : undefined;
 
   return (
-    <>
-      <div className="fiche7__onglets" role="group" aria-label={tr("Affichage du prix")}>
+    <div className="fl-prix">
+      <div className="fl-onglets" role="group" aria-label={tr("Affichage du prix")}>
         <button type="button" aria-pressed={mode === "total"} onClick={() => setMode("total")}>
-          {tr("Total séjour")}
+          {tr("Séjour")}
         </button>
         <button type="button" aria-pressed={mode === "pers"} onClick={() => setMode("pers")}>
-          {tr("Par personne")}
+          {tr("Par pers.")}
         </button>
       </div>
-      <div className="fiche7__prix">
-        <b>{total == null ? tr("prix non publié") : eurCents(mode === "total" ? total : parPers)}</b>
-        <span>
-          {mode === "total"
-            ? [nuitsLbl(nights), travLbl(trav), forfaitsAjoutes ? tr("avec les forfaits") : null]
-                .filter(Boolean)
-                .join(" · ")
-            : [trN(trav, "pour {n} voyageur", "pour {n} voyageurs"), forfaitsAjoutes ? tr("avec les forfaits") : null].filter(Boolean).join(" · ")}
-        </span>
+      <div className="fl-prix__montant">
+        <b>{prix.principal}</b>
+        <span>{prix.detail}</span>
       </div>
-      <dl className="fiche7__detail">
+      <dl className="fl-detail">
         <div>
-          <dt>{tr("Logement · {nuits}", { nuits: nuitsLbl(nights) })}</dt>
-          <dd className={l.total > 0 ? undefined : "absent"}>{prixLbl(l)}</dd>
+          <dt>{`${nuitsLbl(nights)} · ${l.source}`}</dt>
+          <dd className={l.total > 0 ? undefined : "fl-absent"}>{prixLbl(l)}</dd>
         </div>
-        <div>
+        <div title={aideForfaits}>
           <dt>
             {inclus || !forfaits || forfaits.total == null ? (
-              tr("Forfaits du groupe")
+              tr("Forfaits")
             ) : (
-              <label className="fiche7__case">
+              <label className="fl-case">
                 <input
                   type="checkbox"
-                  checked={avecForfaits}
-                  disabled={!forfaitsAjoutables(l, forfaits)}
+                  checked={avecForfaits && ajoutables}
+                  disabled={!ajoutables}
                   onChange={(e) => setAvecForfaits(e.target.checked)}
                 />
-                {forfaits.libelle}
+                {`${forfaits.libelle} × ${trav}`}
               </label>
             )}
           </dt>
-          <dd className={inclus || forfaits?.total != null ? undefined : "absent"}>
+          <dd
+            className={
+              inclus
+                ? undefined
+                : forfaits?.total != null
+                  ? avecForfaits && ajoutables
+                    ? undefined
+                    : "fl-barre"
+                  : "fl-absent"
+            }
+          >
             {inclus
               ? tr("compris dans le prix")
               : forfaits === undefined
@@ -625,52 +796,56 @@ export function CartePrix({
                     : (forfaits.manque ?? tr("non relevés"))}
           </dd>
         </div>
-        {!inclus && forfaits?.total != null && (forfaits.periodeCourte || forfaits.enfantsAuTarifAdulte) ? (
-          <p className="fiche7__note">
-            {[forfaits.periodeCourte, forfaits.enfantsAuTarifAdulte ? tr("enfants au tarif adulte, tarif enfant non communiqué") : null]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        ) : null}
-        <div>
-          <dt>{tr("Par personne")}</dt>
-          <dd className={parPers != null ? undefined : "absent"}>{parPers != null ? eurCents(parPers) : "–"}</dd>
-        </div>
       </dl>
-      <p className={`fiche7__dispo${ferme ? " fiche7__dispo--ok" : ""}`}>
-        <Icon name={ferme ? "coche" : "alerte"} taille={14} />
-        <span>
-          {availabilityLabel(availabilityOf(l, stay))}
-          {l.scannedAt != null ? ` · ${tr("relevé le {date}", { date: dateCourte(l.scannedAt) })}` : ""}
-        </span>
-      </p>
-      <div className="fiche7__actions">
-        <button
-          type="button"
-          className={`btn7 btn7--grand btn7--pleine${retenu ? " btn7--tenu" : " btn7--encre"}`}
-          onClick={onRetenir}
-        >
-          {retenu ? tr("Retenu") : tr("Retenir ce logement")}
-        </button>
-        {l.url ? (
-          <a href={l.url} target="_blank" rel="noopener" className="btn7 btn7--fantome btn7--pleine btn7--lien">
-            {tr("Ouvrir sur {source}", { source: l.source })}
-            <Icon name="externe" taille={12} />
-          </a>
-        ) : null}
-        {suite}
-      </div>
       {moinsChere && ecart != null && ecart > 0 ? (
-        <p className="fiche7__moins-cher">
-          {tr("Le même logement est {ecart} moins cher sur {source}.", {
-            ecart: eurCents(ecart) ?? "",
+        <button type="button" className="fl-moins-cher" onClick={() => onVoirOffre(moinsChere.id)}>
+          {tr("{source} : {ecart} de moins", {
             source: moinsChere.source,
-          })}{" "}
-          <button type="button" className="fiche7__lien" onClick={() => onVoirOffre(moinsChere.id)}>
-            {tr("Voir cette offre")}
-          </button>
-        </p>
+            ecart: eurCents(ecart) ?? "",
+          })}
+          <Icon name="chevron-droite" taille={14} />
+        </button>
       ) : null}
-    </>
+      <span
+        className={`fl-dispo${ferme ? " fl-dispo--ok" : ""}`}
+        title={
+          [
+            ferme ? availabilityLabel(availabilityOf(l, stay)) : null,
+            l.scannedAt != null ? tr("Relevé le {date}", { date: dateCourte(l.scannedAt) }) : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || undefined
+        }
+      >
+        <i aria-hidden />
+        {ferme ? tr("Disponible") : availabilityLabel(availabilityOf(l, stay))}
+      </span>
+      <button
+        type="button"
+        className={`fl-retenir${retenu ? " fl-retenir--on" : ""}`}
+        aria-pressed={retenu}
+        onClick={onRetenir}
+      >
+        {retenu ? <Icon name="coche" taille={14} /> : null}
+        {retenu ? tr("Retenu") : tr("Retenir")}
+      </button>
+      {l.url ? (
+        <a
+          href={l.url}
+          target="_blank"
+          rel="noopener"
+          className="fl-reserver"
+          title={tr("Réserver sur {source}", { source: l.source })}
+        >
+          {tr("Réserver")}
+          <Icon name="externe" taille={12} />
+        </a>
+      ) : (
+        <span className="fl-reserver fl-reserver--off" title={tr("Annonce sans lien")}>
+          {tr("Réserver")}
+        </span>
+      )}
+      {suite}
+    </div>
   );
 }

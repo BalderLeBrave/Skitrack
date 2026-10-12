@@ -1,0 +1,412 @@
+/* Maquette Airbnb (handoff Claude Design du 12 octobre 2026) : zone « coquille ».
+ *
+ * La barre du haut (Skitrack App.dc.html:17-45) et la fenêtre « Modifier la
+ * recherche » (46-116). La barre de recherche elle-même est dans
+ * `accueil.css` (`.acc-`), partagée avec l'accueil. */
+
+:root {
+  /* Hauteur de la barre collante, pour les bandeaux collants des écrans. */
+  --sh-haut: 68px;
+}
+
+.sh-haut {
+  position: relative;
+  z-index: 30;
+  background: color-mix(in srgb, var(--color-bg) 86%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+.sh-barre {
+  max-width: 1320px;
+  height: var(--sh-haut);
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.sh-marque {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.sh-marque:hover {
+  text-decoration: none;
+}
+.sh-marque b {
+  font-weight: 800;
+}
+.sh-marque span {
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.sh-marque i {
+  width: 5px;
+  height: 5px;
+  margin-left: 3px;
+  border-radius: 50%;
+  background: var(--color-marque);
+}
+
+/* Étapes du parcours. */
+.sh-etapes {
+  flex: none;
+  display: flex;
+  gap: 2px;
+}
+.sh-etape {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.sh-etape:hover {
+  background: var(--color-bleu-clair);
+}
+.sh-etape__num {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-bleu-clair);
+  color: var(--color-marque-texte);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.sh-etape--on,
+.sh-etape--on:hover {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.sh-etape--on .sh-etape__num {
+  background: color-mix(in srgb, var(--color-surface) 18%, transparent);
+  color: var(--color-surface);
+}
+.sh-etape--verrou {
+  color: var(--color-etape-verrou);
+}
+.sh-etape--verrou .sh-etape__num {
+  background: var(--color-etape-verrou-fond);
+  color: var(--color-etape-verrou);
+}
+.sh-etape__badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-marque);
+  color: var(--color-cta-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Pilule centrale. */
+.sh-centre {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+.sh-pilule {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+  height: 46px;
+  padding: 0 7px 0 20px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--color-ombre) 6%, transparent),
+    0 4px 14px color-mix(in srgb, var(--color-ombre) 8%, transparent);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sh-pilule:hover {
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--color-ombre) 10%, transparent),
+    0 8px 22px color-mix(in srgb, var(--color-ombre) 12%, transparent);
+}
+.sh-pilule {
+  overflow: hidden;
+}
+/* Quand la place manque, le groupe se coupe d'abord, la station ensuite :
+   jamais à zéro, et la loupe reste dans la pilule. */
+.sh-pilule > * {
+  flex: none;
+}
+.sh-pilule__station {
+  flex: 0 0 auto;
+  max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sh-pilule__trait {
+  flex: none;
+  width: 1px;
+  height: 22px;
+  background: var(--color-line);
+}
+.sh-pilule .sh-pilule__groupe {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sh-pilule__groupe {
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.sh-pilule__loupe {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-marque);
+  color: var(--color-cta-ink);
+}
+.sh-pilule--reduite {
+  display: none;
+  gap: 10px;
+  height: 42px;
+  padding: 0 6px 0 16px;
+}
+.sh-pilule--reduite .sh-pilule__loupe {
+  width: 30px;
+  height: 30px;
+}
+@media (max-width: 999px) {
+  .sh-pilule {
+    display: none;
+  }
+  .sh-pilule--reduite {
+    display: inline-flex;
+  }
+}
+
+/* Boutons de droite. */
+.sh-droite {
+  flex: none;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.sh-util {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+.sh-util:hover {
+  background: var(--color-bleu-clair);
+  text-decoration: none;
+}
+.sh-util--on {
+  background: var(--color-bleu-clair);
+}
+.sh-util--rond {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+/* Relevé des prix en cours : un point de marque après « Prix ». */
+.sh-util--course::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-marque);
+}
+.sh-util__compte {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Menu « Plus ». */
+.sh-plus {
+  position: relative;
+}
+.sh-menu {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  z-index: 40;
+  min-width: 250px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-ombre) 18%, transparent);
+}
+.sh-menu__groupe {
+  display: flex;
+  flex-direction: column;
+}
+.sh-menu__groupe + .sh-menu__groupe {
+  padding-top: 4px;
+  border-top: 1px solid var(--color-line);
+}
+.sh-menu__titre {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.sh-menu__stations {
+  display: flex;
+  flex-direction: column;
+}
+.sh-menu__lien {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.sh-menu__lien:hover {
+  background: var(--color-bleu-pale);
+  text-decoration: none;
+}
+.sh-menu__pied {
+  padding: 8px 4px 4px;
+  border-top: 1px solid var(--color-line);
+}
+
+/* ── « Modifier la recherche » ────────────────────────────────────────── */
+
+.sh-voile {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  background: color-mix(in srgb, var(--color-ombre) 30%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.sh-fenetre {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 45;
+  background: color-mix(in srgb, var(--color-bg) 97%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-line);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--color-ombre) 18%, transparent);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+.sh-fenetre__in {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 16px 28px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sh-fenetre__tete {
+  display: flex;
+  justify-content: flex-end;
+}
+.sh-rond {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.sh-rond:hover {
+  background: var(--color-bleu-clair);
+}
+
+/* ── Écrans étroits ───────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .sh-barre {
+    gap: 12px;
+    padding: 0 16px;
+  }
+  .sh-util__lbl {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .sh-barre {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 16px;
+    row-gap: 8px;
+  }
+  .sh-etapes {
+    order: 3;
+    flex: 1 1 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sh-etape__lbl {
+    white-space: nowrap;
+  }
+  .sh-centre {
+    order: 4;
+    flex: 1 1 100%;
+  }
+  .sh-fenetre__in {
+    padding: 12px 16px 20px;
+  }
+}

@@ -13,20 +13,19 @@ export const EN_COQUILLE: Record<string, string> = {
   "Thème clair : passer au sombre": "Light theme: switch to dark",
   "Thème": "Theme",
   "Langue": "Language",
-  // Coquille.tsx : la pilule et le panneau de séjour
+  "{n} logement retenu": "{n} shortlisted place to stay",
+  "{n} logements retenus": "{n} shortlisted places to stay",
+  // Coquille.tsx et recherche/FenetreRecherche.tsx : « Modifier la recherche »
+  "Modifier la recherche": "Edit search",
+  "Rechercher : {station}": "Search: {station}",
+  "Rechercher dans la liste des stations": "Search the resort list",
   "Station à choisir": "Resort to choose",
-  "Votre séjour": "Your stay",
-  "Arrivée {arrivee} · départ {depart}": "Arrival {arrivee} · departure {depart}",
   "{n} nuit": "{n} night",
   "{n} nuits": "{n} nights",
   "Fermer": "Close",
   "Voyageurs": "Travellers",
-  "1 à 20": "1 to 20",
   "dont enfants": "of whom children",
   "Chambres": "Bedrooms",
-  "0 = studio accepté": "0 = studio accepted",
-  "Dates et voyageurs sont conservés d’un écran à l’autre.":
-    "Dates and travellers are kept from one screen to the next.",
   // go.ts
   "Station inconnue.": "Unknown resort.",
   // AutoSync.tsx

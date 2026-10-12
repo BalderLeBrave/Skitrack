@@ -1,0 +1,525 @@
+/* Maquette Airbnb (handoff Claude Design du 12 octobre 2026) : zone « logements ».
+ *
+ * L'écran Logements (`routes/logements.tsx`, Skitrack App.dc.html:344-392) et
+ * sa fenêtre Filtres (394-442, `components/logements/`). Les primitives (carte
+ * d'annonce, rangée de catégories, fenêtre, pastilles) sont celles du socle
+ * (`.m8-`) ; ici, la mise en page de l'écran et ce qui lui est propre. */
+
+.lg-main {
+  display: block;
+  width: 100%;
+  padding-bottom: 120px;
+}
+.lg-main--pied {
+  padding-bottom: 220px;
+}
+
+.lg-enveloppe {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+.lg-enveloppe--onglets {
+  padding-top: 20px;
+}
+
+/* ---------- En-tête : titre, séjour, mise à jour, tri ---------- */
+
+.lg-tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 10px;
+  padding-top: 24px;
+  padding-bottom: 8px;
+}
+.lg-tete__titre {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-right: auto;
+  min-width: 0;
+}
+.lg-tete__titre h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+.lg-tete__sous {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 4px;
+  font-size: 14px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.lg-tete__sejour {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-underline-offset: 3px;
+}
+.lg-tete__sejour:hover,
+.lg-tete__sejour[aria-expanded="true"] {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.lg-maj,
+.lg-tri,
+.lg-sens {
+  height: 44px;
+  border: 1px solid var(--color-line-commande);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.lg-maj:hover:not(:disabled),
+.lg-tri:hover,
+.lg-tri:focus-within,
+.lg-sens:hover {
+  border-color: var(--color-ink);
+}
+.lg-maj {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.lg-maj:not(.lg-maj--encours) {
+  width: 44px;
+  padding: 0;
+}
+.lg-maj:disabled {
+  cursor: default;
+  color: var(--color-muted);
+}
+.lg-maj--encours svg {
+  animation: lg-tourne 1.1s linear infinite;
+}
+.lg-tri {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 36px 0 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.lg-tri select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.lg-tri svg {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+}
+.lg-sens {
+  width: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* ---------- Bandeau collant des catégories ---------- */
+
+.lg-bandeau {
+  position: sticky;
+  z-index: 20;
+  margin-top: 8px;
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-line);
+}
+.lg-bandeau__in {
+  padding-top: 12px;
+}
+.lg-jauge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  overflow: hidden;
+}
+.lg-jauge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  background: var(--color-marque);
+  animation: lg-jauge 1.4s ease-in-out infinite;
+}
+
+/* ---------- Corps : critères, grille, carte ---------- */
+
+.lg-corps {
+  padding-top: 20px;
+}
+.lg-colonne {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+.lg-main--carte .lg-colonne {
+  margin-right: calc(min(50vw, 660px) - 10vw - 4px);
+}
+
+.lg-criteres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.lg-reinit {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.lg-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 36px 22px;
+}
+.lg-main--carte .lg-grille {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 32px 18px;
+}
+.lg-carte {
+  min-width: 0;
+}
+.lg-grille__station {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 8px 0 -12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.lg-grille__station:first-child {
+  margin-top: 0;
+}
+.lg-grille__station span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.lg-plus {
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+}
+.lg-bouton {
+  height: 48px;
+  padding: 0 24px;
+  border: 1px solid var(--color-ink);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.lg-bouton:hover:not(:disabled) {
+  background: var(--color-puce);
+}
+.lg-bouton:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.lg-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 48px 0;
+}
+.lg-vide b {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.lg-vide__sous {
+  margin-top: -6px;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.lg-vide__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.lg-vide .lg-bouton {
+  height: 42px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+/* La carte fixée à droite : son haut et son bas viennent de l'écran
+   (`usePlaceCarte`) ; les étages de Leaflet restent dedans. */
+.lg-carte-fixe {
+  position: fixed;
+  right: 28px;
+  width: calc(40vw - 28px);
+  z-index: 15;
+  isolation: isolate;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  background: var(--color-carte-fond);
+}
+
+/* Le centre de la station : point d'accent cerclé de papier. */
+.lg-centre {
+  display: block;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid var(--color-surface);
+  box-shadow: var(--shadow-prix-carte);
+  box-sizing: border-box;
+}
+
+/* ---------- Relevé en cours ---------- */
+
+.lg-releve {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.lg-releve__points {
+  display: inline-flex;
+  gap: 3px;
+}
+.lg-releve__points i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-marque);
+  animation: lg-point 1.2s ease-in-out infinite;
+}
+.lg-releve__points i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.lg-releve__points i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.lg-squelette {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.lg-squelette__photo,
+.lg-squelette__barre {
+  display: block;
+  background: linear-gradient(90deg, var(--color-puce) 0%, var(--color-bleu-pale) 50%, var(--color-puce) 100%);
+  background-size: 200% 100%;
+  animation: lg-reflet 1.4s ease-in-out infinite;
+}
+.lg-squelette__photo {
+  aspect-ratio: 20 / 19;
+  margin-bottom: 2px;
+  border-radius: var(--radius-photo, 18px);
+}
+.lg-squelette__barre {
+  height: 12px;
+  width: 70%;
+  border-radius: 6px;
+}
+.lg-squelette__barre--titre {
+  width: 85%;
+  height: 14px;
+}
+.lg-squelette__barre--court {
+  width: 45%;
+}
+
+/* ---------- Fenêtre Filtres ---------- */
+
+.lg-tuiles {
+  display: grid;
+  gap: 10px;
+}
+.lg-tuiles--types {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+.lg-tuiles--equip {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.lg-tuile {
+  display: flex;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.lg-tuile:hover {
+  border-color: var(--color-ink);
+}
+.lg-tuile--on {
+  border-color: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+  background: var(--color-puce);
+}
+.lg-tuile--type {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 16px;
+  font-weight: 600;
+}
+.lg-tuile--equip {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 18px;
+  font-weight: 500;
+}
+.lg-tuile svg {
+  flex: none;
+}
+.lg-tuile__lbl {
+  min-width: 0;
+}
+.lg-tuile__n {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lg-deux {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px 28px;
+}
+.lg-groupe {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lg-groupe__lbl {
+  font-size: 14px;
+  color: var(--color-ink);
+}
+.lg-pastilles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lg-pastille--lit {
+  min-width: 56px;
+  justify-content: center;
+}
+.lg-fiabilite h3 {
+  margin-bottom: 10px;
+}
+
+/* ---------- Petits écrans ---------- */
+
+@media (max-width: 899.98px) {
+  .lg-enveloppe {
+    padding: 0 16px;
+  }
+  .lg-tete__titre {
+    flex-basis: 100%;
+  }
+  .lg-main--carte .lg-colonne {
+    margin-right: 0;
+  }
+  /* En mode carte, la carte prend la largeur ; la liste revient par la pilule. */
+  .lg-main--carte .lg-grille,
+  .lg-main--carte .lg-plus {
+    display: none;
+  }
+  .lg-carte-fixe {
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+}
+
+@keyframes lg-tourne {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes lg-jauge {
+  from {
+    left: -30%;
+  }
+  to {
+    left: 100%;
+  }
+}
+@keyframes lg-point {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes lg-reflet {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg-maj--encours svg,
+  .lg-jauge::before,
+  .lg-releve__points i,
+  .lg-squelette__photo,
+  .lg-squelette__barre {
+    animation: none;
+  }
+}

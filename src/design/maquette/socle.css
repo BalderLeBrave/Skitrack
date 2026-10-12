@@ -1,0 +1,962 @@
+/* Maquette Airbnb (handoff Claude Design du 12 octobre 2026) : zone « socle ».
+ *
+ * Les primitives partagées de `src/components/maquette/` : carte d'annonce,
+ * fenêtres centrées (Filtres, Enregistrer), rangée de catégories, histogramme,
+ * pilule Liste / Carte, interrupteur, onglets, pastilles, puces de critère,
+ * et le redessin de la fourchette (`v7/Fourchette.tsx`).
+ *
+ * Toutes les couleurs sont des jetons de `system.css`. Les jetons ajoutés pour
+ * la maquette ont leur pendant sombre ici, juste dessous ; les jetons
+ * historiques gardent le leur dans `styles.css`. */
+
+html[data-theme="dark"] {
+  --color-accent: #ff6a4d;
+  --color-marque-survol: #7cc0f2;
+  --color-bleu-clair: #14293c;
+  --color-bleu-pale: #13283a;
+  --color-puce: #1d2c3b;
+  --color-encre-survol: #c9d6e2;
+  --color-succes: #79d6ab;
+  --color-danger: #f07a7f;
+  --color-texte-verrou: #b5c3d0;
+  --color-photo-fond: #1b2d40;
+  --color-rail: #2b3945;
+  --color-barre-hors: #2f3e4c;
+  --color-poignee-bord: #5a6a79;
+  --color-voile-modale: rgb(0 0 0 / 0.55);
+  /* Posés sur une photo, ceux-ci ne changent pas de thème : `--color-voile-photo`,
+     `--color-voile-rond`, `--color-verre`, `--color-verre-badge`. */
+  --shadow-modale-centre: 0 24px 80px rgb(0 0 0 / 0.65);
+  --shadow-bascule: 0 8px 24px rgb(0 0 0 / 0.55);
+  --shadow-onglet: 0 1px 3px rgb(0 0 0 / 0.45);
+  --shadow-poignee: 0 1px 4px rgb(0 0 0 / 0.5);
+  --shadow-dossier: 0 2px 8px rgb(0 0 0 / 0.4);
+  --shadow-prix-carte: 0 2px 10px rgb(0 0 0 / 0.5);
+}
+
+/* Texte lu par les lecteurs d'écran, pas dessiné. */
+.m8-lu-seul {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Boutons communs ──────────────────────────────────────────────────── */
+
+/* Lien souligné fort : « Tout effacer », « Tout réinitialiser ». */
+.m8-lien-fort {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Bouton encre de 50 px : « Afficher 42 stations ». */
+.m8-bouton-encre {
+  height: 50px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.m8-bouton-encre:hover {
+  background: var(--color-encre-survol);
+}
+
+.m8-lien-fort:focus-visible,
+.m8-bouton-encre:focus-visible,
+.m8-modale__fermer:focus-visible,
+.m8-cat:focus-visible,
+.m8-filtres:focus-visible,
+.m8-bascule:focus-visible,
+.m8-onglet:focus-visible,
+.m8-pastille:focus-visible,
+.m8-puce__x:focus-visible,
+.m8-inter-bouton:focus-visible,
+.m8-ligne-inter:focus-visible,
+.m8-carte button:focus-visible,
+.m8-liste:focus-visible,
+.m8-listes-pied :focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 2px;
+}
+
+/* ── Carte d'annonce (`CarteAnnonce`, Carte.dc.html) ──────────────────── */
+
+.m8-carte {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+  color: var(--color-ink);
+}
+.m8-carte__photo {
+  position: relative;
+  aspect-ratio: 20 / 19;
+  border-radius: var(--radius-photo);
+  overflow: hidden;
+  background: var(--color-photo-fond);
+}
+/* Mise en avant depuis la carte géographique : un anneau d'encre détaché. */
+.m8-carte--vif .m8-carte__photo {
+  box-shadow:
+    0 0 0 2px var(--color-bg),
+    0 0 0 4px var(--color-ink);
+}
+.m8-carte__ouvrir {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.m8-carte .m8-carte__ouvrir:focus-visible {
+  outline-offset: -4px;
+}
+.m8-carte__ouvrir img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.m8-carte__badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--color-verre-badge);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--color-photo-voile);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+/* Flèches du carrousel : visibles au survol de la carte, ou au clavier. */
+.m8-carte__fleche {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-verre);
+  box-shadow: var(--shadow-rond-photo);
+  color: var(--color-photo-voile);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+}
+.m8-carte__fleche--g {
+  left: 10px;
+}
+.m8-carte__fleche--d {
+  right: 10px;
+}
+.m8-carte:hover .m8-carte__fleche,
+.m8-carte__fleche:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: none) {
+  .m8-carte__fleche {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+.m8-carte__points {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  pointer-events: none;
+}
+.m8-carte__points i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-photo-texte);
+  opacity: 0.55;
+}
+.m8-carte__points .m8-carte__point--on {
+  opacity: 1;
+}
+/* Cœur : vide, voile d'encre bordé de clair ; plein, l'accent. */
+.m8-coeur {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: transform var(--duree-appui) var(--ease-ui);
+}
+.m8-coeur svg {
+  fill: var(--color-voile-photo);
+  stroke: var(--color-photo-texte);
+}
+.m8-coeur--on svg {
+  fill: var(--color-accent);
+}
+.m8-coeur:hover {
+  transform: scale(1.08);
+}
+/* Rond « comparer ». */
+.m8-cmp {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-photo-texte) 70%, transparent);
+  border-radius: 50%;
+  background: var(--color-voile-rond);
+  color: var(--color-photo-texte);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+.m8-cmp--on {
+  border: 0;
+  background: var(--color-marque);
+}
+.m8-carte__texte {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.m8-carte__ligne1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.m8-carte__titre {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.m8-carte__note {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.m8-carte__gris {
+  color: var(--color-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.m8-carte__chiffres {
+  font-variant-numeric: tabular-nums;
+}
+.m8-carte__prix {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+.m8-carte__prix b {
+  font-weight: 700;
+}
+.m8-carte__sous {
+  color: var(--color-muted);
+}
+.m8-carte__lien {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.m8-carte__lien--on {
+  color: var(--color-marque-survol);
+}
+
+/* ── Fenêtre centrée (`ModaleCentree`, `ModaleFiltres`, `ModaleEnregistrer`) ── */
+
+.m8-modale-hote {
+  position: relative;
+  z-index: 60;
+}
+/* « Enregistrer » : au-dessus de la fiche d'annonce et de l'ancien volet v7. */
+.m8-modale-hote--dessus {
+  z-index: 3000;
+}
+.m8-voile {
+  position: fixed;
+  inset: 0;
+  background: var(--color-voile-modale);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.m8-modale {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(780px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-grand);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-modale-centre);
+  overflow: hidden;
+  outline: none;
+}
+.m8-modale--etroite {
+  width: min(520px, calc(100vw - 32px));
+}
+.m8-modale__tete {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  border-bottom: 1px solid var(--color-line);
+}
+.m8-modale__tete b {
+  font-size: 16px;
+  font-weight: 700;
+}
+.m8-modale__fermer {
+  position: absolute;
+  left: 16px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.m8-modale__fermer:hover {
+  background: var(--color-puce);
+}
+.m8-modale__corps {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 28px;
+  overscroll-behavior: contain;
+}
+.m8-modale__pied {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-line);
+}
+@media (max-width: 560px) {
+  .m8-modale__corps {
+    padding: 0 20px;
+  }
+  .m8-modale__pied {
+    padding: 14px 16px;
+  }
+}
+
+/* Section de la fenêtre Filtres (`SectionFiltre`). L'écart vertical vient du composant. */
+.m8-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.m8-section:last-child {
+  border-bottom: 0;
+}
+.m8-section h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.m8-section__tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* « Enregistrer » : grille des listes, puis le champ de création. */
+.m8-modale__corps.m8-listes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 18px 14px;
+  padding: 22px 24px;
+}
+.m8-modale__corps.m8-listes--vide {
+  padding: 0;
+}
+.m8-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.m8-liste:hover {
+  filter: brightness(0.96);
+}
+.m8-liste__couv {
+  display: block;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border-radius: var(--radius-surface);
+  overflow: hidden;
+  background: var(--color-photo-fond);
+  box-shadow: var(--shadow-dossier);
+}
+.m8-liste__couv img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.m8-liste b {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.m8-liste__n {
+  margin-top: -6px;
+  font-size: 12.5px;
+  color: var(--color-muted);
+}
+.m8-listes-pied {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.m8-listes-pied input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+.m8-listes-pied input:focus {
+  border-color: var(--color-ink);
+}
+.m8-listes-creer {
+  flex: none;
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.m8-listes-creer:disabled {
+  background: var(--color-line-commande);
+  cursor: default;
+}
+
+/* ── Rangée de catégories (`RangeeCategories`) ───────────────────────── */
+
+.m8-cats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+.m8-cats__rail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 36px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.m8-cats__rail::-webkit-scrollbar {
+  display: none;
+}
+.m8-cats--sombre .m8-cats__rail {
+  justify-content: safe center;
+  gap: 40px;
+}
+.m8-cat {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.m8-cat span {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.m8-cat:hover,
+.m8-cat--on {
+  color: var(--color-ink);
+}
+.m8-cat--on {
+  border-bottom-color: var(--color-ink);
+}
+.m8-cats--sombre .m8-cat {
+  color: var(--color-photo-texte);
+  opacity: 0.78;
+}
+.m8-cats--sombre .m8-cat:hover,
+.m8-cats--sombre .m8-cat--on {
+  opacity: 1;
+}
+.m8-cats--sombre .m8-cat--on {
+  border-bottom-color: var(--color-photo-texte);
+}
+
+/* Bouton « Filtres » (`sFiltBtn`, `sFiltBtnDark`). */
+.m8-filtres {
+  flex: none;
+  margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.m8-filtres:hover {
+  border-color: var(--color-ink);
+}
+.m8-filtres--sombre {
+  border-color: color-mix(in srgb, var(--color-photo-texte) 55%, transparent);
+  background: color-mix(in srgb, var(--color-photo-texte) 14%, transparent);
+  color: var(--color-photo-texte);
+}
+.m8-filtres--sombre:hover {
+  border-color: var(--color-photo-texte);
+}
+.m8-filtres__n {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.m8-filtres--sombre .m8-filtres__n {
+  background: var(--color-photo-voile);
+  color: var(--color-photo-texte);
+}
+
+/* ── Histogramme (`Histogramme`) ──────────────────────────────────────── */
+
+.m8-hist {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0 12px;
+}
+.m8-hist__barre {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: var(--color-barre-hors);
+}
+.m8-hist__barre--in {
+  background: var(--color-ink);
+}
+
+/* ── Pilule Liste / Carte (`BasculeVue`) ──────────────────────────────── */
+
+.m8-bascule {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 24;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: var(--shadow-bascule);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-ui);
+}
+.m8-bascule:hover {
+  transform: translateX(-50%) scale(1.04);
+}
+.m8-bascule--haute {
+  bottom: 100px;
+}
+
+/* ── Interrupteur, onglets, pastilles, puces (`Commandes.tsx`) ───────── */
+
+.m8-inter {
+  position: relative;
+  flex: none;
+  display: block;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--color-line-commande);
+  transition: background 0.2s;
+}
+.m8-inter i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-rond-photo);
+  transition: left 0.2s;
+}
+.m8-inter--on {
+  background: var(--color-ink);
+}
+.m8-inter--on i {
+  left: 18px;
+}
+.m8-inter-bouton {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+}
+.m8-ligne-inter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.m8-ligne-inter__txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.m8-ligne-inter__lbl {
+  font-size: 15px;
+  font-weight: 500;
+}
+.m8-ligne-inter__sous {
+  font-size: 13px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.m8-onglets {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--color-puce);
+}
+.m8-onglet {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.m8-onglet--on {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-onglet);
+}
+
+.m8-pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.m8-pastille:hover {
+  border-color: var(--color-ink);
+}
+.m8-pastille--on {
+  border: 1.5px solid var(--color-ink);
+  background: var(--color-puce);
+}
+.m8-pastille__compte {
+  font-weight: 500;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.m8-puce {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 6px 0 14px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.m8-puce--seule {
+  padding-right: 14px;
+}
+/* Sur la photo de couverture : verre clair, encre fixe. */
+.m8-puce--verre {
+  height: 32px;
+  padding-left: 12px;
+  border: 0;
+  background: color-mix(in srgb, var(--color-photo-texte) 92%, transparent);
+  color: var(--color-photo-voile);
+  font-size: 12.5px;
+}
+.m8-puce--verrou {
+  gap: 6px;
+  padding: 0 14px 0 12px;
+  border: 0;
+  background: var(--color-puce);
+  color: var(--color-texte-verrou);
+}
+.m8-puce__x {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-bleu-clair);
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.m8-puce--verre .m8-puce__x {
+  width: 20px;
+  height: 20px;
+  background: color-mix(in srgb, var(--color-photo-voile) 8%, transparent);
+  color: var(--color-photo-voile);
+}
+.m8-puce__x:hover {
+  color: var(--color-ink);
+}
+
+/* ── Fourchette (`v7/Fourchette.tsx`, Fourchette.dc.html) ─────────────
+   Par-dessus `.fourchette7` (v7.css) : la classe `.m8-fourchette` est posée
+   sur la même racine, la double classe l'emporte. */
+
+.fourchette7.m8-fourchette {
+  gap: 10px;
+  color: var(--color-ink);
+}
+.m8-fourchette .fourchette7__tete {
+  gap: 12px;
+}
+.m8-fourchette .fourchette7__lbl {
+  font-size: 14px;
+  font-weight: 400;
+}
+.m8-fourchette .fourchette7__resume {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-texte-3);
+}
+.m8-fourchette.fourchette7--actif .fourchette7__resume {
+  color: var(--color-ink);
+}
+.m8-fourchette .fourchette7__piste {
+  height: 24px;
+  margin: 0 2px;
+}
+.m8-fourchette .fourchette7__rail,
+.m8-fourchette .fourchette7__plage {
+  top: 11px;
+  height: 3px;
+  border-radius: 2px;
+}
+.m8-fourchette .fourchette7__rail {
+  background: var(--color-rail);
+}
+.m8-fourchette .fourchette7__plage,
+.m8-fourchette.fourchette7--actif .fourchette7__plage {
+  background: var(--color-ink);
+}
+.m8-fourchette .fourchette7__poignee {
+  top: 0;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  border: 1px solid var(--color-poignee-bord);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-poignee);
+  cursor: grab;
+}
+.m8-fourchette .fourchette7__poignee:active {
+  cursor: grabbing;
+}
+.m8-fourchette .fourchette7__champs {
+  display: flex;
+  gap: 10px;
+}
+.m8-fourchette .fourchette7__champ {
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+  height: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.m8-fourchette .fourchette7__legende {
+  font-size: 11px;
+  color: var(--color-muted);
+}
+.m8-fourchette .fourchette7__saisie {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.m8-fourchette .fourchette7__champ input {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+}
+.m8-fourchette .fourchette7__unite {
+  margin-left: 0;
+  font-size: 12.5px;
+  color: var(--color-muted);
+  white-space: nowrap;
+}

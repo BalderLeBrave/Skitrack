@@ -1,4 +1,5 @@
-/** Fiche station – maquette v7 (`SKITRACK v7 - App.dc.html`, bloc STATION).
+/** Fiche station – maquette Airbnb (`Skitrack App.dc.html`, « Fiche station »).
+ *  Sans profil d'altitude : l'utilisateur l'a jugé inutile et faux.
  *
  *  Un bandeau photo qui dit l'essentiel, puis à gauche : forfaits, aujourd'hui
  *  aux deux altitudes, quatorze jours, pistes par couleur, webcams, bulletin
@@ -20,7 +21,7 @@ import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
 import { braLabel, lieuLisible } from "@/lib/bra/parse";
-import { dateParis, getForecastPair, jourCourant, veille, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
+import { getForecastPair, jourCourant, veille, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
 import { fuseauStation, meteoEnDateDu } from "@/lib/meteo/enDateDu";
 import {
   datesLbl,
@@ -53,45 +54,19 @@ import { aTraduire, langue, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/stations/$id")({ component: Fiche });
 
-/**
- * La mention sous des tarifs estimés.
- *
- * Jusqu'au 26 septembre 2026, la journée et le 6 jours enfant de 142 domaines
- * s'affichaient sous « Relevé le 11 août 2026 » alors que le catalogue les
- * calculait à partir du 6 jours adulte (aux Portes du Soleil, 55 € et 234 €
- * pour 292 € relevés). Ils restent affichés, pour l'ordre de grandeur, mais
- * disent ce qu'ils sont, et que le coût du séjour ne les compte pas.
- *
- * La phrase sur le coût ne vaut que pour un groupe qui compte des enfants
- * (`enfantsAuTarifAdulte`, de `coutForfaits`) : à deux adultes, elle parlait
- * d'un enfant que personne n'emmène.
- */
-function noteEstimation(journee: boolean, enfant: boolean, enfantsAuTarifAdulte: boolean): string | null {
-  if (!journee && !enfant) return null;
-  const quoi =
-    journee && enfant
-      ? tr("Journée et forfait enfant estimés d’après le 6 jours adulte, faute de relevé.")
-      : journee
-        ? tr("Journée estimée d’après le 6 jours adulte, faute de relevé.")
-        : tr("Forfait enfant estimé d’après le 6 jours adulte, faute de relevé.");
-  const cout =
-    enfant && enfantsAuTarifAdulte ? ` ${tr("Le coût du séjour compte donc les enfants au tarif adulte.")}` : "";
-  return `${quoi}${cout}`;
-}
-
 /** Le prix d'une case, ou ce qui le remplace : « non communiqué », et
  *  l'estimation du catalogue quand elle existe (« ≈ 55 € », « estimé »). */
 function CaseForfait({ r }: { r: Resolution | null }) {
-  if (!r) return <b className="absent">{tr("non relevé")}</b>;
+  if (!r) return <b className="fs-absent">{tr("non relevé")}</b>;
   if (r.statut === "resolu") return <b>{libellesForfait(r).prix}</b>;
   if (r.estimation)
     return (
       <>
         <b>≈ {montantCents(r.estimation.prix, r.estimation.devise)}</b>
-        <span>{tr("estimé")}</span>
+        <span className="fs-forfaits__herite">{tr("estimé")}</span>
       </>
     );
-  return <b className="absent">{echecLbl(r)}</b>;
+  return <b className="fs-absent">{echecLbl(r)}</b>;
 }
 
 /* ---------- Prévision ---------- */
@@ -153,18 +128,18 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
   const j = lvl ? jourCourant(lvl.days) : undefined;
   const hier = lvl && j ? lvl.days.find((d) => d.date === veille(j.date)) : undefined;
   return (
-    <div className={`wx7__niveau${haut ? " wx7__niveau--haut" : ""}`}>
-      <div className="wx7__tete">
-        <strong>{titre}</strong>
+    <div className={`fs-niveau${haut ? " fs-niveau--haut" : ""}`}>
+      <div className="fs-niveau__tete">
+        <b>{titre}</b>
         <span>{alt}</span>
       </div>
       {wx.status === "loading" ? (
-        <p className="wx7__msg">{tr("Prévision en cours de chargement…")}</p>
+        <p className="fs-muet">{tr("Prévision en cours de chargement…")}</p>
       ) : wx.status === "err" || !lvl || !j ? (
-        <p className="wx7__msg">{tr("Prévision indisponible.")}</p>
+        <p className="fs-muet">{tr("Prévision indisponible.")}</p>
       ) : (
         <>
-          <div className="wx7__deux">
+          <div className="fs-niveau__deux">
             <div>
               <span>{tr("Matin")}</span>
               <b>{temp(lvl.morning.temp)}</b>
@@ -174,7 +149,7 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
               <b>{temp(lvl.afternoon.temp)}</b>
             </div>
           </div>
-          <dl className="wx7__mesures">
+          <dl className="fs-niveau__mesures">
             <div>
               <dt>{tr("Min / max")}</dt>
               <dd>
@@ -189,14 +164,14 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
             </div>
             <div>
               <dt>{tr("Neige 24 h")}</dt>
-              <dd className={j.snowCm ? "wx7__neige" : undefined}>
+              <dd className={j.snowCm ? "fs-chaud" : undefined}>
                 {j.snowCm == null ? tr("non relevé") : j.snowCm > 0 ? `${j.snowCm} cm` : "0 cm"}
               </dd>
             </div>
             {hier && hier.snowCm != null && hier.snowCm > 0 ? (
               <div>
                 <dt>{tr("Neige hier")}</dt>
-                <dd className="wx7__neige">{`${hier.snowCm} cm`}</dd>
+                <dd className="fs-chaud">{`${hier.snowCm} cm`}</dd>
               </div>
             ) : null}
             <div>
@@ -216,22 +191,18 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
 
 function Bande({ titre, lvl }: { titre: string; lvl: ForecastLevel }) {
   return (
-    <div className="bande7">
-      <strong>{titre}</strong>
-      <div className="bande7__jours">
+    <div className="fs-bande">
+      <span className="fs-bande__titre">{titre}</span>
+      <div className="fs-bande__jours">
         {lvl.days.slice(0, 15).map((d) => (
-          <div key={d.date} className={`bande7__jour${d.snowCm ? " bande7__jour--neige" : ""}`}>
+          <div key={d.date} className={`fs-jour${d.snowCm ? " fs-jour--neige" : ""}`}>
             <span>{jourLbl(d.date)}</span>
-            <Icon name={ICONE[d.kind]} taille={18} className={`bande7__ico bande7__ico--${d.kind}`} />
+            <Icon name={ICONE[d.kind]} taille={18} className={`fs-jour__ico fs-jour__ico--${d.kind}`} />
             <b>{d.tempMax == null ? "–" : `${Math.round(d.tempMax)}°`}</b>
-            {/* Seuls les jours de précipitations portent un chiffre. « sec »
-                s'écrivait vingt-huit fois sur les deux bandes, et noyait les
-                trois jours où il neige. Un zéro mesuré n'est pas une valeur
-                absente : il reste lisible à l'icône, et en infobulle. */}
-            <span
-              className={`bande7__neige${d.snowCm ? " bande7__neige--oui" : ""}`}
-              title={d.snowCm === 0 ? tr("Pas de neige prévue") : undefined}
-            >
+            {/* Seuls les jours de précipitations portent un chiffre. Un zéro
+                mesuré n'est pas une valeur absente : il reste lisible à
+                l'icône, et en infobulle. */}
+            <span className="fs-jour__neige" title={d.snowCm === 0 ? tr("Pas de neige prévue") : undefined}>
               {d.snowCm == null ? "–" : d.snowCm > 0 ? `${d.snowCm} cm` : ""}
             </span>
           </div>
@@ -437,7 +408,7 @@ function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useB
   } else {
     titre = tr("Bulletin non obtenu");
     action = (
-      <button type="button" className="lien-doux" onClick={bra.reessayer}>
+      <button type="button" className="fs-lien" onClick={bra.reessayer}>
         {tr("Réessayer")}
       </button>
     );
@@ -448,7 +419,7 @@ function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useB
         {/* La cause technique vit dans un détail repliable, jamais dans le
             libellé principal. */}
         {braData?.cause || bra.etat.status === "echec" ? (
-          <details className="bra7__detail">
+          <details className="fs-bra__detail">
             <summary>{tr("Détail technique")}</summary>
             <code>{bra.etat.status === "echec" ? bra.etat.cause : braData?.cause}</code>
           </details>
@@ -458,27 +429,27 @@ function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useB
   }
 
   return (
-    <section className="bra7">
-      <PictoBra niveau={risque} />
-      <div className="bra7__texte">
-        <div className="bra7__titre">
-          <strong>{titre}</strong>
+    <section className="fs-carte fs-bra">
+      <PictoBra niveau={risque} taille={52} />
+      <div className="fs-bra__texte">
+        <div className="fs-bra__titre">
+          <b>{titre}</b>
           {texte ? (
             <button
               type="button"
-              className="bra7__plus"
+              className="fs-bra__plus"
               aria-expanded={ouvert}
               aria-controls={idTexte}
               aria-label={ouvert ? tr("Masquer le texte du bulletin") : tr("Afficher le texte du bulletin")}
               onClick={() => setOuvert((o) => !o)}
             >
-              <Icon name={ouvert ? "moins" : "plus"} taille={14} />
+              <Icon name={ouvert ? "moins" : "plus"} taille={12} />
             </button>
           ) : null}
           {action}
         </div>
         {texte ? (
-          <div id={idTexte} className="bra7__bulletin" hidden={!ouvert}>
+          <div id={idTexte} className="fs-bra__bulletin" hidden={!ouvert}>
             {texte}
           </div>
         ) : null}
@@ -493,7 +464,7 @@ function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useB
         }
         target="_blank"
         rel="noopener"
-        className="btn7 btn7--fantome"
+        className="fs-pilule"
       >
         {braData?.massif ? tr("Bulletin {massif}", { massif: braData.massif }) : tr("Trouver le bulletin")}
         <Icon name="externe" taille={12} />
@@ -508,7 +479,7 @@ function FicheInconnue({ id }: { id: string }) {
   const go = useGo();
   return (
     <Coquille>
-      <main className="v7main" id="s-fiche" data-screen-label="Fiche station">
+      <main className="fs-main" id="s-fiche" data-screen-label="Fiche station">
         <Vide
           titre={tr("Station inconnue")}
           actions={
@@ -558,40 +529,36 @@ function FicheBody({ s }: { s: Station }) {
   const lib = adulte ? libellesForfait(adulte) : null;
   const pass = prix.budget;
   const joursLbl = prix.jours != null ? trN(prix.jours, "{n} jour", "{n} jours") : tr("Séjour");
-  // Ce que le catalogue estime sans l'avoir relevé : affiché « estimé », hors
-  // du coût.
-  const estimeJ1 = prix.journee?.statut !== "resolu" && !!prix.journee?.estimation;
-  const estimeEnf = enfant?.statut !== "resolu" && !!enfant?.estimation;
-  const note = adulte ? noteEstimation(estimeJ1, estimeEnf, pass?.enfantsAuTarifAdulte ?? false) : null;
 
   return (
     <Coquille>
-      <main className="v7main" id="s-fiche" data-screen-label="Fiche station">
-        <a
-          href="/comparer"
-          className="v7retour"
-          onClick={(e) => {
-            e.preventDefault();
-            void go("compare");
-          }}
-        >
-          <Icon name="chevron-gauche" taille={14} />
-          {tr("Comparer les stations")}
-        </a>
+      <main className="fs-main" id="s-fiche" data-screen-label="Fiche station">
+        <div className="fs-haut">
+          <a
+            href="/comparer"
+            className="fs-retour"
+            onClick={(e) => {
+              e.preventDefault();
+              void go("compare");
+            }}
+          >
+            <Icon name="chevron-gauche" taille={14} />
+            {tr("Comparer les stations")}
+          </a>
+          <OngletsStation s={s} actif="fiche" />
+        </div>
 
-        <OngletsStation s={s} actif="fiche" />
-
-        <section className={`fhero7${photo ? " fhero7--photo" : ""}`}>
+        <section className={`fs-hero${photo ? " fs-hero--photo" : ""}`}>
           {photo ? (
             <>
-              <ImageSlot shape="rect" id={`v7app-hero-${s.id}`} placeholder={stationPhotoAbsence(s)} className="fhero7__slot" src={photo} />
-              <div className="fhero7__voile" />
+              <ImageSlot shape="rect" id={`v7app-hero-${s.id}`} placeholder={stationPhotoAbsence(s)} className="fs-hero__slot" src={photo} />
+              <div className="fs-hero__voile" />
             </>
           ) : null}
-          <div className="fhero7__in">
-            <span className="fhero7__crumb">{crumb(s)}</span>
+          <div className="fs-hero__in">
+            <span className="fs-hero__crumb">{crumb(s)}</span>
             <h1>{s.name}</h1>
-            <div className="fhero7__faits">
+            <div className="fs-hero__faits">
               <span>{altLbl(s) ?? tr("altitudes non relevées")}</span>
               <i>·</i>
               {/* Sans valeur, le complément ne suit pas : « km non publié de
@@ -621,40 +588,36 @@ function FicheBody({ s }: { s: Station }) {
               <span>{tr("Village {altitude}", { altitude: villageLbl(s) ?? tr("non relevé") })}</span>
             </div>
           </div>
-          <span className="fhero7__note">{photoNote}</span>
+          <span className="fs-hero__note">{photoNote}</span>
         </section>
 
-        <div className="fgrid7">
-          <div className="fgrid7__main">
-            {/* ── Forfaits ─────────────────────────────────────────── */}
-            <section className="carte7-sect">
-              <div className="carte7-sect__tete">
-                <h2>
-                  {tr("Forfaits")}
-                  {adulte ? ` · ${adulte.perimetre.nom}` : ""}
-                </h2>
-                {/* D'où vient le prix, en clair : la page officielle et sa
-                    date, le catalogue et la sienne, ou l'agrégateur. */}
-                <span>{lib ? lib.source : prix.pret ? tr("Aucun relevé") : tr("Lecture des tarifs…")}</span>
-              </div>
+        <div className="fs-grille">
+          <div className="fs-col">
+            {/* ── Forfaits ─────────────────────────────────────────────
+                La source du prix (page officielle et sa date, catalogue,
+                agrégateur) passe en infobulle sur le titre. */}
+            <section className="fs-carte">
+              <h2 title={lib ? lib.source : undefined}>
+                {tr("Forfaits")}
+                {adulte ? ` · ${adulte.perimetre.nom}` : ""}
+              </h2>
               {adulte && lib ? (
                 <>
-                  <div className="forfaits7">
+                  <div className="fs-forfaits">
                     <div>
                       <span>{tr("Journée adulte")}</span>
                       <CaseForfait r={prix.journee} />
                     </div>
                     <div>
                       <span>{tr("{duree} adulte", { duree: joursLbl })}</span>
-                      <b className="forfaits7__grand">{lib.prix}</b>
+                      <b className="fs-forfaits__grand">{lib.prix}</b>
                       {/* La durée du forfait retenu, quand ce n'est pas celle
-                          du séjour : six journées additionnées, ou le 6 jours
-                          pour cinq jours de ski. */}
-                      {lib.duree !== joursLbl ? <span className="forfaits7__herite">{lib.duree}</span> : null}
+                          du séjour. */}
+                      {lib.duree !== joursLbl ? <span className="fs-forfaits__herite">{lib.duree}</span> : null}
                       {lib.faible ? (
                         <FiabiliteFaible raisons={lib.raisons} />
                       ) : adulte.grille.source.origine === "officiel" ? (
-                        <span className="forfaits7__releve">
+                        <span className="fs-forfaits__officiel">
                           <Icon name="coche" taille={12} />
                           {tr("Page officielle")}
                         </span>
@@ -664,7 +627,7 @@ function FicheBody({ s }: { s: Station }) {
                       <span>{tr("{duree} enfant", { duree: joursLbl })}</span>
                       <CaseForfait r={enfant} />
                       {enfant?.statut === "resolu" && enfant.drapeaux.categorieRepli ? (
-                        <span className="forfaits7__herite">
+                        <span className="fs-forfaits__herite">
                           {tr("tarif « {categorie} »", { categorie: enfant.categorie.libelle })}
                         </span>
                       ) : null}
@@ -674,20 +637,18 @@ function FicheBody({ s }: { s: Station }) {
                       {prix.saison ? (
                         <b>{montantCents(prix.saison.prix, prix.saison.devise)}</b>
                       ) : (
-                        <b className="absent">{tr("non relevé")}</b>
+                        <b className="fs-absent">{tr("non relevé")}</b>
                       )}
                     </div>
                   </div>
-                  {/* La période du prix, ses bornes de validité et le forfait
-                      (station seule ou domaine relié). */}
-                  <p className="forfaits7__periode">
+                  <p className="fs-muet">
                     <b>{lib.periode}</b>, {lib.bornes} · {lib.perimetre}
                   </p>
                 </>
-              ) : null}
-              {note ? <p className="carte7-sect__texte">{note}</p> : null}
-              {prix.pret && !adulte ? (
-                <p className="carte7-sect__texte">
+              ) : !prix.pret ? (
+                <p className="fs-muet">{tr("Lecture des tarifs…")}</p>
+              ) : (
+                <p className="fs-muet">
                   {prix.forfaits?.adulte.statut === "grille-ancienne"
                     ? tr(
                         "Forfait non publié : le dernier tarif connu a plus de trois saisons. Le coût du séjour n’inclura pas de forfait tant qu’un prix récent n’a pas été relevé ou saisi.",
@@ -696,27 +657,31 @@ function FicheBody({ s }: { s: Station }) {
                         "Aucun tarif relevé pour ce domaine. Le coût du séjour n’inclura pas de forfait tant qu’un prix n’a pas été relevé ou saisi.",
                       )}
                 </p>
-              ) : null}
+              )}
             </section>
 
-            {/* ── Aujourd'hui ──────────────────────────────────────── */}
-            <section className="sect7">
-              <div className="carte7-sect__tete">
-                <h2>{tr("Aujourd’hui, aux deux altitudes")}</h2>
+            {/* ── Aujourd'hui ──────────────────────────────────────────
+                La source des prévisions passe en infobulle sur le titre. */}
+            <section className="fs-carte">
+              <div className="fs-carte__tete">
+                <h2
+                  title={
+                    wx.status === "ok"
+                      ? wx.data.sourceChutes === "arpege"
+                        ? tr(
+                            "Les chutes sont celles d’Arpège (Météo-France) à l’altitude indiquée. La hauteur au sol est celle du CEPMMT. Ce sont des modèles, pas le relevé de la station.",
+                          )
+                        : tr(
+                            "Les chutes et la hauteur au sol sont celles du CEPMMT, à l’altitude indiquée. Ce sont des modèles, pas le relevé de la station.",
+                          )
+                      : undefined
+                  }
+                >
+                  {tr("Aujourd’hui, aux deux altitudes")}
+                </h2>
                 {wx.status === "ok" ? <span>{meteoEnDateDu(wx.at, fuseauStation(s.country))}</span> : null}
               </div>
-              {wx.status === "ok" ? (
-                <p className="carte7-sect__texte">
-                  {wx.data.sourceChutes === "arpege"
-                    ? tr(
-                        "Les chutes sont celles d’Arpège (Météo-France) à l’altitude indiquée. La hauteur au sol est celle du CEPMMT. Ce sont des modèles, pas le relevé de la station.",
-                      )
-                    : tr(
-                        "Les chutes et la hauteur au sol sont celles du CEPMMT, à l’altitude indiquée. Ce sont des modèles, pas le relevé de la station.",
-                      )}
-                </p>
-              ) : null}
-              <div className="wx7">
+              <div className="fs-niveaux">
                 <Niveau
                   titre={tr("Bas des pistes")}
                   alt={loMesure != null ? `${fmt(loMesure)} m` : tr("altitude non relevée")}
@@ -735,7 +700,7 @@ function FicheBody({ s }: { s: Station }) {
             </section>
 
             {wx.status === "ok" && wx.data.low.days.length ? (
-              <section className="carte7-sect">
+              <section className="fs-carte">
                 <h2>{tr("Hier et les 14 jours")}</h2>
                 <Bande
                   titre={`${tr("Bas des pistes")} · ${loMesure != null ? `${fmt(loMesure)} m` : tr("altitude non relevée")}`}
@@ -760,9 +725,8 @@ function FicheBody({ s }: { s: Station }) {
             <BulletinAvalanche key={`bra-${s.id}`} bra={bra} massifStation={s.massif} />
           </div>
 
-          <aside className="aside7">
-            <span className="v7surtitre">{tr("Votre séjour ici")}</span>
-            <dl className="aside7__faits">
+          <aside className="fs-aside">
+            <dl className="fs-aside__faits">
               <div>
                 <dt>{tr("Dates")}</dt>
                 <dd>{datesLbl(checkIn, checkOut, nights)}</dd>
@@ -773,13 +737,15 @@ function FicheBody({ s }: { s: Station }) {
               </div>
               <div>
                 <dt>{pass?.libelle ?? tr("Forfaits")}</dt>
-                <dd className={pass?.total == null ? "absent" : undefined}>
-                  {pass?.total != null ? montantCents(pass.total, pass.devise) : (pass?.manque ?? tr("non relevés"))}
+                <dd>
+                  <b className={pass?.total == null ? "fs-absent" : undefined}>
+                    {pass?.total != null ? montantCents(pass.total, pass.devise) : (pass?.manque ?? tr("non relevés"))}
+                  </b>
                   {/* Le détail et la période du forfait ; un enfant compté au
                       tarif adulte, faute de tarif enfant publié, porte sa
                       mention dans le détail. */}
                   {pass ? (
-                    <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
+                    <span className={pass.enfantsAuTarifAdulte ? "fs-alerte" : undefined}>
                       {pass.total == null ? tr("aucun tarif pour ce domaine") : pass.detail}
                     </span>
                   ) : null}
@@ -789,28 +755,23 @@ function FicheBody({ s }: { s: Station }) {
             </dl>
             <button
               type="button"
-              className="btn7 btn7--grand btn7--pleine"
+              className="fs-cta"
               onClick={() => {
                 retain(s.id);
                 void go("lodging");
               }}
             >
               {tr("Voir les logements")}
-              <Icon name="fleche-droite" taille={16} />
+              <Icon name="fleche-droite" taille={15} />
             </button>
-            <div>
-              <button
-                type="button"
-                className={`puce${inCmp ? " puce--on" : ""}`}
-                aria-pressed={inCmp}
-                onClick={() => toggleCmp(s.id)}
-              >
-                {inCmp ? tr("Dans la comparaison") : tr("Comparer")}
-              </button>
-            </div>
-            <p className="aside7__note">
-              {tr("Dates et voyageurs se changent dans la barre du haut et suivent jusqu’à la réservation.")}
-            </p>
+            <button
+              type="button"
+              className={`fs-comparer${inCmp ? " fs-comparer--on" : ""}`}
+              aria-pressed={inCmp}
+              onClick={() => toggleCmp(s.id)}
+            >
+              {inCmp ? tr("Dans la comparaison") : tr("Comparer")}
+            </button>
           </aside>
         </div>
       </main>

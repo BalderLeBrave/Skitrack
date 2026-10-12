@@ -17,6 +17,11 @@
  *
  * Il sert désormais sur tous les écrans : chaque filtre chiffré est une
  * fourchette, et chaque borne se tape.
+ *
+ * Dessin aligné sur `Fourchette.dc.html` (maquette Airbnb du 12 octobre 2026) :
+ * rail de 3 px, poignées rondes de 24 px, deux boîtes « Minimum » et
+ * « Maximum » avec leur unité. Les règles sont dans `design/maquette/socle.css`
+ * (`.m8-fourchette`), par-dessus celles de `v7.css`.
  */
 
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
@@ -157,25 +162,32 @@ export function Fourchette({
 
   const champ = (which: 0 | 1) => (
     <label className="fourchette7__champ">
-      <input
-        type="text"
-        inputMode="numeric"
-        autoComplete="off"
-        aria-label={`${lbl}, ${tr(NOMS[which])}`}
-        value={brouillon[which] ?? String(cur[which])}
-        onChange={(e) => brouiller(which, e.target.value)}
-        onBlur={() => valider(which)}
-        onKeyDown={touche(which)}
-      />
-      <span className="fourchette7__unite">{u}</span>
+      <span className="fourchette7__legende" aria-hidden>
+        {which === 0 ? tr("Minimum") : tr("Maximum")}
+      </span>
+      <span className="fourchette7__saisie">
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          aria-label={`${lbl}, ${tr(NOMS[which])}`}
+          value={brouillon[which] ?? String(cur[which])}
+          onChange={(e) => brouiller(which, e.target.value)}
+          onBlur={() => valider(which)}
+          onKeyDown={touche(which)}
+        />
+        <span className="fourchette7__unite">{u}</span>
+      </span>
     </label>
   );
 
   return (
-    <div className={`fourchette7${valeur != null ? " fourchette7--actif" : ""}`}>
+    <div className={`fourchette7 m8-fourchette${valeur != null ? " fourchette7--actif" : ""}`}>
       <div className="fourchette7__tete">
         <span className="fourchette7__lbl">
-          {pastille ? <i className="fourchette7__pastille" style={{ background: pastille }} /> : null}
+          {pastille ? (
+            <i className="fourchette7__pastille" style={{ background: pastille }} />
+          ) : null}
           {lbl}
         </span>
         <span className="fourchette7__resume">{resume}</span>
@@ -213,7 +225,8 @@ export function Fourchette({
       </div>
       <div className="fourchette7__champs">
         {champ(0)}
-        <span className="fourchette7__a">{tr("à")}</span>
+        {/* Lu entre les deux champs, plus dessiné : chaque boîte porte sa légende. */}
+        <span className="fourchette7__a m8-lu-seul">{tr("à")}</span>
         {champ(1)}
       </div>
     </div>

@@ -27,7 +27,7 @@ export function PictoBra({ niveau, taille = 56 }: { niveau: number | null; taill
   const fond = n == null ? "var(--color-glacier)" : n === 5 ? `url(#${damier})` : `var(--color-bra-${n})`;
   return (
     <svg
-      className={`bra7__picto${n == null ? " bra7__picto--neutre" : ""}`}
+      className={`fs-bra__picto${n == null ? " fs-bra__picto--neutre" : ""}`}
       viewBox="0 0 56 48"
       width={taille}
       height={(taille * 48) / 56}

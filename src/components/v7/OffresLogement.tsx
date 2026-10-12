@@ -1,6 +1,7 @@
 /**
- * Les offres d'un logement sur ses différentes plateformes, dans le volet de
- * l'annonce. Hors de la route pour que Prix ouvre le même volet que Logements.
+ * Les offres d'un logement sur ses différentes plateformes, dans la fiche de
+ * l'annonce. Hors de la route pour que Prix ouvre la même fiche que
+ * Logements.
  */
 
 import { Icon } from "@/components/Icon";
@@ -10,12 +11,12 @@ import { ecartAvecPrincipale, type Logement } from "@/lib/stay/regroupement";
 import { prixLbl } from "@/lib/v7";
 
 /**
- * Les offres d'un même logement, de la moins chère à la plus chère, avec
- * l'écart de chacune à la moins chère. Un écart ne se calcule qu'entre deux
- * prix publiés dans la même devise : sinon on le tait.
+ * Une ligne par plateforme, de la moins chère à la plus chère, avec l'écart
+ * de chacune à la moins chère. Un écart ne se calcule qu'entre deux prix
+ * publiés dans la même devise : sinon on le tait.
  *
- * L'offre affichée s'ouvre sur sa plateforme (« Ouvrir ») ; les autres
- * s'affichent dans la fiche (« Voir cette offre »).
+ * La ligne entière choisit l'offre (la carte de prix la suit) ; « Voir
+ * l'offre » ouvre la plateforme dans un nouvel onglet.
  */
 export function OffresLogement({
   g,
@@ -28,61 +29,48 @@ export function OffresLogement({
 }) {
   const base = g.principale;
   return (
-    <div className="offres7">
-      <span className="offres7__titre">{tr("Ce logement sur {n} plateformes", { n: g.offres.length })}</span>
+    <section
+      className="fl-carte fl-offres"
+      aria-label={tr("Ce logement sur {n} plateformes", { n: g.offres.length })}
+    >
       <ul>
         {g.offres.map((o) => {
-          const e = ecartAvecPrincipale(o, base);
-          const pct = e != null && base.total > 0 ? (e / base.total) * 100 : null;
-          const pctLbl = pct != null && pct < 1 ? tr("moins de 1 %") : `+${Math.round(pct ?? 0)} %`;
-          const ecart =
-            o.id === base.id
-              ? base.total > 0
-                ? tr("la moins chère")
-                : ""
-              : e == null
-                ? ""
-                : e === 0
-                  ? tr("même prix")
-                  : `+${eurCents(e) ?? e} (${pctLbl})`;
+          const e = o.id === base.id ? null : ecartAvecPrincipale(o, base);
           const courante = o.id === ici;
           return (
-            <li key={o.id} className={courante ? "offres7__ici" : undefined}>
-              <span className="offres7__source" aria-current={courante ? "true" : undefined}>
-                {o.source}
-                {courante ? <span className="lecteur7">, {tr("offre affichée")}</span> : null}
-              </span>
-              <b className={o.total > 0 ? undefined : "absent"}>{prixLbl(o)}</b>
-              <span className={`offres7__ecart${o.id === base.id ? " offres7__ecart--base" : ""}`}>
-                {ecart}
-              </span>
-              {!courante ? (
-                <button
-                  type="button"
-                  className="offres7__lien"
-                  aria-label={tr("Voir l’offre {source}", { source: o.source })}
-                  onClick={() => voir(o.id)}
-                >
-                  {tr("Voir cette offre")}
-                </button>
-              ) : o.url ? (
+            <li key={o.id} className={`fl-offre${courante ? " fl-offre--ici" : ""}`}>
+              <button
+                type="button"
+                className="fl-offre__choix"
+                aria-pressed={courante}
+                onClick={() => voir(o.id)}
+              >
+                <span className="fl-offre__source">{o.source}</span>
+                <span className="fl-offre__ecart">
+                  {e != null && e > 0 ? `+${eurCents(e) ?? e}` : ""}
+                </span>
+                <b className={o.total > 0 ? undefined : "fl-absent"}>{prixLbl(o)}</b>
+              </button>
+              {o.url ? (
                 <a
                   href={o.url}
                   target="_blank"
                   rel="noopener"
-                  className="offres7__lien"
-                  aria-label={tr("Ouvrir l’offre {source} dans un nouvel onglet", { source: o.source })}
+                  className="fl-offre__lien"
+                  aria-label={tr("Ouvrir l’offre {source} dans un nouvel onglet", {
+                    source: o.source,
+                  })}
                 >
-                  {tr("Ouvrir")}
-                  <Icon name="externe" taille={12} />
+                  {tr("Voir l’offre")}
+                  <Icon name="externe" taille={11} />
                 </a>
               ) : (
-                <span className="offres7__lien absent">{tr("sans lien")}</span>
+                <span className="fl-offre__lien fl-absent">{tr("sans lien")}</span>
               )}
             </li>
           );
         })}
       </ul>
-    </div>
+    </section>
   );
 }

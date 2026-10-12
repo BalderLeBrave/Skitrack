@@ -90,6 +90,7 @@ import { photosDeResidence } from "@/lib/stay/photoResidence";
 import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
+import { useAPied } from "@/lib/geo/useReseauPieton";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import { distanceOf, firmOf, persLbl, prixLbl, prixPin, villageM } from "@/lib/v7";
 
@@ -853,7 +854,12 @@ function LogementsStation({ s }: { s: Station }) {
   // Toutes sources : un GPS publié reste. Sans coordonnées, barycentre du
   // lieu, repère, ou station. Ce n'est pas la porte (`placerSansPoint`).
   // Le favori garde le relevé, pas cette position d'affichage.
-  const raw = useMemo(() => placerSansPoint(fusionnes, s), [fusionnes, s]);
+  const places = useMemo(() => placerSansPoint(fusionnes, s), [fusionnes, s]);
+  // La distance aux remontées à pied, par les rues et chemins, dès que le
+  // réseau piéton de la station est chargé (`stay/aPied.ts`) : carte, fiche,
+  // catégories, filtre, tri et épingles la lisent. Sans réseau, la ligne
+  // droite, dite « à vol d'oiseau ».
+  const raw = useAPied(places);
   // Un logement enregistré qui repasse dans le relevé : sa copie dans les
   // favoris prend la photo, le point publié et, pour le même séjour, le prix
   // d'aujourd'hui. Pas la position triangulée, qui n'est pas la porte.

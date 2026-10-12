@@ -25,7 +25,16 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Distance non communiquée": "Distance not given",
   "Distance non mesurée : position triangulée": "Distance not measured: triangulated position",
   "Autre domaine": "Other ski area",
-  "{distance} de {remontee}": "{distance} from {remontee}",
+  "{distance} à pied de {remontee}": "{distance} on foot from {remontee}",
+  "{distance} à vol d’oiseau de {remontee}": "{distance} from {remontee} as the crow flies",
+  // Distance à pied ou à vol d'oiseau (stay/aPied.ts) : carte, comparaison, Traces
+  "{distance} à pied des remontées": "{distance} on foot from the lifts",
+  "{distance} des remontées à vol d’oiseau": "{distance} from the lifts as the crow flies",
+  "{distance} à pied": "{distance} on foot",
+  "{distance} à vol d’oiseau": "{distance} as the crow flies",
+  "à vol d’oiseau": "as the crow flies",
+  "À pied, par les rues et les chemins, quand le réseau piéton de la station est connu ; sinon à vol d’oiseau.":
+    "On foot, along streets and paths, when the resort’s walking network is known; otherwise as the crow flies.",
   "la remontée": "the lift",
   "{standard}/{max} pers.": "{standard}/{max} people",
   " + cabine": " + cabin",

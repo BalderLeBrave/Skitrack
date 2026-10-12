@@ -197,7 +197,11 @@ export function ModaleFiltresLogements({
         </div>
       </SectionFiltre>
 
-      <SectionFiltre titre={tr("Distance aux remontées")} ecart={18}>
+      <SectionFiltre
+        titre={tr("Distance aux remontées")}
+        ecart={18}
+        infobulle={tr("À pied, par les rues et les chemins, quand le réseau piéton de la station est connu ; sinon à vol d’oiseau.")}
+      >
         <div className="lg-pastilles">
           {paliers.map((p) => (
             <Pastille key={String(p.key)} on={p.on} onClick={() => onPalier(p.key)}>

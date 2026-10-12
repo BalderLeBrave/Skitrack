@@ -1062,3 +1062,14 @@ html[data-theme="dark"] .fl {
     transition: none;
   }
 }
+/* Sous le trait : « à pied » ou « à vol d'oiseau », au milieu, pour ne pas
+   déborder quand la distance est poussée à un bout. */
+.fl-schema__trait small {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--color-muted);
+  white-space: nowrap;
+}

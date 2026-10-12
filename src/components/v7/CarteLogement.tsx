@@ -17,6 +17,7 @@ import type { Listing } from "@/lib/listings";
 import { fmt, nuitsLbl } from "@/lib/parcours";
 import { galerieOf } from "@/lib/stay/completude";
 import { noteSur5De } from "@/lib/stay/ficheEnrichie";
+import { viaDistance } from "@/lib/stay/aPied";
 import { distRemonteePublieeM } from "@/lib/stay/situer";
 import { bedLbl, capLbl, distanceOf, NON_RENSEIGNE, prixLbl } from "@/lib/v7";
 
@@ -105,19 +106,25 @@ export const CarteLogement = memo(function CarteLogement({
   const enr = useEnregistrement({ checkIn: stay.checkIn, checkOut: stay.checkOut, trav });
   const photos = useMemo(() => galerieOf(l).map((src) => ({ src })), [l]);
 
-  // La distance comme la maquette : « 1 600 m des remontées », « Ski aux
-  // pieds » jusqu'à 50 m, « Distance non mesurée » sans mesure publiée. Un
-  // logement d'un autre domaine le dit.
+  // La distance comme la maquette : « 1 600 m à pied des remontées », « Ski
+  // aux pieds » jusqu'à 50 m de marche, « Distance non mesurée » sans mesure
+  // publiée. Sans réseau piéton pour la station, la ligne droite le dit
+  // (« à vol d'oiseau ») et ne vaut jamais « Ski aux pieds ». Un logement
+  // d'un autre domaine le dit.
   const d = distanceOf(l);
   const m = distRemonteePublieeM(l);
+  const aPied = viaDistance(l) === "pieton";
+  const metresLbl = m == null ? "" : `${fmt(Math.round(m))} m`;
   const dist =
     d.kind === "other_domain"
       ? d.text
       : m == null
         ? tr("Distance non mesurée")
-        : m <= 50
-          ? tr("Ski aux pieds")
-          : tr("{distance} des remontées", { distance: `${fmt(Math.round(m))} m` });
+        : !aPied || d.kind !== "measured"
+          ? tr("{distance} des remontées à vol d’oiseau", { distance: metresLbl })
+          : m <= 50
+            ? tr("Ski aux pieds")
+            : tr("{distance} à pied des remontées", { distance: metresLbl });
   const ecart = altVillage != null && altitude ? altVillage - altitude.m : null;
   const sousVillage = ecart != null && ecart >= ECART_VILLAGE_M ? Math.round(ecart / 50) * 50 : null;
   const l2 =

@@ -22,6 +22,7 @@ import {
   type Altitude,
 } from "@/lib/altitude/altitude";
 import { useAltitudes } from "@/lib/altitude/store";
+import { useCheminAPied } from "@/lib/geo/useReseauPieton";
 import { montantCents } from "@/lib/devises";
 import type { BudgetForfaits } from "@/lib/forfaits/prixSejour";
 import { aTraduire, tr, trN } from "@/lib/i18n";
@@ -138,7 +139,9 @@ export function BlocFaits({ l, altitude }: { l: Listing; altitude: Altitude | nu
       k: "dist",
       v:
         dist.kind === "measured"
-          ? tr("{distance} des remontées", { distance: mLbl(l.distToLiftM) ?? "" })
+          ? dist.via === "pieton"
+            ? tr("{distance} à pied des remontées", { distance: mLbl(l.distToLiftM) ?? "" })
+            : tr("{distance} des remontées à vol d’oiseau", { distance: mLbl(l.distToLiftM) ?? "" })
           : dist.text,
       aide: dist.kind === "measured" ? dist.text : undefined,
     },
@@ -258,6 +261,9 @@ export function BlocAcces({
           <div className="fl-schema__trait" title={dist.text}>
             <i style={{ width: `${pct}%` }} />
             <span style={{ left: `${pct}%` }}>{mLbl(l.distToLiftM)}</span>
+            {/* Ce que mesure le chiffre : la marche par les rues et chemins
+                (`stay/aPied.ts`), ou la ligne droite faute de réseau. */}
+            <small>{dist.via === "pieton" ? tr("à pied") : tr("à vol d’oiseau")}</small>
           </div>
           <div className="fl-schema__bout fl-schema__bout--fin">
             <b>{l.liftName?.trim() || tr("Remontée")}</b>
@@ -616,7 +622,10 @@ export function BlocNonIndique({ l }: { l: Listing }) {
 
 /** Le logement et sa remontée sur la carte, reliés par un trait. */
 export function BlocEmplacement({ l }: { l: Listing }) {
-  const { epingles, segments, trace } = useMemo(() => {
+  // Le chemin à pied jusqu'à la remontée, quand la distance en est un ; à
+  // défaut, le trait droit d'avant.
+  const chemin = useCheminAPied(l);
+  const { epingles, segments, trace: traitDroit } = useMemo(() => {
     const ep: Epingle[] = [];
     const sg: Segment[] = [];
     let ligne: { lat: number; lon: number }[] = [];
@@ -645,6 +654,7 @@ export function BlocEmplacement({ l }: { l: Listing }) {
     }
     return { epingles: ep, segments: sg, trace: ligne };
   }, [l.lat, l.lon, l.liftLat, l.liftLon, l.liftOtherLat, l.liftOtherLon, l.title, l.liftName]);
+  const trace = chemin ?? traitDroit;
   if (!epingles.length) {
     return (
       <section className="fl-carte fl-plan fl-plan--vide">

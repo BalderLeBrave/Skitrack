@@ -25,6 +25,7 @@ import {
 } from "react";
 import { Coquille } from "@/components/Coquille";
 import { textesCarte } from "@/components/favoris/annonceCarte";
+import { useAPied } from "@/lib/geo/useReseauPieton";
 import { FlecheTri } from "@/components/favoris/communs";
 import {
   BasculeVue,
@@ -975,7 +976,7 @@ function VueBudget({
   // Toutes les annonces relevées, avant tout critère : c'est sur elles que se
   // fait l'identité des logements, qui ne tourne ainsi qu'à l'arrivée d'une
   // station, et non à chaque cran d'un curseur.
-  const tout = useMemo<CarteAnnonce[]>(
+  const toutBrut = useMemo<CarteAnnonce[]>(
     () =>
       relevees.flatMap((s, i) =>
         (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
@@ -985,6 +986,18 @@ function VueBudget({
         })),
       ),
     [relevees, cles, parCle],
+  );
+  // La distance à pied de chaque annonce, dès que le réseau piéton de sa
+  // station est chargé (`stay/aPied.ts`) : le filtre, le tri, les cartes et le
+  // volet la lisent. La règle des 2 km (`dansLaStation`) reste à vol d'oiseau.
+  const annoncesBrutes = useMemo(() => toutBrut.map((c) => c.a), [toutBrut]);
+  const annoncesAPied = useAPied(annoncesBrutes);
+  const tout = useMemo<CarteAnnonce[]>(
+    () =>
+      annoncesAPied === annoncesBrutes
+        ? toutBrut
+        : toutBrut.map((c, i) => (annoncesAPied[i] === c.a ? c : { ...c, a: annoncesAPied[i] })),
+    [toutBrut, annoncesBrutes, annoncesAPied],
   );
   const avant = useMemo<CarteAnnonce[]>(() => {
     const passent = new Set(

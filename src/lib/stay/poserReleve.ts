@@ -162,6 +162,7 @@ const CHAMPS_DE_POSITION = [
   "liftLon",
   "liftOtherLat",
   "liftOtherLon",
+  "aPied",
   "placeName",
   "distToPlaceM",
   "domainFit",

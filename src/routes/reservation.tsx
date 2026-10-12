@@ -9,7 +9,7 @@
  *  de la recherche en direct. */
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Coquille } from "@/components/Coquille";
 import { photosDe } from "@/components/favoris/annonceCarte";
 import { VideFavoris } from "@/components/favoris/communs";
@@ -35,6 +35,7 @@ import {
   useSejour,
 } from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
+import { useAPied } from "@/lib/geo/useReseauPieton";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { bedLbl, capLbl, distanceOf, firmOf, persLbl, prixLbl, prixPersLbl } from "@/lib/v7";
 
@@ -60,7 +61,10 @@ function EcranReservation() {
   const P = useParcours();
   const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
   const s = P.stationId ? stationById(P.stationId) : undefined;
-  const l = P.lodgeId ? resolveListing(P.lodgeId) : undefined;
+  const brute = P.lodgeId ? resolveListing(P.lodgeId) : undefined;
+  // La distance à pied quand le réseau de la station est chargé (`stay/aPied.ts`).
+  const uneSeule = useMemo(() => (brute ? [brute] : []), [brute]);
+  const l = useAPied(uneSeule)[0] as typeof brute;
   const prix = usePrixForfait(s);
   const { copie, copier } = useCopie();
   const [ouvert, setOuvert] = useState(false);

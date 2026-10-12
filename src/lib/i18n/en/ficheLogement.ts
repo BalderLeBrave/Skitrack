@@ -5,7 +5,6 @@ export const EN_FICHE_LOGEMENT: Record<string, string> = {
   // Titre et faits clés (FicheBlocs.tsx)
   "{n} avis": "{n} reviews",
   "Sans note": "No rating",
-  "{distance} des remontées": "{distance} from the lifts",
   "{altitude} d’altitude": "{altitude} altitude",
   "{km} de pistes": "{km} of slopes",
   // Description et équipements

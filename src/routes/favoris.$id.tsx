@@ -54,7 +54,9 @@ import { nomStationPropre } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
-import { bedLbl, capLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import { bedLbl, capLbl, distanceOf, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import { viaDistance } from "@/lib/stay/aPied";
+import { useAPied } from "@/lib/geo/useReseauPieton";
 import { langueIntl } from "@/lib/i18n/langue";
 import { aTraduire, tr, trN } from "@/lib/i18n";
 import { voisinDansListe } from "@/lib/stay/visionneuse";
@@ -118,7 +120,7 @@ function Dossier({ id }: { id: string }) {
   // Un dossier à soi se montre tel quel, même ouvert par son propre lien.
   const partage = usePartage(!dossier);
   const local = useMemo(() => contenu(etat, id), [etat, id]);
-  const favoris = useMemo<Favori[]>(
+  const favorisBruts = useMemo<Favori[]>(
     () =>
       dossier
         ? local
@@ -131,7 +133,18 @@ function Dossier({ id }: { id: string }) {
           })),
     [dossier, local, partage, id],
   );
-  const annonces = useMemo(() => favoris.map((f) => f.annonce), [favoris]);
+  // La distance à pied de chaque logement, dès que le réseau de sa station est
+  // chargé (`stay/aPied.ts`) : la comparaison, les cartes et la fiche la
+  // lisent. Le favori enregistré, lui, garde son relevé.
+  const annoncesBrutes = useMemo(() => favorisBruts.map((f) => f.annonce), [favorisBruts]);
+  const annonces = useAPied(annoncesBrutes);
+  const favoris = useMemo<Favori[]>(
+    () =>
+      annonces === annoncesBrutes
+        ? favorisBruts
+        : favorisBruts.map((f, i) => (annonces[i] === f.annonce ? f : { ...f, annonce: annonces[i] })),
+    [favorisBruts, annonces, annoncesBrutes],
+  );
   const altDe = useAltitudes(annonces);
   const { checkIn, checkOut, guests, children } = useStay();
   const courant = useMemo<SejourFavori>(
@@ -627,7 +640,11 @@ function Comparaison({
                 {bedLbl(l)}
               </span>
               <span role="cell" className={cls(f, "dist")}>
-                {distFiltrableM(l) != null ? `${fmt(distFiltrableM(l))} m` : tr("non mesurée")}
+                {distFiltrableM(l) == null
+                  ? tr("non mesurée")
+                  : viaDistance(l) === "pieton" && distanceOf(l).kind === "measured"
+                    ? tr("{distance} à pied", { distance: `${fmt(distFiltrableM(l))} m` })
+                    : tr("{distance} à vol d’oiseau", { distance: `${fmt(distFiltrableM(l))} m` })}
               </span>
               <span
                 role="cell"

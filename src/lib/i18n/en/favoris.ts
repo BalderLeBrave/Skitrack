@@ -30,8 +30,6 @@ export const EN_FAVORIS: Record<string, string> = {
   "Liste et carte": "List and map",
   "Comparer": "Compare",
   "Renommer": "Rename",
-  "Supprimer ce dossier et son logement ?": "Delete this folder and its listing?",
-  "Supprimer ce dossier et ses {n} logements ?": "Delete this folder and its {n} listings?",
   "Supprimer ce dossier ?": "Delete this folder?",
   "Supprimer": "Delete",
   "Garder": "Keep",

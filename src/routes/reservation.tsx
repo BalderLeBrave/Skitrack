@@ -11,10 +11,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Coquille } from "@/components/Coquille";
-import { lieuDe, photosDe } from "@/components/favoris/annonceCarte";
+import { photosDe } from "@/components/favoris/annonceCarte";
 import { VideFavoris } from "@/components/favoris/communs";
 import { PICTO_CORBEILLE, PICTO_EXTERNE, PICTO_LIEN, useCopie } from "@/components/favoris/outils";
-import { IconeCoche, IconeCroix, IconeGauche, Trace } from "@/components/maquette";
+import { IconeCoche, IconeCroix, Trace } from "@/components/maquette";
 import { useGo } from "@/components/v6/go";
 import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
@@ -23,9 +23,10 @@ import { resolveListing } from "@/lib/accommodation";
 import { libellesForfait, mentionForfait } from "@/lib/forfaits/prixSejour";
 import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { langue, tr } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
 import {
   datesLbl,
+  dm,
   eurCents,
   groupLbl,
   nuitsLbl,
@@ -35,7 +36,7 @@ import {
 } from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { aStation, bedLbl, capLbl, firmOf, prixLbl, prixPersLbl } from "@/lib/v7";
+import { bedLbl, capLbl, distanceOf, firmOf, persLbl, prixLbl, prixPersLbl } from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
 
@@ -64,29 +65,29 @@ function EcranReservation() {
   const { copie, copier } = useCopie();
   const [ouvert, setOuvert] = useState(false);
 
-  const titre = (
-    <h1 className="fv-h1 fv-h1--resa">
-      {datesLbl(checkIn, checkOut, nights)} · {groupLbl(trav, rooms, enfants)}
-    </h1>
-  );
-  const modifier = (
-    <button
-      type="button"
-      className="fv-pilule"
-      data-sejour-ouvre
-      onClick={() => P.setStayOpen(!P.stayOpen)}
-    >
-      {tr("Modifier")}
-    </button>
+  // En titre, le séjour (App.dc.html:1247) ; à droite, le lien de partage.
+  // Les dates et le groupe se changent dans la barre de recherche du haut.
+  const tete = (lien: () => string) => (
+    <div className="fv-tete">
+      <h1 className="fv-h1 fv-h1--resa">
+        {dm(checkIn)} → {dm(checkOut)} · {persLbl(trav)}
+      </h1>
+      <button
+        type="button"
+        className="fv-pilule fv-pilule--haute fv-pilule--droite"
+        onClick={() => void copier(lien())}
+        aria-live="polite"
+      >
+        <Trace d={PICTO_LIEN} taille={14} epaisseur={2} />
+        {copie ? tr("Lien copié") : tr("Copier le lien")}
+      </button>
+    </div>
   );
 
   if (!s || !l) {
     return (
       <>
-        <div className="fv-tete">
-          {titre}
-          <div className="fv-outils">{modifier}</div>
-        </div>
+        {tete(() => window.location.href)}
         <VideFavoris titre={tr("Aucun logement retenu")} />
       </>
     );
@@ -111,7 +112,11 @@ function EcranReservation() {
     [
       `Skitrack – ${s.name}`,
       `${datesLbl(checkIn, checkOut, nights)} · ${groupLbl(trav, rooms, enfants)}`,
-      tr("Logement : {titre} ({source}) {prix}", { titre: l.title, source: l.source, prix: prixLbl(l) }),
+      tr("Logement : {titre} ({source}) {prix}", {
+        titre: l.title,
+        source: l.source,
+        prix: prixLbl(l),
+      }),
       tr("Forfaits : {forfaits}", {
         forfaits: forfaitsCompris
           ? tr("compris dans le prix du logement")
@@ -119,20 +124,24 @@ function EcranReservation() {
             ? `${montantCents(passGroupN, pass.devise)} (${pass.libelle.toLowerCase()}${tr(" : ")}${pass.detail} ; ${mentionForfait(adulte)}${lib.faible ? ` ; ${tr("fiabilité faible")}` : ""})`
             : (pass?.manque ?? tr("non relevés")),
       }),
-      tr("Total : {total}", { total: l.total > 0 ? (eurCents(totalN) ?? "") : tr("logement non tarifé") }),
+      tr("Total : {total}", {
+        total: l.total > 0 ? (eurCents(totalN) ?? "") : tr("logement non tarifé"),
+      }),
     ].join("\n");
 
   const copyRecap = () => {
     void navigator.clipboard?.writeText(recap());
     P.say(tr("Récapitulatif copié."));
   };
-  const copyLink = () =>
-    void copier(
-      `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&e=${enfants}&r=${rooms}`,
-    );
+  const lienPartage = () =>
+    `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&e=${enfants}&r=${rooms}`;
   const marquerReserve = () => {
     P.setBooked(true);
-    P.say(tr("Ouverture de l’annonce sur {source}. Le récapitulatif est marqué « réservé ».", { source: l.source }));
+    P.say(
+      tr("Ouverture de l’annonce sur {source}. Le récapitulatif est marqué « réservé ».", {
+        source: l.source,
+      }),
+    );
   };
   const retirer = () => {
     P.chooseLodge(null);
@@ -141,32 +150,17 @@ function EcranReservation() {
 
   return (
     <>
-      <a
-        href="/logements"
-        className="fv-retour"
-        onClick={(e) => {
-          e.preventDefault();
-          void go("lodging");
-        }}
-      >
-        <IconeGauche taille={14} epaisseur={2.4} />
-        {tr("Logements {lieu}", { lieu: langue() === "en" ? s.name : aStation(s.name) })}
-      </a>
-      <div className="fv-tete">
-        {titre}
-        <div className="fv-outils">
-          {modifier}
-          <button type="button" className="fv-pilule fv-pilule--haute" onClick={copyLink} aria-live="polite">
-            <Trace d={PICTO_LIEN} taille={14} epaisseur={2} />
-            {copie ? tr("Lien copié") : tr("Copier le lien")}
-          </button>
-        </div>
-      </div>
+      {tete(lienPartage)}
 
       {P.shared ? (
         <div className="fv-bandeau" role="status">
           <b>{tr("Récapitulatif partagé.")}</b>
-          <button type="button" className="fv-bandeau__x" aria-label={tr("Fermer")} onClick={() => P.setShared(false)}>
+          <button
+            type="button"
+            className="fv-bandeau__x"
+            aria-label={tr("Fermer")}
+            onClick={() => P.setShared(false)}
+          >
             <IconeCroix taille={11} epaisseur={2.6} />
           </button>
         </div>
@@ -192,7 +186,12 @@ function EcranReservation() {
 
       <section className="fv-resa" aria-label={tr("Logement retenu")}>
         <div className="fv-resa__rang">
-          <button type="button" className="fv-resa__photo" aria-label={l.title} onClick={() => setOuvert(true)}>
+          <button
+            type="button"
+            className="fv-resa__photo"
+            aria-label={l.title}
+            onClick={() => setOuvert(true)}
+          >
             {photo ? <img src={photo} alt="" loading="lazy" decoding="async" /> : null}
           </button>
           <div className="fv-resa__corps">
@@ -204,7 +203,7 @@ function EcranReservation() {
                 {s.name}
               </Link>
               {" · "}
-              {[capLbl(l), bedLbl(l), lieuDe(l)].join(" · ")}
+              {[capLbl(l), bedLbl(l), distanceOf(l).text].join(" · ")}
             </span>
             <div className="fv-resa__puces">
               <span className="fv-resa__offre">
@@ -215,30 +214,26 @@ function EcranReservation() {
                   <i />
                   {tr("Prix confirmé pour vos dates")}
                 </span>
-              ) : (
-                <span className="fv-resa__incertain" title={availabilityLabel(availabilityOf(l, stay))}>
-                  {tr("Disponibilité non confirmée")}
-                </span>
-              )}
-              <a
-                href="/logements"
-                className="fv-lien"
-                onClick={(e) => {
-                  e.preventDefault();
-                  void go("lodging");
-                }}
-              >
-                {tr("Changer")}
-              </a>
+              ) : null}
             </div>
           </div>
           <div className="fv-resa__droite">
-            <div className="fv-resa__prix">
+            {/* Sans prix confirmé, la disponibilité se lit au survol du prix. */}
+            <div
+              className="fv-resa__prix"
+              title={firm ? undefined : availabilityLabel(availabilityOf(l, stay))}
+            >
               <b>{prixLbl(l)}</b>
               {pp ? <span>{tr("{prix} / pers.", { prix: pp })}</span> : null}
             </div>
             <div className="fv-resa__actions">
-              <button type="button" className="fv-rond" aria-label={tr("Retirer")} title={tr("Retirer")} onClick={retirer}>
+              <button
+                type="button"
+                className="fv-rond"
+                aria-label={tr("Retirer")}
+                title={tr("Retirer")}
+                onClick={retirer}
+              >
                 <Trace d={PICTO_CORBEILLE} taille={14} epaisseur={2} />
               </button>
               {l.url ? (
@@ -259,7 +254,11 @@ function EcranReservation() {
                   className="fv-reserver fv-reserver--inerte"
                   title={tr("Annonce sans lien : réserver à la main")}
                   onClick={() =>
-                    P.say(tr("Annonce sans lien : la réservation se fait à la main, puis se marque ici."))
+                    P.say(
+                      tr(
+                        "Annonce sans lien : la réservation se fait à la main, puis se marque ici.",
+                      ),
+                    )
                   }
                 >
                   {tr("Réserver")}

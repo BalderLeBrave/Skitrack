@@ -2,8 +2,26 @@
    `Skitrack App.dc.html`, l. 462-562 et `vMore` (fiche station). Préfixe `.fs-`.
    Le profil d'altitude n'est plus rendu sur cet écran. */
 
+/* Les valeurs de la maquette qui n'ont pas de jeton commun. */
+:root {
+  --fs-tuile: #f2f7fa; /* tuile de chiffre, en-tête de tableau */
+  --fs-tuile-haut: #eaf2fb; /* carte « Point culminant » */
+  --fs-soleil: #d48a00;
+  --fs-bra-texte: #3a4b5a;
+  --fs-ombre-carte: 0 1px 2px rgba(17, 24, 32, 0.04), 0 4px 12px rgba(17, 24, 32, 0.05);
+  --fs-ombre-encart: 0 2px 6px rgba(17, 24, 32, 0.08), 0 10px 24px rgba(17, 24, 32, 0.1);
+  --fs-ombre-segment: 0 1px 3px rgba(11, 31, 51, 0.12);
+  --fs-voile-grand: rgba(6, 16, 27, 0.9);
+  --fs-bra-1: #c9e86a;
+  --fs-bra-2: #f5d90a;
+  --fs-bra-3: #f59e0b;
+  --fs-bra-4: #e5484d;
+  --fs-bra-5: #8b1e1e;
+}
+
 .fs-main {
   flex: 1;
+  line-height: normal;
   width: 100%;
   max-width: 1320px;
   margin: 0 auto;
@@ -60,7 +78,7 @@
   background: var(--color-surface);
   color: var(--color-ink);
   font-weight: 700;
-  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-ombre) 12%, transparent);
+  box-shadow: var(--fs-ombre-segment);
   cursor: default;
 }
 
@@ -70,7 +88,7 @@
   height: 360px;
   border-radius: 24px;
   overflow: hidden;
-  background: var(--color-hero-fond);
+  background: var(--color-photo-fond);
   color: var(--color-ink);
 }
 .fs-hero--photo {
@@ -132,12 +150,15 @@
   font-weight: 500;
   opacity: 0.85;
 }
+/* Le crédit photo, obligatoire, aussi discret que possible. */
 .fs-hero__note {
   position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 11px;
-  opacity: 0.8;
+  right: 10px;
+  bottom: 6px;
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 /* ── Deux colonnes ──────────────────────────────────────────────────── */
@@ -163,9 +184,12 @@
   border: 1px solid var(--color-line);
   border-radius: 18px;
   background: var(--color-surface);
-  box-shadow:
-    0 1px 2px color-mix(in srgb, var(--color-ombre) 4%, transparent),
-    0 4px 12px color-mix(in srgb, var(--color-ombre) 5%, transparent);
+  box-shadow: var(--fs-ombre-carte);
+}
+.fs-main h2,
+.fs-main h3,
+.fs-main h4 {
+  line-height: normal;
 }
 .fs-carte h2 {
   margin: 0;
@@ -230,7 +254,7 @@
   gap: 6px;
   padding: 16px;
   border-radius: 14px;
-  background: var(--color-bg);
+  background: var(--fs-tuile);
 }
 .fs-forfaits > div > span:first-child {
   font-size: 13px;
@@ -274,10 +298,10 @@
   gap: 14px;
   padding: 18px;
   border-radius: 14px;
-  background: var(--color-bg);
+  background: var(--fs-tuile);
 }
 .fs-niveau--haut {
-  background: var(--color-marque-colonne);
+  background: var(--fs-tuile-haut);
 }
 .fs-niveau__tete {
   display: flex;
@@ -371,7 +395,7 @@
   border-radius: 12px;
 }
 .fs-jour--neige {
-  background: var(--color-neige);
+  background: var(--color-bleu-pale);
 }
 .fs-jour > span:first-child {
   font-size: 11.5px;
@@ -384,12 +408,10 @@
   font-variant-numeric: tabular-nums;
 }
 .fs-jour__ico {
-  width: 18px;
-  height: 18px;
   color: var(--color-muted);
 }
 .fs-jour__ico--sun {
-  color: var(--color-soleil);
+  color: var(--fs-soleil);
 }
 .fs-jour__ico--snow {
   color: var(--color-marque);
@@ -403,6 +425,13 @@
 }
 
 /* ── Pistes ─────────────────────────────────────────────────────────── */
+/* Les couleurs de piste de la maquette (`COLS`), pour cette section. */
+.fs-pistes {
+  --color-piste-verte: #2fa84f;
+  --color-piste-bleue: #0b6fc2;
+  --color-piste-rouge: #e5484d;
+  --color-piste-noire: #0b1f33;
+}
 .fs-pistes__resume {
   margin: 0;
   display: grid;
@@ -415,7 +444,7 @@
   gap: 2px;
   padding: 14px;
   border-radius: 12px;
-  background: var(--color-bg);
+  background: var(--fs-tuile);
 }
 .fs-pistes__resume dt {
   font-size: 12px;
@@ -569,7 +598,6 @@
   border-color: var(--color-ink);
 }
 .fs-puce--on {
-  padding: 0 13.5px;
   border: 1.5px solid var(--color-ink);
   background: var(--color-glacier);
 }
@@ -591,27 +619,43 @@
   border: 1px solid var(--color-line);
   border-radius: 10px;
 }
+/* Les lignes sont des grilles, comme dans la maquette : minmax(0, 2fr) puis
+   cinq colonnes de 1fr, 10 px d'écart, 14 px de marge. */
+.fs-table table,
+.fs-table thead,
+.fs-table tbody {
+  display: block;
+}
 .fs-table table {
-  width: 100%;
   min-width: 620px;
   border-collapse: collapse;
   font-size: 13.5px;
   font-variant-numeric: tabular-nums;
-  table-layout: fixed;
 }
-.fs-table thead th {
+.fs-table tr {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(5, minmax(70px, 1fr));
+  gap: 10px;
+  align-items: center;
+}
+.fs-table th,
+.fs-table td {
+  display: block;
+  padding: 0;
+  text-align: left;
+}
+.fs-table thead tr {
   position: sticky;
   top: 0;
   z-index: 1;
   padding: 10px 14px;
-  background: var(--color-bg);
+  border-radius: 10px 10px 0 0;
+  background: var(--fs-tuile);
+}
+.fs-table thead th {
   color: var(--color-muted);
   font-size: 12px;
   font-weight: 600;
-  text-align: left;
-}
-.fs-table thead th:first-child {
-  width: 30%;
 }
 .fs-table thead th[aria-sort="ascending"],
 .fs-table thead th[aria-sort="descending"] {
@@ -626,16 +670,12 @@
   background: none;
   color: inherit;
   font: inherit;
+  text-align: left;
   cursor: pointer;
 }
-.fs-table__sens--asc {
-  transform: rotate(180deg);
-}
-.fs-table tbody th,
-.fs-table tbody td {
+.fs-table tbody tr {
   padding: 9px 14px;
   border-top: 1px solid var(--color-line);
-  text-align: left;
 }
 .fs-table tbody th {
   overflow: hidden;
@@ -730,7 +770,7 @@
 }
 .fs-flux--grand {
   max-height: calc(100vh - 140px);
-  background: var(--color-photo-voile);
+  background: #000;
 }
 .fs-flux--grand img {
   object-fit: contain;
@@ -770,8 +810,7 @@
   z-index: 1000;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: color-mix(in srgb, var(--color-photo-voile) 90%, transparent);
+  background: var(--fs-voile-grand);
   font-family: var(--font-sans);
   color: var(--color-photo-texte);
 }
@@ -779,7 +818,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: min(1400px, calc(100vw - 48px), calc((100vh - 140px) * 16 / 9));
+  width: min(1400px, calc(100vw - 48px));
 }
 .fs-grand__tete {
   display: flex;
@@ -789,7 +828,7 @@
 }
 .fs-grand__titre {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
   min-width: 0;
 }
@@ -857,6 +896,32 @@
 }
 .fs-bra__picto {
   flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--color-glacier);
+  color: var(--color-ink);
+  font-size: 22px;
+  font-weight: 800;
+}
+.fs-bra__picto--1 {
+  background: var(--fs-bra-1);
+}
+.fs-bra__picto--2 {
+  background: var(--fs-bra-2);
+}
+.fs-bra__picto--3 {
+  background: var(--fs-bra-3);
+}
+.fs-bra__picto--4 {
+  background: var(--fs-bra-4);
+  color: var(--color-surface);
+}
+.fs-bra__picto--5 {
+  background: var(--fs-bra-5);
+  color: var(--color-surface);
 }
 .fs-bra__texte {
   flex: 1 1 260px;
@@ -893,7 +958,7 @@
 .fs-bra__bulletin {
   font-size: 13.5px;
   line-height: 1.55;
-  color: var(--color-muted);
+  color: var(--fs-bra-texte);
   text-wrap: pretty;
 }
 .fs-bra__detail {
@@ -937,9 +1002,7 @@
   border: 1px solid var(--color-line);
   border-radius: 18px;
   background: var(--color-surface);
-  box-shadow:
-    0 2px 6px color-mix(in srgb, var(--color-ombre) 8%, transparent),
-    0 10px 24px color-mix(in srgb, var(--color-ombre) 10%, transparent);
+  box-shadow: var(--fs-ombre-encart);
 }
 .fs-aside__faits {
   margin: 0;
@@ -998,6 +1061,7 @@
   justify-content: center;
   gap: 8px;
   height: 50px;
+  padding: 1px 6px;
   border: 0;
   border-radius: 12px;
   background: var(--color-ink);
@@ -1008,10 +1072,11 @@
   cursor: pointer;
 }
 .fs-cta:hover {
-  background: color-mix(in srgb, var(--color-ink) 82%, var(--color-marque));
+  background: var(--color-encre-survol);
 }
 .fs-comparer {
   height: 44px;
+  padding: 1px 6px;
   border: 1px solid var(--color-line-commande);
   border-radius: 12px;
   background: var(--color-surface);
@@ -1026,7 +1091,7 @@
 }
 .fs-comparer--on {
   border-color: var(--color-marque);
-  background: var(--color-marque-tenue);
+  background: var(--color-bleu-pale);
   color: var(--color-marque-texte);
 }
 .fs-comparer--on:hover {
@@ -1075,9 +1140,6 @@
   }
   .fs-aside {
     position: static;
-  }
-  .fs-grand {
-    padding: 12px;
   }
   .fs-grand__boite {
     width: calc(100vw - 24px);

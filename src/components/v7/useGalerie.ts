@@ -13,10 +13,10 @@ import { photoTailles, type TaillesPhoto } from "@/lib/stay/photoHd";
 import { aPrecharger, indexBoucle, rangCourant } from "@/lib/stay/visionneuse";
 
 /** La place des photos dans la mosaïque de la fenêtre : la grande prend la
- *  moitié de la largeur (toute la largeur sous 640 px), les petites un quart. */
+ *  moitié de la largeur, les petites un quart. */
 export const TAILLE_MOSAIQUE = {
-  grande: "(max-width: 639.98px) 100vw, 600px",
-  petite: "(max-width: 639.98px) 100vw, 300px",
+  grande: "(max-width: 1240px) 50vw, 600px",
+  petite: "(max-width: 1240px) 25vw, 300px",
 } as const;
 /** La fenêtre, hors plein écran : la grande photo de la mosaïque. */
 export const TAILLE_FENETRE = TAILLE_MOSAIQUE.grande;

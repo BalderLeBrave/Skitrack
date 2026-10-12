@@ -4,6 +4,7 @@ export const EN_FICHE_LOGEMENT: Record<string, string> = {
   "Voir toutes les photos": "Show all photos",
   // Titre et faits clés (FicheBlocs.tsx)
   "{n} avis": "{n} reviews",
+  "Sans note": "No rating",
   "{distance} des remontées": "{distance} from the lifts",
   "{altitude} d’altitude": "{altitude} altitude",
   "{km} de pistes": "{km} of slopes",
@@ -22,7 +23,7 @@ export const EN_FICHE_LOGEMENT: Record<string, string> = {
   // Carte de prix
   "Par pers.": "Per person",
   "{prix} par pers.": "{prix} per person",
-  "{prix} pour {pers}": "{prix} for {pers}",
+  "{prix} pour {n}": "{prix} for {n}",
   "{source} : {ecart} de moins": "{source}: {ecart} less",
   "Relevé le {date}": "Checked on {date}",
   Disponible: "Available",

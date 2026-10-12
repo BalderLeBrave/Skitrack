@@ -87,7 +87,6 @@ export function ModaleFiltresLogements({
   fourchetteDist,
   rayons,
   onRayon,
-  fourchetteRayon,
   aideRayon,
   equipements,
   onEquipement,
@@ -121,7 +120,6 @@ export function ModaleFiltresLogements({
   fourchetteDist: RegleFourchette;
   rayons: readonly Choix<number>[];
   onRayon: (km: number) => void;
-  fourchetteRayon: RegleFourchette;
   /** Infobulle de « Distance au centre ». */
   aideRayon: string;
   equipements: readonly Choix<string>[];
@@ -173,8 +171,8 @@ export function ModaleFiltresLogements({
           <Onglets<ModePrix>
             ariaLabel={tr("Prix")}
             items={[
-              { key: "budget", label: tr("Budget du séjour") },
-              { key: "pp", label: tr("Prix par personne") },
+              { key: "budget", label: tr("Séjour") },
+              { key: "pp", label: tr("Par personne") },
             ]}
             valeur={modePrix}
             onChoisir={onModePrix}
@@ -221,7 +219,6 @@ export function ModaleFiltresLogements({
             </Pastille>
           ))}
         </div>
-        {fourchette(fourchetteRayon)}
       </SectionFiltre>
 
       {equipements.length ? (
@@ -267,7 +264,7 @@ export function ModaleFiltresLogements({
           <LigneInterrupteur
             key={o.key}
             label={o.label}
-            sous={o.n != null ? trN(o.n, "{n} annonce", "{n} annonces") : undefined}
+            sous={o.n != null ? trN(o.n, "{n} logement", "{n} logements") : undefined}
             on={o.on}
             onToggle={() => onFiabilite(o.key)}
           />

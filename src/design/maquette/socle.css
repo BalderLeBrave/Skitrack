@@ -34,6 +34,41 @@ html[data-theme="dark"] {
   --shadow-prix-carte: 0 2px 10px rgb(0 0 0 / 0.5);
 }
 
+/* ── Éléments de base, comme la maquette ─────────────────────────────────
+   La maquette pose `body { font-family; color; -webkit-font-smoothing:
+   antialiased }` et `button, input, select { font-family: inherit; color:
+   inherit }` (Skitrack App.dc.html:13) : le reste vient du navigateur, dont
+   l'interligne `normal` des commandes. Le preflight de Tailwind et
+   `:where(.v7) button { font: inherit }` (v7.css) leur faisaient hériter
+   l'interligne et l'espacement des lettres du parent : un titre de carte de
+   15 px dans un bloc à 1,4 mesurait 21 px au lieu de 19.
+   Même poids que la règle de v7.css (`:where`), posée après : toute classe
+   d'écran passe devant. */
+@layer base {
+  /* Hors de `.v7.app` (fenêtres rendues dans `body`) : après le preflight,
+     avant les utilitaires de Tailwind. */
+  html {
+    line-height: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  button,
+  input,
+  select,
+  optgroup,
+  textarea {
+    line-height: normal;
+    letter-spacing: normal;
+  }
+}
+:where(.v7) button,
+:where(.v7) input,
+:where(.v7) select,
+:where(.v7) textarea {
+  line-height: normal;
+  letter-spacing: normal;
+}
+
 /* Texte lu par les lecteurs d'écran, pas dessiné. */
 .m8-lu-seul {
   position: absolute !important;
@@ -54,7 +89,7 @@ html[data-theme="dark"] {
   padding: 0 4px;
   border: 0;
   background: none;
-  font: inherit;
+  font-family: inherit;
   font-size: 15px;
   font-weight: 600;
   color: var(--color-ink);
@@ -71,7 +106,7 @@ html[data-theme="dark"] {
   border-radius: 12px;
   background: var(--color-ink);
   color: var(--color-surface);
-  font: inherit;
+  font-family: inherit;
   font-size: 15px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -223,7 +258,6 @@ html[data-theme="dark"] {
   border: 0;
   background: none;
   cursor: pointer;
-  transition: transform var(--duree-appui) var(--ease-ui);
 }
 .m8-coeur svg {
   fill: var(--color-voile-photo);
@@ -231,9 +265,6 @@ html[data-theme="dark"] {
 }
 .m8-coeur--on svg {
   fill: var(--color-accent);
-}
-.m8-coeur:hover {
-  transform: scale(1.08);
 }
 /* Rond « comparer ». */
 .m8-cmp {
@@ -276,7 +307,7 @@ html[data-theme="dark"] {
   border: 0;
   background: none;
   text-align: left;
-  font: inherit;
+  font-family: inherit;
   font-size: 15px;
   font-weight: 700;
   color: var(--color-ink);
@@ -319,7 +350,7 @@ html[data-theme="dark"] {
   padding: 0;
   border: 0;
   background: none;
-  font: inherit;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   color: var(--color-ink);
@@ -410,7 +441,6 @@ html[data-theme="dark"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
   padding: 16px 24px;
   border-top: 1px solid var(--color-line);
 }
@@ -467,7 +497,7 @@ html[data-theme="dark"] {
   border: 0;
   background: none;
   text-align: left;
-  font: inherit;
+  font-family: inherit;
   color: var(--color-ink);
   cursor: pointer;
 }
@@ -512,7 +542,7 @@ html[data-theme="dark"] {
   border-radius: 12px;
   background: var(--color-surface);
   color: var(--color-ink);
-  font: inherit;
+  font-family: inherit;
   font-size: 14px;
   outline: none;
 }
@@ -527,7 +557,7 @@ html[data-theme="dark"] {
   border-radius: 12px;
   background: var(--color-ink);
   color: var(--color-surface);
-  font: inherit;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -570,7 +600,7 @@ html[data-theme="dark"] {
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
-  font: inherit;
+  font-family: inherit;
   color: var(--color-muted);
   cursor: pointer;
 }
@@ -611,7 +641,7 @@ html[data-theme="dark"] {
   border-radius: var(--radius-surface);
   background: var(--color-surface);
   color: var(--color-ink);
-  font: inherit;
+  font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
@@ -623,9 +653,6 @@ html[data-theme="dark"] {
   border-color: color-mix(in srgb, var(--color-photo-texte) 55%, transparent);
   background: color-mix(in srgb, var(--color-photo-texte) 14%, transparent);
   color: var(--color-photo-texte);
-}
-.m8-filtres--sombre:hover {
-  border-color: var(--color-photo-texte);
 }
 .m8-filtres__n {
   min-width: 20px;
@@ -678,7 +705,7 @@ html[data-theme="dark"] {
   border-radius: 999px;
   background: var(--color-ink);
   color: var(--color-surface);
-  font: inherit;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 700;
   box-shadow: var(--shadow-bascule);
@@ -712,7 +739,8 @@ html[data-theme="dark"] {
   height: 20px;
   border-radius: 50%;
   background: var(--color-surface);
-  box-shadow: var(--shadow-rond-photo);
+  /* `sw()` de la maquette : 0 1px 3px, encre à 30 %. */
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-ombre) 30%, transparent);
   transition: left 0.2s;
 }
 .m8-inter--on {
@@ -739,7 +767,7 @@ html[data-theme="dark"] {
   border: 0;
   background: none;
   text-align: left;
-  font: inherit;
+  font-family: inherit;
   color: var(--color-ink);
   cursor: pointer;
 }
@@ -772,7 +800,7 @@ html[data-theme="dark"] {
   border-radius: 999px;
   background: transparent;
   color: var(--color-muted);
-  font: inherit;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -787,25 +815,26 @@ html[data-theme="dark"] {
 .m8-pastille {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   height: 38px;
   padding: 0 16px;
   border: 1px solid var(--color-line-commande);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-ink);
-  font: inherit;
+  font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }
-.m8-pastille:hover {
-  border-color: var(--color-ink);
-}
 .m8-pastille--on {
   border: 1.5px solid var(--color-ink);
   background: var(--color-puce);
+}
+/* « Sources » : le libellé et son compte (`srcOpts`, gap 8). */
+.m8-pastille--compte {
+  gap: 8px;
 }
 .m8-pastille__compte {
   font-weight: 500;
@@ -863,9 +892,6 @@ html[data-theme="dark"] {
   height: 20px;
   background: color-mix(in srgb, var(--color-photo-voile) 8%, transparent);
   color: var(--color-photo-voile);
-}
-.m8-puce__x:hover {
-  color: var(--color-ink);
 }
 
 /* ── Fourchette (`v7/Fourchette.tsx`, Fourchette.dc.html) ─────────────
@@ -959,4 +985,17 @@ html[data-theme="dark"] {
   font-size: 12.5px;
   color: var(--color-muted);
   white-space: nowrap;
+}
+
+/* Crédit des cartes de résultats (CarteEpingles), comme la maquette :
+   « © OpenStreetMap » en 10,5 px, discret, en bas à droite, sans fond. */
+.carte7 .leaflet-control-attribution {
+  margin: 0 10px 8px 0;
+  padding: 0;
+  background: none;
+  font: 400 10.5px/1.2 var(--font-sans);
+  color: var(--color-texte-3);
+}
+.carte7 .leaflet-control-attribution a {
+  color: inherit;
 }

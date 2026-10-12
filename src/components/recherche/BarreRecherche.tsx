@@ -21,11 +21,11 @@ import { usePlage } from "@/components/v7/plage";
 import { foldName } from "@/lib/carte";
 import { SEUILS } from "@/lib/filtres";
 import { aTraduire, tr, trN } from "@/lib/i18n";
-import { departLbl, dm, guestsLbl, useParcours, useSejour } from "@/lib/parcours";
+import { departLbl, dm, useParcours, useSejour } from "@/lib/parcours";
 import { plageCourte } from "@/lib/plage";
 import type { Station } from "@/lib/stations";
 import { AGE_ENFANT } from "@/lib/stay/party";
-import { suggestions } from "./outils";
+import { suggestions, voyageursLbl } from "./outils";
 
 export type PanneauRecherche = null | "q" | "alt" | "dates" | "guests";
 
@@ -74,7 +74,7 @@ export function BarreRecherche({
 }) {
   const F = useParcours((s) => s.filters);
   const setFilters = useParcours((s) => s.setFilters);
-  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const plage = usePlage();
   const [iSugg, setISugg] = useState(-1);
 
@@ -163,7 +163,7 @@ export function BarreRecherche({
             }}
             onKeyDown={onKey}
             onFocus={() => setHp("q")}
-            placeholder={tr("Station, massif, domaine")}
+            placeholder={tr("Pays, massif, station")}
             autoComplete="off"
             // L'ouverture de la fenêtre de modification pose le curseur ici.
             autoFocus={autoFocus}
@@ -197,7 +197,7 @@ export function BarreRecherche({
         <div className={seg(hp === "guests", " acc-seg--fin")}>
           <button type="button" className="acc-seg__nu" onClick={() => setHp("guests")}>
             <span className="acc-seg__k">{tr("Voyageurs")}</span>
-            <span className="acc-seg__v">{guestsLbl(trav, rooms, enfants)}</span>
+            <span className="acc-seg__v">{voyageursLbl(trav, rooms)}</span>
           </button>
           {/* La loupe ne se désactive jamais : une plage de dates inversée se
               répare à la recherche au lieu de barrer la route. */}

@@ -7,8 +7,10 @@
  * fichier par sous-ensemble couvre les graisses 400 à 800 du design. Latin et
  * latin étendu seulement, comme pour Manrope.
  *
- * Manrope reste chargée en repli : `--font-sans` la nomme après Plus Jakarta
- * Sans, et `unicode-range` ne la télécharge que si un glyphe manque. */
+ * `--font-sans` reprend la pile de la maquette mot pour mot : « Plus Jakarta
+ * Sans », system-ui, sans-serif. `manrope.css` reste importée pour les écrans
+ * qui nomment encore Manrope.
+ */
 
 /* latin-ext */
 @font-face {

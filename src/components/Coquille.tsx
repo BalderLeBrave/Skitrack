@@ -20,14 +20,15 @@
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AutoSync } from "./AutoSync";
-import { ICONES, IconeCadenas, Trace } from "./maquette";
+import { ICONES, Trace } from "./maquette";
 import { FenetreRecherche } from "./recherche/FenetreRecherche";
 import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
 import { Toast } from "./v6/Toast";
 import { useFermeture } from "./v7/fermeture";
 import { useCriteresUrl } from "@/lib/criteres";
 import { tr, trN, useLocale, useT, type MsgId } from "@/lib/i18n";
-import { datesCourtes, groupLbl, useParcours, useSejour } from "@/lib/parcours";
+import { dm, useParcours, useSejour } from "@/lib/parcours";
+import { voyageursLbl } from "./recherche/outils";
 import { stationsVoisines } from "@/lib/domaineStations";
 import { grandDomaineDe } from "@/lib/grandsDomaines";
 import { usePrix } from "@/lib/prix/releve";
@@ -131,7 +132,7 @@ function MenuPlus() {
           <span className="m8-lu-seul">{t("nav.elsewhere")}</span>
           {AILLEURS.map((groupe) => (
             <div key={groupe.titre} className="sh-menu__groupe">
-              <span className="sh-menu__titre">{t(groupe.titre)}</span>
+              <span className="m8-lu-seul">{t(groupe.titre)}</span>
               {groupe.liens.map((l) => (
                 <Link key={l.to} to={l.to} className="sh-menu__lien" onClick={() => setOuvert(false)}>
                   <Trace d={l.icone} taille={16} epaisseur={1.7} />
@@ -201,7 +202,7 @@ function PiluleRecherche() {
   const stayOpen = useParcours((s) => s.stayOpen);
   const setStayOpen = useParcours((s) => s.setStayOpen);
   const massif = useParcours((s) => s.massif);
-  const { checkIn, checkOut, trav, enfants, rooms } = useSejour();
+  const { checkIn, checkOut, trav, rooms } = useSejour();
   const station = useStationCourante();
   const nom = station?.name ?? massif ?? tr("Station à choisir");
   const ouvrir = () => setStayOpen(true);
@@ -217,9 +218,11 @@ function PiluleRecherche() {
       >
         <span className="sh-pilule__station">{nom}</span>
         <i className="sh-pilule__trait" aria-hidden />
-        <span>{datesCourtes(checkIn, checkOut)}</span>
+        <span>
+          {dm(checkIn)} → {dm(checkOut)}
+        </span>
         <i className="sh-pilule__trait" aria-hidden />
-        <span className="sh-pilule__groupe">{groupLbl(trav, rooms, enfants)}</span>
+        <span className="sh-pilule__groupe">{voyageursLbl(trav, rooms)}</span>
         <span className="sh-pilule__loupe">
           <Trace d={LOUPE} taille={13} epaisseur={2.6} />
         </span>
@@ -296,7 +299,6 @@ function Barre({ pilule }: { pilule: boolean }) {
               >
                 <span className="sh-etape__num">{j.step}</span>
                 <span className="sh-etape__lbl">{t(j.label)}</span>
-                {verrou ? <IconeCadenas taille={12} /> : null}
                 {badge ? (
                   <span
                     className="sh-etape__badge"

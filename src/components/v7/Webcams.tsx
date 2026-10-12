@@ -22,7 +22,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Icon } from "@/components/Icon";
+import { IconeFiche } from "@/components/v7/IconesFiche";
 import { useEchap } from "@/components/v7/fermeture";
 import { aStation } from "@/lib/v7";
 import type { Webcam } from "@/lib/webcams";
@@ -108,7 +108,7 @@ function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
           <span>{tr("Le flux ne s’affiche pas ici.")}</span>
           <a href={cam.url} target="_blank" rel="noopener" className="fs-flux__lien">
             {tr("Ouvrir chez l’exploitant")}
-            <Icon name="externe" taille={11} />
+            <IconeFiche nom="externe" taille={11} />
           </a>
         </div>
       ) : null}
@@ -165,10 +165,10 @@ export function Webcams({ cams }: { cams: Webcam[] }) {
                   </option>
                 ))}
               </select>
-              <Icon name="chevron-bas" taille={12} />
+              <IconeFiche nom="chevron-bas" taille={12} />
             </label>
             <button ref={ouvrir} type="button" className="fs-bouton" onClick={() => setGrand(true)}>
-              <Icon name="agrandir" taille={14} />
+              <IconeFiche nom="agrandir" taille={14} />
               {tr("Agrandir")}
             </button>
           </div>
@@ -258,7 +258,7 @@ function WebcamEnGrand({
                   aria-label={tr("Caméra précédente")}
                   onClick={() => onIndex((index - 1 + n) % n)}
                 >
-                  <Icon name="chevron-gauche" taille={18} />
+                  <IconeFiche nom="chevron-gauche" taille={16} />
                 </button>
                 <button
                   type="button"
@@ -266,16 +266,16 @@ function WebcamEnGrand({
                   aria-label={tr("Caméra suivante")}
                   onClick={() => onIndex((index + 1) % n)}
                 >
-                  <Icon name="chevron-droite" taille={18} />
+                  <IconeFiche nom="chevron-droite" taille={16} />
                 </button>
               </>
             ) : null}
             <a href={cam.url} target="_blank" rel="noopener" className="fs-grand__lien">
               {tr("Ouvrir chez l’exploitant")}
-              <Icon name="externe" taille={12} />
+              <IconeFiche nom="externe" taille={11} />
             </a>
             <button ref={croix} type="button" className="fs-grand__bouton" aria-label={tr("Fermer")} onClick={onFermer}>
-              <Icon name="croix" taille={18} />
+              <IconeFiche nom="croix" taille={16} />
             </button>
           </div>
         </div>

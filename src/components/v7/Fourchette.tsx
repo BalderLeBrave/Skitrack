@@ -5,10 +5,12 @@
  *
  * Le dépôt n'avait qu'un seuil, l'`input type="range"` de Comparer, qui n'a
  * qu'une poignée. `@radix-ui/react-slider` est installé mais n'était employé
- * nulle part, et il s'écarte de la maquette : il tient ses poignées à
- * l'intérieur du rail là où la maquette les centre sur leur valeur, et il les
- * laisse s'échanger quand elles se croisent là où la maquette garde la même
- * poignée tout le glissé. D'où ce composant, écrit d'après la maquette.
+ * nulle part, et il laisse ses poignées s'échanger quand elles se croisent là
+ * où la maquette garde la même poignée tout le glissé. D'où ce composant,
+ * écrit d'après la maquette. Comme les deux `input type="range"` superposés
+ * de `Fourchette.dc.html`, les poignées restent dans le rail (une demi-poignée
+ * de marge à chaque bout) pendant que la plage noircie, elle, va d'un bord à
+ * l'autre.
  *
  * Il ne décide rien : il dit quelle poignée bouge et vers quelle valeur brute,
  * et le parent arrondit au pas, borne et empêche le croisement (`poserBorne`).
@@ -30,6 +32,8 @@ import { lireSaisie, poigneeProche } from "@/lib/plage";
 import { aTraduire, tr } from "@/lib/i18n";
 
 const COTES = [0, 1] as const;
+/** Diamètre d'une poignée, en px (`.m8-fourchette .fourchette7__poignee`). */
+const POIGNEE = 24;
 const NOMS = [aTraduire("minimum"), aTraduire("maximum")] as const;
 
 /** L'écart, en pas, qu'une touche fait faire à une poignée. */
@@ -87,8 +91,11 @@ export function Fourchette({
   const [brouillon, setBrouillon] = useState<readonly [string | null, string | null]>([null, null]);
 
   const versValeur = (el: HTMLElement, x: number) => {
+    // La course de la poignée s'arrête à une demi-poignée de chaque bout,
+    // comme celle d'un `input type="range"` (Fourchette.dc.html).
     const r = el.getBoundingClientRect();
-    const p = r.width > 0 ? Math.min(1, Math.max(0, (x - r.left) / r.width)) : 0;
+    const course = r.width - POIGNEE;
+    const p = course > 0 ? Math.min(1, Math.max(0, (x - r.left - POIGNEE / 2) / course)) : 0;
     return b0 + p * (b1 - b0);
   };
   // Le parent arrondit au pas : tant que le pointeur reste dans le même cran,
@@ -210,7 +217,9 @@ export function Fourchette({
             key={which}
             ref={which === 0 ? bas : haut}
             className="fourchette7__poignee"
-            style={{ left: `${part(cur[which])}%` }}
+            style={{
+              left: `calc(${POIGNEE / 2}px + (100% - ${POIGNEE}px) * ${part(cur[which]) / 100})`,
+            }}
             role="slider"
             tabIndex={0}
             aria-label={`${lbl}, ${tr(NOMS[which])}`}

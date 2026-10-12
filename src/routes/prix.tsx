@@ -27,6 +27,7 @@ import { Coquille } from "@/components/Coquille";
 import { textesCarte } from "@/components/favoris/annonceCarte";
 import { FlecheTri } from "@/components/favoris/communs";
 import {
+  BasculeVue,
   BoutonFiltres,
   CarteAnnonce as CarteMaquette,
   IconeDroite,
@@ -50,7 +51,7 @@ import { Pages } from "@/components/v7/Pages";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
 import { dansLesBornes, type Bornes as Cadre } from "@/lib/carte";
 import type { Listing } from "@/lib/listings";
-import { datesCourtes, eur, fmt, groupLbl, nuitsLbl, useParcours, useSejour } from "@/lib/parcours";
+import { dm, eur, fmt, nuitsLbl, useParcours, useSejour } from "@/lib/parcours";
 import { useAnnonces } from "@/lib/prix/annonces";
 import { resultatsALaLecture } from "@/lib/prix/recompte";
 import {
@@ -142,9 +143,8 @@ import { stationDuLogement } from "@/lib/stay/parStation";
 import { useBudgetForfaits } from "@/components/v7/usePrixForfait";
 import { adults, clampChildren, clampRooms, clampTravelers } from "@/lib/stay/party";
 import { STATIONS, type Station } from "@/lib/stations";
-import { prixPin, villageM } from "@/lib/v7";
+import { persLbl, prixPin, villageM } from "@/lib/v7";
 import { useIdsFavoris } from "@/lib/favoris/store";
-import { useAltitudes } from "@/lib/altitude/store";
 import { aTraduire, dire, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/prix")({ component: Prix });
@@ -197,7 +197,12 @@ function colonnes(nights: number): Colonne[] {
     { id: "logements", k: "n", lbl: tr("Logements") },
     { id: "village", k: null, lbl: tr("Village") },
     { id: "releve", k: null, lbl: tr("Mis à jour") },
-    { id: "mediane", k: "med", lbl: tr("Prix médian · {nuits}", { nuits: nuitsLbl(nights) }), droite: true },
+    {
+      id: "mediane",
+      k: "med",
+      lbl: tr("Prix médian · {nuits}", { nuits: nuitsLbl(nights) }),
+      droite: true,
+    },
   ];
 }
 
@@ -225,7 +230,7 @@ const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 function EcranPrix() {
   const sej = useSejour();
-  const { checkIn, nights, enfants } = sej;
+  const { checkIn, nights } = sej;
   const perChoisie = usePrix((s) => s.per);
   const onglet = usePrix((s) => s.onglet);
   const setPer = usePrix((s) => s.setPer);
@@ -323,7 +328,7 @@ function EcranPrix() {
           </button>
           <label className="px-periode">
             <span className="px-periode__lbl" aria-hidden>
-              {datesCourtes(per.from, departIso(per))}
+              {dm(per.from)} → {dm(departIso(per))}
             </span>
             <input
               ref={refDate}
@@ -392,7 +397,7 @@ function EcranPrix() {
         </div>
 
         <span className="px-groupe" title={tr("Le groupe se change dans votre séjour")}>
-          {groupLbl(trav, rooms, enfants)}
+          {persLbl(trav)} · {rooms ? tr("{n} ch.", { n: rooms }) : tr("studio")}
         </span>
 
         {!memePeriode(per, sejour) ? (
@@ -487,7 +492,11 @@ function ChoixMultiple({
           </label>
           {choix.map((o) => (
             <label key={o.v} className="px-multi__option">
-              <input type="checkbox" checked={valeurs.includes(o.v)} onChange={() => onChange(bascule(valeurs, o.v))} />
+              <input
+                type="checkbox"
+                checked={valeurs.includes(o.v)}
+                onChange={() => onChange(bascule(valeurs, o.v))}
+              />
               <span>{o.label}</span>
             </label>
           ))}
@@ -677,8 +686,16 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
       memePeriode(course.per, per) &&
       grpKey(course.groupe) === kGrp &&
       course.ids.some((id) => vues.has(id));
-    return enCours ? tr("Relevé de cette liste en cours.") : tr("Relevé de cette liste en attente.");
+    return enCours
+      ? tr("Relevé de cette liste en cours.")
+      : tr("Relevé de cette liste en attente.");
   }, [aLancer, ids, course, per, kGrp]);
+  // Ce qui n'a pas encore de relevé passe d'abord (App.dc.html:1194) ; tout
+  // relevé, le bouton relève de nouveau toute la liste.
+  const neuves = useMemo(() => {
+    const sans = new Set(triees.filter((l) => l.res?.etat !== "fait").map((l) => l.id));
+    return aLancer.filter((id) => sans.has(id));
+  }, [triees, aLancer]);
   const listeFaite = filtrees.every((l) => l.res?.etat === "fait");
 
   // « Prix connus seulement » a son interrupteur dans la barre : sa puce ne
@@ -726,8 +743,13 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
             {tr("Tout effacer")}
           </button>
         ) : null}
-        <span className="px-compte" ref={refCompte} tabIndex={-1}>
-          {countFl(filtrees.length, STATIONS.length)}
+        <span
+          className="px-compte"
+          ref={refCompte}
+          tabIndex={-1}
+          title={countFl(filtrees.length, STATIONS.length)}
+        >
+          {trN(filtrees.length, "{n} station", "{n} stations")}
         </span>
         <div className="px-actions" ref={refActions} tabIndex={-1}>
           {passee ? (
@@ -740,12 +762,19 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
               className="px-relever"
               title={`${relLbl(triees.length, listeFaite)} · ${tr("Une station prend environ une minute.")}`}
               onClick={() => {
-                lancer({ nom: nomListe(fl), ids: aLancer, per, groupe });
+                lancer({
+                  nom: nomListe(fl),
+                  ids: neuves.length > 0 ? neuves : aLancer,
+                  per,
+                  groupe,
+                });
                 // Le bouton cède la place à l'indice : le focus reste dans la rangée.
                 refActions.current?.focus();
               }}
             >
-              {trN(aLancer.length, "Mettre à jour {n} station", "Mettre à jour {n} stations")}
+              {neuves.length > 0
+                ? trN(neuves.length, "Mettre à jour {n} station", "Mettre à jour {n} stations")
+                : tr("Tout mettre à jour")}
             </button>
           ) : indice ? (
             <span className="px-indice" role="status">
@@ -779,7 +808,6 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
                     key={id}
                     role="columnheader"
                     aria-sort={on ? (tri.dir > 0 ? "ascending" : "descending") : undefined}
-                    className={droite ? "px-cell--droite" : undefined}
                   >
                     {k ? (
                       <button type="button" className={cls} onClick={() => trier(k)}>
@@ -834,7 +862,11 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
           <SectionFiltre
             titre={tr("Trier")}
             aside={
-              <SensTri sens={tri.dir} alpha={tri.k === "nom"} onChange={(dir) => setTri({ ...tri, dir })} />
+              <SensTri
+                sens={tri.dir}
+                alpha={tri.k === "nom"}
+                onChange={(dir) => setTri({ ...tri, dir })}
+              />
             }
           >
             <select
@@ -986,14 +1018,8 @@ function VueBudget({
         : 0,
     [logements, groupes, avant, fl],
   );
-  const cartes = useMemo(
-    () => [...principales].sort(comparateurBudget(triB)),
-    [principales, triB],
-  );
-  const nStations = useMemo(
-    () => new Set(principales.map((c) => c.stationId)).size,
-    [principales],
-  );
+  const cartes = useMemo(() => [...principales].sort(comparateurBudget(triB)), [principales, triB]);
+  const nStations = useMemo(() => new Set(principales.map((c) => c.stationId)).size, [principales]);
   // Toutes les offres, pas seulement les principales : le volet passe de l'une
   // à l'autre, et Retenir porte sur celle qu'on a choisie.
   const parId = useMemo(() => new Map(filtrees.map((c) => [c.a.id, c] as const)), [filtrees]);
@@ -1009,7 +1035,14 @@ function VueBudget({
     return relevees.filter((s, i) => vieilles.has(cles[i] ?? "") && montrees.has(s.id));
   }, [anciennes, relevees, cles, filtrees]);
   const aRepositionner = useMemo(
-    () => idsALancer(sansPosition.map((s) => s.id), per, groupe, course, file),
+    () =>
+      idsALancer(
+        sansPosition.map((s) => s.id),
+        per,
+        groupe,
+        course,
+        file,
+      ),
     [sansPosition, per, groupe, course, file],
   );
   // Un relevé des mêmes dates et du même groupe porte déjà l'une d'elles.
@@ -1195,8 +1228,6 @@ function VueBudget({
     return out;
   }, [pageItems, logementDe, parId, epinglee, ouverte, lodgeId]);
   const favoris = useIdsFavoris();
-  // L'altitude des logements de la page : entre stations, elle se compare.
-  const altDe = useAltitudes(useMemo(() => pageItems.map((c) => c.a), [pageItems]));
   const marqueurs = useMemo(
     () =>
       situees.map((l) => {
@@ -1209,7 +1240,12 @@ function VueBudget({
           lat: l.lat as number,
           lon: l.lon as number,
           nom: l.title,
-          epingle: epinglePrix(prixPin(l), l.title, etat, offres.some((id) => favoris.has(id))),
+          epingle: epinglePrix(
+            prixPin(l),
+            l.title,
+            etat,
+            offres.some((id) => favoris.has(id)),
+          ),
           zIndex: sel ? ETAGE.designee : ETAGE.normale,
         };
       }),
@@ -1249,7 +1285,11 @@ function VueBudget({
   const ouverteVoisine = (sens: 1 | -1) => {
     if (!ouverte) return null;
     const ici = [ouverte, ...(logementDe.get(ouverte)?.offres.map((o) => o.a.id) ?? [])];
-    const id = voisinDansListe(pageItems.map((c) => c.a.id), ici, sens);
+    const id = voisinDansListe(
+      pageItems.map((c) => c.a.id),
+      ici,
+      sens,
+    );
     return id ? () => ouvrirAnnonce(id) : null;
   };
   const groupeOuvert = useMemo(() => {
@@ -1259,11 +1299,13 @@ function VueBudget({
 
   const enr = useEnregistrement(useMemo(() => ({ ...stay, trav }), [stay, trav]));
   const [filtres, setFiltres] = useState(false);
+  // Liste en grille pleine largeur (la maquette), ou la carte aux pastilles.
+  const [vueB, setVueB] = useState<"liste" | "carte">("liste");
   const bBudget = BORNES.budget;
   const plafond = fl.budget?.[1] ?? bBudget[1];
   /** « Booking + 1 » : la plateforme de la carte, et combien d'autres. */
   const badgeDe = (g: LogementBudget | undefined, c: CarteAnnonce) =>
-    g && g.offres.length > 1 ? `${c.a.source} + ${g.offres.length - 1}` : c.a.source;
+    g && g.offres.length > 1 ? tr("{n} offres", { n: g.offres.length }) : c.a.source;
   // Le budget seul écarte tout : la maquette le dit d'une ligne.
   const sousBudget =
     !aucunReleve && avantBudget > 0 && fl.budget != null && fl.budget[0] <= bBudget[0]
@@ -1289,7 +1331,7 @@ function VueBudget({
               }))
             }
           />
-          <b className="px-budget__val">{fl.budget ? eur(plafond) : plageLbl("budget", null, bBudget)}</b>
+          <b className="px-budget__val">{eur(plafond)}</b>
         </label>
         <BoutonFiltres n={js.length} onClick={() => setFiltres(true)} />
         {js.map((j) => (
@@ -1382,7 +1424,12 @@ function VueBudget({
               className="px-pilule"
               title={tr("Une station prend environ une minute.")}
               onClick={() => {
-                lancer({ nom: aTraduire("logements sans position"), ids: aRepositionner, per, groupe });
+                lancer({
+                  nom: aTraduire("logements sans position"),
+                  ids: aRepositionner,
+                  per,
+                  groupe,
+                });
                 refCompte.current?.focus();
               }}
             >
@@ -1409,121 +1456,134 @@ function VueBudget({
       ) : null}
 
       {!affichable ? null : cartes.length > 0 ? (
-        <div className="px-deux">
-          <div
-            className="px-deux__liste"
-            ref={listeRef}
-            tabIndex={-1}
-            aria-label={tr("Logements de la page")}
-          >
-            {affichees.length > 0 ? (
-              <>
-                <div className="px-grille">
-                  {pageItems.map((c) => {
-                    const g = logementDe.get(c.a.id);
-                    const r = offreRetenue(g);
-                    return (
-                      <CarteMaquette
-                        key={`${c.stationId}|${c.a.id}`}
-                        {...textesCarte(c.a, { nights, altitude: altDe(c.a), avecAltitude: true })}
-                        badge={badgeDe(g, c)}
-                        onOpen={() => ouvrirAnnonce(c.a.id)}
-                        heart={enr.coeur(c.a)}
-                        link={{
-                          label: r
-                            ? r.a.id !== c.a.id
-                              ? tr("Retenu · {source}", { source: r.a.source })
-                              : tr("Retenu")
-                            : tr("Retenir"),
-                          on: r != null,
-                          onClick: () => retenir(r?.a.id ?? c.a.id),
-                        }}
-                        vif={actifCarte === c.a.id}
-                        onMouseEnter={() => setActifCarte(c.a.id)}
-                        onMouseLeave={() => setActifCarte(null)}
-                      />
-                    );
-                  })}
-                </div>
-                {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
-              </>
-            ) : (
-              <div className="px-vide">
-                <b>{tr("Aucune annonce dans ce cadrage")}</b>
-                <button type="button" className="px-encre" onClick={revoirTout}>
-                  {tr("Revoir toutes les annonces")}
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="px-deux__carte">
-            <CarteEpingles
-              marqueurs={marqueurs}
-              cadrage={cadrage}
-              cadrerSur={pointsResultat}
-              surFixe={setEpinglee}
-              maxZoom={14}
-              surBornes={surCadre}
-              actif={actifCarte}
-              surActif={setActifCarte}
-              ficheDe={(id) => {
-                const c = parId.get(id);
-                if (!c) return null;
-                const g = logementDe.get(id);
-                return (
-                  <FicheEpingle
-                    l={c.a}
-                    sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
-                    stay={stay}
-                    trav={trav}
-                    nights={nights}
-                  />
-                );
-              }}
-              actionsDe={(id) => {
-                if (!parId.has(id)) return null;
-                const r = offreRetenue(logementDe.get(id));
-                return (
-                  <>
-                    <button type="button" className="btn7" onClick={() => ouvrirAnnonce(id)}>
-                      {tr("Voir l’annonce")}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn7 btn7--fantome"
-                      aria-pressed={r != null}
-                      onClick={() => retenir(r?.a.id ?? id)}
-                    >
-                      {r ? tr("Retenu") : tr("Retenir")}
-                    </button>
-                  </>
-                );
-              }}
-              legende={
+        <div className="px-budget-vue">
+          {vueB === "liste" ? (
+            <div
+              className="px-deux__liste"
+              ref={listeRef}
+              tabIndex={-1}
+              aria-label={tr("Logements de la page")}
+            >
+              {affichees.length > 0 ? (
                 <>
-                  <b>
-                    {nPages > 1 ? `${tr("Page {page} sur {n}", { page: page + 1, n: nPages })} · ` : ""}
-                    {trN(affichees.length, "{n} logement dans le cadre", "{n} logements dans le cadre")}
-                    {pageSansPosition > 0
-                      ? ` · ${tr("{n} sans position sur cette page", { n: pageSansPosition })}`
-                      : ""}
-                  </b>
-                  {horsCadre > 0 ? (
-                    <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                      {cartes.length > 1
-                        ? tr("Revoir les {n} logements", { n: cartes.length })
-                        : tr("Revoir le logement")}
-                      <IconeDroite taille={12} epaisseur={2.4} />
-                    </button>
-                  ) : null}
+                  <div className="px-grille px-grille--budget">
+                    {pageItems.map((c) => {
+                      const g = logementDe.get(c.a.id);
+                      const r = offreRetenue(g);
+                      return (
+                        <CarteMaquette
+                          key={`${c.stationId}|${c.a.id}`}
+                          {...textesCarte(c.a, { nights })}
+                          badge={badgeDe(g, c)}
+                          onOpen={() => ouvrirAnnonce(c.a.id)}
+                          heart={enr.coeur(c.a)}
+                          link={{
+                            label: r
+                              ? r.a.id !== c.a.id
+                                ? tr("Retenu · {source}", { source: r.a.source })
+                                : tr("Retenu")
+                              : tr("Retenir"),
+                            on: r != null,
+                            onClick: () => retenir(r?.a.id ?? c.a.id),
+                          }}
+                          vif={actifCarte === c.a.id}
+                          onMouseEnter={() => setActifCarte(c.a.id)}
+                          onMouseLeave={() => setActifCarte(null)}
+                        />
+                      );
+                    })}
+                  </div>
+                  {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
                 </>
-              }
-            />
-          </div>
+              ) : (
+                <div className="px-vide">
+                  <b>{tr("Aucune annonce dans ce cadrage")}</b>
+                  <button type="button" className="px-encre" onClick={revoirTout}>
+                    {tr("Revoir toutes les annonces")}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="px-deux__carte px-deux__carte--seule">
+              <CarteEpingles
+                marqueurs={marqueurs}
+                cadrage={cadrage}
+                cadrerSur={pointsResultat}
+                surFixe={setEpinglee}
+                maxZoom={14}
+                surBornes={surCadre}
+                actif={actifCarte}
+                surActif={setActifCarte}
+                ficheDe={(id) => {
+                  const c = parId.get(id);
+                  if (!c) return null;
+                  const g = logementDe.get(id);
+                  return (
+                    <FicheEpingle
+                      l={c.a}
+                      sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
+                      stay={stay}
+                      trav={trav}
+                      nights={nights}
+                    />
+                  );
+                }}
+                actionsDe={(id) => {
+                  if (!parId.has(id)) return null;
+                  const r = offreRetenue(logementDe.get(id));
+                  return (
+                    <>
+                      <button type="button" className="btn7" onClick={() => ouvrirAnnonce(id)}>
+                        {tr("Voir l’annonce")}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn7 btn7--fantome"
+                        aria-pressed={r != null}
+                        onClick={() => retenir(r?.a.id ?? id)}
+                      >
+                        {r ? tr("Retenu") : tr("Retenir")}
+                      </button>
+                    </>
+                  );
+                }}
+                legende={
+                  <>
+                    <b>
+                      {nPages > 1
+                        ? `${tr("Page {page} sur {n}", { page: page + 1, n: nPages })} · `
+                        : ""}
+                      {trN(
+                        affichees.length,
+                        "{n} logement dans le cadre",
+                        "{n} logements dans le cadre",
+                      )}
+                      {pageSansPosition > 0
+                        ? ` · ${tr("{n} sans position sur cette page", { n: pageSansPosition })}`
+                        : ""}
+                    </b>
+                    {horsCadre > 0 ? (
+                      <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                        {cartes.length > 1
+                          ? tr("Revoir les {n} logements", { n: cartes.length })
+                          : tr("Revoir le logement")}
+                        <IconeDroite taille={12} epaisseur={2.4} />
+                      </button>
+                    ) : null}
+                  </>
+                }
+              />
+            </div>
+          )}
+          <BasculeVue
+            vue={vueB}
+            onBasculer={() => setVueB((v) => (v === "liste" ? "carte" : "liste"))}
+          />
         </div>
       ) : (
         <div className="px-vide">
-          <b>{sousBudget ?? vide.titre}</b>
+          <span className="px-vide__txt">{sousBudget ?? vide.titre}</span>
           {vide.versStation ? (
             <button type="button" className="px-encre" onClick={() => ouvrir("station")}>
               {tr("Ouvrir l’onglet Par station")}
@@ -1596,7 +1656,11 @@ function VueBudget({
             // passer devant la copie tarifée pour les dates du séjour : celle
             // relevée ici, que Retenir vient de poser.
             ouverteRetenue ? (
-              <button type="button" className="px-encre px-encre--large" onClick={() => void go("booking")}>
+              <button
+                type="button"
+                className="px-encre px-encre--large"
+                onClick={() => void go("booking")}
+              >
                 {tr("Passer à la réservation")}
               </button>
             ) : null
@@ -1606,6 +1670,14 @@ function VueBudget({
       {enr.modale}
     </>
   );
+}
+
+/** « 2 oct. » : le jour du dernier relevé, sans l'année (App.dc.html:1223). */
+function dateCourte(r: Resultat | null): string {
+  if (!r || !releveLbl(r)) return "";
+  const d = new Date(r.ts);
+  const deux = (n: number) => String(n).padStart(2, "0");
+  return dm(`${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDate())}`);
 }
 
 const STATION_DE: ReadonlyMap<string, Station> = new Map(STATIONS.map((s) => [s.id, s]));
@@ -1621,7 +1693,11 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
   const ecartees = annSub(l.res);
   const partiel = l.res?.etat === "fait" ? l.res.partiel : [];
   const releve =
-    l.etat === "en-cours" ? tr("en cours") : l.etat === "attente" ? tr("en attente") : releveLbl(l.res);
+    l.etat === "en-cours"
+      ? tr("en cours")
+      : l.etat === "attente"
+        ? tr("en attente")
+        : dateCourte(l.res);
   const muet = l.n == null ? " px-cell--muet" : "";
   const valeur =
     l.etat === "prix" ? (
@@ -1636,17 +1712,27 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
         {tr("Relevé impossible")}
       </span>
     ) : (
-      <b className="px-prix px-prix--muet" aria-label={l.etat === "non-releve" ? tr("Non relevé") : undefined}>
+      <b
+        className="px-prix px-prix--muet"
+        aria-label={l.etat === "non-releve" ? tr("Non relevé") : undefined}
+      >
         –
       </b>
     );
   return (
     <div role="row" className="px-rang">
       <div role="cell" className="px-station">
-        <Link to="/stations/$id" params={{ id: l.id }} className="px-station__nom" title={l.subMassif}>
+        <Link
+          to="/stations/$id"
+          params={{ id: l.id }}
+          className="px-station__nom"
+          title={l.subMassif}
+        >
           {l.nom}
         </Link>
-        <span className="px-station__sous">{s?.domain && s.domain !== l.nom ? s.domain : l.subMassif}</span>
+        <span className="px-station__sous">
+          {s?.domain && s.domain !== l.nom ? s.domain : l.subMassif}
+        </span>
       </div>
       <div role="cell" className={`px-cell${muet}`} title={ecartees || undefined}>
         {l.n == null ? "–" : fmt(l.n)}
@@ -1657,7 +1743,10 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
       <div role="cell" className={`px-cell${muet}`} ref={refReleve} tabIndex={-1}>
         {releve || "–"}
         {partiel.length > 0 ? (
-          <span className="px-partiel" title={tr("Sans réponse : {sources}.", { sources: partiel.join(", ") })}>
+          <span
+            className="px-partiel"
+            title={tr("Sans réponse : {sources}.", { sources: partiel.join(", ") })}
+          >
             {partielLbl(partiel)}
           </span>
         ) : null}
@@ -1696,7 +1785,9 @@ function suiteAttente(a: NonNullable<Course["attente"]>, nom: string | null, now
     case "arret":
       return nom ? ` · ${tr("{station} après la fin du relevé arrêté", { station: nom })}` : "";
     case "logements":
-      return nom ? ` · ${tr("{station} après la recherche en cours dans Logements", { station: nom })}` : "";
+      return nom
+        ? ` · ${tr("{station} après la recherche en cours dans Logements", { station: nom })}`
+        : "";
     case "rythme":
       return nom
         ? reste
@@ -1717,7 +1808,8 @@ function suiteFiches(
   now: number,
 ): string {
   const base = ` · ${tr("{station} : fiches {faites} sur {total}", { station: nom, faites: f.faites, total: f.total })}`;
-  if (a?.motif === "logements") return `${base}, ${tr("reprise après la recherche en cours dans Logements")}`;
+  if (a?.motif === "logements")
+    return `${base}, ${tr("reprise après la recherche en cours dans Logements")}`;
   if (a?.motif === "rythme" && a.jusqua != null) {
     return `${base}, ${tr("suite dans {duree}", { duree: dureeLbl(Math.max(0, a.jusqua - now)) })}`;
   }
@@ -1761,34 +1853,39 @@ function BandeauCourse({
 
   const enCours = nom ? `${nom} · ` : "";
   return (
-    <div className="px-course">
-      <div className="px-course__ligne">
-        <span className="px-course__lbl">
-          {enCours}
-          {course.i + (course.i < total ? 1 : 0)} / {total}
-        </span>
-        <div
-          className="px-course__jauge"
-          role="progressbar"
-          aria-label={tr("Stations relevées")}
-          aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={course.i}
-        >
-          <i style={{ width: `${total ? (course.i / total) * 100 : 0}%` }} />
-        </div>
-        <button type="button" className="px-course__arreter" onClick={onArreter}>
-          {tr("Arrêter")}
-        </button>
-      </div>
-      <span className="px-course__sous">
-        {tr("Relevé : {nom}, {periode}", { nom: tr(course.nom), periode: perLbl(course.per) })}
-        {suite}
-        {course.airbnbRefus ? ` · ${tr("Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.")}` : ""}
-        {file.length > 0
-          ? ` · ${tr("Ensuite : {releves}.", { releves: file.map((j) => `${tr(j.nom)} (${perLbl(j.per)})`).join(", ") })}`
-          : ""}
+    <div
+      className="px-course"
+      title={tr("Relevé : {nom}, {periode}", { nom: tr(course.nom), periode: perLbl(course.per) })}
+    >
+      <span className="px-course__lbl">
+        {enCours}
+        {course.i + (course.i < total ? 1 : 0)} / {total}
       </span>
+      <div
+        className="px-course__jauge"
+        role="progressbar"
+        aria-label={tr("Stations relevées")}
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={course.i}
+      >
+        <i style={{ width: `${total ? (course.i / total) * 100 : 0}%` }} />
+      </div>
+      <button type="button" className="px-course__arreter" onClick={onArreter}>
+        {tr("Arrêter")}
+      </button>
+      {/* Une attente, un refus d'Airbnb ou des relevés en file : une ligne de plus. */}
+      {course.attente || fiches || course.airbnbRefus || file.length > 0 ? (
+        <span className="px-course__sous">
+          {suite.replace(/^ · /, "")}
+          {course.airbnbRefus
+            ? ` · ${tr("Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.")}`
+            : ""}
+          {file.length > 0
+            ? ` · ${tr("Ensuite : {releves}.", { releves: file.map((j) => `${tr(j.nom)} (${perLbl(j.per)})`).join(", ") })}`
+            : ""}
+        </span>
+      ) : null}
     </div>
   );
 }

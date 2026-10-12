@@ -18,7 +18,13 @@ import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { BasculeVue, ICONES, PuceCritere, RangeeCategories, Trace } from "@/components/maquette";
-import { CATEGORIES_LOGEMENTS, ICONE_EQUIPEMENT, TYPES_LOGEMENT, type CleCategorie } from "@/components/logements/categories";
+import {
+  CATEGORIES_LOGEMENTS,
+  EQUIPEMENTS_MAQUETTE,
+  ICONE_EQUIPEMENT,
+  TYPES_LOGEMENT,
+  type CleCategorie,
+} from "@/components/logements/categories";
 import { ModaleFiltresLogements, type ModePrix } from "@/components/logements/ModaleFiltresLogements";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { CarteLogement, ECART_VILLAGE_M } from "@/components/v7/CarteLogement";
@@ -33,7 +39,6 @@ import { RATTACHEMENT_MAX_KM } from "@/lib/villages";
 import { rangerParStation, stationDuLogement } from "@/lib/stay/parStation";
 import { aTraduire, dire, tr, trN } from "@/lib/i18n";
 import { langueIntl } from "@/lib/i18n/langue";
-import { OngletsStation } from "@/components/v7/OngletsStation";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
@@ -42,7 +47,6 @@ import { completudeOf } from "@/lib/stay/completude";
 import { EQUIPEMENTS_FICHE } from "@/lib/stay/equipements";
 import { aEquipement, noteAuMoins, noteSur5De } from "@/lib/stay/ficheEnrichie";
 import type { TypeLogement } from "@/lib/stay/logement";
-import { noteSur5Lbl } from "@/lib/note";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
   DIST_PALIERS_M,
@@ -50,18 +54,14 @@ import {
   gpsPrecis,
   normalizedBedrooms,
   RAYON_DEFAUT_KM,
-  RAYON_MAX_KM,
-  RAYON_MIN_KM,
-  RAYONS_KM,
 } from "@/lib/stay/lodgingFilter";
 import { fourchetteLbl } from "@/lib/filtres";
 import { dansPlage, plageTexte, poserBorne, type Echelle, type Plage } from "@/lib/plage";
 import { parMesure, type Sens } from "@/lib/tri";
-import { datesCourtes, ECHELLES, eurCents, fmt, useParcours, useSejour } from "@/lib/parcours";
+import { dm, ECHELLES, eurCents, fmt, useParcours, useSejour } from "@/lib/parcours";
 import { montantCents } from "@/lib/devises";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { agencesDuReleve } from "@/lib/scrape/domaine";
-import { partyLabel } from "@/lib/stay/party";
 import {
   searchStay,
   completerAnnonces,
@@ -89,7 +89,7 @@ import { useFavoris, useIdsFavoris } from "@/lib/favoris/store";
 import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
-import { distanceOf, firmOf, prixLbl, prixPin, villageM } from "@/lib/v7";
+import { distanceOf, firmOf, persLbl, prixLbl, prixPin, villageM } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
@@ -170,10 +170,10 @@ const LF0: LF = {
 };
 
 /** Les seuils de note proposés, sur 5. */
-const SEUILS_NOTE: readonly number[] = [4, 4.5];
+const SEUILS_NOTE: readonly number[] = [3.5, 4, 4.5];
 
 /** Le budget est à part : il est lu et écrit sur le magasin partagé. */
-const BUDGET = { k: "budget" as const, label: aTraduire("Total du séjour"), ...ECHELLES.budget, unit: "€" };
+const BUDGET = { k: "budget" as const, label: aTraduire("Budget du séjour"), ...ECHELLES.budget, unit: "€" };
 
 /** Les fourchettes propres à cet écran. Chacune était un seuil — « au plus »
  *  pour le prix et la distance, « au moins » pour la capacité et les
@@ -193,17 +193,25 @@ function borneLbl(k: (typeof RANGES)[number]["k"]): (v: number) => string {
   return (v) => (k === "rooms" && v === 0 ? tr("Studio") : `${fmt(v)} ${tr(RANGE[k].unit)}`);
 }
 
-/** L'échelle du périmètre : du centre de la station à 50 km. */
-const ECHELLE_RAYON: Echelle = [0, RAYON_MAX_KM];
+/** Les périmètres proposés, en km, comme la maquette (`rayonOpts`) :
+ *  « Indifférent » garde le périmètre par défaut de la recherche. */
+const RAYONS_PASTILLES_KM: readonly number[] = [1, 3, 5, 10];
 
-/** « jusqu'à 12 km », « de 2 à 12 km » : le périmètre n'est jamais indifférent. */
-function rayonLbl([lo, hi]: readonly [number, number]): string {
-  return lo > 0 ? tr("de {min} à {max} km", { min: fmt(lo), max: fmt(hi) }) : tr("jusqu’à {max} km", { max: fmt(hi) });
-}
+/** Les paliers de distance aux remontées de la maquette (`palierOpts`). */
+const PALIERS_M: readonly number[] = DIST_PALIERS_M.filter((m) => m <= 1000);
 
 /** Un palier de distance posé depuis la barre : de 0 à `m`. */
 function palierPose(pl: Plage, m: number): boolean {
   return pl != null && pl[0] === 0 && pl[1] === m;
+}
+
+/** Le critère posé par un palier, comme la maquette (`lPreds`) : « Pied des
+ *  pistes », « Remontées à 500 m maximum ». */
+function palierPuceLbl(m: number): string {
+  if (m <= 200) return tr("Pied des pistes");
+  return tr("Remontées à {distance} maximum", {
+    distance: m >= 1000 && m % 1000 === 0 ? `${m / 1000} km` : `${m} m`,
+  });
 }
 
 function palierDistLbl(m: number): string {
@@ -762,9 +770,14 @@ function usePlaceCarte(
     let image = 0;
     const lire = () => {
       image = 0;
-      const b = bandeau.current?.getBoundingClientRect().bottom ?? 0;
+      // Comme la maquette (`onScroll`) : 15 px sous le bandeau au départ, la
+      // carte remonte avec la page puis s'arrête 14 px sous le bandeau collé (160 px, `onScroll`).
+      const el = bandeau.current;
+      const avant = el?.previousElementSibling?.getBoundingClientRect().bottom ?? 0;
+      const h = el?.offsetHeight ?? 0;
+      const colle = el ? parseFloat(getComputedStyle(el).top) || 0 : 0;
       const pied = avecPied ? (document.querySelector<HTMLElement>(".pied7")?.getBoundingClientRect().height ?? 0) : 0;
-      const top = Math.round(b + 20);
+      const top = Math.max(Math.round(colle + h + 14), Math.floor(avant + h + 15));
       const bottom = Math.round(pied + 24);
       setPlace((p) => (p.top === top && p.bottom === bottom ? p : { top, bottom }));
     };
@@ -791,7 +804,7 @@ function seuilLbl(n: number): string {
 function LogementsStation({ s }: { s: Station }) {
   const go = useGo();
   const P = useParcours();
-  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const prix = usePrixForfait(s);
   const liveListings = useStay((x) => x.liveListings);
   const liveSources = useStay((x) => x.liveSources);
@@ -890,13 +903,6 @@ function LogementsStation({ s }: { s: Station }) {
   /** Pose une borne d'une fourchette de l'écran, depuis l'état courant. */
   const poserLf = (k: (typeof RANGES)[number]["k"], which: 0 | 1, v: number, exact: boolean) =>
     setLf((x) => ({ ...x, [k]: poserBorne(x[k], RANGE[k].b, RANGE[k].pas, which, v, exact) }));
-  /** Le périmètre ne se retire pas : couvrir toute l'échelle, c'est 50 km, et
-   *  sa borne haute ne descend pas sous le kilomètre. */
-  const poserRayon = (which: 0 | 1, v: number, exact: boolean) =>
-    setLf((x) => {
-      const r = poserBorne(x.rayon, ECHELLE_RAYON, 1, which, v, exact) ?? ECHELLE_RAYON;
-      return { ...x, rayon: r[1] < RAYON_MIN_KM ? [0, RAYON_MIN_KM] : r };
-    });
   // Le budget du séjour : critère partagé, pas un réglage de cet écran.
   const budget = P.filters.budget;
   /** « Tout réinitialiser » relâche les réglages de l'écran, les catégories
@@ -999,7 +1005,7 @@ function LogementsStation({ s }: { s: Station }) {
   if (budget != null)
     lp.push({
       id: "budget",
-      label: tr("Total : {plage}", { plage: fourchetteLbl(BUDGET, budget) }),
+      label: tr("Budget : {plage}", { plage: fourchetteLbl(BUDGET, budget) }),
       fn: (l) => sansPrix(l) || dansPlage(l.total, budget, BUDGET.b),
       remove: () => P.setFilters({ budget: null }),
     });
@@ -1009,7 +1015,7 @@ function LogementsStation({ s }: { s: Station }) {
   if (pp != null)
     lp.push({
       id: "pp",
-      label: lfLbl("pp", pp),
+      label: tr("Par personne : {plage}", { plage: plageTexte(pp, RANGE.pp.b, borneLbl("pp")) }),
       fn: (l) => sansPrix(l) || dansPlage(l.total / trav, pp, RANGE.pp.b),
       remove: () => patchLf({ pp: null }),
     });
@@ -1031,7 +1037,7 @@ function LogementsStation({ s }: { s: Station }) {
     lp.push({
       id: "dist",
       // Un palier garde son nom : « Pied des pistes », « ≤ 500 m ».
-      label: DIST_PALIERS_M.some((m) => palierPose(dist, m)) ? palierDistLbl(dist[1]) : lfLbl("dist", dist),
+      label: DIST_PALIERS_M.some((m) => palierPose(dist, m)) ? palierPuceLbl(dist[1]) : lfLbl("dist", dist),
       // Un point triangulé ne mesure rien (`distanceOf` le dit) : il ne passe
       // pas un palier de distance, comme une annonce sans point.
       fn: (l) => dansPlage(distRemonteePublieeM(l), dist, RANGE.dist.b),
@@ -1058,11 +1064,11 @@ function LogementsStation({ s }: { s: Station }) {
     });
   }
   const srcOn = Object.keys(lf.src).filter((k) => lf.src[k]);
-  if (srcOn.length) lp.push({ id: "src", label: srcOn.join(" · "), fn: (l) => srcOn.includes(l.source), remove: () => patchLf({ src: {} }) });
+  if (srcOn.length) lp.push({ id: "src", label: tr("Sources : {liste}", { liste: srcOn.join(", ") }), fn: (l) => srcOn.includes(l.source), remove: () => patchLf({ src: {} }) });
   if (lf.measured) lp.push({ id: "measured", label: tr("Distance mesurée"), fn: (l) => distanceOf(l).kind === "measured", remove: () => patchLf({ measured: false }) });
   if (lf.link) lp.push({ id: "link", label: tr("Lien de réservation"), fn: (l) => !!l.url, remove: () => patchLf({ link: false }) });
   if (lf.photo) lp.push({ id: "photo", label: tr("Avec photo"), fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
-  if (lf.firm) lp.push({ id: "firm", label: tr("Prix relevé pour ces dates"), fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
+  if (lf.firm) lp.push({ id: "firm", label: tr("Prix confirmé pour vos dates"), fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
   if (lf.pos) lp.push({ id: "pos", label: tr("Adresse précise"), fn: (l) => estPointPublie(l), remove: () => patchLf({ pos: false }) });
   if (lf.full)
     lp.push({
@@ -1084,7 +1090,10 @@ function LogementsStation({ s }: { s: Station }) {
   for (const id of lf.equip)
     lp.push({
       id: `equip:${id}`,
-      label: EQUIPEMENTS_FICHE[id] ? tr(EQUIPEMENTS_FICHE[id].libelle) : id,
+      label: (() => {
+        const m = EQUIPEMENTS_MAQUETTE.find((e) => e.id === id);
+        return m ? tr(m.label) : EQUIPEMENTS_FICHE[id] ? tr(EQUIPEMENTS_FICHE[id].libelle) : id;
+      })(),
       fn: (l) => aEquipement(l, id),
       remove: () => patchLf({ equip: lf.equip.filter((x) => x !== id) }),
     });
@@ -1093,7 +1102,7 @@ function LogementsStation({ s }: { s: Station }) {
     const seuil = lf.noteMin;
     lp.push({
       id: "note",
-      label: tr("Note ≥ {note}", { note: noteSur5Lbl(seuil) ?? "" }),
+      label: tr("Note ≥ {note}", { note: seuilLbl(seuil) }),
       fn: (l) => noteAuMoins(l, seuil),
       remove: () => patchLf({ noteMin: null }),
     });
@@ -1285,6 +1294,12 @@ function LogementsStation({ s }: { s: Station }) {
     const g = logementDe.get(l.id);
     return g ? sourcesLbl(g) : l.source;
   };
+  /** Le badge de la carte : « 3 offres » quand le logement est sur plusieurs
+   *  plateformes, sinon sa source. */
+  const badgeLbl = (l: Listing) => {
+    const g = logementDe.get(l.id);
+    return g && g.offres.length > 1 ? trN(g.offres.length, "{n} offre", "{n} offres") : l.source;
+  };
   /** Les autres plateformes du logement et leurs prix. */
   const autresLbl = (l: Listing) => {
     const g = logementDe.get(l.id);
@@ -1368,7 +1383,7 @@ function LogementsStation({ s }: { s: Station }) {
     <CarteLogement
       key={l.id}
       l={l}
-      sources={groupeLbl(l)}
+      sources={badgeLbl(l)}
       autres={autresLbl(l)}
       retenu={offreDe(l, P.lodgeId)?.id ?? null}
       retenuSource={(() => {
@@ -1400,9 +1415,7 @@ function LogementsStation({ s }: { s: Station }) {
   const compte =
     logements.length === 0
       ? tr("Aucun logement disponible")
-      : `${trN(logements.length, "{n} logement", "{n} logements")}${
-          lvis.length > logements.length ? ` · ${trN(lvis.length, "{n} offre", "{n} offres")}` : ""
-        }`;
+      : trN(logements.length, "{n} logement", "{n} logements");
   const nonRattachesLbl = nonRattaches.length
     ? trN(nonRattaches.length, "{n} non rattaché ({motifs})", "{n} non rattachés ({motifs})", {
         motifs: motifsNonRattaches,
@@ -1432,18 +1445,31 @@ function LogementsStation({ s }: { s: Station }) {
     const sources = [...new Set(raw.map((l) => l.source))];
     const bySrc = (src: string) => raw.filter((l) => l.source === src).length;
     const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
-    // Les équipements que des annonces de ce relevé listent comme présents :
-    // on ne propose pas de filtre qui ne retiendrait rien.
-    const equipDispo = Object.keys(EQUIPEMENTS_FICHE)
-      .map((id) => ({ id, n: raw.filter((l) => aEquipement(l, id)).length }))
-      .filter((e) => e.n > 0 || lf.equip.includes(e.id));
-    const types = TYPES_LOGEMENT.filter((t) => lf.type === t.key || raw.some((l) => l.lodgingType === t.key));
+    // Les neuf équipements de la maquette, toujours ; puis ceux que des
+    // annonces de ce relevé listent comme présents.
+    const maquette = new Set(EQUIPEMENTS_MAQUETTE.map((e) => e.id));
+    const equipDispo = [
+      ...EQUIPEMENTS_MAQUETTE.map((e) => ({ id: e.id, label: tr(e.label), icone: e.icone })),
+      ...Object.keys(EQUIPEMENTS_FICHE)
+        .filter((id) => !maquette.has(id) && (lf.equip.includes(id) || raw.some((l) => aEquipement(l, id))))
+        .map((id) => ({ id, label: tr(EQUIPEMENTS_FICHE[id].libelle), icone: ICONE_EQUIPEMENT[id] ?? ICONES.check })),
+    ];
+    // Chalet, appartement et studio toujours, comme la maquette ; les autres
+    // types quand le relevé en compte.
+    const types = TYPES_LOGEMENT.filter(
+      (t) =>
+        t.key === "chalet" ||
+        t.key === "appartement" ||
+        t.key === "studio" ||
+        lf.type === t.key ||
+        raw.some((l) => l.lodgingType === t.key),
+    );
     const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
       { k: "measured", label: tr("Distance mesurée"), n: raw.filter((l) => distanceOf(l).kind === "measured").length },
       { k: "pos", label: tr("Adresse précise"), n: raw.filter((l) => estPointPublie(l)).length },
+      { k: "firm", label: tr("Prix confirmé pour vos dates"), n: raw.filter((l) => firmOf(l, stay)).length },
       { k: "link", label: tr("Lien de réservation"), n: raw.filter((l) => l.url).length },
       { k: "photo", label: tr("Avec photo"), n: raw.filter((l) => l.photo).length },
-      { k: "firm", label: tr("Prix relevé pour ces dates"), n: raw.filter((l) => firmOf(l, stay)).length },
       { k: "full", label: tr("Fiche complète"), n: nCompletes },
       { k: "holes", label: tr("Fiche incomplète"), n: raw.length - nCompletes },
     ];
@@ -1496,42 +1522,38 @@ function LogementsStation({ s }: { s: Station }) {
         onLits={(b) => patchLf({ beds: b })}
         paliers={[
           { key: null, label: tr("Toutes"), on: lf.dist == null },
-          ...DIST_PALIERS_M.map((m) => ({ key: m as number | null, label: palierDistLbl(m), on: palierPose(lf.dist, m) })),
+          ...PALIERS_M.map((m) => ({ key: m as number | null, label: palierDistLbl(m), on: palierPose(lf.dist, m) })),
         ]}
         onPalier={(m) => patchLf({ dist: m == null ? null : [0, m] })}
         fourchetteDist={regle("dist")}
-        rayons={RAYONS_KM.map((km) => ({ key: km as number, label: `${km} km`, on: rayonMax === km }))}
-        onRayon={(km) => patchLf({ rayon: [Math.min(rayonMin, km - 1), km] })}
-        fourchetteRayon={{
-          lbl: tr("Distance au centre"),
-          bornes: ECHELLE_RAYON,
-          valeur: lf.rayon,
-          pas: 1,
-          unite: "km",
-          resume: rayonLbl(lf.rayon),
-          onPoser: poserRayon,
-        }}
+        rayons={[
+          { key: RAYON_DEFAUT_KM, label: tr("Indifférent"), on: rayonMin <= 0 && rayonMax === RAYON_DEFAUT_KM },
+          ...RAYONS_PASTILLES_KM.map((km) => ({ key: km, label: `${km} km`, on: rayonMin <= 0 && rayonMax === km })),
+        ]}
+        onRayon={(km) => patchLf({ rayon: [0, km] })}
         aideRayon={tr(
           "Distance au centre de la station. Sans GPS publié, la position est triangulée et l'annonce reste listée : ce n'est pas la porte.",
         )}
-        equipements={equipDispo.map(({ id, n }) => ({
-          key: id,
-          label: tr(EQUIPEMENTS_FICHE[id].libelle),
-          icone: ICONE_EQUIPEMENT[id] ?? ICONES.check,
-          n,
-          on: lf.equip.includes(id),
-        }))}
+        equipements={equipDispo.map(({ id, label, icone }) => ({ key: id, label, icone, on: lf.equip.includes(id) }))}
         onEquipement={(id) =>
           patchLf({ equip: lf.equip.includes(id) ? lf.equip.filter((x) => x !== id) : [...lf.equip, id] })
         }
-        sources={sources.map((src) => ({ key: src, label: src, n: bySrc(src), on: !!lf.src[src] }))}
-        onSource={(src) => patchLf({ src: { ...lf.src, [src]: !lf.src[src] } })}
+        // Comme la maquette, toutes les sources sont allumées tant qu'aucune
+        // n'est choisie ; éteindre l'une garde les autres. Le filtre reste la
+        // liste des sources retenues (`lf.src`).
+        sources={sources.map((src) => ({ key: src, label: src, n: bySrc(src), on: srcOn.length === 0 || !!lf.src[src] }))}
+        onSource={(src) => {
+          const avant = srcOn.length === 0 ? sources : srcOn;
+          const apres = avant.includes(src) ? avant.filter((x) => x !== src) : [...avant, src];
+          patchLf({
+            src: apres.length === 0 || apres.length === sources.length ? {} : Object.fromEntries(apres.map((x) => [x, true])),
+          });
+        }}
         notes={[
           { key: null, label: tr("Toutes"), on: lf.noteMin == null },
           ...SEUILS_NOTE.map((seuil) => ({
             key: seuil as number | null,
             label: tr("{min} et plus", { min: seuilLbl(seuil) }),
-            n: raw.filter((l) => noteAuMoins(l, seuil)).length,
             on: lf.noteMin === seuil,
           })),
         ]}
@@ -1597,10 +1619,9 @@ function LogementsStation({ s }: { s: Station }) {
   ) : lempty ? (
     <div className="lg-vide">
       <b>{tr("Aucun logement ne correspond")}</b>
-      <span className="lg-vide__sous">{lempty.title}</span>
       <div className="lg-vide__actions">
         {lempty.fix ? (
-          <button type="button" className="lg-bouton" onClick={lempty.fix}>
+          <button type="button" className="lg-bouton" title={lempty.title} onClick={lempty.fix}>
             {tr("Retirer ce filtre")}
           </button>
         ) : null}
@@ -1618,10 +1639,6 @@ function LogementsStation({ s }: { s: Station }) {
         id="s-lodging"
         data-screen-label="2 Logements"
       >
-        <div className="lg-enveloppe lg-enveloppe--onglets">
-          <OngletsStation s={s} actif="logements" />
-        </div>
-
         <div className="lg-enveloppe lg-tete">
           <div className="lg-tete__titre">
             <h1>{s.name}</h1>
@@ -1640,7 +1657,7 @@ function LogementsStation({ s }: { s: Station }) {
                 aria-expanded={P.stayOpen}
                 onClick={() => P.setStayOpen(!P.stayOpen)}
               >
-                {datesCourtes(checkIn, checkOut)} · {partyLabel(trav, enfants)}
+                {dm(checkIn)} → {dm(checkOut)} · {persLbl(trav)}
               </button>
             </span>
           </div>
@@ -1685,7 +1702,7 @@ function LogementsStation({ s }: { s: Station }) {
           </button>
         </div>
 
-        <div className="lg-bandeau" ref={bandeau} style={{ top: haut }}>
+        <div className="lg-bandeau" ref={bandeau} style={{ top: haut - 1 }}>
           <div className="lg-enveloppe lg-bandeau__in">
             <RangeeCategories
               items={categories}

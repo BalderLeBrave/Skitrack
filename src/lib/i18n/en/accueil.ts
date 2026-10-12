@@ -6,6 +6,7 @@ export const EN_ACCUEIL: Record<string, string> = {
   "Grands domaines et massifs": "Large ski areas and ranges",
   // recherche/BarreRecherche.tsx
   "Rechercher": "Search",
+  "Pays, massif, station": "Country, range, resort",
   "Aucune station ni massif pour «\u00a0{texte}\u00a0».": "No resort or range matches “{texte}”.",
   "Réglez seulement ce qui compte pour vous.": "Set only what matters to you.",
   "0 pour accepter un studio": "0 to accept a studio",

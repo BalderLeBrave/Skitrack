@@ -12,8 +12,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { Carte, type Epingle, type Segment } from "@/components/Carte";
-import { Icon } from "@/components/Icon";
-import { PictoEquipement } from "@/components/v7/fiche/PictoFiche";
+import { PictoEquipement, PictoUi } from "@/components/v7/fiche/PictoFiche";
 import { resumePrix } from "@/components/v7/fiche/resumePrix";
 import { otherDomainMessage, sectorOf } from "@/lib/access";
 import {
@@ -67,7 +66,7 @@ import { bedLbl, capLbl, distanceOf, firmOf, kmLbl, prixLbl } from "@/lib/v7";
 type Sejour = { checkIn: string; checkOut: string };
 
 /** Au-delà, la description se replie derrière « Lire la suite ». */
-const DESCRIPTION_COURTE = 280;
+const DESCRIPTION_COURTE = 170;
 /** Au-delà, les équipements se replient derrière « Afficher les N équipements ». */
 const EQUIPEMENTS_COURTS = 12;
 /** La distance qui remplit le trait du schéma d'accès. */
@@ -109,15 +108,15 @@ export function BlocTitre({
     <div className="fl-titre">
       {lieu.length ? <span className="fl-titre__lieu">{lieu.join(" · ")}</span> : null}
       <h1 id={titreId}>{l.title}</h1>
-      <div className="fl-titre__meta">
-        {note || avis?.nombre ? (
-          <span>
-            {note ? <b>{note}</b> : null}
-            {avis?.nombre ? trN(avis.nombre, "{n} avis", "{n} avis") : null}
-          </span>
-        ) : null}
+      <div
+        className="fl-titre__meta"
+        title={[provenancePhrase(l), l.proven].filter(Boolean).join("\n")}
+      >
+        <span>
+          <b>{note ?? tr("Sans note")}</b>
+          {avis?.nombre ? trN(avis.nombre, "{n} avis", "{n} avis") : null}
+        </span>
         {l.propertyType?.trim() ? <span>{majuscule(l.propertyType.trim())}</span> : null}
-        <span title={[provenancePhrase(l), l.proven].filter(Boolean).join("\n")}>{l.source}</span>
         {l.priceIndicative ? <span className="fl-puce">{tr("Prix « à partir de »")}</span> : null}
       </div>
     </div>
@@ -498,7 +497,7 @@ function Repli({
       <summary>
         <b>{titre}</b>
         {resume ? <span>{resume}</span> : null}
-        <Icon name="chevron-bas" taille={16} />
+        <PictoUi nom="bas" />
       </summary>
       <div className="fl-repli__corps">{children}</div>
     </details>
@@ -512,7 +511,7 @@ function VoirSur({ l, url }: { l: Listing; url?: string | null }) {
   return (
     <a className="fl-lien" href={href} target="_blank" rel="noopener">
       {tr("Voir sur {source}", { source: l.source })}
-      <Icon name="externe" taille={11} />
+      <PictoUi nom="externe" />
     </a>
   );
 }
@@ -609,7 +608,7 @@ export function BlocNonIndique({ l }: { l: Listing }) {
   if (!tout.length) return null;
   return (
     <section className="fl-manques" title={tr("Non indiqué par {source}", { source: l.source })}>
-      <Icon name="alerte" taille={16} />
+      <PictoUi nom="alerte" />
       <span>{tr("Non indiqué : {liste}", { liste: tout.join(", ") })}</span>
     </section>
   );
@@ -661,6 +660,7 @@ export function BlocEmplacement({ l }: { l: Listing }) {
         segments={segments}
         trace={trace}
         ajuster
+        statique
         outils={false}
         zoom={15}
         centre={[l.lat as number, l.lon as number]}
@@ -781,7 +781,7 @@ export function CartePrix({
                 : forfaits?.total != null
                   ? avecForfaits && ajoutables
                     ? undefined
-                    : "fl-barre"
+                    : "fl-raye"
                   : "fl-absent"
             }
           >
@@ -803,7 +803,7 @@ export function CartePrix({
             source: moinsChere.source,
             ecart: eurCents(ecart) ?? "",
           })}
-          <Icon name="chevron-droite" taille={14} />
+          <PictoUi nom="chevron" />
         </button>
       ) : null}
       <span
@@ -826,7 +826,7 @@ export function CartePrix({
         aria-pressed={retenu}
         onClick={onRetenir}
       >
-        {retenu ? <Icon name="coche" taille={14} /> : null}
+        {retenu ? <PictoUi nom="coche" /> : null}
         {retenu ? tr("Retenu") : tr("Retenir")}
       </button>
       {l.url ? (
@@ -838,7 +838,7 @@ export function CartePrix({
           title={tr("Réserver sur {source}", { source: l.source })}
         >
           {tr("Réserver")}
-          <Icon name="externe" taille={12} />
+          <PictoUi nom="externeGrand" />
         </a>
       ) : (
         <span className="fl-reserver fl-reserver--off" title={tr("Annonce sans lien")}>

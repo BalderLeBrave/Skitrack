@@ -17,7 +17,8 @@
 
 .st-bandeau {
   position: sticky;
-  top: var(--st-haut, 0px);
+  /* 68 px dans la maquette : le bandeau couvre le trait bas de la coquille. */
+  top: calc(var(--st-haut, 69px) - 1px);
   z-index: 20;
   background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   -webkit-backdrop-filter: blur(16px);
@@ -40,12 +41,12 @@
   flex-direction: column;
   gap: 20px;
 }
-/* En vue carte, la liste se resserre à gauche ; la carte est fixée à droite. */
-.st-corps--carte {
-  max-width: none;
-  margin: 0;
-  padding-left: max(28px, calc((100vw - 1320px) / 2));
-  padding-right: calc(40vw + 16px);
+/* En vue carte, la liste se resserre à gauche ; la carte est fixée à droite
+   (`margin-right` de la maquette). La maquette laisse la rangée d'outils
+   pleine largeur, où la carte couvrait le compte et le tri : ici toute la
+   colonne se resserre, pour que le tri reste accessible. */
+.st-corps--carte > * {
+  margin-right: calc(min(100vw, 1320px) / 2 - 10vw - 4px);
 }
 
 .st-outils {
@@ -65,6 +66,9 @@
   border: 1px solid var(--color-line-commande);
   border-radius: 999px;
   background: var(--color-surface);
+}
+.st-recherche > svg {
+  flex: none;
   color: var(--color-muted);
 }
 .st-recherche:focus-within {
@@ -247,7 +251,8 @@
 
 .st-carte {
   position: fixed;
-  top: calc(var(--st-haut, 0px) + var(--st-bandeau, 76px) + 16px);
+  /* 160 px dans la maquette, sous la coquille (69) et le bandeau (78). */
+  top: calc(var(--st-haut, 69px) + var(--st-bandeau, 78px) + 13px);
   bottom: 24px;
   right: 28px;
   width: calc(40vw - 28px);
@@ -267,10 +272,30 @@
   font-size: 13px;
   box-shadow: var(--shadow-prix-carte);
 }
+/* Survol (`style-hover` de la maquette) : encre, texte clair. Aussi pour le
+   point déplié, que v7.css repeint en clair. */
 .st-carte .epingle-prix:hover,
-.st-carte .epingle-hote--vive .epingle-prix:not(.epingle-prix--compacte) {
+.st-carte .epingle-hote--vive .epingle-prix {
   background: var(--color-ink);
   color: var(--color-surface);
+}
+/* Une station sans forfait relevé : un point, sans prix inventé. */
+.st-point {
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-ink);
+  box-shadow: var(--shadow-prix-carte);
+  cursor: pointer;
+}
+.st-point--cmp {
+  background: var(--color-marque);
+}
+.epingle-hote--vive .st-point {
+  transform: translate(-50%, -50%) scale(1.4);
 }
 /* Une étiquette qui en chevauche une autre devient un point (`compacter`
    de CarteEpingles, règle de v7.css) ; au survol, elle reprend son prix. */
@@ -301,7 +326,7 @@
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
   border: 1px solid var(--color-line);
-  box-shadow: var(--shadow-modale);
+  box-shadow: 0 10px 32px color-mix(in srgb, var(--color-ombre) 20%, transparent);
 }
 .st-barre-cmp__vignettes {
   display: flex;
@@ -385,7 +410,8 @@
   gap: 8px;
 }
 .st-filtres__hist {
-  padding: 0 12px;
+  /* L'histogramme porte déjà sa marge de 12 px (`Histogramme`). */
+  padding: 0;
 }
 .st-select-champ {
   position: relative;
@@ -395,7 +421,6 @@
   padding: 10px 40px 10px 14px;
   border: 1px solid var(--color-line-commande);
   border-radius: 12px;
-  background: var(--color-surface);
 }
 .st-select-champ:hover {
   border-color: var(--color-ink);
@@ -545,9 +570,6 @@
   color: var(--color-muted);
 }
 .st-cmp__cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
   padding: 13px 16px;
   font-size: 14px;
   font-weight: 500;
@@ -560,11 +582,6 @@
 .st-cmp__cell--absent {
   color: var(--color-muted);
 }
-.st-cmp__sous {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-muted);
-}
 .st-cmp__mix {
   display: flex;
   flex-direction: column;
@@ -573,6 +590,12 @@
   font-size: 12px;
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
+}
+.st-cmp__mix .parts:not(:empty) {
+  background: none;
+}
+.st-cmp__pied {
+  gap: 16px;
 }
 .st-cmp__note {
   font-size: 13px;
@@ -592,6 +615,9 @@
   .st-corps,
   .st-corps--carte {
     padding: 18px 16px 0;
+  }
+  .st-corps--carte > * {
+    margin-right: 0;
   }
   /* La carte passe au-dessus de la liste, dans le flux. */
   .st-ecran--carte {

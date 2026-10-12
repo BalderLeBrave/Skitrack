@@ -48,10 +48,7 @@
   color: var(--color-ink);
 }
 .lg-tete__sous {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 4px;
+  display: block;
   font-size: 14px;
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
@@ -98,10 +95,6 @@
   font-size: 13px;
   font-weight: 600;
 }
-.lg-maj:not(.lg-maj--encours) {
-  width: 44px;
-  padding: 0;
-}
 .lg-maj:disabled {
   cursor: default;
   color: var(--color-muted);
@@ -145,7 +138,6 @@
 .lg-bandeau {
   position: sticky;
   z-index: 20;
-  margin-top: 8px;
   background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -314,8 +306,44 @@
   border-radius: 50%;
   background: var(--color-accent);
   border: 2px solid var(--color-surface);
-  box-shadow: var(--shadow-prix-carte);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--color-ink) 40%, transparent);
   box-sizing: border-box;
+}
+
+/* Les pastilles au prix de la maquette (`pin()`) : 30 px de haut, sans bord,
+   13 px gras ; à l'encre quand le logement est retenu ou enregistré, et au
+   survol. */
+.lg-carte-fixe .epingle-prix:not(.epingle-prix--compacte) {
+  height: 30px;
+  padding: 0 11px;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: normal;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: var(--shadow-prix-carte);
+}
+.lg-carte-fixe .epingle-prix:hover,
+.lg-carte-fixe .epingle-hote--vive .epingle-prix {
+  transform: translate(-50%, -50%);
+}
+.lg-carte-fixe .epingle-prix.epingle-prix--vue:not(.epingle-prix--compacte) {
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.lg-carte-fixe .epingle-prix--favori::before {
+  display: none;
+}
+.lg-carte-fixe .epingle-prix.epingle-prix--retenue:not(.epingle-prix--compacte),
+.lg-carte-fixe .epingle-prix.epingle-prix--favori:not(.epingle-prix--compacte),
+.lg-carte-fixe .epingle-hote--vive .epingle-prix:not(.epingle-prix--compacte),
+.lg-carte-fixe .epingle-prix:not(.epingle-prix--compacte):hover {
+  background: var(--color-ink);
+  color: var(--color-surface);
 }
 
 /* ---------- Relevé en cours ---------- */
@@ -400,10 +428,10 @@
 .lg-tuile:hover {
   border-color: var(--color-ink);
 }
+/* Choisie : bord de 2 px à l'encre et fond gris très pâle (#f2f6f9). */
 .lg-tuile--on {
-  border-color: var(--color-ink);
-  box-shadow: inset 0 0 0 1px var(--color-ink);
-  background: var(--color-puce);
+  border: 2px solid var(--color-ink);
+  background: color-mix(in srgb, var(--color-puce) 75%, var(--color-surface));
 }
 .lg-tuile--type {
   flex-direction: column;

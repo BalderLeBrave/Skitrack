@@ -131,7 +131,7 @@ export function Pastille({
       type="button"
       aria-pressed={on}
       title={title}
-      className={`m8-pastille${on ? " m8-pastille--on" : ""} ${className}`}
+      className={`m8-pastille${on ? " m8-pastille--on" : ""}${compte != null ? " m8-pastille--compte" : ""} ${className}`}
       onClick={onClick}
     >
       {children}

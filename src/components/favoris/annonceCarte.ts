@@ -6,8 +6,13 @@
  */
 
 import type { CarteAnnonceProps, PhotoCarte } from "@/components/maquette";
-import { altitudeLbl, pointAltitude, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
-import { tr } from "@/lib/i18n";
+import {
+  altitudeLbl,
+  pointAltitude,
+  positionApprochee,
+  type Altitude,
+} from "@/lib/altitude/altitude";
+import { tr, trN } from "@/lib/i18n";
 import { langueIntl } from "@/lib/i18n/langue";
 import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
@@ -25,14 +30,18 @@ export function photosDe(l: Listing): PhotoCarte[] {
 export function noteDe(l: Listing): string | null {
   const n = noteSur5De(l);
   if (n == null) return null;
-  return new Intl.NumberFormat(langueIntl(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n);
+  return new Intl.NumberFormat(langueIntl(), {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(n);
 }
 
 /** « 1 240 € » « pour 7 nuits » : rien après un prix non publié. */
 export function prixDe(l: Listing, nights: number): { price: string; priceSub?: string } {
   return {
     price: prixLbl(l),
-    priceSub: l.total > 0 && nights > 0 ? tr("pour {nuits}", { nuits: nuitsLbl(nights) }) : undefined,
+    priceSub:
+      l.total > 0 && nights > 0 ? tr("pour {nuits}", { nuits: nuitsLbl(nights) }) : undefined,
   };
 }
 
@@ -46,6 +55,7 @@ export function textesCarte(
   o: { nights: number; altitude?: Altitude | null; avecAltitude?: boolean },
 ): Pick<CarteAnnonceProps, "photos" | "title" | "note" | "l2" | "l3" | "price" | "priceSub"> {
   const l3 = [capLbl(l), bedLbl(l)];
+  if (l.beds != null && l.beds > 0) l3.push(trN(l.beds, "{n} lit", "{n} lits"));
   if (o.avecAltitude && pointAltitude(l)) l3.push(altitudeLbl(o.altitude, positionApprochee(l)));
   return {
     photos: photosDe(l),

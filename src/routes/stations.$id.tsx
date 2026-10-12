@@ -9,7 +9,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
-import { Icon, type IconName } from "@/components/Icon";
+import { IconeFiche } from "@/components/v7/IconesFiche";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
@@ -21,7 +21,7 @@ import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
 import { usePrixForfait } from "@/components/v7/usePrixForfait";
 import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
 import { braLabel, lieuLisible } from "@/lib/bra/parse";
-import { getForecastPair, jourCourant, veille, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
+import { getForecastPair, jourCourant, veille, type ForecastLevel, type ForecastPair } from "@/lib/meteo/forecast";
 import { fuseauStation, meteoEnDateDu } from "@/lib/meteo/enDateDu";
 import {
   datesLbl,
@@ -104,7 +104,6 @@ function useForecast(s: Station) {
   return { wx, lo, hi, loMesure, hiMesure };
 }
 
-const ICONE: Record<SkyKind, IconName> = { sun: "soleil", cloud: "nuage", snow: "neige", rain: "pluie" };
 
 const JOURS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
 function jourLbl(iso: string): string {
@@ -197,7 +196,7 @@ function Bande({ titre, lvl }: { titre: string; lvl: ForecastLevel }) {
         {lvl.days.slice(0, 15).map((d) => (
           <div key={d.date} className={`fs-jour${d.snowCm ? " fs-jour--neige" : ""}`}>
             <span>{jourLbl(d.date)}</span>
-            <Icon name={ICONE[d.kind]} taille={18} className={`fs-jour__ico fs-jour__ico--${d.kind}`} />
+            <IconeFiche nom={d.kind} taille={18} className={`fs-jour__ico fs-jour__ico--${d.kind}`} />
             <b>{d.tempMax == null ? "–" : `${Math.round(d.tempMax)}°`}</b>
             {/* Seuls les jours de précipitations portent un chiffre. Un zéro
                 mesuré n'est pas une valeur absente : il reste lisible à
@@ -430,7 +429,7 @@ function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useB
 
   return (
     <section className="fs-carte fs-bra">
-      <PictoBra niveau={risque} taille={52} />
+      <PictoBra niveau={risque} />
       <div className="fs-bra__texte">
         <div className="fs-bra__titre">
           <b>{titre}</b>
@@ -443,7 +442,7 @@ function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useB
               aria-label={ouvert ? tr("Masquer le texte du bulletin") : tr("Afficher le texte du bulletin")}
               onClick={() => setOuvert((o) => !o)}
             >
-              <Icon name={ouvert ? "moins" : "plus"} taille={12} />
+              <IconeFiche nom={ouvert ? "moins" : "plus"} taille={12} />
             </button>
           ) : null}
           {action}
@@ -467,7 +466,7 @@ function BulletinAvalanche({ bra, massifStation }: { bra: ReturnType<typeof useB
         className="fs-pilule"
       >
         {braData?.massif ? tr("Bulletin {massif}", { massif: braData.massif }) : tr("Trouver le bulletin")}
-        <Icon name="externe" taille={12} />
+        <IconeFiche nom="externe" taille={11} />
       </a>
     </section>
   );
@@ -542,7 +541,7 @@ function FicheBody({ s }: { s: Station }) {
               void go("compare");
             }}
           >
-            <Icon name="chevron-gauche" taille={14} />
+            <IconeFiche nom="chevron-gauche" taille={14} />
             {tr("Comparer les stations")}
           </a>
           <OngletsStation s={s} actif="fiche" />
@@ -618,7 +617,7 @@ function FicheBody({ s }: { s: Station }) {
                         <FiabiliteFaible raisons={lib.raisons} />
                       ) : adulte.grille.source.origine === "officiel" ? (
                         <span className="fs-forfaits__officiel">
-                          <Icon name="coche" taille={12} />
+                          <IconeFiche nom="coche" taille={12} />
                           {tr("Page officielle")}
                         </span>
                       ) : null}
@@ -762,7 +761,7 @@ function FicheBody({ s }: { s: Station }) {
               }}
             >
               {tr("Voir les logements")}
-              <Icon name="fleche-droite" taille={15} />
+              <IconeFiche nom="fleche" taille={15} />
             </button>
             <button
               type="button"

@@ -87,3 +87,8 @@ export function suggestions(ql: string): Suggestion[] {
       .map((s) => station(s, foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql))),
   ];
 }
+
+/** `guestsLbl` de la maquette : « 8 pers. · 3 ch. », ou « studio accepté ». */
+export function voyageursLbl(trav: number, rooms: number): string {
+  return `${tr("{n} pers.", { n: trav })} · ${rooms ? tr("{n} ch.", { n: rooms }) : tr("studio accepté")}`;
+}

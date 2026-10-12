@@ -4,9 +4,22 @@
  * `.fv-` : Favoris (602-647) et Réservation (649-672).
  * Couleurs : jetons de `system.css` et de `socle.css` seulement. */
 
+/* Le rail de la jauge de relevé (App.dc.html:579), sans équivalent dans
+   `system.css`. */
+:root {
+  --px-jauge-fond: #d0e4f3;
+  /* Case vide d'une couverture de dossier (App.dc.html:1201). */
+  --fv-couv-vide: #e8eef3;
+}
+html[data-theme="dark"] {
+  --px-jauge-fond: #1f3a52;
+  --fv-couv-vide: #1d2c3b;
+}
+
 /* ── Prix : cadre et barre de période ─────────────────────────────────── */
 
 .px-main {
+  width: 100%;
   max-width: 1320px;
   margin: 0 auto;
   padding: 24px 28px 96px;
@@ -79,11 +92,12 @@
   position: relative;
   display: grid;
   place-items: center;
-  min-width: 124px;
   height: 30px;
-  padding: 0 4px;
   border-radius: 8px;
   cursor: pointer;
+}
+.px-periode__lbl {
+  min-width: 124px;
 }
 .px-periode:hover {
   background: var(--color-puce);
@@ -142,8 +156,16 @@
   font-weight: 600;
   cursor: pointer;
 }
-.px-bascule:hover {
-  border-color: var(--color-ink);
+/* « Filtres » (critères du dépôt que la barre de la maquette n'a pas) :
+   dessiné comme la pilule « Prix connus seulement » à côté de lui. */
+.px-ligne .m8-filtres {
+  margin: 0;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
 }
 .px-effacer {
   font-size: 13.5px;
@@ -254,17 +276,13 @@
 /* Le relevé en cours : une bande bleue, sa jauge et « Arrêter ». */
 .px-course {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
   padding: 12px 18px;
   border-radius: 14px;
   background: var(--color-bleu-pale);
   color: var(--color-marque-texte);
-}
-.px-course__ligne {
-  display: flex;
-  align-items: center;
-  gap: 14px;
   font-size: 13.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -273,7 +291,7 @@
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--color-marque) 18%, var(--color-bleu-pale));
+  background: var(--px-jauge-fond);
   overflow: hidden;
 }
 .px-course__jauge i {
@@ -294,6 +312,7 @@
   cursor: pointer;
 }
 .px-course__sous {
+  flex-basis: 100%;
   font-size: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -330,10 +349,18 @@
   font-variant-numeric: tabular-nums;
 }
 .px-rang--tete {
+  align-items: normal;
   border-top: 0;
+  font-size: 12px;
+  line-height: normal;
 }
-.px-cell--droite {
+.px-rang--tete > div {
   display: flex;
+}
+.px-rang--tete .px-tri {
+  width: 100%;
+}
+.px-tri--droite {
   justify-content: flex-end;
 }
 .px-tri {
@@ -389,7 +416,7 @@ button.px-tri:hover,
   outline: none;
 }
 .px-cell--muet {
-  color: var(--color-vue);
+  color: var(--color-texte-3);
 }
 .px-partiel {
   font-size: 11.5px;
@@ -407,7 +434,7 @@ button.px-tri:hover,
   color: var(--color-ink);
 }
 .px-prix--muet {
-  color: var(--color-vue);
+  color: var(--color-texte-3);
 }
 .px-etat {
   font-size: 12.5px;
@@ -453,6 +480,10 @@ button.px-tri:hover,
 }
 .px-vide b {
   font-weight: 600;
+}
+.px-vide__txt {
+  font-size: 14px;
+  color: var(--color-muted);
 }
 .px-vide--table {
   padding: 18px 22px;
@@ -555,6 +586,22 @@ button.px-tri:hover,
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 32px 18px;
 }
+/* Par budget : la grille pleine largeur de la maquette (App.dc.html:597),
+   ou la carte seule, au choix de la pilule Liste / Carte. */
+.px-budget-vue {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.px-grille--budget {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 36px 22px;
+}
+.px-deux__carte.px-deux__carte--seule {
+  position: relative;
+  top: auto;
+  height: calc(100vh - 260px);
+}
 /* La carte colle sous la barre du haut. `isolation` garde les étages de
    Leaflet (400 à 1 000) dans la carte : ils passaient sinon par-dessus la
    barre et les boutons de l'écran. */
@@ -601,6 +648,7 @@ button.px-tri:hover,
 /* ── Favoris : cadre, titres, état vide ───────────────────────────────── */
 
 .fv-main {
+  width: 100%;
   max-width: 1320px;
   margin: 0 auto;
   padding: 28px 28px 96px;
@@ -715,7 +763,9 @@ button.px-tri:hover,
   aspect-ratio: 1 / 1;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: var(--shadow-dossier);
+  /* Couverture d'un dossier (Favoris) : 0 2px 10px, la fenêtre « Enregistrer »
+     garde 0 2px 8px (`--shadow-dossier`). */
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--color-ombre) 12%, transparent);
 }
 .fv-couv__case {
   overflow: hidden;
@@ -725,7 +775,7 @@ button.px-tri:hover,
   grid-row: 1 / 3;
 }
 .fv-couv__case--vide {
-  background: var(--color-puce);
+  background: var(--fv-couv-vide);
 }
 .fv-couv__case img {
   display: block;
@@ -821,6 +871,9 @@ button.px-tri:hover,
 .fv-pilule:hover {
   border-color: var(--color-ink);
 }
+.fv-pilule--droite {
+  margin-left: auto;
+}
 .fv-pilule--haute {
   height: 40px;
   padding: 0 16px;
@@ -879,20 +932,6 @@ button.px-tri:hover,
   text-underline-offset: 3px;
 }
 
-/* ── Favoris : liste ──────────────────────────────────────────────────── */
-
-.fv-case {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-.fv-case__sejour {
-  font-size: 12px;
-  color: var(--color-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ── Favoris : Comparer ───────────────────────────────────────────────── */
 
 .fv-cmp {
@@ -911,14 +950,18 @@ button.px-tri:hover,
   border-top: 1px solid var(--color-line);
   font-size: 14px;
 }
+.fv-cmp__rang > * {
+  min-width: 0;
+}
 .fv-cmp__rang--tete {
+  align-items: normal;
   padding-top: 14px;
   padding-bottom: 14px;
   border-top: 0;
+  font-size: 16px;
 }
 .fv-cmp__rang--tete > span:not(.m8-lu-seul) {
   display: flex;
-  justify-content: flex-end;
 }
 /* La première colonne garde sa place, même sans titre visible. */
 .fv-cmp__rang--tete::before {
@@ -927,6 +970,8 @@ button.px-tri:hover,
 .fv-tri {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
+  width: 100%;
   gap: 4px;
   padding: 0;
   border: 0;
@@ -1060,20 +1105,17 @@ button.px-tri:hover,
 }
 .fv-resa__station {
   color: inherit;
+  text-decoration: none;
+}
+.fv-resa__station:hover {
   text-decoration: underline;
-  text-underline-offset: 2px;
 }
 .fv-resa__puces {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  line-height: normal;
   gap: 6px;
   margin-top: 4px;
-}
-.fv-resa__puces .fv-lien {
-  height: auto;
-  padding: 4px 6px;
-  font-size: 12.5px;
 }
 .fv-resa__offre {
   padding: 4px 10px;
@@ -1226,7 +1268,7 @@ button.px-tri:hover,
   color: var(--color-alerte-texte) !important;
 }
 .fv-muet {
-  color: var(--color-vue);
+  color: var(--color-texte-3);
 }
 .fv-cout__pied {
   display: flex;

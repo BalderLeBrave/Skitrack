@@ -4,7 +4,7 @@
  * Logements.
  */
 
-import { Icon } from "@/components/Icon";
+import { PictoUi } from "@/components/v7/fiche/PictoFiche";
 import { tr } from "@/lib/i18n";
 import { eurCents } from "@/lib/parcours";
 import { ecartAvecPrincipale, type Logement } from "@/lib/stay/regroupement";
@@ -62,7 +62,7 @@ export function OffresLogement({
                   })}
                 >
                   {tr("Voir l’offre")}
-                  <Icon name="externe" taille={11} />
+                  <PictoUi nom="externe" />
                 </a>
               ) : (
                 <span className="fl-offre__lien fl-absent">{tr("sans lien")}</span>

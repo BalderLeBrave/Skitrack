@@ -12,8 +12,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { Icon } from "@/components/Icon";
-import { PictoGrille } from "@/components/v7/fiche/PictoFiche";
+import { PictoGrille, PictoUi } from "@/components/v7/fiche/PictoFiche";
 import { tr } from "@/lib/i18n";
 import { TAILLE_MOSAIQUE, TAILLE_PLEIN, type Galerie } from "@/components/v7/useGalerie";
 import { photoVignette } from "@/lib/stay/photoHd";
@@ -110,7 +109,7 @@ function Scene({ g }: { g: Galerie }) {
             aria-label={tr("Photo précédente")}
             onClick={() => g.aller(-1)}
           >
-            <Icon name="chevron-gauche" taille={18} />
+            <PictoUi nom="flechePrec" />
           </button>
           <button
             type="button"
@@ -118,7 +117,7 @@ function Scene({ g }: { g: Galerie }) {
             aria-label={tr("Photo suivante")}
             onClick={() => g.aller(1)}
           >
-            <Icon name="chevron-droite" taille={18} />
+            <PictoUi nom="flecheSuiv" />
           </button>
         </>
       ) : null}
@@ -239,7 +238,7 @@ export function PleinEcran({
           title={tr("Quitter le plein écran")}
           onClick={fermer}
         >
-          <Icon name="croix" taille={16} />
+          <PictoUi nom="croixPlein" />
         </button>
       </div>
       <Scene g={g} />

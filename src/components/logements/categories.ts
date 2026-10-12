@@ -94,3 +94,17 @@ export const ICONE_EQUIPEMENT: Readonly<Record<string, string>> = {
   ski_aux_pieds: ICONES.skis,
   vue: ICONES.mount,
 };
+
+/** Les neuf équipements de la fenêtre Filtres de la maquette (`EQ`), dans son
+ *  ordre et sous ses libellés, sur les clés de `EQUIPEMENTS_FICHE`. */
+export const EQUIPEMENTS_MAQUETTE: readonly { id: string; label: string; icone: string }[] = [
+  { id: "wifi", label: aTraduire("Wi-Fi"), icone: ICONES.wifi },
+  { id: "parking", label: aTraduire("Parking"), icone: ICONES.parking },
+  { id: "cheminee", label: aTraduire("Cheminée"), icone: ICONES.flame },
+  { id: "sauna", label: aTraduire("Sauna"), icone: ICONES.sauna },
+  { id: "lave_vaisselle", label: aTraduire("Lave-vaisselle"), icone: ICONES.lv },
+  { id: "casier_skis", label: aTraduire("Local à skis"), icone: ICONES.skiroom },
+  { id: "balcon", label: aTraduire("Balcon"), icone: ICONES.balcon },
+  { id: "animaux", label: aTraduire("Animaux acceptés"), icone: ICONES.paw },
+  { id: "piscine", label: aTraduire("Piscine"), icone: ICONES.pool },
+];

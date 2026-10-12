@@ -14,8 +14,8 @@
  */
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { Icon } from "@/components/Icon";
-import { BoutonFavori } from "@/components/v7/BoutonFavori";
+import { useEnregistrement } from "@/components/maquette";
+import { PictoCoeur, PictoUi } from "@/components/v7/fiche/PictoFiche";
 import { useEchap } from "@/components/v7/fermeture";
 import {
   BlocAcces,
@@ -259,6 +259,9 @@ export function VoletAnnonce({
       .catch(() => dire(tr("Le lien n’a pas pu être copié")));
   };
 
+  const enr = useEnregistrement({ checkIn: stay.checkIn, checkOut: stay.checkOut, trav });
+  const coeur = enr.coeur(l);
+
   const sejour = [datesCourtes(stay.checkIn, stay.checkOut), nuitsLbl(nights), persLbl(trav)].join(
     " · ",
   );
@@ -288,7 +291,7 @@ export function VoletAnnonce({
       >
         <header className="fl-tete">
           <button type="button" className="fl-retour" onClick={onFermer} title={tr("Fermer")}>
-            <Icon name="chevron-gauche" taille={14} />
+            <PictoUi nom="retour" />
             <span>{station?.name ?? tr("Fermer")}</span>
           </button>
           <span className="fl-tete__sejour">{sejour}</span>
@@ -304,32 +307,37 @@ export function VoletAnnonce({
               aria-label={tr("Partager")}
               title={l.url ? tr("Partager") : tr("Annonce sans lien")}
             >
-              <Icon name="partager" taille={15} />
+              <PictoUi nom="partager" />
             </button>
-            <BoutonFavori
-              l={l}
-              sejour={{ checkIn: stay.checkIn, checkOut: stay.checkOut, trav }}
-              className="fl-rond fl-coeur"
-            />
             <button
               type="button"
-              className="fl-rond"
+              className={`fl-rond fl-coeur${coeur.saved ? " fl-coeur--on" : ""}`}
+              aria-pressed={coeur.saved}
+              aria-label={coeur.saved ? tr("Retirer des favoris") : tr("Enregistrer")}
+              title={coeur.saved ? tr("Retirer des favoris") : tr("Enregistrer")}
+              onClick={coeur.onToggle}
+            >
+              <PictoCoeur plein={coeur.saved} />
+            </button>
+            <button
+              type="button"
+              className="fl-rond fl-voisin"
               aria-label={tr("Logement précédent")}
               title={tr("Logement précédent")}
               disabled={!onPrecedent}
               onClick={() => voisin(onPrecedent)}
             >
-              <Icon name="chevron-gauche" taille={16} />
+              <PictoUi nom="precedent" />
             </button>
             <button
               type="button"
-              className="fl-rond"
+              className="fl-rond fl-voisin"
               aria-label={tr("Logement suivant")}
               title={tr("Logement suivant")}
               disabled={!onSuivant}
               onClick={() => voisin(onSuivant)}
             >
-              <Icon name="chevron-droite" taille={16} />
+              <PictoUi nom="suivant" />
             </button>
             <button
               type="button"
@@ -338,7 +346,7 @@ export function VoletAnnonce({
               title={tr("Fermer")}
               onClick={onFermer}
             >
-              <Icon name="croix" taille={14} />
+              <PictoUi nom="croix" />
             </button>
           </div>
         </header>
@@ -404,6 +412,7 @@ export function VoletAnnonce({
           </button>
         </div>
       </div>
+      {enr.modale}
       {plein ? <PleinEcran g={g} titre={l.title} fermer={fermerPlein} /> : null}
     </div>
   );

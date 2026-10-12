@@ -17,8 +17,8 @@
   /* ── Typographie : une famille, cinq tailles ──────────────────────────
      L'alignement des chiffres vient de `font-variant-numeric: tabular-nums`,
      jamais d'une seconde police. */
-  --font-sans: "Plus Jakarta Sans", "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Plus Jakarta Sans", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
 
   /* La maquette fait grandir le titre de couverture avec l'écran
      (`clamp(44px,4.4vw,64px)`, App.dc.html:68) : figé à 44 px, il perdait la

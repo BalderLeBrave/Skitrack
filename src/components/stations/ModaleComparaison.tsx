@@ -17,7 +17,7 @@ import { IconeCroix, Interrupteur, useModale } from "@/components/maquette";
 import { FiabiliteFaible } from "@/components/v7/FiabiliteFaible";
 import { mixLbl } from "@/components/v7/mixLbl";
 import { PartPistes } from "@/components/v7/PartPistes";
-import { CMP_MAX, stationPhoto } from "@/lib/parcours";
+import { CMP_MAX, COLS, stationPhoto } from "@/lib/parcours";
 import { lignePistes } from "@/lib/pistesDetail";
 import { SKIINFO } from "@/lib/skiinfo";
 import type { Station } from "@/lib/stations";
@@ -142,6 +142,7 @@ export function ModaleComparaison({
                     <span
                       key={s.id}
                       className={`st-cmp__cell${gagne ? " st-cmp__cell--best" : ""}${v == null ? " st-cmp__cell--absent" : ""}`}
+                      title={sous ?? undefined}
                     >
                       {v ?? c.absent?.(s) ?? tr("non relevé")}
                       {faible ? (
@@ -150,7 +151,6 @@ export function ModaleComparaison({
                           <FiabiliteFaible court raisons={faible} />
                         </>
                       ) : null}
-                      {sous ? <span className="st-cmp__sous">{sous}</span> : null}
                     </span>
                   );
                 })}
@@ -164,15 +164,19 @@ export function ModaleComparaison({
             {cmp.map((s) => (
               <div key={s.id} className="st-cmp__mix">
                 <PartPistes share={s.colorShare} hauteur={8} />
-                <span>{s.colorShare ? mixLbl(s.colorShare) : (sansDomaineLbl(s) ?? mixLbl(null))}</span>
-                {lignePistes(SKIINFO[s.id]) ? <span>{lignePistes(SKIINFO[s.id])}</span> : null}
+                {/* Les totaux de la fiche Skiinfo, une autre échelle, en infobulle. */}
+                <span title={lignePistes(SKIINFO[s.id]) ?? undefined}>
+                  {s.colorShare
+                    ? `${COLS.map((c) => s.colorShare![c.key]).join(" · ")} %`
+                    : (sansDomaineLbl(s) ?? mixLbl(null))}
+                </span>
               </div>
             ))}
           </div>
         </div>
-        <footer className="m8-modale__pied">
+        <footer className="m8-modale__pied st-cmp__pied">
           <span className="st-cmp__note">
-            {n >= CMP_MAX ? (CMP_MAX === 4 ? tr("Quatre stations au plus.") : tr("{n} stations au plus.", { n: CMP_MAX })) : ""}
+            {n >= CMP_MAX ? tr("{n} stations maximum.", { n: CMP_MAX }) : ""}
           </span>
           <button type="button" className="m8-bouton-encre" onClick={onCta} disabled={!pickId}>
             {cta}

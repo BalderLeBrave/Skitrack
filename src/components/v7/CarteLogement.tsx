@@ -14,11 +14,11 @@ import type { Altitude } from "@/lib/altitude/altitude";
 import { langueIntl } from "@/lib/i18n/langue";
 import { tr } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
-import { eurCents, fmt, nuitsLbl } from "@/lib/parcours";
+import { fmt, nuitsLbl } from "@/lib/parcours";
 import { galerieOf } from "@/lib/stay/completude";
 import { noteSur5De } from "@/lib/stay/ficheEnrichie";
-import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { bedLbl, capLbl, distanceOf, NON_RENSEIGNE, prixLbl, prixPersLbl } from "@/lib/v7";
+import { distRemonteePublieeM } from "@/lib/stay/situer";
+import { bedLbl, capLbl, distanceOf, NON_RENSEIGNE, prixLbl } from "@/lib/v7";
 
 /**
  * Logements par tranche : « Afficher plus » en ajoute autant. La carte ne
@@ -73,7 +73,6 @@ export const CarteLogement = memo(function CarteLogement({
   retenuSource,
   altitude,
   altVillage = null,
-  forfaitsGroupe = null,
 }: {
   l: Listing;
   /** « Abritel », ou « Airbnb + 2 » quand le logement est aussi ailleurs. */
@@ -99,19 +98,30 @@ export const CarteLogement = memo(function CarteLogement({
   avecAltitude?: boolean;
   /** L'altitude du village de la station, pour signaler une annonce bien plus bas. */
   altVillage?: number | null;
-  /** Les forfaits du groupe pour ce séjour, quand ils sont relevés : le coût
-   *  par personne de la carte les ajoute (sauf séjour vendu forfaits compris). */
+  /** Gardé pour les écrans appelants : le coût par personne se lit dans la fiche. */
   forfaitsGroupe?: number | null;
 }) {
   const isKept = retenu != null;
   const enr = useEnregistrement({ checkIn: stay.checkIn, checkOut: stay.checkOut, trav });
   const photos = useMemo(() => galerieOf(l).map((src) => ({ src })), [l]);
 
+  // La distance comme la maquette : « 1 600 m des remontées », « Ski aux
+  // pieds » jusqu'à 50 m, « Distance non mesurée » sans mesure publiée. Un
+  // logement d'un autre domaine le dit.
   const d = distanceOf(l);
+  const m = distRemonteePublieeM(l);
+  const dist =
+    d.kind === "other_domain"
+      ? d.text
+      : m == null
+        ? tr("Distance non mesurée")
+        : m <= 50
+          ? tr("Ski aux pieds")
+          : tr("{distance} des remontées", { distance: `${fmt(Math.round(m))} m` });
   const ecart = altVillage != null && altitude ? altVillage - altitude.m : null;
   const sousVillage = ecart != null && ecart >= ECART_VILLAGE_M ? Math.round(ecart / 50) * 50 : null;
   const l2 =
-    sousVillage != null ? `${d.text} · ${tr("{m} m sous le village", { m: fmt(sousVillage) })}` : d.text;
+    sousVillage != null ? `${dist} · ${tr("{m} m sous le village", { m: fmt(sousVillage) })}` : dist;
 
   const inconnu = tr(NON_RENSEIGNE);
   const cap = capLbl(l);
@@ -127,19 +137,9 @@ export const CarteLogement = memo(function CarteLogement({
           .filter(Boolean)
           .join(" · ");
 
-  const pers = prixPersLbl(l, trav);
-  const toutCompris =
-    l.total > 0 && forfaitsGroupe != null && forfaitsGroupe > 0 && trav > 0
-      ? eurCents(Math.round((forfaitInclus(l) ? l.total : l.total + forfaitsGroupe) / trav))
-      : null;
-  const priceSub = [
-    tr("pour {nuits}", { nuits: nuitsLbl(nights) }),
-    pers ? tr("{prix} / pers.", { prix: pers }) : null,
-    toutCompris ? tr("{prix} / pers. avec les forfaits", { prix: toutCompris }) : null,
-    l.priceIndicative ? tr("Prix « à partir de »") : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const priceSub = l.priceIndicative
+    ? `${tr("pour {nuits}", { nuits: nuitsLbl(nights) })} · ${tr("Prix « à partir de »")}`
+    : tr("pour {nuits}", { nuits: nuitsLbl(nights) });
 
   const ouvrirCarte = useCallback(() => ouvrir(l.id), [ouvrir, l.id]);
   return (

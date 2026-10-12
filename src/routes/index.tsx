@@ -300,11 +300,9 @@ function Home() {
             </div>
           </section>
           <section className="acc-section">
-            <header className="acc-section__tete">
-              <div>
-                <h2>{tr("Par massif")}</h2>
-                <p>{tr("Choisissez un massif, puis lancez la recherche.")}</p>
-              </div>
+            <header className="acc-section__tete acc-section__tete--col">
+              <h2>{tr("Par massif")}</h2>
+              <p>{tr("Choisissez un massif, puis lancez la recherche.")}</p>
             </header>
             <div className="acc-massifs">
               {MASSIFS.map((x) => {

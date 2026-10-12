@@ -18,7 +18,7 @@ import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { BasculeVue, CATEGORIES_STATIONS, PuceCritere, RangeeCategories } from "@/components/maquette";
 import { CarteEpingles, type Marqueur } from "@/components/v7/CarteEpingles";
-import { epinglePrix, epingleStation, ETAGE } from "@/components/v7/epingle";
+import { echappe, epinglePrix, ETAGE } from "@/components/v7/epingle";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, usePredicats } from "@/lib/filtres";
 import { SensTri } from "@/components/v7/SensTri";
@@ -27,7 +27,7 @@ import { CarteStation } from "@/components/v7/CarteStation";
 import { usePrixStations } from "@/components/v7/usePrixForfait";
 import { mentionForfait } from "@/lib/forfaits/prixSejour";
 import { prixAdulteSejour, type ContexteSejour } from "@/lib/forfaits/prixStations";
-import { montantCents } from "@/lib/devises";
+import { montantN } from "@/lib/devises";
 import { PartPistes } from "@/components/v7/PartPistes";
 import { Chevron, ModaleFiltresStations } from "@/components/stations/ModaleFiltresStations";
 import { ModaleComparaison } from "@/components/stations/ModaleComparaison";
@@ -228,7 +228,8 @@ function Comparer() {
       sorted.map((s) => {
         const comparee = cmpIds.has(s.id);
         const r = prixAdulteSejour(s.id, prixStations.ctx);
-        const prix = r ? montantCents(r.prix, r.devise) : null;
+        // Des euros ronds sur la carte, comme la maquette (`eur()`).
+        const prix = r ? montantN(Math.round(r.prix), r.devise) : null;
         return {
           id: s.id,
           lat: s.lat,
@@ -236,8 +237,13 @@ function Comparer() {
           nom: s.name,
           epingle: prix
             ? epinglePrix(prix, s.name, comparee ? "retenue" : "normale")
-            : epingleStation(s.name, comparee ? "comparee" : "normale"),
-          zIndex: comparee ? ETAGE.comparee : ETAGE.normale,
+            : {
+                html: `<div class="st-point${comparee ? " st-point--cmp" : ""}" aria-label="${echappe(s.name)}"></div>`,
+                taille: [1, 1],
+                ancre: [0, 0],
+              },
+          // Les points passent sous les prix : un prix reste lisible.
+          zIndex: (comparee ? ETAGE.comparee : ETAGE.normale) + (prix ? 0 : ETAGE.repere),
           note: s.posRelevee ? undefined : tr("Position approximative : centre de la commune."),
         };
       }),
@@ -448,15 +454,14 @@ function Comparer() {
                 );
               }}
               legende={
-                <>
-                  <b>{trN(dansCadre.length, "{n} station dans le cadrage", "{n} stations dans le cadrage")}</b>
-                  {parCadre.horsCadre.length ? (
+                /* Le compte est déjà dans la rangée d'outils ; la légende ne
+                   garde que le retour à tous les résultats. */
+                parCadre.horsCadre.length ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
                       {visible.length > 1 ? tr("Revoir les {n} résultats", { n: visible.length }) : tr("Revoir le résultat")}
                       <Icon name="fleche-droite" taille={14} />
                     </button>
-                  ) : null}
-                </>
+                ) : null
               }
             />
           </div>

@@ -7,9 +7,9 @@
 import type { BudgetForfaits } from "@/lib/forfaits/prixSejour";
 import { tr } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
-import { eurCents, nuitsLbl } from "@/lib/parcours";
+import { eurCents, eurN, nuitsLbl } from "@/lib/parcours";
 import { parPersonne, totalSejour } from "@/lib/stay/totalSejour";
-import { persLbl, prixLbl } from "@/lib/v7";
+import { prixLbl } from "@/lib/v7";
 
 /** Le prix affiché, pour la carte de droite et la barre du bas. */
 export function resumePrix(
@@ -25,15 +25,13 @@ export function resumePrix(
   if (total == null) return { principal: prixLbl(l), detail: nuitsLbl(nights) };
   if (mode === "pers" && parPers != null) {
     return {
-      principal: eurCents(parPers) ?? "",
-      detail: tr("{prix} pour {pers}", { prix: eurCents(total) ?? "", pers: persLbl(trav) }),
+      principal: eurN(parPers) ?? "",
+      detail: tr("{prix} pour {n}", { prix: eurCents(total) ?? "", n: trav }),
     };
   }
   return {
     principal: eurCents(total) ?? "",
     detail:
-      parPers != null
-        ? tr("{prix} par pers.", { prix: eurCents(parPers) ?? "" })
-        : nuitsLbl(nights),
+      parPers != null ? tr("{prix} par pers.", { prix: eurN(parPers) ?? "" }) : nuitsLbl(nights),
   };
 }

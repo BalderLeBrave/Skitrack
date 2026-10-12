@@ -15,11 +15,11 @@
  */
 
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
-import { Icon } from "@/components/Icon";
+import { IconeFiche } from "@/components/v7/IconesFiche";
 import { PartPistes } from "@/components/v7/PartPistes";
 import { OPENSKIMAP, osmFor } from "@/lib/openskimap";
 import { COLS, fmt } from "@/lib/parcours";
-import { PISTE_HEX, type PisteColor } from "@/lib/pistes";
+import type { PisteColor } from "@/lib/pistes";
 import {
   COULEUR_LIBELLE,
   ORDRE_COULEUR,
@@ -195,7 +195,7 @@ export function PistesStation({ s }: { s: Station }) {
             onClick={() => setOuvert((o) => !o)}
           >
             {ouvert ? tr("Moins de détails") : tr("Plus de détails")}
-            <Icon name="chevron-bas" taille={14} />
+            <IconeFiche nom="chevron-bas" taille={14} />
           </button>
           <div id={idDetail} className="fs-pistes__detail" hidden={!ouvert}>
             {etat.status === "pret" ? (
@@ -388,11 +388,7 @@ function Tableau({
                 <button type="button" onClick={() => trierPar(c.cle)}>
                   {tr(c.t)}
                   {tri.cle === c.cle ? (
-                    <Icon
-                      name="chevron-bas"
-                      taille={10}
-                      className={tri.sens === "asc" ? "fs-table__sens fs-table__sens--asc" : "fs-table__sens"}
-                    />
+                    <IconeFiche nom={tri.sens === "asc" ? "tri-haut" : "tri-bas"} taille={10} />
                   ) : null}
                 </button>
               </th>
@@ -409,7 +405,7 @@ function Tableau({
               </th>
               <td data-label={tr("Couleur")}>
                 <span className="fs-table__couleur">
-                  <i className="fs-pastille" data-couleur={x.couleur} style={{ background: PISTE_HEX[x.couleur] }} />
+                  <i className="fs-pastille" data-couleur={x.couleur} style={{ background: TOKEN[x.couleur] }} />
                   {tr(COULEUR_LIBELLE[x.couleur])}
                 </span>
               </td>

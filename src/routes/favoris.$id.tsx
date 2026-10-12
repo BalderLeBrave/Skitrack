@@ -19,24 +19,42 @@ import { Coquille } from "@/components/Coquille";
 import { textesCarte } from "@/components/favoris/annonceCarte";
 import { FlecheTri, VideFavoris } from "@/components/favoris/communs";
 import { PICTO_GROUPE, PICTO_PARTAGER, useCopie } from "@/components/favoris/outils";
-import { encoderPartage, lienPartage, lirePartage, type DossierPartage } from "@/components/favoris/partage";
-import { CarteAnnonce, IconeCroix, IconeGauche, Onglets, Trace, useEnregistrement } from "@/components/maquette";
+import {
+  encoderPartage,
+  lienPartage,
+  lirePartage,
+  type DossierPartage,
+} from "@/components/favoris/partage";
+import {
+  CarteAnnonce,
+  IconeCroix,
+  IconeGauche,
+  Onglets,
+  Trace,
+  useEnregistrement,
+} from "@/components/maquette";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles, type Marqueur } from "@/components/v7/CarteEpingles";
 import { epinglePrix, ETAGE } from "@/components/v7/epingle";
 import { FicheEpingle } from "@/components/v7/FicheEpingle";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
-import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
+import {
+  altitudeAide,
+  altitudeLbl,
+  pointAltitude,
+  positionApprochee,
+  type Altitude,
+} from "@/lib/altitude/altitude";
 import { useAltitudes } from "@/lib/altitude/store";
 import { contenu, type Favori, type SejourFavori } from "@/lib/favoris/modele";
 import { useFavoris } from "@/lib/favoris/store";
 import type { Listing } from "@/lib/listings";
-import { nightsBetween, useParcours } from "@/lib/parcours";
+import { fmt, nightsBetween, useParcours } from "@/lib/parcours";
 import { nomStationPropre } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
-import { bedLbl, capLbl, distanceOf, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import { bedLbl, capLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 import { langueIntl } from "@/lib/i18n/langue";
 import { aTraduire, tr, trN } from "@/lib/i18n";
 import { voisinDansListe } from "@/lib/stay/visionneuse";
@@ -65,12 +83,16 @@ function sejourDe(f: Favori, courant: SejourFavori): SejourFavori {
 }
 
 const dateCourte = (d: Date) =>
-  new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", timeZone: "UTC" }).format(d);
+  new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", timeZone: "UTC" }).format(
+    d,
+  );
 function sejourLbl(s: SejourFavori): string {
   const d = (iso: string) => dateCourte(new Date(`${iso}T12:00:00Z`));
   const dates = { du: d(s.checkIn), au: d(s.checkOut) };
   // « 1 pers. » à part : l'anglais dit « 1 person », « 4 people ».
-  return s.trav === 1 ? tr("{du} → {au} · 1 pers.", dates) : tr("{du} → {au} · {n} pers.", { ...dates, n: s.trav });
+  return s.trav === 1
+    ? tr("{du} → {au} · 1 pers.", dates)
+    : tr("{du} → {au} · {n} pers.", { ...dates, n: s.trav });
 }
 
 /** Le dossier partagé de l'ancre, lu une fois au montage : `undefined` pendant
@@ -112,7 +134,10 @@ function Dossier({ id }: { id: string }) {
   const annonces = useMemo(() => favoris.map((f) => f.annonce), [favoris]);
   const altDe = useAltitudes(annonces);
   const { checkIn, checkOut, guests, children } = useStay();
-  const courant = useMemo<SejourFavori>(() => ({ checkIn, checkOut, trav: guests }), [checkIn, checkOut, guests]);
+  const courant = useMemo<SejourFavori>(
+    () => ({ checkIn, checkOut, trav: guests }),
+    [checkIn, checkOut, guests],
+  );
   const enr = useEnregistrement(courant);
   const [vue, setVue] = useState<"liste" | "comparer">("liste");
   const [ouvert, setOuvert] = useState<string | null>(null);
@@ -129,7 +154,9 @@ function Dossier({ id }: { id: string }) {
   const sejOuvert = favOuvert ? sejourDe(favOuvert, courant) : null;
   const memeGroupe = sejOuvert != null && sejOuvert.trav === guests;
   const forfaitsOuverts = useBudgetForfaits(
-    favOuvert && memeGroupe ? stationDuLogement(favOuvert.annonce, favOuvert.annonce.stationId) : null,
+    favOuvert && memeGroupe
+      ? stationDuLogement(favOuvert.annonce, favOuvert.annonce.stationId)
+      : null,
     sejOuvert?.checkIn ?? checkIn,
     sejOuvert?.checkOut ?? checkOut,
     adults(guests, children),
@@ -143,7 +170,8 @@ function Dossier({ id }: { id: string }) {
       const f = favoris.find((x) => x.annonceId === annonceId);
       if (!f) return;
       p.retain(f.annonce.stationId);
-      if (f.sejour) useStay.getState().setStay({ checkIn: f.sejour.checkIn, checkOut: f.sejour.checkOut });
+      if (f.sejour)
+        useStay.getState().setStay({ checkIn: f.sejour.checkIn, checkOut: f.sejour.checkOut });
       p.chooseLodge(annonceId);
     },
     [favoris],
@@ -166,7 +194,13 @@ function Dossier({ id }: { id: string }) {
   const fOuvert = ouvert ? parId.get(ouvert) : undefined;
   /** Le logement voisin dans le dossier, dans l'ordre où il s'affiche. */
   const favoriVoisin = (sens: 1 | -1) => {
-    const vid = ouvert ? voisinDansListe(favoris.map((f) => f.annonceId), [ouvert], sens) : null;
+    const vid = ouvert
+      ? voisinDansListe(
+          favoris.map((f) => f.annonceId),
+          [ouvert],
+          sens,
+        )
+      : null;
     return vid ? () => setOuvert(vid) : null;
   };
   const situes = favoris.filter((f) => pointAltitude(f.annonce));
@@ -201,7 +235,12 @@ function Dossier({ id }: { id: string }) {
           {partage.le
             ? tr("Partagée le {date}", { date: dateCourte(new Date(partage.le)) })
             : tr("Liste partagée")}
-          <button type="button" className="fv-bandeau__x" aria-label={tr("Fermer")} onClick={() => setBandeau(false)}>
+          <button
+            type="button"
+            className="fv-bandeau__x"
+            aria-label={tr("Fermer")}
+            onClick={() => setBandeau(false)}
+          >
             <IconeCroix taille={11} epaisseur={2.6} />
           </button>
         </div>
@@ -217,23 +256,21 @@ function Dossier({ id }: { id: string }) {
               const s = sejourDe(f, courant);
               const retenu = P.lodgeId === f.annonceId;
               return (
-                <div key={f.annonceId} className="fv-case">
-                  <CarteAnnonce
-                    {...textesCarte(f.annonce, {
-                      nights: nightsBetween(s.checkIn, s.checkOut) ?? 0,
-                      altitude: altDe(f.annonce),
-                      avecAltitude: true,
-                    })}
-                    badge={f.annonce.source}
-                    onOpen={() => setOuvert(f.annonceId)}
-                    heart={enr.coeur(f.annonce)}
-                    link={{ label: retenu ? tr("Retenu") : tr("Retenir"), on: retenu, onClick: () => retenir(f.annonceId) }}
-                    vif={actif === f.annonceId}
-                    onMouseEnter={() => setActif(f.annonceId)}
-                    onMouseLeave={() => setActif(null)}
-                  />
-                  <span className="fv-case__sejour">{tr("Prix pour {sejour}", { sejour: sejourLbl(s) })}</span>
-                </div>
+                <CarteAnnonce
+                  key={f.annonceId}
+                  {...textesCarte(f.annonce, { nights: nightsBetween(s.checkIn, s.checkOut) ?? 0 })}
+                  badge={f.annonce.source}
+                  onOpen={() => setOuvert(f.annonceId)}
+                  heart={enr.coeur(f.annonce)}
+                  link={{
+                    label: retenu ? tr("Retenu") : tr("Retenir"),
+                    on: retenu,
+                    onClick: () => retenir(f.annonceId),
+                  }}
+                  vif={actif === f.annonceId}
+                  onMouseEnter={() => setActif(f.annonceId)}
+                  onMouseLeave={() => setActif(null)}
+                />
               );
             })}
           </div>
@@ -279,7 +316,11 @@ function Dossier({ id }: { id: string }) {
       )}
       {favoris.length > 0 ? (
         <div>
-          <button type="button" className="fv-encre fv-encre--grand" onClick={() => void go("booking")}>
+          <button
+            type="button"
+            className="fv-encre fv-encre--grand"
+            onClick={() => void go("booking")}
+          >
             {tr("Passer à la réservation")}
           </button>
         </div>
@@ -289,7 +330,12 @@ function Dossier({ id }: { id: string }) {
           l={fOuvert.annonce}
           stay={sejourDe(fOuvert, courant)}
           trav={sejourDe(fOuvert, courant).trav}
-          nights={nightsBetween(sejourDe(fOuvert, courant).checkIn, sejourDe(fOuvert, courant).checkOut) ?? 0}
+          nights={
+            nightsBetween(
+              sejourDe(fOuvert, courant).checkIn,
+              sejourDe(fOuvert, courant).checkOut,
+            ) ?? 0
+          }
           groupe={null}
           retenu={P.lodgeId === fOuvert.annonceId}
           onRetenir={() => retenir(fOuvert.annonceId)}
@@ -298,10 +344,18 @@ function Dossier({ id }: { id: string }) {
           onPrecedent={favoriVoisin(-1)}
           onSuivant={favoriVoisin(1)}
           forfaits={forfaitsOuverts}
-          forfaitsMotif={memeGroupe ? null : tr("non calculés : la composition du groupe de ce séjour n’est pas connue")}
+          forfaitsMotif={
+            memeGroupe
+              ? null
+              : tr("non calculés : la composition du groupe de ce séjour n’est pas connue")
+          }
           suite={
             P.lodgeId === fOuvert.annonceId ? (
-              <button type="button" className="fv-encre fv-encre--grand" onClick={() => void go("booking")}>
+              <button
+                type="button"
+                className="fv-encre fv-encre--grand"
+                onClick={() => void go("booking")}
+              >
                 {tr("Passer à la réservation")}
               </button>
             ) : null
@@ -350,7 +404,11 @@ function EnTete({
     setEdition(false);
   };
   const partager = () =>
-    void copier(partagee ? window.location.href : encoderPartage(nom, favoris).then((code) => lienPartage(id, code)));
+    void copier(
+      partagee
+        ? window.location.href
+        : encoderPartage(nom, favoris).then((code) => lienPartage(id, code)),
+    );
   const garderChezSoi = () => {
     const st = useFavoris.getState();
     const nid = st.creer(nom);
@@ -385,7 +443,10 @@ function EnTete({
       ) : (
         <h1 className="fv-h1 fv-h1--dossier">{nom}</h1>
       )}
-      <span className="fv-compte" title={sansPoint > 0 ? tr("{n} sans position sur la carte", { n: sansPoint }) : undefined}>
+      <span
+        className="fv-compte"
+        title={sansPoint > 0 ? tr("{n} sans position sur la carte", { n: sansPoint }) : undefined}
+      >
         {trN(n, "{n} logement", "{n} logements")}
       </span>
       <div className="fv-outils">
@@ -419,9 +480,7 @@ function EnTete({
             ) : null}
             {suppression ? (
               <span className="fv-confirmer" role="alert">
-                {n > 0
-                  ? trN(n, "Supprimer ce dossier et son logement ?", "Supprimer ce dossier et ses {n} logements ?")
-                  : tr("Supprimer ce dossier ?")}
+                {tr("Supprimer ce dossier ?")}
                 <button
                   type="button"
                   className="fv-pilule fv-pilule--danger"
@@ -437,7 +496,11 @@ function EnTete({
                 </button>
               </span>
             ) : (
-              <button type="button" className="fv-pilule fv-pilule--supprimer" onClick={() => setSuppression(true)}>
+              <button
+                type="button"
+                className="fv-pilule fv-pilule--supprimer"
+                onClick={() => setSuppression(true)}
+              >
                 {tr("Supprimer le dossier")}
               </button>
             )}
@@ -536,13 +599,18 @@ function Comparaison({
           return (
             <div role="row" key={f.annonceId} className="fv-cmp__rang">
               <span role="rowheader">
-                <button type="button" className="fv-cmp__logement" onClick={() => ouvrir(l.id)}>
+                <button
+                  type="button"
+                  className="fv-cmp__logement"
+                  title={tr("Prix pour {sejour}", { sejour: sejourLbl(s) })}
+                  onClick={() => ouvrir(l.id)}
+                >
                   <span className="fv-cmp__vignette">
                     {l.photo ? <img src={l.photo} alt="" loading="lazy" decoding="async" /> : null}
                   </span>
                   <span className="fv-cmp__noms">
                     <b>{l.title}</b>
-                    <span>{[nomStationPropre(l) ?? l.source, sejourLbl(s)].join(" · ")}</span>
+                    <span>{nomStationPropre(l) ?? l.source}</span>
                   </span>
                 </button>
               </span>
@@ -559,9 +627,13 @@ function Comparaison({
                 {bedLbl(l)}
               </span>
               <span role="cell" className={cls(f, "dist")}>
-                {distanceOf(l).text}
+                {distFiltrableM(l) != null ? `${fmt(distFiltrableM(l))} m` : tr("non mesurée")}
               </span>
-              <span role="cell" className={cls(f, "alt")} title={altitudeAide(alt, positionApprochee(l))}>
+              <span
+                role="cell"
+                className={cls(f, "alt")}
+                title={altitudeAide(alt, positionApprochee(l))}
+              >
                 {pointAltitude(l) ? altitudeLbl(alt, positionApprochee(l)) : tr("sans position")}
               </span>
             </div>

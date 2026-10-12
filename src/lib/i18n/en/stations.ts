@@ -8,4 +8,5 @@ export const EN_STATIONS: Record<string, string> = {
   "{n} stations sans ce filtre.": "{n} resorts without this filter.",
   "Afficher {n} station": "Show {n} resort",
   "Afficher {n} stations": "Show {n} resorts",
+  "{n} stations maximum.": "{n} resorts maximum.",
 };

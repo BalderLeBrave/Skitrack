@@ -42,8 +42,6 @@ const EQUIPEMENT: Record<string, string> = {
 /** Un équipement sans tracé propre : une coche ronde. */
 const AUTRE = "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM8.5 12.5l2.5 2.5 4.5-5";
 
-const GRILLE = "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z";
-
 export function PictoEquipement({ id }: { id: string }) {
   return (
     <svg
@@ -70,10 +68,75 @@ export function PictoGrille() {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
+      aria-hidden
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+
+/** Les tracés d'interface de la maquette, à leur taille et leur épaisseur. */
+const UI = {
+  retour: { d: "m15 18-6-6 6-6", taille: 14, ep: 2.4 },
+  partager: {
+    d: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13",
+    taille: 15,
+    ep: 2,
+  },
+  croix: { d: "M18 6 6 18M6 6l12 12", taille: 14, ep: 2.4 },
+  croixPlein: { d: "M18 6 6 18M6 6l12 12", taille: 16, ep: 2.4 },
+  precedent: { d: "m15 18-6-6 6-6", taille: 14, ep: 2.4 },
+  suivant: { d: "m9 18 6-6-6-6", taille: 14, ep: 2.4 },
+  flechePrec: { d: "m15 18-6-6 6-6", taille: 18, ep: 2.4 },
+  flecheSuiv: { d: "m9 18 6-6-6-6", taille: 18, ep: 2.4 },
+  externe: { d: "M7 17 17 7M7 7h10v10", taille: 11, ep: 2.4 },
+  externeGrand: { d: "M7 17 17 7M7 7h10v10", taille: 12, ep: 2.4 },
+  alerte: {
+    d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4M12 17h.01",
+    taille: 16,
+    ep: 2,
+  },
+  chevron: { d: "m9 18 6-6-6-6", taille: 12, ep: 2.4 },
+  coche: { d: "M20 6 9 17l-5-5", taille: 14, ep: 3 },
+  bas: { d: "m6 9 6 6 6-6", taille: 16, ep: 2 },
+} as const;
+
+export function PictoUi({ nom }: { nom: keyof typeof UI }) {
+  const t = UI[nom];
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={t.taille}
+      height={t.taille}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={t.ep}
+      strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
     >
-      <path d={GRILLE} />
+      <path d={t.d} />
+    </svg>
+  );
+}
+
+/** Le cœur « Enregistrer » de l'en-tête, plein quand le logement est enregistré. */
+export function PictoCoeur({ plein }: { plein: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={15}
+      height={15}
+      fill={plein ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
     </svg>
   );
 }

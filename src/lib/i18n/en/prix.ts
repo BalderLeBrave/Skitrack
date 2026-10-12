@@ -161,4 +161,6 @@ export const EN_PRIX: Record<string, string> = {
   "{n} stations sans position de logement": "{n} resorts without listing positions",
   "{station} sans position de logement": "{station} without listing positions",
   "Une station": "A resort",
+  "studio": "studio",
+  "Tout mettre à jour": "Update all",
 };

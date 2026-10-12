@@ -23,7 +23,7 @@ import { useMemo } from "react";
 import { CarteAnnonce } from "@/components/maquette";
 import { useGo } from "@/components/v6/go";
 import { usePrixStations } from "./usePrixForfait";
-import { montantCents } from "@/lib/devises";
+import { montantN } from "@/lib/devises";
 import { echecLbl, libellesForfait } from "@/lib/forfaits/prixSejour";
 import { forfaitsStation } from "@/lib/forfaits/prixStations";
 import { stationPhoto, useParcours } from "@/lib/parcours";
@@ -78,7 +78,7 @@ export function CarteStation({
 
   const l3 = [altLbl(s) ?? tr("altitudes non relevées"), kmLbl(s) ?? tr("km non publié")].join(" · ");
   const price = pass
-    ? (montantCents(pass.prix, pass.devise) ?? tr("non relevé"))
+    ? (montantN(Math.round(pass.prix), pass.devise) ?? tr("non relevé"))
     : forfait && forfait.statut !== "resolu"
       ? echecLbl(forfait)
       : pret

@@ -101,13 +101,8 @@
   background: color-mix(in srgb, var(--color-surface) 18%, transparent);
   color: var(--color-surface);
 }
-.sh-etape--verrou {
-  color: var(--color-etape-verrou);
-}
-.sh-etape--verrou .sh-etape__num {
-  background: var(--color-etape-verrou-fond);
-  color: var(--color-etape-verrou);
-}
+/* Une étape verrouillée garde l'apparence de la maquette : son infobulle
+   et le message de `go()` disent pourquoi elle ne s'ouvre pas encore. */
 .sh-etape__badge {
   min-width: 18px;
   height: 18px;
@@ -140,8 +135,8 @@
   border-radius: 999px;
   background: var(--color-surface);
   box-shadow:
-    0 1px 2px color-mix(in srgb, var(--color-ombre) 6%, transparent),
-    0 4px 14px color-mix(in srgb, var(--color-ombre) 8%, transparent);
+    0 1px 2px rgb(17 24 32 / 0.06),
+    0 4px 14px rgb(17 24 32 / 0.08);
   font: inherit;
   font-size: 13.5px;
   font-weight: 600;
@@ -151,8 +146,8 @@
 }
 .sh-pilule:hover {
   box-shadow:
-    0 2px 6px color-mix(in srgb, var(--color-ombre) 10%, transparent),
-    0 8px 22px color-mix(in srgb, var(--color-ombre) 12%, transparent);
+    0 2px 6px rgb(17 24 32 / 0.1),
+    0 8px 22px rgb(17 24 32 / 0.12);
 }
 .sh-pilule {
   overflow: hidden;
@@ -272,13 +267,12 @@
   right: 0;
   top: 48px;
   z-index: 40;
-  min-width: 250px;
+  min-width: 230px;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
   padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   border: 1px solid var(--color-line);
   border-radius: 16px;
   background: var(--color-surface);
@@ -289,6 +283,7 @@
   flex-direction: column;
 }
 .sh-menu__groupe + .sh-menu__groupe {
+  margin-top: 4px;
   padding-top: 4px;
   border-top: 1px solid var(--color-line);
 }
@@ -377,15 +372,6 @@
 
 /* ── Écrans étroits ───────────────────────────────────────────────────── */
 
-@media (max-width: 1100px) {
-  .sh-barre {
-    gap: 12px;
-    padding: 0 16px;
-  }
-  .sh-util__lbl {
-    display: none;
-  }
-}
 @media (max-width: 760px) {
   .sh-barre {
     flex-wrap: wrap;

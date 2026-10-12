@@ -25,6 +25,10 @@
 
 /* ---------- En-tête : titre, séjour, mise à jour, tri ---------- */
 
+/* Retour aux stations et onglets Station / Logements (fiche station). */
+.lg-haut {
+  padding-top: 20px;
+}
 .lg-tete {
   display: flex;
   flex-wrap: wrap;

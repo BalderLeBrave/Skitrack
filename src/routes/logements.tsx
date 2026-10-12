@@ -17,6 +17,8 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type RefOb
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
+import { IconeFiche } from "@/components/v7/IconesFiche";
+import { OngletsStation } from "@/components/v7/OngletsStation";
 import { BasculeVue, ICONES, PuceCritere, RangeeCategories, Trace } from "@/components/maquette";
 import {
   CATEGORIES_LOGEMENTS,
@@ -1639,6 +1641,24 @@ function LogementsStation({ s }: { s: Station }) {
         id="s-lodging"
         data-screen-label="2 Logements"
       >
+        {/* Même rangée que la fiche station : retour aux stations et onglets
+            Station / Logements. */}
+        <div className="lg-enveloppe lg-haut">
+          <div className="fs-haut">
+            <a
+              href="/comparer"
+              className="fs-retour"
+              onClick={(e) => {
+                e.preventDefault();
+                void go("compare");
+              }}
+            >
+              <IconeFiche nom="chevron-gauche" taille={14} />
+              {tr("Stations")}
+            </a>
+            <OngletsStation s={s} actif="logements" />
+          </div>
+        </div>
         <div className="lg-enveloppe lg-tete">
           <div className="lg-tete__titre">
             <h1>{s.name}</h1>

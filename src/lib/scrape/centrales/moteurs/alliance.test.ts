@@ -8,6 +8,7 @@ import {
   lireZoneAlliance,
   logementsAlliance,
   requeteAlliance,
+  suiteAlliance,
   urlRechercheAlliance,
   zoneDeChemins,
 } from "./alliance.ts";
@@ -99,5 +100,10 @@ describe("Alliance : la recherche publiée par le widget", () => {
 
   it("une réponse sans objet lève, elle ne devient pas un séjour vide", () => {
     assert.throws(() => lireDisposAlliance("<html>erreur</html>"), /illisible|sans objet/);
+  });
+
+  it("une page suivante hors séjour s'arrête ; la première lève", () => {
+    assert.equal(suiteAlliance(0), "lever");
+    assert.equal(suiteAlliance(1), "arreter");
   });
 });

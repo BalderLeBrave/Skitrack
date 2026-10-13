@@ -339,6 +339,14 @@ export function lienSuiteSerp(page: string): string | null {
 }
 
 /**
+ * Une page de résultats suivante qui ne répond pas.
+ * La première lève. Les suivantes s'arrêtent : les cartes déjà lues restent.
+ */
+export function suiteSerpOrchestra(cartesDeja: number): "lever" | "arreter" {
+  return cartesDeja > 0 ? "arreter" : "lever";
+}
+
+/**
  * La référence que la centrale publie pour un logement : celle de son URL
  * (« …-ref-ccdt052-86645 », la même que « ref CCDT052 » sur la carte), en
  * minuscules comme le calendrier l'écrit. Sans elle, le numéro du logement,

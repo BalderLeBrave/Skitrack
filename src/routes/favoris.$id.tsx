@@ -55,7 +55,7 @@ import { useStay } from "@/lib/stay";
 import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
 import { bedLbl, capLbl, distanceOf, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
-import { viaDistance } from "@/lib/stay/aPied";
+import { trajetVoiture, viaDistance } from "@/lib/stay/aPied";
 import { useAPied } from "@/lib/geo/useReseauPieton";
 import { langueIntl } from "@/lib/i18n/langue";
 import { aTraduire, tr, trN } from "@/lib/i18n";
@@ -642,9 +642,17 @@ function Comparaison({
               <span role="cell" className={cls(f, "dist")}>
                 {distFiltrableM(l) == null
                   ? tr("non mesurée")
-                  : viaDistance(l) === "pieton" && distanceOf(l).kind === "measured"
-                    ? tr("{distance} à pied", { distance: `${fmt(distFiltrableM(l))} m` })
-                    : tr("{distance} à vol d’oiseau", { distance: `${fmt(distFiltrableM(l))} m` })}
+                  : [
+                      viaDistance(l) === "pieton" && distanceOf(l).kind === "measured"
+                        ? tr("{distance} à pied", { distance: `${fmt(distFiltrableM(l))} m` })
+                        : tr("{distance} à vol d’oiseau", { distance: `${fmt(distFiltrableM(l))} m` }),
+                      // La marche longue se fait en voiture (`stay/aPied.ts`).
+                      trajetVoiture(l)
+                        ? tr("{minutes} min en voiture", { minutes: trajetVoiture(l)?.minutes ?? 0 })
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
               </span>
               <span
                 role="cell"

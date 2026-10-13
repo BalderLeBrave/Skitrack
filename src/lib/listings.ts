@@ -16,7 +16,7 @@ import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement
 import type { Equipement } from "./stay/equipements";
 import type { FicheEnrichie } from "./stay/ficheEnrichie.ts";
 import type { SourceGps } from "./stay/repliGps";
-import type { AccesAPied } from "./stay/aPied.ts";
+import type { AccesAPied, AccesEnVoiture } from "./stay/aPied.ts";
 import { langueIntl } from "./i18n/langue.ts";
 
 export type Listing = {
@@ -133,6 +133,14 @@ export type Listing = {
    * discordante (`estAPied`), `distToLiftM` est à vol d'oiseau.
    */
   aPied?: AccesAPied | null;
+  /**
+   * Le trajet en voiture jusqu'à une remontée, quand la marche (ou, faute de
+   * réseau piéton, la ligne droite) dépasse `SEUIL_VOITURE_M` et que le réseau
+   * routier de la station est chargé (`stay/aPied.ts`). Posé à l'affichage
+   * seulement ; `distToLiftM` reste la marche. Absent ou discordant
+   * (`estEnVoiture`) : pas de trajet en voiture.
+   */
+  enVoiture?: AccesEnVoiture | null;
   domainFit?: DomainVerdict;
   /** La station du logement (`rattachement.ts`) : par sa localité publiée, ses
    *  coordonnées ou son texte. Recalculée à chaque relecture. */

@@ -20,6 +20,11 @@
  *   pour chaque logement, sa projection sur la voie la plus proche. Un écran
  *   de 500 logements coûte un Dijkstra et 500 projections.
  *
+ * Le même module bâtit et lit le réseau routier (`mode: "voiture"`, dans
+ * `public/reseau-voiture/`), tiré de la même réponse Overpass : les routes
+ * ouvertes l'hiver, sens uniques compris. Il sert quand la marche est trop
+ * longue (`stay/aPied.ts`, `SEUIL_VOITURE_M`).
+ *
  * Chargé tel quel par `node --experimental-strip-types` (le script, les
  * tests) : imports relatifs avec leur extension, rien que des types effaçables.
  */
@@ -175,6 +180,142 @@ export function voiePietonne(tags: Readonly<Record<string, string>> | undefined)
   return true;
 }
 
+/* ---------- Construction : les routes ---------- */
+
+/** Le réseau qu'on construit : à pied (`voiePietonne`) ou en voiture
+ *  (`voieRoutiere`, sens uniques compris). */
+export type ModeReseau = "pied" | "voiture";
+
+/** Les voies où roule une voiture. Ni chemin, ni sentier, ni piste
+ *  forestière (`track`) : l'hiver, elles ne sont pas déneigées. */
+export const VOIES_ROUTIERES: readonly string[] = [
+  "service",
+  "residential",
+  "living_street",
+  "unclassified",
+  "road",
+  "tertiary",
+  "tertiary_link",
+  "secondary",
+  "secondary_link",
+  "primary",
+  "primary_link",
+  "trunk",
+  "trunk_link",
+];
+
+/** Ce qui laisse passer une voiture de vacancier. */
+const VEHICULE_PERMIS = new Set(["yes", "designated", "permissive", "destination", "customers"]);
+
+/** L'accès, du plus précis au plus général : le premier présent l'emporte. */
+const CLES_ACCES = ["motorcar", "motor_vehicle", "vehicle", "access"] as const;
+
+const MOIS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+/** Les restrictions d'une balise conditionnelle OSM (`no @ (Dec-Mar); yes @
+ *  snow`), coupées aux `;` hors parenthèses. */
+export function restrictionsConditionnelles(v: string | undefined): { valeur: string; condition: string }[] {
+  if (!v) return [];
+  const parts: string[] = [];
+  let prof = 0;
+  let cur = "";
+  for (const ch of v) {
+    if (ch === "(") prof++;
+    else if (ch === ")") prof = Math.max(0, prof - 1);
+    if (ch === ";" && prof === 0) {
+      parts.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  parts.push(cur);
+  return parts.flatMap((p) => {
+    const at = p.indexOf("@");
+    if (at < 0) return [];
+    const condition = p
+      .slice(at + 1)
+      .trim()
+      .replace(/^\((.*)\)$/s, "$1")
+      .trim();
+    return [{ valeur: p.slice(0, at).trim(), condition }];
+  });
+}
+
+/**
+ * La condition vaut-elle en plein hiver ? Un mot (`winter`, `snow`…), ou une
+ * plage de mois ou de semaines qui couvre janvier ou février : `Dec-Mar`,
+ * `Nov 15-Apr 30`, `Sep 23-May 31`, `week 44-21`. Les conditions d'heure, de
+ * poids ou de jour (`Mo-Fr 07:00-19:00`, `weight>3.5`) n'en sont pas.
+ */
+export function conditionHivernale(condition: string): boolean {
+  const c = condition.toLowerCase();
+  if (/winter|snow|ice|hiver|neige|verglas/.test(c)) return true;
+  for (const [, x, y] of c.matchAll(/week\s*(\d{1,2})\s*-\s*(\d{1,2})/g)) {
+    const a = Number(x);
+    const b = Number(y);
+    if (a > b || a <= 9) return true;
+  }
+  const mois = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b(?:\s*\d{1,2})?(?:\s*-\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b)?/g;
+  for (const [, x, y] of c.matchAll(mois)) {
+    const a = MOIS.indexOf(x);
+    const b = y ? MOIS.indexOf(y) : a;
+    // Une plage peut passer le nouvel an (`Nov-Apr`).
+    const dans = (k: number) => (a <= b ? a <= k && k <= b : k >= a || k <= b);
+    if (dans(0) || dans(1)) return true;
+  }
+  return false;
+}
+
+/** La valeur d'une balise en hiver : sa restriction conditionnelle d'hiver
+ *  si elle en a une, sinon `undefined`. */
+function valeurDHiver(tags: Readonly<Record<string, string>>, cle: string): string | undefined {
+  return restrictionsConditionnelles(tags[`${cle}:conditional`]).find((r) => conditionHivernale(r.condition))?.valeur;
+}
+
+/**
+ * La voie se parcourt-elle en voiture, l'hiver, depuis un logement ?
+ *
+ * - les types de `VOIES_ROUTIERES` seulement ;
+ * - l'accès le plus précis l'emporte (`motorcar`, puis `motor_vehicle`,
+ *   `vehicle`, `access`) : `no`, `private`, `agricultural`… l'écartent ;
+ * - **l'accès d'hiver d'abord** : une route de montagne fermée l'hiver l'est
+ *   presque toujours par une restriction conditionnelle
+ *   (`access:conditional=no @ (Dec-Mar)`, `vehicle:conditional=no @ snow`) ;
+ * - pas une route saisonnière ou non déneigée (`seasonal=yes|summer`,
+ *   `winter_road=no`, `winter_service=no`, `snowplowing=no`), ni une voie de
+ *   secours ;
+ * - **pas une route qui porte une piste de ski** (descente, fond, luge,
+ *   randonnée à skis) : damée l'hiver, fermée aux voitures. À pied on y
+ *   marche (`voiePietonne`), en voiture non. Un itinéraire piéton ou raquette
+ *   (`hike`, `walk`) tracé sur une rue déneigée la laisse ouverte.
+ */
+export function voieRoutiere(tags: Readonly<Record<string, string>> | undefined): boolean {
+  if (!tags) return false;
+  const h = tags.highway;
+  if (!h || !VOIES_ROUTIERES.includes(h)) return false;
+  if (tags.area === "yes") return false;
+  const hiver = CLES_ACCES.map((k) => valeurDHiver(tags, k)).find((v) => v != null);
+  const acces = hiver ?? tags.motorcar ?? tags.motor_vehicle ?? tags.vehicle ?? tags.access;
+  if (acces && !acces.split(";").some((v) => VEHICULE_PERMIS.has(v.trim()))) return false;
+  if (tags.seasonal === "summer" || tags.seasonal === "yes" || tags.winter_road === "no") return false;
+  if (tags.winter_service === "no" || tags.snowplowing === "no") return false;
+  if (tags.service === "emergency_access") return false;
+  const piste = tags["piste:type"];
+  if (piste && piste.split(";").some((p) => PISTES_SANS_PIETON.has(p.trim()))) return false;
+  return true;
+}
+
+/** Le sens unique d'une voie, l'hiver : 1 dans l'ordre de ses nœuds, -1 à
+ *  rebours, 0 dans les deux sens. Le sens d'hiver (`oneway:conditional=-1 @
+ *  winter`) l'emporte ; un rond-point est à sens unique. */
+export function sensVoie(tags: Readonly<Record<string, string>> | undefined): -1 | 0 | 1 {
+  const o = (tags && valeurDHiver(tags, "oneway")) ?? tags?.oneway;
+  if (o === "yes" || o === "1" || o === "true") return 1;
+  if (o === "-1" || o === "reverse") return -1;
+  if (o === "no") return 0;
+  if (tags?.junction === "roundabout" || tags?.junction === "circular") return 1;
+  return 0;
+}
+
 /* ---------- Construction : l'emprise et la requête ---------- */
 
 export type Emprise = { s: number; o: number; n: number; e: number };
@@ -194,12 +335,13 @@ export function empriseAutour(points: readonly { lat: number; lon: number }[], m
   };
 }
 
-/** La requête Overpass : les voies des types retenus dans les emprises (une
- *  par repère, la station et chacun de ses villages : leur union coûte moins
- *  que le rectangle qui les englobe), et leurs nœuds. Le tri fin
- *  (`voiePietonne`) se fait ici, pas chez Overpass : il se teste sans réseau. */
+/** La requête Overpass : les voies des types retenus, à pied ou en voiture,
+ *  dans les emprises (une par repère, la station et chacun de ses villages :
+ *  leur union coûte moins que le rectangle qui les englobe), et leurs nœuds.
+ *  Une seule réponse sert aux deux réseaux. Le tri fin (`voiePietonne`,
+ *  `voieRoutiere`) se fait ici, pas chez Overpass : il se teste sans réseau. */
 export function requeteOverpass(emprises: readonly Emprise[], timeoutS = 180): string {
-  const types = VOIES_PIETONNES.join("|");
+  const types = [...new Set([...VOIES_PIETONNES, ...VOIES_ROUTIERES])].join("|");
   const voies = emprises.map((b) => `way["highway"~"^(${types})$"](${b.s},${b.o},${b.n},${b.e});`).join("");
   return `[out:json][timeout:${timeoutS}];(${voies});(._;>;);out body qt;`;
 }
@@ -299,6 +441,15 @@ export type FichierReseau = {
   /** Les voies : suites d'indices de nœuds, deux nœuds voisins étant reliés. */
   w: number[][];
   g: GareFichier[];
+  /** Absent : à pied. */
+  mode?: ModeReseau;
+  /** En voiture : les indices (dans `w`) des voies à sens unique, qu'on ne
+   *  parcourt que dans l'ordre de leurs nœuds. */
+  s?: number[];
+  /** En voiture : les indices (dans `w`) des liens droits gare-route. Ils
+   *  finissent un trajet, à pied, mais un logement ne s'y accroche pas :
+   *  ce ne sont pas des routes. */
+  l?: number[];
 };
 
 export type BilanReseau = {
@@ -354,6 +505,13 @@ const quant = (v: number) => Math.round(v * QUANTUM);
  *    relié à lui en ligne droite (le parvis, le front de neige).
  * 3. Les morceaux du réseau qui ne portent aucune gare sont retirés : un
  *    logement qui s'y raccrocherait ne rejoindrait aucune remontée.
+ *
+ * En voiture (`mode: "voiture"`) : les voies de `voieRoutiere`, et les sens
+ * uniques gardés (une voie `oneway=-1` est retournée, pour que tout sens
+ * unique se lise dans l'ordre de ses nœuds). Une gare se branche sur le
+ * tronçon le plus proche de chaque morceau du réseau routier à sa portée.
+ * Le lien de la route à la gare se fait à pied, dans les deux sens ; il est
+ * noté (`l`), pour qu'aucun logement ne s'y accroche.
  */
 export function construireReseau(o: {
   elements: readonly ElementOverpass[];
@@ -362,9 +520,11 @@ export function construireReseau(o: {
   nom: string;
   le: string;
   source: string;
+  mode?: ModeReseau;
   toleranceM?: number;
   gareMaxM?: number;
 }): { fichier: FichierReseau; bilan: BilanReseau } {
+  const mode = o.mode ?? "pied";
   const toleranceM = o.toleranceM ?? TOLERANCE_M;
   const gareMaxM = o.gareMaxM ?? GARE_MAX_M;
   const coords = new Map<number, [number, number]>();
@@ -372,10 +532,16 @@ export function construireReseau(o: {
     if (el.type === "node" && el.lat != null && el.lon != null) coords.set(el.id, [el.lat, el.lon]);
   }
   const voies = o.elements.filter((el) => el.type === "way");
-  const retenues = voies
-    .filter((w) => voiePietonne(w.tags))
-    .map((w) => (w.nodes ?? []).filter((id) => coords.has(id)))
-    .filter((ids) => ids.length >= 2);
+  const garder = mode === "voiture" ? voieRoutiere : voiePietonne;
+  const retenuesSens = voies
+    .filter((w) => garder(w.tags))
+    .map((w) => {
+      const ids = (w.nodes ?? []).filter((id) => coords.has(id));
+      const sens = mode === "voiture" ? sensVoie(w.tags) : 0;
+      return { ids: sens === -1 ? ids.reverse() : ids, unique: sens !== 0 };
+    })
+    .filter((v) => v.ids.length >= 2);
+  const retenues = retenuesSens.map((v) => v.ids);
 
   // Les carrefours : bouts de voie, et nœuds vus plus d'une fois.
   const vus = new Map<number, number>();
@@ -402,7 +568,12 @@ export function construireReseau(o: {
     return i;
   };
   const chaines: number[][] = [];
-  for (const ids of retenues) {
+  /** `true` : la chaîne de même rang est à sens unique. */
+  const uniques: boolean[] = [];
+  /** `true` : la chaîne de même rang est le lien droit d'une gare à la voie
+   *  (le parvis, le parking). */
+  const liens: boolean[] = [];
+  for (const { ids, unique } of retenuesSens) {
     const chaine: number[] = [];
     let debut = 0;
     for (let k = 1; k < ids.length; k++) {
@@ -418,10 +589,35 @@ export function construireReseau(o: {
       }
       debut = k;
     }
-    if (chaine.length >= 2) chaines.push(chaine);
+    if (chaine.length >= 2) {
+      chaines.push(chaine);
+      uniques.push(unique);
+      liens.push(false);
+    }
   }
 
-  // Les gares, branchées une à une sur le tronçon le plus proche.
+  // En voiture, les morceaux du réseau routier : une route damée ou fermée
+  // l'hiver coupe souvent le parking du front de neige de la route du
+  // village. Une gare se branche alors sur chacun des morceaux à sa portée,
+  // pas seulement sur le plus proche, que l'on retirerait sinon avec la route
+  // du village.
+  const nbVoies = chaines.length;
+  const morceauDe: number[] = [];
+  if (mode === "voiture") {
+    const pere = Array.from({ length: lat.length }, (_, i) => i);
+    const chef = (i: number): number => {
+      while (pere[i] !== i) {
+        pere[i] = pere[pere[i]];
+        i = pere[i];
+      }
+      return i;
+    };
+    for (const ch of chaines) for (let k = 1; k < ch.length; k++) pere[chef(ch[k])] = chef(ch[0]);
+    for (const ch of chaines) morceauDe.push(chef(ch[0]));
+  }
+
+  // Les gares, branchées sur le tronçon le plus proche (en voiture : de
+  // chaque morceau), par un lien droit.
   const gares: GareFichier[] = [];
   const dejaVues = new Set<string>();
   let nonBranchees = 0;
@@ -429,39 +625,55 @@ export function construireReseau(o: {
     const cle = `${g.n}|${g.k}|${g.lat}|${g.lon}`;
     if (dejaVues.has(cle)) continue;
     dejaVues.add(cle);
-    let meilleur: { c: number; k: number; d: number; t: number } | null = null;
-    for (let c = 0; c < chaines.length; c++) {
+    // À pied, les liens des gares déjà branchées comptent comme des voies (le
+    // parvis) ; en voiture, seules les routes.
+    const limite = mode === "voiture" ? nbVoies : chaines.length;
+    const meilleurs = new Map<number, { c: number; k: number; d: number; t: number }>();
+    for (let c = 0; c < limite; c++) {
       const ch = chaines[c];
+      const m = mode === "voiture" ? morceauDe[c] : 0;
       for (let k = 0; k + 1 < ch.length; k++) {
         const p = projeter(g.lat, g.lon, lat[ch[k]], lon[ch[k]], lat[ch[k + 1]], lon[ch[k + 1]]);
-        if (!meilleur || p.d < meilleur.d) meilleur = { c, k, d: p.d, t: p.t };
+        const best = meilleurs.get(m);
+        if (!best || p.d < best.d) meilleurs.set(m, { c, k, d: p.d, t: p.t });
       }
     }
-    if (!meilleur || meilleur.d > gareMaxM) {
+    const choisis = [...meilleurs.values()].filter((x) => x.d <= gareMaxM).sort((x, y) => x.d - y.d);
+    if (!choisis.length) {
       nonBranchees++;
       continue;
     }
-    const ch = chaines[meilleur.c];
-    const a = ch[meilleur.k];
-    const b = ch[meilleur.k + 1];
-    const pLat = lat[a] + meilleur.t * (lat[b] - lat[a]);
-    const pLon = lon[a] + meilleur.t * (lon[b] - lon[a]);
-    // Le point projeté : un bout du tronçon s'il en est à moins d'un mètre.
-    let p: number;
-    if (metres(pLat, pLon, lat[a], lon[a]) < 1) p = a;
-    else if (metres(pLat, pLon, lat[b], lon[b]) < 1) p = b;
-    else {
-      p = lat.length;
-      lat.push(pLat);
-      lon.push(pLon);
-      ch.splice(meilleur.k + 1, 0, p);
-    }
-    let i = p;
-    if (meilleur.d >= 1) {
-      i = lat.length;
-      lat.push(g.lat);
-      lon.push(g.lon);
-      chaines.push([i, p]);
+    let i = -1;
+    for (const meilleur of choisis) {
+      const ch = chaines[meilleur.c];
+      const a = ch[meilleur.k];
+      const b = ch[meilleur.k + 1];
+      const pLat = lat[a] + meilleur.t * (lat[b] - lat[a]);
+      const pLon = lon[a] + meilleur.t * (lon[b] - lon[a]);
+      // Le point projeté : un bout du tronçon s'il en est à moins d'un mètre.
+      let p: number;
+      if (metres(pLat, pLon, lat[a], lon[a]) < 1) p = a;
+      else if (metres(pLat, pLon, lat[b], lon[b]) < 1) p = b;
+      else {
+        p = lat.length;
+        lat.push(pLat);
+        lon.push(pLon);
+        ch.splice(meilleur.k + 1, 0, p);
+      }
+      const lier = (x: number, y: number) => {
+        chaines.push([x, y]);
+        uniques.push(false);
+        liens.push(true);
+      };
+      if (i < 0) {
+        i = p;
+        if (meilleur.d >= 1) {
+          i = lat.length;
+          lat.push(g.lat);
+          lon.push(g.lon);
+          lier(i, p);
+        }
+      } else if (p !== i) lier(i, p);
     }
     gares.push({ ...g, i });
   }
@@ -479,7 +691,10 @@ export function construireReseau(o: {
   const avecGare = new Set(gares.map((g) => racine(g.i)));
   const morceaux = new Set<number>();
   for (const ch of chaines) morceaux.add(racine(ch[0]));
-  const gardees = chaines.filter((ch) => avecGare.has(racine(ch[0])));
+  const gardees: number[] = [];
+  chaines.forEach((ch, k) => {
+    if (avecGare.has(racine(ch[0]))) gardees.push(k);
+  });
 
   // Renumérotation dans l'ordre des voies gardées : les écarts restent petits.
   const neuf = new Map<number, number>();
@@ -499,11 +714,19 @@ export function construireReseau(o: {
     }
     return j;
   };
-  const w = gardees.map((ch) => ch.map(renumeroter));
+  const w = gardees.map((k) => chaines[k].map(renumeroter));
   const g = gares.map((x) => ({ ...x, i: renumeroter(x.i) }));
+  const sens =
+    mode === "voiture"
+      ? {
+          mode,
+          s: gardees.flatMap((k, j) => (uniques[k] ? [j] : [])),
+          l: gardees.flatMap((k, j) => (liens[k] ? [j] : [])),
+        }
+      : {};
 
   return {
-    fichier: { v: 1, station: o.station, nom: o.nom, le: o.le, source: o.source, n, w, g },
+    fichier: { v: 1, station: o.station, nom: o.nom, le: o.le, source: o.source, n, w, g, ...sens },
     bilan: {
       voiesLues: voies.length,
       voiesRetenues: retenues.length,
@@ -522,13 +745,16 @@ export type Reseau = {
   station: string;
   lat: Float64Array;
   lon: Float64Array;
-  /** Voisins en liste compacte : ceux du nœud `i` sont `cible[debut[i]..debut[i+1]]`. */
+  /** Voisins en liste compacte : ceux d'où l'on rejoint le nœud `i` sont
+   *  `cible[debut[i]..debut[i+1]]` (à pied, tous ses voisins). */
   debut: Int32Array;
   cible: Int32Array;
   longueur: Float64Array;
   /** Les tronçons, deux nœuds chacun, et leur longueur. */
   troncons: Int32Array;
   longueurTroncon: Float64Array;
+  /** 1 : le tronçon ne se parcourt que de son premier nœud au second. */
+  sensUnique: Uint8Array;
   gares: readonly GareFichier[];
   /** Grille d'accroche : case → tronçons qui la traversent. */
   grille: Map<number, number[]>;
@@ -558,38 +784,52 @@ export function lireReseau(f: FichierReseau): Reseau {
     lat[i] = y / QUANTUM;
   }
   const paires: number[] = [];
-  for (const ch of f.w) {
+  const sens: number[] = [];
+  const horsGrille: number[] = [];
+  const uniques = new Set(Array.isArray(f.s) ? f.s : []);
+  const liensGare = new Set(Array.isArray(f.l) ? f.l : []);
+  f.w.forEach((ch, c) => {
     for (let k = 1; k < ch.length; k++) {
       const a = ch[k - 1];
       const b = ch[k];
-      if (a !== b && a >= 0 && b >= 0 && a < nb && b < nb) paires.push(a, b);
+      if (a !== b && a >= 0 && b >= 0 && a < nb && b < nb) {
+        paires.push(a, b);
+        sens.push(uniques.has(c) ? 1 : 0);
+        horsGrille.push(liensGare.has(c) ? 1 : 0);
+      }
     }
-  }
+  });
   const nt = paires.length / 2;
   const troncons = Int32Array.from(paires);
+  const sensUnique = Uint8Array.from(sens);
   const longueurTroncon = new Float64Array(nt);
+  // Le champ part des gares et remonte les tronçons : on note, pour chaque
+  // nœud, les voisins d'où on y arrive. Un sens unique de a vers b mène à b
+  // depuis a, pas l'inverse.
   const degre = new Int32Array(nb + 1);
   for (let t = 0; t < nt; t++) {
     const a = troncons[2 * t];
     const b = troncons[2 * t + 1];
     longueurTroncon[t] = metres(lat[a], lon[a], lat[b], lon[b]);
-    degre[a + 1]++;
     degre[b + 1]++;
+    if (!sensUnique[t]) degre[a + 1]++;
   }
   const debut = new Int32Array(nb + 1);
   for (let i = 0; i < nb; i++) debut[i + 1] = debut[i] + degre[i + 1];
-  const cible = new Int32Array(2 * nt);
-  const longueur = new Float64Array(2 * nt);
+  const cible = new Int32Array(debut[nb]);
+  const longueur = new Float64Array(debut[nb]);
   const pos = debut.slice(0, nb);
   for (let t = 0; t < nt; t++) {
     const a = troncons[2 * t];
     const b = troncons[2 * t + 1];
-    cible[pos[a]] = b;
-    longueur[pos[a]++] = longueurTroncon[t];
     cible[pos[b]] = a;
     longueur[pos[b]++] = longueurTroncon[t];
+    if (sensUnique[t]) continue;
+    cible[pos[a]] = b;
+    longueur[pos[a]++] = longueurTroncon[t];
   }
-  // La grille : chaque tronçon dans les cases de son emprise.
+  // La grille : chaque tronçon dans les cases de son emprise. Les liens
+  // gare-route d'un réseau routier n'y sont pas : on ne s'y accroche pas.
   let latMoy = 0;
   for (let i = 0; i < nb; i++) latMoy += lat[i];
   const e = echelle(nb ? latMoy / nb : 45);
@@ -597,6 +837,7 @@ export function lireReseau(f: FichierReseau): Reseau {
   const pasLon = CASE_M / e.x;
   const grille = new Map<number, number[]>();
   for (let t = 0; t < nt; t++) {
+    if (horsGrille[t]) continue;
     const a = troncons[2 * t];
     const b = troncons[2 * t + 1];
     const y0 = Math.floor(Math.min(lat[a], lat[b]) / pasLat);
@@ -613,7 +854,21 @@ export function lireReseau(f: FichierReseau): Reseau {
     }
   }
   const gares = f.g.filter((g) => Number.isInteger(g.i) && g.i >= 0 && g.i < nb);
-  return { station: f.station, lat, lon, debut, cible, longueur, troncons, longueurTroncon, gares, grille, pasLat, pasLon };
+  return {
+    station: f.station,
+    lat,
+    lon,
+    debut,
+    cible,
+    longueur,
+    troncons,
+    longueurTroncon,
+    sensUnique,
+    gares,
+    grille,
+    pasLat,
+    pasLon,
+  };
 }
 
 /* ---------- Lecture : le champ de distances ---------- */
@@ -726,6 +981,9 @@ export type MarcheVersGare = {
  * voie jusqu'à l'un de ses deux nœuds, puis le champ. Jamais moins que la
  * distance à vol d'oiseau jusqu'à la même gare : l'arrondi des coordonnées
  * ne fait pas passer un chemin sous la ligne droite.
+ *
+ * Sur un réseau routier (`mode: "voiture"`), c'est le trajet en voiture :
+ * même calcul, sens uniques respectés.
  */
 export function marcheVersGare(r: Reseau, c: Champ, lat: number, lon: number): MarcheVersGare | null {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
@@ -755,6 +1013,10 @@ export function marcheVersGare(r: Reseau, c: Champ, lat: number, lon: number): M
         const b = r.troncons[2 * t + 1];
         const p = projeter(lat, lon, r.lat[a], r.lon[a], r.lat[b], r.lon[b]);
         if (p.d > ACCROCHE_MAX_M) continue;
+        // Un tronçon sans issue (une impasse à sens unique) ne mène à aucune
+        // gare : il ne doit pas écarter, par la marge, la route d'à côté.
+        const issue = (!r.sensUnique[t] && Number.isFinite(c.dist[a])) || Number.isFinite(c.dist[b]);
+        if (!issue) continue;
         proches.push({ t, d: p.d, tt: p.t });
         if (p.d < plusPres) plusPres = p.d;
       }
@@ -765,7 +1027,8 @@ export function marcheVersGare(r: Reseau, c: Champ, lat: number, lon: number): M
     const a = r.troncons[2 * p.t];
     const b = r.troncons[2 * p.t + 1];
     const L = r.longueurTroncon[p.t];
-    const parA = p.d + p.tt * L + c.dist[a];
+    // Un sens unique ne se remonte pas : de l'accroche, on ne va que vers b.
+    const parA = r.sensUnique[p.t] ? Infinity : p.d + p.tt * L + c.dist[a];
     const parB = p.d + (1 - p.tt) * L + c.dist[b];
     const [m, n] = parA <= parB ? [parA, a] : [parB, b];
     if (!Number.isFinite(m) || c.gare[n] < 0) continue;

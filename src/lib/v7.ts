@@ -19,7 +19,7 @@ import { SKIINFO } from "./skiinfo.ts";
 import type { Station } from "./stations.ts";
 import { availabilityOf, type Stay } from "./stay/availability.ts";
 import { chambresDesPieces } from "./stay/logement.ts";
-import { viaDistance, type ViaDistance } from "./stay/aPied.ts";
+import { trajetVoiture, viaDistance, type AccesEnVoiture, type ViaDistance } from "./stay/aPied.ts";
 
 /* ---------- Station ---------- */
 
@@ -163,9 +163,15 @@ export const DIST_MSG: Record<Exclude<DistKind, "measured">, string> = {
  * `pieton` quand c'est une marche sur le réseau de la station
  * (`stay/aPied.ts`), `vol` quand c'est la ligne droite d'`attachAccess`. Le
  * texte le dit dans les deux cas : un chiffre à vol d'oiseau ne passe pas
- * pour une marche.
+ * pour une marche. `voiture` : le trajet se fait en voiture, la marche étant
+ * longue (`stay/aPied.ts`) ; le texte dit alors la route, et la marche.
  */
-export function distanceOf(l: Listing): { kind: DistKind; text: string; via?: ViaDistance } {
+export function distanceOf(l: Listing): {
+  kind: DistKind;
+  text: string;
+  via?: ViaDistance;
+  voiture?: AccesEnVoiture;
+} {
   if (l.domainFit === "other") return { kind: "other_domain", text: tr(DIST_MSG.other_domain) };
   if (l.lat == null || l.lon == null) return { kind: "no_coords", text: tr(DIST_MSG.no_coords) };
   // Un point triangulé (`placerSansPoint`) place l'annonce sur la carte et
@@ -175,6 +181,21 @@ export function distanceOf(l: Listing): { kind: DistKind; text: string; via?: Vi
   if (l.distToLiftM != null) {
     const via = viaDistance(l);
     const vars = { distance: mLbl(l.distToLiftM) ?? "", remontee: l.liftName ?? tr("la remontée") };
+    const voiture = trajetVoiture(l);
+    if (voiture) {
+      const marche = via === "pieton" ? tr("{distance} à pied", vars) : tr("{distance} à vol d’oiseau", vars);
+      return {
+        kind: "measured",
+        via,
+        voiture,
+        text: tr("{distance} en voiture jusqu’à {remontee}, {minutes} min ({marche})", {
+          distance: mLbl(voiture.m) ?? "",
+          remontee: voiture.liftName ?? tr("la remontée"),
+          minutes: voiture.minutes,
+          marche,
+        }),
+      };
+    }
     return {
       kind: "measured",
       via,

@@ -17,7 +17,7 @@ import type { Listing } from "@/lib/listings";
 import { fmt, nuitsLbl } from "@/lib/parcours";
 import { galerieOf } from "@/lib/stay/completude";
 import { noteSur5De } from "@/lib/stay/ficheEnrichie";
-import { viaDistance } from "@/lib/stay/aPied";
+import { trajetVoiture, viaDistance } from "@/lib/stay/aPied";
 import { distRemonteePublieeM } from "@/lib/stay/situer";
 import { bedLbl, capLbl, distanceOf, NON_RENSEIGNE, prixLbl } from "@/lib/v7";
 
@@ -109,13 +109,16 @@ export const CarteLogement = memo(function CarteLogement({
   // La distance comme la maquette : « 1 600 m à pied des remontées », « Ski
   // aux pieds » jusqu'à 50 m de marche, « Distance non mesurée » sans mesure
   // publiée. Sans réseau piéton pour la station, la ligne droite le dit
-  // (« à vol d'oiseau ») et ne vaut jamais « Ski aux pieds ». Un logement
-  // d'un autre domaine le dit.
+  // (« à vol d'oiseau ») et ne vaut jamais « Ski aux pieds ». Quand la
+  // marche est plus longue que la route, les minutes en voiture suivent
+  // (`stay/aPied.ts`) ; la marche reste en tête : c'est elle qui trie et
+  // filtre. Un logement d'un autre domaine le dit.
   const d = distanceOf(l);
   const m = distRemonteePublieeM(l);
   const aPied = viaDistance(l) === "pieton";
+  const voiture = trajetVoiture(l);
   const metresLbl = m == null ? "" : `${fmt(Math.round(m))} m`;
-  const dist =
+  const marche =
     d.kind === "other_domain"
       ? d.text
       : m == null
@@ -125,6 +128,10 @@ export const CarteLogement = memo(function CarteLogement({
           : m <= 50
             ? tr("Ski aux pieds")
             : tr("{distance} à pied des remontées", { distance: metresLbl });
+  const dist =
+    voiture && d.kind === "measured"
+      ? `${marche} · ${tr("{minutes} min en voiture", { minutes: voiture.minutes })}`
+      : marche;
   const ecart = altVillage != null && altitude ? altVillage - altitude.m : null;
   const sousVillage = ecart != null && ecart >= ECART_VILLAGE_M ? Math.round(ecart / 50) * 50 : null;
   const l2 =

@@ -36,6 +36,16 @@ Rien n’est inventé.
 Les écrans : accueil des domaines, fiche station, logements, comparateur,
 forfaits, traces GPX.
 
+## Application Windows
+
+`SKITRACK-<version>-x64.exe` installe l'application de bureau, complète :
+Python, navigateur et tuiles de la carte sont embarqués, rien d'autre n'est à
+installer. Pour fabriquer l'installateur (`npm run release:win`) et savoir ce
+qu'il contient : [docs/INSTALLATEUR-WINDOWS.md](docs/INSTALLATEUR-WINDOWS.md).
+
+Pour développer : Node 24 (22.12 au minimum), puis `SKITRACK.bat` ou
+`npm run electron`.
+
 ## Licences
 
 Données de domaines dérivées d’**OpenStreetMap** via **OpenSkiMap**, licence

@@ -6,11 +6,16 @@ directories:
 files:
   - desktop/**/*
   - package.json
+  # desktop/main.mjs n'importe qu'electron et des modules node: ; le serveur a
+  # ses propres modules, tracés par Nitro dans .output/server/node_modules.
+  # Sans cette exclusion, electron-builder ajoute toutes les dependencies du
+  # package.json à app.asar (plus de 200 Mo jamais chargés).
+  - "!node_modules/**/*"
 extraResources:
   - from: .output
     to: output
-  # Les workers de relevé Airbnb et Booking, là où le serveur les cherche
-  # (`process.cwd()/scrape/…`, son dossier de travail étant `output`).
+  # Les workers de relevé Airbnb, Booking et HomeToGo, là où le serveur les
+  # cherche (`process.cwd()/scrape/…`, son dossier de travail étant `output`).
   - from: scrape/airbnb
     to: output/scrape/airbnb
     filter:
@@ -24,10 +29,25 @@ extraResources:
       - "!**/__pycache__/**"
       - "!**/test_*.py"
       - "!Dockerfile"
+  - from: scrape/hometogo
+    to: output/scrape/hometogo
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+      - "!**/test_*.py"
   # Le Python qui les fait tourner, avec leurs dépendances
   # (`node scripts/preparer-python-embarque.mjs`).
   - from: build/python
     to: python
+  # Le navigateur de Playwright (CozyCozy, Gîtes de France, replis Booking et
+  # HomeToGo), à la révision du playwright-core tracé
+  # (`node scripts/preparer-navigateur.mjs`).
+  - from: build/ms-playwright
+    to: ms-playwright
+    filter:
+      - "**/*"
+      # Chemin absolu du poste de fabrication, utile au seul `playwright install`.
+      - "!.links{,/**}"
   # Les tuiles de la carte des pistes (135 Mo), hors du dossier public : le
   # serveur statique de Nitro ignore `Range`, c'est le middleware
   # `server/middleware/pmtiles-plages.ts` qui les sert, par tranches.

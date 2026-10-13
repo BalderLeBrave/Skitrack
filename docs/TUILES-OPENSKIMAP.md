@@ -82,3 +82,18 @@ production, deux voies :
 
 Sans le fichier, la carte se dessine sans pistes et la console dit pourquoi ;
 rien d'autre ne casse.
+
+## Installateur Windows
+
+L'application de bureau embarque les tuiles dans `build/carte/` (ignoré par
+git), d'où `electron-builder.yml` les copie à côté du serveur, et non dans
+son dossier public. Pour les bâtir directement là :
+
+```bash
+npm run tuiles:batir -- travail build/carte/openskimap-europe.pmtiles
+```
+
+Si `build/carte` est vide, ou plus ancien que `public/carte` (le
+développement), `scripts/release-win.mjs` le copie, puis met celui de
+`public/carte` de côté le temps de `vite build`. Voir
+[INSTALLATEUR-WINDOWS.md](INSTALLATEUR-WINDOWS.md).

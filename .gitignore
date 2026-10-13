@@ -63,8 +63,13 @@ travail/*
 # Python embarqué dans l'installateur Windows (scripts/preparer-python-embarque.mjs).
 build/python/
 build/python-cache/
-# Tuiles de la carte, copiées pour l'installateur (scripts/release-win.mjs).
+# Navigateur de Playwright embarqué dans l'installateur (scripts/preparer-navigateur.mjs).
+build/ms-playwright/
+# Tuiles de la carte pour l'installateur : bâties là, ou copiées depuis
+# public/carte par scripts/release-win.mjs, qui y met aussi de côté celles de
+# public/carte le temps de vite build.
 build/carte/
+build/.public-carte-*
 .env.*
 *.env
 credentials.json

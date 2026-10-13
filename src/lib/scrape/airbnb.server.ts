@@ -375,7 +375,9 @@ function parseDeferred(text: string | null, input: LiveSearchInput): Listing[] {
 
 function cliPath(): string | null {
   for (const candidate of [
-    "/workspace/scrape/airbnb/cli.py",
+    // Le bac à sable Grok. Pas sous Windows : « /workspace » y serait
+    // C:\workspace, où tout compte peut déposer un script que l'app lancerait.
+    ...(process.platform === "linux" ? ["/workspace/scrape/airbnb/cli.py"] : []),
     join(process.cwd(), "scrape/airbnb/cli.py"),
     join(HERE, "../../../../scrape/airbnb/cli.py"),
     join(HERE, "../../../../../scrape/airbnb/cli.py"),

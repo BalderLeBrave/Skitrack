@@ -51,8 +51,8 @@
  */
 
 import { createHash } from "node:crypto";
-import { closeSync, openSync, readFileSync, readSync, unlinkSync, writeFileSync, writeSync } from "node:fs";
-import { resolve } from "node:path";
+import { closeSync, mkdirSync, openSync, readFileSync, readSync, unlinkSync, writeFileSync, writeSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { gunzipSync, gzipSync } from "node:zlib";
 import geojsonvt from "geojson-vt";
 import vtpbf from "vt-pbf";
@@ -366,6 +366,8 @@ function empreinte(id: unknown): number {
 
 async function main(): Promise<void> {
   const t0 = Date.now();
+  // build/carte (l'installateur Windows) n'existe pas dans un clone neuf.
+  mkdirSync(dirname(SORTIE), { recursive: true });
   const domaines = lire("ski_areas", formaterDomaine);
   const remontees = lire("lifts", formaterRemontee);
   const pistes = lire("runs", formaterPiste);

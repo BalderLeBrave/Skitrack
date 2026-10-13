@@ -67,6 +67,10 @@ export default async function grokPwaMiddleware(
   event: GrokPwaEvent,
   next: () => unknown | Promise<unknown>,
 ): Promise<unknown> {
+  // L'application installée n'a que faire du manifeste PWA, des balises OG ni
+  // du script de la plateforme Grok, chargé depuis grok.com et exécuté dans
+  // son origine (desktop/main.mjs pose SKITRACK_DESKTOP).
+  if (process.env.SKITRACK_DESKTOP === "1") return next();
   const method = (event.req.method ?? "GET").toUpperCase();
   if (method !== "GET") return next();
 

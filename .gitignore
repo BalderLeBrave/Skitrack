@@ -55,7 +55,10 @@ scrape/.venv/
 app.log
 
 # Dossiers de travail des relevés (docs/WEBCAMS.md, docs/PISTES-DETAIL.md).
-travail/
+# Sauf les voies OSM de chaque station (scripts/build-reseau-pieton.mjs) :
+# versionnées, elles redonnent public/reseau-* sans réseau ni extraits.
+travail/*
+!travail/reseau-pieton/
 
 # Python embarqué dans l'installateur Windows (scripts/preparer-python-embarque.mjs).
 build/python/

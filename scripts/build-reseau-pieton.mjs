@@ -36,8 +36,9 @@
  * station, `osmAccess.snapshot.json`, et l'index national, `osmLifts.json`, à
  * 3 km au plus d'un repère, remontées hors service retirées), puis une requête
  * Overpass des voies piétonnes autour de chaque repère et de ses gares, 1 km
- * de marge. La réponse brute est gardée dans `travail/reseau-pieton/` (hors
- * Git) : une seconde passe ne redemande rien. Le tri des voies, la
+ * de marge. La réponse brute est gardée dans `travail/reseau-pieton/`
+ * (versionné, contrairement au reste de `travail/`) : une seconde passe ne
+ * redemande rien. Le tri des voies, la
  * simplification et le branchement des gares sont dans
  * `src/lib/geo/reseauPieton.ts` (`construireReseau`), testés sans réseau.
  *

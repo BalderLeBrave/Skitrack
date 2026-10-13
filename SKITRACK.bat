@@ -5,7 +5,7 @@ title SKITRACK
 
 where node >nul 2>nul
 if errorlevel 1 (
-  echo Installe Node.js 20 depuis https://nodejs.org puis relance ce fichier.
+  echo Installe Node.js 24 ^(22.12 au minimum^) depuis https://nodejs.org puis relance ce fichier.
   pause
   exit /b 1
 )

@@ -48,7 +48,14 @@ echeance: float | None = None
 
 def _read_disk() -> dict:
     chemin = SESSION_PATH
-    if chemin == _SESSION_DEFAUT and chemin != ANCIEN_SESSION_PATH and not chemin.exists():
+    # Pas dans l'application installée (SKITRACK_DESKTOP) : chez un tiers, il n'y
+    # a rien à reprendre, et C:\tmp est ouvert en écriture à tous les comptes.
+    if (
+        chemin == _SESSION_DEFAUT
+        and chemin != ANCIEN_SESSION_PATH
+        and not chemin.exists()
+        and os.environ.get("SKITRACK_DESKTOP") != "1"
+    ):
         chemin = ANCIEN_SESSION_PATH
     try:
         raw = json.loads(chemin.read_text(encoding="utf-8"))

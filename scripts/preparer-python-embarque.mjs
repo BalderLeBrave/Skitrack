@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Le Python que l'installateur Windows embarque pour les workers de relevé
- * (`scrape/airbnb`, `scrape/booking`) : la distribution « embeddable » de
+ * (`scrape/airbnb`, `scrape/booking`, `scrape/hometogo`) : la distribution « embeddable » de
  * python.org, et les dépendances des workers installées à côté.
  *
  *   node scripts/preparer-python-embarque.mjs

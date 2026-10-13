@@ -18,7 +18,9 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 
 function cliPath(): string | null {
   for (const candidate of [
-    "/workspace/scrape/booking/cli.py",
+    // Le bac à sable Grok. Pas sous Windows : « /workspace » y serait
+    // C:\workspace, où tout compte peut déposer un script que l'app lancerait.
+    ...(process.platform === "linux" ? ["/workspace/scrape/booking/cli.py"] : []),
     join(process.cwd(), "scrape/booking/cli.py"),
     join(HERE, "../../../../scrape/booking/cli.py"),
   ]) {

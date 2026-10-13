@@ -1,6 +1,6 @@
 {
   "name": "skitrack",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Comparer un séjour ski par domaine skiable et par altitude réelle",
   "author": "Adrien RAFFRAY",
   "private": true,
@@ -16,8 +16,9 @@
     "electron": "node scripts/electron-dev.mjs",
     "electron:dev": "node scripts/electron-dev.mjs",
     "build": "node scripts/with-app-env.mjs vite build && npm run db:migrate",
-    "dist:win": "electron-builder --win",
-    "release:win": "node scripts/preparer-python-embarque.mjs && node scripts/release-win.mjs",
+    "dist:win": "npm run release:win",
+    "release:win": "node scripts/preparer-python-embarque.mjs && node scripts/preparer-navigateur.mjs && node scripts/release-win.mjs",
+    "release:publier": "node scripts/publier-release.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "catalogue:import": "node scripts/import-france-montagnes.mjs",
     "scrape:python": "node scripts/installer-python-scrape.mjs",
@@ -94,6 +95,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.0.0",
+    "electron-updater": "6.8.9",
     "jose": "6.2.9",
     "kysely": "^0.28.5",
     "leaflet": "^1.9.4",
@@ -124,7 +126,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
-    "electron": "^39.8.10",
+    "electron": "44.7.0",
     "electron-builder": "^26.15.3",
     "eslint": "^9.20.0",
     "eslint-config-prettier": "^10.1.1",
@@ -145,6 +147,6 @@
     "vt-pbf": "^3.1.3"
   },
   "allowScripts": {
-    "electron@39.8.10": true
+    "electron@44.7.0": true
   }
 }

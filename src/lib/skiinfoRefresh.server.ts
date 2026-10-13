@@ -57,6 +57,11 @@ async function fetchHtml(url: string): Promise<string> {
 }
 
 async function savePhoto(id: string, url: string): Promise<number | null> {
+  // Dans l'application installée, `public/stations` relatif au dossier de
+  // travail est le dossier public du serveur bâti : Nitro y sert chaque photo
+  // d'après la taille et l'empreinte relevées au build, une photo réécrite
+  // partait tronquée ou refusée. La photo livrée reste donc en place.
+  if (process.env.SKITRACK_DESKTOP === "1") return null;
   if (!url.includes("cdn.bfldr.com") || url.includes("resort_header")) return null;
   let u: URL;
   try {

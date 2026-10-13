@@ -26,10 +26,18 @@ async function stripWeight(ctx: BrowserContext): Promise<void> {
   });
 }
 
+/**
+ * Le bac à sable de Chromium, sauf sous Linux : en conteneur ou en root (bac à
+ * sable Grok, Docker), Chromium n'y démarre pas avec. Sous Windows, le
+ * navigateur embarqué par l'installateur exécute le JavaScript de sites tiers
+ * (CozyCozy, Gîtes de France…) sur le PC de l'utilisateur, et il n'est pas mis
+ * à jour entre deux versions de l'app : il ne doit pas tourner sans.
+ */
+const SANDBOX = process.platform !== "linux";
+
 const LAUNCH_ARGS = [
   "--disable-blink-features=AutomationControlled",
-  "--no-sandbox",
-  "--disable-setuid-sandbox",
+  ...(SANDBOX ? [] : ["--no-sandbox", "--disable-setuid-sandbox"]),
   "--disable-dev-shm-usage",
   "--disable-gpu",
   "--disable-extensions",
@@ -56,7 +64,7 @@ async function getBrowser(): Promise<Browser> {
   if (pooled?.isConnected()) return pooled;
   if (poolWait) return poolWait;
   poolWait = chromium
-    .launch({ headless: true, args: LAUNCH_ARGS })
+    .launch({ headless: true, chromiumSandbox: SANDBOX, args: LAUNCH_ARGS })
     .then((b) => {
       pooled = b;
       b.on("disconnected", () => {

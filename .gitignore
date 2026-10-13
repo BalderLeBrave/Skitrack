@@ -55,13 +55,21 @@ scrape/.venv/
 app.log
 
 # Dossiers de travail des relevés (docs/WEBCAMS.md, docs/PISTES-DETAIL.md).
-travail/
+# Sauf les voies OSM de chaque station (scripts/build-reseau-pieton.mjs) :
+# versionnées, elles redonnent public/reseau-* sans réseau ni extraits.
+travail/*
+!travail/reseau-pieton/
 
 # Python embarqué dans l'installateur Windows (scripts/preparer-python-embarque.mjs).
 build/python/
 build/python-cache/
-# Tuiles de la carte, copiées pour l'installateur (scripts/release-win.mjs).
+# Navigateur de Playwright embarqué dans l'installateur (scripts/preparer-navigateur.mjs).
+build/ms-playwright/
+# Tuiles de la carte pour l'installateur : bâties là, ou copiées depuis
+# public/carte par scripts/release-win.mjs, qui y met aussi de côté celles de
+# public/carte le temps de vite build.
 build/carte/
+build/.public-carte-*
 .env.*
 *.env
 credentials.json

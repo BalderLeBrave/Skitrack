@@ -22,7 +22,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Icon } from "@/components/Icon";
+import { IconeFiche } from "@/components/v7/IconesFiche";
 import { useEchap } from "@/components/v7/fermeture";
 import { aStation } from "@/lib/v7";
 import type { Webcam } from "@/lib/webcams";
@@ -79,7 +79,7 @@ function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
   }, [cam.url, cam.kind, paru, monte]);
 
   return (
-    <div ref={cadre} className={grand ? "webcam7 webcam7--grand" : "webcam7"}>
+    <div ref={cadre} className={grand ? "fs-flux fs-flux--grand" : "fs-flux"}>
       {!monte ? null : cam.kind === "image" ? (
         <img
           key={cam.url}
@@ -104,11 +104,11 @@ function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
         />
       )}
       {etat === "echec" ? (
-        <div className="webcam7__echec">
+        <div className="fs-flux__echec">
           <span>{tr("Le flux ne s’affiche pas ici.")}</span>
-          <a href={cam.url} target="_blank" rel="noopener" className="btn7 btn7--fantome">
+          <a href={cam.url} target="_blank" rel="noopener" className="fs-flux__lien">
             {tr("Ouvrir chez l’exploitant")}
-            <Icon name="externe" taille={12} />
+            <IconeFiche nom="externe" taille={11} />
           </a>
         </div>
       ) : null}
@@ -125,7 +125,7 @@ function situee(station: string): string {
  *  Brides-les-Bains montrait celle de Val Thorens sans le préciser. */
 function NoteDomaine({ cam }: { cam: Webcam }) {
   if (!cam.duDomaine || !cam.station) return null;
-  return <span className="carte7-sect__texte carte7-sect__texte--petit">{situee(cam.station)}</span>;
+  return <span className="fs-muet">{situee(cam.station)}</span>;
 }
 
 export function Webcams({ cams }: { cams: Webcam[] }) {
@@ -142,46 +142,46 @@ export function Webcams({ cams }: { cams: Webcam[] }) {
   }, []);
 
   return (
-    <section className="carte7-sect carte7-sect--serre">
-      <div className="carte7-sect__tete">
+    <section className="fs-carte">
+      <div className="fs-carte__tete">
         <h2>Webcams</h2>
-        {cams.length > 1 ? (
-          <span className="carte7-sect__texte carte7-sect__texte--petit">{trN(cams.length, "{n} caméra", "{n} caméras")}</span>
-        ) : null}
+        {cams.length > 1 ? <span>{trN(cams.length, "{n} caméra", "{n} caméras")}</span> : null}
       </div>
       {cam ? (
         <>
           {/* Le menu reste affiché même pour une seule caméra : il dit
               laquelle on regarde, au même endroit sur toutes les fiches. */}
-          <div className="webcam7__barre">
-            <select
-              className="select7 select7--champ"
-              value={cam.id}
-              onChange={(e) => setCamId(e.target.value)}
-              disabled={cams.length < 2}
-              aria-label={tr("Choisir une webcam")}
-            >
-              {cams.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <button ref={ouvrir} type="button" className="btn7 btn7--fantome" onClick={() => setGrand(true)}>
-              <Icon name="agrandir" taille={14} />
+          <div className="fs-cams__barre">
+            <label className="fs-cams__choix">
+              <select
+                value={cam.id}
+                onChange={(e) => setCamId(e.target.value)}
+                disabled={cams.length < 2}
+                aria-label={tr("Choisir une webcam")}
+              >
+                {cams.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <IconeFiche nom="chevron-bas" taille={12} />
+            </label>
+            <button ref={ouvrir} type="button" className="fs-bouton" onClick={() => setGrand(true)}>
+              <IconeFiche nom="agrandir" taille={14} />
               {tr("Agrandir")}
             </button>
           </div>
           <NoteDomaine cam={cam} />
           {/* En grand, le cadre de la fiche se démonte : deux lecteurs du même
               flux ne tournent pas en même temps. */}
-          {grand ? <div className="webcam7 webcam7--reserve" aria-hidden="true" /> : <Flux cam={cam} />}
+          {grand ? <div className="fs-flux" aria-hidden="true" /> : <Flux cam={cam} />}
           {grand ? (
             <WebcamEnGrand cams={cams} index={index} onIndex={(i) => setCamId(cams[i]!.id)} onFermer={fermer} />
           ) : null}
         </>
       ) : (
-        <p className="carte7-sect__texte carte7-sect__texte--petit">{tr("Aucune webcam connue pour cette station.")}</p>
+        <p className="fs-muet">{tr("Aucune webcam connue pour cette station.")}</p>
       )}
     </section>
   );
@@ -233,7 +233,7 @@ function WebcamEnGrand({
 
   return createPortal(
     <div
-      className="webcam7-grand"
+      className="fs-grand"
       role="dialog"
       aria-modal="true"
       aria-label={tr("Webcam : {camera}", { camera: cam.label })}
@@ -241,47 +241,47 @@ function WebcamEnGrand({
         if (e.target === e.currentTarget) onFermer();
       }}
     >
-      <div className="webcam7-grand__boite">
-        <div className="webcam7-grand__tete">
-          <div className="webcam7-grand__titre">
+      <div className="fs-grand__boite">
+        <div className="fs-grand__tete">
+          <div className="fs-grand__titre">
             <strong>{cam.label}</strong>
             {n > 1 ? (
               <span>{tr("{rang} sur {n}", { rang: index + 1, n })}</span>
             ) : null}
           </div>
-          <div className="webcam7-grand__actions">
+          <div className="fs-grand__actions">
             {n > 1 ? (
               <>
                 <button
                   type="button"
-                  className="webcam7-grand__bouton"
+                  className="fs-grand__bouton"
                   aria-label={tr("Caméra précédente")}
                   onClick={() => onIndex((index - 1 + n) % n)}
                 >
-                  <Icon name="chevron-gauche" taille={18} />
+                  <IconeFiche nom="chevron-gauche" taille={16} />
                 </button>
                 <button
                   type="button"
-                  className="webcam7-grand__bouton"
+                  className="fs-grand__bouton"
                   aria-label={tr("Caméra suivante")}
                   onClick={() => onIndex((index + 1) % n)}
                 >
-                  <Icon name="chevron-droite" taille={18} />
+                  <IconeFiche nom="chevron-droite" taille={16} />
                 </button>
               </>
             ) : null}
-            <a href={cam.url} target="_blank" rel="noopener" className="webcam7-grand__lien">
+            <a href={cam.url} target="_blank" rel="noopener" className="fs-grand__lien">
               {tr("Ouvrir chez l’exploitant")}
-              <Icon name="externe" taille={12} />
+              <IconeFiche nom="externe" taille={11} />
             </a>
-            <button ref={croix} type="button" className="webcam7-grand__bouton" aria-label={tr("Fermer")} onClick={onFermer}>
-              <Icon name="croix" taille={18} />
+            <button ref={croix} type="button" className="fs-grand__bouton" aria-label={tr("Fermer")} onClick={onFermer}>
+              <IconeFiche nom="croix" taille={16} />
             </button>
           </div>
         </div>
         <Flux cam={cam} grand />
         {cam.duDomaine && cam.station ? (
-          <p className="webcam7-grand__note">{situee(cam.station)}</p>
+          <p className="fs-grand__note">{situee(cam.station)}</p>
         ) : null}
       </div>
     </div>,

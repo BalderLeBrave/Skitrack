@@ -1,18 +1,18 @@
 /**
  * La coquille de page de SKITRACK : une seule, pour tous les écrans.
  *
- * Elle porte la barre de la maquette v7 (`V7Coquille.dc.html`) : la marque,
- * le parcours en pastille (Accueil, 1 Comparer, 2 Logements, 3 Réservation)
- * avec ses verrous, et à droite le lien « Prix », le thème, la langue et
- * « Plus ». Sur la fiche station et la réservation, un bouton de séjour résume
- * station, dates et groupe, et ouvre le panneau « Votre séjour » : deux mois
- * de calendrier et les compteurs.
+ * La barre du haut de la maquette Airbnb (Skitrack App.dc.html:17-45) :
+ * collante, 68 px, translucide et floutée. La marque mène à l'accueil ; les
+ * étapes 1 Comparer, 2 Logements, 3 Réservation gardent leurs verrous ; hors
+ * de l'accueil, une pilule centrale résume station, dates et voyageurs et
+ * ouvre « Modifier la recherche » (sous 1000 px, une pilule réduite : la
+ * station et la loupe). À droite : Prix, Favoris et leur compte, le menu
+ * Plus, la langue et le thème.
  *
  * La navigation retenue est `go()` : elle porte les verrous du parcours et
  * l'explication quand une étape n'est pas encore franchissable.
  *
- * Les écrans v7 (les cinq du parcours et « Prix ») défilent avec le document,
- * la barre reste collée en haut : c'est la mise en page de la maquette. Les
+ * Les écrans v7 défilent avec le document, la barre reste collée en haut. Les
  * écrans de contrôle (ceux de « Plus », `AILLEURS_PATHS`) gardent leur
  * coquille à hauteur fixe et leurs propres feuilles, sous la même barre.
  */
@@ -20,77 +20,79 @@
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AutoSync } from "./AutoSync";
-import { Icon } from "./Icon";
+import { ICONES, Trace } from "./maquette";
+import { FenetreRecherche } from "./recherche/FenetreRecherche";
 import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
 import { Toast } from "./v6/Toast";
-import { Calendrier } from "./v7/Calendrier";
-import { usePlage } from "./v7/plage";
-import { Compteur } from "./v7/Compteur";
 import { useFermeture } from "./v7/fermeture";
 import { useCriteresUrl } from "@/lib/criteres";
 import { tr, trN, useLocale, useT, type MsgId } from "@/lib/i18n";
-import {
-  arrivalLbl,
-  datesLbl,
-  departLbl,
-  groupLbl,
-  useParcours,
-  useSejour,
-} from "@/lib/parcours";
+import { dm, useParcours, useSejour } from "@/lib/parcours";
+import { voyageursLbl } from "./recherche/outils";
 import { stationsVoisines } from "@/lib/domaineStations";
 import { grandDomaineDe } from "@/lib/grandsDomaines";
 import { usePrix } from "@/lib/prix/releve";
 import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
-import { AGE_ENFANT, clampChildren } from "@/lib/stay/party";
+import { clampChildren } from "@/lib/stay/party";
 import { useTheme } from "@/lib/theme";
 import { nombreFavoris } from "@/lib/favoris/modele";
 import { useFavoris } from "@/lib/favoris/store";
 
-const PARCOURS: { go: Screen; step: number | null; label: MsgId }[] = [
-  { go: "home", step: null, label: "nav.home" },
+const PARCOURS: { go: Screen; step: number; label: MsgId }[] = [
   { go: "compare", step: 1, label: "nav.compare" },
   { go: "lodging", step: 2, label: "nav.lodging" },
   { go: "booking", step: 3, label: "nav.booking" },
 ];
 
+const LOUPE = "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM20 20l-3.5-3.5";
+const BARRES = "M4 20V10M10 20V4M16 20v-8M22 20H2";
+const COEUR =
+  "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z";
+const GLOBE = "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20";
+const SOLEIL =
+  "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4";
+const LUNE = "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z";
+const CHEVRON = "m6 9 6 6 6-6";
+
 /** Écrans hors parcours, rangés sous « Plus ». Les chemins viennent de
  *  `AILLEURS_PATHS` (`go.ts`), seule table de ces routes.
  *
- *  Deux groupes, parce que le menu mêlait deux choses : ce qu'on ouvre pour
- *  préparer un séjour — la carte, les forfaits, ses traces — et ce qu'on ouvre
- *  pour vérifier d'où viennent les données. Les seconds ne servent pas au
- *  voyageur et brouillaient les premiers. */
-const AILLEURS: { titre: MsgId; liens: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] }[] = [
+ *  Deux groupes : ce qu'on ouvre pour préparer un séjour (la carte, les
+ *  forfaits, ses traces) et ce qu'on ouvre pour vérifier d'où viennent les
+ *  données. */
+const AILLEURS: {
+  titre: MsgId;
+  liens: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId; icone: string }[];
+}[] = [
   {
     titre: "nav.tools",
     liens: [
-      { to: "/carte", label: "nav.map" },
-      { to: "/monde", label: "nav.world" },
-      { to: "/forfaits", label: "nav.passes" },
-      { to: "/traces", label: "nav.traces" },
+      { to: "/carte", label: "nav.map", icone: ICONES.map },
+      { to: "/monde", label: "nav.world", icone: GLOBE },
+      { to: "/forfaits", label: "nav.passes", icone: ICONES.ticket },
+      { to: "/traces", label: "nav.traces", icone: ICONES.trace },
     ],
   },
   {
     titre: "nav.control",
     liens: [
-      { to: "/altitudes", label: "nav.alt" },
-      { to: "/openskimap", label: "nav.osm" },
-      { to: "/cles", label: "nav.cles" },
+      { to: "/altitudes", label: "nav.alt", icone: ICONES.check },
+      { to: "/openskimap", label: "nav.osm", icone: ICONES.check },
+      { to: "/cles", label: "nav.cles", icone: ICONES.check },
     ],
   },
 ];
 
-/** Les écrans de contrôle, rangés sous « Plus ». Une seule question posée à
- *  une seule table : `screenOf` répond `null` hors des écrans v7. « Prix »
- *  n'est pas une étape du parcours, mais c'est un écran v7 : faux pour lui. */
+/** Les écrans de contrôle, rangés sous « Plus » : `screenOf` répond `null`
+ *  hors des écrans v7. */
 function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
 }
 
 /**
  * La station qu'on regarde : celle retenue pour le séjour, ou à défaut celle
- * dont on lit la fiche. Même lecture que la pilule de séjour.
+ * dont on lit la fiche.
  */
 function useStationCourante() {
   const stationId = useParcours((s) => s.stationId);
@@ -105,67 +107,62 @@ function MenuPlus() {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
   const hote = useRef<HTMLDivElement>(null);
-  useFermeture(ouvert, () => setOuvert(false), hote);
+  const fermer = useMemo(() => () => setOuvert(false), []);
+  useFermeture(ouvert, fermer, hote);
   // Les voisines du grand domaine relié : depuis Courchevel, passer à Méribel
-  // ou à Val Thorens sans repasser par Comparer. Le menu ne proposait rien de
-  // tel, et aucun autre écran ne fait ce saut.
+  // ou à Val Thorens sans repasser par Comparer.
   const station = useStationCourante();
   const voisines = useMemo(() => (station ? stationsVoisines(station.id) : []), [station]);
 
   return (
-    <div className="v7nav__plus" ref={hote}>
+    <div className="sh-plus" ref={hote}>
       <button
         type="button"
-        className={`v7nav__util${ouvert ? " v7nav__util--on" : ""}`}
+        className={`sh-util${ouvert ? " sh-util--on" : ""}`}
         title={tr("Outils, contrôle des données et mises à jour")}
         aria-expanded={ouvert}
         aria-haspopup="dialog"
         onClick={() => setOuvert((v) => !v)}
       >
         {t("nav.more")}
-        <Icon name="chevron-bas" taille={14} />
+        <Trace d={CHEVRON} taille={12} epaisseur={2.4} />
       </button>
       {ouvert ? (
-        <div className="v7menu" role="dialog" aria-label={t("nav.more")}>
-          <span className="v7menu__label">{t("nav.elsewhere")}</span>
+        <div className="sh-menu" role="dialog" aria-label={t("nav.more")}>
+          <span className="m8-lu-seul">{t("nav.elsewhere")}</span>
           {AILLEURS.map((groupe) => (
-            <div key={groupe.titre} className="v7menu__groupe">
-              <span className="v7menu__titre">{t(groupe.titre)}</span>
-              <div className="v7menu__liens">
-                {groupe.liens.map((l) => (
-                  <Link
-                    key={l.to}
-                    to={l.to}
-                    className="v7menu__lien"
-                    onClick={() => setOuvert(false)}
-                  >
-                    {t(l.label)}
-                  </Link>
-                ))}
-              </div>
+            <div key={groupe.titre} className="sh-menu__groupe">
+              <span className="m8-lu-seul">{t(groupe.titre)}</span>
+              {groupe.liens.map((l) => (
+                <Link key={l.to} to={l.to} className="sh-menu__lien" onClick={() => setOuvert(false)}>
+                  <Trace d={l.icone} taille={16} epaisseur={1.7} />
+                  {t(l.label)}
+                </Link>
+              ))}
             </div>
           ))}
           {voisines.length ? (
-            <div className="v7menu__groupe">
-              <span className="v7menu__titre">
+            <div className="sh-menu__groupe">
+              <span className="sh-menu__titre">
                 {t("nav.domainStations")} · {station ? grandDomaineDe(station.id)?.nom : null}
               </span>
-              <div className="v7menu__liens v7menu__liens--stations">
+              <div className="sh-menu__stations">
                 {voisines.map((s) => (
                   <Link
                     key={s.id}
                     to="/stations/$id"
                     params={{ id: s.id }}
-                    className="v7menu__lien"
+                    className="sh-menu__lien"
                     onClick={() => setOuvert(false)}
                   >
+                    <Trace icone="pin" taille={16} epaisseur={1.7} />
                     {s.name}
                   </Link>
                 ))}
               </div>
             </div>
           ) : null}
-          <div className="v7menu__pied">
+          <div className="sh-menu__pied">
             <AutoSync />
           </div>
         </div>
@@ -174,7 +171,7 @@ function MenuPlus() {
   );
 }
 
-/** « Favoris » et le nombre de logements enregistrés (V7Coquille.dc.html, menu du compte). */
+/** « Favoris » et le nombre de logements enregistrés. */
 function LienFavoris({ actif, libelle }: { actif: boolean; libelle: string }) {
   const n = useFavoris(nombreFavoris);
   // Gardés dans le navigateur : le rendu serveur ne les compte pas.
@@ -184,7 +181,7 @@ function LienFavoris({ actif, libelle }: { actif: boolean; libelle: string }) {
   return (
     <Link
       to="/favoris"
-      className={`v7nav__util v7nav__prix${actif ? " v7nav__prix--on" : ""}`}
+      className={`sh-util${actif ? " sh-util--on" : ""}`}
       aria-current={actif ? "page" : undefined}
       title={
         compte > 0
@@ -192,14 +189,62 @@ function LienFavoris({ actif, libelle }: { actif: boolean; libelle: string }) {
           : tr("Logements enregistrés dans vos dossiers")
       }
     >
-      <Icon name="coeur" taille={15} />
-      {libelle}
-      {compte > 0 ? <span className="v7nav__compte">{compte}</span> : null}
+      <Trace d={COEUR} taille={15} epaisseur={1.8} />
+      <span className="sh-util__lbl">{libelle}</span>
+      {compte > 0 ? <span className="sh-util__compte">{compte}</span> : null}
     </Link>
   );
 }
 
-function Barre() {
+/** La pilule centrale : station, dates, voyageurs et la loupe. Sous 1000 px,
+ *  la pilule réduite (station et loupe) ouvre la même fenêtre. */
+function PiluleRecherche() {
+  const stayOpen = useParcours((s) => s.stayOpen);
+  const setStayOpen = useParcours((s) => s.setStayOpen);
+  const massif = useParcours((s) => s.massif);
+  const { checkIn, checkOut, trav, rooms } = useSejour();
+  const station = useStationCourante();
+  const nom = station?.name ?? massif ?? tr("Station à choisir");
+  const ouvrir = () => setStayOpen(true);
+  return (
+    <>
+      <button
+        type="button"
+        className="sh-pilule"
+        aria-label={tr("Modifier la recherche")}
+        aria-expanded={stayOpen}
+        aria-haspopup="dialog"
+        onClick={ouvrir}
+      >
+        <span className="sh-pilule__station">{nom}</span>
+        <i className="sh-pilule__trait" aria-hidden />
+        <span>
+          {dm(checkIn)} → {dm(checkOut)}
+        </span>
+        <i className="sh-pilule__trait" aria-hidden />
+        <span className="sh-pilule__groupe">{voyageursLbl(trav, rooms)}</span>
+        <span className="sh-pilule__loupe">
+          <Trace d={LOUPE} taille={13} epaisseur={2.6} />
+        </span>
+      </button>
+      <button
+        type="button"
+        className="sh-pilule sh-pilule--reduite"
+        aria-label={tr("Modifier la recherche")}
+        aria-expanded={stayOpen}
+        aria-haspopup="dialog"
+        onClick={ouvrir}
+      >
+        <span className="sh-pilule__station">{nom}</span>
+        <span className="sh-pilule__loupe">
+          <Trace d={LOUPE} taille={12} epaisseur={2.6} />
+        </span>
+      </button>
+    </>
+  );
+}
+
+function Barre({ pilule }: { pilule: boolean }) {
   const t = useT();
   const go = useGo();
   const ecran = useRouterState({ select: (s) => screenOf(s.location.pathname) });
@@ -214,173 +259,108 @@ function Barre() {
   const enCourse = usePrix((s) => s.course != null);
 
   return (
-    <header className="v7nav">
-      <a
-        href="/"
-        className="v7nav__marque"
-        onClick={(e) => {
-          e.preventDefault();
-          void go("home");
-        }}
-      >
-        <span className="v7nav__ski">ski</span>
-        <span className="v7nav__track">track</span>
-        <i className="v7nav__point" aria-hidden />
-      </a>
-      {/* Les étapes, puis « Prix » et « Favoris », hors des étapes (ni numéro ni
-          verrou), à la même distance les uns des autres : rangés à droite, le
-          vide entre « Réservation » et « Prix » variait avec la largeur de la
-          fenêtre (remarque du 3 octobre 2026). */}
-      <div className="v7nav__centre">
-      <nav className="v7nav__parcours" aria-label={tr("Parcours")}>
-        {PARCOURS.map((j) => {
-          // La fiche station allume « Comparer » : elle en est le détail.
-          const actif = ecran !== null && (j.go === ecran || (ecran === "fiche" && j.go === "compare"));
-          const verrou =
-            !actif && ((j.go === "lodging" && !stationId) || (j.go === "booking" && !lodgeId));
-          const titre =
-            j.go === "lodging" && verrou
-              ? t("nav.lodgingLocked")
-              : j.go === "booking" && verrou
-                ? t("nav.bookingLocked")
-                : undefined;
-          return (
-            <button
-              key={j.go}
-              type="button"
-              className={`v7nav__etape${actif ? " v7nav__etape--on" : ""}${verrou ? " v7nav__etape--verrou" : ""}`}
-              data-go={j.go}
-              aria-current={actif ? "page" : undefined}
-              title={titre}
-              onClick={() => void go(j.go)}
-            >
-              {j.step != null ? <i className="v7nav__num">{j.step}</i> : null}
-              {t(j.label)}
-              {verrou ? <Icon name="cadenas" taille={13} /> : null}
-            </button>
-          );
-        })}
-      </nav>
-        {/* « Prix » (V7Coquille.dc.html:96-97). La maquette annonçait « d'une
-            semaine » ; l'écran compte de 1 à 21 nuits. */}
-        <Link
-          to="/prix"
-          className={`v7nav__util v7nav__prix${ecran === "prix" ? " v7nav__prix--on" : ""}${
-            enCourse ? " v7nav__prix--course" : ""
-          }`}
-          aria-current={ecran === "prix" ? "page" : undefined}
-          title={
-            enCourse
-              ? tr("Relevé des prix en cours")
-              : tr("Médiane d’un séjour par station, et logements dans votre budget")
-          }
+    <header className="sh-haut">
+      <div className="sh-barre">
+        <a
+          href="/"
+          className="sh-marque"
+          onClick={(e) => {
+            e.preventDefault();
+            void go("home");
+          }}
         >
-          <Icon name="barres" taille={15} />
-          {t("nav.prices")}
-        </Link>
-        <LienFavoris actif={ecran === "favoris"} libelle={t("nav.favorites")} />
-      </div>
-      <div className="v7nav__utils">
-        {/* L'icône dit le thème en cours ; elle montrait un soleil dans les
-            deux états, donc rien. */}
-        <button
-          type="button"
-          className="v7nav__util v7nav__util--rond"
-          title={theme === "dark" ? tr("Thème sombre : passer au clair") : tr("Thème clair : passer au sombre")}
-          role="switch"
-          aria-checked={theme === "dark"}
-          aria-label={tr("Thème")}
-          onClick={bascule}
-          data-testid="theme-toggle"
-        >
-          <Icon name={theme === "dark" ? "lune" : "soleil"} taille={18} />
-        </button>
-        <button
-          type="button"
-          className="v7nav__util v7nav__util--langue"
-          title={tr("Langue")}
-          aria-label={locale === "fr" ? "English" : "Français"}
-          onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
-        >
-          {locale === "fr" ? "FR" : "EN"}
-        </button>
-        <MenuPlus />
+          <b>ski</b>
+          <span>track</span>
+          <i aria-hidden />
+        </a>
+        <nav className="sh-etapes" aria-label={tr("Parcours")}>
+          {PARCOURS.map((j) => {
+            // La fiche station allume « Comparer » : elle en est le détail.
+            const actif = ecran !== null && (j.go === ecran || (ecran === "fiche" && j.go === "compare"));
+            const verrou =
+              !actif && ((j.go === "lodging" && !stationId) || (j.go === "booking" && !lodgeId));
+            const titre =
+              j.go === "lodging" && verrou
+                ? t("nav.lodgingLocked")
+                : j.go === "booking" && verrou
+                  ? t("nav.bookingLocked")
+                  : undefined;
+            // Le logement retenu, compté sur l'étape qui le réserve.
+            const badge = j.go === "booking" && lodgeId ? 1 : 0;
+            return (
+              <button
+                key={j.go}
+                type="button"
+                className={`sh-etape${actif ? " sh-etape--on" : ""}${verrou ? " sh-etape--verrou" : ""}`}
+                data-go={j.go}
+                aria-current={actif ? "page" : undefined}
+                title={titre}
+                onClick={() => void go(j.go)}
+              >
+                <span className="sh-etape__num">{j.step}</span>
+                <span className="sh-etape__lbl">{t(j.label)}</span>
+                {badge ? (
+                  <span
+                    className="sh-etape__badge"
+                    title={trN(badge, "{n} logement retenu", "{n} logements retenus")}
+                  >
+                    {badge}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="sh-centre">{pilule ? <PiluleRecherche /> : null}</div>
+        <div className="sh-droite">
+          <Link
+            to="/prix"
+            className={`sh-util${ecran === "prix" ? " sh-util--on" : ""}${enCourse ? " sh-util--course" : ""}`}
+            aria-current={ecran === "prix" ? "page" : undefined}
+            title={
+              enCourse
+                ? tr("Relevé des prix en cours")
+                : tr("Médiane d’un séjour par station, et logements dans votre budget")
+            }
+          >
+            <Trace d={BARRES} taille={15} epaisseur={1.8} />
+            <span className="sh-util__lbl">{t("nav.prices")}</span>
+          </Link>
+          <LienFavoris actif={ecran === "favoris"} libelle={t("nav.favorites")} />
+          <MenuPlus />
+          <button
+            type="button"
+            className="sh-util"
+            title={tr("Langue")}
+            aria-label={locale === "fr" ? "English" : "Français"}
+            onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
+          >
+            <Trace d={GLOBE} taille={15} epaisseur={1.7} />
+            {locale === "fr" ? "FR" : "EN"}
+          </button>
+          {/* L'icône dit le thème qu'on obtiendra : le soleil en sombre, la
+              lune en clair. */}
+          <button
+            type="button"
+            className="sh-util sh-util--rond"
+            title={theme === "dark" ? tr("Thème sombre : passer au clair") : tr("Thème clair : passer au sombre")}
+            role="switch"
+            aria-checked={theme === "dark"}
+            aria-label={tr("Thème")}
+            onClick={bascule}
+            data-testid="theme-toggle"
+          >
+            <Trace d={theme === "dark" ? SOLEIL : LUNE} taille={16} epaisseur={1.8} />
+          </button>
+        </div>
       </div>
     </header>
   );
 }
 
-/** Le bouton de séjour sous la barre, hors de l'accueil. */
-function PiluleSejour() {
-  const stationId = useParcours((s) => s.stationId);
-  const stayOpen = useParcours((s) => s.stayOpen);
-  const setStayOpen = useParcours((s) => s.setStayOpen);
-  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
-  /* Sur une fiche de station, la pilule annonçait « Station à choisir » alors
-     qu'on en regardait une. Elle nomme donc celle qu'on a sous les yeux quand
-     aucune n'est encore retenue ; le panneau qu'elle ouvre, lui, ne change
-     pas : c'est toujours celui du séjour. */
-  const params = useParams({ strict: false }) as { id?: string };
-  const station =
-    (stationId ? stationById(stationId) : undefined) ??
-    (params.id ? stationById(params.id) : undefined);
-  return (
-    <div className="v7sejour">
-      <button
-        type="button"
-        className="v7sejour__pilule"
-        data-sejour-ouvre
-        aria-expanded={stayOpen}
-        onClick={() => setStayOpen(!stayOpen)}
-      >
-        <span className="v7sejour__station">{station?.name ?? tr("Station à choisir")}</span>
-        <span className="v7sejour__dates">{datesLbl(checkIn, checkOut, nights)}</span>
-        <span className="v7sejour__groupe">{groupLbl(trav, rooms, enfants)}</span>
-        <span className="v7sejour__loupe">
-          <Icon name="loupe" taille={14} />
-        </span>
-      </button>
-    </div>
-  );
-}
-
-/** « Votre séjour » : le panneau flottant sous la barre. */
-function PanneauSejour() {
-  const setStayOpen = useParcours((s) => s.setStayOpen);
-  const { checkIn, checkOut, nights } = useSejour();
-  const plage = usePlage();
-  const hote = useRef<HTMLDivElement>(null);
-  useFermeture(true, () => setStayOpen(false), hote, "[data-sejour-ouvre]");
-  return (
-    <div className="v7panneau" ref={hote} role="dialog" aria-label={tr("Votre séjour")}>
-      <div className="v7panneau__tete">
-        <div>
-          <strong>{tr("Votre séjour")}</strong>
-          <span>
-            {tr("Arrivée {arrivee} · départ {depart}", {
-              arrivee: arrivalLbl(checkIn),
-              depart: departLbl(checkOut),
-            })}{" "}
-            · {trN(nights, "{n} nuit", "{n} nuits")}
-          </span>
-        </div>
-        <button type="button" className="v7fermer" aria-label={tr("Fermer")} onClick={() => setStayOpen(false)}>
-          <Icon name="croix" taille={14} />
-        </button>
-      </div>
-      <Calendrier plage={plage} hauteur={38} />
-      <div className="v7panneau__compteurs">
-        <Compteur k="trav" titre={tr("Voyageurs")} regle={tr("1 à 20")} encadre />
-        {/* Les enfants, parce que le coût des forfaits comptait huit adultes
-            quand le domaine publie aussi son tarif enfant. */}
-        <Compteur k="enfants" titre={tr("dont enfants")} regle={tr(AGE_ENFANT)} encadre />
-        <Compteur k="rooms" titre={tr("Chambres")} regle={tr("0 = studio accepté")} encadre />
-      </div>
-      <span className="v7panneau__note">
-        {tr("Dates et voyageurs sont conservés d’un écran à l’autre.")}
-      </span>
-    </div>
-  );
+function FenetreModifier({ ecran }: { ecran: Screen | null }) {
+  const station = useStationCourante();
+  return <FenetreRecherche ecran={ecran} station={station} />;
 }
 
 let hashLu = false;
@@ -401,7 +381,7 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
   // encombreraient son adresse sans rien y régler.
   useCriteresUrl(!controle && ecran !== "prix" && ecran !== "favoris", pathname);
 
-  // Changer d'écran ferme le panneau de séjour et remonte en haut de page,
+  // Changer d'écran ferme « Modifier la recherche » et remonte en haut de page,
   // comme `fromHash` dans la maquette.
   //
   // Le bandeau « Récapitulatif partagé » décrit l'écran de réservation : le
@@ -471,25 +451,11 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
     <>
       <div className={controle ? "v6 app" : "v7 app"}>
         <div className="v7haut">
-          <Barre />
-          {/* `showStay` de la maquette : `part === 'top' && screen !== 'home'
-              && showStayBar`, et l'App passe
-              `showStayBar: screen !== 'compare' && screen !== 'lodgings'`
-              (V7Coquille.dc.html:92, App.dc.html:918), et la page Prix passe
-              `show-stay={{ false }}` (Prix par station.dc.html:22). La pilule
-              ne paraît donc que sur la fiche station et sur la réservation :
-              Comparer porte sa barre collante, Logements son résumé de séjour,
-              Prix sa propre période. */}
-          {!controle &&
-          ecran !== "home" &&
-          ecran !== "compare" &&
-          ecran !== "lodging" &&
-          ecran !== "prix" &&
-          ecran !== "favoris" ? (
-            <PiluleSejour />
-          ) : null}
-          {!controle && stayOpen ? <PanneauSejour /> : null}
+          <Barre pilule={ecran !== null && ecran !== "home"} />
         </div>
+        {/* « Modifier la recherche » : la pilule de la barre l'ouvre, et les
+            boutons de séjour de Logements et de la réservation aussi. */}
+        {!controle && stayOpen ? <FenetreModifier ecran={ecran} /> : null}
         {chips ? <div className="coquille__chips">{chips}</div> : null}
         {controle ? <main>{children}</main> : children}
       </div>

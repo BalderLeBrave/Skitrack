@@ -1,38 +1,34 @@
 /**
- * La carte de station de la maquette v7, sur l'accueil et dans la liste de
- * l'écran Comparer : photo, km du domaine, nom, massif et domaine, trois
- * valeurs, la barre des pistes, puis le bouton « Comparer » et l'accès aux
- * logements.
+ * La carte de station, sur l'accueil et dans la liste de l'écran Stations :
+ * la carte Airbnb commune (`CarteAnnonce`, `stCard` de Skitrack App.dc.html).
+ * Photo de la station, rond « comparer » en haut à droite, nom, massif et
+ * domaine, altitudes et km, forfait adulte du séjour, lien « Logements ».
  *
- * **Un clic gauche sur la vignette ouvre la fiche de la station. Partout.**
- * Sur l'accueil, il sélectionnait au lieu d'ouvrir : la vignette était un
- * interrupteur à trois cibles — la photo, le nom, un bouton « Retenir » — dont
- * aucune ne menait quelque part, et un second clic désélectionnait sans que
- * rien ne l'annonce. Il ne reste que deux gestes, et ils vont chacun à un
- * endroit précis : la vignette mène à la fiche, le bouton Comparer mène à
- * l'écran Comparer.
+ * **Un clic gauche sur la photo ou le nom ouvre la fiche de la station.
+ * Partout.** Sur l'accueil, il sélectionnait au lieu d'ouvrir : la vignette
+ * était un interrupteur à trois cibles dont aucune ne menait quelque part, et
+ * un second clic désélectionnait sans que rien ne l'annonce. Il ne reste que
+ * des gestes qui vont chacun à un endroit précis : la photo et le nom mènent à
+ * la fiche, le rond Comparer pose la station dans la comparaison, le lien
+ * Logements retient la station et ouvre ses logements.
  *
- * Tout contrôle posé sur la vignette arrête la propagation du clic, faute de
- * quoi cocher « Comparer » ouvrirait aussi la fiche derrière.
+ * Les contrôles posés sur la photo arrêtent la propagation du clic
+ * (`CarteAnnonce`), faute de quoi cocher « Comparer » ouvrirait aussi la fiche.
  *
- * Toute valeur absente est écrite : « altitudes non relevées », « km non publié »,
- * « non relevé ». La barre reste vide quand la répartition n'est pas relevée.
+ * Toute valeur absente est écrite : « altitudes non relevées », « km non
+ * publié », « non relevé ».
  */
 
-import type { MouseEvent } from "react";
-import { ImageSlot } from "@/components/v6/ImageSlot";
+import { useMemo } from "react";
+import { CarteAnnonce } from "@/components/maquette";
 import { useGo } from "@/components/v6/go";
-import { FiabiliteFaible } from "./FiabiliteFaible";
-import { PartPistes } from "./PartPistes";
 import { usePrixStations } from "./usePrixForfait";
-import { montantCents } from "@/lib/devises";
-import { echecLbl, libellesForfait, mentionForfait } from "@/lib/forfaits/prixSejour";
+import { montantN } from "@/lib/devises";
+import { echecLbl, libellesForfait } from "@/lib/forfaits/prixSejour";
 import { forfaitsStation } from "@/lib/forfaits/prixStations";
-import { lignePistes } from "@/lib/pistesDetail";
-import { SKIINFO } from "@/lib/skiinfo";
-import { stationPhoto, stationPhotoAbsence, useParcours } from "@/lib/parcours";
+import { stationPhoto, useParcours } from "@/lib/parcours";
 import type { Station } from "@/lib/stations";
-import { altLbl, kmLbl, sub, villageLbl } from "@/lib/v7";
+import { altLbl, kmLbl, sub } from "@/lib/v7";
 import { tr } from "@/lib/i18n";
 
 export function CarteStation({
@@ -45,128 +41,74 @@ export function CarteStation({
   /** Désignée par la carte : même éclairage que l'épingle. */
   vif?: boolean;
   surSurvol?: (id: string | null) => void;
-  /** `accueil` : photo 16/10, et cocher « Comparer » ouvre l'écran qui le lit.
-   *  `liste` : photo 16/9, anneau quand la station est dans la comparaison, et
-   *  « Comparer » bascule dans les deux sens — on est déjà sur l'écran. */
+  /** `accueil` : cocher « Comparer » pose la station et ouvre l'écran qui la
+   *  lit. `liste` : le rond bascule dans les deux sens, on est déjà sur
+   *  l'écran. */
   variante: "accueil" | "liste";
 }) {
   const go = useGo();
-  const cmp = useParcours((p) => p.cmp);
+  const inCmp = useParcours((p) => p.cmp.includes(s.id));
   const toggleCmp = useParcours((p) => p.toggleCmp);
   const retain = useParcours((p) => p.retain);
-  const inCmp = cmp.includes(s.id);
   const retenue = useParcours((p) => p.stationId) === s.id;
   // Le forfait adulte du séjour : ses dates fixent la durée et la période.
-  const { pret, jours } = usePrixStations();
-  const forfait = forfaitsStation(s.id)?.adulte ?? null;
+  const { pret, jours, ctx } = usePrixStations();
+  const forfait = forfaitsStation(s.id, ctx)?.adulte ?? null;
   const pass = forfait?.statut === "resolu" ? forfait : null;
 
-  const ouvrir = (e?: MouseEvent) => {
-    e?.preventDefault();
-    void go("fiche", { id: s.id });
-  };
+  const src = stationPhoto(s);
+  const photos = useMemo(() => (src ? [{ src }] : []), [src]);
 
-  /** Le bouton Comparer : il pose la station dans la comparaison **et** mène à
-   *  l'écran qui la lit. Cocher sans rien ouvrir laissait l'utilisateur devant
-   *  une case cochée et aucun chemin.
-   *
-   *  Sur l'écran Comparer lui-même, il n'y a rien à ouvrir : c'est une bascule,
-   *  et la maquette y met une case à cocher (App.dc.html:222). Elle ne
-   *  basculait pas — `if (!inCmp)` ne faisait rien quand la station était déjà
-   *  dedans, et `go("compare")` sortait aussitôt puisqu'on y était déjà. Le
-   *  bouton s'annonçait pourtant `aria-pressed` aux lecteurs d'écran. */
-  const comparer = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (variante === "liste") {
-      toggleCmp(s.id);
-      return;
-    }
+  const ouvrir = () => void go("fiche", { id: s.id });
+
+  /** Sur l'accueil, le rond pose la station dans la comparaison **et** mène à
+   *  l'écran qui la lit : cocher sans rien ouvrir laissait l'utilisateur
+   *  devant une case cochée et aucun chemin. Sur l'écran Stations, c'est une
+   *  bascule. */
+  const comparer = () => {
+    if (variante === "liste") return toggleCmp(s.id);
     if (!inCmp) toggleCmp(s.id);
     void go("compare");
   };
 
-  const logements = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const logements = () => {
     retain(s.id);
     void go("lodging");
   };
 
+  const l3 = [altLbl(s) ?? tr("altitudes non relevées"), kmLbl(s) ?? tr("km non publié")].join(" · ");
+  const price = pass
+    ? (montantN(Math.round(pass.prix), pass.devise) ?? tr("non relevé"))
+    : forfait && forfait.statut !== "resolu"
+      ? echecLbl(forfait)
+      : pret
+        ? tr("non relevé")
+        : "…";
+  const faible = pass && libellesForfait(pass).faible;
+  const priceSub = [tr("forfait {jours} j", { jours: jours ?? 6 }), faible ? tr("fiabilité faible") : null]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <article
-      className={`stc7 stc7--${variante}${inCmp ? " stc7--cmp" : ""}${vif ? " stc7--vif" : ""}`}
-      data-station={s.id}
+    <CarteAnnonce
+      className={`st-carte-station st-carte-station--${variante}`}
+      photos={photos}
+      title={s.name}
+      l2={sub(s)}
+      l3={l3}
+      price={price}
+      priceSub={priceSub}
+      onOpen={ouvrir}
+      badge={retenue ? tr("Retenue") : null}
+      cmp={{
+        on: inCmp,
+        title: inCmp ? tr("Retirer de la comparaison") : tr("Ajouter à la comparaison"),
+        onToggle: comparer,
+      }}
+      link={{ label: tr("Logements"), on: retenue, onClick: logements }}
+      vif={vif}
       onMouseEnter={surSurvol ? () => surSurvol(s.id) : undefined}
       onMouseLeave={surSurvol ? () => surSurvol(null) : undefined}
-    >
-      {/* La photo est un raccourci souris vers la fiche ; le nom en dessous est
-          le lien véritable, focalisable et copiable. */}
-      <div className="stc7__media" onClick={ouvrir} aria-hidden>
-        <ImageSlot
-          shape="rect"
-          id={`v7-${variante}-${s.id}`}
-          placeholder={stationPhotoAbsence(s)}
-          className="stc7__slot"
-          src={stationPhoto(s)}
-        />
-        {retenue ? <span className="stc7__retenue">{tr("Retenue")}</span> : null}
-        <span className="stc7__km">{kmLbl(s) ?? tr("km non publié")}</span>
-      </div>
-      <div className="stc7__corps">
-        <div className="stc7__titre">
-          <a href={`/stations/${s.id}`} onClick={ouvrir} className="stc7__nom">
-            {s.name}
-          </a>
-          <span className="stc7__sub">{sub(s)}</span>
-        </div>
-        <div className="stc7__faits">
-          <div>
-            <span>{tr("Pistes")}</span>
-            <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? tr("altitudes non relevées")}</b>
-          </div>
-          <div>
-            <span>{tr("Village")}</span>
-            <b className={villageLbl(s) ? undefined : "absent"}>{villageLbl(s) ?? tr("non relevé")}</b>
-          </div>
-          <div>
-            <span>{tr("Forfait {jours} j", { jours: jours ?? 6 })}</span>
-            {pass ? (
-              <b title={mentionForfait(pass)}>
-                {montantCents(pass.prix, pass.devise)}{" "}
-                {libellesForfait(pass).faible ? <FiabiliteFaible court raisons={libellesForfait(pass).raisons} /> : null}
-              </b>
-            ) : (
-              <b className="absent">{forfait && forfait.statut !== "resolu" ? echecLbl(forfait) : pret ? tr("non relevé") : "…"}</b>
-            )}
-          </div>
-        </div>
-        {variante === "liste" ? (
-          // Au comparateur, les totaux de la fiche Skiinfo sous la barre du
-          // domaine : l'échelle est dite, le badge de km reste celui du domaine.
-          <div className="stc7__parts">
-            <PartPistes share={s.colorShare} />
-            <span className={lignePistes(SKIINFO[s.id]) ? undefined : "absent"}>
-              {lignePistes(SKIINFO[s.id]) ?? tr("nombre de pistes non publié")}
-            </span>
-          </div>
-        ) : (
-          <PartPistes share={s.colorShare} />
-        )}
-        <div className="stc7__pied">
-          <button
-            type="button"
-            className={`stc7__cmp${inCmp ? " stc7__cmp--on" : ""}`}
-            aria-pressed={inCmp}
-            onClick={comparer}
-          >
-            {inCmp ? tr("Dans la comparaison") : tr("Comparer")}
-          </button>
-          <button type="button" className="stc7__lodg-btn" onClick={logements}>
-            {tr("Voir les logements")}
-          </button>
-        </div>
-      </div>
-    </article>
+    />
   );
 }

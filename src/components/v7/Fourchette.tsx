@@ -5,10 +5,12 @@
  *
  * Le dépôt n'avait qu'un seuil, l'`input type="range"` de Comparer, qui n'a
  * qu'une poignée. `@radix-ui/react-slider` est installé mais n'était employé
- * nulle part, et il s'écarte de la maquette : il tient ses poignées à
- * l'intérieur du rail là où la maquette les centre sur leur valeur, et il les
- * laisse s'échanger quand elles se croisent là où la maquette garde la même
- * poignée tout le glissé. D'où ce composant, écrit d'après la maquette.
+ * nulle part, et il laisse ses poignées s'échanger quand elles se croisent là
+ * où la maquette garde la même poignée tout le glissé. D'où ce composant,
+ * écrit d'après la maquette. Comme les deux `input type="range"` superposés
+ * de `Fourchette.dc.html`, les poignées restent dans le rail (une demi-poignée
+ * de marge à chaque bout) pendant que la plage noircie, elle, va d'un bord à
+ * l'autre.
  *
  * Il ne décide rien : il dit quelle poignée bouge et vers quelle valeur brute,
  * et le parent arrondit au pas, borne et empêche le croisement (`poserBorne`).
@@ -17,6 +19,11 @@
  *
  * Il sert désormais sur tous les écrans : chaque filtre chiffré est une
  * fourchette, et chaque borne se tape.
+ *
+ * Dessin aligné sur `Fourchette.dc.html` (maquette Airbnb du 12 octobre 2026) :
+ * rail de 3 px, poignées rondes de 24 px, deux boîtes « Minimum » et
+ * « Maximum » avec leur unité. Les règles sont dans `design/maquette/socle.css`
+ * (`.m8-fourchette`), par-dessus celles de `v7.css`.
  */
 
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
@@ -25,6 +32,8 @@ import { lireSaisie, poigneeProche } from "@/lib/plage";
 import { aTraduire, tr } from "@/lib/i18n";
 
 const COTES = [0, 1] as const;
+/** Diamètre d'une poignée, en px (`.m8-fourchette .fourchette7__poignee`). */
+const POIGNEE = 24;
 const NOMS = [aTraduire("minimum"), aTraduire("maximum")] as const;
 
 /** L'écart, en pas, qu'une touche fait faire à une poignée. */
@@ -82,8 +91,11 @@ export function Fourchette({
   const [brouillon, setBrouillon] = useState<readonly [string | null, string | null]>([null, null]);
 
   const versValeur = (el: HTMLElement, x: number) => {
+    // La course de la poignée s'arrête à une demi-poignée de chaque bout,
+    // comme celle d'un `input type="range"` (Fourchette.dc.html).
     const r = el.getBoundingClientRect();
-    const p = r.width > 0 ? Math.min(1, Math.max(0, (x - r.left) / r.width)) : 0;
+    const course = r.width - POIGNEE;
+    const p = course > 0 ? Math.min(1, Math.max(0, (x - r.left - POIGNEE / 2) / course)) : 0;
     return b0 + p * (b1 - b0);
   };
   // Le parent arrondit au pas : tant que le pointeur reste dans le même cran,
@@ -157,25 +169,32 @@ export function Fourchette({
 
   const champ = (which: 0 | 1) => (
     <label className="fourchette7__champ">
-      <input
-        type="text"
-        inputMode="numeric"
-        autoComplete="off"
-        aria-label={`${lbl}, ${tr(NOMS[which])}`}
-        value={brouillon[which] ?? String(cur[which])}
-        onChange={(e) => brouiller(which, e.target.value)}
-        onBlur={() => valider(which)}
-        onKeyDown={touche(which)}
-      />
-      <span className="fourchette7__unite">{u}</span>
+      <span className="fourchette7__legende" aria-hidden>
+        {which === 0 ? tr("Minimum") : tr("Maximum")}
+      </span>
+      <span className="fourchette7__saisie">
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          aria-label={`${lbl}, ${tr(NOMS[which])}`}
+          value={brouillon[which] ?? String(cur[which])}
+          onChange={(e) => brouiller(which, e.target.value)}
+          onBlur={() => valider(which)}
+          onKeyDown={touche(which)}
+        />
+        <span className="fourchette7__unite">{u}</span>
+      </span>
     </label>
   );
 
   return (
-    <div className={`fourchette7${valeur != null ? " fourchette7--actif" : ""}`}>
+    <div className={`fourchette7 m8-fourchette${valeur != null ? " fourchette7--actif" : ""}`}>
       <div className="fourchette7__tete">
         <span className="fourchette7__lbl">
-          {pastille ? <i className="fourchette7__pastille" style={{ background: pastille }} /> : null}
+          {pastille ? (
+            <i className="fourchette7__pastille" style={{ background: pastille }} />
+          ) : null}
           {lbl}
         </span>
         <span className="fourchette7__resume">{resume}</span>
@@ -198,7 +217,9 @@ export function Fourchette({
             key={which}
             ref={which === 0 ? bas : haut}
             className="fourchette7__poignee"
-            style={{ left: `${part(cur[which])}%` }}
+            style={{
+              left: `calc(${POIGNEE / 2}px + (100% - ${POIGNEE}px) * ${part(cur[which]) / 100})`,
+            }}
             role="slider"
             tabIndex={0}
             aria-label={`${lbl}, ${tr(NOMS[which])}`}
@@ -213,7 +234,8 @@ export function Fourchette({
       </div>
       <div className="fourchette7__champs">
         {champ(0)}
-        <span className="fourchette7__a">{tr("à")}</span>
+        {/* Lu entre les deux champs, plus dessiné : chaque boîte porte sa légende. */}
+        <span className="fourchette7__a m8-lu-seul">{tr("à")}</span>
         {champ(1)}
       </div>
     </div>

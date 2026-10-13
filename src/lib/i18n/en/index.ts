@@ -23,6 +23,11 @@ import { EN_FAVORIS } from "./favoris.ts";
 import { EN_LOGEMENTS } from "./logements.ts";
 import { EN_PARCOURS } from "./parcours.ts";
 import { EN_PRIX } from "./prix.ts";
+import { EN_SOCLE } from "./socle.ts";
+import { EN_STATIONS } from "./stations.ts";
+import { EN_FICHE_STATION } from "./ficheStation.ts";
+import { EN_FICHE_LOGEMENT } from "./ficheLogement.ts";
+import { EN_ACCUEIL } from "./accueil.ts";
 
 const TABLES: readonly Readonly<Record<string, string>>[] = [
   COMMUN,
@@ -32,6 +37,11 @@ const TABLES: readonly Readonly<Record<string, string>>[] = [
   EN_PRIX,
   EN_FAVORIS,
   EN_CONTROLE,
+  EN_SOCLE,
+  EN_STATIONS,
+  EN_FICHE_STATION,
+  EN_FICHE_LOGEMENT,
+  EN_ACCUEIL,
 ];
 
 export const EN: Readonly<Record<string, string>> = Object.assign({}, ...TABLES);

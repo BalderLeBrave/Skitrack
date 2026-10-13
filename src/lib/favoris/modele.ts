@@ -181,6 +181,8 @@ const LIES_AU_POINT = [
   "liftLon",
   "liftOtherLat",
   "liftOtherLon",
+  "aPied",
+  "enVoiture",
   "placeName",
   "domainFit",
   "nearestDomainId",

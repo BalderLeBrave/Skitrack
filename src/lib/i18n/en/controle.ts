@@ -43,6 +43,11 @@ export const EN_CONTROLE: Record<string, string> = {
   "Les relevés cherchent eux-mêmes un Python 3 : l’environnement virtuel scrape/.venv (npm run scrape:python), puis py -3, python ou python3. S’ils n’en trouvent aucun avec curl_cffi et bs4, le relevé direct Airbnb se limite à une seule page de résultats, ce que le rapport de la source signale. Airbnb, Abritel et Booking restent relevés par CozyCozy.":
     "The searches look for a Python 3 themselves: the scrape/.venv virtual environment (npm run scrape:python), then py -3, python or python3. If none has curl_cffi and bs4, the direct Airbnb search is limited to a single page of results, which the source report flags. Airbnb, Abritel and Booking are still covered through CozyCozy.",
   "Jeton API Apify": "Apify API token",
+  "Clé API Firecrawl": "Firecrawl API key",
+  "Lit par Firecrawl les fiches des centrales sans connecteur et les pages tarifs des domaines, découvertes par leur sitemap, dans le respect de robots.txt.": "Uses Firecrawl to read listings from booking centres without a connector and ski-area price pages, found through their sitemaps, while respecting robots.txt.",
+  "Les fiches et les pages tarifs sont lues directement : JSON-LD, balises et texte de la page. Les pages rendues en JavaScript restent muettes.": "Listings and price pages are read directly: JSON-LD, meta tags and page text. Pages rendered in JavaScript stay silent.",
+  "Tableau de bord Firecrawl : API Keys, copier la clé": "Firecrawl dashboard: API Keys, copy the key",
+  "fc- suivi d’une trentaine de caractères": "fc- followed by about thirty characters",
   "Complète par Apify les annonces Airbnb auxquelles il manque encore capacité, chambres, photo, prix ou position, dans un plafond de 5 $ par recherche.":
     "Uses Apify to complete Airbnb listings still missing capacity, bedrooms, photo, price or location, capped at $5 per search.",
   "Les annonces Airbnb restent complétées par leurs pages, lues directement ; celles qu’elles laissent incomplètes le restent.":

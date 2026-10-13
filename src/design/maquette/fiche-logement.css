@@ -1,0 +1,1075 @@
+/* Maquette Airbnb (handoff Claude Design du 12 octobre 2026) : zone « fiche-logement ».
+ *
+ * La fiche d'une annonce (`VoletAnnonce`, `FicheBlocs`, `OffresLogement`,
+ * `Visionneuse`) : une fenêtre flottante centrée sur un fond flouté, qui
+ * défile en entier ; en-tête collant, mosaïque de photos, deux colonnes
+ * (informations, carte de prix collante). Sous 940 px, une barre en bas porte
+ * le prix et « Retenir ». Couleurs : jetons de `system.css` seulement. */
+
+/* ── Le fond et la fenêtre ─────────────────────────────────────────────── */
+.fl {
+  /* Les ombres et l'encadré « Non indiqué » de la maquette, propres à la fiche. */
+  --fl-ombre-carte: 0 1px 2px rgba(17, 24, 32, 0.04), 0 4px 12px rgba(17, 24, 32, 0.07);
+  --fl-ombre-prix: 0 2px 6px rgba(17, 24, 32, 0.1), 0 10px 24px rgba(17, 24, 32, 0.14);
+  --fl-ombre-pastille: 0 1px 2px rgba(17, 24, 32, 0.06);
+  --fl-ombre-onglet: 0 1px 2px rgba(17, 24, 32, 0.08);
+  --fl-manque-fond: #fdf1e2;
+  --fl-trait-pale: #a9b6c1; /* séparateurs des faits, pictogramme d'un équipement absent */
+  --fl-manque-texte: #92400e;
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+  background: color-mix(in srgb, var(--color-photo-voile) 35%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+.fl * {
+  box-sizing: border-box;
+}
+.fl-boite {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: 20px;
+  background: var(--color-bg);
+  box-shadow: 0 30px 80px color-mix(in srgb, var(--color-photo-voile) 40%, transparent);
+}
+.fl-boite:focus {
+  outline: none;
+}
+.fl button {
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.fl button:focus-visible,
+.fl a:focus-visible,
+.fl summary:focus-visible,
+.fl input:focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 2px;
+}
+.fl-absent {
+  color: var(--color-texte-3);
+}
+
+/* ── L'en-tête ─────────────────────────────────────────────────────────── */
+.fl-tete {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 65px;
+  padding: 0 28px;
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-line);
+}
+.fl-retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.fl-retour:hover,
+.fl-rond:hover:not(:disabled) {
+  border-color: var(--color-marque);
+}
+.fl-tete__sejour {
+  font-size: 13.5px;
+  color: var(--color-muted);
+}
+.fl-tete__outils {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.fl-message {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-succes);
+  white-space: nowrap;
+}
+.fl-message:empty {
+  display: none;
+}
+.fl-rond {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+.fl-rond:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.fl .fl-coeur--on {
+  color: var(--color-accent);
+}
+
+/* ── Le corps ──────────────────────────────────────────────────────────── */
+.fl-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 28px 64px;
+}
+.fl-grille {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 28px;
+}
+.fl-gauche {
+  display: flex;
+  flex: 999 1 560px;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.fl-cote {
+  position: sticky;
+  top: 88px;
+  flex: 1 1 340px;
+  max-width: 100%;
+}
+
+/* Une carte blanche du corps. */
+.fl-carte {
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--fl-ombre-carte);
+}
+
+/* ── La mosaïque ───────────────────────────────────────────────────────── */
+.fl-mosaique {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 220px 220px;
+  gap: 8px;
+  overflow: hidden;
+  border-radius: 16px;
+}
+.fl-mosaique__case {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: var(--color-photo-fond);
+}
+.fl-mosaique__case:first-child {
+  grid-row: 1 / 3;
+}
+.fl-mosaique__case img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.15s;
+}
+.fl-mosaique__case:hover img {
+  filter: brightness(0.92);
+}
+.fl-mosaique__case:focus-visible {
+  outline-offset: -3px;
+}
+.fl-mosaique--1 {
+  grid-template-columns: 1fr;
+  grid-template-rows: 440px;
+}
+.fl-mosaique--1 .fl-mosaique__case:first-child {
+  grid-row: auto;
+}
+.fl-mosaique--2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 440px;
+}
+.fl-mosaique--2 .fl-mosaique__case:first-child {
+  grid-row: auto;
+}
+.fl-mosaique--3 {
+  grid-template-columns: 2fr 1fr;
+}
+.fl-mosaique--4 .fl-mosaique__case:nth-child(4) {
+  grid-column: 2 / 4;
+}
+.fl-mosaique--vide {
+  display: grid;
+  place-items: center;
+  height: 220px;
+  background: var(--color-media);
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.fl-mosaique__toutes {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--fl-ombre-pastille);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Titre et faits clés ───────────────────────────────────────────────── */
+.fl-titre {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fl-titre__lieu {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-marque-texte);
+}
+.fl-titre h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.fl-titre__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--color-muted);
+}
+.fl-titre__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fl-titre__meta b {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.fl-puce {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--color-puce);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.fl-puce--ok {
+  margin-left: 8px;
+  background: var(--color-ok);
+  color: var(--color-succes);
+}
+.fl-faits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 0;
+  margin: 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+  font-size: 15.5px;
+  font-variant-numeric: tabular-nums;
+}
+.fl-faits span + span::before {
+  content: "·";
+  padding: 0 10px;
+  color: var(--fl-trait-pale);
+}
+
+/* ── Accès aux pistes ──────────────────────────────────────────────────── */
+.fl-acces {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 34px 22px 20px;
+}
+.fl-schema {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+.fl-schema__bout {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 200px;
+}
+.fl-schema__bout b {
+  font-size: 14px;
+}
+.fl-schema__bout span {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.fl-schema__bout--fin {
+  text-align: right;
+}
+.fl-schema__trait {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-line);
+}
+.fl-schema__trait i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 3px;
+  background: var(--color-marque);
+}
+.fl-schema__trait span {
+  position: absolute;
+  top: -26px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-marque-texte);
+  white-space: nowrap;
+}
+.fl-acces__seul {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.fl-acces__ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--color-line);
+  list-style: none;
+  font-size: 14px;
+}
+.fl-acces__ligne:empty {
+  display: none;
+}
+.fl-acces__ligne li {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── Description et équipements ───────────────────────────────────────── */
+.fl-annonce {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+}
+.fl-annonce__texte {
+  max-width: 68ch;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-line;
+  text-wrap: pretty;
+}
+.fl .fl-lien {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-marque-texte);
+  text-decoration: none;
+}
+.fl .fl-lien:hover {
+  text-decoration: underline;
+}
+.fl-equipements {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px 16px;
+  margin: 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--color-line);
+  list-style: none;
+}
+.fl-equipements--seuls {
+  padding-top: 0;
+  border-top: 0;
+}
+.fl-equipement {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+}
+.fl-picto {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+.fl-equipement--non,
+.fl-equipement--inconnu {
+  color: var(--color-texte-3);
+}
+.fl-equipement--non .fl-picto,
+.fl-equipement--inconnu .fl-picto {
+  color: var(--fl-trait-pale);
+}
+.fl-equipement--non .fl-equipement__nom {
+  text-decoration: line-through;
+}
+.fl-equipement__nom {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ── Non indiqué ───────────────────────────────────────────────────────── */
+.fl-manques {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: var(--fl-manque-fond);
+  font-size: 13.5px;
+  color: var(--fl-manque-texte);
+}
+.fl-manques svg {
+  flex: none;
+}
+
+/* ── Plateformes ───────────────────────────────────────────────────────── */
+.fl-offres {
+  overflow: hidden;
+}
+.fl-offres ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fl-offre {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--color-line);
+}
+.fl-offre:hover {
+  background: var(--color-bleu-pale);
+}
+.fl-offre--ici {
+  background: var(--color-bleu-pale);
+  box-shadow: inset 3px 0 0 var(--color-marque);
+}
+.fl-offre__choix {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+}
+/* La ligne entière choisit l'offre : le bouton s'étend sous toute la ligne. */
+.fl-offre__choix::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.fl-offre__choix:focus-visible {
+  outline: none;
+}
+.fl-offre__choix:focus-visible::after {
+  outline: 2px solid var(--color-marque);
+  outline-offset: -2px;
+}
+.fl-offre__source {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fl-offre__ecart {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.fl-offre__choix b {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fl-offre__lien {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-marque-texte);
+  text-decoration: none;
+  white-space: nowrap;
+}
+a.fl-offre__lien:hover {
+  text-decoration: underline;
+}
+
+/* ── Carte ─────────────────────────────────────────────────────────────── */
+.fl-plan {
+  position: relative;
+  height: 262px;
+  background: none;
+  overflow: hidden;
+}
+.fl-plan > .carte {
+  position: absolute;
+  inset: 0;
+}
+.fl-plan .leaflet-bottom.leaflet-right {
+  right: 10px;
+  bottom: 8px;
+}
+.fl-plan .leaflet-control-attribution.leaflet-control {
+  margin: 0;
+  padding: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  line-height: normal;
+  color: var(--color-texte-3);
+}
+.fl-plan .leaflet-control-attribution a {
+  color: inherit;
+}
+/* « © OpenStreetMap » seul, comme la maquette : sans le lien Leaflet. */
+.fl-plan .leaflet-control-attribution a[href*="leafletjs"],
+.fl-plan .leaflet-control-attribution a[href*="leafletjs"] + span {
+  display: none;
+}
+.fl-plan--vide {
+  display: grid;
+  place-items: center;
+  background: var(--color-puce);
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.fl-plan__note {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── Avis et conditions, repliés ───────────────────────────────────────── */
+.fl-repli summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+}
+.fl-repli summary::-webkit-details-marker {
+  display: none;
+}
+.fl-repli summary span {
+  color: var(--color-muted);
+}
+.fl-repli summary svg {
+  margin-left: auto;
+  transition: transform 0.15s;
+}
+.fl-repli[open] summary svg {
+  transform: rotate(180deg);
+}
+.fl-repli__corps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 22px 20px;
+}
+.fl-avis {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fl-avis blockquote {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.fl-note {
+  font-size: 12.5px;
+  color: var(--color-muted);
+}
+.fl-conditions {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+}
+.fl-conditions div {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 12px;
+}
+.fl-conditions dt {
+  color: var(--color-muted);
+}
+.fl-conditions dd {
+  margin: 0;
+}
+
+/* ── La carte de prix ──────────────────────────────────────────────────── */
+.fl-prix {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 22px;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--fl-ombre-prix);
+}
+.fl-onglets {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--color-bleu-clair);
+}
+.fl-onglets button {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.fl-onglets button[aria-pressed="true"] {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--fl-ombre-onglet);
+}
+.fl-prix__montant {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fl-prix__montant b {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+.fl-prix__montant span {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.fl-detail {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 4px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-bg);
+}
+.fl-detail > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  font-size: 13.5px;
+}
+.fl-detail > div + div {
+  border-top: 1px solid var(--color-line);
+}
+.fl-detail dt {
+  min-width: 0;
+  color: var(--color-muted);
+}
+.fl-detail dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.fl-detail dd.fl-absent {
+  font-weight: 500;
+}
+.fl-detail dd.fl-raye {
+  color: var(--color-texte-3);
+  text-decoration: line-through;
+}
+.fl-case {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.fl-case input {
+  margin: 0;
+  accent-color: var(--color-marque);
+}
+.fl-moins-cher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-succes) 25%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-succes) 7%, var(--color-surface));
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+}
+.fl .fl-moins-cher {
+  color: var(--color-succes);
+}
+.fl-dispo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-alerte-texte);
+}
+.fl-dispo i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.fl-dispo--ok {
+  color: var(--color-succes);
+}
+.fl-retenir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+.fl .fl-retenir {
+  color: var(--color-flocon);
+}
+.fl .fl-retenir:hover {
+  filter: brightness(1.25);
+}
+.fl .fl-retenir--on {
+  border: 1px solid var(--color-marque);
+  background: var(--color-bleu-pale);
+  color: var(--color-marque-texte);
+}
+.fl .fl-retenir--on:hover {
+  filter: none;
+}
+.fl-reserver {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  border: 1px solid var(--color-line-commande);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+a.fl-reserver:hover {
+  border-color: var(--color-marque);
+}
+.fl-reserver--off {
+  color: var(--color-texte-3);
+}
+
+/* ── La barre du bas : sous 940 px seulement ───────────────────────────── */
+.fl-barre {
+  display: none;
+}
+
+/* ── La visionneuse plein écran ────────────────────────────────────────── */
+/* Comme la maquette, la visionneuse couvre la fenêtre, pas tout l'écran. */
+.fl-plein {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 20px;
+  display: grid;
+  grid-template-rows: 64px minmax(0, 1fr) 96px;
+  background: color-mix(in srgb, var(--color-photo-voile) 94%, transparent);
+  color: var(--color-photo-texte);
+}
+.fl-plein__tete {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 0 24px;
+}
+.fl-plein__tete b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fl-plein__compteur {
+  flex: none;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+.fl .fl-plein__fermer {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-photo-texte) 12%, transparent);
+  color: var(--color-photo-texte);
+}
+.fl .fl-plein__fermer:hover {
+  background: color-mix(in srgb, var(--color-photo-texte) 22%, transparent);
+}
+.fl-scene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 88px;
+  user-select: none;
+}
+.fl-scene--glisse {
+  touch-action: none;
+}
+.fl-scene img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  object-fit: contain;
+}
+.fl .fl-scene__fleche {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  transform: translateY(-50%);
+}
+.fl-scene__fleche--prec {
+  left: 20px;
+}
+.fl-scene__fleche--suiv {
+  right: 20px;
+}
+.fl-plein__ruban {
+  display: flex;
+  align-items: center;
+  justify-content: safe center;
+  gap: 8px;
+  padding: 0 24px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.fl-plein__vignette {
+  flex: none;
+  width: 88px;
+  height: 60px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-photo-voile);
+  opacity: 0.5;
+}
+.fl-plein__vignette[aria-current="true"] {
+  opacity: 1;
+  outline: 2px solid var(--color-photo-texte);
+  outline-offset: 2px;
+}
+.fl-plein__vignette:hover {
+  opacity: 0.85;
+}
+.fl-plein__vignette img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Écrans étroits ────────────────────────────────────────────────────── */
+@media (max-width: 939.98px) {
+  .fl-corps {
+    padding-bottom: 24px;
+  }
+  .fl-cote {
+    position: static;
+  }
+  .fl-barre {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--color-line);
+    box-shadow: 0 -4px 16px color-mix(in srgb, var(--color-ombre) 8%, transparent);
+  }
+  .fl-barre__prix {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .fl-barre__prix b {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .fl-barre__prix span {
+    overflow: hidden;
+    font-size: 12px;
+    color: var(--color-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fl-barre .fl-retenir {
+    flex: none;
+    height: 44px;
+    margin-left: auto;
+    font-size: 14px;
+  }
+}
+
+/* Absents de la maquette, « Logement précédent / suivant » cèdent la place
+   à la croix sur un téléphone ; Maj+flèches les remplacent au clavier. */
+@media (max-width: 519.98px) {
+  .fl-voisin {
+    display: none;
+  }
+}
+
+html[data-theme="dark"] .fl {
+  --fl-ombre-carte: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 12px rgb(0 0 0 / 0.35);
+  --fl-ombre-prix: 0 2px 6px rgb(0 0 0 / 0.4), 0 10px 24px rgb(0 0 0 / 0.5);
+  --fl-ombre-pastille: 0 1px 2px rgb(0 0 0 / 0.3);
+  --fl-ombre-onglet: 0 1px 3px rgb(0 0 0 / 0.45);
+  --fl-manque-fond: #33290f;
+  --fl-trait-pale: #4f5f6e;
+  --fl-manque-texte: #f0c27a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-mosaique__case img,
+  .fl-repli summary svg {
+    transition: none;
+  }
+}
+/* Sous le trait : « à pied » ou « à vol d'oiseau », au milieu, pour ne pas
+   déborder quand la distance est poussée à un bout. */
+.fl-schema__trait small {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--color-muted);
+  white-space: nowrap;
+}

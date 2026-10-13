@@ -18,6 +18,17 @@ import { eurosPublie } from "../stay/tarif.ts";
 
 export const ORIGINE_HOMETOGO = "https://www.hometogo.fr";
 
+/**
+ * Un HTTP 403 dont le corps est le défi Cloudflare (« Just a moment »),
+ * pas une réponse de HomeToGo. Ce n'est pas un refus : on ne ferme pas l'hôte.
+ */
+export function estInterstitielCloudflare(status: number, cfMitigated: string | null, texte: string): boolean {
+  if (status !== 403 && status !== 503) return false;
+  if ((cfMitigated ?? "").trim().toLowerCase() === "challenge") return true;
+  const tete = texte.slice(0, 1500);
+  return tete.includes("Just a moment...") && tete.includes("challenges.cloudflare.com");
+}
+
 /** Offres demandées ensemble à `/searchdetails` : le lot du site (12). */
 export const LOT_DETAILS = 12;
 /** Garde-fou, pas une lecture de la source. L'arrêt normal est la dernière page. */
@@ -96,7 +107,7 @@ export function slugsLieu(nom: string): string[] {
   return [...new Set([deux, base, chiffre].filter((s) => s.length > 0))];
 }
 
-function plierLieu(s: string): string {
+export function plierLieu(s: string): string {
   return s
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
@@ -111,8 +122,16 @@ export type LieuHomeToGo = { locationId: string; fsid: string };
 /**
  * L'identifiant de lieu et le `fsid` publiés dans la page de la station,
  * seulement si le dernier maillon du lieu publié est cette station.
+ *
+ * Deux formes publiées : le bloc `location-data-json` (seoDocumentId),
+ * ou la page rendue (`locationId` à côté du chemin, `fsid` dans le lien
+ * de recherche). L'une ne remplace pas l'autre.
  */
 export function lieuDepuisHtml(html: string, stationName: string): LieuHomeToGo | null {
+  return lieuDepuisBloc(html, stationName) ?? lieuDepuisRendu(html, stationName);
+}
+
+function lieuDepuisBloc(html: string, stationName: string): LieuHomeToGo | null {
   const bloc = html.match(/<script[^>]*id="location-data-json"[^>]*>([\s\S]*?)<\/script>/i)?.[1];
   if (!bloc) return null;
   let data: { locationId?: unknown; seoDocumentId?: unknown } | null = null;
@@ -128,6 +147,20 @@ export function lieuDepuisHtml(html: string, stationName: string): LieuHomeToGo 
   const chemin = html.match(/"location":"([^"]+)"/)?.[1] ?? "";
   const dernier = chemin.split("/").pop() ?? "";
   if (!dernier || plierLieu(dernier) !== plierLieu(stationName)) return null;
+  return { locationId, fsid };
+}
+
+/** La page rendue après le défi : le chemin, l'identifiant, et le fsid du lien. */
+function lieuDepuisRendu(html: string, stationName: string): LieuHomeToGo | null {
+  const texte = html.replace(/\\\//g, "/");
+  const couple = /"location":"([^"]+)"\s*,\s*"locationId":"([0-9a-f]{8,})"/i.exec(texte);
+  if (!couple) return null;
+  const dernier = couple[1]!.split("/").pop() ?? "";
+  if (!dernier || plierLieu(dernier) !== plierLieu(stationName)) return null;
+  const locationId = couple[2]!;
+  const fsid =
+    texte.match(/[?&]fsid=([0-9a-f]{16,})/i)?.[1] ?? texte.match(/"fsid":"([0-9a-f]{16,})"/i)?.[1] ?? "";
+  if (!/^[0-9a-f]{16,}$/i.test(fsid)) return null;
   return { locationId, fsid };
 }
 
@@ -429,4 +462,135 @@ export function continuerDomaine(raison: string | null, refus: boolean): boolean
   if (refus) return false;
   if (raison == null) return true;
   return raison !== "échéance";
+}
+
+/**
+ * Paire publiée par la page Les Deux Alpes le 9 octobre 2026
+ * (`location-data-json` : `locationId` et `seoDocumentId`).
+ * Elle ouvre `/search/{id}?fsid=…&_format=json`, l'URL que robots.txt
+ * autorise, quand la page HTML n'est qu'un interstitiel Cloudflare.
+ * Ce n'est pas une clé fabriquée. Si cette recherche ne rend pas de JSON,
+ * on s'arrête : on ne retente pas un 403.
+ */
+export const AMORCE_HOMETOGO: LieuHomeToGo = {
+  locationId: "5460aec004a18",
+  fsid: "81055cb257acb87e5e8899435d3c5318",
+};
+
+const ID_LIEU = /^[0-9a-f]{8,}$/i;
+
+export type NoeudLieu = { id: string; label: string; fsid: string };
+
+export type CarteNavigation = {
+  noeuds: NoeudLieu[];
+  /** Suggestion dont le trail publié est vide : le pays, pas une région choisie. */
+  racine: string | null;
+  /** Chemin publié (`analyticsSnowPlow.search.location`). */
+  trail: string | null;
+  locationCount: number | null;
+};
+
+/** Ce que la recherche JSON autorisée publie pour trouver un lieu. */
+export function carteNavigation(json: unknown): CarteNavigation {
+  const vide: CarteNavigation = { noeuds: [], racine: null, trail: null, locationCount: null };
+  if (!json || typeof json !== "object") return vide;
+  const o = json as Record<string, unknown>;
+  const nodes = (
+    ((o.filters as { destination_navigation?: { sublocations?: { nodes?: unknown } } } | undefined)
+      ?.destination_navigation?.sublocations?.nodes) ?? []
+  ) as unknown;
+  const noeuds: NoeudLieu[] = [];
+  if (Array.isArray(nodes)) {
+    for (const n of nodes) {
+      if (!n || typeof n !== "object") continue;
+      const node = n as { id?: unknown; label?: unknown; link?: { fsid?: unknown } };
+      const id = typeof node.id === "string" ? node.id.trim() : "";
+      const label = typeof node.label === "string" ? node.label.replace(/\s+/g, " ").trim() : "";
+      const fsid = typeof node.link?.fsid === "string" ? node.link.fsid.trim() : "";
+      if (!ID_LIEU.test(id) || !ID_LIEU.test(fsid) || !label) continue;
+      noeuds.push({ id, label, fsid });
+    }
+  }
+  let racine: string | null = null;
+  const sugs = (o.topSuggestions as { suggestions?: unknown } | undefined)?.suggestions;
+  if (Array.isArray(sugs)) {
+    for (const s of sugs) {
+      if (!s || typeof s !== "object") continue;
+      const sug = s as { trail?: unknown; id?: unknown };
+      const id = typeof sug.id === "string" ? sug.id.trim() : "";
+      if (sug.trail === "" && ID_LIEU.test(id)) {
+        racine = id;
+        break;
+      }
+    }
+  }
+  const trailBrut = (
+    o.analyticsSnowPlow as { search?: { location?: unknown } } | undefined
+  )?.search?.location;
+  const trail = typeof trailBrut === "string" && trailBrut.trim() ? trailBrut.trim() : null;
+  const compte = (o.searchSummary as { locationCountRaw?: unknown } | undefined)?.locationCountRaw;
+  const locationCount = typeof compte === "number" && Number.isFinite(compte) && compte >= 0 ? compte : null;
+  return { noeuds, racine, trail, locationCount };
+}
+
+/**
+ * Les nœuds dont le libellé publié est ce nom.
+ * Égalité d'abord (« Les 2 Alpes » = « Les Deux Alpes »).
+ * Sinon un seul préfixe (« Chamonix » → « Chamonix-Mont-Blanc »).
+ * Deux préfixes : rien, on ne choisit pas.
+ */
+export function noeudsDuNom(noeuds: readonly NoeudLieu[], nom: string): NoeudLieu[] {
+  const cible = plierLieu(nom);
+  if (!cible) return [];
+  const exact: NoeudLieu[] = [];
+  const vus = new Set<string>();
+  for (const n of noeuds) {
+    if (vus.has(n.id) || plierLieu(n.label) !== cible) continue;
+    vus.add(n.id);
+    exact.push(n);
+  }
+  if (exact.length > 0) return exact;
+  const prefixe: NoeudLieu[] = [];
+  for (const n of noeuds) {
+    if (vus.has(n.id)) continue;
+    const l = plierLieu(n.label);
+    if (l.startsWith(`${cible} `) || cible.startsWith(`${l} `)) {
+      vus.add(n.id);
+      prefixe.push(n);
+    }
+  }
+  return prefixe.length === 1 ? prefixe : [];
+}
+
+export function noeudNomme(noeuds: readonly NoeudLieu[], nom: string): NoeudLieu | null {
+  const t = noeudsDuNom(noeuds, nom);
+  return t.length === 1 ? t[0]! : null;
+}
+
+export type CandidatLieu = {
+  locationId: string;
+  fsid: string;
+  trail: string;
+  locationCount: number | null;
+};
+
+/**
+ * Parmi les pages dont le dernier maillon publié est la station :
+ * le chemin le plus court, puis le plus petit `locationCountRaw`.
+ * Deux lieux homonymes ne sont pas fondus au hasard.
+ */
+export function retenirLieu(candidats: readonly CandidatLieu[], nom: string): CandidatLieu | null {
+  const cible = plierLieu(nom);
+  if (!cible) return null;
+  const bons = candidats.filter((c) => plierLieu(c.trail.split("/").pop() ?? "") === cible);
+  if (bons.length === 0) return null;
+  const profondeur = (c: CandidatLieu) => c.trail.split("/").filter(Boolean).length;
+  return [...bons].sort((a, b) => {
+    const d = profondeur(a) - profondeur(b);
+    if (d !== 0) return d;
+    const ca = a.locationCount ?? Number.MAX_SAFE_INTEGER;
+    const cb = b.locationCount ?? Number.MAX_SAFE_INTEGER;
+    if (ca !== cb) return ca - cb;
+    return a.locationId < b.locationId ? -1 : a.locationId > b.locationId ? 1 : 0;
+  })[0]!;
 }

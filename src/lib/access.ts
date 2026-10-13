@@ -19,6 +19,7 @@ import {
 } from "./stay/statut.ts";
 import { convertir, dansLeSysteme, mesure, type Systeme } from "./unites.ts";
 import { tr } from "./i18n/tr.ts";
+import { estAPied } from "./stay/aPied.ts";
 
 export { metresBetween };
 export { LIFT_FOOT_M, LIFT_NEAR_M, LIFT_KM_M, skiAccessLabel } from "./skiAccess.ts";
@@ -81,6 +82,7 @@ export function attachAccess(
       liftLon: null,
       liftOtherLat: null,
       liftOtherLon: null,
+      aPied: null,
       placeName: listing.placeName ?? null,
       distToPlaceM: null,
       ...champsDuVerdict(fit),
@@ -110,6 +112,8 @@ export function attachAccess(
     liftLon: near?.lon ?? null,
     liftOtherLat: near?.otherLat ?? null,
     liftOtherLon: near?.otherLon ?? null,
+    // Mesurée à vol d'oiseau : une marche posée avant ne vaut plus.
+    aPied: null,
     placeName: place?.name ?? listing.placeName ?? null,
     distToPlaceM: place?.m ?? null,
     ...champsDuVerdict(fit),
@@ -150,9 +154,14 @@ export function sectorOf(listing: Listing): string | null {
   return displayLocality(listing.locality) ?? listing.placeName ?? null;
 }
 
+/** « 350 m du télésiège X à pied », ou « … à vol d’oiseau » : la distance
+ *  dit ce qu'elle mesure (`stay/aPied.ts`). */
 export function formatLift(listing: Listing): string {
   if (listing.distToLiftM == null) return tr("Remontée non mesurée");
-  return formatDistFrom(listing.distToLiftM, liftKindPhrase(listing.liftKind, listing.liftName));
+  const distance = formatDistFrom(listing.distToLiftM, liftKindPhrase(listing.liftKind, listing.liftName));
+  return estAPied(listing)
+    ? tr("{distance} à pied", { distance })
+    : tr("{distance} à vol d’oiseau", { distance });
 }
 
 export function withinLiftM(listing: Listing, maxM: number): boolean {

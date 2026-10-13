@@ -1892,7 +1892,10 @@ export async function fillFiches(
     }
   }
   if (memoire.dejaLues.size > 0) laissees.set(PAGE_DEJA_LUE, memoire.dejaLues.size);
-  console.info(
+  // Une relecture de l'écran qui n'a rien posé ni rien mis en file ne dit
+  // rien : elle répétait la même ligne toutes les 15 s.
+  const muette = opts.relecture === true && filled === 0 && compte.lues === 0 && enFond === 0 && autresEnFond === 0;
+  if (!muette) console.info(
     `[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${compte.lues} lues${ecrireLaissees(laissees)}` +
       (enFond > 0 ? ` · ${enFond} Airbnb à lire en tâche de fond` : "") +
       (autresEnFond > 0 ? ` · ${autresEnFond} autres fiches à lire en tâche de fond` : ""),

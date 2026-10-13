@@ -1,0 +1,112 @@
+{
+  "name": "Skitrack — relevé hebdomadaire (commandes)",
+  "nodes": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Chaque lundi 5 h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "Centrales sans connecteur",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "command": "=cd {{ $env.SKITRACK_DIR || '/opt/skitrack' }} && npm run -s catalogue:centrales 2>&1 | tail -n 40"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "name": "Pages tarifs des domaines",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        0
+      ],
+      "parameters": {
+        "command": "=cd {{ $env.SKITRACK_DIR || '/opt/skitrack' }} && npm run -s forfaits:sitemap -- --lire 2>&1 | tail -n 20"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "name": "Bilan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const centrales = $('Centrales sans connecteur').first().json;\nconst forfaits = $('Pages tarifs des domaines').first().json;\nconst derniere = (t) => (t || '').trim().split('\\n').filter(Boolean).slice(-12).join('\\n');\nreturn [{ json: {\n  releveLe: new Date().toISOString(),\n  centrales: { code: centrales.exitCode, sortie: derniere(centrales.stdout), erreur: derniere(centrales.stderr) },\n  forfaits: { code: forfaits.exitCode, sortie: derniere(forfaits.stdout), erreur: derniere(forfaits.stderr) },\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "Chaque lundi 5 h": {
+      "main": [
+        [
+          {
+            "node": "Centrales sans connecteur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Centrales sans connecteur": {
+      "main": [
+        [
+          {
+            "node": "Pages tarifs des domaines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pages tarifs des domaines": {
+      "main": [
+        [
+          {
+            "node": "Bilan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "notes": "n8n auto-hébergé sur la machine du dépôt. Variable SKITRACK_DIR = chemin du dépôt. Le nœud Execute Command doit être autorisé (NODES_EXCLUDE ne doit pas le contenir)."
+  },
+  "tags": []
+}

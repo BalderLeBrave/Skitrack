@@ -1,35 +1,62 @@
 /**
- * Un dossier de favoris : ses logements à gauche, leur carte à droite, comme
- * une liste d'Airbnb ; et « Comparer », le tableau des mêmes logements côte à
- * côte (prix, capacité, chambres, distance aux remontées, altitude).
+ * Un dossier de favoris (Skitrack App.dc.html:615-646, script 1197-1208 et
+ * 1231-1246) : ses logements en cartes à gauche et leur carte collante à
+ * droite, comme une liste d'Airbnb ; et « Comparer », le tableau des mêmes
+ * logements côte à côte, la meilleure valeur de chaque colonne en vert.
  *
  * Chaque logement garde le séjour pour lequel il a été enregistré : ses prix
- * valent pour ces dates et ce groupe, et la carte le dit.
+ * valent pour ces dates et ce groupe.
+ *
+ * « Partager » copie un lien qui porte le dossier (`components/favoris/partage`).
+ * Ouvert dans un autre navigateur, ce lien montre le dossier en lecture, avec
+ * son bandeau « Partagée le … », et « Enregistrer dans mes favoris » en fait
+ * un dossier à soi.
  */
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Coquille } from "@/components/Coquille";
-import { Icon } from "@/components/Icon";
-import { ImageSlot } from "@/components/v6/ImageSlot";
+import { textesCarte } from "@/components/favoris/annonceCarte";
+import { FlecheTri, VideFavoris } from "@/components/favoris/communs";
+import { PICTO_GROUPE, PICTO_PARTAGER, useCopie } from "@/components/favoris/outils";
+import {
+  encoderPartage,
+  lienPartage,
+  lirePartage,
+  type DossierPartage,
+} from "@/components/favoris/partage";
+import {
+  CarteAnnonce,
+  IconeCroix,
+  IconeGauche,
+  Onglets,
+  Trace,
+  useEnregistrement,
+} from "@/components/maquette";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles, type Marqueur } from "@/components/v7/CarteEpingles";
-import { CarteLogement } from "@/components/v7/CarteLogement";
 import { epinglePrix, ETAGE } from "@/components/v7/epingle";
 import { FicheEpingle } from "@/components/v7/FicheEpingle";
-import { Vide } from "@/components/v7/Vide";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
-import { altitudeAide, altitudeLbl, pointAltitude, positionApprochee, type Altitude } from "@/lib/altitude/altitude";
+import {
+  altitudeAide,
+  altitudeLbl,
+  pointAltitude,
+  positionApprochee,
+  type Altitude,
+} from "@/lib/altitude/altitude";
 import { useAltitudes } from "@/lib/altitude/store";
 import { contenu, type Favori, type SejourFavori } from "@/lib/favoris/modele";
 import { useFavoris } from "@/lib/favoris/store";
 import type { Listing } from "@/lib/listings";
-import { nightsBetween, useParcours } from "@/lib/parcours";
-import { sourceEtLieu } from "@/lib/rattachement";
+import { fmt, nightsBetween, useParcours } from "@/lib/parcours";
+import { nomStationPropre } from "@/lib/rattachement";
 import { useStay } from "@/lib/stay";
 import { distFiltrableM } from "@/lib/stay/lodgingFilter";
 import { parMesure, type Sens } from "@/lib/tri";
 import { bedLbl, capLbl, distanceOf, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import { trajetVoiture, viaDistance } from "@/lib/stay/aPied";
+import { useAPied } from "@/lib/geo/useReseauPieton";
 import { langueIntl } from "@/lib/i18n/langue";
 import { aTraduire, tr, trN } from "@/lib/i18n";
 import { voisinDansListe } from "@/lib/stay/visionneuse";
@@ -45,7 +72,7 @@ function PageDossier() {
   useEffect(() => setMonte(true), []);
   return (
     <Coquille>
-      <main className="v7main v7main--serre favoris7" id="s-favoris-dossier" data-screen-label="Dossier de favoris">
+      <main className="fv-main" id="s-favoris-dossier" data-screen-label="Dossier de favoris">
         {monte ? <Dossier id={id} /> : null}
       </main>
     </Coquille>
@@ -58,25 +85,77 @@ function sejourDe(f: Favori, courant: SejourFavori): SejourFavori {
 }
 
 const dateCourte = (d: Date) =>
-  new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", timeZone: "UTC" }).format(d);
+  new Intl.DateTimeFormat(langueIntl(), { day: "numeric", month: "short", timeZone: "UTC" }).format(
+    d,
+  );
 function sejourLbl(s: SejourFavori): string {
   const d = (iso: string) => dateCourte(new Date(`${iso}T12:00:00Z`));
   const dates = { du: d(s.checkIn), au: d(s.checkOut) };
   // « 1 pers. » à part : l'anglais dit « 1 person », « 4 people ».
-  return s.trav === 1 ? tr("{du} → {au} · 1 pers.", dates) : tr("{du} → {au} · {n} pers.", { ...dates, n: s.trav });
+  return s.trav === 1
+    ? tr("{du} → {au} · 1 pers.", dates)
+    : tr("{du} → {au} · {n} pers.", { ...dates, n: s.trav });
+}
+
+/** Le dossier partagé de l'ancre, lu une fois au montage : `undefined` pendant
+ *  la lecture, `null` sans ancre ou ancre illisible. */
+function usePartage(actif: boolean): DossierPartage | null | undefined {
+  const [d, setD] = useState<DossierPartage | null | undefined>(actif ? undefined : null);
+  useEffect(() => {
+    if (!actif) return;
+    let vivant = true;
+    void lirePartage(window.location.hash).then((r) => {
+      if (vivant) setD(r);
+    });
+    return () => {
+      vivant = false;
+    };
+  }, [actif]);
+  return actif ? d : null;
 }
 
 function Dossier({ id }: { id: string }) {
   const etat = useFavoris();
   const dossier = etat.dossiers.find((d) => d.id === id);
-  const favoris = useMemo(() => contenu(etat, id), [etat, id]);
-  const annonces = useMemo(() => favoris.map((f) => f.annonce), [favoris]);
+  // Un dossier à soi se montre tel quel, même ouvert par son propre lien.
+  const partage = usePartage(!dossier);
+  const local = useMemo(() => contenu(etat, id), [etat, id]);
+  const favorisBruts = useMemo<Favori[]>(
+    () =>
+      dossier
+        ? local
+        : (partage?.favoris ?? []).map((f) => ({
+            annonceId: f.annonce.id,
+            dossierId: id,
+            ajouteLe: f.ajouteLe,
+            annonce: f.annonce,
+            sejour: f.sejour,
+          })),
+    [dossier, local, partage, id],
+  );
+  // La distance à pied de chaque logement, dès que le réseau de sa station est
+  // chargé (`stay/aPied.ts`) : la comparaison, les cartes et la fiche la
+  // lisent. Le favori enregistré, lui, garde son relevé.
+  const annoncesBrutes = useMemo(() => favorisBruts.map((f) => f.annonce), [favorisBruts]);
+  const annonces = useAPied(annoncesBrutes);
+  const favoris = useMemo<Favori[]>(
+    () =>
+      annonces === annoncesBrutes
+        ? favorisBruts
+        : favorisBruts.map((f, i) => (annonces[i] === f.annonce ? f : { ...f, annonce: annonces[i] })),
+    [favorisBruts, annonces, annoncesBrutes],
+  );
   const altDe = useAltitudes(annonces);
   const { checkIn, checkOut, guests, children } = useStay();
-  const courant = useMemo<SejourFavori>(() => ({ checkIn, checkOut, trav: guests }), [checkIn, checkOut, guests]);
+  const courant = useMemo<SejourFavori>(
+    () => ({ checkIn, checkOut, trav: guests }),
+    [checkIn, checkOut, guests],
+  );
+  const enr = useEnregistrement(courant);
   const [vue, setVue] = useState<"liste" | "comparer">("liste");
   const [ouvert, setOuvert] = useState<string | null>(null);
   const [actif, setActif] = useState<string | null>(null);
+  const [bandeau, setBandeau] = useState(true);
   const P = useParcours();
   const go = useGo();
 
@@ -88,7 +167,9 @@ function Dossier({ id }: { id: string }) {
   const sejOuvert = favOuvert ? sejourDe(favOuvert, courant) : null;
   const memeGroupe = sejOuvert != null && sejOuvert.trav === guests;
   const forfaitsOuverts = useBudgetForfaits(
-    favOuvert && memeGroupe ? stationDuLogement(favOuvert.annonce, favOuvert.annonce.stationId) : null,
+    favOuvert && memeGroupe
+      ? stationDuLogement(favOuvert.annonce, favOuvert.annonce.stationId)
+      : null,
     sejOuvert?.checkIn ?? checkIn,
     sejOuvert?.checkOut ?? checkOut,
     adults(guests, children),
@@ -102,33 +183,38 @@ function Dossier({ id }: { id: string }) {
       const f = favoris.find((x) => x.annonceId === annonceId);
       if (!f) return;
       p.retain(f.annonce.stationId);
-      if (f.sejour) useStay.getState().setStay({ checkIn: f.sejour.checkIn, checkOut: f.sejour.checkOut });
+      if (f.sejour)
+        useStay.getState().setStay({ checkIn: f.sejour.checkIn, checkOut: f.sejour.checkOut });
       p.chooseLodge(annonceId);
     },
     [favoris],
   );
 
-  if (!dossier) {
+  if (!dossier && partage === undefined) return null;
+  if (!dossier && !partage) {
     return (
-      <Vide
-        titre={tr("Ce dossier n’existe plus")}
-        actions={
-          <Link to="/favoris" className="btn7 btn7--encre">
-            {tr("Revoir les dossiers")}
-          </Link>
-        }
-      >
-        {tr("Il a été supprimé, ou il a été créé dans un autre navigateur. Vos dossiers restent dans Favoris.")}
-      </Vide>
+      <div className="fv-vide">
+        <b>{tr("Ce dossier n’existe plus")}</b>
+        <Link to="/favoris" className="fv-encre">
+          {tr("Revoir les dossiers")}
+        </Link>
+      </div>
     );
   }
+  const nom = dossier?.nom ?? partage?.nom ?? "";
 
   const parId = new Map(favoris.map((f) => [f.annonceId, f]));
   const fOuvert = ouvert ? parId.get(ouvert) : undefined;
   /** Le logement voisin dans le dossier, dans l'ordre où il s'affiche. */
   const favoriVoisin = (sens: 1 | -1) => {
-    const id = ouvert ? voisinDansListe(favoris.map((f) => f.annonceId), [ouvert], sens) : null;
-    return id ? () => setOuvert(id) : null;
+    const vid = ouvert
+      ? voisinDansListe(
+          favoris.map((f) => f.annonceId),
+          [ouvert],
+          sens,
+        )
+      : null;
+    return vid ? () => setOuvert(vid) : null;
   };
   const situes = favoris.filter((f) => pointAltitude(f.annonce));
   const marqueurs: Marqueur[] = situes.map((f) => {
@@ -147,52 +233,61 @@ function Dossier({ id }: { id: string }) {
 
   return (
     <>
-      <EnTete id={id} nom={dossier.nom} n={favoris.length} sansPoint={favoris.length - situes.length} vue={vue} setVue={setVue} />
+      <EnTete
+        id={id}
+        nom={nom}
+        favoris={favoris}
+        sansPoint={favoris.length - situes.length}
+        vue={vue}
+        setVue={setVue}
+        partagee={!dossier}
+      />
+      {!dossier && partage && bandeau ? (
+        <div className="fv-bandeau" role="status">
+          <Trace d={PICTO_GROUPE} taille={15} epaisseur={1.8} />
+          {partage.le
+            ? tr("Partagée le {date}", { date: dateCourte(new Date(partage.le)) })
+            : tr("Liste partagée")}
+          <button
+            type="button"
+            className="fv-bandeau__x"
+            aria-label={tr("Fermer")}
+            onClick={() => setBandeau(false)}
+          >
+            <IconeCroix taille={11} epaisseur={2.6} />
+          </button>
+        </div>
+      ) : null}
       {favoris.length === 0 ? (
-        <Vide
-          titre={tr("Ce dossier est vide")}
-          actions={
-            <button type="button" className="btn7 btn7--encre" onClick={() => go("lodging")}>
-              {tr("Voir les logements")}
-            </button>
-          }
-        >
-          {tr("Le cœur, en haut à droite de chaque annonce, l’enregistre ici.")}
-        </Vide>
+        <VideFavoris titre={tr("Ce dossier est vide")} />
       ) : vue === "comparer" ? (
         <Comparaison favoris={favoris} courant={courant} altDe={altDe} ouvrir={setOuvert} />
       ) : (
-        <div className="v7deux">
-          <div className="v7deux__liste" aria-label={tr("Logements du dossier")}>
-            <div className="grille7-2">
-              {favoris.map((f) => {
-                const s = sejourDe(f, courant);
-                return (
-                  <div key={f.annonceId} className="favoris7__case">
-                    <CarteLogement
-                      l={f.annonce}
-                      sources={sourceEtLieu(f.annonce)}
-                      autres={null}
-                      retenu={P.lodgeId === f.annonceId ? f.annonceId : null}
-                      retenuSource={null}
-                      vue={false}
-                      vif={actif === f.annonceId}
-                      stay={s}
-                      trav={s.trav}
-                      nights={nightsBetween(s.checkIn, s.checkOut) ?? 0}
-                      ouvrir={setOuvert}
-                      retenir={retenir}
-                      designer={setActif}
-                      altitude={altDe(f.annonce)}
-                      avecAltitude
-                    />
-                    <span className="favoris7__sejour">{tr("Prix pour {sejour}", { sejour: sejourLbl(s) })}</span>
-                  </div>
-                );
-              })}
-            </div>
+        <div className="fv-deux">
+          <div className="fv-grille" aria-label={tr("Logements du dossier")}>
+            {favoris.map((f) => {
+              const s = sejourDe(f, courant);
+              const retenu = P.lodgeId === f.annonceId;
+              return (
+                <CarteAnnonce
+                  key={f.annonceId}
+                  {...textesCarte(f.annonce, { nights: nightsBetween(s.checkIn, s.checkOut) ?? 0 })}
+                  badge={f.annonce.source}
+                  onOpen={() => setOuvert(f.annonceId)}
+                  heart={enr.coeur(f.annonce)}
+                  link={{
+                    label: retenu ? tr("Retenu") : tr("Retenir"),
+                    on: retenu,
+                    onClick: () => retenir(f.annonceId),
+                  }}
+                  vif={actif === f.annonceId}
+                  onMouseEnter={() => setActif(f.annonceId)}
+                  onMouseLeave={() => setActif(null)}
+                />
+              );
+            })}
           </div>
-          <div className="v7deux__carte">
+          <div className="fv-deux__carte">
             <CarteEpingles
               marqueurs={marqueurs}
               cadrage={cadrage}
@@ -232,12 +327,28 @@ function Dossier({ id }: { id: string }) {
           </div>
         </div>
       )}
+      {favoris.length > 0 ? (
+        <div>
+          <button
+            type="button"
+            className="fv-encre fv-encre--grand"
+            onClick={() => void go("booking")}
+          >
+            {tr("Passer à la réservation")}
+          </button>
+        </div>
+      ) : null}
       {fOuvert ? (
         <VoletAnnonce
           l={fOuvert.annonce}
           stay={sejourDe(fOuvert, courant)}
           trav={sejourDe(fOuvert, courant).trav}
-          nights={nightsBetween(sejourDe(fOuvert, courant).checkIn, sejourDe(fOuvert, courant).checkOut) ?? 0}
+          nights={
+            nightsBetween(
+              sejourDe(fOuvert, courant).checkIn,
+              sejourDe(fOuvert, courant).checkOut,
+            ) ?? 0
+          }
           groupe={null}
           retenu={P.lodgeId === fOuvert.annonceId}
           onRetenir={() => retenir(fOuvert.annonceId)}
@@ -246,114 +357,167 @@ function Dossier({ id }: { id: string }) {
           onPrecedent={favoriVoisin(-1)}
           onSuivant={favoriVoisin(1)}
           forfaits={forfaitsOuverts}
-          forfaitsMotif={memeGroupe ? null : tr("non calculés : la composition du groupe de ce séjour n’est pas connue")}
+          forfaitsMotif={
+            memeGroupe
+              ? null
+              : tr("non calculés : la composition du groupe de ce séjour n’est pas connue")
+          }
           suite={
             P.lodgeId === fOuvert.annonceId ? (
-              <button type="button" className="btn7 btn7--grand btn7--pleine" onClick={() => void go("booking")}>
+              <button
+                type="button"
+                className="fv-encre fv-encre--grand"
+                onClick={() => void go("booking")}
+              >
                 {tr("Passer à la réservation")}
-                <Icon name="fleche-droite" taille={16} />
               </button>
             ) : null
           }
         />
       ) : null}
+      {enr.modale}
     </>
   );
 }
 
+const VUES = [
+  { key: "liste", label: aTraduire("Liste et carte") },
+  { key: "comparer", label: aTraduire("Comparer") },
+] as const;
+
 function EnTete({
   id,
   nom,
-  n,
+  favoris,
   sansPoint,
   vue,
   setVue,
+  partagee,
 }: {
   id: string;
   nom: string;
-  n: number;
+  favoris: readonly Favori[];
   sansPoint: number;
   vue: "liste" | "comparer";
   setVue: (v: "liste" | "comparer") => void;
+  /** Le dossier vient d'un lien : ni renommer, ni supprimer, mais l'enregistrer chez soi. */
+  partagee: boolean;
 }) {
+  const n = favoris.length;
   const [edition, setEdition] = useState(false);
   const [brouillon, setBrouillon] = useState(nom);
   const [suppression, setSuppression] = useState(false);
+  const { copie, copier } = useCopie();
   const navigate = useNavigate();
+
+  const renommer = (e: FormEvent) => {
+    e.preventDefault();
+    if (!brouillon.trim()) return;
+    useFavoris.getState().renommer(id, brouillon);
+    setEdition(false);
+  };
+  const partager = () =>
+    void copier(
+      partagee
+        ? window.location.href
+        : encoderPartage(nom, favoris).then((code) => lienPartage(id, code)),
+    );
+  const garderChezSoi = () => {
+    const st = useFavoris.getState();
+    const nid = st.creer(nom);
+    if (!nid) return;
+    // Du plus ancien au plus récent : le dossier garde l'ordre affiché.
+    for (const f of [...favoris].reverse()) st.enregistrer(f.annonce, nid, f.sejour);
+    void navigate({ to: "/favoris/$id", params: { id: nid } });
+  };
+
   return (
-    <div className="favoris7__tete">
-      <Link to="/favoris" className="favoris7__retour">
-        <Icon name="chevron-gauche" taille={14} />
+    <div className="fv-tete">
+      <Link to="/favoris" className="fv-retour">
+        <IconeGauche taille={14} epaisseur={2.4} />
         {tr("Favoris")}
       </Link>
       {edition ? (
-        <form
-          className="favoris7__renommer"
-          onSubmit={(e) => {
-            e.preventDefault();
-            useFavoris.getState().renommer(id, brouillon);
-            setEdition(false);
-          }}
-        >
-          <input value={brouillon} maxLength={60} onChange={(e) => setBrouillon(e.target.value)} aria-label={tr("Nom du dossier")} autoFocus />
-          <button type="submit" className="btn7 btn7--encre" disabled={!brouillon.trim()}>
+        <form className="fv-renommer" onSubmit={renommer}>
+          <input
+            value={brouillon}
+            maxLength={60}
+            onChange={(e) => setBrouillon(e.target.value)}
+            aria-label={tr("Nom du dossier")}
+            autoFocus
+          />
+          <button type="submit" className="fv-encre fv-encre--moyen" disabled={!brouillon.trim()}>
             {tr("Enregistrer")}
           </button>
-          <button type="button" className="btn7 btn7--fantome" onClick={() => setEdition(false)}>
+          <button type="button" className="fv-lien" onClick={() => setEdition(false)}>
             {tr("Annuler")}
           </button>
         </form>
       ) : (
-        <h1 className="favoris7__titre">{nom}</h1>
+        <h1 className="fv-h1 fv-h1--dossier">{nom}</h1>
       )}
-      <div className="favoris7__barre">
-        <span className="favoris7__compte">
-          {trN(n, "{n} logement", "{n} logements")}
-          {sansPoint > 0 ? ` · ${tr("{n} sans position sur la carte", { n: sansPoint })}` : ""}
-        </span>
-        <div className="favoris7__vues" role="tablist" aria-label={tr("Affichage")}>
-          <button type="button" role="tab" aria-selected={vue === "liste"} className={vue === "liste" ? "on" : undefined} onClick={() => setVue("liste")}>
-            {tr("Liste et carte")}
+      <span
+        className="fv-compte"
+        title={sansPoint > 0 ? tr("{n} sans position sur la carte", { n: sansPoint }) : undefined}
+      >
+        {trN(n, "{n} logement", "{n} logements")}
+      </span>
+      <div className="fv-outils">
+        <Onglets
+          items={VUES.map((v) => ({ key: v.key, label: tr(v.label) }))}
+          valeur={vue}
+          onChoisir={setVue}
+          ariaLabel={tr("Affichage")}
+        />
+        <button type="button" className="fv-pilule" onClick={partager} aria-live="polite">
+          <Trace d={PICTO_PARTAGER} taille={14} epaisseur={2} />
+          {copie ? tr("Lien copié") : tr("Partager")}
+        </button>
+        {partagee ? (
+          <button type="button" className="fv-pilule" onClick={garderChezSoi}>
+            {tr("Enregistrer dans mes favoris")}
           </button>
-          <button type="button" role="tab" aria-selected={vue === "comparer"} className={vue === "comparer" ? "on" : undefined} onClick={() => setVue("comparer")}>
-            {tr("Comparer")}
-          </button>
-        </div>
-        {!edition ? (
-          <button
-            type="button"
-            className="btn7 btn7--fantome"
-            onClick={() => {
-              setBrouillon(nom);
-              setEdition(true);
-            }}
-          >
-            {tr("Renommer")}
-          </button>
-        ) : null}
-        {suppression ? (
-          <span className="favoris7__confirmer" role="alert">
-            {n > 0
-              ? trN(n, "Supprimer ce dossier et son logement ?", "Supprimer ce dossier et ses {n} logements ?")
-              : tr("Supprimer ce dossier ?")}
-            <button
-              type="button"
-              className="btn7 btn7--encre"
-              onClick={() => {
-                useFavoris.getState().supprimer(id);
-                void navigate({ to: "/favoris" });
-              }}
-            >
-              {tr("Supprimer")}
-            </button>
-            <button type="button" className="btn7 btn7--fantome" onClick={() => setSuppression(false)}>
-              {tr("Garder")}
-            </button>
-          </span>
         ) : (
-          <button type="button" className="btn7 btn7--fantome" onClick={() => setSuppression(true)}>
-            {tr("Supprimer le dossier")}
-          </button>
+          <>
+            {!edition ? (
+              <button
+                type="button"
+                className="fv-pilule"
+                onClick={() => {
+                  setBrouillon(nom);
+                  setEdition(true);
+                }}
+              >
+                {tr("Renommer")}
+              </button>
+            ) : null}
+            {suppression ? (
+              <span className="fv-confirmer" role="alert">
+                {tr("Supprimer ce dossier ?")}
+                <button
+                  type="button"
+                  className="fv-pilule fv-pilule--danger"
+                  onClick={() => {
+                    useFavoris.getState().supprimer(id);
+                    void navigate({ to: "/favoris" });
+                  }}
+                >
+                  {tr("Supprimer")}
+                </button>
+                <button type="button" className="fv-pilule" onClick={() => setSuppression(false)}>
+                  {tr("Garder")}
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="fv-pilule fv-pilule--supprimer"
+                onClick={() => setSuppression(true)}
+              >
+                {tr("Supprimer le dossier")}
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -383,7 +547,8 @@ function Comparaison({
   altDe: (l: Listing) => Altitude | null | undefined;
   ouvrir: (id: string) => void;
 }) {
-  const [col, setCol] = useState<Colonne | null>(null);
+  // Le moins cher d'abord, comme la maquette.
+  const [col, setCol] = useState<Colonne>("prix");
   const [sens, setSens] = useState<Sens>(1);
   const mesure = (f: Favori, c: Colonne): number | null => {
     const l = f.annonce;
@@ -395,7 +560,7 @@ function Comparaison({
     if (c === "dist") return distFiltrableM(l);
     return altDe(l)?.m ?? null;
   };
-  const lignes = col ? [...favoris].sort((a, b) => parMesure(mesure(a, col), mesure(b, col), sens)) : favoris;
+  const lignes = [...favoris].sort((a, b) => parMesure(mesure(a, col), mesure(b, col), sens));
   /** La meilleure valeur de chaque colonne, pour la marquer. */
   const meilleure = new Map<Colonne, number>();
   for (const c of COLONNES) {
@@ -405,9 +570,9 @@ function Comparaison({
       meilleure.set(c.k, c.sens === 1 ? Math.min(...vals) : Math.max(...vals));
     }
   }
-  const marque = (f: Favori, c: Colonne) => {
+  const cls = (f: Favori, c: Colonne) => {
     const v = mesure(f, c);
-    return v != null && meilleure.get(c) === v ? " favcmp7__mieux" : "";
+    return `fv-cmp__val${v != null && meilleure.get(c) === v ? " fv-cmp__val--mieux" : ""}`;
   };
   const trier = (c: Colonne, sensDepart: Sens) => {
     if (col === c) setSens((s) => (s === 1 ? -1 : 1));
@@ -417,64 +582,89 @@ function Comparaison({
     }
   };
   return (
-    <div className="favcmp7" role="region" aria-label={tr("Comparaison des logements du dossier")}>
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">{tr("Logement")}</th>
-            <th scope="col">{tr("Séjour")}</th>
-            {COLONNES.map((c) => (
-              <th key={c.k} scope="col" aria-sort={col === c.k ? (sens === 1 ? "ascending" : "descending") : undefined}>
-                <button type="button" onClick={() => trier(c.k, c.sens)}>
-                  {tr(c.label)}
-                  {col === c.k ? <Icon name={sens === 1 ? "chevron-bas" : "chevron-droite"} taille={12} /> : null}
-                </button>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {lignes.map((f) => {
-            const l = f.annonce;
-            const s = sejourDe(f, courant);
-            const alt = altDe(l);
-            return (
-              <tr key={f.annonceId}>
-                <th scope="row">
-                  <button type="button" className="favcmp7__logement" onClick={() => ouvrir(l.id)}>
-                    <span className="favcmp7__vignette">
-                      {l.photo ? <ImageSlot shape="rect" id={`cmp-${l.id}`} placeholder="" className="favcmp7__img" src={l.photo} /> : null}
-                    </span>
-                    <span>
-                      <b>{l.title}</b>
-                      <small>
-                        {sourceEtLieu(l)}
-                      </small>
-                    </span>
-                  </button>
-                </th>
-                <td className="favcmp7__doux">{sejourLbl(s)}</td>
-                <td className={`favcmp7__nombre${marque(f, "prix")}`}>{prixLbl(l)}</td>
-                <td className={`favcmp7__nombre${marque(f, "pp")}`}>{prixPersLbl(l, s.trav) ?? "–"}</td>
-                <td className={`favcmp7__nombre${marque(f, "cap")}`}>{capLbl(l)}</td>
-                <td className={`favcmp7__nombre${marque(f, "ch")}`}>{bedLbl(l)}</td>
-                <td className={marque(f, "dist").trim() || undefined}>{distanceOf(l).text}</td>
-                <td
-                  className={`favcmp7__nombre${marque(f, "alt")}`}
-                  title={altitudeAide(alt, positionApprochee(l))}
+    <section className="fv-cmp" aria-label={tr("Comparaison des logements du dossier")}>
+      <div role="table" className="fv-cmp__table">
+        <div role="row" className="fv-cmp__rang fv-cmp__rang--tete">
+          <span role="columnheader" className="m8-lu-seul">
+            {tr("Logement")}
+          </span>
+          {COLONNES.map((c) => (
+            <span
+              key={c.k}
+              role="columnheader"
+              aria-sort={col === c.k ? (sens === 1 ? "ascending" : "descending") : undefined}
+            >
+              <button
+                type="button"
+                className={`fv-tri${col === c.k ? " fv-tri--on" : ""}`}
+                onClick={() => trier(c.k, c.sens)}
+              >
+                {tr(c.label)}
+                {col === c.k ? <FlecheTri sens={sens} /> : null}
+              </button>
+            </span>
+          ))}
+        </div>
+        {lignes.map((f) => {
+          const l = f.annonce;
+          const s = sejourDe(f, courant);
+          const alt = altDe(l);
+          return (
+            <div role="row" key={f.annonceId} className="fv-cmp__rang">
+              <span role="rowheader">
+                <button
+                  type="button"
+                  className="fv-cmp__logement"
+                  title={tr("Prix pour {sejour}", { sejour: sejourLbl(s) })}
+                  onClick={() => ouvrir(l.id)}
                 >
-                  {pointAltitude(l) ? altitudeLbl(alt, positionApprochee(l)) : tr("sans position")}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <p className="favcmp7__note">
-        {tr(
-          "En gras, la meilleure valeur de chaque colonne. Les prix valent pour le séjour de chaque ligne : deux logements enregistrés pour des dates différentes ne se comparent qu’à titre indicatif.",
-        )}
-      </p>
-    </div>
+                  <span className="fv-cmp__vignette">
+                    {l.photo ? <img src={l.photo} alt="" loading="lazy" decoding="async" /> : null}
+                  </span>
+                  <span className="fv-cmp__noms">
+                    <b>{l.title}</b>
+                    <span>{nomStationPropre(l) ?? l.source}</span>
+                  </span>
+                </button>
+              </span>
+              <span role="cell" className={cls(f, "prix")}>
+                {prixLbl(l)}
+              </span>
+              <span role="cell" className={cls(f, "pp")}>
+                {prixPersLbl(l, s.trav) ?? "–"}
+              </span>
+              <span role="cell" className={cls(f, "cap")}>
+                {capLbl(l)}
+              </span>
+              <span role="cell" className={cls(f, "ch")}>
+                {bedLbl(l)}
+              </span>
+              <span role="cell" className={cls(f, "dist")}>
+                {distFiltrableM(l) == null
+                  ? tr("non mesurée")
+                  : [
+                      viaDistance(l) === "pieton" && distanceOf(l).kind === "measured"
+                        ? tr("{distance} à pied", { distance: `${fmt(distFiltrableM(l))} m` })
+                        : tr("{distance} à vol d’oiseau", { distance: `${fmt(distFiltrableM(l))} m` }),
+                      // La marche longue se fait en voiture (`stay/aPied.ts`).
+                      trajetVoiture(l)
+                        ? tr("{minutes} min en voiture", { minutes: trajetVoiture(l)?.minutes ?? 0 })
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+              </span>
+              <span
+                role="cell"
+                className={cls(f, "alt")}
+                title={altitudeAide(alt, positionApprochee(l))}
+              >
+                {pointAltitude(l) ? altitudeLbl(alt, positionApprochee(l)) : tr("sans position")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

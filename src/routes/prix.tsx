@@ -1,18 +1,19 @@
-/** Prix – maquette v7 (`SKITRACK v7 - Prix par station.dc.html`, réexport du
- *  24 sept. 2026).
+/** Prix (Skitrack App.dc.html:564-600, script 1187-1196 et 1213-1230).
  *
  *  Deux vues d'une même période et d'un même groupe. « Par station » : la
  *  médiane du total publié, station par station ; les relevés sont réels, une
  *  station à la fois, et continuent quand on quitte l'écran
  *  (`@/lib/prix/releve`). « Par budget » : les annonces que ces mêmes relevés
- *  ont retenues (`@/lib/prix/annonces`), filtrées par le total du séjour, et
- *  montrées comme dans Logements (liste, carte aux pastilles de prix, volet).
+ *  ont retenues (`@/lib/prix/annonces`), filtrées par le total du séjour, en
+ *  cartes Airbnb à côté de la carte aux pastilles de prix.
  *
  *  La période suit le séjour tant qu'on ne la change pas ici ; le groupe est
  *  celui du séjour. Vue, critères, tris et pages vivent dans le magasin :
- *  changer d'onglet, ou passer par Réservation et revenir, ne perd rien. */
+ *  changer d'onglet, ou passer par Réservation et revenir, ne perd rien. Les
+ *  critères qui ne tiennent pas dans la barre de la maquette sont dans la
+ *  fenêtre « Filtres ». */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   useCallback,
   useEffect,
@@ -23,26 +24,39 @@ import {
   type KeyboardEvent,
 } from "react";
 import { Coquille } from "@/components/Coquille";
-import { Icon } from "@/components/Icon";
+import { textesCarte } from "@/components/favoris/annonceCarte";
+import { useAPied } from "@/lib/geo/useReseauPieton";
+import { FlecheTri } from "@/components/favoris/communs";
+import {
+  BasculeVue,
+  BoutonFiltres,
+  CarteAnnonce as CarteMaquette,
+  IconeDroite,
+  IconeGauche,
+  Interrupteur,
+  ModaleFiltres,
+  PuceCritere,
+  SectionFiltre,
+  Trace,
+  useEnregistrement,
+} from "@/components/maquette";
 import { useFermeture } from "@/components/v7/fermeture";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
-import { CarteLogement, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
+import { PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
 import { epinglePrix, ETAGE } from "@/components/v7/epingle";
 import { FicheEpingle } from "@/components/v7/FicheEpingle";
 import { Fourchette } from "@/components/v7/Fourchette";
 import { SensTri } from "@/components/v7/SensTri";
 import { Pages } from "@/components/v7/Pages";
-import { Vide } from "@/components/v7/Vide";
 import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
 import { dansLesBornes, type Bornes as Cadre } from "@/lib/carte";
 import type { Listing } from "@/lib/listings";
-import { eur, groupLbl, useParcours, useSejour } from "@/lib/parcours";
+import { dm, eur, fmt, nuitsLbl, useParcours, useSejour } from "@/lib/parcours";
 import { useAnnonces } from "@/lib/prix/annonces";
 import { resultatsALaLecture } from "@/lib/prix/recompte";
 import {
   annSub,
-  autresBudget,
   avecNuits,
   bornesPlages,
   choisirDept,
@@ -57,7 +71,6 @@ import {
   countLbl,
   decaler,
   departIso,
-  departLbl,
   dureeLbl,
   ecartLbl,
   effacerBudget,
@@ -75,7 +88,6 @@ import {
   ligne,
   lireTri,
   lireTriB,
-  medHead,
   memePeriode,
   MIN_ANNONCES,
   moreLbl,
@@ -108,8 +120,6 @@ import {
   releveLbl,
   retirerJeton,
   sourcesBudget,
-  sousTitre,
-  sousTitreBudget,
   triParEnTete,
   TRIS,
   TRIS_B,
@@ -134,9 +144,8 @@ import { stationDuLogement } from "@/lib/stay/parStation";
 import { useBudgetForfaits } from "@/components/v7/usePrixForfait";
 import { adults, clampChildren, clampRooms, clampTravelers } from "@/lib/stay/party";
 import { STATIONS, type Station } from "@/lib/stations";
-import { prixPin } from "@/lib/v7";
+import { persLbl, prixPin, villageM } from "@/lib/v7";
 import { useIdsFavoris } from "@/lib/favoris/store";
-import { useAltitudes } from "@/lib/altitude/store";
 import { aTraduire, dire, tr, trN } from "@/lib/i18n";
 
 export const Route = createFileRoute("/prix")({ component: Prix });
@@ -179,16 +188,22 @@ function optionsDept(massifs: readonly string[]): { v: string; label: string }[]
   ];
 }
 
-/** En-têtes du tableau : la date du relevé ne se trie pas, la médiane se
- *  range à droite (Prix par station.dc.html:506). */
+/** En-têtes du tableau : la date du relevé et l'altitude du village ne se
+ *  trient pas, la médiane se range à droite (Skitrack App.dc.html:1220). */
 type Colonne = { id: string; k: Tri["k"] | null; lbl: string; droite?: boolean };
 
 function colonnes(nights: number): Colonne[] {
   return [
     { id: "station", k: "nom", lbl: tr("Station") },
     { id: "logements", k: "n", lbl: tr("Logements") },
-    { id: "releve", k: null, lbl: tr("Relevé") },
-    { id: "mediane", k: "med", lbl: medHead(nights), droite: true },
+    { id: "village", k: null, lbl: tr("Village") },
+    { id: "releve", k: null, lbl: tr("Mis à jour") },
+    {
+      id: "mediane",
+      k: "med",
+      lbl: tr("Prix médian · {nuits}", { nuits: nuitsLbl(nights) }),
+      droite: true,
+    },
   ];
 }
 
@@ -204,12 +219,8 @@ function Prix() {
       {monte ? (
         <EcranPrix />
       ) : (
-        <main className="v7main prix7" id="s-prix" data-screen-label="Prix">
-          <div className="prix7__tete">
-            <div className="prix7__titre">
-              <h1>{dire("nav.prices")}</h1>
-            </div>
-          </div>
+        <main className="px-main" id="s-prix" data-screen-label="Prix">
+          <h1 className="m8-lu-seul">{dire("nav.prices")}</h1>
         </main>
       )}
     </Coquille>
@@ -220,7 +231,7 @@ const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 function EcranPrix() {
   const sej = useSejour();
-  const { checkIn, nights, enfants } = sej;
+  const { checkIn, nights } = sej;
   const perChoisie = usePrix((s) => s.per);
   const onglet = usePrix((s) => s.onglet);
   const setPer = usePrix((s) => s.setPer);
@@ -274,140 +285,137 @@ function EcranPrix() {
   };
 
   return (
-    <main className="v7main prix7" id="s-prix" data-screen-label="Prix">
-      <div className="prix7__tete">
-        <div className="prix7__titre">
-          <h1>{dire("nav.prices")}</h1>
-          <p>
-            {onglet === "budget" ? sousTitreBudget(per.nights, trav) : sousTitre(per.nights, trav)}
-          </p>
+    <main className="px-main" id="s-prix" data-screen-label="Prix">
+      <h1 className="m8-lu-seul">{dire("nav.prices")}</h1>
+      <div className="px-barre">
+        <div role="tablist" aria-label={tr("Vue")} className="m8-onglets">
+          {ONGLETS.map((o, i) => {
+            const on = o.v === onglet;
+            return (
+              <button
+                key={o.v}
+                ref={(el) => {
+                  refsOnglets.current[o.v] = el;
+                }}
+                type="button"
+                role="tab"
+                id={idOnglet(o.v)}
+                aria-controls={idVue(o.v)}
+                aria-selected={on}
+                tabIndex={on ? 0 : -1}
+                className={`m8-onglet${on ? " m8-onglet--on" : ""}`}
+                onClick={() => setOnglet(o.v)}
+                onKeyDown={(e) => clavierOnglets(e, i)}
+              >
+                {tr(o.lbl)}
+              </button>
+            );
+          })}
         </div>
-        <div className="prix7__groupe" title={tr("Le groupe se change dans votre séjour")}>
-          <span className="prix7__groupe-lbl">{tr("Groupe")}</span>
-          <span className="prix7__groupe-val">{groupLbl(trav, rooms, enfants)}</span>
-        </div>
-      </div>
 
-      <div role="tablist" aria-label={tr("Vue")} className="prix7__onglets">
-        {ONGLETS.map((o, i) => {
-          const on = o.v === onglet;
-          return (
-            <button
-              key={o.v}
-              ref={(el) => {
-                refsOnglets.current[o.v] = el;
-              }}
-              type="button"
-              role="tab"
-              id={idOnglet(o.v)}
-              aria-controls={idVue(o.v)}
-              aria-selected={on}
-              tabIndex={on ? 0 : -1}
-              className={`prix7__onglet${on ? " prix7__onglet--on" : ""}`}
-              onClick={() => setOnglet(o.v)}
-              onKeyDown={(e) => clavierOnglets(e, i)}
-            >
-              {tr(o.lbl)}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* La période et l'écart sont communs aux deux vues : ils précèdent
-            `sc-if isStation` (Prix par station.dc.html:35-54). */}
-      <div className="prix7__carte prix7__periode">
-        <div className="prix7__arrivee">
-          <label className="prix7__lbl" htmlFor="prix-arrivee">
-            {tr("Arrivée")}
-          </label>
-          {/* Pas de relevé pour des dates passées : l'arrivée ne descend pas
-                sous aujourd'hui, comme dans le calendrier du séjour. */}
+        {/* La période : un jour de plus ou de moins, ou une arrivée choisie au
+            calendrier sous le libellé. Pas de relevé pour des dates passées :
+            l'arrivée ne descend pas sous aujourd'hui. */}
+        <div className="px-pas" role="group" aria-label={tr("Arrivée")}>
           <button
             type="button"
-            className="prix7__rond"
+            className="px-pas__rond"
             title={tr("Un jour plus tôt")}
             aria-label={tr("Un jour plus tôt")}
             disabled={per.from <= auj}
             onClick={() => poserPer(decaler(per, -1))}
           >
-            <Icon name="chevron-gauche" taille={14} />
+            <IconeGauche taille={12} epaisseur={2.4} />
           </button>
-          <input
-            ref={refDate}
-            id="prix-arrivee"
-            type="date"
-            className="prix7__date"
-            min={auj}
-            value={saisie ?? per.from}
-            onChange={(e) => {
-              // Une date entière et à venir passe au magasin ; le reste
-              // (champ vidé, année en cours de frappe, jour passé) reste un
-              // brouillon, que la sortie du champ abandonne.
-              const v = e.target.value;
-              if (DATE_ISO.test(v) && v >= todayIso()) {
-                setSaisie(null);
-                poserPer({ ...per, from: v });
-              } else setSaisie(v);
-            }}
-            onBlur={() => setSaisie(null)}
-          />
+          <label className="px-periode">
+            <span className="px-periode__lbl" aria-hidden>
+              {dm(per.from)} → {dm(departIso(per))}
+            </span>
+            <input
+              ref={refDate}
+              id="prix-arrivee"
+              type="date"
+              className="px-periode__date"
+              aria-label={tr("Arrivée")}
+              min={auj}
+              value={saisie ?? per.from}
+              onClick={(e) => {
+                const el = e.currentTarget;
+                try {
+                  if ("showPicker" in el) el.showPicker();
+                } catch {
+                  // Sans calendrier natif, le champ se tape.
+                }
+              }}
+              onChange={(e) => {
+                // Une date entière et à venir passe au magasin ; le reste
+                // (champ vidé, année en cours de frappe, jour passé) reste un
+                // brouillon, que la sortie du champ abandonne.
+                const v = e.target.value;
+                if (DATE_ISO.test(v) && v >= todayIso()) {
+                  setSaisie(null);
+                  poserPer({ ...per, from: v });
+                } else setSaisie(v);
+              }}
+              onBlur={() => setSaisie(null)}
+            />
+          </label>
           <button
             type="button"
-            className="prix7__rond"
+            className="px-pas__rond"
             title={tr("Un jour plus tard")}
             aria-label={tr("Un jour plus tard")}
             onClick={() => poserPer(decaler(per, 1))}
           >
-            <Icon name="chevron-droite" taille={14} />
+            <IconeDroite taille={12} epaisseur={2.4} />
           </button>
         </div>
-        <div className="prix7__nuits" role="group" aria-labelledby="prix-nuits">
-          <span className="prix7__lbl" id="prix-nuits">
-            {tr("Nuits")}
-          </span>
+
+        <div className="px-pas" role="group" aria-label={tr("Nuits")}>
           <button
             type="button"
-            className="prix7__rond"
+            className="px-pas__rond"
             title={tr("Une nuit de moins")}
             aria-label={tr("Une nuit de moins")}
             disabled={per.nights <= NUITS_MIN}
             onClick={() => poserPer(avecNuits(per, per.nights - 1))}
           >
-            <Icon name="moins" taille={14} />
+            <Trace d="M5 12h14" taille={12} epaisseur={2.4} />
           </button>
-          <span className="prix7__nombre" aria-live="polite">
-            {per.nights}
+          <span className="px-pas__val px-pas__val--nuits" aria-live="polite">
+            {nuitsLbl(per.nights)}
           </span>
           <button
             type="button"
-            className="prix7__rond"
+            className="px-pas__rond"
             title={tr("Une nuit de plus")}
             aria-label={tr("Une nuit de plus")}
             disabled={per.nights >= NUITS_MAX}
             onClick={() => poserPer(avecNuits(per, per.nights + 1))}
           >
-            <Icon name="plus" taille={14} />
+            <Trace d="M12 5v14M5 12h14" taille={12} epaisseur={2.4} />
           </button>
-          <span className="prix7__depart">{tr("départ le {date}", { date: departLbl(per) })}</span>
         </div>
-      </div>
 
-      {!memePeriode(per, sejour) ? (
-        <div className="prix7__ecart">
-          <span>{ecartLbl(sejour)}</span>
-          {/* Le bouton disparaît avec l'écart : le focus passe à l'arrivée. */}
+        <span className="px-groupe" title={tr("Le groupe se change dans votre séjour")}>
+          {persLbl(trav)} · {rooms ? tr("{n} ch.", { n: rooms }) : tr("studio")}
+        </span>
+
+        {!memePeriode(per, sejour) ? (
           <button
             type="button"
-            className="prix7__pilule"
+            className="px-revenir"
+            title={ecartLbl(sejour)}
             onClick={() => {
+              // Le bouton disparaît avec l'écart : le focus passe à l'arrivée.
               poserPer(null);
               refDate.current?.focus();
             }}
           >
-            {tr("Revenir à votre séjour")}
+            {tr("Revenir à mes dates")}
           </button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {/* Les deux panneaux existent, pour que chaque onglet désigne le sien ;
             seul l'ouvert porte un contenu, et lui seul lit les annonces. */}
@@ -418,7 +426,7 @@ function EcranPrix() {
             role="tabpanel"
             id={idVue(o.v)}
             aria-labelledby={idOnglet(o.v)}
-            className="prix7__vue"
+            className="px-vue"
           >
             {o.v === "station" ? (
               <VueStation per={per} groupe={groupe} />
@@ -465,27 +473,31 @@ function ChoixMultiple({
   const nom = (v: string) => choix.find((o) => o.v === v)?.label.replace(/ · \d+$/, "") ?? v;
   const resume = valeurs.length === 0 ? vide : valeurs.length === 1 ? nom(valeurs[0]) : pluriel;
   return (
-    <div className="prix7__champ prix7__multi" ref={hote}>
+    <div className="px-champ px-multi" ref={hote}>
       <span>{titre}</span>
       <button
         type="button"
-        className="prix7__select prix7__multi-bouton"
+        className="px-select px-multi__bouton"
         aria-haspopup="true"
         aria-expanded={ouvert}
         onClick={() => setOuvert((o) => !o)}
       >
         {resume}
-        <Icon name="chevron-bas" taille={12} />
+        <Trace d="m6 9 6 6 6-6" taille={12} epaisseur={2.2} />
       </button>
       {ouvert ? (
-        <div className="prix7__multi-liste" role="group" aria-label={titre}>
-          <label className="prix7__multi-option">
+        <div className="px-multi__liste" role="group" aria-label={titre}>
+          <label className="px-multi__option">
             <input type="checkbox" checked={valeurs.length === 0} onChange={() => onChange([])} />
             <span>{vide}</span>
           </label>
           {choix.map((o) => (
-            <label key={o.v} className="prix7__multi-option">
-              <input type="checkbox" checked={valeurs.includes(o.v)} onChange={() => onChange(bascule(valeurs, o.v))} />
+            <label key={o.v} className="px-multi__option">
+              <input
+                type="checkbox"
+                checked={valeurs.includes(o.v)}
+                onChange={() => onChange(bascule(valeurs, o.v))}
+              />
               <span>{o.label}</span>
             </label>
           ))}
@@ -675,112 +687,102 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
       memePeriode(course.per, per) &&
       grpKey(course.groupe) === kGrp &&
       course.ids.some((id) => vues.has(id));
-    return enCours ? tr("Relevé de cette liste en cours.") : tr("Relevé de cette liste en attente.");
+    return enCours
+      ? tr("Relevé de cette liste en cours.")
+      : tr("Relevé de cette liste en attente.");
   }, [aLancer, ids, course, per, kGrp]);
+  // Ce qui n'a pas encore de relevé passe d'abord (App.dc.html:1194) ; tout
+  // relevé, le bouton relève de nouveau toute la liste.
+  const neuves = useMemo(() => {
+    const sans = new Set(triees.filter((l) => l.res?.etat !== "fait").map((l) => l.id));
+    return aLancer.filter((id) => sans.has(id));
+  }, [triees, aLancer]);
   const listeFaite = filtrees.every((l) => l.res?.etat === "fait");
 
-  const js = jetons(fl, BORNES);
+  // « Prix connus seulement » a son interrupteur dans la barre : sa puce ne
+  // se répète pas à côté.
+  const js = jetons(fl, BORNES).filter((j) => j.k !== "avecPrix");
   const vues = triees.slice(0, limit);
+  const [filtres, setFiltres] = useState(false);
 
   const trier = (k: Tri["k"]) => setTri(triParEnTete(tri, k));
   const surCompte = () => refCompte.current?.focus();
 
   return (
     <>
-      <section className="prix7__carte prix7__filtres" aria-label={tr("Critères")}>
-        <div className="prix7__choix">
-          <label className="prix7__champ">
-            <span>{tr("Trier")}</span>
-            <select
-              className="prix7__select"
-              value={tri.k}
-              onChange={(e) => setTri(lireTri(e.target.value))}
-            >
-              {TRIS.map((o) => (
-                <option key={o.k} value={o.k}>
-                  {tr(o.label)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <SensTri
-            className="sens7--petit"
-            sens={tri.dir}
-            alpha={tri.k === "nom"}
-            onChange={(dir) => setTri({ ...tri, dir })}
+      <div className="px-ligne">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={fl.avecPrix}
+          className="px-bascule"
+          onClick={() => setFl({ avecPrix: !fl.avecPrix })}
+        >
+          <Interrupteur on={fl.avecPrix} />
+          {tr("Prix connus seulement")}
+        </button>
+        <BoutonFiltres n={js.length} onClick={() => setFiltres(true)} />
+        {js.map((j) => (
+          <PuceCritere
+            key={`${j.k}|${j.v ?? ""}`}
+            label={j.lbl}
+            onRetirer={() => {
+              majFl((f) => retirerJeton(f, j.k, j.v));
+              surCompte();
+            }}
           />
-          <ChoixLieu />
-          <label className="prix7__case">
-            <input
-              type="checkbox"
-              checked={fl.avecPrix}
-              onChange={(e) => setFl({ avecPrix: e.target.checked })}
-            />
-            {tr("Avec un prix seulement")}
-          </label>
-        </div>
-        <div className="prix7__plages">
-          {PLAGES.map((p) => (
-            <PlageFiltre key={p.k} p={p} />
-          ))}
-        </div>
-        <div className="prix7__jetons">
-          <span className="prix7__compte" ref={refCompte} tabIndex={-1}>
-            {countFl(filtrees.length, STATIONS.length)}
-          </span>
-          {js.map((j) => (
-            <button
-              key={`${j.k}|${j.v ?? ""}`}
-              type="button"
-              className="prix7__jeton"
-              title={tr("Retirer ce critère")}
-              onClick={() => {
-                majFl((f) => retirerJeton(f, j.k, j.v));
-                surCompte();
-              }}
-            >
-              {j.lbl}
-              <Icon name="croix" taille={11} />
-            </button>
-          ))}
-          {filtresActifs(fl) ? (
-            <button
-              type="button"
-              className="prix7__effacer"
-              onClick={() => {
-                resetFl(FL0);
-                surCompte();
-              }}
-            >
-              {tr("Tout effacer")}
-            </button>
-          ) : null}
-        </div>
-      </section>
-
-      <div className="prix7__actions" ref={refActions} tabIndex={-1}>
-        {passee ? (
-          <span className="prix7__indice" role="status">
-            {tr("Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.")}
-          </span>
-        ) : aLancer.length > 0 ? (
+        ))}
+        {filtresActifs(fl) ? (
           <button
             type="button"
-            className="prix7__relever"
-            title={tr("Une station prend environ une minute.")}
+            className="m8-lien-fort px-effacer"
             onClick={() => {
-              lancer({ nom: nomListe(fl), ids: aLancer, per, groupe });
-              // Le bouton cède la place à l'indice : le focus reste dans la rangée.
-              refActions.current?.focus();
+              resetFl(FL0);
+              surCompte();
             }}
           >
-            {relLbl(triees.length, listeFaite)}
+            {tr("Tout effacer")}
           </button>
-        ) : indice ? (
-          <span className="prix7__indice" role="status">
-            {indice}
-          </span>
         ) : null}
+        <span
+          className="px-compte"
+          ref={refCompte}
+          tabIndex={-1}
+          title={countFl(filtrees.length, STATIONS.length)}
+        >
+          {trN(filtrees.length, "{n} station", "{n} stations")}
+        </span>
+        <div className="px-actions" ref={refActions} tabIndex={-1}>
+          {passee ? (
+            <span className="px-indice" role="status">
+              {tr("Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.")}
+            </span>
+          ) : aLancer.length > 0 ? (
+            <button
+              type="button"
+              className="px-relever"
+              title={`${relLbl(triees.length, listeFaite)} · ${tr("Une station prend environ une minute.")}`}
+              onClick={() => {
+                lancer({
+                  nom: nomListe(fl),
+                  ids: neuves.length > 0 ? neuves : aLancer,
+                  per,
+                  groupe,
+                });
+                // Le bouton cède la place à l'indice : le focus reste dans la rangée.
+                refActions.current?.focus();
+              }}
+            >
+              {neuves.length > 0
+                ? trN(neuves.length, "Mettre à jour {n} station", "Mettre à jour {n} stations")
+                : tr("Tout mettre à jour")}
+            </button>
+          ) : indice ? (
+            <span className="px-indice" role="status">
+              {indice}
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {course ? (
@@ -795,15 +797,13 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
         />
       ) : null}
 
-      <section className="prix7__carte prix7__table" aria-label={tr("Stations")}>
-        <div role="table" aria-label={tr("Prix par station")}>
+      <section className="px-table" aria-label={tr("Stations")}>
+        <div role="table" aria-label={tr("Prix par station")} className="px-table__defile">
           <div role="rowgroup">
-            <div role="row" className="prix7__rang prix7__entete">
+            <div role="row" className="px-rang px-rang--tete">
               {colonnes(per.nights).map(({ id, k, lbl, droite }) => {
                 const on = k != null && tri.k === k;
-                const cls = `prix7__tri${on ? " prix7__tri--on" : ""}${
-                  droite ? " prix7__tri--droite" : ""
-                }`;
+                const cls = `px-tri${on ? " px-tri--on" : ""}${droite ? " px-tri--droite" : ""}`;
                 return (
                   <div
                     key={id}
@@ -813,12 +813,10 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
                     {k ? (
                       <button type="button" className={cls} onClick={() => trier(k)}>
                         {lbl}
-                        <span className="prix7__fleche" aria-hidden="true">
-                          {on ? (tri.dir > 0 ? "↑" : "↓") : ""}
-                        </span>
+                        {on ? <FlecheTri sens={tri.dir > 0 ? 1 : -1} /> : null}
                       </button>
                     ) : (
-                      <span className={`${cls} prix7__tri--fixe`}>{lbl}</span>
+                      <span className={cls}>{lbl}</span>
                     )}
                   </div>
                 );
@@ -842,30 +840,61 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
           </div>
         </div>
         {triees.length === 0 ? (
-          <div className="prix7__vide">
-            <strong>{tr("Aucune station ne correspond à ces critères")}</strong>
-            <span>{tr("Retirez un critère, ou effacez-les tous.")}</span>
+          <div className="px-vide px-vide--table">
+            <b>{tr("Aucune station ne correspond à ces critères")}</b>
           </div>
         ) : null}
-        <div className="prix7__pied">
-          <span>{countLbl(Math.min(limit, triees.length), triees.length)}</span>
-          {triees.length > limit ? (
-            <button
-              type="button"
-              className="prix7__pilule prix7__pilule--grande"
-              onClick={() => setLimit(limit + PAGE)}
-            >
+        {triees.length > limit ? (
+          <div className="px-pied">
+            <span>{countLbl(Math.min(limit, triees.length), triees.length)}</span>
+            <button type="button" className="px-pilule" onClick={() => setLimit(limit + PAGE)}>
               {moreLbl(triees.length - limit)}
             </button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </section>
 
-      <p className="prix7__note">
-        {tr(
-          "Le total est celui que l’annonce publie pour ces dates exactes. Depuis le 25 septembre 2026, un relevé ne compte que les logements à 2 km au plus d’une remontée ; relevez à nouveau une station pour l’appliquer à ses résultats plus anciens. Une annonce sans capacité annoncée est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe en fin de liste, dans les deux sens du tri.",
-        )}
-      </p>
+      {filtres ? (
+        <ModaleFiltres
+          onFermer={() => setFiltres(false)}
+          onEffacer={() => resetFl(FL0)}
+          cta={trN(filtrees.length, "Afficher {n} station", "Afficher {n} stations")}
+        >
+          <SectionFiltre
+            titre={tr("Trier")}
+            aside={
+              <SensTri
+                sens={tri.dir}
+                alpha={tri.k === "nom"}
+                onChange={(dir) => setTri({ ...tri, dir })}
+              />
+            }
+          >
+            <select
+              className="px-select"
+              aria-label={tr("Trier")}
+              value={tri.k}
+              onChange={(e) => setTri(lireTri(e.target.value))}
+            >
+              {TRIS.map((o) => (
+                <option key={o.k} value={o.k}>
+                  {tr(o.label)}
+                </option>
+              ))}
+            </select>
+          </SectionFiltre>
+          <SectionFiltre titre={tr("Lieu")}>
+            <div className="px-choix">
+              <ChoixLieu />
+            </div>
+          </SectionFiltre>
+          <SectionFiltre titre={tr("Prix et domaine")}>
+            {PLAGES.map((p) => (
+              <PlageFiltre key={p.k} p={p} />
+            ))}
+          </SectionFiltre>
+        </ModaleFiltres>
+      ) : null}
     </>
   );
 }
@@ -947,7 +976,7 @@ function VueBudget({
   // Toutes les annonces relevées, avant tout critère : c'est sur elles que se
   // fait l'identité des logements, qui ne tourne ainsi qu'à l'arrivée d'une
   // station, et non à chaque cran d'un curseur.
-  const tout = useMemo<CarteAnnonce[]>(
+  const toutBrut = useMemo<CarteAnnonce[]>(
     () =>
       relevees.flatMap((s, i) =>
         (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
@@ -957,6 +986,18 @@ function VueBudget({
         })),
       ),
     [relevees, cles, parCle],
+  );
+  // La distance à pied de chaque annonce, dès que le réseau piéton de sa
+  // station est chargé (`stay/aPied.ts`) : le filtre, le tri, les cartes et le
+  // volet la lisent. La règle des 2 km (`dansLaStation`) reste à vol d'oiseau.
+  const annoncesBrutes = useMemo(() => toutBrut.map((c) => c.a), [toutBrut]);
+  const annoncesAPied = useAPied(annoncesBrutes);
+  const tout = useMemo<CarteAnnonce[]>(
+    () =>
+      annoncesAPied === annoncesBrutes
+        ? toutBrut
+        : toutBrut.map((c, i) => (annoncesAPied[i] === c.a ? c : { ...c, a: annoncesAPied[i] })),
+    [toutBrut, annoncesBrutes, annoncesAPied],
   );
   const avant = useMemo<CarteAnnonce[]>(() => {
     const passent = new Set(
@@ -990,14 +1031,8 @@ function VueBudget({
         : 0,
     [logements, groupes, avant, fl],
   );
-  const cartes = useMemo(
-    () => [...principales].sort(comparateurBudget(triB)),
-    [principales, triB],
-  );
-  const nStations = useMemo(
-    () => new Set(principales.map((c) => c.stationId)).size,
-    [principales],
-  );
+  const cartes = useMemo(() => [...principales].sort(comparateurBudget(triB)), [principales, triB]);
+  const nStations = useMemo(() => new Set(principales.map((c) => c.stationId)).size, [principales]);
   // Toutes les offres, pas seulement les principales : le volet passe de l'une
   // à l'autre, et Retenir porte sur celle qu'on a choisie.
   const parId = useMemo(() => new Map(filtrees.map((c) => [c.a.id, c] as const)), [filtrees]);
@@ -1013,7 +1048,14 @@ function VueBudget({
     return relevees.filter((s, i) => vieilles.has(cles[i] ?? "") && montrees.has(s.id));
   }, [anciennes, relevees, cles, filtrees]);
   const aRepositionner = useMemo(
-    () => idsALancer(sansPosition.map((s) => s.id), per, groupe, course, file),
+    () =>
+      idsALancer(
+        sansPosition.map((s) => s.id),
+        per,
+        groupe,
+        course,
+        file,
+      ),
     [sansPosition, per, groupe, course, file],
   );
   // Un relevé des mêmes dates et du même groupe porte déjà l'une d'elles.
@@ -1199,8 +1241,6 @@ function VueBudget({
     return out;
   }, [pageItems, logementDe, parId, epinglee, ouverte, lodgeId]);
   const favoris = useIdsFavoris();
-  // L'altitude des logements de la page : entre stations, elle se compare.
-  const altDe = useAltitudes(useMemo(() => pageItems.map((c) => c.a), [pageItems]));
   const marqueurs = useMemo(
     () =>
       situees.map((l) => {
@@ -1213,7 +1253,12 @@ function VueBudget({
           lat: l.lat as number,
           lon: l.lon as number,
           nom: l.title,
-          epingle: epinglePrix(prixPin(l), l.title, etat, offres.some((id) => favoris.has(id))),
+          epingle: epinglePrix(
+            prixPin(l),
+            l.title,
+            etat,
+            offres.some((id) => favoris.has(id)),
+          ),
           zIndex: sel ? ETAGE.designee : ETAGE.normale,
         };
       }),
@@ -1253,7 +1298,11 @@ function VueBudget({
   const ouverteVoisine = (sens: 1 | -1) => {
     if (!ouverte) return null;
     const ici = [ouverte, ...(logementDe.get(ouverte)?.offres.map((o) => o.a.id) ?? [])];
-    const id = voisinDansListe(pageItems.map((c) => c.a.id), ici, sens);
+    const id = voisinDansListe(
+      pageItems.map((c) => c.a.id),
+      ici,
+      sens,
+    );
     return id ? () => ouvrirAnnonce(id) : null;
   };
   const groupeOuvert = useMemo(() => {
@@ -1261,107 +1310,97 @@ function VueBudget({
     return g && g.offres.length > 1 ? versLogement(g) : null;
   }, [ouverte, logementDe]);
 
+  const enr = useEnregistrement(useMemo(() => ({ ...stay, trav }), [stay, trav]));
+  const [filtres, setFiltres] = useState(false);
+  // Liste en grille pleine largeur (la maquette), ou la carte aux pastilles.
+  const [vueB, setVueB] = useState<"liste" | "carte">("liste");
+  const bBudget = BORNES.budget;
+  const plafond = fl.budget?.[1] ?? bBudget[1];
+  /** « Booking + 1 » : la plateforme de la carte, et combien d'autres. */
+  const badgeDe = (g: LogementBudget | undefined, c: CarteAnnonce) =>
+    g && g.offres.length > 1 ? tr("{n} offres", { n: g.offres.length }) : c.a.source;
+  // Le budget seul écarte tout : la maquette le dit d'une ligne.
+  const sousBudget =
+    !aucunReleve && avantBudget > 0 && fl.budget != null && fl.budget[0] <= bBudget[0]
+      ? tr("Aucun logement sous {prix}", { prix: eur(fl.budget[1]) })
+      : null;
+
   return (
     <>
-      <section className="prix7__carte prix7__filtres" aria-label={tr("Critères")}>
-        <div className="prix7__budget">
-          <PlageFiltre p={PLAGE_BUDGET} />
-          <div className="prix7__choix prix7__choix--budget">
-            <label className="prix7__champ">
-              <span>{tr("Trier")}</span>
-              <select
-                className="prix7__select"
-                value={triB.k}
-                onChange={(e) => setTriB(lireTriB(e.target.value))}
-              >
-                {TRIS_B.map((o) => (
-                  <option key={o.k} value={o.k}>
-                    {tr(o.label)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <SensTri
-              className="sens7--petit"
-              sens={triB.dir}
-              onChange={(dir) => setTriB({ ...triB, dir })}
-            />
-            <ChoixLieu />
-          </div>
-        </div>
-        <div className="prix7__choix prix7__choix--station">
-          <ChoixStation relevees={relevees} />
-        </div>
-        <div className="prix7__plages prix7__plages--six">
-          {PLAGES_LOGEMENT.map((p) => (
-            <PlageFiltre key={p.k} p={p} />
-          ))}
-          {PLAGES_STATION.map((p) => (
-            <PlageFiltre key={p.k} p={p} />
-          ))}
-        </div>
-        <div className="prix7__jetons">
-          {/* Rien tant que les annonces se lisent : « 0 logement » serait faux. */}
-          <span className="prix7__compte" ref={refCompte} tabIndex={-1}>
-            {affichable ? countBudget(cartes.length, nStations) : ""}
-          </span>
-          {js.map((j) => (
-            <button
-              key={`${j.k}|${j.v ?? ""}`}
-              type="button"
-              className="prix7__jeton"
-              title={tr("Retirer ce critère")}
-              onClick={() => {
-                majFl((f) => retirerJeton(f, j.k, j.v));
-                surCompte();
-              }}
-            >
-              {j.lbl}
-              <Icon name="croix" taille={11} />
-            </button>
-          ))}
-          {filtresActifsBudget(fl) ? (
-            <button
-              type="button"
-              className="prix7__effacer"
-              onClick={() => {
-                resetFl(effacerBudget(fl));
-                surCompte();
-              }}
-            >
-              {tr("Tout effacer")}
-            </button>
-          ) : null}
-        </div>
-      </section>
-
-      <div className="prix7__actions">
-        {passee ? (
-          <span className="prix7__indice" role="status">
-            {tr("Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.")}
-          </span>
-        ) : toutes.ids.length > 0 ? (
+      <div className="px-ligne">
+        <label className="px-budget">
+          <span className="px-budget__lbl">{tr("Budget")}</span>
+          <input
+            type="range"
+            min={bBudget[0]}
+            max={bBudget[1]}
+            step={PLAGE_BUDGET.pas}
+            value={plafond}
+            aria-valuetext={plageLbl("budget", fl.budget, bBudget)}
+            onChange={(e) =>
+              majFl((f) => ({
+                ...f,
+                budget: poserBorne(f.budget, bBudget, PLAGE_BUDGET.pas, 1, Number(e.target.value)),
+              }))
+            }
+          />
+          <b className="px-budget__val">{eur(plafond)}</b>
+        </label>
+        <BoutonFiltres n={js.length} onClick={() => setFiltres(true)} />
+        {js.map((j) => (
+          <PuceCritere
+            key={`${j.k}|${j.v ?? ""}`}
+            label={j.lbl}
+            onRetirer={() => {
+              majFl((f) => retirerJeton(f, j.k, j.v));
+              surCompte();
+            }}
+          />
+        ))}
+        {filtresActifsBudget(fl) ? (
           <button
             type="button"
-            className="prix7__relever"
-            title={tr(
-              "Une station prend environ une minute : {duree} pour celles-ci. Le relevé continue quand on quitte l’écran.",
-              { duree: dureeReleveLbl(toutes.ids.length) },
-            )}
+            className="m8-lien-fort px-effacer"
             onClick={() => {
-              // Le nom du relevé reste en français dans le magasin ; le bandeau le traduit.
-              lancer({ nom: aTraduire("toutes les stations"), ids: toutes.ids, per, groupe });
-              // Le bouton cède la place à l'indice : le focus va au compte.
-              refCompte.current?.focus();
+              resetFl(effacerBudget(fl));
+              surCompte();
             }}
           >
-            {relToutesLbl(toutes.ids.length, STATIONS.length, toutes.aNouveau)}
+            {tr("Tout effacer")}
           </button>
-        ) : (
-          <span className="prix7__indice" role="status">
-            {toutesPrevues}
-          </span>
-        )}
+        ) : null}
+        {/* Rien tant que les annonces se lisent : « 0 logement » serait faux. */}
+        <span className="px-compte" ref={refCompte} tabIndex={-1}>
+          {affichable ? countBudget(cartes.length, nStations) : ""}
+        </span>
+        <div className="px-actions">
+          {passee ? (
+            <span className="px-indice" role="status">
+              {tr("Ces dates sont passées. Choisissez une arrivée à partir d’aujourd’hui.")}
+            </span>
+          ) : toutes.ids.length > 0 ? (
+            <button
+              type="button"
+              className="px-relever"
+              title={tr(
+                "Une station prend environ une minute : {duree} pour celles-ci. Le relevé continue quand on quitte l’écran.",
+                { duree: dureeReleveLbl(toutes.ids.length) },
+              )}
+              onClick={() => {
+                // Le nom du relevé reste en français dans le magasin ; le bandeau le traduit.
+                lancer({ nom: aTraduire("toutes les stations"), ids: toutes.ids, per, groupe });
+                // Le bouton cède la place à l'indice : le focus va au compte.
+                refCompte.current?.focus();
+              }}
+            >
+              {relToutesLbl(toutes.ids.length, STATIONS.length, toutes.aNouveau)}
+            </button>
+          ) : (
+            <span className="px-indice" role="status">
+              {toutesPrevues}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Le relevé en cours se suit aussi d'ici : relever toutes les stations,
@@ -1381,33 +1420,29 @@ function VueBudget({
       ) : null}
 
       {/* Les relevés faits avec la version du 25 septembre 2026 au matin ne
-          gardaient pas la position des logements : sans le dire, la carte vide
-          et « GPS manquant » sur chaque carte laisseraient croire à une panne. */}
+          gardaient pas la position des logements : la carte vide laisserait
+          croire à une panne. */}
       {affichable && sansPosition.length > 0 ? (
-        <div className="prix7__avis">
-          <p className="prix7__note">
+        <div className="px-avis">
+          <span>
             {sansPosition.length > 1
-              ? tr(
-                  "{n} stations ont été relevées sans la position de leurs logements : ceux-ci n’ont pas de pastille sur la carte.",
-                  { n: sansPosition.length },
-                )
-              : NOMS.get(sansPosition[0]?.id ?? "")
-                ? tr(
-                    "{station} a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.",
-                    { station: NOMS.get(sansPosition[0]?.id ?? "") ?? "" },
-                  )
-                : tr(
-                    "Une station a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.",
-                  )}
-            {passee ? "" : ` ${tr("Un nouveau relevé les y place.")}`}
-          </p>
+              ? tr("{n} stations sans position de logement", { n: sansPosition.length })
+              : tr("{station} sans position de logement", {
+                  station: NOMS.get(sansPosition[0]?.id ?? "") ?? tr("Une station"),
+                })}
+          </span>
           {passee ? null : aRepositionner.length > 0 ? (
             <button
               type="button"
-              className="prix7__pilule"
+              className="px-pilule"
               title={tr("Une station prend environ une minute.")}
               onClick={() => {
-                lancer({ nom: aTraduire("logements sans position"), ids: aRepositionner, per, groupe });
+                lancer({
+                  nom: aTraduire("logements sans position"),
+                  ids: aRepositionner,
+                  per,
+                  groupe,
+                });
                 refCompte.current?.focus();
               }}
             >
@@ -1420,7 +1455,7 @@ function VueBudget({
                   : tr("Relever ces {n} stations", { n: aRepositionner.length })}
             </button>
           ) : (
-            <span className="prix7__indice" role="status">
+            <span className="px-indice" role="status">
               {sansPosition.length > 1
                 ? repositionEnCours
                   ? tr("Relevé de ces stations en cours.")
@@ -1434,136 +1469,186 @@ function VueBudget({
       ) : null}
 
       {!affichable ? null : cartes.length > 0 ? (
-        <div className="v7deux">
-          <div
-            className="v7deux__liste"
-            ref={listeRef}
-            tabIndex={-1}
-            aria-label={tr("Logements de la page")}
-          >
-            {affichees.length > 0 ? (
-              <>
-                <div className="grille7-2">
-                  {pageItems.map((c) => {
-                    const g = logementDe.get(c.a.id);
-                    const r = offreRetenue(g);
-                    return (
-                      <CarteLogement
-                        key={`${c.stationId}|${c.a.id}`}
-                        l={c.a}
-                        sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
-                        autres={g ? autresBudget(g) : null}
-                        retenu={r?.a.id ?? null}
-                        retenuSource={r && r.a.id !== c.a.id ? r.a.source : null}
-                        vue={g ? g.offres.some((o) => seen[o.a.id]) : !!seen[c.a.id]}
-                        vif={actifCarte === c.a.id}
-                        stay={stay}
-                        trav={trav}
-                        nights={nights}
-                        ouvrir={ouvrirAnnonce}
-                        retenir={retenir}
-                        designer={setActifCarte}
-                        altitude={altDe(c.a)}
-                        avecAltitude
-                      />
-                    );
-                  })}
-                </div>
-                {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
-              </>
-            ) : (
-              <Vide
-                titre={tr("Aucune annonce dans ce cadrage")}
-                actions={
-                  <button type="button" className="btn7" onClick={revoirTout}>
+        <div className="px-budget-vue">
+          {vueB === "liste" ? (
+            <div
+              className="px-deux__liste"
+              ref={listeRef}
+              tabIndex={-1}
+              aria-label={tr("Logements de la page")}
+            >
+              {affichees.length > 0 ? (
+                <>
+                  <div className="px-grille px-grille--budget">
+                    {pageItems.map((c) => {
+                      const g = logementDe.get(c.a.id);
+                      const r = offreRetenue(g);
+                      return (
+                        <CarteMaquette
+                          key={`${c.stationId}|${c.a.id}`}
+                          {...textesCarte(c.a, { nights })}
+                          badge={badgeDe(g, c)}
+                          onOpen={() => ouvrirAnnonce(c.a.id)}
+                          heart={enr.coeur(c.a)}
+                          link={{
+                            label: r
+                              ? r.a.id !== c.a.id
+                                ? tr("Retenu · {source}", { source: r.a.source })
+                                : tr("Retenu")
+                              : tr("Retenir"),
+                            on: r != null,
+                            onClick: () => retenir(r?.a.id ?? c.a.id),
+                          }}
+                          vif={actifCarte === c.a.id}
+                          onMouseEnter={() => setActifCarte(c.a.id)}
+                          onMouseLeave={() => setActifCarte(null)}
+                        />
+                      );
+                    })}
+                  </div>
+                  {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
+                </>
+              ) : (
+                <div className="px-vide">
+                  <b>{tr("Aucune annonce dans ce cadrage")}</b>
+                  <button type="button" className="px-encre" onClick={revoirTout}>
                     {tr("Revoir toutes les annonces")}
                   </button>
-                }
-              >
-                {tr("La liste suit la carte. Déplacez-la, dézoomez ou revenez au cadrage des résultats.")}
-              </Vide>
-            )}
-          </div>
-          <div className="v7deux__carte">
-            <CarteEpingles
-              marqueurs={marqueurs}
-              cadrage={cadrage}
-              cadrerSur={pointsResultat}
-              surFixe={setEpinglee}
-              maxZoom={14}
-              surBornes={surCadre}
-              actif={actifCarte}
-              surActif={setActifCarte}
-              ficheDe={(id) => {
-                const c = parId.get(id);
-                if (!c) return null;
-                const g = logementDe.get(id);
-                return (
-                  <FicheEpingle
-                    l={c.a}
-                    sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
-                    stay={stay}
-                    trav={trav}
-                    nights={nights}
-                  />
-                );
-              }}
-              actionsDe={(id) => {
-                if (!parId.has(id)) return null;
-                const r = offreRetenue(logementDe.get(id));
-                return (
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="px-deux__carte px-deux__carte--seule">
+              <CarteEpingles
+                marqueurs={marqueurs}
+                cadrage={cadrage}
+                cadrerSur={pointsResultat}
+                surFixe={setEpinglee}
+                maxZoom={14}
+                surBornes={surCadre}
+                actif={actifCarte}
+                surActif={setActifCarte}
+                ficheDe={(id) => {
+                  const c = parId.get(id);
+                  if (!c) return null;
+                  const g = logementDe.get(id);
+                  return (
+                    <FicheEpingle
+                      l={c.a}
+                      sources={g ? sourcesBudget(g) : sourceEtLieu(c.a)}
+                      stay={stay}
+                      trav={trav}
+                      nights={nights}
+                    />
+                  );
+                }}
+                actionsDe={(id) => {
+                  if (!parId.has(id)) return null;
+                  const r = offreRetenue(logementDe.get(id));
+                  return (
+                    <>
+                      <button type="button" className="btn7" onClick={() => ouvrirAnnonce(id)}>
+                        {tr("Voir l’annonce")}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn7 btn7--fantome"
+                        aria-pressed={r != null}
+                        onClick={() => retenir(r?.a.id ?? id)}
+                      >
+                        {r ? tr("Retenu") : tr("Retenir")}
+                      </button>
+                    </>
+                  );
+                }}
+                legende={
                   <>
-                    <button type="button" className="btn7" onClick={() => ouvrirAnnonce(id)}>
-                      {tr("Voir l’annonce")}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn7 btn7--fantome"
-                      aria-pressed={r != null}
-                      onClick={() => retenir(r?.a.id ?? id)}
-                    >
-                      {r ? tr("Retenu") : tr("Retenir")}
-                    </button>
+                    <b>
+                      {nPages > 1
+                        ? `${tr("Page {page} sur {n}", { page: page + 1, n: nPages })} · `
+                        : ""}
+                      {trN(
+                        affichees.length,
+                        "{n} logement dans le cadre",
+                        "{n} logements dans le cadre",
+                      )}
+                      {pageSansPosition > 0
+                        ? ` · ${tr("{n} sans position sur cette page", { n: pageSansPosition })}`
+                        : ""}
+                    </b>
+                    {horsCadre > 0 ? (
+                      <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                        {cartes.length > 1
+                          ? tr("Revoir les {n} logements", { n: cartes.length })
+                          : tr("Revoir le logement")}
+                        <IconeDroite taille={12} epaisseur={2.4} />
+                      </button>
+                    ) : null}
                   </>
-                );
-              }}
-              legende={
-                <>
-                  <b>
-                    {nPages > 1 ? `${tr("Page {page} sur {n}", { page: page + 1, n: nPages })} · ` : ""}
-                    {trN(affichees.length, "{n} logement dans le cadre", "{n} logements dans le cadre")}
-                    {pageSansPosition > 0
-                      ? ` · ${tr("{n} sans position sur cette page", { n: pageSansPosition })}`
-                      : ""}
-                  </b>
-                  {horsCadre > 0 ? (
-                    <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                      {cartes.length > 1
-                        ? tr("Revoir les {n} logements", { n: cartes.length })
-                        : tr("Revoir le logement")}
-                      <Icon name="fleche-droite" taille={14} />
-                    </button>
-                  ) : null}
-                </>
-              }
-            />
-          </div>
+                }
+              />
+            </div>
+          )}
+          <BasculeVue
+            vue={vueB}
+            onBasculer={() => setVueB((v) => (v === "liste" ? "carte" : "liste"))}
+          />
         </div>
       ) : (
-        <div className="prix7__carte prix7__vide prix7__vide--budget">
-          <strong>{vide.titre}</strong>
-          <span>{vide.hint}</span>
+        <div className="px-vide">
+          <span className="px-vide__txt">{sousBudget ?? vide.titre}</span>
           {vide.versStation ? (
-            <button
-              type="button"
-              className="prix7__pilule prix7__pilule--grande"
-              onClick={() => ouvrir("station")}
-            >
+            <button type="button" className="px-encre" onClick={() => ouvrir("station")}>
               {tr("Ouvrir l’onglet Par station")}
             </button>
           ) : null}
         </div>
       )}
+
+      {filtres ? (
+        <ModaleFiltres
+          onFermer={() => setFiltres(false)}
+          onEffacer={() => resetFl(effacerBudget(fl))}
+          cta={trN(cartes.length, "Afficher {n} logement", "Afficher {n} logements")}
+        >
+          <SectionFiltre titre={tr("Budget")}>
+            <PlageFiltre p={PLAGE_BUDGET} />
+          </SectionFiltre>
+          <SectionFiltre
+            titre={tr("Trier")}
+            aside={<SensTri sens={triB.dir} onChange={(dir) => setTriB({ ...triB, dir })} />}
+          >
+            <select
+              className="px-select"
+              aria-label={tr("Trier")}
+              value={triB.k}
+              onChange={(e) => setTriB(lireTriB(e.target.value))}
+            >
+              {TRIS_B.map((o) => (
+                <option key={o.k} value={o.k}>
+                  {tr(o.label)}
+                </option>
+              ))}
+            </select>
+          </SectionFiltre>
+          <SectionFiltre titre={tr("Lieu")}>
+            <div className="px-choix">
+              <ChoixLieu />
+              <ChoixStation relevees={relevees} />
+            </div>
+          </SectionFiltre>
+          <SectionFiltre titre={tr("Logement")}>
+            {PLAGES_LOGEMENT.map((p) => (
+              <PlageFiltre key={p.k} p={p} />
+            ))}
+          </SectionFiltre>
+          <SectionFiltre titre={tr("Station")}>
+            {PLAGES_STATION.map((p) => (
+              <PlageFiltre key={p.k} p={p} />
+            ))}
+          </SectionFiltre>
+        </ModaleFiltres>
+      ) : null}
 
       {annonceOuverte ? (
         <VoletAnnonce
@@ -1586,93 +1671,117 @@ function VueBudget({
             ouverteRetenue ? (
               <button
                 type="button"
-                className="btn7 btn7--grand btn7--pleine"
+                className="px-encre px-encre--large"
                 onClick={() => void go("booking")}
               >
                 {tr("Passer à la réservation")}
-                <Icon name="fleche-droite" taille={16} />
               </button>
             ) : null
           }
         />
       ) : null}
+      {enr.modale}
     </>
   );
 }
 
-/** Une ligne du tableau. La colonne Relevé dit l'état de la course avant la
- *  date du dernier relevé ; « partiel » nomme en clair les sources qui n'ont
- *  pas répondu (au clavier et au toucher, un `title` ne se lit pas), et le
- *  survol en redonne la liste entière quand la colonne la coupe. */
+/** « 2 oct. » : le jour du dernier relevé, sans l'année (App.dc.html:1223). */
+function dateCourte(r: Resultat | null): string {
+  if (!r || !releveLbl(r)) return "";
+  const d = new Date(r.ts);
+  const deux = (n: number) => String(n).padStart(2, "0");
+  return dm(`${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDate())}`);
+}
+
+const STATION_DE: ReadonlyMap<string, Station> = new Map(STATIONS.map((s) => [s.id, s]));
+
+/** Une ligne du tableau (Skitrack App.dc.html:583-587). « Mis à jour » dit
+ *  l'état de la course avant la date du dernier relevé ; « partiel » nomme en
+ *  clair les sources qui n'ont pas répondu. Le bouton rond relève la station
+ *  quand elle n'a pas de relevé, ou que le dernier a échoué. */
 function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
   const refReleve = useRef<HTMLDivElement>(null);
+  const s = STATION_DE.get(l.id);
+  const village = s ? villageM(s) : null;
   const ecartees = annSub(l.res);
   const partiel = l.res?.etat === "fait" ? l.res.partiel : [];
   const releve =
-    l.etat === "en-cours" ? tr("en cours") : l.etat === "attente" ? tr("en attente") : releveLbl(l.res);
-  const boutonRelever =
-    relever && (l.etat === "non-releve" || l.etat === "echec") ? (
-      <button
-        type="button"
-        className="prix7__pilule prix7__pilule--ligne"
-        aria-label={tr("Relever {station}", { station: l.nom })}
-        onClick={() => {
-          relever();
-          // Le bouton disparaît : le focus passe à l'état du relevé, qui
-          // dit désormais « en cours » ou « en attente ».
-          refReleve.current?.focus();
-        }}
+    l.etat === "en-cours"
+      ? tr("en cours")
+      : l.etat === "attente"
+        ? tr("en attente")
+        : dateCourte(l.res);
+  const muet = l.n == null ? " px-cell--muet" : "";
+  const valeur =
+    l.etat === "prix" ? (
+      <b className="px-prix">{eur(l.med)}</b>
+    ) : l.etat === "peu" ? (
+      <span className="px-etat" title={tr("Il en faut {n} pour une médiane", { n: MIN_ANNONCES })}>
+        {tr("Pas assez d’annonces")}
+      </span>
+    ) : l.etat === "echec" ? (
+      // La raison est gardée en français dans le relevé (`aTraduire`).
+      <span className="px-etat" title={l.res?.etat === "echec" ? tr(l.res.raison) : undefined}>
+        {tr("Relevé impossible")}
+      </span>
+    ) : (
+      <b
+        className="px-prix px-prix--muet"
+        aria-label={l.etat === "non-releve" ? tr("Non relevé") : undefined}
       >
-        {tr("Relever")}
-      </button>
-    ) : null;
+        –
+      </b>
+    );
   return (
-    <div role="row" className="prix7__rang prix7__ligne">
-      <div role="cell" className="prix7__station">
-        <span className="prix7__nom">{l.nom}</span>
-        <span className="prix7__massif">{l.subMassif}</span>
-      </div>
-      <div role="cell" className="prix7__annonces">
-        <span className={`prix7__n${l.n == null ? " prix7__n--absent" : ""}`}>
-          {l.n == null ? "" : trN(l.n, "{n} logement", "{n} logements")}
+    <div role="row" className="px-rang">
+      <div role="cell" className="px-station">
+        <Link
+          to="/stations/$id"
+          params={{ id: l.id }}
+          className="px-station__nom"
+          title={l.subMassif}
+        >
+          {l.nom}
+        </Link>
+        <span className="px-station__sous">
+          {s?.domain && s.domain !== l.nom ? s.domain : l.subMassif}
         </span>
-        <span className="prix7__ecartes" title={ecartees || undefined}>
-          {ecartees}
-        </span>
       </div>
-      <div role="cell" className="prix7__releve" ref={refReleve} tabIndex={-1}>
-        <span>{releve}</span>
+      <div role="cell" className={`px-cell${muet}`} title={ecartees || undefined}>
+        {l.n == null ? "–" : fmt(l.n)}
+      </div>
+      <div role="cell" className={`px-cell${muet}`}>
+        {village != null ? `${fmt(village)} m` : "–"}
+      </div>
+      <div role="cell" className={`px-cell${muet}`} ref={refReleve} tabIndex={-1}>
+        {releve || "–"}
         {partiel.length > 0 ? (
-          <span className="prix7__partiel" title={tr("Sans réponse : {sources}.", { sources: partiel.join(", ") })}>
+          <span
+            className="px-partiel"
+            title={tr("Sans réponse : {sources}.", { sources: partiel.join(", ") })}
+          >
             {partielLbl(partiel)}
           </span>
         ) : null}
       </div>
-      <div role="cell" className="prix7__valeur">
-        {l.etat === "prix" ? (
-          <span className="prix7__prix">{eur(l.med)}</span>
-        ) : l.etat === "en-cours" ? (
-          <span className="prix7__etat prix7__etat--encours">{tr("Relevé en cours")}</span>
-        ) : l.etat === "attente" ? (
-          <span className="prix7__etat">{tr("En attente")}</span>
-        ) : l.etat === "peu" ? (
-          <>
-            <span className="prix7__etat">{tr("Pas assez d’annonces")}</span>
-            <span className="prix7__sous">{tr("Il en faut {n} pour une médiane", { n: MIN_ANNONCES })}</span>
-          </>
-        ) : l.etat === "echec" ? (
-          <>
-            <span className="prix7__etat">{tr("Relevé impossible")}</span>
-            {/* La raison est gardée en français dans le relevé (`aTraduire`). */}
-            {l.res?.etat === "echec" ? <span className="prix7__sous">{tr(l.res.raison)}</span> : null}
-            {boutonRelever}
-          </>
-        ) : (
-          <>
-            <span className="prix7__etat">{tr("Non relevé")}</span>
-            {boutonRelever}
-          </>
-        )}
+      <div role="cell" className="px-valeur">
+        {valeur}
+        {relever && (l.etat === "non-releve" || l.etat === "echec") ? (
+          <button
+            type="button"
+            className="px-rond"
+            aria-label={tr("Relever {station}", { station: l.nom })}
+            title={tr("Mettre à jour")}
+            onClick={() => {
+              relever();
+              // Le bouton disparaît : le focus passe à l'état du relevé, qui
+              // dit désormais « en cours » ou « en attente ».
+              refReleve.current?.focus();
+            }}
+          >
+            <Trace d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6" taille={12} epaisseur={2.2} />
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -1689,7 +1798,9 @@ function suiteAttente(a: NonNullable<Course["attente"]>, nom: string | null, now
     case "arret":
       return nom ? ` · ${tr("{station} après la fin du relevé arrêté", { station: nom })}` : "";
     case "logements":
-      return nom ? ` · ${tr("{station} après la recherche en cours dans Logements", { station: nom })}` : "";
+      return nom
+        ? ` · ${tr("{station} après la recherche en cours dans Logements", { station: nom })}`
+        : "";
     case "rythme":
       return nom
         ? reste
@@ -1710,7 +1821,8 @@ function suiteFiches(
   now: number,
 ): string {
   const base = ` · ${tr("{station} : fiches {faites} sur {total}", { station: nom, faites: f.faites, total: f.total })}`;
-  if (a?.motif === "logements") return `${base}, ${tr("reprise après la recherche en cours dans Logements")}`;
+  if (a?.motif === "logements")
+    return `${base}, ${tr("reprise après la recherche en cours dans Logements")}`;
   if (a?.motif === "rythme" && a.jusqua != null) {
     return `${base}, ${tr("suite dans {duree}", { duree: dureeLbl(Math.max(0, a.jusqua - now)) })}`;
   }
@@ -1752,42 +1864,41 @@ function BandeauCourse({
           ? ` · ${tr("{station} en cours", { station: nom })}`
           : "";
 
+  const enCours = nom ? `${nom} · ` : "";
   return (
-    <div className="prix7__course">
-      <div className="prix7__course-corps">
-        <div className="prix7__course-tete">
-          <strong className="prix7__course-titre">
-            {tr("Relevé : {nom}, {periode}", { nom: tr(course.nom), periode: perLbl(course.per) })}
-          </strong>
-          <span className="prix7__course-sous">
-            {tr("{i} sur {total}", { i: course.i, total })}
-            {suite}
-          </span>
-        </div>
-        <div
-          className="prix7__jauge"
-          role="progressbar"
-          aria-label={tr("Stations relevées")}
-          aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={course.i}
-        >
-          <i style={{ width: `${total ? (course.i / total) * 100 : 0}%` }} />
-        </div>
-        {course.airbnbRefus ? (
-          <span className="prix7__course-file">
-            {tr("Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.")}
-          </span>
-        ) : null}
-        {file.length > 0 ? (
-          <span className="prix7__course-file">
-            {tr("Ensuite : {releves}.", { releves: file.map((j) => `${tr(j.nom)} (${perLbl(j.per)})`).join(", ") })}
-          </span>
-        ) : null}
+    <div
+      className="px-course"
+      title={tr("Relevé : {nom}, {periode}", { nom: tr(course.nom), periode: perLbl(course.per) })}
+    >
+      <span className="px-course__lbl">
+        {enCours}
+        {course.i + (course.i < total ? 1 : 0)} / {total}
+      </span>
+      <div
+        className="px-course__jauge"
+        role="progressbar"
+        aria-label={tr("Stations relevées")}
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={course.i}
+      >
+        <i style={{ width: `${total ? (course.i / total) * 100 : 0}%` }} />
       </div>
-      <button type="button" className="prix7__arreter" onClick={onArreter}>
+      <button type="button" className="px-course__arreter" onClick={onArreter}>
         {tr("Arrêter")}
       </button>
+      {/* Une attente, un refus d'Airbnb ou des relevés en file : une ligne de plus. */}
+      {course.attente || fiches || course.airbnbRefus || file.length > 0 ? (
+        <span className="px-course__sous">
+          {suite.replace(/^ · /, "")}
+          {course.airbnbRefus
+            ? ` · ${tr("Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.")}`
+            : ""}
+          {file.length > 0
+            ? ` · ${tr("Ensuite : {releves}.", { releves: file.map((j) => `${tr(j.nom)} (${perLbl(j.per)})`).join(", ") })}`
+            : ""}
+        </span>
+      ) : null}
     </div>
   );
 }

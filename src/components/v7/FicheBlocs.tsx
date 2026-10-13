@@ -23,6 +23,7 @@ import {
 } from "@/lib/altitude/altitude";
 import { useAltitudes } from "@/lib/altitude/store";
 import { useCheminAPied } from "@/lib/geo/useReseauPieton";
+import { trajetVoiture } from "@/lib/stay/aPied";
 import { montantCents } from "@/lib/devises";
 import type { BudgetForfaits } from "@/lib/forfaits/prixSejour";
 import { aTraduire, tr, trN } from "@/lib/i18n";
@@ -139,9 +140,20 @@ export function BlocFaits({ l, altitude }: { l: Listing; altitude: Altitude | nu
       k: "dist",
       v:
         dist.kind === "measured"
-          ? dist.via === "pieton"
-            ? tr("{distance} à pied des remontées", { distance: mLbl(l.distToLiftM) ?? "" })
-            : tr("{distance} des remontées à vol d’oiseau", { distance: mLbl(l.distToLiftM) ?? "" })
+          ? [
+              dist.via === "pieton"
+                ? tr("{distance} à pied des remontées", { distance: mLbl(l.distToLiftM) ?? "" })
+                : tr("{distance} des remontées à vol d’oiseau", {
+                    distance: mLbl(l.distToLiftM) ?? "",
+                  }),
+              // La marche d'abord, qui trie et filtre ; la voiture quand elle
+              // l'emporte (`stay/aPied.ts`).
+              dist.voiture
+                ? tr("{minutes} min en voiture", { minutes: dist.voiture.minutes })
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")
           : dist.text,
       aide: dist.kind === "measured" ? dist.text : undefined,
     },
@@ -188,12 +200,17 @@ export function BlocAcces({
   complements?: ReactNode;
 }) {
   const approchee = positionApprochee(l);
+  // La marche longue fait prendre la voiture (`stay/aPied.ts`) : le schéma
+  // dit alors la route, jusqu'à la remontée qu'on rejoint en voiture.
+  const voiture = trajetVoiture(l);
+  const lift = voiture ?? l;
+  const trajetM = voiture ? voiture.m : l.distToLiftM;
   const gares = useMemo(
     () => [
-      { lat: l.liftLat ?? null, lon: l.liftLon ?? null },
-      { lat: l.liftOtherLat ?? null, lon: l.liftOtherLon ?? null },
+      { lat: lift.liftLat ?? null, lon: lift.liftLon ?? null },
+      { lat: lift.liftOtherLat ?? null, lon: lift.liftOtherLon ?? null },
     ],
-    [l.liftLat, l.liftLon, l.liftOtherLat, l.liftOtherLon],
+    [lift.liftLat, lift.liftLon, lift.liftOtherLat, lift.liftOtherLon],
   );
   const altDe = useAltitudes(gares);
   const altA = altDe(gares[0]);
@@ -235,8 +252,7 @@ export function BlocAcces({
       : null;
 
   const pisteM = piste ? arrondiM(piste.m) : null;
-  const pct =
-    l.distToLiftM != null ? Math.min(0.94, Math.max(0.06, l.distToLiftM / SCHEMA_M)) * 100 : null;
+  const pct = trajetM != null ? Math.min(0.94, Math.max(0.06, trajetM / SCHEMA_M)) * 100 : null;
 
   return (
     <section
@@ -260,13 +276,20 @@ export function BlocAcces({
           </div>
           <div className="fl-schema__trait" title={dist.text}>
             <i style={{ width: `${pct}%` }} />
-            <span style={{ left: `${pct}%` }}>{mLbl(l.distToLiftM)}</span>
-            {/* Ce que mesure le chiffre : la marche par les rues et chemins
-                (`stay/aPied.ts`), ou la ligne droite faute de réseau. */}
-            <small>{dist.via === "pieton" ? tr("à pied") : tr("à vol d’oiseau")}</small>
+            <span style={{ left: `${pct}%` }}>{mLbl(trajetM)}</span>
+            {/* Ce que mesure le chiffre : la route quand la marche est
+                longue, la marche par les rues et chemins (`stay/aPied.ts`),
+                ou la ligne droite faute de réseau. */}
+            <small>
+              {voiture
+                ? tr("en voiture, {minutes} min", { minutes: voiture.minutes })
+                : dist.via === "pieton"
+                  ? tr("à pied")
+                  : tr("à vol d’oiseau")}
+            </small>
           </div>
           <div className="fl-schema__bout fl-schema__bout--fin">
-            <b>{l.liftName?.trim() || tr("Remontée")}</b>
+            <b>{lift.liftName?.trim() || tr("Remontée")}</b>
             <span className={remontee ? undefined : "fl-absent"}>
               {remontee
                 ? `${altM(remontee.depart)} → ${altM(remontee.arrivee)}`
@@ -282,6 +305,19 @@ export function BlocAcces({
         </p>
       )}
       <ul className="fl-acces__ligne">
+        {voiture && l.distToLiftM != null ? (
+          <li>
+            {dist.via === "pieton"
+              ? tr("{distance} à pied de {remontee}", {
+                  distance: mLbl(l.distToLiftM) ?? "",
+                  remontee: l.liftName ?? tr("la remontée"),
+                })
+              : tr("{distance} à vol d’oiseau de {remontee}", {
+                  distance: mLbl(l.distToLiftM) ?? "",
+                  remontee: l.liftName ?? tr("la remontée"),
+                })}
+          </li>
+        ) : null}
         {km ? <li>{tr("{km} de pistes", { km })}</li> : null}
         {mesurable ? (
           <li
@@ -620,41 +656,52 @@ export function BlocNonIndique({ l }: { l: Listing }) {
   );
 }
 
-/** Le logement et sa remontée sur la carte, reliés par un trait. */
+/** Le logement et sa remontée sur la carte, reliés par le trajet. */
 export function BlocEmplacement({ l }: { l: Listing }) {
-  // Le chemin à pied jusqu'à la remontée, quand la distance en est un ; à
-  // défaut, le trait droit d'avant.
+  // Le trajet jusqu'à la remontée : par la route quand la marche est longue,
+  // à pied sinon ; à défaut de réseau, le trait droit d'avant.
   const chemin = useCheminAPied(l);
+  const voiture = trajetVoiture(l);
+  const lift = voiture ?? l;
   const { epingles, segments, trace: traitDroit } = useMemo(() => {
     const ep: Epingle[] = [];
     const sg: Segment[] = [];
     let ligne: { lat: number; lon: number }[] = [];
     if (l.lat != null && l.lon != null) {
       ep.push({ id: "logement", lat: l.lat, lon: l.lon, titre: l.title, sorte: "logement" });
-      if (l.liftLat != null && l.liftLon != null) {
+      if (lift.liftLat != null && lift.liftLon != null) {
         ep.push({
           id: "remontee",
-          lat: l.liftLat,
-          lon: l.liftLon,
-          titre: l.liftName ?? tr("Remontée"),
+          lat: lift.liftLat,
+          lon: lift.liftLon,
+          titre: lift.liftName ?? tr("Remontée"),
           sorte: "remontee",
         });
         ligne = [
           { lat: l.lat, lon: l.lon },
-          { lat: l.liftLat, lon: l.liftLon },
+          { lat: lift.liftLat, lon: lift.liftLon },
         ];
-        if (l.liftOtherLat != null && l.liftOtherLon != null) {
+        if (lift.liftOtherLat != null && lift.liftOtherLon != null) {
           sg.push({
             id: "remontee",
-            a: [l.liftLat, l.liftLon],
-            b: [l.liftOtherLat, l.liftOtherLon],
+            a: [lift.liftLat, lift.liftLon],
+            b: [lift.liftOtherLat, lift.liftOtherLon],
           });
         }
       }
     }
     return { epingles: ep, segments: sg, trace: ligne };
-  }, [l.lat, l.lon, l.liftLat, l.liftLon, l.liftOtherLat, l.liftOtherLon, l.title, l.liftName]);
-  const trace = chemin ?? traitDroit;
+  }, [
+    l.lat,
+    l.lon,
+    l.title,
+    lift.liftLat,
+    lift.liftLon,
+    lift.liftOtherLat,
+    lift.liftOtherLon,
+    lift.liftName,
+  ]);
+  const trace = chemin?.points ?? traitDroit;
   if (!epingles.length) {
     return (
       <section className="fl-carte fl-plan fl-plan--vide">

@@ -35,6 +35,11 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "à vol d’oiseau": "as the crow flies",
   "À pied, par les rues et les chemins, quand le réseau piéton de la station est connu ; sinon à vol d’oiseau.":
     "On foot, along streets and paths, when the resort’s walking network is known; otherwise as the crow flies.",
+  // En voiture quand la marche est longue (stay/aPied.ts)
+  "{distance} en voiture jusqu’à {remontee}, {minutes} min ({marche})":
+    "{distance} by car to {remontee}, {minutes} min ({marche})",
+  "en voiture, {minutes} min": "by car, {minutes} min",
+  "{minutes} min en voiture": "{minutes} min by car",
   "la remontée": "the lift",
   "{standard}/{max} pers.": "{standard}/{max} people",
   " + cabine": " + cabin",

@@ -77,7 +77,7 @@ import {
   DEVIS_MS,
   TARIF_MS,
 } from "@/lib/searchStay";
-import { airbnbComplet, pointPublie } from "@/lib/stay/priseFiche";
+import { airbnbComplet, pointPublie, raisonDeLaisser } from "@/lib/stay/priseFiche";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
@@ -232,8 +232,14 @@ const RELANCE_MS = 800;
  * fiche. Elle ne relance pas un catalogue arrêté sur un refus.
  */
 const RELECTURE_AIRBNB_MS = 15_000;
-/** Au plus 45 min après la recherche, comme les 45 relectures d'une minute d'avant. */
-const RELECTURES_AIRBNB_MAX = 180;
+/**
+ * Une relecture qui ne rapporte rien double l'intervalle, jusqu'à deux
+ * minutes ; une qui comble le ramène à 15 s. Vu le 13 octobre 2026 aux
+ * 2 Alpes : 22 annonces que rien ne comblait relues toutes les 15 s, 180 fois.
+ */
+const RELECTURE_AIRBNB_MAX_MS = 120_000;
+/** Au plus 45 min après la recherche. */
+const RELECTURES_AIRBNB_DUREE_MS = 45 * 60_000;
 /** L'annonce ouverte se relit plus souvent, sans réseau, deux minutes au plus. */
 const RELECTURE_OUVERTE_MS = 4_000;
 const RELECTURES_OUVERTE_MAX = 30;
@@ -261,7 +267,10 @@ function aCombler(l: Listing): boolean {
   if (l.source === "Airbnb") return !airbnbComplet(l) && !(l.pdpLue === true && pointPublie(l));
   // Hors Airbnb : une fiche que la tâche de fond lit encore, à qui il manque
   // la capacité, ou les chambres sans pièces dont les tirer.
-  return Boolean(l.url) && (l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0)));
+  // Une fiche que le serveur n'ouvre pas (`raisonDeLaisser` : booking.com ne
+  // publie rien de ce qui manque) ne se comblera pas : rien à relire.
+  if (!l.url || (l.source !== "Gîtes de France" && raisonDeLaisser(l, l.url) != null)) return false;
+  return l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0));
 }
 
 /** Trous de fiche, ou annonce Airbnb dont la fiche enrichie n'est pas encore posée. */
@@ -327,7 +336,8 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     // lisent en tâche de fond. Les annonces partent telles que l'écran les
     // tient ; elles reviennent comblées de ce que le cache des fiches sait.
     let relecture: ReturnType<typeof setTimeout> | null = null;
-    let relectures = 0;
+    const finRelectures = Date.now() + RELECTURES_AIRBNB_DUREE_MS;
+    let delaiRelecture = RELECTURE_AIRBNB_MS;
     let suiteTimer: ReturnType<typeof setTimeout> | null = null;
     let toursSuite = 0;
     let bookingTimer: ReturnType<typeof setTimeout> | null = null;
@@ -338,23 +348,36 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     let toursHtg = 0;
     // Trous, et annonces Airbnb sans fiche : la mémoire se pose sans réseau.
     const aRelireMaintenant = (rows: readonly Listing[]) => rows.filter(aRelire);
+    // Ce qui reste à relire et ce qu'on en sait : inchangé d'une relecture à
+    // l'autre, elle n'a rien rapporté.
+    const empreinte = (rows: readonly Listing[]) =>
+      aRelireMaintenant(rows)
+        .map((l) => `${l.id}:${l.lat},${l.lon}:${l.capacity}:${l.bedrooms}:${l.rooms}:${l.pdpLue}:${l.fiche != null}`)
+        .join("|");
     const planifierRelecture = (rows: readonly Listing[]) => {
-      if (cancelled || relectures >= RELECTURES_AIRBNB_MAX || aRelireMaintenant(rows).length === 0) return;
-      relecture = setTimeout(relireAirbnb, RELECTURE_AIRBNB_MS);
+      if (cancelled || Date.now() >= finRelectures || aRelireMaintenant(rows).length === 0) return;
+      relecture = setTimeout(relireAirbnb, delaiRelecture);
     };
     const relireAirbnb = () => {
       if (cancelled) return;
-      relectures += 1;
-      const actuelles = aRelireMaintenant(useStay.getState().liveListings ?? []);
+      const avant = useStay.getState().liveListings ?? [];
+      const actuelles = aRelireMaintenant(avant);
       if (actuelles.length === 0) return;
+      const empreinteAvant = empreinte(avant);
       void completerAnnonces({ data: { listings: actuelles } })
         .then((rows) => {
           if (cancelled) return;
           patchLive(rows);
-          planifierRelecture(useStay.getState().liveListings ?? rows);
+          const apres = useStay.getState().liveListings ?? rows;
+          delaiRelecture =
+            empreinte(apres) === empreinteAvant
+              ? Math.min(delaiRelecture * 2, RELECTURE_AIRBNB_MAX_MS)
+              : RELECTURE_AIRBNB_MS;
+          planifierRelecture(apres);
         })
         .catch(() => {
-          // Réseau ou pause Airbnb : on réessaie à l'intervalle suivant.
+          // Réseau ou pause Airbnb : on réessaie, plus tard.
+          delaiRelecture = Math.min(delaiRelecture * 2, RELECTURE_AIRBNB_MAX_MS);
           planifierRelecture(actuelles);
         });
     };

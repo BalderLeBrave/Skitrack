@@ -16,6 +16,7 @@ import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement
 import type { Equipement } from "./stay/equipements";
 import type { FicheEnrichie } from "./stay/ficheEnrichie.ts";
 import type { SourceGps } from "./stay/repliGps";
+import type { AccesAPied } from "./stay/aPied.ts";
 import { langueIntl } from "./i18n/langue.ts";
 
 export type Listing = {
@@ -126,6 +127,12 @@ export type Listing = {
   liftLon?: number | null;
   liftOtherLat?: number | null;
   liftOtherLon?: number | null;
+  /**
+   * La distance à la remontée est une marche, mesurée sur le réseau piéton de
+   * la station (`stay/aPied.ts`). Posée à l'affichage seulement ; absente ou
+   * discordante (`estAPied`), `distToLiftM` est à vol d'oiseau.
+   */
+  aPied?: AccesAPied | null;
   domainFit?: DomainVerdict;
   /** La station du logement (`rattachement.ts`) : par sa localité publiée, ses
    *  coordonnées ou son texte. Recalculée à chaque relecture. */

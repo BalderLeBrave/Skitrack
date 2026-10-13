@@ -1,8 +1,17 @@
 @import "tailwindcss";
 @import "./design/manrope.css";
+@import "./design/plus-jakarta-sans.css";
 @import "./design/system.css";
 @import "./design/base.css";
 @import "./design/v7.css";
+@import "./design/maquette/socle.css";
+@import "./design/maquette/coquille.css";
+@import "./design/maquette/accueil.css";
+@import "./design/maquette/stations.css";
+@import "./design/maquette/logements.css";
+@import "./design/maquette/fiche-logement.css";
+@import "./design/maquette/fiche-station.css";
+@import "./design/maquette/prix-favoris.css";
 
 /**
  * `dark:` suit le thème de l'application, pas celui du système.

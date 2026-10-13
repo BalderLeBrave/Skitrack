@@ -73,6 +73,19 @@ export function epingleRepere(nom: string): Epingle {
 }
 
 /**
+ * Le centre de la station sur la carte des logements de la maquette : un
+ * point de 12 px à la couleur d'accent, cerclé de papier. Un pixel de boîte,
+ * comme la pastille au prix : le point se centre lui-même sur la coordonnée.
+ */
+export function epingleCentre(nom: string): Epingle {
+  return {
+    html: `<span class="lg-centre" aria-label="${echappe(nom)}" title="${echappe(nom)}"></span>`,
+    taille: [1, 1],
+    ancre: [0, 0],
+  };
+}
+
+/**
  * La pastille au prix d'une annonce.
  *
  * Ce n'est pas une pastille de station : c'est une étiquette, et son texte est

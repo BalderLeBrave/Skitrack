@@ -3,9 +3,7 @@ export const EN_PRIX: Record<string, string> = {
   // routes/prix.tsx : en-tête, période
   "Par station": "By resort",
   "Par budget": "By budget",
-  "Relevé": "Price check",
   "Le groupe se change dans votre séjour": "Change the group in your stay",
-  "Groupe": "Group",
   "Vue": "View",
   "Arrivée": "Arrival",
   "Un jour plus tôt": "One day earlier",
@@ -13,8 +11,6 @@ export const EN_PRIX: Record<string, string> = {
   "Nuits": "Nights",
   "Une nuit de moins": "One night fewer",
   "Une nuit de plus": "One night more",
-  "départ le {date}": "departure on {date}",
-  "Revenir à votre séjour": "Back to your stay",
   // routes/prix.tsx : critères
   "{n} massifs": "{n} ranges",
   "Département": "Department",
@@ -24,10 +20,7 @@ export const EN_PRIX: Record<string, string> = {
   "{n} stations": "{n} resorts",
   "pers.": "people",
   "ch.": "bedrooms",
-  "Critères": "Filters",
   "Trier": "Sort",
-  "Avec un prix seulement": "With a price only",
-  "Retirer ce critère": "Remove this filter",
   "Tout effacer": "Clear all",
   // routes/prix.tsx : relevés
   "Relevé de cette liste en cours.": "Price check of this list in progress.",
@@ -39,20 +32,11 @@ export const EN_PRIX: Record<string, string> = {
   "Prix par station": "Prices by resort",
   "Aucune station ne correspond à ces critères": "No resort matches these filters",
   "Retirez un critère, ou effacez-les tous.": "Remove a filter, or clear them all.",
-  "Le total est celui que l’annonce publie pour ces dates exactes. Depuis le 25 septembre 2026, un relevé ne compte que les logements à 2 km au plus d’une remontée ; relevez à nouveau une station pour l’appliquer à ses résultats plus anciens. Une annonce sans capacité annoncée est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe en fin de liste, dans les deux sens du tri.":
-    "The total is the one the listing publishes for these exact dates. Since 25 September 2026, a price check only counts places to stay within 2 km of a lift; check a resort again to apply this to its older results. A listing that does not state how many it sleeps is set aside and counted, never assumed large enough. A resort without a price check goes to the end of the list, in both sort orders.",
   "Relevé de toutes les stations en cours.": "Price check of all resorts in progress.",
   "Relevé de toutes les stations en attente.": "Price check of all resorts queued.",
   "Une station prend environ une minute : {duree} pour celles-ci. Le relevé continue quand on quitte l’écran.":
     "Each resort takes about a minute: {duree} for these. The price check carries on when you leave the screen.",
   "toutes les stations": "all resorts",
-  "{n} stations ont été relevées sans la position de leurs logements : ceux-ci n’ont pas de pastille sur la carte.":
-    "{n} resorts were checked without the position of their places to stay: these have no price pin on the map.",
-  "{station} a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.":
-    "{station} was checked without the position of its places to stay: they have no price pin on the map.",
-  "Une station a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.":
-    "A resort was checked without the position of its places to stay: they have no price pin on the map.",
-  "Un nouveau relevé les y place.": "A new price check puts them there.",
   "logements sans position": "places to stay without a position",
   "Relever {station}": "Check {station}",
   "Relever cette station": "Check this resort",
@@ -66,8 +50,6 @@ export const EN_PRIX: Record<string, string> = {
   "Logements de la page": "Places to stay on this page",
   "Aucune annonce dans ce cadrage": "No listings in this map view",
   "Revoir toutes les annonces": "Show all listings again",
-  "La liste suit la carte. Déplacez-la, dézoomez ou revenez au cadrage des résultats.":
-    "The list follows the map. Move it, zoom out or go back to the results view.",
   "Page {page} sur {n}": "Page {page} of {n}",
   "{n} logement dans le cadre": "{n} listing in view",
   "{n} logements dans le cadre": "{n} listings in view",
@@ -78,10 +60,7 @@ export const EN_PRIX: Record<string, string> = {
   // routes/prix.tsx : lignes du tableau
   "en cours": "in progress",
   "en attente": "queued",
-  "Relever": "Check",
   "Sans réponse : {sources}.": "No response: {sources}.",
-  "Relevé en cours": "Check in progress",
-  "En attente": "Queued",
   "Pas assez d’annonces": "Not enough listings",
   "Il en faut {n} pour une médiane": "A median needs {n}",
   "Relevé impossible": "Check failed",
@@ -98,7 +77,6 @@ export const EN_PRIX: Record<string, string> = {
   "suite dans {duree}": "next in {duree}",
   "{station} en cours": "{station} in progress",
   "Relevé : {nom}, {periode}": "Price check: {nom}, {periode}",
-  "{i} sur {total}": "{i} of {total}",
   "Stations relevées": "Resorts checked",
   "Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.":
     "Airbnb refused some requests: Airbnb listing pages are paused for this run.",
@@ -169,4 +147,20 @@ export const EN_PRIX: Record<string, string> = {
   "Le relevé n’a pas abouti.": "The price check did not complete.",
   "Le relevé s’est arrêté : l’application ne répond plus. Relancez-le plus tard.":
     "The price check stopped: the app is no longer responding. Start it again later.",
+  // routes/prix.tsx : maquette Airbnb (12 octobre 2026)
+  "Mis à jour": "Updated",
+  "Prix médian · {nuits}": "Median price · {nuits}",
+  "Revenir à mes dates": "Back to my dates",
+  "Prix connus seulement": "Known prices only",
+  "Mettre à jour {n} station": "Update {n} resort",
+  "Mettre à jour {n} stations": "Update {n} resorts",
+  "Mettre à jour": "Update",
+  "Prix et domaine": "Price and ski area",
+  "Aucun logement sous {prix}": "No places to stay under {prix}",
+  "Budget": "Budget",
+  "{n} stations sans position de logement": "{n} resorts without listing positions",
+  "{station} sans position de logement": "{station} without listing positions",
+  "Une station": "A resort",
+  "studio": "studio",
+  "Tout mettre à jour": "Update all",
 };

@@ -4,8 +4,6 @@ export const EN_FAVORIS: Record<string, string> = {
   "Favoris": "Saved",
   "Aucun logement enregistré": "No saved listings",
   "Voir les logements": "See places to stay",
-  "Le cœur, en haut à droite de chaque annonce, l’enregistre dans un dossier. Vos dossiers apparaissent ici.":
-    "The heart at the top right of each listing saves it to a folder. Your folders appear here.",
   "{noms} et {n} autre": "{noms} and {n} other",
   "{noms} et {n} autres": "{noms} and {n} others",
   "Vide": "Empty",
@@ -17,11 +15,7 @@ export const EN_FAVORIS: Record<string, string> = {
   "{du} → {au} · 1 pers.": "{du} → {au} · 1 person",
   "Ce dossier n’existe plus": "This folder no longer exists",
   "Revoir les dossiers": "Back to folders",
-  "Il a été supprimé, ou il a été créé dans un autre navigateur. Vos dossiers restent dans Favoris.":
-    "It was deleted, or created in another browser. Your folders stay in Saved.",
   "Ce dossier est vide": "This folder is empty",
-  "Le cœur, en haut à droite de chaque annonce, l’enregistre ici.":
-    "The heart at the top right of each listing saves it here.",
   "Logements du dossier": "Listings in this folder",
   "Prix pour {sejour}": "Price for {sejour}",
   "Voir l’annonce": "View listing",
@@ -36,8 +30,6 @@ export const EN_FAVORIS: Record<string, string> = {
   "Liste et carte": "List and map",
   "Comparer": "Compare",
   "Renommer": "Rename",
-  "Supprimer ce dossier et son logement ?": "Delete this folder and its listing?",
-  "Supprimer ce dossier et ses {n} logements ?": "Delete this folder and its {n} listings?",
   "Supprimer ce dossier ?": "Delete this folder?",
   "Supprimer": "Delete",
   "Garder": "Keep",
@@ -51,18 +43,20 @@ export const EN_FAVORIS: Record<string, string> = {
   "Logement": "Listing",
   "Séjour": "Stay",
   "sans position": "no position",
-  "En gras, la meilleure valeur de chaque colonne. Les prix valent pour le séjour de chaque ligne : deux logements enregistrés pour des dates différentes ne se comparent qu’à titre indicatif.":
-    "The best value in each column is in bold. Prices apply to the stay on each row: two listings saved for different dates can only be compared as a rough guide.",
   // BoutonFavori.tsx
   "Retirer des favoris": "Remove from Saved",
   "Enregistrer dans un dossier": "Save to a folder",
   "Retiré de « {nom} ».": "Removed from “{nom}”.",
   "Retiré des favoris.": "Removed from Saved.",
   "Enregistré dans « {nom} ».": "Saved to “{nom}”.",
-  "Créer un dossier": "Create a folder",
-  "Revenir aux dossiers": "Back to folders",
   "Nom du dossier": "Folder name",
-  "Courchevel, février 2027": "Courchevel, February 2027",
-  "{n}/60 caractères": "{n}/60 characters",
   "Créer": "Create",
+  // favoris.$id.tsx, reservation.tsx : maquette Airbnb (12 octobre 2026)
+  "Partagée le {date}": "Shared on {date}",
+  "Liste partagée": "Shared list",
+  "Lien copié": "Link copied",
+  "Enregistrer dans mes favoris": "Save to my Saved",
+  "Aucun logement retenu": "No place to stay shortlisted",
+  "Logement retiré de la réservation.": "Place to stay removed from booking.",
+  "Prix confirmé pour vos dates": "Price confirmed for your dates",
 };

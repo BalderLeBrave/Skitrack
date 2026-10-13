@@ -41,6 +41,7 @@ import {
 } from "../stay/lodgingFilter.ts";
 import { metresBetween, nearestAnyLift, nearestStationLift } from "../remontees.ts";
 import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
+import { distVolOiseauM, type AvecMarche } from "../stay/aPied.ts";
 
 /** Au-delà, une gare n'est plus la remontée d'un logement (`nearestLift`). */
 const GARE_LOINTAINE_M = 40_000;
@@ -210,10 +211,12 @@ export const DISTANCE_STATION_M = 2000;
  * propriétaire ne veut voir que ceux qui le sont.
  */
 export function dansLaStation(
-  l: Pick<Listing, "distToSlopesM" | "distToLiftM">,
+  l: Pick<Listing, "distToSlopesM"> & AvecMarche,
   maxM: number = DISTANCE_STATION_M,
 ): boolean {
-  const m = distFiltrableM(l);
+  // Règle d'appartenance, tranchée à vol d'oiseau au relevé : une marche
+  // posée à l'affichage (`stay/aPied.ts`) ne fait sortir personne.
+  const m = distFiltrableM({ distToSlopesM: l.distToSlopesM, distToLiftM: distVolOiseauM(l) });
   return m != null && m <= maxM;
 }
 

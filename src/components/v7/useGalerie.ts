@@ -1,7 +1,7 @@
 /**
  * L'état de la galerie de la fiche d'annonce : la photo affichée, celles qui
- * ne se chargent pas, et le chargement d'avance. La fenêtre et le plein écran
- * (`Visionneuse.tsx`) le partagent : ils montrent la même photo.
+ * ne se chargent pas, et le chargement d'avance. La mosaïque de la fenêtre et
+ * la visionneuse plein écran (`Visionneuse.tsx`) le partagent.
  *
  * Chaque photo s'affiche à la plus grande taille publiée (`photoHd.ts`). Si
  * celle-là ne se charge pas, la photo revient à l'adresse relevée ; si
@@ -12,9 +12,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { photoTailles, type TaillesPhoto } from "@/lib/stay/photoHd";
 import { aPrecharger, indexBoucle, rangCourant } from "@/lib/stay/visionneuse";
 
-/** La place de la photo dans la fenêtre : toute la largeur sous 940 px, la
- *  colonne de gauche au-dessus. */
-export const TAILLE_FENETRE = "(max-width: 939.98px) 100vw, 820px";
+/** La place des photos dans la mosaïque de la fenêtre : la grande prend la
+ *  moitié de la largeur, les petites un quart. */
+export const TAILLE_MOSAIQUE = {
+  grande: "(max-width: 1240px) 50vw, 600px",
+  petite: "(max-width: 1240px) 25vw, 300px",
+} as const;
+/** La fenêtre, hors plein écran : la grande photo de la mosaïque. */
+export const TAILLE_FENETRE = TAILLE_MOSAIQUE.grande;
 /** En plein écran, tout l'écran. */
 export const TAILLE_PLEIN = "100vw";
 
@@ -56,7 +61,13 @@ export type Galerie = {
  */
 export function useGalerie(cle: string, toutes: readonly string[], sizes: string): Galerie {
   const init = useCallback(
-    (): EtatGalerie => ({ cle, adresse: toutes[0] ?? null, rang: 0, ratees: new Set(), replis: new Set() }),
+    (): EtatGalerie => ({
+      cle,
+      adresse: toutes[0] ?? null,
+      rang: 0,
+      ratees: new Set(),
+      replis: new Set(),
+    }),
     [cle, toutes],
   );
   const [brut, setBrut] = useState<EtatGalerie>(init);
@@ -98,18 +109,22 @@ export function useGalerie(cle: string, toutes: readonly string[], sizes: string
         if (e.ratees.has(u)) return e;
         // Une image chargée d'avance à qui l'on donne `srcset` puis `src`
         // part deux fois, et peut échouer deux fois pour un seul essai.
-        if (etape === "grande") return e.replis.has(u) ? e : { ...e, replis: new Set(e.replis).add(u) };
+        if (etape === "grande")
+          return e.replis.has(u) ? e : { ...e, replis: new Set(e.replis).add(u) };
         return { ...e, ratees: new Set(e.ratees).add(u) };
       }),
     [maj],
   );
   const replis = etat.replis;
-  const vue = useCallback((u: string): VuePhoto => {
-    const t = photoTailles(u);
-    // Une adresse que `photoHd` ne change pas n'a pas de second essai.
-    if (replis.has(u) || t.src === u) return { src: u, srcset: null, etape: "releve" };
-    return { ...t, etape: "grande" };
-  }, [replis]);
+  const vue = useCallback(
+    (u: string): VuePhoto => {
+      const t = photoTailles(u);
+      // Une adresse que `photoHd` ne change pas n'a pas de second essai.
+      if (replis.has(u) || t.src === u) return { src: u, srcset: null, etape: "releve" };
+      return { ...t, etape: "grande" };
+    },
+    [replis],
+  );
 
   // La précédente et les deux suivantes se chargent d'avance, à la taille
   // qu'elles auront à l'écran.

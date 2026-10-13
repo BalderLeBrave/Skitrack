@@ -208,7 +208,11 @@ export function CarteEpingles({
         // Le fond arrive quand MapLibre et le style sont lus ; d'ici là, la
         // carte se manipule déjà, épingles comprises.
         void poserOpenSkiMap(m, { fond: true, pistes: true }, () => !annule);
-        Lf.control.zoom({ position: "bottomright" }).addTo(m);
+        // Maquette Airbnb : ni boutons de zoom ni mention « Leaflet » ; la
+        // molette et le double clic zooment. Au doigt, où le geste est coupé,
+        // les boutons restent : sans eux, la carte ne zoomerait plus.
+        m.attributionControl.setPrefix(false);
+        if (doigt) Lf.control.zoom({ position: "bottomright" }).addTo(m);
         couche.current = Lf.layerGroup().addTo(m);
         // Les bornes ne sortent qu'à la fin du geste. Pendant, elles changeraient
         // à chaque image et la liste clignoterait sous les doigts. Un dernier

@@ -17,6 +17,7 @@ import { stationById } from "@/lib/stations";
 import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
+import { useAPied } from "@/lib/geo/useReseauPieton";
 import { parMesure, type Sens } from "@/lib/tri";
 import { bedNomme, capNomme } from "@/lib/v7";
 import { langueIntl } from "@/lib/i18n/langue";
@@ -54,7 +55,9 @@ function Traces() {
   // une distance à la trace ou à une remontée tirée d'un barycentre ou de la
   // station n'est pas une mesure, elle reste « inconnue » et en queue.
   const base = live ?? frozen;
-  const raw = useMemo(() => (station ? placerSansPoint(base, station) : base), [base, station]);
+  const places = useMemo(() => (station ? placerSansPoint(base, station) : base), [base, station]);
+  // La remontée à pied quand le réseau de la station est chargé (`stay/aPied.ts`).
+  const raw = useAPied(places);
   const rows = useMemo(() => {
     const scored = raw.map((l) => ({
       listing: mesuresPubliees(l),
@@ -77,7 +80,10 @@ function Traces() {
     return scored;
   }, [raw, sort, sens, guests, points]);
 
-  const fiche = ficheId ? base.find((l) => l.id === ficheId) : undefined;
+  // La copie à point publié de `raw` porte la marche ; sinon le relevé.
+  const fiche = ficheId
+    ? (raw.find((l) => l.id === ficheId && estPointPublie(l)) ?? base.find((l) => l.id === ficheId))
+    : undefined;
   const mapCenter = stats?.start ?? (station ? { lat: station.lat, lon: station.lon } : null);
 
   return (

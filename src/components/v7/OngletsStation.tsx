@@ -26,22 +26,21 @@ export function OngletsStation({ s, actif }: { s: Station; actif: "fiche" | "log
     void go("lodging");
   };
 
+  // Un sélecteur à deux segments, « Station » et « Logements » : le nom de la
+  // station est déjà dans le bandeau de la fiche et le titre des logements.
   return (
-    <nav className="ongletsst" aria-label={tr("Station {nom}", { nom: s.name })}>
-      <span className="ongletsst__nom">{s.name}</span>
-      <span className="ongletsst__liste">
-        {(["fiche", "logements"] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            className={`ongletsst__onglet${k === actif ? " ongletsst__onglet--on" : ""}`}
-            aria-current={k === actif ? "page" : undefined}
-            onClick={() => aller(k)}
-          >
-            {k === "fiche" ? tr("Fiche station") : tr("Logements")}
-          </button>
-        ))}
-      </span>
+    <nav className="fs-onglets" aria-label={tr("Station {nom}", { nom: s.name })}>
+      {(["fiche", "logements"] as const).map((k) => (
+        <button
+          key={k}
+          type="button"
+          className={`fs-onglets__seg${k === actif ? " fs-onglets__seg--on" : ""}`}
+          aria-current={k === actif ? "page" : undefined}
+          onClick={() => aller(k)}
+        >
+          {k === "fiche" ? tr("Station") : tr("Logements")}
+        </button>
+      ))}
     </nav>
   );
 }

@@ -1645,7 +1645,7 @@ describe("compacter", () => {
   it("la carte, la pastille et le volet de Logements y lisent ce qu'ils lisent sur l'annonce", () => {
     const l = situee();
     const c = compacter(l);
-    assert.deepEqual(distanceOf(c), { kind: "measured", text: distanceOf(l).text });
+    assert.deepEqual(distanceOf(c), { kind: "measured", via: "vol", text: distanceOf(l).text });
     assert.deepEqual(completudeOf(c), completudeOf(l));
     assert.deepEqual(galerieOf(c), galerie(6));
     for (const lbl of [capLbl, bedLbl, prixLbl, mediaTon]) assert.equal(lbl(c), lbl(l));

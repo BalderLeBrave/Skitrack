@@ -1,7 +1,8 @@
 import { app, BrowserWindow, clipboard, dialog, Menu, screen, session, shell } from "electron";
+import electronUpdater from "electron-updater";
 import { fork, spawnSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import net from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -502,11 +503,81 @@ async function demarrer() {
     await attendreServeur();
     demarre = true;
     await win.loadURL(BASE);
+    miseAJour(win);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const log = join(dossierDonnees(), "serveur.log");
     if (!win.isDestroyed()) void win.loadURL(pageMessage("Démarrage impossible", `${message}\n\nJournal : ${log}`));
   }
+}
+
+/** Une vérification au démarrage, puis toutes les quatre heures. */
+const MAJ_INTERVALLE_MS = 4 * 60 * 60 * 1000;
+let majPrete = null;
+
+/**
+ * Les mises à jour automatiques : electron-updater lit les Releases GitHub du
+ * dépôt (`publish` d'electron-builder.yml, recopié dans resources/app-update.yml),
+ * télécharge en arrière-plan la nouvelle version (seuls les blocs qui
+ * changent, d'après le .blockmap), vérifie son empreinte SHA-512, puis
+ * l'installe sans rien demander à la fermeture de SKITRACK. Une fois prête, il
+ * propose aussi de redémarrer tout de suite. Les données (clés, mémoire des
+ * fiches, comparateur, notes) restent : elles ne sont pas dans le dossier
+ * d'installation. Hors ligne, rien ne s'affiche : l'erreur va au journal
+ * `mises-a-jour.log`.
+ */
+function miseAJour(win) {
+  if (!app.isPackaged) return;
+  const { autoUpdater } = electronUpdater;
+  const journal = createWriteStream(join(dossierDonnees(), "mises-a-jour.log"), { flags: "a" });
+  const ecrire = (niveau) => (m) =>
+    journal.write(`${new Date().toISOString()} ${niveau} ${m instanceof Error ? (m.stack ?? m.message) : m}\n`);
+  autoUpdater.logger = { info: ecrire("info"), warn: ecrire("alerte"), error: ecrire("erreur"), debug: () => {} };
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.disableWebInstaller = true;
+  // L'installateur d'une version désormais installée (400 Mo) restait dans le
+  // cache d'electron-updater jusqu'à la mise à jour suivante.
+  const attente = join(process.env.LOCALAPPDATA ?? "", "skitrack-updater", "pending");
+  try {
+    for (const f of readdirSync(attente)) {
+      const v = /^SKITRACK-(\d+)\.(\d+)\.(\d+)-x64\.exe(\.blockmap)?$/.exec(f);
+      const [a, b, c] = app.getVersion().split(".").map(Number);
+      if (v && (Number(v[1]) - a || Number(v[2]) - b || Number(v[3]) - c) <= 0) {
+        rmSync(join(attente, f), { force: true });
+        ecrire("info")(`installateur déjà appliqué retiré : ${f}`);
+      }
+    }
+  } catch {
+    /* pas de cache */
+  }
+  // La recette des mises à jour sert les versions depuis le poste lui-même
+  // (docs/INSTALLATEUR-WINDOWS.md) ; aucune autre adresse n'est acceptée.
+  const recette = process.env.SKITRACK_MAJ_URL;
+  if (recette && /^http:\/\/127\.0\.0\.1:\d+\//.test(recette)) {
+    autoUpdater.setFeedURL({ provider: "generic", url: recette });
+  }
+  autoUpdater.on("error", (err) => ecrire("erreur")(err));
+  autoUpdater.on("update-downloaded", async (info) => {
+    if (majPrete === info.version || win.isDestroyed()) return;
+    majPrete = info.version;
+    const { response } = await dialog.showMessageBox(win, {
+      type: "info",
+      title: "SKITRACK",
+      message: `SKITRACK ${info.version} est prête.`,
+      detail: "Elle s'installera d'elle-même à la fermeture de SKITRACK, ou tout de suite si vous redémarrez.",
+      buttons: ["Redémarrer maintenant", "Plus tard"],
+      defaultId: 0,
+      cancelId: 1,
+    });
+    if (response !== 0) return;
+    enFermeture = true;
+    arreterServeur();
+    autoUpdater.quitAndInstall(true, true);
+  });
+  const verifier = () => autoUpdater.checkForUpdates().catch((err) => ecrire("erreur")(err));
+  setTimeout(verifier, 10_000);
+  setInterval(verifier, MAJ_INTERVALLE_MS);
 }
 
 /** Le serveur et tout ce qu'il a lancé (python.exe, navigateur de Playwright). */

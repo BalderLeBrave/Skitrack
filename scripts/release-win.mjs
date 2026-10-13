@@ -27,8 +27,10 @@
 
 import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { modulesDesktopHauts } from "./modules-desktop.mjs";
 import { EXE_SHELL } from "./preparer-navigateur.mjs";
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -149,6 +151,17 @@ if (existsSync(tuilesPublic)) {
   }
 }
 
+// Les modules du process principal qu'electron-builder.yml laisse entrer dans
+// app.asar : la liste doit suivre les dépendances d'electron-updater.
+{
+  const yml = readFileSync(join(racine, "electron-builder.yml"), "utf8");
+  const liste = /node_modules\/\{([^}]+)\}\/\*\*\/\*/.exec(yml)?.[1].split(",").sort().join(",");
+  const attendue = modulesDesktopHauts().sort().join(",");
+  if (liste !== attendue) {
+    echec(`electron-builder.yml (files) laisse entrer {${liste}} dans app.asar, il faut {${attendue}} (node scripts/modules-desktop.mjs).`);
+  }
+}
+
 manque("build/python/python.exe", "le Python embarqué (node scripts/preparer-python-embarque.mjs)");
 manque(join("build", "ms-playwright", EXE_SHELL), "le navigateur de Playwright (node scripts/preparer-navigateur.mjs)");
 manque(
@@ -182,7 +195,7 @@ if (versionDe(coreTrace) !== versionDe(coreDepot)) {
 }
 retirerElectronDuServeur();
 
-lancer("npx", ["electron-builder", "--win"]);
+lancer("npx", ["electron-builder", "--win", "--publish", "never"]);
 
 // Un installateur qui échoue aux contrôles suivants ne garde pas son nom de
 // diffusion.
@@ -225,4 +238,45 @@ const longueur = plusLong(join(racine, "release", "win-unpacked"));
 if (longueur > 150) echec(`Un chemin de l'application fait ${longueur} caractères (150 au plus) : il risque de dépasser 260 une fois installé.`);
 const asar = statSync(join(ressources, "app.asar")).size;
 if (asar > 20 * 1024 * 1024) echec(`app.asar fait ${(asar / 1e6).toFixed(0)} Mo : des node_modules y sont repartis.`);
+
+// Les mises à jour : la configuration lue par electron-updater, le manifeste à
+// publier, et les modules qui se chargent depuis app.asar.
+manque("release/win-unpacked/resources/app-update.yml", "la configuration des mises à jour (publish d'electron-builder.yml)");
+const manifeste = join(racine, "release", "latest.yml");
+if (!existsSync(manifeste) || !readFileSync(manifeste, "utf8").includes(`version: ${versionDe(racine)}`)) {
+  echec(`release/latest.yml manque ou ne porte pas la version ${versionDe(racine)}.`);
+}
+// Chaque fichier d'electron-updater est chargé depuis app.asar, dans le Node
+// d'Electron : un module que le rangement d'electron-builder aurait laissé
+// dehors s'y voit (seul `electron`, absent hors du process principal, est admis).
+const essai = join(tmpdir(), `skitrack-essai-asar-${process.pid}.cjs`);
+writeFileSync(
+  essai,
+  `const { join } = require("path");
+const fs = require("fs");
+const base = join(process.argv[2], "electron-updater", "out");
+const fichiers = [];
+(function lister(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = join(d, e.name); if (e.isDirectory()) lister(p); else if (p.endsWith(".js")) fichiers.push(p); } })(base);
+let ko = 0;
+for (const f of fichiers) {
+  try { require(f); } catch (e) {
+    if (/Cannot find module 'electron'/.test(e.message)) continue;
+    ko++; console.log("ÉCHEC", f, e.message.split("\\n")[0]);
+  }
+}
+console.log(fichiers.length + " fichiers d'electron-updater, " + ko + " en échec");
+process.exit(ko ? 1 : 0);
+`,
+);
+const essaiModules = spawnSync(
+  join(racine, "release", "win-unpacked", "SKITRACK.exe"),
+  [essai, join(ressources, "app.asar", "node_modules")],
+  { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, encoding: "utf8" },
+);
+rmSync(essai, { force: true });
+console.log((essaiModules.stdout ?? "").trim());
+if (essaiModules.status !== 0) {
+  echec(`electron-updater ne se charge pas depuis app.asar (code ${essaiModules.status}) :
+${essaiModules.stderr ?? ""}${essaiModules.error?.message ?? ""}`);
+}
 console.log(`Installateur complet : ${attendus.length} éléments vérifiés dans ${ressources}`);

@@ -13,6 +13,7 @@ n'est à installer sur le PC, ni Node, ni Python, ni navigateur, ni clé.
 | Les workers | `scrape/airbnb`, `scrape/booking`, `scrape/hometogo` | Relevés directs |
 | Chromium headless shell, révision du playwright-core tracé | `build/ms-playwright/` (`scripts/preparer-navigateur.mjs`) | CozyCozy (Abritel, Booking, part Cozy d'Airbnb), Gîtes de France, replis Booking et HomeToGo |
 | Les tuiles de la carte des pistes (135 Mo) | `build/carte/` (docs/TUILES-OPENSKIMAP.md) | Carte des pistes, servie par tranches (`server/middleware/pmtiles-plages.ts`) |
+| electron-updater et ses dépendances | `node_modules`, seuls modules admis dans `app.asar` (`scripts/modules-desktop.mjs`) | Les mises à jour automatiques |
 
 Au lancement, `desktop/main.mjs` donne au serveur : le Python embarqué
 (`SKITRACK_PYTHON`), le navigateur embarqué (`PLAYWRIGHT_BROWSERS_PATH`), les
@@ -80,5 +81,40 @@ un nom d'utilisateur accentué :
 - **Port.** L'application écoute sur `127.0.0.1:4731`. Si le port est pris
   (SKITRACK ouvert dans une autre session Windows, un autre logiciel), elle le
   dit au lieu de démarrer.
-- **Mises à jour.** Pas de mise à jour automatique : installer le nouvel
-  `.exe` par-dessus l'ancien.
+- **Mises à jour.** Automatiques, voir plus bas : rien à faire.
+
+## Mises à jour automatiques
+
+L'application installée cherche une nouvelle version au démarrage puis toutes
+les quatre heures, dans les Releases GitHub du dépôt (`publish`
+d'electron-builder.yml, `electron-updater` dans `desktop/main.mjs`). Elle la
+télécharge en arrière-plan (seuls les blocs qui changent, d'après le
+`.blockmap` de la version installée), vérifie son empreinte SHA-512, puis :
+
+- l'installe sans rien demander à la fermeture de SKITRACK ;
+- propose aussi « Redémarrer maintenant » dès qu'elle est prête.
+
+Les données restent (`%APPDATA%\skitrack`, stockage de la fenêtre). Hors
+ligne, rien ne s'affiche ; tout est noté dans
+`%APPDATA%\skitrack\mises-a-jour.log`.
+
+### Publier une version
+
+1. Monter `version` dans `package.json` (1.2.0 → 1.2.1), commiter, pousser.
+2. `npm run release:win`.
+3. `npm run release:publier` : crée la Release `v<version>` sur GitHub avec
+   `latest.yml`, l'installateur et son `.blockmap`. Demande `gh` connecté
+   (`gh auth login`) au compte qui peut publier sur le dépôt.
+
+Ne pas supprimer les Releases précédentes : leur `.blockmap` sert de base au
+téléchargement différentiel. Le dépôt étant public, les Releases (donc
+l'installateur) sont téléchargeables par tous, sans compte.
+
+### Recette des mises à jour, sans rien publier
+
+`SKITRACK_MAJ_URL` (seulement `http://127.0.0.1:<port>/`) fait lire les
+versions à un serveur local au lieu de GitHub : installer la version N, servir
+le dossier qui contient `latest.yml`, l'installateur et le `.blockmap` de la
+version N+1 (plus le `.blockmap` de N), lancer SKITRACK avec la variable,
+attendre « Update has been downloaded » dans `mises-a-jour.log`, fermer :
+la version N+1 s'installe et se trouve au même endroit.

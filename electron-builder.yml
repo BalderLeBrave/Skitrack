@@ -6,11 +6,15 @@ directories:
 files:
   - desktop/**/*
   - package.json
-  # desktop/main.mjs n'importe qu'electron et des modules node: ; le serveur a
-  # ses propres modules, tracés par Nitro dans .output/server/node_modules.
-  # Sans cette exclusion, electron-builder ajoute toutes les dependencies du
-  # package.json à app.asar (plus de 200 Mo jamais chargés).
+  # Le serveur a ses propres modules, tracés par Nitro dans
+  # .output/server/node_modules. Sans cette exclusion, electron-builder ajoute
+  # toutes les dependencies du package.json à app.asar (plus de 200 Mo jamais
+  # chargés)…
   - "!node_modules/**/*"
+  # … sauf electron-updater et ses dépendances, que desktop/main.mjs charge :
+  # la liste de `node scripts/modules-desktop.mjs`, que release-win.mjs
+  # compare à celle-ci.
+  - "node_modules/{argparse,builder-util-runtime,debug,electron-updater,fs-extra,graceful-fs,js-yaml,jsonfile,lazy-val,lodash.escaperegexp,lodash.isequal,ms,sax,semver,tiny-typed-emitter,universalify}/**/*"
 extraResources:
   - from: .output
     to: output
@@ -64,3 +68,11 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   perMachine: false
+# Les mises à jour automatiques (electron-updater, desktop/main.mjs) lisent les
+# Releases GitHub du dépôt : release/latest.yml, l'installateur et son
+# .blockmap y sont publiés par `npm run release:publier`.
+publish:
+  provider: github
+  owner: BalderLeBrave
+  repo: Skitrack
+  releaseType: release

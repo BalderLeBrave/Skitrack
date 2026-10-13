@@ -2,48 +2,58 @@
  * Relevé HomeToGo : la page du lieu, puis la recherche JSON autorisée,
  * page par page, puis le détail des offres que la liste laisse creuses.
  *
- * Une requête à la fois, une seconde entre deux pendant la recherche. Ce qui
- * n'a pas été détaillé dans le délai part ensuite, un lot toutes les deux
- * secondes, huit minutes au plus. Un 403, un 429 ou un 503 arrête, sans
- * second essai. L'écran Prix ne lance pas cette suite. L'échéance de la
- * recherche rend ce qui est déjà lu.
+ * Le GET ne part pas par le `fetch` de Node : la page HTML reçoit un défi
+ * Cloudflare (HTTP 403, « Just a moment »). Le Playwright du projet, le même
+ * que les autres sources, lit alors la page. `urllib` lit la recherche JSON
+ * que robots.txt autorise (`/search/{id}?fsid=…&_format=json`). Une requête à
+ * la fois, une seconde entre deux pendant la recherche. Le détail qui n'a pas
+ * tenu dans le délai part ensuite, un lot toutes les deux secondes, huit
+ * minutes au plus. Un vrai 403, un 429 ou un 503 arrête, sans second essai.
+ * L'écran Prix ne lance pas cette suite. L'échéance rend ce qui est déjà lu.
  */
 
 import type { Listing } from "@/lib/listings";
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { attachAccess } from "../access.ts";
 import { stationById } from "../stations.ts";
 import { qualifierLogement } from "../stay/logement.ts";
-import { UA_NAVIGATEUR } from "./navigateur.ts";
 import { estMessageRefus, poserRefus, respecterCadence } from "./gardeHote.ts";
 import { allowsPath } from "./robots.ts";
 import { sansDoublons, stationsDuReleve } from "./domaine.ts";
+import { withBrowser } from "./browser.server.ts";
+import { envWorker, trouverPython } from "./python.server.ts";
 import type { LiveSearchInput } from "./types";
 import {
+  AMORCE_HOMETOGO,
   LOT_DETAILS,
   ORIGINE_HOMETOGO,
   PAGES_MAX,
   avecDetailOuNon,
+  carteNavigation,
   compteurPublie,
+  estInterstitielCloudflare,
   fondreOffre,
   idsSansDetail,
   lieuDepuisHtml,
   lireDetailsEnRetard,
   lotsDe,
+  noeudNomme,
+  noeudsDuNom,
   nuits,
   offreEnListing,
   offresDe,
   pageSuivante,
+  plierLieu,
+  retenirLieu,
   slugsLieu,
   continuerDomaine,
+  type CandidatLieu,
   type LieuHomeToGo,
+  type NoeudLieu,
 } from "./hometogo.ts";
-
-const PAUSE_MS = 1_000;
-const DELAI_MS = 15_000;
-/** La suite de détails, après la réponse : plus lente que la recherche. */
-const PAUSE_SUITE_MS = 2_000;
-const SUITE_MAX_MS = 8 * 60 * 1000;
-const MEMOIRE_MS = 60 * 60 * 1000;
 
 export type ReleveHomeToGo = {
   listings: Listing[];
@@ -58,6 +68,114 @@ function dormir(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+const PAUSE_MS = 1_000;
+const DELAI_MS = 15_000;
+/** La suite de détails, après la réponse : plus lente que la recherche. */
+const PAUSE_SUITE_MS = 2_000;
+const SUITE_MAX_MS = 8 * 60 * 1000;
+const MEMOIRE_MS = 60 * 60 * 1000;
+const ICI = dirname(fileURLToPath(import.meta.url));
+
+function scriptLire(): string | null {
+  const candidats = [join(process.cwd(), "scrape/hometogo/lire.py"), join(ICI, "../../../scrape/hometogo/lire.py")];
+  return candidats.find((p) => existsSync(p)) ?? null;
+}
+
+type CorpsLu = { status: number; texte: string; cfMitigated: string | null; retryAfter: string | null };
+
+/** La page HTML, par le Playwright déjà utilisé pour les autres sources. */
+async function lireNavigateur(url: string, timeoutMs: number): Promise<CorpsLu | null> {
+  try {
+    const lu = await withBrowser(async (open) => {
+      const page = await open();
+      const res = await page.goto(url, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+      const fin = Date.now() + timeoutMs;
+      let html = await page.content();
+      while (Date.now() < fin && !pagePubliee(html, await page.title())) {
+        await page.waitForTimeout(500);
+        html = await page.content();
+      }
+      return { html, statut: res?.status() ?? 0, titre: await page.title() };
+    });
+    const pageLue = pagePubliee(lu.html, lu.titre);
+    const defi = !pageLue && /Just a moment|Un instant/.test(lu.html.slice(0, 3_000));
+    return {
+      status: pageLue ? 200 : defi ? 403 : lu.statut,
+      texte: lu.html,
+      cfMitigated: defi ? "challenge" : null,
+      retryAfter: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function pagePubliee(html: string, titre: string): boolean {
+  return html.includes('"locationId"') && html.length > 50_000 && !/instant|moment/i.test(titre);
+}
+
+function acceptDe(url: string): string {
+  return url.includes("_format=json") || url.includes("/searchdetails/")
+    ? "application/json, text/plain;q=0.9"
+    : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+}
+
+/** Un GET. Node est un défi Cloudflare ; Python `urllib` lit la page. */
+async function lireHttp(url: string, timeoutMs: number): Promise<CorpsLu | Arret> {
+  const script = scriptLire();
+  if (!script) return { motif: "defi", detail: "lecteur HomeToGo introuvable" };
+  const python = await trouverPython(dirname(script), []);
+  if (!python) return { motif: "defi", detail: "aucun Python 3 trouvé" };
+  const raw = await new Promise<{ out: string; err: string }>((resolve) => {
+    const chunks: Buffer[] = [];
+    const errChunks: Buffer[] = [];
+    let fini = false;
+    const rendre = (extra = "") => {
+      if (fini) return;
+      fini = true;
+      clearTimeout(timer);
+      resolve({
+        out: Buffer.concat(chunks).toString("utf8").trim(),
+        err: `${Buffer.concat(errChunks).toString("utf8").trim()}${extra}`,
+      });
+    };
+    const child = spawn(python.cmd, [...python.args, script], {
+      env: envWorker({}),
+      cwd: dirname(script),
+      windowsHide: true,
+    });
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      rendre("\néchéance");
+    }, timeoutMs + 2_000);
+    child.stdout.on("data", (c: Buffer) => chunks.push(c));
+    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
+    child.on("error", (err) => rendre(`\n${err.message}`));
+    child.on("close", () => rendre());
+    child.stdin.on("error", () => undefined);
+    child.stdin.end(JSON.stringify({ url, timeout: Math.max(1, timeoutMs / 1000), accept: acceptDe(url) }));
+  });
+  if (!raw.out) {
+    const fin = raw.err.trim().split(/\r?\n/).pop() ?? "";
+    return { motif: "defi", detail: /échéance/.test(fin) ? "échéance" : fin.slice(0, 160) || "lecteur HomeToGo muet" };
+  }
+  let parsed: { ok?: boolean; error?: string; status?: unknown; texte?: unknown; cfMitigated?: unknown; retryAfter?: unknown };
+  try {
+    parsed = JSON.parse(raw.out) as typeof parsed;
+  } catch {
+    return { motif: "defi", detail: "réponse illisible" };
+  }
+  if (!parsed.ok || typeof parsed.status !== "number" || typeof parsed.texte !== "string") {
+    return { motif: "defi", detail: typeof parsed.error === "string" ? parsed.error.slice(0, 160) : "réponse illisible" };
+  }
+  return {
+    status: parsed.status,
+    texte: parsed.texte,
+    cfMitigated: typeof parsed.cfMitigated === "string" ? parsed.cfMitigated : null,
+    retryAfter: typeof parsed.retryAfter === "string" ? parsed.retryAfter : null,
+  };
+}
+
 async function lire(url: string, echeance: number): Promise<{ status: number; texte: string } | Arret> {
   const reste = echeance - Date.now();
   if (reste < 1_000) return { motif: "defi", detail: "échéance" };
@@ -65,28 +183,26 @@ async function lire(url: string, echeance: number): Promise<{ status: number; te
   await allowsPath(u.origin, `${u.pathname}${u.search}`);
   const garde = await respecterCadence(url, Math.min(5_000, Math.max(0, reste - 1_000)));
   if (garde) return { motif: estMessageRefus(garde) ? "refus" : "defi", detail: garde };
-  try {
-    const res = await fetch(url, {
-      headers: {
-        accept: "application/json,text/html;q=0.9",
-        "accept-language": "fr-FR,fr;q=0.9",
-        "user-agent": UA_NAVIGATEUR,
-        cookie: "c=EUR; meas=metric",
-      },
-      redirect: "follow",
-      signal: AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_MS, reste))),
-    });
-    const texte = await res.text();
-    if (res.status === 403 || res.status === 429 || res.status === 503) {
-      poserRefus(url, res.status, res.headers);
-      return { motif: "refus", detail: `HTTP ${res.status}` };
+  const lu = await lireHttp(url, Math.max(1_000, Math.min(DELAI_MS, reste)));
+  if ("motif" in lu) return lu;
+  if (estInterstitielCloudflare(lu.status, lu.cfMitigated, lu.texte)) {
+    // Le défi n'est pas un refus. Playwright, le même que les autres sources,
+    // relit la page de la station. La recherche JSON, elle, répond déjà.
+    const pageStation = !u.pathname.startsWith("/search");
+    if (pageStation && reste > 8_000) {
+      const passe = await lireNavigateur(url, Math.min(20_000, reste));
+      if (passe && !estInterstitielCloudflare(passe.status, passe.cfMitigated, passe.texte) && passe.status === 200) {
+        return { status: passe.status, texte: passe.texte };
+      }
     }
-    if (res.status !== 200) return { motif: "defi", detail: `HTTP ${res.status}` };
-    return { status: res.status, texte };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return { motif: "defi", detail: /abort|timeout/i.test(msg) ? "échéance" : msg };
+    return { motif: "defi", detail: "interstitiel Cloudflare" };
   }
+  if (lu.status === 403 || lu.status === 429 || lu.status === 503) {
+    poserRefus(url, lu.status, lu.retryAfter ? { "retry-after": lu.retryAfter } : null);
+    return { motif: "refus", detail: `HTTP ${lu.status}` };
+  }
+  if (lu.status !== 200) return { motif: "defi", detail: `HTTP ${lu.status}` };
+  return { status: lu.status, texte: lu.texte };
 }
 
 function estArret(v: { status: number; texte: string } | Arret): v is Arret {
@@ -103,6 +219,121 @@ function jsonDe(texte: string): unknown | Arret {
 
 const lieux = new Map<string, { at: number; lieu: LieuHomeToGo | null }>();
 const LIEU_MS = 60 * 60_000;
+/** La page HTML est un interstitiel : on ne la redemande pas tout de suite. */
+const HTML_DEFI_MS = 30 * 60_000;
+let htmlDefiJusqua = 0;
+/** Nœuds de navigation, par identifiant de lieu. Ils bougent peu. */
+const NAV_MS = 6 * 60 * 60_000;
+type PageNav = {
+  noeuds: NoeudLieu[];
+  racine: string | null;
+  trail: string | null;
+  locationCount: number | null;
+};
+const pagesNav = new Map<string, { at: number } & PageNav>();
+
+async function pageNav(
+  lieu: LieuHomeToGo,
+  input: LiveSearchInput,
+  nuitsSejour: number,
+  echeance: number,
+  pause: { fait: boolean },
+): Promise<PageNav | Arret> {
+  const hit = pagesNav.get(lieu.locationId);
+  if (hit && Date.now() - hit.at < NAV_MS) return hit;
+  if (Date.now() >= echeance) return { motif: "defi", detail: "échéance" };
+  if (pause.fait) await dormir(PAUSE_MS);
+  pause.fait = true;
+  const lu = await lire(urlRecherche(lieu, input, nuitsSejour, 1), echeance);
+  if (estArret(lu)) return lu;
+  const json = jsonDe(lu.texte);
+  if (json && typeof json === "object" && "motif" in json) return json as Arret;
+  const carte = carteNavigation(json);
+  const page: { at: number } & PageNav = { at: Date.now(), ...carte, noeuds: carte.noeuds };
+  pagesNav.set(lieu.locationId, page);
+  return page;
+}
+
+async function choisirParmi(
+  trouvés: readonly NoeudLieu[],
+  nom: string,
+  input: LiveSearchInput,
+  nuitsSejour: number,
+  echeance: number,
+  pause: { fait: boolean },
+): Promise<LieuHomeToGo | null | Arret> {
+  if (trouvés.length === 0) return null;
+  if (trouvés.length === 1) return { locationId: trouvés[0]!.id, fsid: trouvés[0]!.fsid };
+  const candidats: CandidatLieu[] = [];
+  for (const n of trouvés.slice(0, 3)) {
+    const page = await pageNav({ locationId: n.id, fsid: n.fsid }, input, nuitsSejour, echeance, pause);
+    if ("motif" in page) return page;
+    candidats.push({
+      locationId: n.id,
+      fsid: n.fsid,
+      trail: page.trail ?? "",
+      locationCount: page.locationCount,
+    });
+  }
+  const garde = retenirLieu(candidats, nom);
+  return garde ? { locationId: garde.locationId, fsid: garde.fsid } : null;
+}
+
+/**
+ * Le lieu, lu dans la recherche JSON autorisée.
+ * L'amorce est la paire déjà publiée. Le massif puis le département sont
+ * ceux de la station, seulement s'ils sont un nœud de cette recherche.
+ */
+async function resoudreParJson(
+  input: LiveSearchInput,
+  echeance: number,
+  pause: { fait: boolean },
+): Promise<LieuHomeToGo | null | Arret> {
+  const nuitsSejour = nuits(input.checkIn, input.checkOut);
+  if (nuitsSejour == null) return null;
+  const amorce = await pageNav(AMORCE_HOMETOGO, input, nuitsSejour, echeance, pause);
+  if ("motif" in amorce) return amorce;
+  if (!amorce.racine) return null;
+  const pays =
+    amorce.racine === AMORCE_HOMETOGO.locationId
+      ? amorce
+      : await pageNav(
+          { locationId: amorce.racine, fsid: AMORCE_HOMETOGO.fsid },
+          input,
+          nuitsSejour,
+          echeance,
+          pause,
+        );
+  if ("motif" in pays) return pays;
+  const station = stationById(input.stationId);
+  let portee = pays.noeuds;
+  if (station?.massif) {
+    const massif = noeudNomme(pays.noeuds, station.massif);
+    if (massif) {
+      const page = await pageNav({ locationId: massif.id, fsid: massif.fsid }, input, nuitsSejour, echeance, pause);
+      if ("motif" in page) return page;
+      portee = page.noeuds;
+    }
+  }
+  let trouvés = noeudsDuNom(portee, input.stationName);
+  let pageDept: NoeudLieu[] | null = null;
+  if (trouvés.length === 0 && station?.dept) {
+    const dept = noeudNomme(portee, station.dept);
+    if (dept) {
+      const page = await pageNav({ locationId: dept.id, fsid: dept.fsid }, input, nuitsSejour, echeance, pause);
+      if ("motif" in page) return page;
+      pageDept = page.noeuds;
+      trouvés = noeudsDuNom(pageDept, input.stationName);
+    }
+  }
+  // Le nom de la station n'est pas un nœud, la commune l'est (« Alpe d'Huez » → « Huez »).
+  // Seulement ce libellé publié, pas le département.
+  if (trouvés.length === 0 && station?.commune && plierLieu(station.commune) !== plierLieu(input.stationName)) {
+    trouvés = noeudsDuNom(portee, station.commune);
+    if (trouvés.length === 0 && pageDept) trouvés = noeudsDuNom(pageDept, station.commune);
+  }
+  return choisirParmi(trouvés, trouvés.length === 1 ? trouvés[0]!.label : input.stationName, input, nuitsSejour, echeance, pause);
+}
 
 async function resoudreLieu(
   input: LiveSearchInput,
@@ -113,29 +344,43 @@ async function resoudreLieu(
   if (hit && Date.now() - hit.at < LIEU_MS) return hit.lieu;
   let trouve: LieuHomeToGo | null = null;
   let arret: Arret | null = null;
-  for (const slug of slugsLieu(input.stationName)) {
-    if (Date.now() >= echeance) {
-      arret = { motif: "defi", detail: "échéance" };
-      break;
-    }
-    if (pause.fait) await dormir(PAUSE_MS);
-    pause.fait = true;
-    const lu = await lire(`${ORIGINE_HOMETOGO}/${slug}/`, echeance);
-    if (estArret(lu)) {
-      if (lu.motif === "refus" || lu.detail === "échéance") {
-        arret = lu;
+  // Un interstitiel sur la page HTML ne se rejoue pas à chaque station.
+  if (Date.now() >= htmlDefiJusqua) {
+    for (const slug of slugsLieu(input.stationName)) {
+      if (Date.now() >= echeance) {
+        arret = { motif: "defi", detail: "échéance" };
         break;
       }
-      continue;
-    }
-    const lieu = lieuDepuisHtml(lu.texte, input.stationName);
-    if (lieu) {
-      trouve = lieu;
-      break;
+      if (pause.fait) await dormir(PAUSE_MS);
+      pause.fait = true;
+      const lu = await lire(`${ORIGINE_HOMETOGO}/${slug}/`, echeance);
+      if (estArret(lu)) {
+        if (lu.motif === "refus" || lu.detail === "échéance") {
+          arret = lu;
+          break;
+        }
+        if (lu.detail === "interstitiel Cloudflare") {
+          htmlDefiJusqua = Date.now() + HTML_DEFI_MS;
+          break;
+        }
+        continue;
+      }
+      const lieu = lieuDepuisHtml(lu.texte, input.stationName);
+      if (lieu) {
+        trouve = lieu;
+        break;
+      }
     }
   }
-  if (!arret) lieux.set(input.stationId, { at: Date.now(), lieu: trouve });
-  return arret ?? trouve;
+  if (trouve) {
+    lieux.set(input.stationId, { at: Date.now(), lieu: trouve });
+    return trouve;
+  }
+  if (arret) return arret;
+  const parJson = await resoudreParJson(input, echeance, pause);
+  if (parJson && typeof parJson === "object" && "motif" in parJson) return parJson;
+  lieux.set(input.stationId, { at: Date.now(), lieu: parJson });
+  return parJson;
 }
 
 function urlRecherche(lieu: LieuHomeToGo, input: LiveSearchInput, nuitsSejour: number, page: number): string {

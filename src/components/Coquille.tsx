@@ -218,7 +218,7 @@ function PiluleRecherche() {
       >
         <span className="sh-pilule__station">{nom}</span>
         <i className="sh-pilule__trait" aria-hidden />
-        <span>
+        <span className="sh-pilule__dates">
           {dm(checkIn)} → {dm(checkOut)}
         </span>
         <i className="sh-pilule__trait" aria-hidden />

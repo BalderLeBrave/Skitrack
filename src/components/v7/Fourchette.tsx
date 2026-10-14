@@ -4,9 +4,9 @@
  * (médiane, km de pistes, sommet, altitude du village).
  *
  * Le dépôt n'avait qu'un seuil, l'`input type="range"` de Comparer, qui n'a
- * qu'une poignée. `@radix-ui/react-slider` est installé mais n'était employé
- * nulle part, et il laisse ses poignées s'échanger quand elles se croisent là
- * où la maquette garde la même poignée tout le glissé. D'où ce composant,
+ * qu'une poignée. `@radix-ui/react-slider`, écarté, laisse ses poignées
+ * s'échanger quand elles se croisent là où la maquette garde la même poignée
+ * tout le glissé. D'où ce composant,
  * écrit d'après la maquette. Comme les deux `input type="range"` superposés
  * de `Fourchette.dc.html`, les poignées restent dans le rail (une demi-poignée
  * de marge à chaque bout) pendant que la plage noircie, elle, va d'un bord à

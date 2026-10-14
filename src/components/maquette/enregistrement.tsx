@@ -1,6 +1,6 @@
 /**
  * Le cœur des cartes : vide, il ouvre « Enregistrer » (`ModaleEnregistrer`) ;
- * plein, il retire le logement de ses dossiers — la règle de `BoutonFavori`.
+ * plein, il retire le logement de ses dossiers.
  */
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";

@@ -99,12 +99,6 @@ export async function fetchSnowPair(
   return { village, summit, villageM, summitM };
 }
 
-/** Altitude modèle Copernicus / Open-Meteo. Jamais inventée. */
-export async function fetchElevation(lat: number, lon: number): Promise<number | null> {
-  const rows = await fetchElevations([{ lat, lon }]);
-  return rows[0] ?? null;
-}
-
 export async function fetchElevations(
   pts: readonly { lat: number; lon: number }[],
 ): Promise<(number | null)[]> {

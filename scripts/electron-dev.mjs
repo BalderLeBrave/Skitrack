@@ -5,10 +5,9 @@
  *   node scripts/electron-dev.mjs --host 0.0.0.0 --port 8080
  *
  * `npm run dev` passe par ici aussi, pour que la fenêtre s'ouvre dans les deux
- * cas. Mais `dev` sert également de serveur sans écran — `startup.sh` le lance
- * dans le bac à sable, `check-auth-invariant` et le smoke test l'interrogent :
- * `SKITRACK_NO_WINDOW=1`, ou l'absence de DISPLAY sous Linux, garde alors Vite
- * seul.
+ * cas. Mais `dev` sert également de serveur sans écran — `check-auth-invariant`
+ * l'interroge : `SKITRACK_NO_WINDOW=1`, ou l'absence de DISPLAY sous Linux,
+ * garde alors Vite seul.
  *
  * Au passage, le Python des relevés Airbnb et Booking (`npm run scrape:python`)
  * s'installe de lui-même, en arrière-plan, quand son venv manque ou que ses

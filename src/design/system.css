@@ -7,7 +7,7 @@
    Les valeurs sont celles de la maquette v7 (`SKITRACK v7 - App.dc.html`,
    handoff Claude Design du 13 septembre 2026), repeintes le 12 octobre 2026
    aux couleurs de la maquette Airbnb (`Skitrack App.dc.html`) : une famille,
-   Plus Jakarta Sans (Manrope en repli) ; un papier bleuté très clair
+   Plus Jakarta Sans ; un papier bleuté très clair
    (#f7fbfe) et des surfaces presque blanches (#fdfeff, jamais de blanc pur) ;
    une encre bleu nuit (#0b1f33) ; une seule couleur d'action, le bleu de la
    marque, et un seul accent chaud, le cœur. Les noms des jetons n'ont pas
@@ -268,6 +268,6 @@
   --color-bordure: #e9eef2;
   --color-bordure-douce: #eef2f5;
   --color-texte-2: #63717d;
-  --font-mono: "Plus Jakarta Sans", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --radius-card: 0.875rem;
 }

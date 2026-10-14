@@ -1,0 +1,47 @@
+# `npm run format` (prettier --write .) ne doit rien réécrire ici.
+# Prettier lit aussi .gitignore.
+
+# Surfaces verrouillées (CLAUDE.md) et le verrou lui-même.
+scrape/
+src/lib/scrape/
+public/stations/
+public/hero.jpg
+public/og.jpg
+src/lib/skiinfo.photos.json
+src/lib/skiinfo.photos.local.json
+scripts/fetch-missing-photos.mjs
+CLAUDE.md
+AGENTS.project.md
+**/VERROU.md
+.github/workflows/verrou.yml
+
+# Données générées par les scripts : leur forme est celle du générateur.
+public/reseau-pieton/
+public/reseau-voiture/
+public/pistes-detail/
+public/pistes-traces/
+public/carte/
+public/fonts/glyphes/
+travail/
+src/lib/monde/data/
+src/lib/**/*.snapshot.json
+src/**/*.gen.ts
+src/lib/webcams.data.ts
+src/lib/franceMontagnes.data.ts
+src/lib/stations.data.json
+src/lib/osmLifts.json
+src/lib/alt.ign.json
+src/lib/remonteesRetirees.json
+src/lib/pistesDetail.index.json
+src/lib/carte/openskimap.style.json
+src/lib/forfaits/grilles*.json
+src/lib/forfaits/pagesTarifs.json
+scripts/webcams/releve/
+docs/sources/
+package-lock.json
+
+# Pages et réponses relevées telles quelles, que les tests relisent.
+**/fixtures/
+
+# Archives : état passé, non maintenu.
+docs/archive/

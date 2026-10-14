@@ -284,7 +284,7 @@ Ordre : d'abord ce qui débloque le plus d'hôtes et de champs, à coût égal c
 | 4 | **Positions et champs publiés mais non lus, hors centrales** | 7 sources | Travelski 508 annonces sans position sur les deux stations mesurées ; Cimalpes 8 | positions N3 Travelski (toutes les fiches manquantes, en tâche de fond, mémoire de 30 jours) ; positions N2 Cimalpes ; position N3 des tuiles Gîtes de France ; `postalCode` GreenGo ; `max_adults` Ovo ; `NbChambre` Ski-Planet (à vérifier sur un logement à chambre) ; commune Airbnb à N4 ; rue lue par `lectureFiche` et jamais posée | lecture plus profonde dans des adaptateurs existants, sous verrou « scraps » |
 | 5 | **Orchestra** | 3 | La Plagne 79, Chamonix 303, Combloux 62 : 444 | personnes N2, coordonnées N1/N3, adresse N1 à N2 ; chambres absentes à N1 à N4 (facette seulement) | lecture de la liste `/serp` et de la page suivante (`/ajax/more/serp`) ; calendrier « pmb » sans niveau de bande |
 | 6 | **Adaptateurs neufs, un hôte chacun** | 2 | Praz de Lys Sommand 110 (Apidae et Elloha), Les Karellis 14 propositions (Resalys) | Praz de Lys : personnes N2, coordonnées N3, rue N3, chambres absentes ; Karellis : chambres N2, personnes N1, position et rue par établissement | `admin-ajax.php` filtré par Elloha ; `wpAjaxEtablissementInfo` de Resalys |
-| 7 | **Pertes en aval et signalement** | toutes | à l'écran : offres écartées pour « dates ou prix », presque toutes des formules avec forfait à total nul (Maeva, Ski-Planet, Travelski : 113 à Avoriaz, 103 aux 2 Alpes), doubles cartes d'une même source, 36 Booking perdus sans motif | aucun | l'écran Prix marque partielle une source tronquée (centrale 160 sur 415, Gîtes arrêté sur 403, notes des agences) ; audit `listings:audit` et tests bloquants du brief ; porte de sortie unique (phase C) |
+| 7 | **Pertes en aval et signalement** | toutes | à l'écran : offres écartées pour « dates ou prix », presque toutes des formules avec forfait à total nul (Maeva, Ski-Planet, Travelski : 113 à Avoriaz, 103 aux 2 Alpes), doubles cartes d'une même source, 36 Booking perdus sans motif | aucun | l'écran Prix marque partielle une source tronquée (centrale 160 sur 415, Gîtes arrêté sur 403, notes des agences) ; audit `listings:audit`, à écrire (le script n'existe pas encore dans `package.json`), et tests bloquants du brief ; porte de sortie unique (phase C) |
 
 Décisions à prendre avant de commencer :
 
@@ -309,7 +309,3 @@ Acceptés d'avance par le brief et rencontrés : blocage anti-robot (Les Angles 
 | Chambres, Open System ancien (meublés), iResa, Orchestra, Apidae et Elloha, Alliance N'PY | champ absent de la plateforme, N1 à N5 vérifiés : `unknown` avec ce motif, jamais une valeur tirée de la capacité | section 3.1 |
 | Coordonnées, iResa (Les Arcs) | absentes de N1 à N5 : géocodage de l'adresse ou de la résidence en phase D | section 3.1 |
 | Rue, Arkiane et iResa | absente de N1 à N5 : géocodage de la résidence et de la station en phase D | section 3.1 |
-
-## 6. Motifs acceptés
-
-Aucun encore. Motifs acceptés d'avance par le brief : plateforme qui exige un compte client, agrégateur sans API (Booking, Airbnb), blocage anti-robot.

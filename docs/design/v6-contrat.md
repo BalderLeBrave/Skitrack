@@ -866,7 +866,7 @@ Les deux dernières lignes du tableau partagent le même `id` pour une même
 annonce : la carte de l'écran Logements et la vignette de l'écran Réservation
 sont deux éléments avec un `id` identique, ce que la documentation du
 composant interdit explicitement (« every slot on the page needs a distinct
-id »). Constat factuel, à reporter dans `v6-ecarts.md`, sans correction
+id »). Constat factuel, à reporter dans `docs/archive/v6-ecarts.md`, sans correction
 spontanée.
 
 Les scrims `.hero__veil` et `.fhero__veil` couvrent le slot en plein écran ;

@@ -155,14 +155,6 @@ export async function refreshSkiinfo(id: string, force = false): Promise<Skiinfo
   }
 }
 
-export async function refreshSkiinfoMany(ids: string[], force = false): Promise<SkiinfoLive[]> {
-  const out: SkiinfoLive[] = [];
-  for (const id of ids.slice(0, 12)) {
-    out.push(await refreshSkiinfo(id, force));
-  }
-  return out;
-}
-
 export function skiinfoTtlMs(): number {
   return SKIINFO_TTL_MS;
 }

@@ -1,15 +1,14 @@
 /* Plus Jakarta Sans, embarquée : la famille de la maquette Airbnb (handoff
  * Claude Design du 12 octobre 2026), qui remplace Manrope comme `--font-sans`.
  *
- * Même règle que `manrope.css` : l'application tourne hors ligne (Electron),
- * les fichiers vivent dans `public/fonts/`. Fonte **variable** (paquet
+ * L'application tourne hors ligne (Electron) : les fichiers vivent dans
+ * `public/fonts/`. Fonte **variable** (paquet
  * `@fontsource-variable/plus-jakarta-sans` 5.3.0, licence SIL OFL 1.1) : un
  * fichier par sous-ensemble couvre les graisses 400 à 800 du design. Latin et
- * latin étendu seulement, comme pour Manrope.
+ * latin étendu seulement.
  *
  * `--font-sans` reprend la pile de la maquette mot pour mot : « Plus Jakarta
- * Sans », system-ui, sans-serif. `manrope.css` reste importée pour les écrans
- * qui nomment encore Manrope.
+ * Sans », system-ui, sans-serif.
  */
 
 /* latin-ext */

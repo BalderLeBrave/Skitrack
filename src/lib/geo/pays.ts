@@ -139,8 +139,9 @@ export const PAYS: readonly Pays[] = [
   //
   // `plusieursFuseaux` décrit le territoire, Réunion et Antilles comprises, et
   // non les stations : les 320 du référentiel sont toutes en Europe/Paris,
-  // Corse incluse. La prévision française passe de toute façon par AROME, que
-  // `country === "FR"` suffit à choisir.
+  // Corse incluse. La prévision, elle, ne dépend pas du pays :
+  // `choixModele(lat, lon)` (meteo/forecast.server.ts) prend Arpège Europe en
+  // métropole et en Corse, le CEPMMT ailleurs, outre-mer compris.
   /* ---------- Amérique du Nord ---------- */
   /* ---------- Amérique du Sud ---------- */
   /* ---------- Asie ---------- */

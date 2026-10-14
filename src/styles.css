@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./design/manrope.css";
 @import "./design/plus-jakarta-sans.css";
 @import "./design/system.css";
 @import "./design/base.css";
@@ -484,91 +483,6 @@ html[data-theme="dark"] .stay-glass {
   margin: 0;
   font-size: 0.75rem;
   color: var(--color-muted);
-}
-
-.piste-filter {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.piste-filter__lead {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-muted);
-}
-
-.piste-filter__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.piste-filter__pill {
-  border: 1px solid var(--color-line);
-  background: var(--color-panel);
-  color: var(--color-ink);
-  border-radius: 999px;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.8125rem;
-}
-
-.piste-filter__pill--on {
-  background: var(--color-glacier);
-  border-color: var(--color-ink);
-  font-weight: 600;
-}
-
-.piste-filter__sliders {
-  display: grid;
-  gap: 0.55rem;
-}
-
-@media (min-width: 700px) {
-  .piste-filter__sliders {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.piste-filter__slider {
-  display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr) 3.4rem auto;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.8125rem;
-}
-
-.piste-filter__slider-label {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.piste-filter__slider-label i {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 99px;
-}
-
-.piste-filter__slider input[type="range"] {
-  width: 100%;
-  accent-color: var(--color-ink);
-}
-
-.piste-filter__num {
-  height: 2.1rem;
-  width: 3.4rem;
-  border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
-  background: var(--color-panel);
-  color: var(--color-ink);
-  padding: 0 0.35rem;
-}
-
-.piste-filter__reset {
-  justify-self: start;
-  font-size: 0.8125rem;
-  color: var(--color-muted);
-  text-decoration: underline;
 }
 
 .map-chrome {

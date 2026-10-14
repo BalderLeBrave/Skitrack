@@ -6,11 +6,8 @@
  *   node scripts/recette.mjs --base http://127.0.0.1:8080 --json <fichier>
  *   node scripts/recette.mjs --only /stations/val-thorens --wide-only
  *
- * Pourquoi pas `scripts/browser-smoke.mjs` : il passe ses chemins de sortie à
- * `browser-guard.mjs`, qui les borne à `/workspace`. C'est juste dans le bac à
- * sable Linux du projet, faux sous Windows, où la copie de travail vit ailleurs.
- * Plutôt que de modifier le garde-fou d'un autre outil pour les besoins d'une
- * recette, ce harnais est autonome et n'écrit que sous `docs/recette/`.
+ * Autonome, il n'écrit que sous `docs/recette/`, d'où que la copie de travail
+ * soit lancée.
  *
  * Il ne juge rien. Il collecte, capture, et rend du JSON : le jugement est le
  * travail du rapport.

@@ -157,9 +157,18 @@
 .sh-pilule > * {
   flex: none;
 }
+/* Les poids de rétrécissement donnent l'ordre : le groupe cède tout, puis
+   la station jusqu'à 3em, puis les dates. La loupe ne cède jamais. */
 .sh-pilule__station {
-  flex: 0 0 auto;
+  flex: 0 10000 auto;
+  min-width: 3em;
   max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sh-pilule .sh-pilule__dates {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -170,7 +179,7 @@
   background: var(--color-line);
 }
 .sh-pilule .sh-pilule__groupe {
-  flex: 0 1 auto;
+  flex: 0 10000000 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

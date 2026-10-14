@@ -10,19 +10,14 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if not exist node_modules\vite\bin\vite.js (
-  echo Installation des dependances — une minute...
-  call npm install --ignore-scripts
-  if errorlevel 1 (
-    echo npm install a echoue.
-    pause
-    exit /b 1
-  )
-)
-
-if exist node_modules\electron\install.js if not exist node_modules\electron\path.txt (
-  echo Telechargement d'Electron — une minute...
-  node node_modules\electron\install.js
+rem Met le dossier a jour depuis GitHub (avance rapide seulement, sans toucher
+rem aux modifications locales) et reinstalle les dependances si besoin :
+rem scripts\mettre-a-jour.mjs. Un seul bloc, que cmd lit en entier avant de
+rem l'executer : si la mise a jour a change ce fichier, il se relance au lieu
+rem de le relire en cours de route.
+(
+  node scripts\mettre-a-jour.mjs
+  if errorlevel 3 "%~f0"
 )
 
 node scripts\electron-dev.mjs

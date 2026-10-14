@@ -37,10 +37,11 @@ export const Route = createRootRoute({
       // `scripts/grok-pwa-shared.mjs` les pose quand `public/__grok/` existe,
       // c'est-à-dire dans le bac à sable Grok. Ailleurs, git ignore ce dossier
       // et les deux liens renverraient une 404.
-      // Manrope est embarquée (`src/design/manrope.css`, `public/fonts/`) :
-      // l'application tourne hors ligne, et la mesure au pixel ne dépend plus
-      // d'un aller-retour réseau. Les deux preconnect vers Google et les deux
-      // sous-ensembles qu'ils servaient ne sont plus nécessaires.
+      // Plus Jakarta Sans est embarquée (`src/design/plus-jakarta-sans.css`,
+      // `public/fonts/`) : l'application tourne hors ligne, et la mesure au
+      // pixel ne dépend plus d'un aller-retour réseau. Les deux preconnect vers
+      // Google et les deux sous-ensembles qu'ils servaient ne sont plus
+      // nécessaires.
       {
         rel: "preload",
         as: "font",

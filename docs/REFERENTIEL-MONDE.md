@@ -1,6 +1,6 @@
 # Référentiel mondial
 
-Frère de `REFERENTIEL.md`, qui décrit les 320 stations françaises et ne bouge
+Frère de `REFERENTIEL.md`, qui décrit les 233 stations françaises et ne bouge
 pas. Ce document décrit ce qui vient s'ajouter à côté, pour le reste du monde.
 
 Il était incomplet tant que le fichier de données restait hors de portée : la
@@ -148,9 +148,9 @@ domaine vient du domaine ou vaut `null` ; un champ d'échelle station vaut
 
 **C'est la France qui a tranché.** Elle porte ici 340 domaines de ski alpin,
 280 en exploitation, 248 avec au moins une remontée et 204 à « 3 remontées ou
-5 km », quand son référentiel en montre 320. Un seuil plus exigeant aurait
-soumis l'étranger à une sélection que la France n'a jamais subie, et effacé un
-tiers de ce que l'app affiche déjà.
+5 km », quand son référentiel en montrait alors 320. Un seuil plus exigeant
+aurait soumis l'étranger à une sélection que la France n'a jamais subie, et
+effacé un tiers de ce que l'app affichait déjà.
 
 Le cran « mesuré » ne coûte rien — aucun domaine en exploitation n'est sans
 statistiques — et il se garde pour ce qu'il dit.
@@ -162,7 +162,10 @@ pour que l'absence se voie. D'où 5 720, et non 5 723.
 
 > Ces 5 720 sont le résultat du **seuil**, au 18 septembre 2026. Le périmètre
 > a changé depuis : la Russie en est sortie le 21 septembre, et le référentiel
-> en porte 5 476. Les deux nombres sont justes, chacun à sa question.
+> en a porté 5 476. Le même jour, le seuil a exigé un nom et le périmètre
+> s'est arrêté à une liste de cinquante pays (`PERIMETRE` dans
+> `scripts/build-monde.py`) : `index.json` en compte aujourd'hui 2 781. Les
+> nombres sont justes, chacun à sa question.
 
 ### Une station est un domaine, jamais une localité
 
@@ -180,7 +183,7 @@ d'appoint.
 
 ### Les domaines frontaliers sortent des deux côtés
 
-**68 domaines retenus portent plusieurs pays** — Les Portes du Soleil, Avoriaz,
+**64 domaines retenus portent plusieurs pays** — Les Portes du Soleil, Avoriaz,
 Zermatt–Breuil-Cervinia, Montgenèvre, La Rosière, GrandValira, la Zugspitze,
 Kranjska Gora. L'ordre des pays ne veut rien dire : la source écrit aussi bien
 `CZ+DE` que `DE+CZ`.
@@ -205,23 +208,24 @@ domaine n'était dans ce dernier cas au relevé du 18 septembre, et la règle es
 écrite pour que le prochain ne passe pas en silence.
 
 `index.json` publie le compte sous `ecartes`, et l'écran `/monde` l'affiche :
-**une absence décidée doit se voir**, faute de quoi 244 domaines manqueraient
-au total sans que rien ne distingue la décision d'une perte de données. C'est
-la même règle que pour les trois domaines sans pays.
+**une absence décidée doit se voir**, faute de quoi 134 domaines — 244 avant
+que le seuil n'exige un nom — manqueraient au total sans que rien ne distingue
+la décision d'une perte de données. C'est la même règle que pour les trois
+domaines sans pays.
 
 `geo/pays.ts` a perdu sa fiche `RU` du même coup : la règle de cette liste est
-« les pays ayant au moins une station retenue ».
+devenue « les pays du périmètre du référentiel ».
 
 ## Ce que le référentiel pèse
 
 | | |
 | --- | --- |
-| Domaines | 5 476 |
-| Pays | 72 |
-| Fichiers | 73, dont `index.json` |
-| Poids total | 2,2 Mo |
-| Plus gros pays | `US.json`, 255 Ko |
-| `index.json` | 6 Ko, seul fichier importé statiquement |
+| Domaines | 2 781 |
+| Pays | 44 |
+| Fichiers | 45, dont `index.json` |
+| Poids total | 1,1 Mo |
+| Plus gros pays | `CH.json`, 133 Ko |
+| `index.json` | 14 Ko, seul fichier importé statiquement |
 
 Aucun écran ne charge le monde d'un bloc : `index.json` porte les compteurs et
 le cadrage de chaque pays, et `domainesPays(cc)` n'ouvre qu'un pays. C'est la
@@ -249,12 +253,12 @@ la seule raison pour laquelle ils existent encore.
 
 ```
 python3 scripts/build-monde.py --src /tmp/ski_areas.geojson --recenser
-python3 scripts/build-monde.py --src /tmp/ski_areas.geojson --ecrire --releve 2026-09-18T23:31:32Z
+python3 scripts/build-monde.py --src /tmp/ski_areas.geojson --ecrire --releve 2026-09-21T22:05:36Z
 ```
 
 Le premier chiffre sans rien écrire. Le second écrit `src/lib/monde/data/`, un
-fichier par pays plus l'index, et vide le dossier avant : un pays qui perd sa
-dernière station perd son fichier.
+fichier par pays plus l'index, et efface avant les anciens fichiers de pays :
+un pays qui perd sa dernière station perd son fichier.
 
 Sans `--releve`, la date du fichier source fait foi — ce qui date le
 téléchargement et non le relevé. Passez-la explicitement, en la lisant dans
@@ -263,7 +267,7 @@ téléchargement et non le relevé. Passez-la explicitement, en la lisant dans
 ## L'écran : `/monde`
 
 Trois niveaux — **continent → pays → domaines** — et non un filtre de plus sur
-un écran existant. Soixante-treize pays ne tiennent pas dans une rangée de
+un écran existant. Quarante-quatre pays ne tiennent pas dans une rangée de
 jetons comme les dix massifs de `/carte`, et aplatir le référentiel en une
 liste unique demanderait de charger le monde entier pour en montrer vingt.
 
@@ -279,34 +283,34 @@ lisent que `index.json`, et `domainesPays()` n'ouvre que le pays regardé.
 Les filtres vivent dans `monde/filtres.ts`, et ils tiennent la règle du dépôt :
 **un seuil porte sur une valeur mesurée.** Un domaine dont les kilomètres ne
 sont pas relevés est écarté par un seuil sur les kilomètres, jamais compté pour
-zéro — c'est `atLeast` de `carte.ts`, la même fonction que pour la France, pas
+zéro — c'est `dansPlage` de `plage.ts`, la même fonction que pour la France, pas
 une seconde écriture. Le tri suit la même règle : le non mesuré passe en
 dernier **dans les deux sens**, parce que le traiter comme un zéro le mettrait
 en tête d'un tri décroissant inversé et le ferait passer pour une mesure nulle.
 
 Le compte affiché dit « X sur Y » où Y est ce que le pays rend, et non ce que
 l'index compte : `domainesPays()` ramène les domaines hébergés **et** ceux qui
-débordent d'un pays voisin, si bien que l'Autriche en rend 396 là où l'index en
-compte 381. L'écart est écrit en toutes lettres sous le compte, avec le nombre
+débordent d'un pays voisin, si bien que l'Autriche en rend 331 là où l'index en
+compte 317. L'écart est écrit en toutes lettres sous le compte, avec le nombre
 de frontaliers ; les deux nombres se contredisaient à l'écran sans rien dire.
 
 ## Les couleurs, et le rattachement qui les étend
 
-OpenSkiMap compte les tronçons par couleur pour 4 239 domaines sur 5 720. Pour
+OpenSkiMap compte les tronçons par couleur pour 2 222 domaines sur 2 781. Pour
 les autres, il n'a relevé aucune piste — ce qui n'est pas « ce domaine n'a pas
 de pistes ». Deux relevés du dépôt en savent pourtant quelque chose, et ils
 sont rangés par fiche, pas par domaine.
 
 `scripts/build-couleurs-monde.ts` fait la jointure et écrit
-`src/lib/monde/data/couleurs.json` (181 Ko, chargé à la demande).
+`src/lib/monde/data/couleurs.json` (92 Ko, chargé à la demande).
 
 | | Domaines | Part |
 | --- | ---: | ---: |
-| Mesurés par OpenSkiMap | 4 239 | 74,1 % |
-| Rattachés à une fiche Skiinfo | 234 | 4,1 % |
-| Rattachés à une fiche skiresort | 630 | 11,0 % |
-| **Couverts** | **5 103** | **89,2 %** |
-| Aucune couleur possible | 617 | 10,8 % |
+| Mesurés par OpenSkiMap | 2 222 | 79,9 % |
+| Rattachés à une fiche Skiinfo | 169 | 6,1 % |
+| Rattachés à une fiche skiresort | 268 | 9,6 % |
+| **Couverts** | **2 659** | **95,6 %** |
+| Aucune couleur possible | 122 | 4,4 % |
 
 **La jointure se fait par la position, et n'affirme rien de plus.** Aucune clé
 n'est commune aux trois sources : ni identifiant, ni nom comparable. Deux
@@ -330,7 +334,7 @@ ne dépend pas d'un téléchargement local.
 À l'écran, une répartition dérivée de skiresort porte la mention **« vert et
 bleu estimés »** à côté de sa barre, et non seulement dans une infobulle. Une
 valeur estimée qui ne se dit pas estimée est pire qu'une absence, puisque
-l'absence, elle, se voit — et les 617 domaines sans couleur écrivent
+l'absence, elle, se voit — et les 122 domaines sans couleur écrivent
 « Répartition par couleur non relevée » plutôt qu'une barre vide.
 
 ## Photo, forfait, météo : ce que chaque domaine montre
@@ -547,31 +551,36 @@ exactement comme il écarte déjà une station dont le champ n'est pas mesuré.
 Dans les deux cas la comparaison demandée n'a pas de sens, et y répondre
 « oui » serait pire que n'y pas répondre.
 
-**Ce qui n'est pas fait, et qui n'est pas une devise :** les `toLocaleString("fr-FR")`
-de `liftSpan.ts`, `gpx.ts` et `carte.ts` pour des mètres et des kilomètres, et
-les dates en `fr-FR` de `useForfait.ts`, `age.ts` et `skiinfoStore.ts`. Ceux-là
-suivent la langue de l'interface, pas le pays de la station : ils relèvent de
-l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
+**Ce qui n'était pas fait ici, et qui n'est pas une devise :** les
+`toLocaleString("fr-FR")` de `liftSpan.ts`, `gpx.ts` et `carte.ts` pour des
+mètres et des kilomètres, et les dates en `fr-FR` de `useForfait.ts`, `age.ts`
+et `skiinfoStore.ts`. Ceux-là suivent la langue de l'interface, pas le pays de
+la station : ils relevaient de l'i18n, et les traiter ici les aurait mêlés à un
+sujet qui n'est pas le leur. L'i18n les a repris depuis : tous passent par
+`langueIntl()` (`src/lib/i18n/langue.ts`), et `useForfait.ts` n'existe plus,
+remplacé par `usePrixForfait.ts`, qui n'écrit aucune date.
 
 ## Ce qui reste à établir
 
-- **Deux pays sur 73 restent sans fiche**, et ce sont deux absences sourcées,
-  non un reste de travail. Ils étaient 29 ; `geo/pays.ts` en a repris 27 le 19
+- **Un pays sur 44 reste sans fiche**, et c'est une absence sourcée, non un
+  reste de travail. Ils étaient 29 ; `geo/pays.ts` en a repris 27 le 19
   septembre 2026, devises lues dans la liste ISO 4217 publiée par SIX Group,
   fuseaux dans la table `zone.tab` de l'IANA, cadrages dans le même fichier
-  Natural Earth que la phase 1. Restent l'**Antarctique**, en face de qui
-  l'ISO 4217 écrit « No universal currency », et le **Kosovo**, absent des
-  deux tables parce que `XK` est un code d'usage et non un code ISO 3166-1.
-  `paysSansFiche()` rend exactement ces deux-là, et son test l'exige à
-  l'égalité : un troisième pays devra faire échouer la suite, pas s'y ranger.
-- **L'Antarctique est dans le référentiel et hors de la navigation** — et
-  l'écran le dit. `Kiwi Ski Hill`, un téléski en exploitation près de McMurdo,
-  passe le seuil ; `continents.ts` a délibérément posé six continents sans
-  l'Antarctique. Les deux décisions sont justes et se contredisent : `/monde`
-  ne tranche pas la contradiction, il la **nomme**. Le pied du premier niveau
-  écrit que les six onglets portent 5 718 domaines et que deux pays — `AQ` et
-  `XK`, un domaine chacun — n'y figurent pas, avec la raison de chacun. C'est
-  la réponse que cette ligne appelait : dire, et non ranger d'office.
+  Natural Earth que la phase 1. Restaient l'**Antarctique**, en face de qui
+  l'ISO 4217 écrit « No universal currency », sorti depuis avec le périmètre,
+  et le **Kosovo**, absent des deux tables parce que `XK` est un code d'usage
+  et non un code ISO 3166-1. `paysSansFiche()` rend exactement celui-là, et
+  son test l'exige à l'égalité : un deuxième pays devra faire échouer la
+  suite, pas s'y ranger.
+- **L'Antarctique était dans le référentiel et hors de la navigation** — il
+  en est sorti avec le périmètre du 21 septembre. `Kiwi Ski Hill`, un téléski
+  en exploitation près de McMurdo, passait le seuil ; `continents.ts` a
+  délibérément posé six continents sans l'Antarctique. `/monde` ne tranchait
+  pas la contradiction, il la **nommait**, et la règle demeure pour le
+  Kosovo : le pied du premier niveau écrit que les onglets de continent
+  portent 2 780 domaines et que `XK`, un domaine, n'y figure pas, avec sa
+  raison. C'est la réponse que cette ligne appelait : dire, et non ranger
+  d'office.
 - **Aucune exception d'appariement n'existe encore**, et `monde/corrections.ts`
   n'est donc pas créé. Les corrections du référentiel français naissent de
   l'appariement classeur × OpenSkiMap ; le monde n'a qu'une source, donc rien à
@@ -583,7 +592,7 @@ l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
   distinct, parce qu'un relevé ponctuel rangé dans `minM` et `maxM` afficherait
   un dénivelé de zéro là où rien n'a été mesuré.
 
-- **Le relevé de terrain est complet : 5 720 domaines sur 5 720.** Il vit dans
+- **Le relevé de terrain est complet : 2 781 domaines sur 2 781.** Il vit dans
   `src/lib/monde/data/dem.json`, fichier distinct du référentiel pour la raison
   que l'audit donne à propos d'`alt.ign.json` : une altitude de modèle de
   terrain et les bornes d'un domaine ne mesurent pas la même chose. Le modèle
@@ -591,7 +600,7 @@ l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
   `viewportHint.center` — **ni village, ni sommet**, ce que le fichier porte
   écrit.
 
-  Les altitudes vont de −6 m à 3 752 m. Les deux valeurs négatives ne sont pas
+  Les altitudes vont de −6 m à 3 456 m. Les deux valeurs négatives ne sont pas
   des ratés : `nl-indoor-ski-rotterdam` est une halle couverte des Pays-Bas, où
   le sol est sous le niveau de la mer. `dk-copenhill`, à 4 m, est la piste
   posée sur l'usine de valorisation de Copenhague. Un contrôle naïf « une
@@ -607,43 +616,5 @@ l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
 
   ```
   node --experimental-strip-types scripts/build-dem-monde.ts
-  node --experimental-strip-types scripts/build-dem-monde.ts --completer
-  ```
-
-- **Aucune exception d'appariement n'existe encore**, et `monde/corrections.ts`
-  n'est donc pas créé. Les corrections du référentiel français naissent de
-  l'appariement classeur × OpenSkiMap ; le monde n'a qu'une source, donc rien à
-  apparier. Le fichier viendra avec la deuxième source, pas avant.
-- **Les altitudes sont celles du domaine**, `minElevation` et `maxElevation`,
-  et non celles d'un village. `altBandsDomaine()` le dit désormais en toutes
-  lettres : `villageM` y vaut toujours `null`, et le libellé porte « pas un
-  village ». Un relevé de modèle de terrain s'y ajoute sous `pointM`, un champ
-  distinct, parce qu'un relevé ponctuel rangé dans `minM` et `maxM` afficherait
-  un dénivelé de zéro là où rien n'a été mesuré.
-
-- **Le relevé de terrain est fait aux cinq sixièmes : 5 220 domaines sur
-  5 720.** Il vit dans `src/lib/monde/data/dem.json`, fichier distinct du
-  référentiel pour la raison que l'audit donne à propos d'`alt.ign.json` : une
-  altitude de modèle de terrain et les bornes d'un domaine ne mesurent pas la
-  même chose. Le modèle est Copernicus DEM GLO-90, servi par Open-Meteo, et le
-  point relevé est `viewportHint.center` — **ni village, ni sommet**, ce que le
-  fichier porte écrit.
-
-  Les 500 manquants ne sont pas des points fautifs : Open-Meteo compte trois
-  quotas — à la minute, à l'heure, au jour — et le relevé les a tous rencontrés
-  dans l'ordre. Le journalier est le dernier mot : « Please try again
-  tomorrow. » Les identifiants absents forment d'ailleurs une tranche
-  alphabétique continue, ce qui dit assez qu'il s'agit d'une fin de parcours et
-  non de coordonnées particulières.
-
-  Le script s'arrête désormais net sur n'importe quel `429`, en répétant la
-  raison du service mot pour mot, au lieu de marteler puis de rendre des `null`
-  muets — ce qu'il faisait, et qui avait fait passer cinq cents refus très
-  clairs pour des absences de mesure. Il ne réécrit pas non plus le fichier
-  quand un passage n'a rien rapporté : la date dit quand les altitudes ont été
-  prises, pas quand on a essayé. `--completer` reprend sans redemander une
-  seule altitude déjà obtenue :
-
-  ```
   node --experimental-strip-types scripts/build-dem-monde.ts --completer
   ```

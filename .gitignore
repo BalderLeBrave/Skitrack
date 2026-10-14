@@ -19,9 +19,6 @@ attachments/
 screenshots/
 browsed_files/
 
-# Terrain high-poly trop lourd pour git (>50 Mo)
-public/models/snow-mountain-hi.glb
-
 # Chrome PWA Grok (preview sandbox)
 public/__grok/
 
@@ -59,6 +56,9 @@ app.log
 # versionnées, elles redonnent public/reseau-* sans réseau ni extraits.
 travail/*
 !travail/reseau-pieton/
+
+# Captures de scripts/recette.mjs (sa sortie par défaut).
+docs/recette/captures/
 
 # Python embarqué dans l'installateur Windows (scripts/preparer-python-embarque.mjs).
 build/python/

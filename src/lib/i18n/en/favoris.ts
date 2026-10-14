@@ -43,7 +43,7 @@ export const EN_FAVORIS: Record<string, string> = {
   "Logement": "Listing",
   "Séjour": "Stay",
   "sans position": "no position",
-  // BoutonFavori.tsx
+  // enregistrement.tsx, ModaleEnregistrer.tsx, CarteAnnonce.tsx, VoletAnnonce.tsx
   "Retirer des favoris": "Remove from Saved",
   "Retiré de « {nom} ».": "Removed from “{nom}”.",
   "Retiré des favoris.": "Removed from Saved.",

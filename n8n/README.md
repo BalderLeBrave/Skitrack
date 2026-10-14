@@ -14,11 +14,12 @@ Trois workflows à importer dans n8n (menu ⋯ → Import from File). Aucun n'es
 2. Commandes (premier workflow seulement) : poser la variable `SKITRACK_DIR` (chemin du dépôt). Le nœud Execute Command doit être autorisé : en n8n 2.x il est exclu par défaut (`NODES_EXCLUDE`).
 3. Activer le workflow.
 
-## Politesse, la même que dans le dépôt
+## Politesse, pas tout à fait celle du dépôt
 
-- robots.txt est lu avant tout appel : un `Disallow` écarte la page, un `Disallow: /` (même hors groupe, comme booking.prazsurarly.com) écarte l'hôte.
-- Un 401, 403 ou 429 rendu par le site écarte l'hôte (lesangles.com répond 403 : il n'est pas lu).
-- Une fiche à la fois, avec une pause égale au `Crawl-delay` publié (2 s au moins).
+- robots.txt, dans le dépôt (`npm run catalogue:centrales`, `npm run forfaits:sitemap`) : lu, chaque `Disallow` journalisé puis ignoré, l'extraction continue, `Disallow: /` compris (`verdictPoli`, `src/lib/scrape/politesse.ts`).
+- robots.txt, dans `skitrack-centrales-firecrawl.json` : lu avant tout appel et respecté. Un `Disallow` écarte la page, un `Disallow: /` (même hors groupe, comme booking.prazsurarly.com) écarte l'hôte. `skitrack-forfaits-firecrawl.json` ne lit pas robots.txt : il reprend les pages de `pagesTarifs.json`, trouvées par `npm run forfaits:sitemap`.
+- Un 401, 403 ou 429 rendu par le site écarte l'hôte (lesangles.com répond 403 : il n'est pas lu). Dans le workflow des centrales, c'est la réponse à robots.txt qui en décide ; une fiche refusée ensuite est notée en erreur, et la suivante est lue.
+- Une fiche à la fois, avec une pause égale au `Crawl-delay` publié (2 s au moins). Forfaits : une page par domaine, 3 s entre deux.
 - Les bornes de `src/lib/scrape/catalogue.ts` et `src/lib/forfaits/firecrawlForfait.ts` sont recopiées dans les nœuds « Normaliser » et « Borner » : rien n'est inventé. Un prix « à partir de », « dès » ou une fourchette n'est jamais un prix : il est écarté et compté (`planchersEcartes`). Un total de séjour n'est gardé que si la page écrit ses deux dates.
 
 `MAX_FICHES` (nœud « Cibles ») borne le coût Firecrawl : 200 fiches par hôte par défaut, soit au plus 2 000 crédits par relevé pour les 10 hôtes.

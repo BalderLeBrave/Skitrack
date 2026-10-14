@@ -5,8 +5,9 @@ au statut explicite (`bedrooms`, `capacity`, `nearestLift`), sans jamais
 confondre une valeur inconnue avec 0, et sans rien inventer.
 
 Ce document commence par l'inventaire (phase 0, 26 septembre 2026, aucune
-modification du code). Les phases suivantes y ajouteront leurs comptes rendus
-et le rapport de `listings:audit`.
+modification du code). Les phases suivantes y ajouteront leurs comptes rendus.
+Le rapport d'audit des logements (nom prévu : `listings:audit`) reste à écrire :
+aucun script ne le produit dans le dépôt.
 
 ## 0. Inventaire
 

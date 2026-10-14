@@ -4,7 +4,7 @@ Source : le handoff Claude Design du 13 septembre 2026 (`Skitrack-handoff.zip`,
 projet `94054660-9e3d-4b33-98e2-0e5b5f9047a4`), fichiers `SKITRACK v7 -
 App.dc.html` et `V7Coquille.dc.html`, plus `v7/v7-data.js` et `image-slot.js`
 qu'il importe. La maquette v7 remplace la v6 comme contrat d'interface des cinq
-écrans du parcours ; `docs/design/v6-contrat.md` et `v6-ecarts.md` restent
+écrans du parcours ; `docs/design/v6-contrat.md` et `docs/archive/v6-ecarts.md` restent
 comme archive et ne décrivent plus l'application.
 
 ## Où c'est porté
@@ -15,7 +15,7 @@ comme archive et ne décrivent plus l'application.
 | `V7Coquille` : barre, verrous, pilule de séjour, panneau « Votre séjour » | `src/components/Coquille.tsx`, `v7/Calendrier.tsx`, `v7/Compteur.tsx` |
 | Accueil | `src/routes/index.tsx`, `v7/CarteStation.tsx` |
 | Comparer : tableau, filtres, jetons, état vide, cartes, carte | `src/routes/comparer.tsx`, `v7/CarteEpingles.tsx`, `v7/Vide.tsx` |
-| Station | `src/routes/stations.$id.tsx`, `v7/useForfait.ts` |
+| Station | `src/routes/stations.$id.tsx`, `v7/usePrixForfait.ts` |
 | Logements : filtres, cartes, volet, pied fixe, carte aux prix | `src/routes/logements.tsx` |
 | Réservation | `src/routes/reservation.tsx` |
 | `state` du script (cmp, pick, seen, booked, filtres) | `src/lib/parcours.ts` |
@@ -38,7 +38,9 @@ système par les jetons, sans autre changement.
 3. **Forfaits : le relevé du dépôt prime la graine.** La maquette lisait la
    seule graine du catalogue. Ici `getForfait` répond quand le magasin a relevé
    la page officielle ; sa date s'écrit. Un tarif « estimé » n'entre jamais dans
-   le coût. La saison et la zone n'existent que dans la graine. (`useForfait.ts`)
+   le coût. La saison et la zone n'existent que dans la graine. (`useForfait.ts`,
+   remplacé le 1er octobre 2026 par `usePrixForfait.ts`, qui résout le prix
+   pour les dates du séjour sur toutes les grilles connues)
 4. **Météo, webcams, bulletin : les services du dépôt.** « Aujourd'hui aux deux
    altitudes » et « 14 jours » viennent de `getForecastPair` (Open-Meteo par le
    serveur), pas d'un appel direct depuis le navigateur. Les webcams sont celles
@@ -86,7 +88,9 @@ comme la phase 1 de l'audit l'avait fait pour seize autres : `StayReport`,
 écrans v7 (prévision, webcams, bulletin, langue, calendrier, compteurs,
 récapitulatif copié), soit absent de la maquette v7 (profil altimétrique,
 minicarte, historique de neige, récapitulatif imprimable, comparateur de
-logements). Les modules de `src/lib` qu'ils lisaient restent, avec leurs tests.
+logements). Les modules de `src/lib` qu'ils lisaient restent, avec leurs tests,
+sauf `skiinfoApi`, `skiinfoLive`, `snow/history` et `getSnowPair`
+(`snow/api.ts`), retirés le 14 octobre 2026 avec le code mort.
 
 Les cinq primitives de `src/components/base/` (Bouton, Champ, Etiquette,
 Liste, Tableau) restent aussi : elles sont le système décrit par `base.css`,

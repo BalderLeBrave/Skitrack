@@ -45,7 +45,6 @@ export const EN_FAVORIS: Record<string, string> = {
   "sans position": "no position",
   // BoutonFavori.tsx
   "Retirer des favoris": "Remove from Saved",
-  "Enregistrer dans un dossier": "Save to a folder",
   "Retiré de « {nom} ».": "Removed from “{nom}”.",
   "Retiré des favoris.": "Removed from Saved.",
   "Enregistré dans « {nom} ».": "Saved to “{nom}”.",

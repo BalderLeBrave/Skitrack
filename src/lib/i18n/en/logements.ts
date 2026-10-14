@@ -254,7 +254,6 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Photo suivante": "Next photo",
   "Photos en plein écran": "Photos full screen",
   "Quitter le plein écran": "Exit full screen",
-  "Enregistré": "Saved",
   "Annonce sans lien": "Listing without a link",
   "Lien de l’annonce copié": "Listing link copied",
   "Le lien n’a pas pu être copié": "The link could not be copied",

@@ -13,13 +13,19 @@
  * Quand package-lock.json a changé depuis la dernière installation, les
  * dépendances sont réinstallées (`npm ci`), binaire d'Electron compris.
  *
- * Code de sortie : 0, sauf 3 quand la mise à jour a changé SKITRACK.bat, que
- * cmd ne doit pas continuer à lire en cours de route : il se relance.
+ * Si SKITRACK tourne déjà depuis ce dossier, les dépendances ne sont pas
+ * touchées : npm ci viderait node_modules sous l'application ouverte, et
+ * buterait sur ses fichiers verrouillés (Electron, binaires natifs de Vite).
+ *
+ * Code de sortie : 0 ; 3 quand la mise à jour a changé SKITRACK.bat, que cmd ne
+ * doit pas continuer à lire en cours de route : il se relance ; 4 quand
+ * l'installation des dépendances a échoué : SKITRACK.bat s'arrête au lieu de
+ * lancer l'application sur un node_modules incomplet.
  */
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -58,17 +64,58 @@ function mettreAJourGit() {
   return git("diff", "--name-only", avant, "HEAD").sortie.split(/\r?\n/);
 }
 
+/**
+ * Un fichier de node_modules qu'un process en cours tient ouvert : le binaire
+ * d'Electron, ou un module natif chargé par Vite (rolldown, oxide de
+ * Tailwind, lightningcss). Sous Windows, il ne s'ouvre pas en écriture.
+ */
+function dossierOccupe() {
+  const nm = join(racine, "node_modules");
+  const fichiers = [join(nm, "electron", "dist", windows ? "electron.exe" : "electron")];
+  for (const portee of ["@rolldown", "@tailwindcss", "@esbuild"]) {
+    let paquets = [];
+    try {
+      paquets = readdirSync(join(nm, portee));
+    } catch {
+      continue;
+    }
+    for (const p of paquets) {
+      try {
+        for (const f of readdirSync(join(nm, portee, p))) {
+          if (f.endsWith(".node") || f.endsWith(".exe")) fichiers.push(join(nm, portee, p, f));
+        }
+      } catch {
+        /* pas un dossier */
+      }
+    }
+  }
+  for (const f of fichiers) {
+    try {
+      if (existsSync(f)) closeSync(openSync(f, "r+"));
+    } catch (e) {
+      if (e.code === "EBUSY" || e.code === "EPERM") return true;
+    }
+  }
+  return false;
+}
+
 function mettreAJourDependances() {
   const lock = empreinte(join(racine, "package-lock.json"));
   const installe = existsSync(tampon) ? readFileSync(tampon, "utf8").trim() : "";
   if (lock === installe && existsSync(join(racine, "node_modules", "vite"))) return;
+  if (dossierOccupe()) {
+    return dire("dépendances à réinstaller, mais SKITRACK est ouvert : fermez-le puis relancez SKITRACK.bat.");
+  }
   dire("installation des dépendances (npm ci), une minute…");
   const npm = spawnSync(windows ? "npm.cmd" : "npm", ["ci", "--no-audit", "--no-fund"], {
     cwd: racine,
     stdio: "inherit",
     shell: windows,
   });
-  if (npm.status !== 0) return dire("npm ci a échoué : relancer SKITRACK.bat, ou npm ci à la main.");
+  if (npm.status !== 0) {
+    dire("npm ci a échoué : fermez SKITRACK s'il est ouvert, puis relancez SKITRACK.bat.");
+    process.exit(4);
+  }
   // Le binaire d'Electron se télécharge à part, par le script d'installation du paquet.
   const electron = join(racine, "node_modules", "electron");
   if (existsSync(join(electron, "install.js")) && !existsSync(join(electron, "path.txt"))) {

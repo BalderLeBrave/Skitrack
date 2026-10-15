@@ -4,6 +4,12 @@ import { readFileSync } from "node:fs";
 import type { Listing } from "../listings.ts";
 import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
 import { lireIresa, prestationsIresa } from "../scrape/centrales/moteurs/iresa.ts";
+import {
+  equipementsMsem,
+  joindreMsem,
+  type CatalogueMsem,
+  type OffresMsem,
+} from "../scrape/centrales/moteurs/msem.ts";
 import { ficheOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
 import {
   depuisAmenities,
@@ -769,5 +775,137 @@ describe("iResa (Les Arcs) : les cases et la description du relevé réel, jusqu
     assert.equal(casesIresa(par("n° 1120").id).rub_fumeur_hbgt, "1");
     assert.match(par("n° 1120").description ?? "", /Appartement non fumeur/);
     assert.deepEqual(libellesIresa(par("n° 1120").id), [{ libelle: "Télévision" }]);
+  });
+});
+
+/* ---------- MSEM (Alpe d'Huez) : les options du catalogue, jusqu'à l'écran ---------- */
+
+const MSEM = JSON.parse(
+  readFileSync(new URL("msem-alpedhuez-3-hebergements.json", CENTRALES), "utf8"),
+) as {
+  catalogue: CatalogueMsem;
+  offres: OffresMsem;
+};
+const DICTIONNAIRE_MSEM = MSEM.catalogue.options ?? [];
+
+/**
+ * Les libellés des options d'un hébergement, comme le moteur les publiera
+ * (`equipementsPublies`, à poser dans les scraps) : ses seuls codes, lus dans
+ * le dictionnaire du catalogue, dans son ordre. Les langues parlées
+ * (`spokenLanguages` : « Allemand », « Anglais ») ne sont pas des
+ * équipements. Jamais la description.
+ */
+function optionsMsem(options: readonly (string | number)[]): EquipementPublie[] {
+  return options.flatMap((c) => {
+    const o = DICTIONNAIRE_MSEM.find((x) => String(x.code) === String(c));
+    return o?.label && o.kind !== "spokenLanguages" ? [{ libelle: o.label }] : [];
+  });
+}
+
+describe("MSEM (Alpe d'Huez) : les options du catalogue réel, jusqu'à l'écran", () => {
+  const ids = (l: Listing) => equipementsDe(l)!.map((e) => (e.present ? e.id : `${e.id}(non)`));
+  const fiches = joindreMsem(MSEM.catalogue, MSEM.offres);
+  const ficheMsem = (id: string) => fiches.find((f) => f.id === id)!;
+  const hebergement = (id: string) =>
+    MSEM.catalogue.accomodations!.find((h) => String(h.id) === id)!;
+  /** L'annonce d'un hébergement du relevé : les douze clés du moteur, et ses options publiées. */
+  const ecran = (id: string, publies = false) =>
+    annonce({
+      source: "Centrale",
+      amenities: equipements(ficheMsem(id).equipements),
+      ...(publies ? { equipementsPublies: optionsMsem(hebergement(id).options ?? []) } : {}),
+    });
+
+  it("les trois hébergements : leurs options ne changent ni les clés ni les « non indiqué »", () => {
+    assert.deepEqual(optionsMsem(hebergement("192154").options ?? []), [
+      { libelle: "Lave-vaisselle" },
+      { libelle: "Balcon / Terrasse" },
+    ]);
+    const attendus: Record<string, string[]> = {
+      // HORIZON : « Placards à Skis n°C3 + 1 EMPLACEMENT DE PARKING ».
+      "192154": ["balcon", "lave_vaisselle", "parking", "casier_skis"],
+      // « Linge de lit, serviettes et ménage fin de séjour non inclus ».
+      "192180": ["balcon", "lave_vaisselle", "linge_fourni(non)", "parking", "casier_skis"],
+      // Aucune option : la description seule.
+      "224074": ["lave_vaisselle", "lave_linge", "linge_fourni(non)", "parking", "casier_skis"],
+    };
+    for (const [id, cles] of Object.entries(attendus)) {
+      assert.deepEqual(ids(ecran(id, true)), cles, id);
+      assert.deepEqual(ids(ecran(id)), cles, `${id} : pareil sans la liste`);
+      assert.deepEqual(equipementsTus(ecran(id, true)), equipementsTus(ecran(id)), id);
+    }
+    // Le libellé de la source reste, sous la clé qu'il nomme.
+    assert.equal(
+      equipementsDe(ecran("192154", true))!.find((e) => e.id === "balcon")?.libelle,
+      "Balcon / Terrasse",
+    );
+  });
+
+  it("HORIZON : « Placards à Skis n°C3 » passe le filtre « Local à skis », sur toute la chaîne", () => {
+    // Son option « Local à ski » (28) n'est pas listée : la description seule le dit.
+    assert.deepEqual(hebergement("192154").options, ["31", "3"]);
+    assert.match(ficheMsem("192154").description ?? "", /Placards à Skis n°C3/);
+    assert.equal(ficheMsem("192154").equipements?.casierSkis, "oui");
+    for (const publies of [false, true])
+      assert.equal(aEquipementDemande(ecran("192154", publies), "casier_skis"), true);
+  });
+
+  it("le dictionnaire entier : ce que les douze clés lisent ne se double pas, le reste arrive par la table ouverte", () => {
+    // Un hébergement qui listerait toutes les options du dictionnaire, lu
+    // par le moteur sur ses seules options.
+    const codes = DICTIONNAIRE_MSEM.flatMap((o) => (o.code != null ? [o.code] : []));
+    const l = annonce({
+      source: "Centrale",
+      amenities: equipements(equipementsMsem({ options: codes }, DICTIONNAIRE_MSEM, null)),
+      equipementsPublies: optionsMsem(codes),
+    });
+    assert.deepEqual(ids(l), [
+      "balcon",
+      "cheminee",
+      "wifi",
+      "lave_vaisselle",
+      "lave_linge",
+      "linge_fourni",
+      "parking",
+      "casier_skis",
+      "sauna_spa",
+      "piscine",
+      "animaux",
+      "autre:enfant / bebe",
+      "autre:pied des pistes",
+      "autre:borne de recharge pour voiture electrique",
+      "autre:garderie",
+      "autre:local a velo",
+      "autre:jardin privatif",
+      "autre:menage fin de sejour",
+      "autre:accessible en fauteuil roulant",
+    ]);
+    // Le premier libellé de la source reste : « Espace SPA » avant « Hammam »
+    // et « Sauna », « Draps inclus » avant « Linge inclus ».
+    const libelle = (id: string) => equipementsDe(l)!.find((e) => e.id === id)?.libelle;
+    assert.deepEqual(
+      [libelle("sauna_spa"), libelle("linge_fourni"), libelle("casier_skis"), libelle("parking")],
+      ["Espace SPA", "Draps inclus", "Local à ski", "Garage / Parking"],
+    );
+    assert.equal(aEquipementDemande(l, "sauna"), true);
+    assert.deepEqual(equipementsTus(l), ["ascenseur"]);
+    // Publiées, les six langues parlées seraient autant de lignes « autre: » :
+    // l'écran ne les trie pas, le moteur ne doit pas les publier.
+    const avecLangues = annonce({
+      ...l,
+      equipementsPublies: DICTIONNAIRE_MSEM.flatMap((o) => (o.label ? [{ libelle: o.label }] : [])),
+    });
+    assert.ok(ids(avecLangues).includes("autre:allemand"));
+  });
+
+  it("aucune télévision au dictionnaire : la « TV » des descriptions ne fait pas un libellé publié", () => {
+    assert.equal(
+      DICTIONNAIRE_MSEM.some((o) => idEquipement(o.label ?? "") === "television"),
+      false,
+    );
+    for (const id of ["192154", "192180", "224074"]) {
+      assert.match(ficheMsem(id).description ?? "", /\/\s*TV\b/, id);
+      assert.equal(aEquipement(ecran(id, true), "television"), false, id);
+    }
   });
 });

@@ -80,6 +80,21 @@ export function contenuAPoser(l: Listing): boolean {
 }
 
 /**
+ * Booking : la fiche se lit en tâche de fond, page à page, après la suite de
+ * pages (`fichesBooking.server.ts`), et se garde trente jours ; la relecture
+ * la pose sans réseau (`reposerGardees`). Un hôtel ou une chambre n'en reçoit
+ * jamais (`ficheDepuisPageBooking`), ni une annonce sans page établissement :
+ * rien à attendre pour eux. Une fiche `indisponible` (défi 202) n'est pas lue.
+ */
+export function ficheBookingAPoser(l: Listing): boolean {
+  if (l.source !== "Booking" || !l.url || !/^https?:\/\/([a-z0-9-]+\.)*booking\.com\/hotel\/[a-z]{2}\//i.test(l.url)) {
+    return false;
+  }
+  if (l.lodgingType === "hotel" || l.lodgingType === "chambre") return false;
+  return l.fiche == null || l.fiche.indisponible === true;
+}
+
+/**
  * Ce que relisait la boucle d'avant : des trous de fiche (`aCombler`), ou une
  * annonce Airbnb dont la fiche enrichie n'est pas encore posée. Elle
  * s'arrêtait dès qu'il n'en restait plus. La boucle de la réponse Airbnb ne
@@ -93,11 +108,11 @@ export function aRelireEnFile(l: Listing): boolean {
 
 /**
  * À relire : ce que relisait la boucle d'avant (`aRelireEnFile`), ou un
- * contenu que la tâche de fond lit encore (`contenuAPoser`). La mémoire se
- * pose sans réseau.
+ * contenu ou une fiche Booking que la tâche de fond lit encore
+ * (`contenuAPoser`, `ficheBookingAPoser`). La mémoire se pose sans réseau.
  */
 export function aRelire(l: Listing): boolean {
-  return aRelireEnFile(l) || contenuAPoser(l);
+  return aRelireEnFile(l) || contenuAPoser(l) || ficheBookingAPoser(l);
 }
 
 /**
@@ -115,7 +130,7 @@ export function empreinte(rows: readonly Listing[]): string {
         l.bedrooms,
         l.rooms,
         l.pdpLue,
-        l.fiche != null,
+        l.fiche != null && l.fiche.indisponible !== true,
         l.amenities != null,
         Boolean(l.description),
       ].join(":"),

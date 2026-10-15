@@ -12,6 +12,8 @@ import {
   aRelireEnFile,
   boucleRelecture,
   contenuAPoser,
+  empreinte,
+  ficheBookingAPoser,
   RELECTURE_MAX_MS,
   RELECTURE_MS,
   RELECTURE_SANS_PROGRES_MS,
@@ -343,5 +345,48 @@ describe("la boucle de relecture", () => {
     e.boucle.relancer();
     await e.avancer(RELECTURES_PLAFOND_MS);
     assert.equal(e.appels.length, 1);
+  });
+
+  it("Booking : l'annonce sans fiche se relit en pose seule, jusqu'à ce que la mémoire pose la fiche lue en tâche de fond", async () => {
+    const booking = (extra: Partial<Listing> = {}) =>
+      annonce({
+        id: "bk-1",
+        source: "Booking",
+        url: "https://www.booking.com/hotel/fr/les-tilleuls.fr.html?checkin=2027-02-06",
+        lat: 45.01,
+        lon: 6.12,
+        lodgingType: "appartement",
+        ...extra,
+      });
+    const hotel = annonce({
+      id: "bk-2",
+      source: "Booking",
+      url: "https://www.booking.com/hotel/fr/grand-hotel.fr.html",
+      lodgingType: "hotel",
+    });
+    const lue = { ...FICHE, sourceFiche: "booking" as const };
+    const defi = { ...lue, indisponible: true };
+    // Le serveur n'ouvre jamais booking.com : seule la lecture de fond la donne.
+    assert.deepEqual([aCombler(booking()), contenuAPoser(booking())], [false, false]);
+    assert.deepEqual(
+      [booking(), booking({ fiche: defi }), booking({ fiche: lue }), hotel].map(ficheBookingAPoser),
+      [true, true, false, false],
+    );
+    // Une fiche lue qui remplace le défi est un progrès.
+    assert.notEqual(empreinte([booking({ fiche: defi })]), empreinte([booking({ fiche: lue })]));
+    let gardee = false;
+    const e = ecran([booking(), hotel], (rows) => (gardee ? rows.map((l) => ({ ...l, fiche: lue })) : rows));
+    e.boucle.relancer();
+    await e.avancer(RELECTURE_MS);
+    assert.deepEqual(
+      e.appels.map((a) => [a.ids, a.poseSeule]),
+      [[["bk-1"], true]],
+    );
+    gardee = true;
+    await e.avancer(RELECTURE_MS * 2);
+    assert.equal(e.appels.length, 2);
+    assert.equal(e.etat.rows[0].fiche, lue);
+    await e.avancer(RELECTURES_PLAFOND_MS);
+    assert.equal(e.appels.length, 2, "la fiche posée, plus rien à relire");
   });
 });

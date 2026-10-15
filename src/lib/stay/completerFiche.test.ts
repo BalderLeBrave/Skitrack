@@ -836,12 +836,14 @@ describe("la description et les équipements d'une fiche déjà ouverte", () => 
     assert.equal(departs.filter((d) => d.url.includes("cimalpes.com")).length, 1);
     assert.match(row.description ?? "", /^Niché dans un environnement exceptionnel/);
     assert.equal(row.amenities?.find((e) => e.cle === "casierSkis")?.valeur, "oui");
-    const relue: Listing = { ...row, description: undefined, amenities: undefined };
+    assert.equal(row.equipementsPublies?.find((e) => e.libelle === "TV")?.groupe, "Multimédia");
+    const relue: Listing = { ...row, description: undefined, amenities: undefined, equipementsPublies: undefined };
     const n = departs.length;
     await silence(() => fillFiches([relue], 0, { relecture: true }));
     assert.equal(departs.length, n, "aucune requête de plus");
     assert.match(relue.description ?? "", /^Niché dans un environnement exceptionnel/);
     assert.equal(relue.amenities?.find((e) => e.cle === "wifi")?.valeur, "oui");
+    assert.deepEqual(relue.equipementsPublies, row.equipementsPublies);
   });
 });
 
@@ -995,6 +997,66 @@ describe("Abritel : les équipements populaires, lus en tâche de fond, jusqu'à
         ["wifi", "autre:cuisine", "barbecue", "autre:mobilier d'exterieur", "autre:refrigerateur"],
         l.id,
       );
+      assert.equal(aRelire(l), false, `${l.id} n'est plus à relire`);
+    }
+  });
+});
+
+describe("Cimalpes : les équipements de la fiche, lus en tâche de fond, jusqu'à l'écran", () => {
+  it("les cartes réelles de Val Thorens : chaque libellé de la fiche réelle, gardé, puis posé par la relecture sans réseau", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { aRelire } = await import("./relecture.ts");
+    const { aEquipement, equipementsDe } = await import("./ficheEnrichie.ts");
+    const { cimalpesListings, lireRecherche } = await import("../scrape/agences/cimalpes.ts");
+    const fiche = readFileSync(new URL("./fixtures/cimalpes-fiche-chalet-delta-36.html", import.meta.url), "utf8");
+    const recherche = readFileSync(
+      new URL("../scrape/agences/fixtures/cimalpes-recherche-val-thorens.json", import.meta.url),
+      "utf8",
+    );
+    mock.timers.tick(10 * 60_000);
+    repondre = (url) => (url.includes("cimalpes.com") ? { html: `<html><body>${fiche}</body></html>` } : { html: page() });
+    const rows = cimalpesListings(lireRecherche(recherche).cartes, {
+      stationId: "val-thorens",
+      stationName: "Val Thorens",
+      lat: 45.297,
+      lon: 6.58,
+      checkIn: "2027-02-06",
+      checkOut: "2027-02-13",
+      guests: 2,
+      bedrooms: 0,
+    });
+    // La carte publie capacité et chambres, pas de point : la fiche s'ouvre
+    // pour lui (`priseFiche.ts`), et l'écran la relit pour son contenu.
+    assert.deepEqual(
+      rows.map((r) => [r.id, r.capacity != null, r.bedrooms != null, r.lat, r.amenities, r.equipementsPublies]),
+      ["cim-2096", "cim-3795", "cim-2813"].map((id) => [id, true, true, null, undefined, undefined]),
+    );
+    assert.deepEqual(rows.map(aRelire), [true, true, true]);
+    const fichesVt = () => departs.filter((d) => d.url.includes("/location-val-thorens/")).length;
+    // Une recherche au budget trop court pour les trois fiches d'un même hôte.
+    await silence(() => jouer(fillFiches(rows, 1_500)));
+    const premierPlan = rows.filter((r) => r.equipementsPublies?.length).length;
+    assert.ok(premierPlan < 3, `${premierPlan} lues pendant la recherche`);
+    await attendreSuiteAutres();
+    assert.equal(fichesVt(), 3, "chaque fiche demandée une fois");
+    // L'écran relit ce qui lui manque, en pose seule : aucune requête.
+    const ecran = rows.filter(aRelire).map((r) => ({ ...r }));
+    assert.equal(ecran.length, 3 - premierPlan);
+    const n = departs.length;
+    await silence(() => fillFiches(ecran, 0, { relecture: true, poseSeule: true }));
+    assert.equal(departs.length, n, "la relecture ne fait aucune requête");
+    // L'aller-retour serveur → écran (`completerAnnonces`) : du JSON.
+    const recues = JSON.parse(JSON.stringify(ecran)) as Listing[];
+    for (const l of [...rows.filter((r) => r.equipementsPublies?.length), ...recues]) {
+      assert.equal(l.equipementsPublies?.length, 24, l.id);
+      assert.deepEqual(
+        equipementsDe(l)
+          ?.slice(0, 8)
+          .map((e) => e.id),
+        ["balcon", "wifi", "lave_vaisselle", "linge_fourni", "casier_skis", "autre:lit bebe", "television", "autre:appareil a fondue"],
+        l.id,
+      );
+      assert.equal(aEquipement(l, "television"), true, l.id);
       assert.equal(aRelire(l), false, `${l.id} n'est plus à relire`);
     }
   });

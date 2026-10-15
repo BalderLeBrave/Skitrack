@@ -80,6 +80,20 @@ export function contenuAPoser(l: Listing): boolean {
 }
 
 /**
+ * Arkiane (Pralognan) : le détail d'un lot ne s'ouvre que par le formulaire
+ * de sa carte, et l'annonce mène à l'accueil de la centrale, que le serveur
+ * n'ouvre jamais (`raisonDeLaisser` : « URL commune »). Le relevé lit ces
+ * détails lui-même, un à la fois ; ce qui ne tient pas dans la recherche se
+ * lit après, en tâche de fond, et sa description, ses douze clés et ses
+ * pictos se gardent trente jours (`garderLectures`, clé `cleListing` :
+ * `Centrale:ark-…`). La relecture les pose sans réseau (`reposerGardees`).
+ * Une annonce qui porte l'un ou l'autre n'attend plus rien.
+ */
+export function contenuArkianeAPoser(l: Listing): boolean {
+  return l.source === "Centrale" && l.id.startsWith("ark-") && l.amenities == null && !l.description;
+}
+
+/**
  * Booking : la fiche se lit en tâche de fond, page à page, après la suite de
  * pages (`fichesBooking.server.ts`), et se garde trente jours ; la relecture
  * la pose sans réseau (`reposerGardees`). Un hôtel ou une chambre n'en reçoit
@@ -109,10 +123,11 @@ export function aRelireEnFile(l: Listing): boolean {
 /**
  * À relire : ce que relisait la boucle d'avant (`aRelireEnFile`), ou un
  * contenu ou une fiche Booking que la tâche de fond lit encore
- * (`contenuAPoser`, `ficheBookingAPoser`). La mémoire se pose sans réseau.
+ * (`contenuAPoser`, `contenuArkianeAPoser`, `ficheBookingAPoser`). La
+ * mémoire se pose sans réseau.
  */
 export function aRelire(l: Listing): boolean {
-  return aRelireEnFile(l) || contenuAPoser(l) || ficheBookingAPoser(l);
+  return aRelireEnFile(l) || contenuAPoser(l) || contenuArkianeAPoser(l) || ficheBookingAPoser(l);
 }
 
 /**

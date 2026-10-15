@@ -14,8 +14,8 @@
  *   pas dans la page. La fiche ne s'ouvre que pour une annonce trouée.
  *
  * Un lecteur peut aussi rendre les libellés de sa liste tels quels
- * (`equipementsPublies` : Abritel) ; les douze clés n'en gardent que ce
- * qu'elles nomment.
+ * (`equipementsPublies` : Cimalpes, Abritel) ; les douze clés n'en gardent
+ * que ce qu'elles nomment.
  *
  * Les autres hôtes ne rendent rien ici. Module pur, chargé tel quel par
  * `node --experimental-strip-types`.
@@ -53,12 +53,50 @@ function texte(html: string): string {
   return decoderEntites(html.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 }
 
-/** Un panneau de la fiche Cimalpes (`pop-equipements`, `pop-services-inclus`), jusqu'au panneau suivant. */
+/**
+ * Un panneau de la fiche Cimalpes (`pop-equipements`, `pop-services-inclus`),
+ * jusqu'au panneau ou à la fenêtre (`modal`) qui le suit. Sans la fenêtre,
+ * le panneau des équipements de chalet-delta-36 courait jusqu'aux
+ * « Distances » (« Distance du centre : 700 m »), qui ne sont pas des
+ * équipements.
+ */
 function panneau(html: string, id: string): string {
   const i = html.indexOf(`id="${id}"`);
   if (i < 0) return "";
   const reste = html.slice(i + 4);
-  const j = reste.search(/id="(?:pop|Modal)-/);
+  const j = reste.search(/id="(?:pop|Modal)-|<div class="modal\b/);
+  return j < 0 ? reste : reste.slice(0, j);
+}
+
+/**
+ * Les éléments d'un panneau : un `<p>` nu par équipement ou service, sous le
+ * titre de sa rubrique (`<h3>` : « Généraux », « Multimédia », « Ménage &
+ * Linge »). Les titres du panneau (`<p class="…">`) n'en sont pas.
+ */
+function elementsCimalpes(p: string): { libelle: string; groupe: string | null }[] {
+  const out: { libelle: string; groupe: string | null }[] = [];
+  let groupe: string | null = null;
+  for (const m of p.matchAll(/<h3\b[^>]*>([\s\S]*?)<\/h3>|<p>([^<]+)<\/p>/g)) {
+    if (m[1] != null) {
+      groupe = texte(m[1]) || null;
+      continue;
+    }
+    const libelle = texte(m[2]);
+    if (libelle) out.push({ libelle, groupe });
+  }
+  return out;
+}
+
+/**
+ * La rubrique « Services Inclus » du panneau des services, jusqu'au titre
+ * suivant. « Essential (A la carte) » et « Personnels » la précèdent : à la
+ * carte, rien n'y est inclus. Sans ce titre, rien.
+ */
+function servicesInclusCimalpes(p: string): string {
+  const m = /<p class="[^"]*">\s*Services Inclus\s*<\/p>/i.exec(p);
+  if (!m) return "";
+  const reste = p.slice(m.index + m[0].length);
+  const j = reste.search(/<p class="/);
   return j < 0 ? reste : reste.slice(0, j);
 }
 
@@ -70,18 +108,40 @@ function descriptifCimalpes(html: string): string | null {
 
 export function contenuCimalpes(html: string): ContenuDeFiche | null {
   const description = descriptifCimalpes(html);
-  // Les éléments des listes : un `<p>` nu par équipement ou service. Les
-  // rubriques (« Distances », « Agencement ») ne sont pas dans ces panneaux.
-  const items = [panneau(html, "pop-equipements"), panneau(html, "pop-services-inclus")].flatMap((p) =>
-    [...p.matchAll(/<p>([^<]+)<\/p>/g)].map((m) => texte(m[1])),
-  );
-  const forts = [...html.matchAll(/<span class="bg-paille">([^<]+)<\/span>/g)].map((m) => texte(m[1]));
-  const liste = [...items, ...forts].filter(Boolean);
+  const equipementsPanneau = elementsCimalpes(panneau(html, "pop-equipements"));
+  const services = panneau(html, "pop-services-inclus");
+  const forts = [...html.matchAll(/<span class="bg-paille">([^<]+)<\/span>/g)]
+    .map((m) => texte(m[1]))
+    .filter(Boolean);
+  // Les douze clés : tout le panneau des services, comme avant ; les
+  // libellés publiés, ses seuls services inclus.
+  const liste = [
+    ...equipementsPanneau.map((e) => e.libelle),
+    ...elementsCimalpes(services).map((e) => e.libelle),
+    ...forts,
+  ];
   if (!description && liste.length === 0) return null;
+  // Les libellés tels quels, chacun une fois, le premier gardé : les
+  // équipements par rubrique, les services inclus, les points forts
+  // (« Terrasse », que le panneau ne liste pas). Rien n'y dit une absence :
+  // le libellé seul en décide. Jamais la description.
+  const vus = new Set<string>();
+  const equipementsPublies: EquipementPublie[] = [];
+  for (const { libelle, groupe } of [
+    ...equipementsPanneau,
+    ...elementsCimalpes(servicesInclusCimalpes(services)),
+    ...forts.map((libelle) => ({ libelle, groupe: null })),
+  ]) {
+    const cle = plierEquipement(libelle);
+    if (vus.has(cle)) continue;
+    vus.add(cle);
+    equipementsPublies.push({ libelle, ...(groupe ? { groupe } : {}) });
+  }
   return {
     description,
     photos: null,
     amenities: equipements(fusionner(depuisListe(liste.map((t) => ({ texte: t }))), depuisTexte(description))),
+    ...(equipementsPublies.length ? { equipementsPublies } : {}),
   };
 }
 

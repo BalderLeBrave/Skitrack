@@ -6,6 +6,9 @@
  * la fiche s'appelle « Chalet les Copains ». Un 404 n'est pas un Cloudflare.
  */
 
+import type { Listing } from "../listings.ts";
+import { depuisTexte, equipements } from "./equipements.ts";
+import { ficheDepuisBrut } from "./ficheEnrichie.ts";
 import { lectureFiche } from "./lectureFiche.ts";
 import { titreEstFichier } from "./titre.ts";
 
@@ -114,4 +117,33 @@ export function alignerIdentiteGites<
 export function marquerFicheIntrouvable<T extends { proven: string }>(l: T): T {
   if (new RegExp(FICHE_INTROUVABLE, "i").test(l.proven)) return l;
   return { ...l, proven: `${l.proven} · ${FICHE_INTROUVABLE}` };
+}
+
+/**
+ * La fiche ITEA d'un gîte lue hors du collecteur (la page du devis,
+ * `completerDevis.server.ts`), posée comme le collecteur la pose
+ * (`listingDeFiche`) : la description du JSON-LD, les équipements qu'elle
+ * nomme (les douze clés), et la fiche enrichie, avec sa description et son
+ * nombre d'avis. Le widget ne publie aucune liste d'équipements : la fiche
+ * n'en porte pas, et décide seule (`equipementsDe`). `lue` vient de la page
+ * déjà en main : rien ne se télécharge ici.
+ *
+ * Ne remplace rien : une annonce qui a déjà sa fiche lue ne change pas, une
+ * description ou des équipements déjà posés restent. Rend `true` si la fiche
+ * a été posée.
+ */
+export function poserFicheGites(
+  row: Pick<Listing, "source" | "url" | "description" | "amenities" | "fiche">,
+  lue: { description?: string | null; avis?: unknown },
+): boolean {
+  if (row.source !== "Gîtes de France" || (row.fiche && !row.fiche.indisponible)) return false;
+  // L'adresse de la fiche, sans le séjour cherché : celle que pose le collecteur.
+  const url = row.url ? row.url.split("?")[0] : null;
+  const fiche = ficheDepuisBrut({ description: lue.description, avis: lue.avis }, "gites", { url });
+  if (!fiche) return false;
+  row.fiche = fiche;
+  const description = lue.description?.trim() ? lue.description : null;
+  if (description && !row.description?.trim()) row.description = description;
+  if (description && row.amenities == null) row.amenities = equipements(depuisTexte(description));
+  return true;
 }

@@ -9,11 +9,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Listing } from "../listings.ts";
 import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
+import { ficheOrchestra, refOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
 import { garderLectures, reposerGardees } from "./contenuFiches.server.ts";
 import { equipements, type EquipementPublie } from "./equipements.ts";
 import { aEquipement, equipementsDe } from "./ficheEnrichie.ts";
 import { cleListing } from "./poserReleve.ts";
 import { raisonDeLaisser } from "./priseFiche.ts";
+import { decoderEntites } from "./texteHtml.ts";
 import {
   aCombler,
   aRelire,
@@ -21,6 +23,7 @@ import {
   boucleRelecture,
   contenuAPoser,
   contenuArkianeAPoser,
+  contenuOrchestraAPoser,
   empreinte,
   ficheBookingAPoser,
   RELECTURE_MAX_MS,
@@ -442,11 +445,15 @@ describe("Arkiane : le contenu d'un lot que la tâche de fond garde", () => {
     );
     assert.equal(aRelire(lotArkiane({ amenities: equipements({ wifi: "oui" }) })), false);
     assert.equal(aRelire(lotArkiane({ description: "APPARTEMENT 2 PIECES" })), false);
-    // Orchestra (La Plagne) lit ses fiches à sa façon : rien ici pour elle.
-    assert.equal(
-      aRelire(annonce({ id: "orc-lpl-12", source: "Centrale", url: "https://www.laplagneresort.com/fr/location/x" })),
-      false,
-    );
+    // Orchestra (La Plagne) a sa propre règle (`contenuOrchestraAPoser`) :
+    // celle d'Arkiane ne la vise pas.
+    const orchestra = annonce({
+      id: "orc-lpl-12",
+      source: "Centrale",
+      url: "https://www.laplagneresort.com/fr/location/x",
+    });
+    assert.equal(contenuArkianeAPoser(orchestra), false);
+    assert.equal(contenuOrchestraAPoser(orchestra), true);
     assert.equal(aRelire(lotArkiane({ source: "Abritel", url: "https://www.abritel.fr/" })), false);
   });
 
@@ -489,6 +496,122 @@ describe("Arkiane : le contenu d'un lot que la tâche de fond garde", () => {
     assert.equal(aEquipement(pose, "television"), true);
     // Jamais capacité, chambres ni point : ceux-là viennent du détail lu par la recherche.
     assert.deepEqual([pose.capacity, pose.bedrooms, pose.rooms, pose.lat, pose.lon], [4, null, 2, null, null]);
+    await e.avancer(RELECTURES_PLAFOND_MS);
+    assert.equal(e.appels.length, 2, "le contenu posé, plus rien à relire");
+  });
+});
+
+/* ---------- Orchestra : la fiche d'un logement, gardée, se pose sans réseau ---------- */
+
+// Les mémoires du processus : le dossier temporaire posé plus haut (Arkiane),
+// jamais celles de l'application.
+
+/** Fiche réelle du 6 octobre 2026, La Plagne, logement 86645 « Le Chardonnet ». */
+const FICHE_ORCHESTRA = readFileSync(
+  new URL("../scrape/centrales/moteurs/fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url),
+  "utf8",
+);
+
+/** Les lignes « Caractéristiques » de la fiche, telles que la centrale les écrit. */
+function caracteristiquesOrchestra(page: string): EquipementPublie[] {
+  const bloc = /Caract(?:é|&eacute;)ristiques\s*<\/h3>\s*<div class="txt-content">([\s\S]*?)<\/div>/.exec(page)![1];
+  return bloc
+    .split(/<br\s*\/?>/)
+    .map((l) => decoderEntites(l.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim().replace(/^-\s*/, ""))
+    .filter(Boolean)
+    .map((libelle) => ({ libelle }));
+}
+
+/**
+ * Le logement tel que le relevé le rend quand sa fiche n'a pas été lue :
+ * la carte et le calendrier seuls (`enListing`), la référence de son chemin
+ * pour `platformId` (`refOrchestra`).
+ */
+function logementOrchestra(extra: Partial<Listing> = {}): Listing {
+  const chemin = "/location/2-pieces-residence-le-chardonnet-ref-ccdt052-86645";
+  return annonce({
+    id: "orc-lpl-86645",
+    stationId: "champagny-en-vanoise",
+    source: "Centrale",
+    title: "2 pièces - Résidence LE CHARDONNET - ref CCDT052",
+    url: `https://www.laplagneresort.com${chemin}`,
+    platformId: refOrchestra({ id: "86645", chemin }),
+    capacity: null,
+    bedrooms: null,
+    rooms: null,
+    ...extra,
+  });
+}
+
+describe("Orchestra : le contenu d'une fiche que la tâche de fond garde", () => {
+  it("sans description ni équipements : à relire, en pose seule ; plus rien une fois l'un ou l'autre posé", () => {
+    const sans = logementOrchestra();
+    // Le serveur n'ouvre jamais une fiche de La Plagne : seule la lecture du relevé la donne.
+    assert.equal(raisonDeLaisser(sans, sans.url!), "laplagneresort.com");
+    assert.deepEqual(
+      [aCombler(sans), aRelireEnFile(sans), contenuAPoser(sans), contenuOrchestraAPoser(sans), aRelire(sans)],
+      [false, false, false, true, true],
+    );
+    assert.equal(aRelire(logementOrchestra({ amenities: equipements({ wifi: "oui" }) })), false);
+    assert.equal(aRelire(logementOrchestra({ description: "Le Chardonnet - 2 pièces cabine 6 personnes" })), false);
+    // Une autre centrale, ou une autre source au même identifiant : rien ici pour elles.
+    assert.equal(contenuOrchestraAPoser(logementOrchestra({ id: "os-hmv-12" })), false);
+    assert.equal(contenuOrchestraAPoser(logementOrchestra({ source: "Abritel" })), false);
+  });
+
+  it("La Plagne, logement 86645 : relu sans rien poser, puis la fiche gardée se pose, Télévision comprise, sans capacité ni point", async () => {
+    const lue = ficheOrchestra(FICHE_ORCHESTRA);
+    // La clé sous laquelle la tâche de fond garde la fiche : `Centrale:` et la référence publiée.
+    assert.equal(cleListing(logementOrchestra()), "Centrale:ccdt052");
+    // Le serveur : `completerAnnonces` → `fillFiches` → `reposerGardees`, sans réseau.
+    const e = ecran([logementOrchestra()], (rows) => {
+      const copies = rows.map((l) => ({ ...l }));
+      reposerGardees(copies);
+      return copies;
+    });
+    // La part « centrales » répond : la relecture reprend.
+    e.boucle.relancer();
+    await e.avancer(RELECTURE_MS);
+    assert.deepEqual(
+      e.appels.map((a) => [a.ids, a.poseSeule]),
+      [[["orc-lpl-86645"], true]],
+    );
+    assert.equal(e.etat.rows[0].amenities, undefined, "rien de gardé encore");
+    // La tâche de fond lit la fiche et en garde ce qu'elle publie.
+    garderLectures([
+      {
+        cle: cleListing(logementOrchestra()),
+        contenu: {
+          description: lue.description ?? null,
+          amenities: equipements(lue.equipements),
+          equipementsPublies: caracteristiquesOrchestra(FICHE_ORCHESTRA),
+        },
+      },
+    ]);
+    await e.avancer(2 * RELECTURE_MS);
+    assert.equal(e.appels.length, 2);
+    const pose = e.etat.rows[0];
+    assert.equal(pose.description, lue.description);
+    assert.deepEqual(
+      equipementsDe(pose)!.map((x) => (x.present ? x.id : `${x.id}(non)`)),
+      [
+        "balcon",
+        "wifi",
+        "lave_vaisselle",
+        "linge_fourni",
+        "casier_skis",
+        "animaux(non)",
+        "ascenseur",
+        "autre:oriente sud",
+        "autre:oriente ouest",
+        "television",
+        "autre:proche des pistes",
+      ],
+    );
+    assert.equal(aEquipement(pose, "television"), true);
+    assert.equal(pose.equipementsPublies?.length, 9);
+    // Jamais capacité, chambres ni point : ceux-là viennent de la fiche lue par la recherche.
+    assert.deepEqual([pose.capacity, pose.bedrooms, pose.rooms, pose.lat, pose.lon], [null, null, null, null, null]);
     await e.avancer(RELECTURES_PLAFOND_MS);
     assert.equal(e.appels.length, 2, "le contenu posé, plus rien à relire");
   });

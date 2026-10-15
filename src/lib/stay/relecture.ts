@@ -109,6 +109,21 @@ export function ficheBookingAPoser(l: Listing): boolean {
 }
 
 /**
+ * Orchestra (La Plagne, Combloux, Praz-sur-Arly, Chamonix) : le relevé lit
+ * lui-même la fiche `/location/…` de chaque logement, une à une ; ce qui ne
+ * tient pas dans la recherche se lit après, en tâche de fond, et sa
+ * description, ses douze clés et ses « Caractéristiques » se gardent trente
+ * jours (`garderLectures`, clé `cleListing` : `Centrale:` et la référence du
+ * logement). Le lecteur de pages n'en tire aucun contenu (`aLecteurDeContenu`)
+ * et n'ouvre jamais celles de La Plagne (`raisonDeLaisser`) : la relecture
+ * pose ce contenu sans réseau (`reposerGardees`). Une annonce qui porte l'un
+ * ou l'autre n'attend plus rien.
+ */
+export function contenuOrchestraAPoser(l: Listing): boolean {
+  return l.source === "Centrale" && l.id.startsWith("orc-") && l.amenities == null && !l.description;
+}
+
+/**
  * Ce que relisait la boucle d'avant : des trous de fiche (`aCombler`), ou une
  * annonce Airbnb dont la fiche enrichie n'est pas encore posée. Elle
  * s'arrêtait dès qu'il n'en restait plus. La boucle de la réponse Airbnb ne
@@ -123,11 +138,17 @@ export function aRelireEnFile(l: Listing): boolean {
 /**
  * À relire : ce que relisait la boucle d'avant (`aRelireEnFile`), ou un
  * contenu ou une fiche Booking que la tâche de fond lit encore
- * (`contenuAPoser`, `contenuArkianeAPoser`, `ficheBookingAPoser`). La
- * mémoire se pose sans réseau.
+ * (`contenuAPoser`, `contenuArkianeAPoser`, `ficheBookingAPoser`,
+ * `contenuOrchestraAPoser`). La mémoire se pose sans réseau.
  */
 export function aRelire(l: Listing): boolean {
-  return aRelireEnFile(l) || contenuAPoser(l) || contenuArkianeAPoser(l) || ficheBookingAPoser(l);
+  return (
+    aRelireEnFile(l) ||
+    contenuAPoser(l) ||
+    contenuArkianeAPoser(l) ||
+    ficheBookingAPoser(l) ||
+    contenuOrchestraAPoser(l)
+  );
 }
 
 /**

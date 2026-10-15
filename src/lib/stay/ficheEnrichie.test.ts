@@ -6,6 +6,7 @@ import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
 import { ficheOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
 import {
   depuisAmenities,
+  depuisListe,
   equipements,
   EQUIPEMENTS_FICHE,
   idEquipement,
@@ -652,6 +653,37 @@ describe("équipements publiés sans fiche : réunis aux douze clés, par clé",
     assert.equal(equipementsDe({ ...l, fiche: fiche({ description: "Chalet." }) }), null);
     // Une fiche indisponible ne dit rien : la liste publiée revient.
     assert.deepEqual(ids({ ...l, fiche: fiche({ indisponible: true }) }), ["casier_skis", "television"]);
+  });
+
+  it("Airbnb : des titres de tuile gardés aussi tels quels ajoutent TV, sèche-cheveux, ski aux pieds", () => {
+    // Les titres que `equipements_tuile` (scrape/airbnb/map.py) garderait de
+    // ces groupes : ni « Non inclus », ni `available: false`. Seule capture du
+    // dépôt qui en porte : la réponse PDP ; aucune tuile StaysSearch figée.
+    const pdp = JSON.parse(
+      readFileSync(new URL("../../../scrape/airbnb/fixtures/pdp_fiche_enrichie.json", import.meta.url), "utf8"),
+    );
+    const groupes = pdp.data.presentation.stayProductDetailPage.sections.sections[1].section.seeAllAmenitiesGroups as {
+      title: string;
+      amenities: { title: string; available?: boolean }[];
+    }[];
+    const titres = groupes
+      .filter((g) => !/^non inclus$/i.test(g.title))
+      .flatMap((g) => g.amenities.filter((a) => a.available !== false).map((a) => a.title));
+    assert.deepEqual(titres, ["Sèche-cheveux", "TV", "Wifi", "Parking gratuit sur place", "Ski-in/Ski-out"]);
+    // Les douze clés comme `amenitiesDeTitres` (airbnb.server.ts) les tire des titres.
+    const amenities = equipements(depuisListe(titres.map((texte) => ({ texte }))));
+    const avant = annonce({ amenities });
+    assert.deepEqual(ids(avant), ["wifi", "parking"]);
+    const l = annonce({ amenities, equipementsPublies: titres.map((libelle) => ({ libelle })) });
+    assert.deepEqual(ids(l), ["wifi", "parking", "seche_cheveux", "television", "ski_aux_pieds"]);
+    for (const id of ["television", "seche_cheveux", "ski_aux_pieds"]) {
+      assert.equal(aEquipement(avant, id), false, `${id} : avant, perdu`);
+      assert.equal(aEquipement(l, id), true, id);
+    }
+    assert.equal(equipementsDe(l)!.find((e) => e.id === "parking")?.libelle, "Parking gratuit sur place");
+    // Sa fiche PDP lue décide seule ensuite, « Non inclus » compris.
+    const lue = { ...l, fiche: fiche({ equipements: normaliserEquipements([{ libelle: "Lave-linge", present: false }]) }) };
+    assert.deepEqual(ids(lue), ["lave_linge(non)"]);
   });
 
   it("sans liste publiée, rien ne change ; une liste vide ou illisible ne dit rien", () => {

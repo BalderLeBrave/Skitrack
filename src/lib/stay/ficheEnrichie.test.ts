@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import type { Listing } from "../listings.ts";
 import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
+import { lireIresa, prestationsIresa } from "../scrape/centrales/moteurs/iresa.ts";
 import { ficheOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
 import {
   depuisAmenities,
@@ -692,5 +693,81 @@ describe("équipements publiés sans fiche : réunis aux douze clés, par clé",
       assert.deepEqual(equipementsDe(annonce({ amenities, equipementsPublies })), depuisAmenities(amenities));
     assert.equal(equipementsDe(annonce({ equipementsPublies: [] })), null);
     assert.equal(equipementsLus(annonce({ equipementsPublies: [] })), false);
+  });
+});
+
+/* ---------- iResa (Les Arcs) : du relevé réel à l'écran ---------- */
+
+const IRESA = readFileSync(new URL("iresa-lesarcs-3-prestations.html", CENTRALES), "utf8");
+
+/** Les cases `datas.filters` d'une prestation du relevé, par son hébergement. */
+function casesIresa(id: string): Record<string, unknown> {
+  const p = prestationsIresa(IRESA).find((x) => String(x.datas.id_prestation_hebergement) === id);
+  return (p?.datas.filters ?? {}) as Record<string, unknown>;
+}
+
+/**
+ * Les cases à « 1 » que les douze clés ne connaissent pas, en libellés, comme
+ * le moteur les publiera (`equipementsPublies`, à poser dans les scraps) : la
+ * Télévision seule. Une case nulle ou à « 0 » ne dit rien.
+ */
+function libellesIresa(id: string): EquipementPublie[] {
+  const tv = casesIresa(id).rub_tv_hbgt;
+  return tv === "1" || tv === 1 ? [{ libelle: "Télévision" }] : [];
+}
+
+describe("iResa (Les Arcs) : les cases et la description du relevé réel, jusqu'à l'écran", () => {
+  const fiches = lireIresa(IRESA, { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 4 });
+  const par = (n: string) => fiches.find((f) => f.titre.includes(n))!;
+  const ecran = (n: string, publies = false) =>
+    annonce({
+      source: "Centrale",
+      amenities: equipements(par(n).equipements),
+      ...(publies ? { equipementsPublies: libellesIresa(par(n).id) } : {}),
+    });
+  const ids = (l: Listing) => equipementsDe(l)!.map((e) => (e.present ? e.id : `${e.id}(non)`));
+
+  it("« Linge de lit et de toilette en supplément » : le linge est dit absent, le filtre ne le retient pas", () => {
+    // Le Ruitor n°317 et Les Belles Challes n°1120 passaient « Linge fourni ».
+    for (const n of ["n°317", "n° 1120"]) {
+      assert.match(par(n).description ?? "", /Linge de lit et de toilette en supplément/, n);
+      assert.equal(par(n).equipements?.linge, "non", n);
+      assert.equal(equipementsDe(ecran(n))!.find((e) => e.id === "linge_fourni")?.present, false, n);
+      assert.equal(aEquipementDemande(ecran(n), "linge_fourni"), false, n);
+    }
+    // Varet n°742 : « Le linge de lit est inclus sauf pour les courts séjours et en été ».
+    assert.equal(par("n° 742").equipements?.linge, "oui");
+    assert.equal(aEquipementDemande(ecran("n° 742"), "linge_fourni"), true);
+  });
+
+  it("la case Télévision à « 1 » arrive à l'écran ; les douze clés ne bougent pas", () => {
+    assert.deepEqual(ids(ecran("n° 742", true)), [
+      "balcon",
+      "wifi",
+      "lave_vaisselle",
+      "linge_fourni",
+      "animaux(non)",
+      "ascenseur",
+      "television",
+    ]);
+    for (const n of ["n° 742", "n° 1120"]) {
+      assert.equal(aEquipement(ecran(n), "television"), false, `${n} : avant, perdue`);
+      assert.equal(aEquipement(ecran(n, true), "television"), true, n);
+      assert.deepEqual(ids(ecran(n, true)).slice(0, -1), ids(ecran(n)), `${n} : rien d'autre ne change`);
+      assert.deepEqual(equipementsTus(ecran(n, true)), equipementsTus(ecran(n)), n);
+    }
+    // Le Ruitor : case nulle. Sa description nomme une « Télevision », mais
+    // une description ne fait pas un libellé publié.
+    assert.equal(casesIresa(par("n°317").id).rub_tv_hbgt, null);
+    assert.deepEqual(libellesIresa(par("n°317").id), []);
+    assert.equal(aEquipement(ecran("n°317", true), "television"), false);
+  });
+
+  it("aucune autre case en libellé : celle des fumeurs contredit la description", () => {
+    // n°1120 : `rub_fumeur_hbgt` à « 1 », et « Appartement non fumeur » dans
+    // sa description. Le sens de la case n'est pas établi ; elle ne se publie pas.
+    assert.equal(casesIresa(par("n° 1120").id).rub_fumeur_hbgt, "1");
+    assert.match(par("n° 1120").description ?? "", /Appartement non fumeur/);
+    assert.deepEqual(libellesIresa(par("n° 1120").id), [{ libelle: "Télévision" }]);
   });
 });

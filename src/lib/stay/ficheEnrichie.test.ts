@@ -1,20 +1,27 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import type { Listing } from "../listings.ts";
 import {
   depuisAmenities,
   equipements,
+  EQUIPEMENTS_FICHE,
   idEquipement,
   normaliserEquipements,
 } from "./equipements.ts";
 import {
   aEquipement,
+  aEquipementDemande,
+  animauxDe,
   avisDe,
   avisRelu,
   conditionsDe,
   descriptionDe,
   equipementsDe,
+  equipementsLus,
+  equipementsTus,
   EXTRAITS_MAX,
+  ficheDecideEquipements,
   noteAuMoins,
   noteSur5De,
   tronquer,
@@ -75,6 +82,46 @@ describe("équipements : une table, des clés stables", () => {
       ["Pets allowed", "animaux"],
     ];
     for (const [libelle, id] of cas) assert.equal(idEquipement(libelle), id, libelle);
+  });
+
+  it("libellés Booking, MSEM, GreenGo : animaux qualifiés, placards à skis, télé à écran plat, bien-être", () => {
+    const cas: [string, string][] = [
+      ["Animaux domestiques admis", "animaux"],
+      ["Animaux de compagnie admis", "animaux"],
+      ["Animaux de compagnie autorisés", "animaux"],
+      ["Chiens admis", "animaux"],
+      ["Placards à Skis", "casier_skis"],
+      ["Cave à skis", "casier_skis"],
+      ["Locaux à skis", "casier_skis"],
+      ["Local à vélos et skis", "casier_skis"],
+      ["Flat-screen TV", "television"],
+      ["Télévision à écran plat", "television"],
+      ["Spa", "spa"],
+      ["Spa privé", "spa"],
+      ["Hammam", "hammam"],
+      ["Steam room", "hammam"],
+      ["Nordic bath", "bain_nordique"],
+      ["Bain nordique", "bain_nordique"],
+      ["Spa bath", "jacuzzi"],
+    ];
+    for (const [libelle, id] of cas) assert.equal(idEquipement(libelle), id, libelle);
+    // Hors table : « chiens » sans verbe, une gamelle, un spa du voisinage.
+    assert.equal(idEquipement("Chiens non admis"), "autre:chiens");
+    assert.equal(idEquipement("Pet bowls"), "autre:pet bowls");
+    assert.equal(idEquipement("Gamelles pour animaux"), "autre:gamelles pour animaux");
+    assert.equal(idEquipement("Spa nearby"), "autre:spa nearby");
+    assert.deepEqual(
+      normaliserEquipements([
+        { libelle: "Pas d'animaux de compagnie" },
+        { libelle: "No spa" },
+        { libelle: "Hammam", present: true },
+      ]).map((e) => [e.id, e.present]),
+      [
+        ["animaux", false],
+        ["spa", false],
+        ["hammam", true],
+      ],
+    );
   });
 
   it("un libellé hors table garde son texte, sous « autre: », sans clé inventée", () => {
@@ -153,6 +200,22 @@ describe("équipements : une table, des clés stables", () => {
     );
     assert.equal(depuisAmenities(null), null);
   });
+
+  it("chaque clé de la table a son pictogramme dans la fiche, pas la coche générique", () => {
+    // `PictoFiche.tsx` (JSX, hors de portée de ce lanceur) : ses clés, lues dans le source.
+    const src = readFileSync(
+      new URL("../../components/v7/fiche/PictoFiche.tsx", import.meta.url),
+      "utf8",
+    );
+    const debut = src.indexOf("const EQUIPEMENT");
+    const bloc = src.slice(debut, src.indexOf("\n};", debut));
+    const traces = new Set([...bloc.matchAll(/^ {2}(\w+):/gm)].map((m) => m[1]));
+    assert.deepEqual(
+      Object.keys(EQUIPEMENTS_FICHE).filter((id) => !traces.has(id)),
+      [],
+    );
+    assert.ok(["spa", "hammam", "bain_nordique"].every((id) => traces.has(id)));
+  });
 });
 
 describe("filtres : jamais l'inconnu pour un oui", () => {
@@ -180,6 +243,72 @@ describe("filtres : jamais l'inconnu pour un oui", () => {
       retenues.map((l) => l.id),
       ["a"],
     );
+  });
+
+  it("« Sauna » couvre « Sauna ou spa » des collecteurs, sans toucher la clé seule (`aEquipement`)", () => {
+    // Une centrale (MSEM « Espace SPA », iResa rub_sauna_hbgt) : la clé fermée saunaSpa.
+    const centrale = annonce({
+      id: "centrale",
+      source: "Centrale",
+      amenities: equipements({ saunaSpa: "oui" }),
+    });
+    assert.equal(aEquipement(centrale, "sauna"), false);
+    assert.equal(aEquipementDemande(centrale, "sauna"), true);
+    assert.equal(aEquipementDemande(centrale, "sauna_spa"), true);
+    assert.equal(
+      aEquipementDemande(centrale, "spa"),
+      false,
+      "un « Spa » demandé reste la clé seule",
+    );
+    const listant = (libelle: string) =>
+      annonce({ id: libelle, fiche: fiche({ equipements: normaliserEquipements([{ libelle }]) }) });
+    // « Sauna ou spa » couvre tout ce que la clé fermée recouvre, nommé à part par une fiche.
+    for (const libelle of ["Sauna", "Spa", "Hammam", "Nordic bath", "Hot tub"])
+      assert.equal(aEquipementDemande(listant(libelle), "sauna_spa"), true, libelle);
+    assert.equal(aEquipementDemande(listant("Sauna"), "sauna"), true);
+    for (const libelle of ["Spa", "Hammam", "Hot tub"])
+      assert.equal(
+        aEquipementDemande(listant(libelle), "sauna"),
+        false,
+        `${libelle} n'est pas un sauna`,
+      );
+    assert.equal(aEquipementDemande(listant("Spa"), "spa"), true);
+    assert.equal(aEquipementDemande(listant("Wifi"), "wifi"), true, "les autres : la clé seule");
+    assert.equal(aEquipementDemande(annonce(), "sauna"), false, "rien de lu, rien ne passe");
+  });
+
+  it("« Animaux acceptés » : la liste d'abord, sinon le règlement lu ; « sur demande » ne passe pas", () => {
+    const avec = (
+      equipements: string[],
+      animaux: "oui" | "non" | "sur_demande" | null,
+      indisponible = false,
+    ) =>
+      annonce({
+        fiche: fiche({
+          equipements: normaliserEquipements(equipements.map((libelle) => ({ libelle }))),
+          conditions: animaux ? { animaux } : null,
+          ...(indisponible ? { indisponible } : {}),
+        }),
+      });
+    const regleOui = avec(["Wifi"], "oui");
+    assert.equal(animauxDe(regleOui), "oui");
+    assert.equal(aEquipement(regleOui, "animaux"), false, "la clé seule n'a pas changé");
+    assert.equal(aEquipementDemande(regleOui, "animaux"), true);
+    assert.equal(aEquipementDemande(avec(["Wifi"], "sur_demande"), "animaux"), false);
+    assert.equal(aEquipementDemande(avec(["Wifi"], "non"), "animaux"), false);
+    assert.equal(aEquipementDemande(avec(["Wifi"], null), "animaux"), false);
+    // La liste l'emporte sur le règlement, dans les deux sens.
+    assert.equal(animauxDe(avec(["Pets not allowed"], "oui")), "non");
+    assert.equal(aEquipementDemande(avec(["Pets not allowed"], "oui"), "animaux"), false);
+    assert.equal(aEquipementDemande(avec(["Animaux domestiques admis"], "non"), "animaux"), true);
+    // Une fiche indisponible ne dit rien, règlement compris.
+    assert.equal(aEquipementDemande(avec([], "oui", true), "animaux"), false);
+    // Sans fiche : les douze clés des collecteurs.
+    assert.equal(
+      aEquipementDemande(annonce({ amenities: equipements({ animaux: "oui" }) }), "animaux"),
+      true,
+    );
+    assert.equal(animauxDe(annonce()), null);
   });
 
   it("« note ≥ 4,5 » écarte les annonces sans note et garde un 9,0 / 10 ramené à 4,5", () => {
@@ -331,5 +460,37 @@ describe("description et conditions : le texte de la source, sinon rien", () => 
       equipementsDe(l)!.map((e) => e.id),
       ["wifi"],
     );
+  });
+});
+
+describe("équipements à l'écran : lus, tus, non lus", () => {
+  // Gîtes, Ski-Planet : une fiche lue sans liste, et des douze clés tirées de la description.
+  const amenities = equipements({ balcon: "oui", wifi: "oui" });
+
+  it("une fiche lue décide seule : ni les oui ni les « non indiqué » des collecteurs", () => {
+    const l = annonce({ amenities, fiche: fiche({ description: "Chalet." }) });
+    assert.equal(ficheDecideEquipements(l), true);
+    assert.equal(equipementsDe(l), null, "la règle reste : rien de déduit d'un texte");
+    assert.deepEqual(equipementsTus(l), []);
+    assert.equal(equipementsLus(l), true, "lue, sans liste publiée");
+  });
+
+  it("sans fiche, ou fiche indisponible : les clés que les collecteurs taisent", () => {
+    for (const l of [
+      annonce({ amenities }),
+      annonce({ amenities, fiche: fiche({ indisponible: true }) }),
+    ]) {
+      assert.equal(ficheDecideEquipements(l), false);
+      const tus = equipementsTus(l);
+      assert.equal(tus.length, 10);
+      assert.ok(tus.includes("parking") && !tus.includes("wifi"));
+      assert.equal(equipementsLus(l), true);
+    }
+  });
+
+  it("ni fiche ni douze clés : non lus, ce qui n'est pas « non publié »", () => {
+    assert.equal(equipementsLus(annonce()), false);
+    assert.equal(equipementsLus(annonce({ fiche: fiche({ indisponible: true }) })), false);
+    assert.deepEqual(equipementsTus(annonce()), []);
   });
 });

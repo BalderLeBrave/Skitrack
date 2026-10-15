@@ -56,6 +56,8 @@ import {
   conditionsDe,
   descriptionDe,
   equipementsDe,
+  equipementsLus,
+  equipementsTus,
   tronquer,
   type ConditionsSejour,
 } from "@/lib/stay/ficheEnrichie";
@@ -408,7 +410,8 @@ function nomEquipement(e: EquipementFiche): string {
 /**
  * Les équipements dans l'ordre de lecture : ceux qu'on met en avant, les
  * autres présents par groupe, les absents, puis ceux que l'annonce tait
- * (relevés « inconnu » sur les douze clés des collecteurs).
+ * (relevés « inconnu » sur les douze clés des collecteurs, seulement quand ce
+ * sont eux qui décident : une fiche lue ne dit rien de ce qu'un texte tait).
  */
 function lignesEquipements(l: Listing): LigneEquipement[] {
   const liste = equipementsDe(l) ?? [];
@@ -420,11 +423,11 @@ function lignesEquipements(l: Listing): LigneEquipement[] {
     .filter((e) => !enAvant.includes(e))
     .sort((a, b) => (a.groupe ?? "~").localeCompare(b.groupe ?? "~"));
   const vus = new Set(liste.map((e) => e.id));
-  const taits = (l.amenities ?? [])
-    .filter((e) => e.valeur === "inconnu" && !vus.has(ID_DE_CLE[e.cle]))
-    .map((e): LigneEquipement => {
-      const nom = tr(LIBELLE_EQUIPEMENT[e.cle]);
-      return { id: ID_DE_CLE[e.cle], nom, libelle: nom, etat: "inconnu" };
+  const taits = equipementsTus(l)
+    .filter((cle) => !vus.has(ID_DE_CLE[cle]))
+    .map((cle): LigneEquipement => {
+      const nom = tr(LIBELLE_EQUIPEMENT[cle]);
+      return { id: ID_DE_CLE[cle], nom, libelle: nom, etat: "inconnu" };
     });
   const ligne = (e: EquipementFiche): LigneEquipement => ({
     id: e.id,
@@ -446,7 +449,12 @@ const ETAT_LECTEUR: Record<EtatEquipement, string> = {
   inconnu: aTraduire("non indiqué"),
 };
 
-/** La description publiée, repliée quand elle est longue, puis les équipements en pictogrammes. */
+/**
+ * La description publiée, repliée quand elle est longue, puis les équipements
+ * en pictogrammes. Sans équipement à montrer, la raison : « Équipements non
+ * lus » quand ni fiche ni collecteur ne les a relevés ; « Non publié » quand
+ * une fiche lue n'en publie pas.
+ */
 export function BlocAnnonce({ l }: { l: Listing }) {
   const [entiere, setEntiere] = useState(false);
   const [tous, setTous] = useState(false);
@@ -454,10 +462,15 @@ export function BlocAnnonce({ l }: { l: Listing }) {
   const longue = texte.length > DESCRIPTION_COURTE;
   const lignes = useMemo(() => lignesEquipements(l), [l]);
   const vus = tous ? lignes : lignes.slice(0, EQUIPEMENTS_COURTS);
+  // Sans ligne, soit rien n'a été lu, soit la fiche lue décide sans liste :
+  // des douze clés relevées donnent toujours au moins leurs « non indiqué ».
+  const nonLus = !lignes.length && !equipementsLus(l);
   if (!texte && !lignes.length) {
     return (
       <section className="fl-carte fl-annonce">
-        <p className="fl-absent">{tr("Non publié par {source}", { source: l.source })}</p>
+        <p className="fl-absent">
+          {nonLus ? tr("Équipements non lus") : tr("Non publié par {source}", { source: l.source })}
+        </p>
       </section>
     );
   }
@@ -517,7 +530,13 @@ export function BlocAnnonce({ l }: { l: Listing }) {
             </button>
           ) : null}
         </>
-      ) : null}
+      ) : (
+        <p className="fl-absent">
+          {nonLus
+            ? tr("Équipements non lus")
+            : tr("Équipements non publiés par {source}", { source: l.source })}
+        </p>
+      )}
     </section>
   );
 }
@@ -642,10 +661,9 @@ export function BlocConditions({ l }: { l: Listing }) {
 /** Les champs vides de l'annonce, sur une ligne. */
 export function BlocNonIndique({ l }: { l: Listing }) {
   const champs = champsNonIndiques(l).map((c) => tr(CHAMP_LIBELLE[c]));
-  // Les équipements que l'annonce tait, quand ses équipements ont été relevés.
-  const taits = (l.amenities ?? [])
-    .filter((e) => e.valeur === "inconnu")
-    .map((e) => tr(LIBELLE_EQUIPEMENT[e.cle]));
+  // Les équipements que l'annonce tait, quand les collecteurs les ont relevés
+  // et qu'aucune fiche lue ne décide à leur place.
+  const taits = equipementsTus(l).map((cle) => tr(LIBELLE_EQUIPEMENT[cle]));
   const tout = [...champs, ...taits];
   if (!tout.length) return null;
   return (

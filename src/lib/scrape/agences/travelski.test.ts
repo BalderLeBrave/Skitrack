@@ -268,7 +268,8 @@ describe("Travelski : description, galerie et équipements de la fiche réelle",
 
   it("les équipements que nomment la description et les services de la résidence", () => {
     const oui = contenuTravelski(fiche, "910555")!.amenities!.filter((e) => e.valeur === "oui").map((e) => e.cle);
-    assert.deepEqual(oui.sort(), ["balcon", "casierSkis", "laveVaisselle", "linge", "saunaSpa", "wifi"]);
+    // « Animaux domestiques admis : Nous accueillons votre animal de compagnie… »
+    assert.deepEqual(oui.sort(), ["animaux", "balcon", "casierSkis", "laveVaisselle", "linge", "saunaSpa", "wifi"]);
   });
 
   it("rien pour un logement que la fiche ne porte pas", () => {

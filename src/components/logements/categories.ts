@@ -3,13 +3,15 @@
  * huit pictogrammes du bandeau collant, chacun posé sur un champ réel de
  * l'annonce. Ce que la source ne publie pas ne passe pas : une annonce sans
  * distance mesurée n'est pas « au pied des pistes », une annonce dont les
- * équipements n'ont pas été lus n'a pas de cheminée.
+ * équipements n'ont pas été lus n'a pas de cheminée. Un équipement s'y lit
+ * comme dans la fenêtre Filtres (`aEquipementDemande`) : « Sauna » et
+ * « Animaux acceptés » disent la même chose aux deux endroits.
  */
 
 import { ICONES } from "@/components/maquette";
 import { aTraduire } from "@/lib/i18n";
 import type { Listing } from "@/lib/listings";
-import { aEquipement } from "@/lib/stay/ficheEnrichie";
+import { aEquipementDemande } from "@/lib/stay/ficheEnrichie";
 import type { TypeLogement } from "@/lib/stay/logement";
 import { distRemonteePublieeM } from "@/lib/stay/situer";
 
@@ -41,7 +43,7 @@ export const CATEGORIES_LOGEMENTS: readonly {
     icone: ICONES.skis,
     fn: (l) => {
       const d = remonteeM(l);
-      return (d != null && d <= 50) || aEquipement(l, "ski_aux_pieds");
+      return (d != null && d <= 50) || aEquipementDemande(l, "ski_aux_pieds");
     },
   },
   { key: "chalet", label: aTraduire("Chalets"), icone: ICONES.chalet, fn: (l) => l.lodgingType === "chalet" },
@@ -57,14 +59,21 @@ export const CATEGORIES_LOGEMENTS: readonly {
     icone: ICONES.family,
     fn: (l) => l.capacity != null && l.capacity >= 12,
   },
-  { key: "cheminee", label: aTraduire("Cheminée"), icone: ICONES.flame, fn: (l) => aEquipement(l, "cheminee") },
+  { key: "cheminee", label: aTraduire("Cheminée"), icone: ICONES.flame, fn: (l) => aEquipementDemande(l, "cheminee") },
   {
     key: "sauna",
     label: aTraduire("Sauna"),
     icone: ICONES.sauna,
-    fn: (l) => aEquipement(l, "sauna") || aEquipement(l, "sauna_spa"),
+    // « Sauna » couvre aussi « Sauna ou spa » des collecteurs.
+    fn: (l) => aEquipementDemande(l, "sauna"),
   },
-  { key: "animaux", label: aTraduire("Animaux acceptés"), icone: ICONES.paw, fn: (l) => aEquipement(l, "animaux") },
+  {
+    key: "animaux",
+    label: aTraduire("Animaux acceptés"),
+    icone: ICONES.paw,
+    // La liste d'équipements, sinon le règlement lu de la fiche.
+    fn: (l) => aEquipementDemande(l, "animaux"),
+  },
 ];
 
 /** Les types de logement du filtre, dans l'ordre de la maquette, avec leur pictogramme. */
@@ -85,6 +94,9 @@ export const ICONE_EQUIPEMENT: Readonly<Record<string, string>> = {
   cheminee: ICONES.flame,
   sauna: ICONES.sauna,
   sauna_spa: ICONES.sauna,
+  spa: ICONES.sauna,
+  hammam: ICONES.sauna,
+  bain_nordique: ICONES.sauna,
   jacuzzi: ICONES.sauna,
   lave_vaisselle: ICONES.lv,
   casier_skis: ICONES.skiroom,
@@ -96,7 +108,8 @@ export const ICONE_EQUIPEMENT: Readonly<Record<string, string>> = {
 };
 
 /** Les neuf équipements de la fenêtre Filtres de la maquette (`EQ`), dans son
- *  ordre et sous ses libellés, sur les clés de `EQUIPEMENTS_FICHE`. */
+ *  ordre et sous ses libellés, sur les clés de `EQUIPEMENTS_FICHE`. Chaque
+ *  puce se lit par `aEquipementDemande`, comme la catégorie du même nom. */
 export const EQUIPEMENTS_MAQUETTE: readonly { id: string; label: string; icone: string }[] = [
   { id: "wifi", label: aTraduire("Wi-Fi"), icone: ICONES.wifi },
   { id: "parking", label: aTraduire("Parking"), icone: ICONES.parking },

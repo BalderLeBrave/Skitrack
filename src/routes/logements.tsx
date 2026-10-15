@@ -47,7 +47,7 @@ import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
 import { getListingElevations } from "@/lib/snow/api";
 import { completudeOf } from "@/lib/stay/completude";
 import { EQUIPEMENTS_FICHE } from "@/lib/stay/equipements";
-import { aEquipement, noteAuMoins, noteSur5De } from "@/lib/stay/ficheEnrichie";
+import { aEquipementDemande, noteAuMoins, noteSur5De } from "@/lib/stay/ficheEnrichie";
 import type { TypeLogement } from "@/lib/stay/logement";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
@@ -77,7 +77,7 @@ import {
   DEVIS_MS,
   TARIF_MS,
 } from "@/lib/searchStay";
-import { airbnbComplet, pointPublie, raisonDeLaisser } from "@/lib/stay/priseFiche";
+import { aCombler, aRelire, boucleRelecture } from "@/lib/stay/relecture";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
@@ -225,21 +225,6 @@ function palierDistLbl(m: number): string {
 
 /** Le temps qu'on laisse aux critères pour se poser avant de relancer la recherche. */
 const RELANCE_MS = 800;
-/**
- * Les pages de liste encore à lire arrivent par `lireSuiteAirbnb` (aucun appel
- * à Airbnb : le cache du serveur). La relecture des fiches, elle, pose ce que
- * la mémoire a déjà, y compris une annonce complète à qui il manque encore sa
- * fiche. Elle ne relance pas un catalogue arrêté sur un refus.
- */
-const RELECTURE_AIRBNB_MS = 15_000;
-/**
- * Une relecture qui ne rapporte rien double l'intervalle, jusqu'à deux
- * minutes ; une qui comble le ramène à 15 s. Vu le 13 octobre 2026 aux
- * 2 Alpes : 22 annonces que rien ne comblait relues toutes les 15 s, 180 fois.
- */
-const RELECTURE_AIRBNB_MAX_MS = 120_000;
-/** Au plus 45 min après la recherche. */
-const RELECTURES_AIRBNB_DUREE_MS = 45 * 60_000;
 /** L'annonce ouverte se relit plus souvent, sans réseau, deux minutes au plus. */
 const RELECTURE_OUVERTE_MS = 4_000;
 const RELECTURES_OUVERTE_MAX = 30;
@@ -255,28 +240,6 @@ const SUITES_GITES_MAX = 60;
 /** La suite HomeToGo lit un lot de détails toutes les ~2 s. Huit minutes de relecture. */
 const SUITE_HTG_MS = 8_000;
 const SUITES_HTG_MAX = 60;
-
-/**
- * Une annonce Airbnb à qui il manque GPS, capacité ou chambres, et que la
- * tâche de fond peut encore combler. Lue et à point (`pdpLue`), ce qui lui
- * manque, sa page ne le publie pas. Sans point, sa page se relit encore : elle
- * donne un point de repli que la mémoire des fiches ne garde pas. Un point
- * triangulé (`raw`, `placerSansPoint`) n'en est pas un : `pointPublie`.
- */
-function aCombler(l: Listing): boolean {
-  if (l.source === "Airbnb") return !airbnbComplet(l) && !(l.pdpLue === true && pointPublie(l));
-  // Hors Airbnb : une fiche que la tâche de fond lit encore, à qui il manque
-  // la capacité, ou les chambres sans pièces dont les tirer.
-  // Une fiche que le serveur n'ouvre pas (`raisonDeLaisser` : booking.com ne
-  // publie rien de ce qui manque) ne se comblera pas : rien à relire.
-  if (!l.url || (l.source !== "Gîtes de France" && raisonDeLaisser(l, l.url) != null)) return false;
-  return l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0));
-}
-
-/** Trous de fiche, ou annonce Airbnb dont la fiche enrichie n'est pas encore posée. */
-function aRelire(l: Listing): boolean {
-  return aCombler(l) || (l.source === "Airbnb" && l.fiche == null);
-}
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
@@ -332,12 +295,23 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       pending -= 1;
       if (!cancelled && pending <= 0) setSearching(false);
     };
-    // Relecture des annonces Airbnb incomplètes, pendant que leurs pages se
-    // lisent en tâche de fond. Les annonces partent telles que l'écran les
-    // tient ; elles reviennent comblées de ce que le cache des fiches sait.
-    let relecture: ReturnType<typeof setTimeout> | null = null;
-    const finRelectures = Date.now() + RELECTURES_AIRBNB_DUREE_MS;
-    let delaiRelecture = RELECTURE_AIRBNB_MS;
+    // Relecture des annonces incomplètes, toutes sources, pendant que leurs
+    // pages se lisent en tâche de fond (`relecture.ts`). Les annonces partent
+    // telles que l'écran les tient ; elles reviennent comblées de ce que le
+    // cache et les mémoires du serveur savent. Une boucle au plus, qui
+    // reprend quand des annonces arrivent.
+    const relecture = boucleRelecture({
+      annonces: () => useStay.getState().liveListings ?? [],
+      relire: async (listings, { poseSeule }) => {
+        const rows = await completerAnnonces({ data: { listings, ...(poseSeule ? { poseSeule } : {}) } });
+        if (!cancelled) patchLive(rows);
+      },
+      attendre: (f, ms) => {
+        const t = setTimeout(f, ms);
+        return () => clearTimeout(t);
+      },
+      maintenant: () => Date.now(),
+    });
     let suiteTimer: ReturnType<typeof setTimeout> | null = null;
     let toursSuite = 0;
     let bookingTimer: ReturnType<typeof setTimeout> | null = null;
@@ -346,41 +320,6 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     let toursGites = 0;
     let htgTimer: ReturnType<typeof setTimeout> | null = null;
     let toursHtg = 0;
-    // Trous, et annonces Airbnb sans fiche : la mémoire se pose sans réseau.
-    const aRelireMaintenant = (rows: readonly Listing[]) => rows.filter(aRelire);
-    // Ce qui reste à relire et ce qu'on en sait : inchangé d'une relecture à
-    // l'autre, elle n'a rien rapporté.
-    const empreinte = (rows: readonly Listing[]) =>
-      aRelireMaintenant(rows)
-        .map((l) => `${l.id}:${l.lat},${l.lon}:${l.capacity}:${l.bedrooms}:${l.rooms}:${l.pdpLue}:${l.fiche != null}`)
-        .join("|");
-    const planifierRelecture = (rows: readonly Listing[]) => {
-      if (cancelled || Date.now() >= finRelectures || aRelireMaintenant(rows).length === 0) return;
-      relecture = setTimeout(relireAirbnb, delaiRelecture);
-    };
-    const relireAirbnb = () => {
-      if (cancelled) return;
-      const avant = useStay.getState().liveListings ?? [];
-      const actuelles = aRelireMaintenant(avant);
-      if (actuelles.length === 0) return;
-      const empreinteAvant = empreinte(avant);
-      void completerAnnonces({ data: { listings: actuelles } })
-        .then((rows) => {
-          if (cancelled) return;
-          patchLive(rows);
-          const apres = useStay.getState().liveListings ?? rows;
-          delaiRelecture =
-            empreinte(apres) === empreinteAvant
-              ? Math.min(delaiRelecture * 2, RELECTURE_AIRBNB_MAX_MS)
-              : RELECTURE_AIRBNB_MS;
-          planifierRelecture(apres);
-        })
-        .catch(() => {
-          // Réseau ou pause Airbnb : on réessaie, plus tard.
-          delaiRelecture = Math.min(delaiRelecture * 2, RELECTURE_AIRBNB_MAX_MS);
-          planifierRelecture(actuelles);
-        });
-    };
     const relireSuite = () => {
       if (cancelled || !station) return;
       toursSuite += 1;
@@ -399,6 +338,8 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
         .then((rows) => {
           if (cancelled || rows.length === 0) return;
           ajouterLive(rows);
+          // Des annonces sans fiche : la relecture reprend si elle s'était arrêtée.
+          relecture.relancer();
         })
         .catch(() => undefined)
         .finally(() => {
@@ -423,6 +364,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
         .then((rows) => {
           if (cancelled || rows.length === 0) return;
           ajouterLive(rows);
+          relecture.relancer();
         })
         .catch(() => undefined)
         .finally(() => {
@@ -450,6 +392,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           // devis, et n'était donc pas rendue, s'ajoute.
           patchLive(rows);
           ajouterLive(rows);
+          relecture.relancer();
         })
         .catch(() => undefined)
         .finally(() => {
@@ -476,6 +419,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           // Déjà à l'écran : le détail remplace. Un squelette qui gagne un titre s'ajoute.
           patchLive(rows);
           ajouterLive(rows);
+          relecture.relancer();
         })
         .catch(() => undefined)
         .finally(() => {
@@ -517,7 +461,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           }
           if (res.listings.length > 0) {
             mergeLive(res.listings, res.sources);
-            if (part === "airbnb") planifierRelecture(res.listings);
+            // La réponse Airbnb lance la relecture, comme avant ; une autre part
+            // la reprend si elle ne tourne pas (Cimalpes : contenu à poser).
+            if (part === "airbnb") relecture.releveAirbnb(res.listings);
+            else relecture.relancer();
             return;
           }
           // Les agences n'ont pas de relevé figé : leurs rapports disent ce
@@ -623,7 +570,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     return () => {
       cancelled = true;
       clearTimeout(depart);
-      if (relecture) clearTimeout(relecture);
+      relecture.arreter();
       if (suiteTimer) clearTimeout(suiteTimer);
       if (bookingTimer) clearTimeout(bookingTimer);
       if (gitesTimer) clearTimeout(gitesTimer);
@@ -1116,8 +1063,10 @@ function LogementsStation({ s }: { s: Station }) {
       remove: () => patchLf({ holes: false }),
     });
 
-  // Un équipement demandé : listé comme présent par la source. Une annonce
-  // dont les équipements n'ont pas été lus ne passe pas (`aEquipement`).
+  // Un équipement demandé : listé comme présent par la source, sous la même
+  // règle que la catégorie du bandeau (« Sauna » couvre « Sauna ou spa », les
+  // animaux se lisent aussi au règlement). Une annonce dont les équipements
+  // n'ont pas été lus ne passe pas (`aEquipementDemande`).
   for (const id of lf.equip)
     lp.push({
       id: `equip:${id}`,
@@ -1125,7 +1074,7 @@ function LogementsStation({ s }: { s: Station }) {
         const m = EQUIPEMENTS_MAQUETTE.find((e) => e.id === id);
         return m ? tr(m.label) : EQUIPEMENTS_FICHE[id] ? tr(EQUIPEMENTS_FICHE[id].libelle) : id;
       })(),
-      fn: (l) => aEquipement(l, id),
+      fn: (l) => aEquipementDemande(l, id),
       remove: () => patchLf({ equip: lf.equip.filter((x) => x !== id) }),
     });
   // La note, sur 5 seulement ; sans note, une annonce ne passe pas.
@@ -1282,13 +1231,16 @@ function LogementsStation({ s }: { s: Station }) {
     const id = voisinDansListe(liste, [sheet.id, ...(sheetGroupe?.offres.map((o) => o.id) ?? [])], sens);
     return id ? () => openSheet(id) : null;
   };
-  // L'annonce Airbnb qu'on ouvre et à qui il manque capacité, chambres ou
-  // position : elle passe en tête de la lecture (`completerAnnonces`,
-  // `lireMaintenant`), puis l'écran la relit sans réseau toutes les
-  // `RELECTURE_OUVERTE_MS`, tant que la fiche est ouverte et qu'elle reste trouée.
+  // L'annonce qu'on ouvre et que la relecture n'a pas finie (`aRelire`).
+  // Trouée (capacité, chambres ou position : `aCombler`), une annonce Airbnb
+  // passe en tête de la lecture (`completerAnnonces`, `lireMaintenant`), puis
+  // l'écran la relit sans réseau toutes les `RELECTURE_OUVERTE_MS`, tant que
+  // la fiche est ouverte et qu'elle reste trouée. Sinon, sa fiche enrichie ou
+  // son contenu n'est pas encore posé : une relecture de la mémoire, en pose
+  // seule, sans rien remettre en file ; la relecture de la liste suit le reste.
   const patchLive = useStay((x) => x.patchLive);
   const lectureOuverte = useRef(new Set<string>());
-  const sheetIncomplete = sheet != null && sheet.url != null && aCombler(sheet);
+  const sheetIncomplete = sheet != null && sheet.url != null && aRelire(sheet);
   useEffect(() => {
     if (!sheet || !sheetIncomplete) return;
     const id = sheet.id;
@@ -1299,10 +1251,12 @@ function LogementsStation({ s }: { s: Station }) {
       if (fini) return;
       const brute = (useStay.getState().liveListings ?? []).find((l) => l.id === id);
       if (!brute) return;
-      const lire = !lectureOuverte.current.has(id);
-      lectureOuverte.current.add(id);
+      const trouee = aCombler(brute);
+      const lire = trouee && !lectureOuverte.current.has(id);
+      if (lire) lectureOuverte.current.add(id);
       essais += 1;
-      void completerAnnonces({ data: { listings: [brute], lireMaintenant: lire } })
+      const pose = trouee ? {} : { poseSeule: true };
+      void completerAnnonces({ data: { listings: [brute], lireMaintenant: lire, ...pose } })
         .then((rows) => {
           if (fini) return;
           patchLive(rows);
@@ -1477,12 +1431,12 @@ function LogementsStation({ s }: { s: Station }) {
     const bySrc = (src: string) => raw.filter((l) => l.source === src).length;
     const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
     // Les neuf équipements de la maquette, toujours ; puis ceux que des
-    // annonces de ce relevé listent comme présents.
+    // annonces de ce relevé listent comme présents, sous la règle du filtre.
     const maquette = new Set(EQUIPEMENTS_MAQUETTE.map((e) => e.id));
     const equipDispo = [
       ...EQUIPEMENTS_MAQUETTE.map((e) => ({ id: e.id, label: tr(e.label), icone: e.icone })),
       ...Object.keys(EQUIPEMENTS_FICHE)
-        .filter((id) => !maquette.has(id) && (lf.equip.includes(id) || raw.some((l) => aEquipement(l, id))))
+        .filter((id) => !maquette.has(id) && (lf.equip.includes(id) || raw.some((l) => aEquipementDemande(l, id))))
         .map((id) => ({ id, label: tr(EQUIPEMENTS_FICHE[id].libelle), icone: ICONE_EQUIPEMENT[id] ?? ICONES.check })),
     ];
     // Chalet, appartement et studio toujours, comme la maquette ; les autres

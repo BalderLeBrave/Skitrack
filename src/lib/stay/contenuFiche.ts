@@ -79,11 +79,26 @@ export function contenuAbritel(html: string): ContenuDeFiche | null {
   return { description: null, photos: null, amenities: equipements(depuisListe(items.map((t) => ({ texte: t })))) };
 }
 
+/** Les hôtes dont on sait lire le contenu de la fiche, et leur lecteur. */
+const LECTEURS: ReadonlyArray<{ hote: RegExp; lire: (html: string) => ContenuDeFiche | null }> = [
+  { hote: /(^|\.)cimalpes\.com$/, lire: contenuCimalpes },
+  { hote: /(^|\.)abritel\.fr$/, lire: contenuAbritel },
+];
+
+/**
+ * La fiche de cette URL a un lecteur de contenu : lue (par la recherche ou sa
+ * tâche de fond), elle donne description et équipements. L'écran relit ses
+ * annonces tant que ce contenu manque (`contenuAPoser`, `relecture.ts`), sans
+ * recopier la liste des hôtes.
+ */
+export function aLecteurDeContenu(url: string): boolean {
+  const h = hote(url);
+  return h != null && LECTEURS.some((l) => l.hote.test(h));
+}
+
 /** Le contenu d'une fiche lue, selon son hôte ; `null` pour un hôte qu'on ne sait pas lire. */
 export function contenuDeFiche(url: string, html: string): ContenuDeFiche | null {
   const h = hote(url);
   if (!h) return null;
-  if (/(^|\.)cimalpes\.com$/.test(h)) return contenuCimalpes(html);
-  if (/(^|\.)abritel\.fr$/.test(h)) return contenuAbritel(html);
-  return null;
+  return LECTEURS.find((l) => l.hote.test(h))?.lire(html) ?? null;
 }

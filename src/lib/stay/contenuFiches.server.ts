@@ -9,13 +9,26 @@
  * perdraient au relevé suivant, et les retrouver demanderait une requête de
  * plus par annonce. La mémoire des fiches, elle, ne garde que des nombres
  * datés : y loger du texte en changerait la forme pour tous les collecteurs.
+ *
+ * Les collecteurs passent par trois fonctions, en bas de ce module, plutôt
+ * que par les deux mémoires : `garderLectures` (noter, en une écriture, la
+ * fiche enrichie et le contenu des pages lues), `reposerGardees` (les poser,
+ * sans réseau, sur les annonces d'un relevé) et `dejaGardee` (ne pas relire
+ * une page gardée) ; `poserContenu` pose sur une annonce un contenu qu'ils
+ * viennent de lire. C'est le modèle Airbnb (`airbnbSuite.server.ts`) : les
+ * tuiles d'abord, les fiches ensuite, une à une en tâche de fond, gardées
+ * trente jours, et reposées sans réseau ; l'écran les reprend par sa
+ * relecture (`relecture.ts`).
  */
 
 import { mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import type { Listing } from "../listings.ts";
 import type { Equipement } from "./equipements.ts";
 import { CLES_EQUIPEMENT } from "./equipements.ts";
-import { cheminMemoire, DUREE_MEMOIRE_MS } from "./memoireFiches.server.ts";
+import { ficheRelue, type FicheEnrichie } from "./ficheEnrichie.ts";
+import { cheminMemoire, DUREE_MEMOIRE_MS, memoireFiches } from "./memoireFiches.server.ts";
+import { cleListing } from "./poserReleve.ts";
 
 export type ContenuFiche = {
   description: string | null;
@@ -137,4 +150,151 @@ const g = globalThis as typeof globalThis & { __skitrackContenuFiches__?: Conten
 /** La mémoire du processus. */
 export function contenuFiches(): ContenuFiches {
   return (g.__skitrackContenuFiches__ ??= new ContenuFiches());
+}
+
+/* ---------- Ce que les collecteurs en font : noter, reposer ---------- */
+
+/**
+ * Ce qu'un collecteur a lu sur la page d'une annonce, à garder trente jours.
+ * `cle` : celle de `cleListing` (`poserReleve.ts`). `fiche` : la fiche
+ * enrichie (`ficheEnrichie.ts`), d'une source connue (`SourceFiche`), dans la
+ * mémoire des fiches. `contenu` : description, galerie et équipements, ici.
+ */
+export type LectureAGarder = {
+  cle: string | null | undefined;
+  fiche?: FicheEnrichie | null;
+  contenu?: Partial<ContenuFiche> | null;
+};
+
+/**
+ * Garde ce que des pages viennent de publier : une écriture par fichier au
+ * plus, quel que soit le nombre d'annonces. À appeler une fois par lot de
+ * fiches lues, pas une fois par fiche. La lecture la plus récente remplace
+ * l'ancienne, entière ; une lecture vide n'efface rien, et une fiche
+ * indisponible (403, 429, page retirée) ou d'une source inconnue ne se garde
+ * pas (`ficheRelue`). Un disque refusé ne coupe pas le relevé. Rend le nombre
+ * d'annonces gardées.
+ */
+export function garderLectures(lectures: readonly LectureAGarder[], now: number = Date.now()): number {
+  const fiches: { cle: string; fiche: FicheEnrichie }[] = [];
+  const contenus: { cle: string; contenu: ContenuFiche }[] = [];
+  const gardees = new Set<string>();
+  for (const l of lectures) {
+    if (!l.cle) continue;
+    const fiche = ficheRelue(l.fiche);
+    if (fiche) {
+      fiches.push({ cle: l.cle, fiche });
+      gardees.add(l.cle);
+    }
+    const contenu = contenuLu(l.contenu);
+    if (contenu) {
+      contenus.push({ cle: l.cle, contenu });
+      gardees.add(l.cle);
+    }
+  }
+  try {
+    if (fiches.length) memoireFiches().noter(fiches, now);
+    if (contenus.length) contenuFiches().noter(contenus, now);
+  } catch (err) {
+    // Perdue, la lecture se refera à la recherche suivante.
+    console.warn("[fiches] lectures non gardées :", (err as Error).message);
+  }
+  return gardees.size;
+}
+
+/** Une fiche lue : présente, et pas `indisponible` (rien n'en a été lu). */
+function ficheLue(f: FicheEnrichie | null | undefined): boolean {
+  return f != null && f.indisponible !== true;
+}
+
+/** Ce que l'annonce dit de ses équipements : rien, si la liste est absente, vide ou toute « inconnu ». */
+function equipementsMuets(a: readonly Equipement[] | null | undefined): boolean {
+  return !a?.some((e) => e.valeur !== "inconnu");
+}
+
+/**
+ * Pose sur l'annonce le contenu d'une fiche, là où elle se tait : la
+ * description si elle n'en a pas ; les équipements si elle n'en a pas, ou si
+ * les siens ne disent rien (`equipementsMuets`) et ceux de la fiche, si ; la
+ * galerie si elle n'a que sa photo principale. Ne remplace rien de ce que le
+ * relevé a donné. Rend `true` si quelque chose a été posé.
+ */
+export function poserContenu(
+  row: Partial<Pick<Listing, "description" | "amenities" | "photo" | "photos">>,
+  c: Partial<ContenuFiche> | null | undefined,
+): boolean {
+  if (!c) return false;
+  let pose = false;
+  if (!row.description?.trim() && c.description) {
+    row.description = c.description;
+    pose = true;
+  }
+  const muets = equipementsMuets(row.amenities);
+  if (c.amenities?.length && (row.amenities == null || (muets && !equipementsMuets(c.amenities)))) {
+    row.amenities = c.amenities;
+    pose = true;
+  }
+  const galerie = [...new Set([...(row.photo ? [row.photo] : []), ...(row.photos ?? [])])];
+  if (galerie.length <= 1 && c.photos?.length) {
+    const photos = [...new Set([...galerie, ...c.photos])];
+    if (photos.length > galerie.length) {
+      row.photos = photos;
+      row.photo = row.photo ?? photos[0] ?? null;
+      pose = true;
+    }
+  }
+  return pose;
+}
+
+/**
+ * Pose sur des annonces ce qu'on a gardé d'elles, sans réseau : leur contenu
+ * (`poserContenu`) et, hors Airbnb, leur fiche enrichie quand elles n'en ont
+ * pas de lue. La fiche Airbnb passe par `poserMemoire`
+ * (`completerFiche.server.ts`), qui a ses règles pour l'écran Prix.
+ *
+ * Jamais capacité, chambres ni point. Hors Airbnb, une annonce trouée doit
+ * encore ouvrir sa page : elle pose aussi ce que la mémoire ne garde pas (la
+ * taxe de séjour d'une centrale, ajoutée au loyer), et une annonce comblée
+ * par la mémoire ne l'ouvrirait plus (`poserMemoire`). Ni la fiche ni le
+ * contenu ne comptent dans ce qui la fait ouvrir (`trouee`, `raisonDeLaisser`).
+ *
+ * Rend le nombre d'annonces touchées. Une mémoire illisible ne pose rien.
+ */
+export function reposerGardees(rows: readonly Listing[], now: number = Date.now()): number {
+  let n = 0;
+  try {
+    const memoire = memoireFiches();
+    const contenus = contenuFiches();
+    for (const row of rows) {
+      const cle = cleListing(row);
+      if (!cle) continue;
+      let pose = false;
+      if (row.source !== "Airbnb" && !ficheLue(row.fiche)) {
+        const fiche = memoire.lire(cle, now)?.fiche;
+        if (fiche) {
+          row.fiche = fiche;
+          pose = true;
+        }
+      }
+      if (poserContenu(row, contenus.lire(cle, now))) pose = true;
+      if (pose) n += 1;
+    }
+  } catch (err) {
+    console.warn("[fiches] mémoire illisible, rien de reposé :", (err as Error).message);
+  }
+  return n;
+}
+
+/**
+ * La page de cette annonce a été lue il y a moins de trente jours, et on en
+ * garde une fiche enrichie ou un contenu : la relire coûterait une requête
+ * pour rien. `cle` : celle de `cleListing`.
+ */
+export function dejaGardee(cle: string | null | undefined, now: number = Date.now()): boolean {
+  if (!cle) return false;
+  try {
+    return memoireFiches().lire(cle, now)?.fiche != null || contenuFiches().lire(cle, now) != null;
+  } catch {
+    return false;
+  }
 }

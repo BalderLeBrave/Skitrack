@@ -16,6 +16,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { Listing } from "../listings.ts";
+import { equipements } from "./equipements.ts";
 import type { LectureFiche } from "./lectureFiche.ts";
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -841,6 +842,114 @@ describe("la description et les équipements d'une fiche déjà ouverte", () => 
     assert.equal(departs.length, n, "aucune requête de plus");
     assert.match(relue.description ?? "", /^Niché dans un environnement exceptionnel/);
     assert.equal(relue.amenities?.find((e) => e.cle === "wifi")?.valeur, "oui");
+  });
+});
+
+/** Attend, en temps simulé, que la tâche de fond des fiches hors Airbnb ait fini. */
+async function attendreSuiteAutres(): Promise<void> {
+  const { etatSuiteAutres } = await import("./completerFiche.server.ts");
+  await silence(() =>
+    jouer(
+      (async () => {
+        do await new Promise((ok) => setTimeout(ok, 500));
+        while (etatSuiteAutres().enCours);
+      })(),
+      50,
+    ),
+  );
+}
+
+describe("la relecture de l'écran : aucune requête de plus", () => {
+  it("une page hors Airbnb en 404, ou laissée par le disjoncteur, ne repart à aucune relecture", async () => {
+    const { etatSuiteAutres } = await import("./completerFiche.server.ts");
+    mock.timers.tick(10 * 60_000);
+    const hote = "vide.exemple.fr";
+    repondre = (url) => (url.includes(hote) ? { status: 404 } : { html: page() });
+    const rows = Array.from({ length: 9 }, (_, i) => ligne(9301 + i, hote));
+    // La recherche n'a le temps que d'une page ; la tâche de fond lit la
+    // suite, et son disjoncteur laisse l'hôte après cinq pages qui ne
+    // comblent rien.
+    await silence(() => jouer(fillFiches(rows, 1_500)));
+    await attendreSuiteAutres();
+    const parties = departs.filter((d) => d.url.includes(hote)).length;
+    assert.ok(parties < rows.length, `${parties} pages parties : le disjoncteur en a laissé`);
+    // Une page vide ne se garde pas au cache : chaque relecture la remettait
+    // en file, et la tâche de fond la redemandait.
+    for (let i = 0; i < 2; i++) {
+      await silence(() => fillFiches(rows.map((r) => ({ ...r })), 0, { relecture: true }));
+      await attendreSuiteAutres();
+    }
+    assert.equal(departs.filter((d) => d.url.includes(hote)).length, parties, "aucune page de plus");
+    assert.deepEqual(etatSuiteAutres(), { file: 0, enCours: false });
+  });
+
+  it("relue pour son seul point, une annonce ne remet pas sa page en file ; sans capacité, si, comme avant, sauf en pose seule", async () => {
+    const { etatSuiteAutres } = await import("./completerFiche.server.ts");
+    mock.timers.tick(10 * 60_000);
+    const hote = "relue.exemple.fr";
+    // La recherche voit les deux annonces, complètes, chacune sur sa page.
+    const vues = [9401, 9402].map((n) => ligne(n, hote, { capacity: 4, bedrooms: 2, lat: 45.0, lon: 6.1 }));
+    await silence(() => jouer(fillFiches(vues, 30_000)));
+    assert.equal(departs.length, 0);
+    // Sans point (Cimalpes) : relue pour son contenu, elle ne fait rien partir.
+    await silence(() => fillFiches([{ ...vues[0], lat: null, lon: null }], 0, { relecture: true }));
+    // Sans capacité, en pose seule : rien non plus.
+    await silence(() => fillFiches([{ ...vues[1], capacity: null }], 0, { relecture: true, poseSeule: true }));
+    assert.deepEqual(etatSuiteAutres(), { file: 0, enCours: false });
+    // Sans capacité : sa page repart en file, comme avant.
+    await silence(() => fillFiches([{ ...vues[1], capacity: null }], 0, { relecture: true }));
+    await attendreSuiteAutres();
+    assert.deepEqual(
+      departs.map((d) => d.url),
+      [`https://${hote}/fiche/9402`],
+    );
+  });
+
+  it("en pose seule, aucune page Airbnb ne part en file ; la mémoire se pose", async () => {
+    const airbnb = (n: number, over: Partial<Listing> = {}): Listing =>
+      ligne(n, "www.airbnb.fr", {
+        id: `abnb-${n}`,
+        source: "Airbnb",
+        url: `https://www.airbnb.fr/rooms/${n}`,
+        lat: 45.03604,
+        lon: 6.11436,
+        ...over,
+      });
+    // Loin des pages rooms/ des essais d'avant : rien ne retiendrait une page mise en file.
+    mock.timers.tick(3 * 60 * 60_000);
+    memoireFiches().noter([
+      { cle: "Airbnb:9950502", capacity: 4, capacitySource: "structured", bedrooms: 2, bedroomsSource: "structured", lue: true },
+    ]);
+    const inconnue = airbnb(9950501);
+    const connue = airbnb(9950502);
+    await silence(() => fillFiches([inconnue, connue], 0, { relecture: true, poseSeule: true }));
+    assert.equal(departs.length, 0);
+    assert.deepEqual(etatSuiteAirbnb(), { file: 0, enCours: false });
+    assert.deepEqual([connue.capacity, connue.bedrooms], [4, 2]);
+    assert.deepEqual([inconnue.capacity, inconnue.bedrooms], [null, null]);
+  });
+});
+
+describe("ce qu'on garde des fiches hors Airbnb : reposé sans combler l'occupation", () => {
+  it("le contenu gardé se pose ; la page de la centrale, trouée, s'ouvre encore et ajoute sa taxe de séjour", async () => {
+    const { garderLectures } = await import("./contenuFiches.server.ts");
+    mock.timers.tick(10 * 60_000);
+    const hote = "garde.exemple.fr";
+    // Une passe précédente a gardé de cette annonce sa capacité et son contenu.
+    memoireFiches().noter([{ cle: "Centrale:c-9601", capacity: 8, capacitySource: "structured" }]);
+    garderLectures([
+      { cle: "Centrale:c-9601", contenu: { description: "Chalet rénové.", amenities: equipements({ cheminee: "oui" }) } },
+    ]);
+    repondre = () => ({
+      html: `<html><head><meta name="description" content="Appartement 6 personnes, 2 chambres" /></head><body><p>Taxe de séjour : 45,00 €</p>${"<p>Séjour à la montagne.</p>".repeat(20)}</body></html>`,
+    });
+    const row = ligne(9601, hote);
+    await silence(() => jouer(fillFiches([row], 30_000)));
+    assert.equal(departs.filter((d) => d.url.includes(hote)).length, 1, "sa page s'ouvre");
+    // La capacité est celle de la page, pas celle de la mémoire ; le loyer prend la taxe.
+    assert.deepEqual([row.capacity, row.total], [6, 1045]);
+    assert.equal(row.description, "Chalet rénové.");
+    assert.equal(row.amenities?.find((e) => e.cle === "cheminee")?.valeur, "oui");
   });
 });
 

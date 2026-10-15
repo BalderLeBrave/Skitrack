@@ -138,6 +138,17 @@ const OUVERTES_MAX = 3;
  * plusieurs (`urlsPartagees`), et sa lecture poserait sur elle la page d'une
  * résidence.
  *
+ * `poseSeule` : rien ne part en file, ni page ni demande à Apify ; seuls le
+ * cache et les mémoires se posent (`fillFiches`). Il vaut pour toute la
+ * relecture, et l'écran le demande pour celles que l'écran d'avant ne faisait
+ * pas (`relecture.ts`) : la fiche ouverte qui n'est pas trouée, une boucle
+ * lancée par une autre part, reprise après un arrêt, ou qui ne vit plus que
+ * d'un contenu à poser, et toute relecture passé sa fenêtre de 45 min. Sans
+ * lui, la frontière passe annonce par annonce dans `fillFiches` : une page
+ * Airbnb trouée (`airbnbComplet`) retourne en file ; hors Airbnb, seule une
+ * fiche sans capacité ou sans chambres qu'aucune passe n'a tentée y part, et
+ * une annonce relue pour son contenu ou son point n'y fait partir aucune page.
+ *
  * Les annonces reviennent comblées, leur accès aux pistes recalculé si leur
  * point a changé.
  */
@@ -148,10 +159,12 @@ export const completerAnnonces = createServerFn({ method: "POST" })
         .array(z.object({ id: z.string().min(1), source: z.string().min(1), stationId: z.string().min(1) }).passthrough())
         .max(ANNONCES_MAX),
       lireMaintenant: z.boolean().optional(),
+      poseSeule: z.boolean().optional(),
     }),
   )
   .handler(async ({ data }): Promise<Listing[]> => {
-    const lire = data.lireMaintenant === true;
+    const poseSeule = data.poseSeule === true;
+    const lire = data.lireMaintenant === true && !poseSeule;
     const rows = (data.listings as unknown as Listing[]).slice(0, lire ? OUVERTES_MAX : ANNONCES_MAX);
     if (rows.length === 0) return rows;
     const points = new Map(rows.map((l) => [l.id, `${l.lat},${l.lon}`]));
@@ -164,7 +177,7 @@ export const completerAnnonces = createServerFn({ method: "POST" })
       }
       // Ce que le cache et la mémoire savent, sans réseau. Un catalogue arrêté
       // sur un refus n'est pas relancé ; l'annonce ouverte, si, toute seule.
-      await fillFiches(rows, 0, { relecture: true });
+      await fillFiches(rows, 0, { relecture: true, poseSeule });
     } catch {
       /* mémoire illisible : les trous restent nommés, la relecture suivante reprendra */
     }

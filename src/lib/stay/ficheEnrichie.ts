@@ -23,7 +23,12 @@
 
 import type { Listing } from "../listings.ts";
 import { echelleNote, noterSur5, type EchelleNote } from "../note.ts";
-import { depuisAmenities, normaliserEquipements, type EquipementFiche } from "./equipements.ts";
+import {
+  depuisAmenities,
+  normaliserEquipements,
+  type CleEquipement,
+  type EquipementFiche,
+} from "./equipements.ts";
 
 export type { EquipementFiche } from "./equipements.ts";
 
@@ -205,6 +210,12 @@ export function descriptionDe(l: Listing): string | null {
   return texte(l.fiche?.description) ?? texte(l.description);
 }
 
+/** Une fiche lue décide seule des équipements ; une fiche indisponible ne
+ *  dit rien, l'annonce garde ceux des collecteurs. */
+export function ficheDecideEquipements(l: Listing): boolean {
+  return !!l.fiche && !l.fiche.indisponible;
+}
+
 /**
  * Les équipements de l'annonce : ceux de sa fiche, sinon ceux des collecteurs
  * existants. `null` quand aucune liste n'a été lue — ce qui ne dit pas que le
@@ -213,11 +224,28 @@ export function descriptionDe(l: Listing): string | null {
 export function equipementsDe(l: Listing): EquipementFiche[] | null {
   // Une fiche lue décide seule : sans liste publiée, rien — pas les
   // équipements qu'un collecteur aurait déduits d'un texte.
-  if (l.fiche && !l.fiche.indisponible) {
-    const es = normaliserEquipements(l.fiche.equipements ?? []);
+  if (ficheDecideEquipements(l)) {
+    const es = normaliserEquipements(l.fiche!.equipements ?? []);
     return es.length ? es : null;
   }
   return depuisAmenities(l.amenities);
+}
+
+/** Les équipements ont-ils été lus : une fiche qui décide, ou les douze clés
+ *  des collecteurs ? Sinon l'écran dit « Équipements non lus », pas « Non
+ *  publié » : la source n'a rien tu, on n'a rien lu. */
+export function equipementsLus(l: Listing): boolean {
+  return ficheDecideEquipements(l) || (l.amenities?.length ?? 0) > 0;
+}
+
+/**
+ * Les clés que les collecteurs ont relevées sans les trouver (`inconnu`), pour
+ * les dire « non indiqué ». Rien quand une fiche lue décide : elle ne dit rien
+ * de ce qu'un texte tait, pas plus qu'elle ne reprend ce qu'il nomme.
+ */
+export function equipementsTus(l: Listing): CleEquipement[] {
+  if (ficheDecideEquipements(l)) return [];
+  return (l.amenities ?? []).filter((e) => e.valeur === "inconnu").map((e) => e.cle);
 }
 
 /** Les conditions publiées, ou `null` quand la fiche n'en dit rien. */
@@ -249,6 +277,18 @@ export function conditionsRelues(brut: unknown): ConditionsSejour | null {
   return Object.keys(out).length ? out : null;
 }
 
+/**
+ * Les animaux : ce qu'en dit la liste d'équipements, sinon le règlement de la
+ * fiche lue (« Animaux acceptés » d'Airbnb, « Animaux domestiques » de
+ * Booking). La liste l'emporte : « Pets not allowed » listé dit non, quoi que
+ * dise le règlement. `null` quand ni l'une ni l'autre n'en parle.
+ */
+export function animauxDe(l: Listing): "oui" | "non" | "sur_demande" | null {
+  const e = equipementsDe(l)?.find((x) => x.id === "animaux");
+  if (e) return e.present ? "oui" : "non";
+  return ficheDecideEquipements(l) ? (conditionsDe(l)?.animaux ?? null) : null;
+}
+
 /* ---------- Filtres ---------- */
 
 /**
@@ -258,6 +298,31 @@ export function conditionsRelues(brut: unknown): ConditionsSejour | null {
  */
 export function aEquipement(l: Listing, id: string): boolean {
   return equipementsDe(l)?.some((e) => e.id === id && e.present) === true;
+}
+
+/**
+ * Ce que couvre un équipement demandé, en plus de sa clé. « Sauna ou spa »,
+ * la clé fermée des collecteurs (centrales, agences), ne distingue pas sauna,
+ * spa, hammam, bain nordique et jacuzzi. Demander « Sauna » la retient, comme
+ * la catégorie du bandeau l'a toujours fait ; demander « Sauna ou spa »
+ * retient, à l'inverse, tout ce qu'une fiche lue nomme à part. « Spa »,
+ * « Hammam », « Bain nordique » : leur clé seule.
+ */
+const EQUIVALENTS_EQUIPEMENT: Readonly<Record<string, readonly string[]>> = {
+  sauna: ["sauna", "sauna_spa"],
+  sauna_spa: ["sauna_spa", "sauna", "spa", "hammam", "bain_nordique", "jacuzzi"],
+};
+
+/**
+ * Un équipement **demandé**, une seule règle pour la catégorie du bandeau et
+ * la puce de la fenêtre Filtres : la clé ou ce qu'elle couvre
+ * (`EQUIVALENTS_EQUIPEMENT`), listé comme présent. Les animaux se lisent
+ * aussi au règlement de la fiche (`animauxDe`) ; « sur demande » ne passe
+ * pas : l'inconnu n'est pas un oui.
+ */
+export function aEquipementDemande(l: Listing, id: string): boolean {
+  if (id === "animaux") return animauxDe(l) === "oui";
+  return (EQUIVALENTS_EQUIPEMENT[id] ?? [id]).some((x) => aEquipement(l, x));
 }
 
 /** Une note sur 5 au moins égale au seuil. Une annonce sans note ne passe pas,

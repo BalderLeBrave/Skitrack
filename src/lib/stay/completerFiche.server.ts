@@ -21,7 +21,7 @@ import { airbnbIdOf } from "./enrichir.ts";
 import { CIRCUIT_COOLDOWN_MS, PAUSE_MAX_MS, estHoteAirbnb, estRefus, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureAirbnb, lectureFiche, pageAirbnbLisible, type LectureFiche } from "./lectureFiche.ts";
 import { contenuDeFiche, type ContenuDeFiche } from "./contenuFiche.ts";
-import { contenuFiches } from "./contenuFiches.server.ts";
+import { garderLectures, poserContenu, reposerGardees } from "./contenuFiches.server.ts";
 import { adressePourBan, BAN_URL, pointBan, requeteBan, type FeatureBan, type SourceGps } from "./repliGps.ts";
 import { stationById } from "../stations.ts";
 import { MARQUE_MEMOIRE, poserValeur, qualifierLogement, valeurDuTexte } from "./logement.ts";
@@ -566,6 +566,40 @@ function hotesEnPause(now = Date.now()): string[] {
 }
 
 /**
+ * Les pages de fiche hors Airbnb déjà tentées (`cacheKey`), pour tout le
+ * processus : ouvertes, pleines ou non (vide, 404, défi 202, muette,
+ * illisible), ou laissées hors d'une pause de refus (disjoncteur, hôte muet).
+ * Une relecture de l'écran ne les remet jamais en file (`fillFiches`) : une
+ * page vide ne se garde pas au cache, et chaque relecture la redemandait
+ * (une fiche Cimalpes en 404 : trois requêtes par relecture, toutes les 15 s
+ * à 2 min). Seule une nouvelle recherche les retente. Une page laissée
+ * pendant la pause d'un refus (429, 403, 503) n'y entre pas : la tâche de
+ * fond la garde en file jusqu'à la fin de la pause (`pausesHotes`).
+ */
+const tenteesAutres = new Set<string>();
+/** Comme `verdictsPages` : au-delà, les plus anciennes s'oublient. */
+const TENTEES_MAX = 50_000;
+
+function noterTentee(row: Listing): void {
+  const url = ficheUrlOf(row);
+  if (!url) return;
+  const k = cacheKey(url);
+  tenteesAutres.delete(k);
+  tenteesAutres.add(k);
+  if (tenteesAutres.size <= TENTEES_MAX) return;
+  for (const cle of tenteesAutres) {
+    if (tenteesAutres.size <= TENTEES_MAX * 0.75) break;
+    tenteesAutres.delete(cle);
+  }
+}
+
+/** Une passe a déjà tenté la page de cette annonce (`tenteesAutres`). */
+function dejaTentee(row: Listing): boolean {
+  const url = ficheUrlOf(row);
+  return url != null && tenteesAutres.has(cacheKey(url));
+}
+
+/**
  * Les pages de fiche hors Airbnb, hôte par hôte (`limiteHotes.ts`) : une
  * lecture en vol au plus par hôte, deux secondes entre deux départs, et
  * l'hôte laissé au premier 429, 403 ou 503, ou quand il ne répond pas
@@ -578,16 +612,6 @@ function hotesEnPause(now = Date.now()): string[] {
  * coûtait jusqu'à `MAX_FICHES` requêtes à chaque recherche. Un ralentissement
  * (pause de `taux`) n'est pas compté : ce n'est pas le lecteur.
  */
-/**
- * La description et les équipements qu'une fiche lue publie (`contenuFiche.ts`),
- * posés sur l'annonce sans rien remplacer de ce que la recherche a donné.
- */
-function poserContenu(row: Listing, c: ContenuDeFiche | null): void {
-  if (!c) return;
-  if (!row.description && c.description) row.description = c.description;
-  if (!row.amenities && c.amenities) row.amenities = c.amenities;
-}
-
 async function fillPool(
   targets: Listing[],
   until: number,
@@ -601,9 +625,16 @@ async function fillPool(
   const disj = disjoncteur(SANS_PRISE_MAX);
   const places = semaphore(workers);
   const laisses = new Map<string, number>();
+  // Laissée hors d'une pause de refus (disjoncteur, hôte muet) : elle a eu
+  // sa chance, comme pour la tâche de fond (`deroulerSuiteAutres`).
   const laisser = (hote: string, row: Listing) => {
     laisses.set(hote, (laisses.get(hote) ?? 0) + 1);
     bilan.laissees.push(row);
+    if (!((pausesHotes.get(hote) ?? 0) > Date.now())) noterTentee(row);
+  };
+  const ouverte = (row: Listing, lect: LectureFiche | null) => {
+    bilan.ouvertes.push({ row, lect });
+    noterTentee(row);
   };
   const files = parHote(targets, (row) => {
     const url = ficheUrlOf(row);
@@ -649,7 +680,7 @@ async function fillPool(
         if (got.kind === "muet") {
           // Partie, et rien en retour : essayée, et l'hôte laissé.
           rythme.refuser(hote);
-          bilan.ouvertes.push({ row, lect: null });
+          ouverte(row, null);
           console.warn(`[fiche] ${hote} : aucune réponse en ${SILENCE_MS / 1000} s, hôte laissé pour la suite`);
           continue;
         }
@@ -659,19 +690,19 @@ async function fillPool(
           cache.set(cacheKey(url), { at: Date.now(), lect, hit: utile(lect) });
           comble = poserLecture(row, lect, "fiche", { taxe: opts.taxe });
           if (comble) bilan.filled += 1;
-          bilan.ouvertes.push({ row, lect });
+          ouverte(row, lect);
           const contenu = contenuDeFiche(url, got.html);
           if (contenu) {
             poserContenu(row, contenu);
             contenus.push({ cle: cleListing(row), contenu });
           }
         } else {
-          bilan.ouvertes.push({ row, lect: null });
+          ouverte(row, null);
         }
       } catch {
         // Page illisible : les trous restent nommés, et la fiche ne se
         // redemande pas à la tranche suivante.
-        bilan.ouvertes.push({ row, lect: null });
+        ouverte(row, null);
       } finally {
         places.rendre();
       }
@@ -686,7 +717,7 @@ async function fillPool(
     ),
   );
   for (const [hote, k] of laisses) console.info(`[fiche] ${hote} : ${k} fiches non ouvertes`);
-  if (contenus.length) contenuFiches().noter(contenus);
+  if (contenus.length) garderLectures(contenus);
   return bilan;
 }
 
@@ -962,7 +993,8 @@ export function poserMemoire(
   for (const row of rows) {
     // Airbnb seulement : ailleurs, ouvrir la page pose aussi ce que la mémoire
     // ne garde pas (la taxe de séjour d'une centrale ajoutée au loyer), et une
-    // annonce comblée par la mémoire ne l'ouvrirait plus.
+    // annonce comblée par la mémoire ne l'ouvrirait plus. Leur fiche enrichie
+    // et leur contenu se posent à part, sans rien combler (`reposerGardees`).
     if (row.source !== "Airbnb") continue;
     if (!trouee(row)) {
       // Complète : seule la fiche enrichie de sa page, si la mémoire en garde
@@ -1727,12 +1759,22 @@ export function etatSuiteAirbnb(): { file: number; enCours: boolean } {
  *
  * `relecture` : la relecture de l'écran (`completerAnnonces`), sans budget.
  * Rien ne part d'elle. Ce qui reste à lire retourne en fin de file, sauf si
- * un refus a arrêté le catalogue : la relecture ne le relance pas.
+ * un refus a arrêté le catalogue : la relecture ne le relance pas. Hors
+ * Airbnb, seulement une fiche qu'aucune passe n'a tentée (`tenteesAutres`),
+ * et à qui il manque capacité ou chambres.
+ *
+ * `poseSeule` : une relecture qui ne remet rien en file, ni page Airbnb, ni
+ * fiche hors Airbnb, ni demande à Apify. Elle pose ce que le cache et les
+ * mémoires savent, et c'est tout : l'écran s'en sert pour les relectures que
+ * l'écran d'avant ne faisait pas (fiche ouverte non trouée, boucle lancée par
+ * une autre part, reprise, ou qui ne vit plus que d'un contenu à poser,
+ * fiches lentes après sa fenêtre : `relecture.ts`), sans une requête de plus.
  */
 export type OptionsFiches = {
   pour?: "logements" | "prix";
   vue?: string;
   relecture?: boolean;
+  poseSeule?: boolean;
 };
 
 export async function fillFiches(
@@ -1741,10 +1783,13 @@ export async function fillFiches(
   opts: OptionsFiches = {},
 ): Promise<number> {
   const prix = opts.pour === "prix";
+  // Ce qu'une relecture peut remettre en file : rien, en pose seule.
+  const enFile = budgetMs > 0 || (opts.relecture === true && opts.poseSeule !== true);
   let filled = poserReleve(listings, RELEVE_2A);
-  // Le contenu des fiches lues lors des recherches précédentes, sans réseau.
-  const contenus = contenuFiches();
-  for (const row of listings) poserContenu(row, contenus.lire(cleListing(row)));
+  // Ce qu'on a gardé des fiches lues lors des recherches précédentes, sans
+  // réseau : leur contenu et, hors Airbnb, leur fiche enrichie. Jamais
+  // capacité, chambres ni point (`reposerGardees`).
+  reposerGardees(listings);
   const until = Date.now() + Math.max(0, budgetMs);
   // Une page que portent plusieurs annonces n'est la fiche d'aucune : ni
   // ouverte, ni lue dans le cache pour l'une d'elles (`priseFiche.ts`).
@@ -1825,10 +1870,7 @@ export async function fillFiches(
   // relancer un catalogue arrêté sur un refus. Sans l'une ni l'autre, rien
   // n'est mis en file.
   const enTete = budgetMs > 0 && opts.vue != null && opts.vue === vueCourante;
-  const enFond =
-    airbnbALire.length > 0 && !prix && (budgetMs > 0 || opts.relecture === true)
-      ? lancerSuiteAirbnb(airbnbALire, enTete)
-      : 0;
+  const enFond = airbnbALire.length > 0 && !prix && enFile ? lancerSuiteAirbnb(airbnbALire, enTete) : 0;
   const autres = aLire.filter((l) => !estAirbnb(l));
   // Prix : ses pages `rooms/` au premier plan, une à une, au rythme de
   // Logements, comme avant ; rien pendant une pause d'Airbnb.
@@ -1862,25 +1904,31 @@ export async function fillFiches(
   // de `MAX_FICHES`, ou passé son échéance) se lisent en tâche de fond ; la
   // relecture de l'écran les pose depuis le cache.
   // Une relecture ne met en file qu'une page qu'une recherche a vue portée par
-  // cette seule annonce.
+  // cette seule annonce, qu'aucune passe n'a tentée (`tenteesAutres`), et pour
+  // une annonce à qui il manque capacité ou chambres : ce pour quoi l'écran
+  // la relisait seul. Relue pour son contenu, sa fiche ou son point, une
+  // annonce ne fait partir aucune page.
   const pagePropre = (l: Listing) => {
     const u = urlPropre(l);
     return u == null || verdictsPages.get(cleUrl(u)) === false;
   };
+  const sansOccupation = (l: Listing) =>
+    l.capacity == null || (l.bedrooms == null && !(l.rooms != null && l.rooms > 0));
   const autresRestants = autres.filter(
-    (l) => !ouvertesAutres.has(l.id) && trouee(l) && (budgetMs > 0 || pagePropre(l)),
+    (l) =>
+      !ouvertesAutres.has(l.id) &&
+      trouee(l) &&
+      (budgetMs > 0 || (pagePropre(l) && !dejaTentee(l) && sansOccupation(l))),
   );
-  const autresEnFond =
-    !prix && (budgetMs > 0 || opts.relecture === true) && autresRestants.length > 0
-      ? lancerSuiteAutres(autresRestants)
-      : 0;
+  const autresEnFond = !prix && enFile && autresRestants.length > 0 ? lancerSuiteAutres(autresRestants) : 0;
   // Logements : ce qu'Apify a rendu pour les annonces Airbnb encore
   // incomplètes, et la demande du reste, en tâche de fond.
   if (!prix) {
     try {
+      // En pose seule, ce qu'Apify a déjà rendu, sans rien lui demander.
       const apify = completerParApify(
         listings,
-        { sejour: sejourApify, fiche: ficheApify, demander: demanderApify },
+        { sejour: sejourApify, fiche: ficheApify, demander: enFile ? demanderApify : () => 0 },
         circuitOpen() || suiteArreteeParRefus,
       );
       filled += apify.posees;

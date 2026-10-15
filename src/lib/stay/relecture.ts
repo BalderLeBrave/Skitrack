@@ -14,7 +14,7 @@
 
 import type { Listing } from "../listings.ts";
 import { aLecteurDeContenu } from "./contenuFiche.ts";
-import { airbnbComplet, pointPublie, raisonDeLaisser } from "./priseFiche.ts";
+import { airbnbComplet, pageJamaisOuverte, pointPublie, raisonDeLaisser } from "./priseFiche.ts";
 
 /**
  * Les pages de liste encore à lire arrivent par `lireSuiteAirbnb` (aucun appel
@@ -116,11 +116,26 @@ export function ficheBookingAPoser(l: Listing): boolean {
  * jours (`garderLectures`, clé `cleListing` : `Centrale:` et la référence du
  * logement). Le lecteur de pages n'en tire aucun contenu (`aLecteurDeContenu`)
  * et n'ouvre jamais celles de La Plagne (`raisonDeLaisser`) : la relecture
- * pose ce contenu sans réseau (`reposerGardees`). Une annonce qui porte l'un
- * ou l'autre n'attend plus rien.
+ * pose ce contenu sans réseau (`reposerGardees`), et, pour La Plagne dont
+ * l'écran n'ouvre jamais la page, le point et la capacité notés à la lecture.
+ * Une annonce qui porte un contenu et un point publié n'attend plus rien.
  */
 export function contenuOrchestraAPoser(l: Listing): boolean {
-  return l.source === "Centrale" && l.id.startsWith("orc-") && l.amenities == null && !l.description;
+  if (l.source !== "Centrale" || !l.id.startsWith("orc-")) return false;
+  return (l.amenities == null && !l.description) || (!pointPublie(l) && pageJamaisOuverte(l.url));
+}
+
+/**
+ * Travelski : la tâche de la station (`lireStation`, travelski.server.ts) lit
+ * elle-même la fiche de chaque résidence après la réponse, et en garde le
+ * point et l'occupation (mémoire des fiches) et le contenu — description,
+ * galerie, équipements, services inclus — trente jours (`contenuFiches`, clé
+ * `cleListing`). Le lecteur de pages ne l'ouvre jamais (`pageJamaisOuverte`) :
+ * la relecture pose tout cela sans réseau (`reposerGardees`). Une annonce qui
+ * porte un contenu et un point publié n'attend plus rien.
+ */
+export function ficheTravelskiAPoser(l: Listing): boolean {
+  return l.source === "Travelski" && ((l.amenities == null && !l.description) || !pointPublie(l));
 }
 
 /**
@@ -139,7 +154,8 @@ export function aRelireEnFile(l: Listing): boolean {
  * À relire : ce que relisait la boucle d'avant (`aRelireEnFile`), ou un
  * contenu ou une fiche Booking que la tâche de fond lit encore
  * (`contenuAPoser`, `contenuArkianeAPoser`, `ficheBookingAPoser`,
- * `contenuOrchestraAPoser`). La mémoire se pose sans réseau.
+ * `contenuOrchestraAPoser`, `ficheTravelskiAPoser`). La mémoire se pose sans
+ * réseau.
  */
 export function aRelire(l: Listing): boolean {
   return (
@@ -147,7 +163,8 @@ export function aRelire(l: Listing): boolean {
     contenuAPoser(l) ||
     contenuArkianeAPoser(l) ||
     ficheBookingAPoser(l) ||
-    contenuOrchestraAPoser(l)
+    contenuOrchestraAPoser(l) ||
+    ficheTravelskiAPoser(l)
   );
 }
 

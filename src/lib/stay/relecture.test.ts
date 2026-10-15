@@ -10,9 +10,11 @@ import { join } from "node:path";
 import type { Listing } from "../listings.ts";
 import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
 import { ficheOrchestra, refOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
+import { contenuTravelski, lireFiche } from "../scrape/agences/travelski.ts";
 import { garderLectures, reposerGardees } from "./contenuFiches.server.ts";
 import { equipements, type EquipementPublie } from "./equipements.ts";
 import { aEquipement, equipementsDe } from "./ficheEnrichie.ts";
+import { memoireFiches } from "./memoireFiches.server.ts";
 import { cleListing } from "./poserReleve.ts";
 import { raisonDeLaisser } from "./priseFiche.ts";
 import { decoderEntites } from "./texteHtml.ts";
@@ -26,6 +28,7 @@ import {
   contenuOrchestraAPoser,
   empreinte,
   ficheBookingAPoser,
+  ficheTravelskiAPoser,
   RELECTURE_MAX_MS,
   RELECTURE_MS,
   RELECTURE_SANS_PROGRES_MS,
@@ -544,7 +547,7 @@ function logementOrchestra(extra: Partial<Listing> = {}): Listing {
 }
 
 describe("Orchestra : le contenu d'une fiche que la tâche de fond garde", () => {
-  it("sans description ni équipements : à relire, en pose seule ; plus rien une fois l'un ou l'autre posé", () => {
+  it("sans description ni équipements, ou sans point : à relire, en pose seule ; plus rien une fois contenu et point posés", () => {
     const sans = logementOrchestra();
     // Le serveur n'ouvre jamais une fiche de La Plagne : seule la lecture du relevé la donne.
     assert.equal(raisonDeLaisser(sans, sans.url!), "laplagneresort.com");
@@ -552,14 +555,19 @@ describe("Orchestra : le contenu d'une fiche que la tâche de fond garde", () =>
       [aCombler(sans), aRelireEnFile(sans), contenuAPoser(sans), contenuOrchestraAPoser(sans), aRelire(sans)],
       [false, false, false, true, true],
     );
-    assert.equal(aRelire(logementOrchestra({ amenities: equipements({ wifi: "oui" }) })), false);
-    assert.equal(aRelire(logementOrchestra({ description: "Le Chardonnet - 2 pièces cabine 6 personnes" })), false);
+    // L'écran n'ouvre jamais une page de La Plagne : sans point publié, la mémoire peut encore le donner.
+    assert.equal(aRelire(logementOrchestra({ amenities: equipements({ wifi: "oui" }) })), true);
+    const point = { lat: 45.456729, lon: 6.694965 };
+    assert.equal(aRelire(logementOrchestra({ amenities: equipements({ wifi: "oui" }), ...point })), false);
+    assert.equal(aRelire(logementOrchestra({ description: "Le Chardonnet - 2 pièces cabine 6 personnes", ...point })), false);
+    // Un point triangulé n'en est pas un.
+    assert.equal(aRelire(logementOrchestra({ description: "x", ...point, gpsSource: "triangule" })), true);
     // Une autre centrale, ou une autre source au même identifiant : rien ici pour elles.
     assert.equal(contenuOrchestraAPoser(logementOrchestra({ id: "os-hmv-12" })), false);
     assert.equal(contenuOrchestraAPoser(logementOrchestra({ source: "Abritel" })), false);
   });
 
-  it("La Plagne, logement 86645 : relu sans rien poser, puis la fiche gardée se pose, Télévision comprise, sans capacité ni point", async () => {
+  it("La Plagne, logement 86645 : relu sans rien poser, puis la fiche gardée se pose, Télévision, point et capacité compris", async () => {
     const lue = ficheOrchestra(FICHE_ORCHESTRA);
     // La clé sous laquelle la tâche de fond garde la fiche : `Centrale:` et la référence publiée.
     assert.equal(cleListing(logementOrchestra()), "Centrale:ccdt052");
@@ -588,6 +596,18 @@ describe("Orchestra : le contenu d'une fiche que la tâche de fond garde", () =>
         },
       },
     ]);
+    // Et ce qu'elle a noté de la fiche : point, capacité, pièces (orchestra.server.ts, lancerSuiteFiches).
+    memoireFiches().noter([
+      {
+        cle: cleListing(logementOrchestra()),
+        lat: lue.lat,
+        lon: lue.lon,
+        capacity: lue.capacite,
+        capacitySource: "structured",
+        rooms: lue.pieces,
+        lue: true,
+      },
+    ]);
     await e.avancer(2 * RELECTURE_MS);
     assert.equal(e.appels.length, 2);
     const pose = e.etat.rows[0];
@@ -610,9 +630,49 @@ describe("Orchestra : le contenu d'une fiche que la tâche de fond garde", () =>
     );
     assert.equal(aEquipement(pose, "television"), true);
     assert.equal(pose.equipementsPublies?.length, 9);
-    // Jamais capacité, chambres ni point : ceux-là viennent de la fiche lue par la recherche.
-    assert.deepEqual([pose.capacity, pose.bedrooms, pose.rooms, pose.lat, pose.lon], [null, null, null, null, null]);
+    // L'écran n'ouvre jamais cette page : le point et la capacité notés à la lecture se posent, marqués.
+    // La mémoire garde six décimales (une dizaine de centimètres).
+    assert.deepEqual([pose.lat, pose.lon], [Number(lue.lat!.toFixed(6)), Number(lue.lon!.toFixed(6))]);
+    assert.equal(pose.capacity, 6);
+    assert.match(pose.proven, /mémoire des fiches/);
     await e.avancer(RELECTURES_PLAFOND_MS);
-    assert.equal(e.appels.length, 2, "le contenu posé, plus rien à relire");
+    assert.equal(e.appels.length, 2, "contenu et point posés, plus rien à relire");
+  });
+});
+
+describe("Travelski : la fiche que la tâche de la station lit après la réponse", () => {
+  // Fiche réelle du 6 octobre 2026 : Pierre & Vacances Atria-Crozats, Avoriaz, prestation 80143.
+  const fiche = lireFiche(readFileSync(new URL("../scrape/agences/fixtures/travelski-fiche-8493-contenu.html", import.meta.url), "utf8"))!;
+  const logement = (extra: Partial<Listing> = {}): Listing =>
+    annonce({
+      id: "tsk-80143",
+      stationId: "avoriaz",
+      source: "Travelski",
+      title: "Appartement 6 personnes - 2 chambres - Balcon",
+      url: "https://www.travelski.com/residence/location/residence-pierre-vacances-atria-crozats-4-8493",
+      platformId: "80143",
+      capacity: 6,
+      bedrooms: 2,
+      ...extra,
+    });
+
+  it("sans contenu ni point : à relire en pose seule, jamais en file ; une autre source, non", () => {
+    const sans = logement();
+    assert.deepEqual([aCombler(sans), aRelireEnFile(sans), ficheTravelskiAPoser(sans), aRelire(sans)], [false, false, true, true]);
+    assert.equal(ficheTravelskiAPoser(logement({ source: "Cimalpes" })), false);
+    assert.equal(ficheTravelskiAPoser(logement({ description: "x", lat: 46.19, lon: 6.77 })), false);
+  });
+
+  it("ce que la tâche a gardé se pose sans réseau : description, équipements, services, point ; puis plus rien", () => {
+    const cle = cleListing(logement());
+    garderLectures([{ cle, contenu: contenuTravelski(fiche, "80143") }]);
+    memoireFiches().noter([{ cle, lat: fiche.lat, lon: fiche.lon, capacity: 6, bedrooms: 2, rooms: 3, lue: true }]);
+    const row = logement();
+    reposerGardees([row]);
+    assert.match(row.description ?? "", /^De 52 à 62 m²/);
+    assert.ok((equipementsDe(row) ?? []).some((e) => e.id === "television"));
+    assert.deepEqual([row.lat, row.lon], [fiche.lat, fiche.lon]);
+    assert.match(row.proven, /mémoire des fiches/);
+    assert.equal(aRelire(row), false);
   });
 });

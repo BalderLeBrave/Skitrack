@@ -28,8 +28,10 @@ import type { Listing } from "../listings.ts";
 import type { Equipement, EquipementPublie } from "./equipements.ts";
 import { CLES_EQUIPEMENT, equipementsPubliesRelus } from "./equipements.ts";
 import { ficheRelue, type FicheEnrichie } from "./ficheEnrichie.ts";
-import { cheminMemoire, DUREE_MEMOIRE_MS, memoireFiches } from "./memoireFiches.server.ts";
+import { MARQUE_MEMOIRE, qualifierLogement } from "./logement.ts";
+import { cheminMemoire, comblerDepuisMemoire, DUREE_MEMOIRE_MS, memoireFiches } from "./memoireFiches.server.ts";
 import { cleListing } from "./poserReleve.ts";
+import { pageJamaisOuverte } from "./priseFiche.ts";
 
 export type ContenuFiche = {
   description: string | null;
@@ -274,11 +276,16 @@ export function poserContenu(
  * pas de lue. La fiche Airbnb passe par `poserMemoire`
  * (`completerFiche.server.ts`), qui a ses règles pour l'écran Prix.
  *
- * Jamais capacité, chambres ni point. Hors Airbnb, une annonce trouée doit
- * encore ouvrir sa page : elle pose aussi ce que la mémoire ne garde pas (la
- * taxe de séjour d'une centrale, ajoutée au loyer), et une annonce comblée
- * par la mémoire ne l'ouvrirait plus (`poserMemoire`). Ni la fiche ni le
- * contenu ne comptent dans ce qui la fait ouvrir (`trouee`, `raisonDeLaisser`).
+ * Capacité, chambres et point seulement pour une annonce dont l'écran
+ * n'ouvre jamais la page (`pageJamaisOuverte` : Travelski, La Plagne…) : son
+ * collecteur l'a lue en tâche de fond et noté ses valeurs, et les combler ne
+ * coûte aucune lecture (`comblerDepuisMemoire`, seuls les trous, la source
+ * gardée, marque « mémoire des fiches »). Ailleurs, jamais : une annonce
+ * trouée doit encore ouvrir sa page, elle pose aussi ce que la mémoire ne
+ * garde pas (la taxe de séjour d'une centrale, ajoutée au loyer), et une
+ * annonce comblée par la mémoire ne l'ouvrirait plus (`poserMemoire`). Ni la
+ * fiche ni le contenu ne comptent dans ce qui la fait ouvrir (`trouee`,
+ * `raisonDeLaisser`).
  *
  * Rend le nombre d'annonces touchées. Une mémoire illisible ne pose rien.
  */
@@ -299,6 +306,14 @@ export function reposerGardees(rows: readonly Listing[], now: number = Date.now(
         }
       }
       if (poserContenu(row, contenus.lire(cle, now))) pose = true;
+      if (row.source !== "Airbnb" && pageJamaisOuverte(row.url)) {
+        const m = memoire.lire(cle, now);
+        if (m && comblerDepuisMemoire(row, m)) {
+          Object.assign(row, qualifierLogement(row));
+          if (!row.proven.includes(MARQUE_MEMOIRE)) row.proven = `${row.proven} · ${MARQUE_MEMOIRE}`;
+          pose = true;
+        }
+      }
       if (pose) n += 1;
     }
   } catch (err) {

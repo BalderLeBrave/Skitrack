@@ -452,7 +452,7 @@ function suiteReste(brut: unknown): SuiteReste | null {
   return { file, seen };
 }
 
-function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[] {
+export function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[] {
   if (!payload || typeof payload !== "object") return [];
   const listings = (payload as { listings?: unknown }).listings;
   if (!Array.isArray(listings)) return [];
@@ -470,10 +470,17 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
     // Filet : le sidecar vérifie déjà les dates de la tuile ; le libellé,
     // seul arrivé jusqu'ici, dit encore le nombre de nuits.
     const horsSejour = prixHorsSejour(null, label, [], input.checkIn, input.checkOut);
+    // Le worker a déjà jugé le libellé et les dates (`stay_total_from_label`,
+    // `prix_hors_sejour`, avec la tuile entière) : son 0 veut dire « non publié
+    // pour ce séjour », et le libellé ne se relit pas par-dessus (« 2 215 € au
+    // total » d'autres dates redevenait un prix). `stayTotal` ne sert qu'à une
+    // sortie sans total chiffré.
     const total = horsSejour
       ? 0
-      : typeof row.total === "number" && row.total > 0
-        ? Math.round(row.total)
+      : typeof row.total === "number"
+        ? row.total > 0
+          ? Math.round(row.total)
+          : 0
         : (stayTotal(label) ?? 0);
     if (!id || !name || seen.has(id)) continue;
     if (isDropped(name) || isDropped(sub)) continue;

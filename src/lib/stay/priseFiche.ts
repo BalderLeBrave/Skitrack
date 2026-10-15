@@ -117,6 +117,17 @@ const PRISES: ReadonlyArray<{ nom: string; hote: RegExp; prise: ReadonlySet<Trou
 ];
 
 /**
+ * L'écran n'ouvre jamais cette page, quel que soit le trou : son hôte a une
+ * prise vide (Travelski, La Plagne, Booking…). Le collecteur la lit lui-même,
+ * ou personne. Combler l'annonce par la mémoire ne coûte alors aucune lecture.
+ */
+export function pageJamaisOuverte(url: string | null | undefined): boolean {
+  const hote = url ? hoteDe(url) : null;
+  const regle = hote ? PRISES.find((r) => r.hote.test(hote)) : undefined;
+  return regle != null && regle.prise.size === 0;
+}
+
+/**
  * Une URL ramenée à ce qui désigne la page : sans fragment, hôte en
  * minuscules, sans barre finale. La requête reste : chez iResa, deux fiches ne
  * diffèrent que par `?package=`.

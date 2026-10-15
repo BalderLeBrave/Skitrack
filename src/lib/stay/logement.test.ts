@@ -129,6 +129,26 @@ describe("chambres écrites, en français et en anglais", () => {
     assert.equal(lu.chambresEcrites, 1);
     assert.equal(lu.chambresDerivees, 2, "la dérivation reste à côté, sans servir");
   });
+
+  // Description réelle de la fiche ITEA 38G253122 (Gîtes de France, 6 octobre 2026), extrait.
+  const ITEA =
+    "Au rez-de-chaussée : chambre 1 (1 lit 2 personnes, salle d'eau privative), wc. A l'étage : Chambre 2 (2 lits 90x190), " +
+    "Chambre 3 (1 lit 160x200), Chambre 4 (1lit 140x190 + 1 lit enfant 70x170), Chambre 5 (pour 6 personnes : 2 lits 90x190 et 4 lits superposés).";
+
+  it("des chambres numérotées de 1 à N sans trou font N chambres", () => {
+    assert.equal(lireLogement(ITEA).chambresEcrites, 5);
+    assert.equal(lireLogement("Chambre 1 - Chambre 2 - Chambre 3").chambresEcrites, 3);
+    const q = qualifierLogement({ source: "Gîtes de France", title: "Chalet les Copains", description: ITEA, capacity: 14, bedrooms: null } as SujetLogement);
+    assert.equal(q.bedrooms, 5);
+    assert.equal(q.bedroomsSource, "text_regex");
+  });
+
+  it("un numéro de chambre n'est pas un nombre de chambres ; une numérotation trouée ne dit rien", () => {
+    for (const t of ["Chambre 1, Chambre 3", "chambre 1 (lit 160)", "Chambre 1 lit double, chambre 2 personnes"])
+      assert.equal(lireLogement(t).chambresEcrites, null, t);
+    for (const [t, n] of [["Chalet 3 chambres", 3], ["T3 2 ch", 2], ["Chalet Le Studio - 5 Chambres", 5]] as const)
+      assert.equal(lireLogement(t).chambresEcrites, n, t);
+  });
 });
 
 describe("capacité : synonymes, plage et capacité standard", () => {
@@ -212,6 +232,19 @@ describe("type de logement", () => {
   ] as const) {
     it(`${titre} : ${type}`, () => assert.equal(lireLogement(titre).type, type));
   }
+
+  it("Booking : la route /hotel/ de l'adresse et des photos n'est pas un type ; le nom, si", () => {
+    const booking = (title: string, url: string, extra: Partial<SujetLogement> = {}) =>
+      qualifierLogement({ source: "Booking", title, url, capacity: null, bedrooms: null, ...extra } as SujetLogement).lodgingType;
+    assert.equal(booking("Chalet 8 personnes", "https://www.booking.com/hotel/fr/chalet-neige.fr.html"), "chalet");
+    assert.equal(
+      booking("Studio", "https://www.booking.com/hotel/fr/x.fr.html", { photo: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/1.jpg" }),
+      "studio",
+    );
+    assert.equal(booking("Les Mélèzes", "https://www.booking.com/hotel/fr/hotel-les-melezes.fr.html"), "hotel");
+    // Un autre site garde sa catégorie.
+    assert.equal(lireLogement("Le Terminus https://exemple.fr/hotels/le-terminus/").type, "hotel");
+  });
 
   it("le type publié par la source", () => {
     assert.equal(typePublie("Logement entier : appartement"), "appartement");

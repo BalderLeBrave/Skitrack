@@ -180,12 +180,31 @@ const GUESTS_CAP_ABBR = /\bcap\.?\s*[:=]?\s*(\d+)\b/i;
 /** `sleeps 8` : le verbe publié par les OTA anglophones, pas un compte de lits. */
 const GUESTS_SLEEPS = /\bsleeps\s+(\d+)\b/i;
 
-const BEDROOMS = /(\d+)\s*-?\s*(?:chambres?|bedrooms?|ch(?![a-zà-ÿ]))/i;
+/** « 3 chambres », « 2 ch » — pas le numéro d'une chambre (« Chambre 1 -
+ *  Chambre 2 » ne dit pas « 1 chambre »). */
+const BEDROOMS = /(?<!chambre\s*(?:n[°o]\s*)?\d*)(?<!\d)(\d+)\s*-?\s*(?:chambres?|bedrooms?|ch(?![a-zà-ÿ]))/i;
 const PIECES = /(\d+)\s*-?\s*pi[eè]ces?\b/i;
 const T_TYPE = /\bT([1-9])\b/i;
 const F_TYPE = /\bF([1-9])\b/i;
 const STUDIO = /(?<![\p{L}])(?:studios?|studettes?|stud\.?)(?![\p{L}])/iu;
 const CABINE = /\bcabines?\b/i;
+
+/**
+ * « Chambre 1 (…) … Chambre 5 (…) » : des chambres numérotées de 1 à N sans
+ * trou, N ≥ 2, font N chambres (fiche ITEA 38G253122, 6 octobre 2026). Un
+ * numéro suivi d'une unité (« chambre 2 personnes ») ne compte pas.
+ */
+function chambresNumerotees(text: string): number | null {
+  const vus = new Set<number>();
+  for (const m of text.matchAll(
+    /(?<![\p{L}])chambre\s+(?:n[°o]\s*)?(\d{1,2})(?!\s*(?:pers|lits?\b|places?|couchages?|adultes?|enfants?|m²|m2|x\s*\d|\d))/giu,
+  ))
+    vus.add(Number(m[1]));
+  const max = vus.size ? Math.max(...vus) : 0;
+  if (max < 2) return null;
+  for (let i = 1; i <= max; i++) if (!vus.has(i)) return null;
+  return takeBeds(max);
+}
 
 /* ---------- Lecture ---------- */
 
@@ -353,7 +372,7 @@ export function lireLogement(...parts: Array<string | null | undefined>): Lectur
   }
 
   const ch = BEDROOMS.exec(text);
-  const chambresEcrites = ch ? takeBeds(Number(ch[1])) : chambresEnLettres(text);
+  const chambresEcrites = ch ? takeBeds(Number(ch[1])) : (chambresEnLettres(text) ?? chambresNumerotees(text));
 
   const pi = PIECES.exec(text);
   // « deux pièces » : le type écrit en lettres (Val d'Arly, critère `OTYPA`).
@@ -418,6 +437,18 @@ export type SujetLogement = {
   pdpLue?: boolean | null;
 };
 
+/**
+ * Booking range tout établissement (chalet, appartement) sous `/hotel/xx/`, et
+ * ses photos sous `/images/hotel/` : c'est une route, pas un type. Lue comme
+ * un mot, elle faisait de chaque annonce Booking un hôtel, dont la fiche ne
+ * s'ouvrait jamais (audit du 15 octobre 2026). Le nom dans l'adresse reste lu
+ * (« grand-hotel » est un hôtel) ; les autres sites gardent leurs catégories.
+ */
+const HOTE_BOOKING = /^https?:\/\/([a-z0-9-]+\.)*(booking|bstatic)\.com\//i;
+function sansRouteBooking(u: string | null | undefined): string | null | undefined {
+  return u && HOTE_BOOKING.test(u) ? u.replace(/\/hotels?\//gi, "/") : u;
+}
+
 /** Les textes d'une annonce. Sans les photos GreenGo : leurs noms sont des
  *  libellés numérotés (« 12-chambre_rdc_cote_jardin-web.jpg ») qui se
  *  liraient « 12 chambres ». */
@@ -425,10 +456,10 @@ function textesDe(l: SujetLogement): Array<string | null | undefined> {
   return [
     l.title,
     l.description,
-    l.url,
+    sansRouteBooking(l.url),
     l.propertyType,
     l.priceLabel,
-    ...(l.source === "GreenGo" ? [] : [l.photo, ...(l.photos ?? [])]),
+    ...(l.source === "GreenGo" ? [] : [l.photo, ...(l.photos ?? [])].map(sansRouteBooking)),
   ];
 }
 

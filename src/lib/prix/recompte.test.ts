@@ -306,6 +306,17 @@ describe("un même bien collecté deux fois ne fait qu'un logement", () => {
     assert.equal(vide.amenities?.length, 2);
   });
 
+  it("la copie gardée sans vignette reprend la galerie de l'autre copie", () => {
+    const galerie = ["https://a0.muscache.com/im/pictures/a.jpg", "https://a0.muscache.com/im/pictures/b.jpg"];
+    const [l] = dedoublonnerParBien([cozyDe({ photo: null }), directDe({ photo: galerie[0], photos: galerie })]);
+    assert.equal(l.id, "abnb-cozy-998");
+    assert.deepEqual([l.photo, l.photos], [galerie[0], galerie]);
+    // Une vignette à elle reste la sienne ; une galerie vide se comble.
+    const sienne = "https://cozycozy.com/vignette.jpg";
+    const [m] = dedoublonnerParBien([cozyDe({ photo: sienne, photos: [] }), directDe({ photo: galerie[0], photos: galerie })]);
+    assert.deepEqual([m.photo, m.photos], [sienne, galerie]);
+  });
+
   it("la note vient avec son nombre d'avis, d'une seule copie", () => {
     // Zéro avis sur la gardée annulait la note reprise ailleurs (`avisDe`).
     const [l] = dedoublonnerParBien([cozyDe({ rating: null, reviewCount: 0 }), directDe()]);

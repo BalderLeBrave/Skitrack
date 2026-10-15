@@ -193,6 +193,10 @@ const CHAMPS_DU_BIEN = [
   ["amenities"],
   ["equipementsPublies"],
   ["rating", "reviewCount"],
+  // La galerie : la photo avec ses photos, puis les photos seules. La copie
+  // gardée est souvent celle de Cozy, parfois sans vignette.
+  ["photo", "photos"],
+  ["photos"],
 ] as const;
 
 /** Une valeur qui ne dit rien du bien : absente, un texte vide, une liste

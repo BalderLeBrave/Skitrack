@@ -154,6 +154,39 @@ describe("contenuDeFiche : Abritel, extrait réel", () => {
   });
 });
 
+describe("contenuDeFiche : Ingénie, extraits réels", () => {
+  it("lit le descriptif du pavé `pave1`, pas l'encart « BONS PLANS » de la centrale (Les Saisies, 73G211126)", () => {
+    // Extrait de reservation.lessaisies.com/chalet-d-elise-8-personnes-73g211126.html, 1er octobre 2026.
+    const html = `<h2 class="titre_bloc_fiche" id="description"><span>Présentation</span></h2><div class="presentation"><div class="description">
+      <div class="pave2 pave-containText"><span class="contenu_descriptif"><table><tr><td><h2><span><strong>BONS PLANS AVEC LES SAISIES RÉSERVATION</strong></span></h2></td></tr></table>
+</span></div><div class="pave1 pave-containText"><span class="contenu_descriptif">Maison indépendante. Rez-de-chaussée : séjour-cuisine, salon (2 lits gigognes 1 personne.), 3 chambres (1 lit 1 personne / 1 lit 2 personnes., 1 lit 1 personne / 1 lit 2 personnes), 2 salle d'eau (douche / douche + wc).</span></div></div></div>
+      <h1>Chalet D'elise <span class="code_prest"><span>(</span>73G211126<span>)</span></span> </h1>`;
+    const c = contenuDeFiche("https://reservation.lessaisies.com/chalet-d-elise-8-personnes-73g211126.html", html);
+    assert.equal(
+      c?.description,
+      "Maison indépendante. Rez-de-chaussée : séjour-cuisine, salon (2 lits gigognes 1 personne.), 3 chambres (1 lit 1 personne / 1 lit 2 personnes., 1 lit 1 personne / 1 lit 2 personnes), 2 salle d'eau (douche / douche + wc).",
+    );
+    // Le descriptif ne dit pas l'équipement : rien n'en est tiré.
+    assert.equal(c?.amenities, null);
+    assert.equal(c?.equipementsPublies, undefined);
+  });
+
+  it("lit le descriptif d'une autre centrale Ingénie, quel que soit son hôte (Arêches, Tervetuloa)", () => {
+    // Extrait de reservation.areches-beaufort.com/tervetuloa-1.html, 1er octobre 2026.
+    const html = `<div class="presentation"><div class="description"><div class="pave1 pave-containText"><span class="contenu_descriptif">Gîte dans la maison du propriétaire. Rez-de-chaussée : séjour-cuisine coin salon (1 canapé gigogne 2 lits 1 personne avec remise à niveau), 1 chambre (1 lit 2 personnes 140x190 cm), salle d'eau (douche), WC séparé.</span></div></div></div>
+      <h1>Tervetuloa</h1>`;
+    const c = contenuDeFiche("https://reservation.areches-beaufort.com/tervetuloa-1.html", html);
+    assert.match(c?.description ?? "", /^Gîte dans la maison du propriétaire\. .* WC séparé\.$/);
+  });
+
+  it("sans pavé `pave1`, tous les blocs ; un descriptif vide ne rend rien", () => {
+    const cadre = `<div class="cadre"><span class="contenu_descriptif">"Asters 18 Bâtiment C1" studio 18 m2 au 2ème étage.</span></div>`;
+    assert.equal(contenuDeFiche("https://reservation.les2alpes.com/x.html", cadre)?.description, '"Asters 18 Bâtiment C1" studio 18 m2 au 2ème étage.');
+    const vide = `<div class="pave1 pave-containText"><span class="contenu_descriptif"> </span></div>`;
+    assert.equal(contenuDeFiche("https://reservation.les2alpes.com/x.html", vide), null);
+  });
+});
+
 describe("contenuDeFiche : autres hôtes", () => {
   it("un hôte qu'on ne sait pas lire ne rend rien", () => {
     assert.equal(contenuDeFiche("https://www.alpissime.com/location/1", fx("cimalpes-fiche-chalet-delta-36.html")), null);

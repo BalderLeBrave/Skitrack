@@ -13,11 +13,17 @@
  *   description et la liste complète se chargent par script : elles ne sont
  *   pas dans la page. La fiche ne s'ouvre que pour une annonce trouée.
  *
+ * - les centrales Ingénie (reservation.lessaisies.com, areches-beaufort.com,
+ *   les2alpes.com…) : le descriptif, `<span class="contenu_descriptif">` dans
+ *   son pavé `pave1`. Leurs hôtes varient : la page se reconnaît à ce bloc,
+ *   pas à son adresse. La fiche ne s'ouvre que pour une annonce trouée
+ *   (point, chambres) ; l'équipement n'est pas lu.
+ *
  * Un lecteur peut aussi rendre les libellés de sa liste tels quels
  * (`equipementsPublies` : Cimalpes, Abritel) ; les douze clés n'en gardent
  * que ce qu'elles nomment.
  *
- * Les autres hôtes ne rendent rien ici. Module pur, chargé tel quel par
+ * Les autres pages ne rendent rien ici. Module pur, chargé tel quel par
  * `node --experimental-strip-types`.
  */
 
@@ -175,6 +181,31 @@ export function contenuAbritel(html: string): ContenuDeFiche | null {
   };
 }
 
+/**
+ * Le descriptif d'une fiche Ingénie : les blocs `contenu_descriptif` du pavé
+ * `pave1`. Aux Saisies (73G211126, 1er octobre 2026), un `pave2` le précède,
+ * l'encart « BONS PLANS AVEC LES SAISIES RÉSERVATION » de la centrale : il
+ * n'est pas le logement. Sans `pave1` (`<div class="cadre">` de certaines
+ * centrales), tous les blocs. Rien que du texte : ni équipement, ni photo.
+ */
+export function contenuIngenie(html: string): ContenuDeFiche | null {
+  const blocs = [...html.matchAll(/<div class=["']([^"']*)["'][^>]*>\s*<span class=["']contenu_descriptif["'][^>]*>([\s\S]*?)<\/span>\s*<\/div>/gi)].map(
+    (m) => ({ pave1: /(?:^|\s)pave1(?:\s|$)/.test(m[1]), texte: texteDeHtml(m[2]) }),
+  );
+  const retenus = blocs.some((b) => b.pave1) ? blocs.filter((b) => b.pave1) : blocs;
+  const description = retenus
+    .map((b) => b.texte)
+    .filter((t): t is string => !!t)
+    .join("\n")
+    .trim();
+  return description ? { description, photos: null, amenities: null } : null;
+}
+
+/** La page est une fiche Ingénie : elle porte un descriptif `contenu_descriptif`. */
+function estFicheIngenie(html: string): boolean {
+  return /class=["']contenu_descriptif["']/i.test(html);
+}
+
 /** Les hôtes dont on sait lire le contenu de la fiche, et leur lecteur. */
 const LECTEURS: ReadonlyArray<{ hote: RegExp; lire: (html: string) => ContenuDeFiche | null }> = [
   { hote: /(^|\.)cimalpes\.com$/, lire: contenuCimalpes },
@@ -192,9 +223,17 @@ export function aLecteurDeContenu(url: string): boolean {
   return h != null && LECTEURS.some((l) => l.hote.test(h));
 }
 
-/** Le contenu d'une fiche lue, selon son hôte ; `null` pour un hôte qu'on ne sait pas lire. */
+/**
+ * Le contenu d'une fiche lue, selon son hôte, ou, faute de lecteur pour
+ * l'hôte, selon la page (Ingénie) ; `null` pour une page qu'on ne sait pas
+ * lire. `aLecteurDeContenu` ne compte pas Ingénie : sa fiche n'est pas
+ * redemandée pour sa description, elle est lue quand elle s'ouvre pour un
+ * trou.
+ */
 export function contenuDeFiche(url: string, html: string): ContenuDeFiche | null {
   const h = hote(url);
   if (!h) return null;
-  return LECTEURS.find((l) => l.hote.test(h))?.lire(html) ?? null;
+  const lecteur = LECTEURS.find((l) => l.hote.test(h));
+  if (lecteur) return lecteur.lire(html);
+  return estFicheIngenie(html) ? contenuIngenie(html) : null;
 }

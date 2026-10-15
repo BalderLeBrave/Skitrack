@@ -13,14 +13,32 @@
  *   description et la liste complète se chargent par script : elles ne sont
  *   pas dans la page. La fiche ne s'ouvre que pour une annonce trouée.
  *
+ * Un lecteur peut aussi rendre les libellés de sa liste tels quels
+ * (`equipementsPublies` : Abritel) ; les douze clés n'en gardent que ce
+ * qu'elles nomment.
+ *
  * Les autres hôtes ne rendent rien ici. Module pur, chargé tel quel par
  * `node --experimental-strip-types`.
  */
 
-import { depuisListe, depuisTexte, equipements, fusionner, type Equipement } from "./equipements.ts";
+import {
+  depuisListe,
+  depuisTexte,
+  equipements,
+  fusionner,
+  plierEquipement,
+  type Equipement,
+  type EquipementPublie,
+} from "./equipements.ts";
 import { decoderEntites, texteDeHtml } from "./texteHtml.ts";
 
-export type ContenuDeFiche = { description: string | null; photos: string[] | null; amenities: Equipement[] | null };
+export type ContenuDeFiche = {
+  description: string | null;
+  photos: string[] | null;
+  amenities: Equipement[] | null;
+  /** Les libellés de la liste de la page (`Listing.equipementsPublies`) ; absent quand le lecteur ne les rend pas. */
+  equipementsPublies?: EquipementPublie[] | null;
+};
 
 function hote(url: string): string | null {
   try {
@@ -76,7 +94,25 @@ export function contenuAbritel(html: string): ContenuDeFiche | null {
     .map((m) => texte(m[1]))
     .filter(Boolean);
   if (items.length === 0) return null;
-  return { description: null, photos: null, amenities: equipements(depuisListe(items.map((t) => ({ texte: t })))) };
+  // Les douze clés n'y lisent que le Wi-Fi (« Accès Internet ») : la cuisine,
+  // le barbecue, le mobilier d'extérieur, le réfrigérateur de p5392632vb
+  // passent par les libellés publiés (`equipementsDe`). Chacun une fois, le
+  // premier tel quel (« Barbecue » y revient) ; rien n'y dit une absence, le
+  // libellé seul en décide.
+  const vus = new Set<string>();
+  const equipementsPublies: EquipementPublie[] = [];
+  for (const libelle of items) {
+    const cle = plierEquipement(libelle);
+    if (vus.has(cle)) continue;
+    vus.add(cle);
+    equipementsPublies.push({ libelle });
+  }
+  return {
+    description: null,
+    photos: null,
+    amenities: equipements(depuisListe(items.map((t) => ({ texte: t })))),
+    equipementsPublies,
+  };
 }
 
 /** Les hôtes dont on sait lire le contenu de la fiche, et leur lecteur. */

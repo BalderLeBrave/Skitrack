@@ -4,14 +4,23 @@
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Listing } from "../listings.ts";
-import { equipements } from "./equipements.ts";
+import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
+import { garderLectures, reposerGardees } from "./contenuFiches.server.ts";
+import { equipements, type EquipementPublie } from "./equipements.ts";
+import { aEquipement, equipementsDe } from "./ficheEnrichie.ts";
+import { cleListing } from "./poserReleve.ts";
+import { raisonDeLaisser } from "./priseFiche.ts";
 import {
   aCombler,
   aRelire,
   aRelireEnFile,
   boucleRelecture,
   contenuAPoser,
+  contenuArkianeAPoser,
   empreinte,
   ficheBookingAPoser,
   RELECTURE_MAX_MS,
@@ -388,5 +397,99 @@ describe("la boucle de relecture", () => {
     assert.equal(e.etat.rows[0].fiche, lue);
     await e.avancer(RELECTURES_PLAFOND_MS);
     assert.equal(e.appels.length, 2, "la fiche posée, plus rien à relire");
+  });
+});
+
+/* ---------- Arkiane : le détail d'un lot, gardé, se pose sans réseau ---------- */
+
+// Les mémoires du processus (`contenuFiches`) : jamais celles de l'application.
+process.env.SKITRACK_CONFIG_DIR = mkdtempSync(join(tmpdir(), "skitrack-relecture-"));
+
+/** Réponse réelle au `POST /fr-FR/Lot/Detail` de Pralognan, lot 553 « Le Colliouroe ». */
+const DETAIL_ARKIANE = readFileSync(
+  new URL("../scrape/centrales/moteurs/fixtures/arkiane-pralognan-detail-colliouroe.html", import.meta.url),
+  "utf8",
+);
+
+/** Les pictos de la zone « Equipements » du détail : leur `alt`, tel que la centrale l'écrit. */
+function pictosArkiane(page: string): EquipementPublie[] {
+  const zone = /Equipements\s*:\s*<\/div>([\s\S]*?)<\/div>/.exec(page)![1];
+  return [...zone.matchAll(/<img[^>]+class="picto[^"]*"[^>]+alt="([^"]+)"/g)].map((m) => ({ libelle: m[1] }));
+}
+
+/** Le lot tel que le relevé le rend quand son détail n'a pas été lu : la carte seule, l'accueil pour lien. */
+function lotArkiane(extra: Partial<Listing> = {}): Listing {
+  return annonce({
+    id: "ark-prl-553",
+    source: "Centrale",
+    title: "Le Colliouroe",
+    url: "https://www.reservationpralognan.fr",
+    capacity: 4,
+    bedrooms: null,
+    rooms: 2,
+    ...extra,
+  });
+}
+
+describe("Arkiane : le contenu d'un lot que la tâche de fond garde", () => {
+  it("sans description ni équipements : à relire, en pose seule ; pas une autre centrale", () => {
+    const sans = lotArkiane();
+    // Le serveur n'ouvre jamais l'accueil de la centrale : seule la lecture du relevé le donne.
+    assert.equal(raisonDeLaisser(sans, sans.url!), "URL commune");
+    assert.deepEqual(
+      [aCombler(sans), aRelireEnFile(sans), contenuAPoser(sans), contenuArkianeAPoser(sans), aRelire(sans)],
+      [false, false, false, true, true],
+    );
+    assert.equal(aRelire(lotArkiane({ amenities: equipements({ wifi: "oui" }) })), false);
+    assert.equal(aRelire(lotArkiane({ description: "APPARTEMENT 2 PIECES" })), false);
+    // Orchestra (La Plagne) lit ses fiches à sa façon : rien ici pour elle.
+    assert.equal(
+      aRelire(annonce({ id: "orc-lpl-12", source: "Centrale", url: "https://www.laplagneresort.com/fr/location/x" })),
+      false,
+    );
+    assert.equal(aRelire(lotArkiane({ source: "Abritel", url: "https://www.abritel.fr/" })), false);
+  });
+
+  it("Pralognan, lot 553 : relu sans rien poser, puis le détail gardé se pose, Télévision comprise, sans capacité, chambres ni point", async () => {
+    const d = lireDetailArkiane(DETAIL_ARKIANE);
+    assert.equal(cleListing(lotArkiane()), "Centrale:ark-prl-553");
+    // Le serveur : `completerAnnonces` → `fillFiches` → `reposerGardees`, sans réseau.
+    const e = ecran([lotArkiane()], (rows) => {
+      const copies = rows.map((l) => ({ ...l }));
+      reposerGardees(copies);
+      return copies;
+    });
+    // La part « centrales » répond : la relecture reprend.
+    e.boucle.relancer();
+    await e.avancer(RELECTURE_MS);
+    assert.deepEqual(
+      e.appels.map((a) => [a.ids, a.poseSeule]),
+      [[["ark-prl-553"], true]],
+    );
+    assert.equal(e.etat.rows[0].amenities, undefined, "rien de gardé encore");
+    // La tâche de fond lit le détail et en garde ce qu'il publie, clé `cleListing`.
+    garderLectures([
+      {
+        cle: cleListing(lotArkiane()),
+        contenu: {
+          description: d.description ?? null,
+          amenities: equipements(d.equipements),
+          equipementsPublies: pictosArkiane(DETAIL_ARKIANE),
+        },
+      },
+    ]);
+    await e.avancer(2 * RELECTURE_MS);
+    assert.equal(e.appels.length, 2);
+    const pose = e.etat.rows[0];
+    assert.equal(pose.description, d.description);
+    assert.deepEqual(
+      equipementsDe(pose)!.map((x) => (x.present ? x.id : `${x.id}(non)`)),
+      ["balcon", "wifi", "lave_vaisselle", "lave_linge", "linge_fourni", "parking", "animaux(non)", "television"],
+    );
+    assert.equal(aEquipement(pose, "television"), true);
+    // Jamais capacité, chambres ni point : ceux-là viennent du détail lu par la recherche.
+    assert.deepEqual([pose.capacity, pose.bedrooms, pose.rooms, pose.lat, pose.lon], [4, null, 2, null, null]);
+    await e.avancer(RELECTURES_PLAFOND_MS);
+    assert.equal(e.appels.length, 2, "le contenu posé, plus rien à relire");
   });
 });

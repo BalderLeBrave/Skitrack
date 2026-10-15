@@ -873,4 +873,14 @@ describe("Ingénie, fiches sans préfixe PRESTATION- (Le Grand-Bornand)", () => 
       ["animaux", "laveVaisselle", "parking", "wifi"],
     );
   });
+
+  it("garde les pictogrammes tels que la centrale les écrit, sans présence ni groupe", () => {
+    assert.deepEqual(
+      lireIngenie(page).map((f) => f.equipementsPublies.map((p) => p.libelle)),
+      [["WiFi", "Lave vaisselle", "Animaux admis", "Parking, Garage"], ["Parking, Garage"]],
+    );
+    assert.ok(lireIngenie(page).every((f) => f.equipementsPublies.every((p) => p.present == null && p.groupe == null)));
+    // Sans zone de pictogrammes : rien.
+    assert.ok(lireIngenie(PAGE).every((f) => f.equipementsPublies.length === 0));
+  });
 });

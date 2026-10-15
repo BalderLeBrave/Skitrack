@@ -22,6 +22,7 @@ import { createHash } from "node:crypto";
 import type { Listing } from "@/lib/listings";
 import { contenuFiches } from "@/lib/stay/contenuFiches.server";
 import { comblerDepuisMemoire, memoireFiches } from "@/lib/stay/memoireFiches.server";
+import { MARQUE_MEMOIRE } from "@/lib/stay/logement";
 import { cleListing } from "@/lib/stay/poserReleve";
 import { allowsPath } from "../robots";
 import type { LiveSearchInput } from "../types";
@@ -145,11 +146,18 @@ function annonces(r: ResidenceTravelski, input: LiveSearchInput): Listing[] {
   const rows = travelskiListings(r, null, input, groupeDe(r, input));
   for (const row of rows) {
     const m = memoire.lire(cleListing(row));
-    if (m) comblerDepuisMemoire(row, m);
+    // Comblée par la mémoire : ces valeurs ne sont pas republiées ce jour. Sans
+    // la marque, la complétion Prix les renotait chaque jour, la position ne
+    // s'effaçait jamais et la fiche (description, galerie, équipements) ne se
+    // relisait plus : le contenu disparaissait au 31e jour.
+    if (m && comblerDepuisMemoire(row, m) && !row.proven.includes(MARQUE_MEMOIRE)) {
+      row.proven = `${row.proven} · ${MARQUE_MEMOIRE}`;
+    }
     // La description, la galerie et les équipements de la fiche déjà lue.
     const c = contenus.lire(cleListing(row));
     if (c?.description) row.description = c.description;
     if (c?.amenities) row.amenities = c.amenities;
+    if (c?.equipementsPublies?.length) row.equipementsPublies = c.equipementsPublies;
     if (c?.photos?.length) {
       row.photos = [...new Set([...(row.photo ? [row.photo] : []), ...c.photos])];
       row.photo = row.photos[0] ?? null;

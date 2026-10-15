@@ -272,6 +272,13 @@ describe("Travelski : description, galerie et équipements de la fiche réelle",
     assert.deepEqual(oui.sort(), ["animaux", "balcon", "casierSkis", "laveVaisselle", "linge", "saunaSpa", "wifi"]);
   });
 
+  it("les « Services inclus » de la résidence, un libellé par ligne : la Télévision n'est plus perdue", () => {
+    const publies = contenuTravelski(fiche, "910555")!.equipementsPublies ?? [];
+    assert.equal(publies.length, 10);
+    assert.ok(publies.some((e) => e.libelle === "Télévision"));
+    assert.ok(publies.every((e) => e.present === true));
+  });
+
   it("rien pour un logement que la fiche ne porte pas", () => {
     assert.equal(contenuTravelski(fiche, "000"), null);
     assert.equal(contenuTravelski(null, "910555"), null);

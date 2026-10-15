@@ -55,7 +55,13 @@
  */
 
 import { jugerLogement, plierType } from "../regleTypes.ts";
-import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
+import {
+  depuisListe,
+  depuisTexte,
+  fusionner,
+  type EquipementPublie,
+  type EquipementsLus,
+} from "../../../stay/equipements.ts";
 
 /** Un logement du catalogue, avant d'avoir son prix. */
 export type CarteOrchestra = {
@@ -91,6 +97,9 @@ export type FicheOrchestra = {
   /** La liste « Caractéristiques » (« Lave-vaisselle », « Animaux refusés »),
    *  puis ce que la description nomme ; `null` sans l'une ni l'autre. */
   equipements?: EquipementsLus | null;
+  /** Les lignes « Caractéristiques » telles quelles (« Télévision », « Proche
+   *  des pistes ») ; jamais la description. */
+  equipementsPublies?: EquipementPublie[] | null;
 };
 
 export type DemandeOrchestra = {
@@ -477,15 +486,71 @@ function lignesBloc(page: string, titre: RegExp): string[] | null {
  * d'une fiche déjà lue. Montrés tels quels ; leurs nombres ne remplacent pas
  * ceux du bloc « Information ».
  */
-export function annonceOrchestra(page: string): Pick<FicheOrchestra, "description" | "equipements"> {
+export function annonceOrchestra(
+  page: string,
+): Pick<FicheOrchestra, "description" | "equipements" | "equipementsPublies"> {
   const desc = lignesBloc(page, /Votre h(?:é|&eacute;)bergement/);
   const description = desc ? desc.join("\n").replace(/\n{3,}/g, "\n\n").trim() || null : null;
   const caract = lignesBloc(page, /Caract(?:é|&eacute;)ristiques/);
   const items = (caract ?? []).map((l) => ({ texte: l.replace(/^-\s*/, "") })).filter((x) => x.texte);
-  const out: Pick<FicheOrchestra, "description" | "equipements"> = {};
+  const out: Pick<FicheOrchestra, "description" | "equipements" | "equipementsPublies"> = {};
   if (description) out.description = description;
   if (caract || description) out.equipements = fusionner(depuisListe(items), description ? depuisTexte(description) : null);
+  if (items.length) out.equipementsPublies = items.map((x) => ({ libelle: x.texte }));
   return out;
+}
+
+/** Une fiche lue dit-elle quelque chose ? Rien de lu : un défi, une page
+ *  d'erreur servie en 200, autre chose qu'une fiche. */
+export function ficheParle(f: FicheOrchestra): boolean {
+  return f.capacite != null || f.lat != null || !!f.description || f.equipements != null;
+}
+
+/** Ce que la suite de fond des fiches demande au réseau et à la mémoire. */
+export type PorteSuiteOrchestra = {
+  /** La page de la fiche ; `null` : rien n'est parti (la suite a cédé). Lève sur un refus ou une panne. */
+  lire: (c: CarteOrchestra) => Promise<string | null>;
+  /** Déjà lue, gardée, ou sans chemin vers la centrale : on passe. */
+  dejaLue: (c: CarteOrchestra) => boolean;
+  /** Une raison de s'arrêter avant la fiche suivante (nouvelle recherche, durée, pause de refus). */
+  arret: () => string | null;
+  /** Ce qu'une fiche lue publie, à garder. */
+  garder: (c: CarteOrchestra, f: FicheOrchestra) => void;
+};
+
+/**
+ * La suite de fond des fiches, une à la fois, sans nouvel essai : elle
+ * s'arrête sur la première raison que donne `arret`, sur la première erreur
+ * (rendue, refus compris), et sur une page qui ne dit rien d'une fiche
+ * (`ficheParle`), qui n'est pas gardée. Au plus `max` fiches demandées.
+ */
+export async function lireSuiteOrchestra(
+  cartes: readonly CarteOrchestra[],
+  porte: PorteSuiteOrchestra,
+  max: number,
+): Promise<{ lues: number; demandes: number; arret: string | null; erreur: string | null }> {
+  let lues = 0;
+  let demandes = 0;
+  for (const c of cartes) {
+    if (demandes >= max) return { lues, demandes, arret: `${max} fiches demandées`, erreur: null };
+    const raison = porte.arret();
+    if (raison) return { lues, demandes, arret: raison, erreur: null };
+    if (porte.dejaLue(c)) continue;
+    demandes += 1;
+    let page: string | null;
+    try {
+      page = await porte.lire(c);
+    } catch (err) {
+      const erreur = err instanceof Error ? err.message : String(err);
+      return { lues, demandes, arret: `fiche ${c.id} : ${erreur}`, erreur };
+    }
+    if (page == null) return { lues, demandes, arret: porte.arret() ?? "la suite a cédé", erreur: null };
+    const f = ficheOrchestra(page);
+    if (!ficheParle(f)) return { lues, demandes, arret: `fiche ${c.id} : la page ne dit rien d'une fiche`, erreur: null };
+    porte.garder(c, f);
+    lues += 1;
+  }
+  return { lues, demandes, arret: null, erreur: null };
 }
 
 /**

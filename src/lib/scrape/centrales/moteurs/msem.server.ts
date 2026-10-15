@@ -161,6 +161,7 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
     placeName: f.adresse,
     ...(f.description ? { description: f.description } : {}),
     ...(f.equipements ? { amenities: equipements(f.equipements) } : {}),
+    ...(f.equipementsPublies?.length ? { equipementsPublies: f.equipementsPublies } : {}),
     proven: `${r.nom} (MSEM, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.pieces != null ? ` — ${f.pieces} pièce${f.pieces > 1 ? "s" : ""} annoncée${f.pieces > 1 ? "s" : ""}` : ""
     }${

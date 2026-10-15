@@ -77,7 +77,14 @@
  * `capacity` reste vide, et l'écran dit « Non renseigné ».
  */
 
-import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
+import {
+  depuisListe,
+  depuisTexte,
+  equipementsPubliesRelus,
+  fusionner,
+  type EquipementPublie,
+  type EquipementsLus,
+} from "../../../stay/equipements.ts";
 import { texteDeHtml } from "../../../stay/texteHtml.ts";
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */
@@ -126,6 +133,9 @@ export type FicheIngenie = {
    * `stay/equipements.ts`. `null` : la fiche n'a pas de zone de pictogrammes.
    */
   equipements: EquipementsLus | null;
+  /** Les mêmes pictogrammes, leur `data-title` tel que la centrale l'écrit ;
+   *  vide sans zone ; jamais la description. */
+  equipementsPublies: EquipementPublie[];
   /**
    * La description du JSON-LD de la fiche, sur la page de résultats déjà lue
    * pour ces dates. Vide chez la centrale (`""`) vaut `null`. Elle ne sert
@@ -711,11 +721,21 @@ function tarifDe(fragment: string): TarifIngenie | null {
  * lue. Un pictogramme présent vaut « oui » ; la centrale n'affiche pas les
  * absents, qui restent inconnus. `null` sans zone de pictogrammes.
  */
-export function equipementsIngenie(fragment: string): EquipementsLus | null {
+/** Les `data-title` des pictogrammes de la fiche, déséchappés ; `null` sans zone. */
+export function pictosIngenie(fragment: string): string[] | null {
   const zone = /class="picto_zone_principale_fiche_presta"[^>]*>([\s\S]*?)<\/ul>/.exec(fragment)?.[1];
   if (zone == null) return null;
-  const titres = [...zone.matchAll(/<li[^>]+data-title="([^"]+)"/g)].map((m) => ({ texte: desechapper(m[1] ?? "") }));
-  return depuisListe(titres);
+  return [...zone.matchAll(/<li[^>]+data-title="([^"]+)"/g)].map((m) => desechapper(m[1] ?? ""));
+}
+
+export function equipementsIngenie(fragment: string): EquipementsLus | null {
+  const titres = pictosIngenie(fragment);
+  return titres == null ? null : depuisListe(titres.map((texte) => ({ texte })));
+}
+
+/** Les pictogrammes tels que la centrale les écrit : le libellé seul décide. */
+export function equipementsPubliesIngenie(fragment: string): EquipementPublie[] {
+  return equipementsPubliesRelus((pictosIngenie(fragment) ?? []).map((libelle) => ({ libelle })));
 }
 
 /**
@@ -809,6 +829,7 @@ export function lireIngenie(page: string): FicheIngenie[] {
       ...lieuIngenie(fragment),
       ...occupationAfficheeIngenie(fragment),
       equipements: equipementsIngenie(fragment),
+      equipementsPublies: equipementsPubliesIngenie(fragment),
       description: descriptionIngenie(fragment),
     });
   }

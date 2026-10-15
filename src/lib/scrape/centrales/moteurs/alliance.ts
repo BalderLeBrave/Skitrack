@@ -18,6 +18,15 @@
  * les personnes : c'est le total du logement pour ces nuits.
  *
  * Un article `dispo` autre que 1, ou un prix nul, n'est pas un séjour vendu.
+ *
+ * **Ce qui n'est pas relevé.** Le catalogue n'est lu que pour la clé, le
+ * titre et le point ; la recherche datée, pour la clé, le prix et `dispo`. La
+ * description, les équipements et la photo ne le sont pas, et l'on ne sait pas
+ * si ces deux réponses les publient : aucune capture complète n'est versée au
+ * dépôt (15 octobre 2026). L'écran le dit « Équipements non lus ». La fiche de
+ * chaque logement est un `catalogue.js` par logement sous
+ * `map-jsonp.open-system.fr/data/…`, hôte dont robots.txt dit `Disallow: /` :
+ * elle n'est pas lue.
  */
 import { jugerLogement } from "../regleTypes.ts";
 

@@ -1,6 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { equipements } from "../../../stay/equipements.ts";
+import { aEquipement } from "../../../stay/ficheEnrichie.ts";
 import {
   appliquerRegleOpenSystem,
   fragmentsOpenSystem,
@@ -804,5 +806,16 @@ describe("Open System : extrait de description et pictogrammes, sur un relevé r
   it("chaque bloc porte sa description et ses équipements", () => {
     assert.equal(fiches.length, 3);
     assert.ok(fiches.every((f) => f.description && f.equipements));
+  });
+
+  it("les pictogrammes publiés tels quels : la Télévision, hors des douze clés, n'est plus perdue", () => {
+    assert.deepEqual(
+      bois.equipementsPublies?.map((p) => p.libelle),
+      ["Linge de lit inclus", "Lave-linge", "Lave-vaisselle", "Télévision"],
+    );
+    assert.ok(fiches.every((f) => f.equipementsPublies?.some((p) => p.libelle === "Télévision")));
+    const annonce = { ...(bois as object), amenities: equipements(bois.equipements!), equipementsPublies: bois.equipementsPublies } as never;
+    assert.ok(aEquipement(annonce, "television"));
+    assert.ok(!aEquipement({ ...(annonce as object), equipementsPublies: null } as never, "television"));
   });
 });

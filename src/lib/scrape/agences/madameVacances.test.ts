@@ -21,6 +21,7 @@ import {
   voyageurs,
 } from "./madameVacances.ts";
 import type { LiveSearchInput } from "../types.ts";
+import { equipementsDe, equipementsTus } from "../../stay/ficheEnrichie.ts";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const fx = (f: string) => readFileSync(join(dir, "fixtures", f), "utf8");
@@ -164,6 +165,15 @@ describe("Madame Vacances : annonces", () => {
       [["balcon", "oui"]],
     );
     assert.equal(l.amenities?.length, 12);
+  });
+
+  it("la composition publiée en libellés : Terrasse et Cuisine, sans chambres ni salle d'eau", () => {
+    const [l] = madameVacancesListings(ours, OURS, DEUX_ALPES);
+    assert.deepEqual(l.equipementsPublies, [{ libelle: "Terrasse" }, { libelle: "Cuisine" }]);
+    const vus = equipementsDe(l) ?? [];
+    assert.deepEqual(vus.map((e) => e.id).sort(), ["autre:cuisine", "balcon"]);
+    assert.equal(vus.find((e) => e.id === "balcon")?.libelle, "Terrasse");
+    assert.equal(equipementsTus(l).length, 11);
   });
 
   it("un hôtel n'est jamais rendu, même avec une fiche", () => {

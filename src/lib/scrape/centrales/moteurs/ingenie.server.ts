@@ -144,6 +144,8 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     // Pictogrammes de la page déjà lue, complétés par la description du même
     // JSON-LD. L'un et l'autre manquent ensemble : la liste reste non lue.
     amenities: equipements(equipementsAvecDescription(f.equipements, f.description)),
+    // `?.` : une suite lue avant cette version (gardée dans `globalThis`) n'a pas le champ.
+    ...(f.equipementsPublies?.length ? { equipementsPublies: f.equipementsPublies } : {}),
     ...(f.description ? { description: f.description } : {}),
     proven: `${r.nom} (Ingénie, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuit${
       nuits > 1 ? "s" : ""

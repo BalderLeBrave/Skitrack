@@ -150,6 +150,7 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     propertyType: f.type,
     ...(f.description ? { description: f.description } : {}),
     ...(f.equipements ? { amenities: equipements(f.equipements) } : {}),
+    ...(f.equipementsPublies?.length ? { equipementsPublies: f.equipementsPublies } : {}),
     available: true,
     photo: f.photo,
     url: `${base.replace(/\/+$/, "")}${f.chemin}?DateRecherche=${encodeURIComponent(`${ctx.checkIn}|${ctx.checkOut}`)}`,

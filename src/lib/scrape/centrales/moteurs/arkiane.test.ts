@@ -12,9 +12,13 @@ import {
   horsRegleArkiane,
   lireArkiane,
   lireDetailArkiane,
+  lireSuiteArkiane,
+  pictosArkiane,
   suiteArkiane,
   titreArkiane,
   typeEcarteArkiane,
+  type FicheArkiane,
+  type PorteSuiteArkiane,
 } from "./arkiane.ts";
 
 /**
@@ -413,8 +417,83 @@ describe("Arkiane : description et équipements du détail, sur un relevé réel
     assert.equal(d.equipements!.linge, "oui");
   });
 
+  it("les pictogrammes publiés tels quels, dans l'ordre : la Télévision n'est plus perdue", () => {
+    assert.deepEqual(
+      d.equipementsPublies?.map((p) => p.libelle),
+      ["Lave-vaisselle", "Lave-linge", "Connexion WIFI", "Télévision", "Garage / Parking", "Animaux refusés"],
+    );
+    assert.deepEqual(pictosArkiane("<div>rien</div>"), []);
+  });
+
   it("une page suivante muette s'arrête ; la première lève", () => {
     assert.equal(suiteArkiane(1), "lever");
     assert.equal(suiteArkiane(2), "arreter");
+  });
+});
+
+describe("Arkiane : la suite de fond des détails, un lot à la fois, sans nouvel essai", () => {
+  const DETAIL = readFileSync(new URL("./fixtures/arkiane-pralognan-detail-colliouroe.html", import.meta.url), "utf8");
+  const lot = (n: string) =>
+    ({ lot: n, detail: { action: "/fr-FR/Lot/Detail", champs: [["id", n]] } }) as unknown as FicheArkiane;
+  const lots = ["1", "2", "3", "4"].map(lot);
+  /** Une porte qui répond `reponses` dans l'ordre et note ce qui part et ce qui se garde. */
+  function porte(reponses: { statut: number; page: string | null }[], p: Partial<PorteSuiteArkiane> = {}) {
+    const partis: string[] = [];
+    const gardes: string[] = [];
+    const porte: PorteSuiteArkiane = {
+      lire: async (f) => {
+        partis.push(f.lot);
+        return reponses.shift() ?? { statut: 200, page: DETAIL };
+      },
+      dejaLu: () => false,
+      arret: () => null,
+      garder: (f, d) => {
+        assert.ok(d.equipementsPublies?.some((e) => e.libelle === "Télévision"));
+        gardes.push(f.lot);
+      },
+      ...p,
+    };
+    return { porte, partis, gardes };
+  }
+
+  it("lit chaque lot et garde ce qu'il publie, au plus `max`", async () => {
+    const { porte: p, partis, gardes } = porte([]);
+    const r = await lireSuiteArkiane(lots, p, 3);
+    assert.deepEqual(partis, ["1", "2", "3"]);
+    assert.deepEqual(gardes, ["1", "2", "3"]);
+    assert.equal(r.lus, 3);
+    assert.match(r.arret ?? "", /3 détails/);
+  });
+
+  it("un refus arrête tout, sans nouvel essai, et se rend", async () => {
+    const { porte: p, partis, gardes } = porte([{ statut: 200, page: DETAIL }, { statut: 429, page: null }]);
+    const r = await lireSuiteArkiane(lots, p, 50);
+    assert.deepEqual(partis, ["1", "2"]);
+    assert.deepEqual(gardes, ["1"]);
+    assert.equal(r.refus, 429);
+  });
+
+  it("une page qui n'est pas un détail (session perdue) arrête, sans rien garder", async () => {
+    const { porte: p, gardes } = porte([{ statut: 200, page: "<html>accueil</html>" }]);
+    const r = await lireSuiteArkiane(lots, p, 50);
+    assert.deepEqual(gardes, []);
+    assert.match(r.arret ?? "", /autre chose qu'un détail/);
+  });
+
+  it("cède à une nouvelle recherche, avant un lot ou pendant l'attente de son tour", async () => {
+    let tours = 0;
+    const avant = porte([], { arret: () => (++tours > 1 ? "une nouvelle recherche est partie" : null) });
+    const r = await lireSuiteArkiane(lots, avant.porte, 50);
+    assert.deepEqual(avant.partis, ["1"]);
+    assert.equal(r.arret, "une nouvelle recherche est partie");
+    const pendant = porte([{ statut: 0, page: null }]);
+    assert.equal((await lireSuiteArkiane(lots, pendant.porte, 50)).lus, 0);
+    assert.deepEqual(pendant.gardes, []);
+  });
+
+  it("un lot déjà lu ou gardé ne part pas", async () => {
+    const { porte: p, partis } = porte([], { dejaLu: (f) => f.lot !== "3" });
+    await lireSuiteArkiane(lots, p, 50);
+    assert.deepEqual(partis, ["3"]);
   });
 });

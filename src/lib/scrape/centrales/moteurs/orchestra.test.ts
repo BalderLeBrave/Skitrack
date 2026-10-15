@@ -16,6 +16,10 @@ import {
   suiteSerpOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
+  ficheParle,
+  lireSuiteOrchestra,
+  type CarteOrchestra,
+  type PorteSuiteOrchestra,
 } from "./orchestra.ts";
 
 describe("Orchestra : la référence publiée du logement", () => {
@@ -534,6 +538,13 @@ describe("Orchestra : description et équipements d'une fiche réelle de La Plag
   it("les champs du bloc « Information » ne changent pas", () => {
     assert.deepEqual([f.capacite, f.pieces, f.village], [6, 2, "CHAMPAGNY"]);
   });
+
+  it("les lignes « Caractéristiques » publiées telles quelles : la Télévision n'est plus perdue", () => {
+    assert.deepEqual(
+      f.equipementsPublies?.map((p) => p.libelle),
+      ["Orienté Sud", "Orienté Ouest", "Lave-vaisselle", "Connexion WIFI", "Télévision", "Ascenseur", "Balcon / Terrasse", "Animaux refusés", "Proche des pistes"],
+    );
+  });
 });
 
 describe("Orchestra : destinations publiées, pas inventées", () => {
@@ -600,5 +611,72 @@ describe("Orchestra : destinations publiées, pas inventées", () => {
   it("une page suivante muette s'arrête ; la première lève", () => {
     assert.equal(suiteSerpOrchestra(0), "lever");
     assert.equal(suiteSerpOrchestra(3), "arreter");
+  });
+});
+
+describe("Orchestra : la suite de fond des fiches, une à la fois, sans nouvel essai", () => {
+  const FICHE = readFileSync(new URL("./fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url), "utf8");
+  const carte = (id: string) => ({ id, titre: `Logement ${id}`, chemin: `/fr/location/x-${id}` }) as unknown as CarteOrchestra;
+  const cartes = ["1", "2", "3", "4"].map(carte);
+  /** Une porte qui répond `pages` dans l'ordre (une `Error` lève) et note ce qui part et ce qui se garde. */
+  function porte(pages: (string | null | Error)[], p: Partial<PorteSuiteOrchestra> = {}) {
+    const partis: string[] = [];
+    const gardes: string[] = [];
+    const porte: PorteSuiteOrchestra = {
+      lire: async (c) => {
+        partis.push(c.id);
+        const r = pages.length ? pages.shift()! : FICHE;
+        if (r instanceof Error) throw r;
+        return r;
+      },
+      dejaLue: () => false,
+      arret: () => null,
+      garder: (c, f) => {
+        assert.ok(f.equipementsPublies?.some((e) => e.libelle === "Télévision"));
+        gardes.push(c.id);
+      },
+      ...p,
+    };
+    return { porte, partis, gardes };
+  }
+
+  it("lit chaque fiche et garde ce qu'elle publie, au plus `max`", async () => {
+    const { porte: p, partis, gardes } = porte([]);
+    const r = await lireSuiteOrchestra(cartes, p, 2);
+    assert.deepEqual(partis, ["1", "2"]);
+    assert.deepEqual(gardes, ["1", "2"]);
+    assert.match(r.arret ?? "", /2 fiches/);
+  });
+
+  it("une erreur (un refus) arrête tout, sans nouvel essai, et se rend", async () => {
+    const { porte: p, partis, gardes } = porte([FICHE, new Error("la centrale a répondu 429")]);
+    const r = await lireSuiteOrchestra(cartes, p, 100);
+    assert.deepEqual(partis, ["1", "2"]);
+    assert.deepEqual(gardes, ["1"]);
+    assert.equal(r.erreur, "la centrale a répondu 429");
+  });
+
+  it("une page qui ne dit rien d'une fiche (défi, erreur en 200) arrête, sans rien garder", async () => {
+    assert.equal(ficheParle(ficheOrchestra("<html>Un instant…</html>")), false);
+    assert.equal(ficheParle(ficheOrchestra(FICHE)), true);
+    const { porte: p, gardes } = porte(["<html>Un instant…</html>"]);
+    const r = await lireSuiteOrchestra(cartes, p, 100);
+    assert.deepEqual(gardes, []);
+    assert.match(r.arret ?? "", /ne dit rien d'une fiche/);
+  });
+
+  it("cède à une nouvelle recherche, avant une fiche ou pendant l'attente de son tour", async () => {
+    let tours = 0;
+    const avant = porte([], { arret: () => (++tours > 1 ? "une nouvelle recherche est partie" : null) });
+    assert.equal((await lireSuiteOrchestra(cartes, avant.porte, 100)).arret, "une nouvelle recherche est partie");
+    assert.deepEqual(avant.partis, ["1"]);
+    const pendant = porte([null]);
+    assert.equal((await lireSuiteOrchestra(cartes, pendant.porte, 100)).lues, 0);
+  });
+
+  it("une fiche déjà lue ou gardée ne part pas", async () => {
+    const { porte: p, partis } = porte([], { dejaLue: (c) => c.id !== "4" });
+    await lireSuiteOrchestra(cartes, p, 100);
+    assert.deepEqual(partis, ["4"]);
   });
 });

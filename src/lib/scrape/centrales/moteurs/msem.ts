@@ -55,7 +55,13 @@
  *   `CAMPING`, `CHAMBRE_HOTE` (voir `KINDS_LOCATION_MSEM`).
  */
 
-import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
+import {
+  depuisListe,
+  depuisTexte,
+  fusionner,
+  type EquipementPublie,
+  type EquipementsLus,
+} from "../../../stay/equipements.ts";
 
 /** Un hébergement du catalogue, réduit à ce dont on se sert. */
 export type HebergementMsem = {
@@ -158,6 +164,9 @@ export type FicheMsem = {
   /** Les options du catalogue (équipements présents), puis ce que la
    *  description nomme ; `null` sans l'un ni l'autre. */
   equipements?: EquipementsLus | null;
+  /** Les libellés de ses options, tels que le catalogue les publie (« Pied des
+   *  pistes », « Jardin privatif ») ; absent sans option ; jamais la description. */
+  equipementsPublies?: EquipementPublie[];
 };
 
 /**
@@ -175,6 +184,28 @@ export function equipementsMsem(
   const items = (options ?? []).map((c) => ({ texte: libelles.get(String(c)) ?? "" })).filter((x) => x.texte);
   if (options == null && description == null) return null;
   return fusionner(depuisListe(items), description ? depuisTexte(description) : null);
+}
+
+/**
+ * Les libellés des options d'un hébergement, dans l'ordre publié : un code du
+ * dictionnaire, une fois, libellé non vide. Les langues parlées
+ * (`spokenLanguages`) ne sont pas des équipements ; un code inconnu ne dit rien.
+ */
+export function equipementsPubliesMsem(
+  h: Pick<HebergementMsem, "options">,
+  dictionnaire: readonly OptionMsem[] | null | undefined,
+): EquipementPublie[] {
+  const parCode = new Map((dictionnaire ?? []).map((o) => [String(o.code), o] as const));
+  const vus = new Set<string>();
+  const out: EquipementPublie[] = [];
+  for (const c of Array.isArray(h.options) ? h.options : []) {
+    const o = parCode.get(String(c));
+    const libelle = o?.label?.trim();
+    if (!o || !libelle || o.kind === "spokenLanguages" || vus.has(String(c))) continue;
+    vus.add(String(c));
+    out.push({ libelle });
+  }
+  return out;
 }
 
 /** L'URL du catalogue d'une centrale. Invariante : elle ne porte pas de dates. */
@@ -387,6 +418,7 @@ export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem 
     const galerie = photos(h);
     const long = typeof h.descriptions?.long === "string" ? h.descriptions.long.trim() : "";
     const description = long || null;
+    const publies = equipementsPubliesMsem(h, catalogue?.options);
     out.push({
       id,
       titre,
@@ -404,6 +436,7 @@ export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem 
       commune,
       description,
       equipements: equipementsMsem(h, catalogue?.options, description),
+      ...(publies.length ? { equipementsPublies: publies } : {}),
     });
   }
   return out;

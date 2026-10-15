@@ -34,7 +34,8 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
-import { depuisTexte, equipements, fusionner, type Equipement } from "../../stay/equipements.ts";
+import { depuisTexte, equipements, fusionner, type Equipement, type EquipementPublie } from "../../stay/equipements.ts";
+import { servicesInclus } from "../../stay/servicesTravelski.ts";
 import { texteDeHtml } from "../../stay/texteHtml.ts";
 
 export const TRAVELSKI_SITE = "https://www.travelski.com";
@@ -249,6 +250,9 @@ export type FicheTravelski = {
   logements: Map<string, LogementFiche>;
   /** Les services de la résidence (« Linge de lit fourni… »), en texte. */
   services?: string | null;
+  /** Les « Services inclus » de la résidence, un libellé par ligne, tels que
+   *  la fiche les publie (`servicesInclus`) ; les services payants n'y sont pas. */
+  servicesInclus?: EquipementPublie[];
   /** `picturesLodgingWinter[].img` (à défaut `picturesLodging`) : la résidence. */
   photosResidence?: string[];
 };
@@ -272,7 +276,12 @@ function imagesFiche(v: unknown): string[] {
 export function contenuTravelski(
   fiche: FicheTravelski | null,
   id: string,
-): { description: string | null; photos: string[] | null; amenities: Equipement[] | null } | null {
+): {
+  description: string | null;
+  photos: string[] | null;
+  amenities: Equipement[] | null;
+  equipementsPublies?: EquipementPublie[];
+} | null {
   const l = fiche?.logements.get(id);
   if (!fiche || !l) return null;
   const photos = [...new Set([...(l.photos ?? []), ...(fiche.photosResidence ?? [])])];
@@ -282,6 +291,9 @@ export function contenuTravelski(
     description,
     photos: photos.length ? photos : null,
     amenities: textes.length ? equipements(fusionner(...textes.map((t) => depuisTexte(t)))) : null,
+    // Les services inclus tels quels : la Télévision n'a pas de place parmi
+    // les douze clés. Ils valent pour chaque logement de la résidence.
+    ...(fiche.servicesInclus?.length ? { equipementsPublies: fiche.servicesInclus } : {}),
   };
 }
 
@@ -331,12 +343,14 @@ export function lireFiche(html: string): FicheTravelski | null {
   const hiver = imagesFiche(lihe.picturesLodgingWinter);
   const photosResidence = hiver.length ? hiver : imagesFiche(lihe.picturesLodging);
   const services = texteDeHtml(typeof lihe.services === "string" ? lihe.services : null);
+  const inclus = servicesInclus(typeof lihe.services === "string" ? lihe.services : null);
   return {
     liheId,
     lat: point?.lat ?? null,
     lon: point?.lon ?? null,
     logements,
     ...(services ? { services } : {}),
+    ...(inclus.length ? { servicesInclus: inclus } : {}),
     ...(photosResidence.length ? { photosResidence } : {}),
   };
 }

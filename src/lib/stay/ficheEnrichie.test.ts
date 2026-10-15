@@ -12,6 +12,11 @@ import {
 } from "../scrape/centrales/moteurs/msem.ts";
 import { ficheOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
 import {
+  equipementsAvecDescription,
+  fragmentsIngenie,
+  lireIngenie,
+} from "../scrape/centrales/moteurs/ingenie.ts";
+import {
   depuisAmenities,
   depuisListe,
   equipements,
@@ -512,6 +517,7 @@ describe("équipements à l'écran : lus, tus, non lus", () => {
 const CENTRALES = new URL("../scrape/centrales/moteurs/fixtures/", import.meta.url);
 const ORCHESTRA = readFileSync(new URL("orchestra-laplagne-fiche-chardonnet.html", CENTRALES), "utf8");
 const ARKIANE = readFileSync(new URL("arkiane-pralognan-detail-colliouroe.html", CENTRALES), "utf8");
+const INGENIE = readFileSync(new URL("ingenie-grandbornand-2fiches.html", CENTRALES), "utf8");
 
 /** Les lignes « Caractéristiques » de la fiche Orchestra, telles que la centrale les publie. */
 function caracteristiquesOrchestra(page: string): EquipementPublie[] {
@@ -529,6 +535,12 @@ function pictosArkiane(page: string): EquipementPublie[] {
   return [...zone.matchAll(/<img[^>]+class="picto[^"]*"[^>]+alt="([^"]+)"/g)].map((m) => ({
     libelle: decoderEntites(m[1]),
   }));
+}
+
+/** Les pictos d'une fiche de la liste Ingénie (`picto_zone_principale_fiche_presta`) : leur `data-title`. */
+function pictosIngenie(fragment: string): EquipementPublie[] {
+  const zone = /class="picto_zone_principale_fiche_presta"[^>]*>([\s\S]*?)<\/ul>/.exec(fragment)?.[1] ?? "";
+  return [...zone.matchAll(/<li[^>]+data-title="([^"]+)"/g)].map((m) => ({ libelle: decoderEntites(m[1]) }));
 }
 
 describe("équipements publiés sans fiche : réunis aux douze clés, par clé", () => {
@@ -587,6 +599,43 @@ describe("équipements publiés sans fiche : réunis aux douze clés, par clé",
     ]);
     assert.equal(equipementsDe(l)!.find((e) => e.id === "parking")?.libelle, "Garage / Parking");
     assert.equal(aEquipement(annonce({ source: "Centrale", amenities: l.amenities }), "television"), false, "avant : perdue");
+  });
+
+  it("Ingénie (Le Grand-Bornand) : les pictos de la liste, gardés tels quels, ne changent que le libellé", () => {
+    // Chaque fiche de la page de résultats : les douze clés comme `enListing`
+    // (ingenie.server.ts) les pose — pictos, puis description du JSON-LD,
+    // vide ici —, et les libellés comme le moteur les publiera
+    // (`equipementsPublies`, à poser dans les scraps).
+    const lues = fragmentsIngenie(INGENIE).map((fragment) => ({
+      f: lireIngenie(fragment)[0],
+      publies: pictosIngenie(fragment),
+    }));
+    assert.deepEqual(
+      lues.map(({ f, publies }) => [f.titre, publies.map((p) => p.libelle)]),
+      [
+        ["Chalet La Favellaz", ["WiFi", "Lave vaisselle", "Animaux admis", "Parking, Garage"]],
+        ["Dauphinelles", ["Parking, Garage"]],
+      ],
+    );
+    // Tout ce que la capture publie est déjà lu par les douze clés : rien n'y
+    // était perdu, chaque picto y nomme une clé et une seule.
+    for (const { publies } of lues)
+      for (const p of publies) assert.equal(Object.keys(depuisListe([{ texte: p.libelle }])).length, 1, p.libelle);
+    for (const [i, { f, publies }] of lues.entries()) {
+      const amenities = equipements(equipementsAvecDescription(f.equipements, f.description));
+      const avant = annonce({ source: "Centrale", amenities });
+      const apres = annonce({ source: "Centrale", amenities, equipementsPublies: publies });
+      assert.deepEqual(ids(apres), ids(avant), f.titre);
+      assert.deepEqual(ids(apres), i === 0 ? ["wifi", "lave_vaisselle", "parking", "animaux"] : ["parking"]);
+      // Le libellé de la source, sous le nom de la table.
+      assert.deepEqual(
+        equipementsDe(apres)!.map((e) => e.libelle),
+        i === 0 ? ["WiFi", "Lave vaisselle", "Parking, Garage", "Animaux admis"] : ["Parking, Garage"],
+      );
+      // Ni filtre ni « non indiqué » ne bouge.
+      assert.deepEqual(equipementsTus(apres), equipementsTus(avant), f.titre);
+      for (const id of Object.keys(EQUIPEMENTS_FICHE)) assert.equal(aEquipement(apres, id), aEquipement(avant, id), id);
+    }
   });
 
   it("une liste publiée sans les douze clés : la liste fermée la lit comme le collecteur, refus compris", () => {

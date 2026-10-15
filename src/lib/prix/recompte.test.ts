@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { champsDuVerdict, domainFit } from "../domainFit.ts";
 import { GRANDS_DOMAINES } from "../grandsDomaines.ts";
 import type { Listing } from "../listings.ts";
@@ -328,6 +329,38 @@ describe("un même bien collecté deux fois ne fait qu'un logement", () => {
     assert.equal(n.fiche, sienne);
     const [o] = dedoublonnerParBien([cozyDe(), directDe({ fiche: fiche({ indisponible: true }) })]);
     assert.equal(o.fiche, undefined);
+  });
+
+  it("les libellés publiés sans fiche viennent de l'autre copie quand la gardée n'en porte pas", () => {
+    // La fiche Orchestra de La Plagne : ses « Caractéristiques », telles que la centrale les publie.
+    const page = readFileSync(
+      new URL("../scrape/centrales/moteurs/fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url),
+      "utf8",
+    );
+    const publies = /Caract(?:é|&eacute;)ristiques\s*<\/h3>\s*<div class="txt-content">([\s\S]*?)<\/div>/
+      .exec(page)![1]
+      .split(/<br\s*\/?>/)
+      .map((l) => l.replace(/\s+/g, " ").trim().replace(/^-\s*/, ""))
+      .filter(Boolean)
+      .map((libelle) => ({ libelle }));
+    assert.ok(publies.some((p) => p.libelle === "Télévision"));
+    const bien = { source: "Centrale" as const, id: "or-laplagne-chardonnet", url: null };
+    const recherche = situee({ ...bien, total: 1500, amenities: [eq("wifi", "oui")] });
+    const lue = situee({ ...bien, total: 1600, amenities: [eq("balcon", "oui")], equipementsPublies: publies });
+    const [l] = dedoublonnerParBien([recherche, lue]);
+    assert.equal(l.total, 1500, "la moins chère reste gardée");
+    assert.deepEqual(l.equipementsPublies, publies);
+    assert.deepEqual(
+      l.amenities?.map((e) => e.cle),
+      ["wifi"],
+      "ses douze clés restent les siennes",
+    );
+    // Les siens restent ; une liste vide ne masque pas celle de l'autre copie.
+    const siens = [{ libelle: "Sauna" }];
+    const [m] = dedoublonnerParBien([{ ...recherche, equipementsPublies: siens }, lue]);
+    assert.deepEqual(m.equipementsPublies, siens);
+    const [n] = dedoublonnerParBien([{ ...recherche, equipementsPublies: [] }, lue]);
+    assert.deepEqual(n.equipementsPublies, publies);
   });
 });
 

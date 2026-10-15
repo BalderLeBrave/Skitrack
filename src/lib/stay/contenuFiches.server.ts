@@ -1,6 +1,7 @@
 /**
  * Ce qu'une fiche déjà lue publie et que l'annonce ne porte pas : sa
- * description, sa galerie, ses équipements. Gardé trente jours, à côté de la
+ * description, sa galerie, ses équipements (les douze clés, et les libellés
+ * tels que la source les publie sans fiche). Gardé trente jours, à côté de la
  * mémoire des fiches (`memoireFiches.server.ts`), dans `fiches-contenu.json`.
  *
  * Pourquoi une mémoire à part : certains collecteurs ne lisent une fiche
@@ -24,8 +25,8 @@
 import { mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { Listing } from "../listings.ts";
-import type { Equipement } from "./equipements.ts";
-import { CLES_EQUIPEMENT } from "./equipements.ts";
+import type { Equipement, EquipementPublie } from "./equipements.ts";
+import { CLES_EQUIPEMENT, equipementsPubliesRelus } from "./equipements.ts";
 import { ficheRelue, type FicheEnrichie } from "./ficheEnrichie.ts";
 import { cheminMemoire, DUREE_MEMOIRE_MS, memoireFiches } from "./memoireFiches.server.ts";
 import { cleListing } from "./poserReleve.ts";
@@ -34,6 +35,9 @@ export type ContenuFiche = {
   description: string | null;
   photos: string[] | null;
   amenities: Equipement[] | null;
+  /** Les libellés que la page publie en liste (`Listing.equipementsPublies`),
+   *  quand le collecteur les lit ; absent sinon. */
+  equipementsPublies?: EquipementPublie[] | null;
 };
 
 type Entree = ContenuFiche & { vu: number };
@@ -44,7 +48,8 @@ export function cheminContenu(): string {
   return join(dirname(cheminMemoire()), "fiches-contenu.json");
 }
 
-/** Ce qui se garde d'une entrée relue : des chaînes, des adresses, des clés connues. */
+/** Ce qui se garde d'une entrée relue : des chaînes, des adresses, des clés
+ *  connues, des libellés publiés non vides. */
 export function contenuLu(v: unknown): ContenuFiche | null {
   if (!v || typeof v !== "object") return null;
   const o = v as Record<string, unknown>;
@@ -63,8 +68,14 @@ export function contenuLu(v: unknown): ContenuFiche | null {
           typeof (e as Equipement).libelle === "string",
       )
     : null;
-  if (!description && !photos?.length && !amenities?.length) return null;
-  return { description, photos: photos?.length ? photos : null, amenities: amenities?.length ? amenities : null };
+  const publies = equipementsPubliesRelus(o.equipementsPublies);
+  if (!description && !photos?.length && !amenities?.length && !publies.length) return null;
+  return {
+    description,
+    photos: photos?.length ? photos : null,
+    amenities: amenities?.length ? amenities : null,
+    ...(publies.length ? { equipementsPublies: publies } : {}),
+  };
 }
 
 export class ContenuFiches {
@@ -110,7 +121,12 @@ export class ContenuFiches {
     this.charger();
     const e = this.contenus.get(cle);
     if (!e || now - e.vu > this.dureeMs) return null;
-    return { description: e.description, photos: e.photos, amenities: e.amenities };
+    return {
+      description: e.description,
+      photos: e.photos,
+      amenities: e.amenities,
+      ...(e.equipementsPublies?.length ? { equipementsPublies: e.equipementsPublies } : {}),
+    };
   }
 
   /** Garde le contenu de fiches lues ; une entrée vide n'efface rien. */
@@ -158,7 +174,8 @@ export function contenuFiches(): ContenuFiches {
  * Ce qu'un collecteur a lu sur la page d'une annonce, à garder trente jours.
  * `cle` : celle de `cleListing` (`poserReleve.ts`). `fiche` : la fiche
  * enrichie (`ficheEnrichie.ts`), d'une source connue (`SourceFiche`), dans la
- * mémoire des fiches. `contenu` : description, galerie et équipements, ici.
+ * mémoire des fiches. `contenu` : description, galerie et équipements (les
+ * douze clés, et les libellés publiés quand le collecteur les lit), ici.
  */
 export type LectureAGarder = {
   cle: string | null | undefined;
@@ -215,12 +232,13 @@ function equipementsMuets(a: readonly Equipement[] | null | undefined): boolean 
 /**
  * Pose sur l'annonce le contenu d'une fiche, là où elle se tait : la
  * description si elle n'en a pas ; les équipements si elle n'en a pas, ou si
- * les siens ne disent rien (`equipementsMuets`) et ceux de la fiche, si ; la
- * galerie si elle n'a que sa photo principale. Ne remplace rien de ce que le
- * relevé a donné. Rend `true` si quelque chose a été posé.
+ * les siens ne disent rien (`equipementsMuets`) et ceux de la fiche, si ; les
+ * libellés publiés si elle n'en porte aucun ; la galerie si elle n'a que sa
+ * photo principale. Ne remplace rien de ce que le relevé a donné. Rend `true`
+ * si quelque chose a été posé.
  */
 export function poserContenu(
-  row: Partial<Pick<Listing, "description" | "amenities" | "photo" | "photos">>,
+  row: Partial<Pick<Listing, "description" | "amenities" | "equipementsPublies" | "photo" | "photos">>,
   c: Partial<ContenuFiche> | null | undefined,
 ): boolean {
   if (!c) return false;
@@ -232,6 +250,10 @@ export function poserContenu(
   const muets = equipementsMuets(row.amenities);
   if (c.amenities?.length && (row.amenities == null || (muets && !equipementsMuets(c.amenities)))) {
     row.amenities = c.amenities;
+    pose = true;
+  }
+  if (!row.equipementsPublies?.length && c.equipementsPublies?.length) {
+    row.equipementsPublies = c.equipementsPublies;
     pose = true;
   }
   const galerie = [...new Set([...(row.photo ? [row.photo] : []), ...(row.photos ?? [])])];

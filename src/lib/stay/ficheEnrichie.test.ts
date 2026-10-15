@@ -2,12 +2,15 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import type { Listing } from "../listings.ts";
+import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
+import { ficheOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
 import {
   depuisAmenities,
   equipements,
   EQUIPEMENTS_FICHE,
   idEquipement,
   normaliserEquipements,
+  type EquipementPublie,
 } from "./equipements.ts";
 import {
   aEquipement,
@@ -27,6 +30,7 @@ import {
   tronquer,
   type FicheEnrichie,
 } from "./ficheEnrichie.ts";
+import { decoderEntites } from "./texteHtml.ts";
 
 function annonce(over: Partial<Listing> = {}): Listing {
   return {
@@ -492,5 +496,169 @@ describe("équipements à l'écran : lus, tus, non lus", () => {
     assert.equal(equipementsLus(annonce()), false);
     assert.equal(equipementsLus(annonce({ fiche: fiche({ indisponible: true }) })), false);
     assert.deepEqual(equipementsTus(annonce()), []);
+  });
+});
+
+/* ---------- Les libellés publiés sans fiche (`equipementsPublies`) ---------- */
+
+const CENTRALES = new URL("../scrape/centrales/moteurs/fixtures/", import.meta.url);
+const ORCHESTRA = readFileSync(new URL("orchestra-laplagne-fiche-chardonnet.html", CENTRALES), "utf8");
+const ARKIANE = readFileSync(new URL("arkiane-pralognan-detail-colliouroe.html", CENTRALES), "utf8");
+
+/** Les lignes « Caractéristiques » de la fiche Orchestra, telles que la centrale les publie. */
+function caracteristiquesOrchestra(page: string): EquipementPublie[] {
+  const bloc = /Caract(?:é|&eacute;)ristiques\s*<\/h3>\s*<div class="txt-content">([\s\S]*?)<\/div>/.exec(page)![1];
+  return bloc
+    .split(/<br\s*\/?>/)
+    .map((l) => decoderEntites(l.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim().replace(/^-\s*/, ""))
+    .filter(Boolean)
+    .map((libelle) => ({ libelle }));
+}
+
+/** Les pictos de la zone « Equipements » du détail Arkiane : leur `alt`. */
+function pictosArkiane(page: string): EquipementPublie[] {
+  const zone = /Equipements\s*:\s*<\/div>([\s\S]*?)<\/div>/.exec(page)![1];
+  return [...zone.matchAll(/<img[^>]+class="picto[^"]*"[^>]+alt="([^"]+)"/g)].map((m) => ({
+    libelle: decoderEntites(m[1]),
+  }));
+}
+
+describe("équipements publiés sans fiche : réunis aux douze clés, par clé", () => {
+  const ids = (l: Listing) => equipementsDe(l)!.map((e) => (e.present ? e.id : `${e.id}(non)`));
+  const orchestra = annonce({
+    source: "Centrale",
+    amenities: equipements(ficheOrchestra(ORCHESTRA).equipements),
+    equipementsPublies: caracteristiquesOrchestra(ORCHESTRA),
+  });
+
+  it("Orchestra (La Plagne) : la Télévision et ce que la table ignore arrivent, les douze clés restent", () => {
+    assert.deepEqual(ids(orchestra), [
+      "balcon",
+      "wifi",
+      "lave_vaisselle",
+      "linge_fourni",
+      "casier_skis",
+      "animaux(non)",
+      "ascenseur",
+      "autre:oriente sud",
+      "autre:oriente ouest",
+      "television",
+      "autre:proche des pistes",
+    ]);
+    assert.equal(aEquipement(orchestra, "television"), true);
+    // Les clés tirées de la description ne dérivent pas (« Linge fourni »
+    // relu par la table serait `autre:linge fourni`).
+    for (const id of ["casier_skis", "linge_fourni", "wifi"]) assert.equal(aEquipement(orchestra, id), true, id);
+    assert.equal(animauxDe(orchestra), "non");
+    // Sans doublon : une clé, une ligne.
+    const vus = ids(orchestra).map((x) => x.replace("(non)", ""));
+    assert.equal(new Set(vus).size, vus.length);
+    // Le libellé de la source reste, sous le nom de la table.
+    const libelle = (id: string) => equipementsDe(orchestra)!.find((e) => e.id === id)?.libelle;
+    assert.deepEqual(
+      [libelle("wifi"), libelle("balcon"), libelle("television"), libelle("linge_fourni")],
+      ["Connexion WIFI", "Balcon / Terrasse", "Télévision", "Linge fourni"],
+    );
+  });
+
+  it("Arkiane (Pralognan) : le picto Télévision s'ajoute aux douze clés des pictos", () => {
+    const l = annonce({
+      source: "Centrale",
+      amenities: equipements(lireDetailArkiane(ARKIANE).equipements),
+      equipementsPublies: pictosArkiane(ARKIANE),
+    });
+    assert.deepEqual(ids(l), [
+      "balcon",
+      "wifi",
+      "lave_vaisselle",
+      "lave_linge",
+      "linge_fourni",
+      "parking",
+      "animaux(non)",
+      "television",
+    ]);
+    assert.equal(equipementsDe(l)!.find((e) => e.id === "parking")?.libelle, "Garage / Parking");
+    assert.equal(aEquipement(annonce({ source: "Centrale", amenities: l.amenities }), "television"), false, "avant : perdue");
+  });
+
+  it("une liste publiée sans les douze clés : la liste fermée la lit comme le collecteur, refus compris", () => {
+    const l = annonce({ source: "Centrale", equipementsPublies: caracteristiquesOrchestra(ORCHESTRA) });
+    assert.deepEqual(ids(l), [
+      "balcon",
+      "wifi",
+      "lave_vaisselle",
+      "animaux(non)",
+      "ascenseur",
+      "autre:oriente sud",
+      "autre:oriente ouest",
+      "television",
+      "autre:proche des pistes",
+    ]);
+    assert.equal(equipementsLus(l), true, "lus : pas « Équipements non lus »");
+    assert.deepEqual(equipementsTus(l), []);
+  });
+
+  it("les douze clés relevées décident de ce que la liste fermée lit ; les clés qu'elles taisent ne sont plus « non indiqué »", () => {
+    // MSEM : « Espace SPA », « Hammam » sont la clé fermée « Sauna ou spa » ;
+    // elle ne se double pas d'une ligne « Hammam ».
+    const catalogue = JSON.parse(
+      readFileSync(new URL("msem-alpedhuez-3-hebergements.json", CENTRALES), "utf8"),
+    ) as { catalogue: { options: { code: string; label: string }[] } };
+    const option = (code: string) => ({ libelle: catalogue.catalogue.options.find((o) => o.code === code)!.label });
+    const l = annonce({
+      source: "Centrale",
+      amenities: equipements({ saunaSpa: "oui" }),
+      equipementsPublies: [option("6"), option("9"), option("4")],
+    });
+    assert.deepEqual(ids(l), ["sauna_spa", "autre:pied des pistes"]);
+    assert.equal(equipementsDe(l)![0].libelle, "Espace SPA", "le premier libellé de la source reste");
+    assert.equal(aEquipementDemande(l, "sauna"), true);
+    // Une clé « inconnu » que la liste publiée dit : comblée, plus tue.
+    const comblee = annonce({
+      source: "Centrale",
+      amenities: equipements({ balcon: "oui" }),
+      equipementsPublies: [option("8")],
+    });
+    assert.equal(aEquipement(comblee, "parking"), true);
+    assert.ok(!equipementsTus(comblee).includes("parking"));
+    assert.ok(equipementsTus(comblee).includes("wifi"));
+  });
+
+  it("hors liste fermée, sur une clé déjà là : un présent l'emporte, le libellé de la source reste", () => {
+    // « Bed sheets » échappe aux douze motifs, pas à la table : `linge_fourni`.
+    const l = annonce({
+      amenities: equipements({ linge: "non", casierSkis: "oui" }),
+      equipementsPublies: [{ libelle: "Bed sheets" }, { libelle: "Télévision", present: false }],
+    });
+    const linge = equipementsDe(l)!.find((e) => e.id === "linge_fourni")!;
+    assert.deepEqual([linge.present, linge.libelle], [true, "Bed sheets"]);
+    assert.deepEqual(ids(l), ["linge_fourni", "casier_skis", "television(non)"]);
+    assert.equal(aEquipement(l, "television"), false, "absent quand la source le dit");
+    // Les lectures gardées par libellé ne se partagent pas avec l'appelant.
+    equipementsDe(l)!.find((e) => e.id === "television")!.present = true;
+    assert.equal(aEquipement(l, "television"), false);
+  });
+
+  it("une fiche lue décide seule : la liste publiée ne s'y ajoute pas", () => {
+    const l = annonce({
+      amenities: equipements({ casierSkis: "oui" }),
+      equipementsPublies: [{ libelle: "Télévision" }, { libelle: "Local à ski" }],
+    });
+    assert.deepEqual(ids(l), ["casier_skis", "television"]);
+    assert.equal(aEquipement(l, "casier_skis"), true);
+    const lue = { ...l, fiche: fiche({ equipements: normaliserEquipements([{ libelle: "Wifi" }]) }) };
+    assert.deepEqual(ids(lue), ["wifi"]);
+    assert.equal(aEquipement(lue, "television"), false);
+    assert.equal(equipementsDe({ ...l, fiche: fiche({ description: "Chalet." }) }), null);
+    // Une fiche indisponible ne dit rien : la liste publiée revient.
+    assert.deepEqual(ids({ ...l, fiche: fiche({ indisponible: true }) }), ["casier_skis", "television"]);
+  });
+
+  it("sans liste publiée, rien ne change ; une liste vide ou illisible ne dit rien", () => {
+    const amenities = equipements({ wifi: "oui", parking: "non" });
+    for (const equipementsPublies of [undefined, null, [], [{ libelle: "  " }], [{ libelle: 3 }] as never])
+      assert.deepEqual(equipementsDe(annonce({ amenities, equipementsPublies })), depuisAmenities(amenities));
+    assert.equal(equipementsDe(annonce({ equipementsPublies: [] })), null);
+    assert.equal(equipementsLus(annonce({ equipementsPublies: [] })), false);
   });
 });

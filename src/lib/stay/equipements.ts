@@ -282,8 +282,38 @@ export function normaliserEquipements(
   return [...out.values()];
 }
 
+/**
+ * Un équipement tel qu'une source structurée le publie quand elle ne pose pas
+ * de fiche (`Listing.equipementsPublies`) : le libellé tel quel, présent ou
+ * absent quand elle le dit, son groupe quand elle en a. Jamais tiré d'une
+ * description.
+ */
+export type EquipementPublie = { libelle: string; present?: boolean | null; groupe?: string | null };
+
+/**
+ * Une liste publiée relue (annonce, contenu gardé) : des libellés non vides,
+ * `present` booléen ou rien, `groupe` texte ou rien. Le reste ne passe pas.
+ */
+export function equipementsPubliesRelus(v: unknown): EquipementPublie[] {
+  if (!Array.isArray(v)) return [];
+  const out: EquipementPublie[] = [];
+  for (const x of v) {
+    if (x == null || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    const libelle = typeof o.libelle === "string" ? o.libelle.trim() : "";
+    if (!libelle) continue;
+    const groupe = typeof o.groupe === "string" ? o.groupe.trim() : "";
+    out.push({
+      libelle,
+      ...(typeof o.present === "boolean" ? { present: o.present } : {}),
+      ...(groupe ? { groupe } : {}),
+    });
+  }
+  return out;
+}
+
 /** Les douze clés des collecteurs existants, vers la table ouverte. */
-const DEPUIS_CLE: Record<CleEquipement, string> = {
+export const DEPUIS_CLE: Readonly<Record<CleEquipement, string>> = {
   balcon: "balcon",
   cheminee: "cheminee",
   wifi: "wifi",

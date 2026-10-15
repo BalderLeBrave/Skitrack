@@ -180,20 +180,23 @@ const CHAMPS_DE_POSITION = [
 
 /** Ce que le bien publie de lui-même, chaque valeur avec sa source : la
  *  capacité et les chambres sont celles du logement, quelle que soit la copie
- *  qui les porte. Son contenu aussi : description, équipements, et la note
- *  avec son nombre d'avis, jamais l'une d'une copie et l'autre d'une autre
- *  (`avisDe` les lit ensemble, et zéro avis y annule la note). */
+ *  qui les porte. Son contenu aussi : description, équipements (les douze
+ *  clés, et les libellés publiés sans fiche, que `equipementsDe` réunit par
+ *  clé), et la note avec son nombre d'avis, jamais l'une d'une copie et
+ *  l'autre d'une autre (`avisDe` les lit ensemble, et zéro avis y annule la
+ *  note). */
 const CHAMPS_DU_BIEN = [
   ["capacity", "capacitySource"],
   ["bedrooms", "bedroomsSource"],
   ["rooms"],
   ["description"],
   ["amenities"],
+  ["equipementsPublies"],
   ["rating", "reviewCount"],
 ] as const;
 
 /** Une valeur qui ne dit rien du bien : absente, un texte vide, une liste
- *  d'équipements vide ou toute `inconnu` (ce que `depuisAmenities` ne lit
+ *  vide, des équipements tous `inconnu` (ce que `depuisAmenities` ne lit
  *  pas). Une liste pauvre ne masque pas une liste riche. */
 function muette(v: unknown): boolean {
   if (v == null) return true;
@@ -218,9 +221,10 @@ function ficheLue(f: unknown): boolean {
  * - la capacité, les chambres, les pièces, chacune avec sa source. La copie
  *   Cozy d'un Airbnb, moins chère mais muette sur sa capacité, rendait sinon
  *   « muet » un logement que sa copie directe faisait compter ;
- * - la description et les équipements, la note avec son nombre d'avis (une
- *   paire, d'une même copie). La copie Cozy ne les publie pas, la tuile
- *   directe si : gardée seule, elle les faisait disparaître de l'écran ;
+ * - la description et les équipements (douze clés, libellés publiés), la
+ *   note avec son nombre d'avis (une paire, d'une même copie). La copie Cozy
+ *   ne les publie pas, la tuile directe si : gardée seule, elle les faisait
+ *   disparaître de l'écran ;
  * - une fiche lue, quand la gardée n'en a pas ou n'a pu lire la sienne. Elle
  *   décide alors seule des équipements (`equipementsDe`), comme une fiche
  *   reposée depuis la mémoire : c'est le même bien, sur la même source.

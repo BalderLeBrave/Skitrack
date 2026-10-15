@@ -13,8 +13,8 @@ import {
   poserContenu,
   reposerGardees,
 } from "./contenuFiches.server.ts";
-import { equipements } from "./equipements.ts";
-import { ficheDepuisBrut } from "./ficheEnrichie.ts";
+import { equipements, type EquipementPublie } from "./equipements.ts";
+import { aEquipement, equipementsDe, ficheDepuisBrut } from "./ficheEnrichie.ts";
 import { memoireFiches } from "./memoireFiches.server.ts";
 
 const dossier = () => mkdtempSync(join(tmpdir(), "skitrack-contenu-"));
@@ -25,6 +25,19 @@ const CONTENU = {
   photos: ["https://d1wek41qnoimq7.cloudfront.net/product/8493/910555/O/a.jpg"],
   amenities: equipements({ balcon: "oui" }),
 };
+
+/** Les pictos du détail Arkiane (Pralognan), tels que la centrale les publie : leur `alt`. */
+const PICTOS_ARKIANE: EquipementPublie[] = [
+  .../Equipements\s*:\s*<\/div>([\s\S]*?)<\/div>/
+    .exec(
+      readFileSync(
+        new URL("../scrape/centrales/moteurs/fixtures/arkiane-pralognan-detail-colliouroe.html", import.meta.url),
+        "utf8",
+      ),
+    )![1]
+    .matchAll(/<img[^>]+class="picto[^"]*"[^>]+alt="([^"]+)"/g),
+].map((m) => ({ libelle: m[1] }));
+const PUBLIE = { ...CONTENU, equipementsPublies: PICTOS_ARKIANE };
 
 describe("ContenuFiches", () => {
   it("garde et relit le contenu d'une fiche", () => {
@@ -47,6 +60,13 @@ describe("ContenuFiches", () => {
     assert.deepEqual(m.lire("k", 3000), CONTENU);
     assert.deepEqual(Object.keys(JSON.parse(readFileSync(f, "utf8")).contenus), ["k"]);
   });
+  it("garde et relit les libellés publiés ; sans eux, l'entrée reste ce qu'elle était", () => {
+    const f = join(dossier(), "fiches-contenu.json");
+    assert.ok(PICTOS_ARKIANE.some((p) => p.libelle === "Télévision"));
+    new ContenuFiches(f).noter([{ cle: "Centrale:colliouroe", contenu: PUBLIE }, { cle: "k", contenu: CONTENU }], 1000);
+    assert.deepEqual(new ContenuFiches(f).lire("Centrale:colliouroe", 2000), PUBLIE);
+    assert.equal("equipementsPublies" in new ContenuFiches(f).lire("k", 2000)!, false);
+  });
   it("un fichier illisible repart de rien", () => {
     const f = join(dossier(), "fiches-contenu.json");
     writeFileSync(f, "{pas du json");
@@ -66,6 +86,23 @@ describe("contenuLu", () => {
   });
   it("rien de vide", () => {
     assert.equal(contenuLu({ description: " ", photos: [], amenities: [] }), null);
+    assert.equal(contenuLu({ description: null, equipementsPublies: [{ libelle: " " }, null, "TV"] }), null);
+  });
+  it("des libellés publiés non vides, `present` booléen, `groupe` texte ; une liste seule se garde", () => {
+    const c = contenuLu({
+      equipementsPublies: [
+        { libelle: " Télévision ", present: "oui", groupe: 3 },
+        { libelle: "Animaux refusés", present: false, groupe: "Règles" },
+        { libelle: 12 },
+        { present: true },
+      ],
+    });
+    assert.deepEqual(c, {
+      description: null,
+      photos: null,
+      amenities: null,
+      equipementsPublies: [{ libelle: "Télévision" }, { libelle: "Animaux refusés", present: false, groupe: "Règles" }],
+    });
   });
 });
 
@@ -170,6 +207,19 @@ describe("garderLectures, reposerGardees, dejaGardee : l'API des collecteurs", (
     assert.equal(muette.amenities?.find((e) => e.cle === "balcon")?.valeur, "oui");
   });
 
+  it("les libellés publiés gardés se posent sans réseau, et arrivent à l'écran avec les douze clés", () => {
+    garderLectures([{ cle: "Centrale:c-30", contenu: { amenities: equipements({ wifi: "oui" }), equipementsPublies: PICTOS_ARKIANE } }]);
+    const row = annonce("Centrale", "c-30", { platformId: "c-30" });
+    assert.equal(reposerGardees([row]), 1);
+    assert.deepEqual(row.equipementsPublies, PICTOS_ARKIANE);
+    assert.equal(aEquipement(row, "television"), true);
+    assert.equal(equipementsDe(row)!.find((e) => e.id === "wifi")?.libelle, "Connexion WIFI");
+    // Ceux que l'annonce porte déjà restent les siens.
+    const sienne = annonce("Centrale", "c-30", { platformId: "c-30", equipementsPublies: [{ libelle: "Sauna" }] });
+    reposerGardees([sienne]);
+    assert.deepEqual(sienne.equipementsPublies, [{ libelle: "Sauna" }]);
+  });
+
   it("Airbnb : le contenu seul ; sa fiche passe par poserMemoire", () => {
     memoireFiches().noter([{ cle: "Airbnb:5550123", capacity: 4, capacitySource: "structured", lue: true, fiche: FICHE }]);
     garderLectures([{ cle: "Airbnb:5550123", contenu: { description: "Contenu gardé." } }]);
@@ -190,6 +240,15 @@ describe("poserContenu", () => {
     const galerie = { photo: "https://a.jpg", photos: ["https://a.jpg", "https://c.jpg"] };
     assert.equal(poserContenu(galerie, { photos: ["https://b.jpg"] }), false);
     assert.deepEqual(galerie.photos, ["https://a.jpg", "https://c.jpg"]);
+  });
+
+  it("les libellés publiés comblent une annonce qui n'en porte aucun, sans toucher à ses douze clés", () => {
+    const row: Parameters<typeof poserContenu>[0] = { amenities: equipements({ balcon: "oui" }), equipementsPublies: [] };
+    assert.equal(poserContenu(row, { amenities: equipements({ wifi: "oui" }), equipementsPublies: PICTOS_ARKIANE }), true);
+    assert.deepEqual(row.equipementsPublies, PICTOS_ARKIANE);
+    assert.equal(row.amenities?.find((e) => e.cle === "wifi")?.valeur, "inconnu", "ses douze clés restent les siennes");
+    assert.equal(poserContenu(row, { equipementsPublies: [{ libelle: "Sauna" }] }), false);
+    assert.deepEqual(row.equipementsPublies, PICTOS_ARKIANE);
   });
 
   it("des équipements tout « inconnu » d'une fiche ne remplacent pas une liste ; ils comblent un vide", () => {

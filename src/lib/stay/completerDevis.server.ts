@@ -8,6 +8,7 @@ import type { Listing } from "../listings.ts";
 import { dateIngenie, nuitsEntre } from "../scrape/centrales/moteurs/ingenie.ts";
 import { poserRefus } from "../scrape/gardeHote.ts";
 import { gitesCodeOf, gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites } from "../scrape/gitesGps.server.ts";
+import { poserFicheGites } from "./ficheGites.ts";
 import { pointPublie } from "./priseFiche.ts";
 import {
   devisItea,
@@ -173,6 +174,25 @@ function poserGpsItea(row: Listing, code: string): void {
   if (!/GPS ITEA/.test(row.proven)) row.proven = `${row.proven} · GPS ITEA`;
 }
 
+/** Les lecteurs de la fiche ITEA, ceux du collecteur (`scrape/gites.server.ts`). */
+type LecteursFicheItea = {
+  descriptionFromGitesHtml: (html: string) => string | null;
+  avisFromGitesHtml: (html: string) => unknown;
+};
+
+/**
+ * La fiche publiée par la page ITEA déjà lue pour le devis, sans autre
+ * requête : sa description, les équipements qu'elle nomme et son nombre
+ * d'avis (`poserFicheGites`). Un gîte au-delà du budget du collecteur
+ * recevait ici son devis, s'affichait, et perdait ce que la même page
+ * publie, jusqu'à ce que la suite ITEA le relise, quand elle tournait.
+ */
+function poserFicheItea(row: Listing, code: string, lire: LecteursFicheItea | null): void {
+  const page = widgetIteaEnCache(code);
+  if (!lire || !page) return;
+  poserFicheGites(row, { description: lire.descriptionFromGitesHtml(page), avis: lire.avisFromGitesHtml(page) });
+}
+
 /**
  * Pour chaque Gîte sans devis live, lit le total publié par ITEA aux
  * dates demandées. Un échec laisse le prix non publié. Un refus d'ITEA
@@ -184,6 +204,9 @@ export async function fillDevis(listings: Listing[], stay: StayDates, budgetMs: 
   const cibles = listings.filter(besoinDevis).slice(0, MAX);
   if (cibles.length === 0 || Date.now() >= until) return 0;
 
+  // Les lecteurs du collecteur, chargés ici : il importe ce module. Sans
+  // eux, le devis se pose quand même.
+  const lire: LecteursFicheItea | null = await import("../scrape/gites.server.ts").catch(() => null);
   let n = 0;
   let cursor = 0;
   const etat: Etat = { refus: false };
@@ -209,6 +232,7 @@ export async function fillDevis(listings: Listing[], stay: StayDates, budgetMs: 
           row.pricedCheckOut = next.pricedCheckOut;
           row.scannedAt = next.scannedAt;
           poserGpsItea(row, code);
+          poserFicheItea(row, code, lire);
           n += 1;
         } catch {
           /* widget injoignable : le prix reste non publié */

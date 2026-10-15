@@ -16,6 +16,8 @@
  *    trente jours s'efface, même quand l'annonce a été revue entre-temps pour
  *    une autre. Une fiche lue, pleine ou vide, est notée comme telle : elle ne
  *    se redemande plus avant trente jours, même si elle tait ce qui manque.
+ *    Avec la version de son lecteur : une fiche Airbnb lue sans fiche
+ *    enrichie par un lecteur plus ancien se relit une fois (`pdpDejaLue`).
  * 3. **La mémoire ne comble que les trous.** Elle ne remplace jamais ce que le
  *    relevé du jour publie (`comblerDepuisMemoire`).
  * 4. **Écriture atomique** (fichier temporaire, puis `rename`), dans le
@@ -35,6 +37,15 @@ import { ficheRelue, type FicheEnrichie } from "./ficheEnrichie.ts";
 
 /** Trente jours : au-delà, une annonce a pu changer (travaux, nouvelle capacité). */
 export const DUREE_MEMOIRE_MS = 30 * 24 * 60 * 60 * 1000;
+/**
+ * La version du lecteur de fiche PDP Airbnb (`scrape/airbnb/fiche_pdp.py`),
+ * notée avec chaque lecture (`lueV`). Avant le 7 octobre 2026, une fiche se
+ * notait `lue` sans fiche enrichie : ni description ni équipements, et les
+ * fiches lentes de Logements la sautaient trente jours. Une lecture d'un
+ * lecteur plus ancien, sans fiche, se relit une fois (`pdpDejaLue`). À
+ * augmenter quand le lecteur lit un bloc de plus.
+ */
+export const VERSION_LECTEUR_PDP = 1;
 /** Une valeur revue n'est réécrite, pour sa seule date, qu'une fois par jour. */
 const RAFRAICHIR_MS = 24 * 60 * 60 * 1000;
 
@@ -64,6 +75,12 @@ export type ValeursFiche = {
    * l'être ; rendu par `lire`, elle l'a été il y a moins de trente jours.
    */
   lue?: boolean;
+  /**
+   * La version du lecteur qui a lu la fiche (`VERSION_LECTEUR_PDP`), avec
+   * `lue` : à `noter`, celle d'aujourd'hui quand rien ne la dit ; rendue par
+   * `lire` avec `lue`. Absente : une lecture notée avant qu'on ne la note.
+   */
+  lueV?: number;
   /**
    * La fiche enrichie lue sur la page du logement (Airbnb : la réponse
    * PdpPlatformSections de la complétion Prix), normalisée : description,
@@ -138,6 +155,7 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
   const capacitySource = capacity != null ? (sourceLue(v?.capacitySource, false) as SourceCapacite | null) : null;
   const bedroomsSource = bedrooms != null ? sourceLue(v?.bedroomsSource, true) : null;
   const beds = entier(v?.beds, 1);
+  const lueV = entier(v?.lueV, 1);
   const fiche = ficheRelue(v?.fiche);
   return {
     capacity,
@@ -152,6 +170,7 @@ export function valeursLues(v: Partial<ValeursFiche> | null | undefined): Valeur
     ...(typeof v?.ecartee === "boolean" ? { ecartee: v.ecartee } : {}),
     ...(fiche ? { fiche } : {}),
     ...(v?.lue === true ? { lue: true } : {}),
+    ...(lueV != null ? { lueV } : {}),
     ...(v?.page === true ? { page: true } : {}),
   };
 }
@@ -228,7 +247,11 @@ function fraiche(e: Entree, now: number, dureeMs: number): Datees | null {
   }
   // « Lue » ne se déduit pas d'un fichier plus ancien : seule sa date le dit.
   const lue = e.dates?.lue;
-  if (lue != null && now - lue <= dureeMs) out.dates.lue = lue;
+  if (lue != null && now - lue <= dureeMs) {
+    out.dates.lue = lue;
+    // La version du lecteur va avec sa lecture, et passe avec elle.
+    if (e.lueV != null) out.lueV = e.lueV;
+  }
   const page = e.dates?.page;
   if (page != null && now - page <= dureeMs) out.dates.page = page;
   const vus = Object.values(out.dates);
@@ -352,7 +375,7 @@ export class MemoireFiches {
       ...(f.beds != null ? { beds: f.beds } : {}),
       ...(typeof f.ecartee === "boolean" ? { ecartee: f.ecartee } : {}),
       ...(f.fiche ? { fiche: f.fiche } : {}),
-      ...(f.dates.lue != null ? { lue: true } : {}),
+      ...(f.dates.lue != null ? { lue: true, ...(f.lueV != null ? { lueV: f.lueV } : {}) } : {}),
       ...(f.dates.page != null ? { page: true } : {}),
       dates,
     };
@@ -420,7 +443,13 @@ export class MemoireFiches {
         revoir("fiche", JSON.stringify(apres.fiche ?? null) === JSON.stringify(v.fiche));
         apres.fiche = v.fiche;
       }
-      if (v.lue) revoir("lue", apres.dates.lue != null);
+      if (v.lue) {
+        // La lecture la plus récente fixe la version de son lecteur : une
+        // version qui change s'écrit tout de suite.
+        const version = v.lueV ?? VERSION_LECTEUR_PDP;
+        revoir("lue", apres.dates.lue != null && apres.lueV === version);
+        apres.lueV = version;
+      }
       if (v.page) revoir("page", apres.dates.page != null);
       if (!change) continue;
       apres.vu = Math.max(...Object.values(apres.dates));
@@ -445,6 +474,20 @@ export class MemoireFiches {
     for (const e of this.fiches.values()) if (fraiche(e, now, this.dureeMs)) n += 1;
     return n;
   }
+}
+
+/**
+ * Airbnb, fiches lentes de Logements : sa fiche enrichie est en mémoire, ou sa
+ * page PDP a été lue (vide, sans bloc enrichi) par le lecteur d'aujourd'hui.
+ * Elle ne se redemande pas avant trente jours. Lue sans fiche par un lecteur
+ * plus ancien (`VERSION_LECTEUR_PDP`), elle se relit une fois ; écartée
+ * (hôtel, chambre), jamais : le lecteur n'enrichit pas une annonce écartée.
+ * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue.
+ */
+export function pdpDejaLue(m: Pick<ValeursFiche, "fiche" | "lue" | "lueV" | "ecartee"> | null | undefined): boolean {
+  if (m?.fiche) return true;
+  if (m?.lue !== true) return false;
+  return m.ecartee === true || (m.lueV ?? 0) >= VERSION_LECTEUR_PDP;
 }
 
 /** Ce qu'on peut combler d'une annonce : les trous seulement. */

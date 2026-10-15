@@ -7,7 +7,9 @@ import {
   comblerDepuisMemoire,
   DUREE_MEMOIRE_MS,
   MemoireFiches,
+  pdpDejaLue,
   valeursLues,
+  VERSION_LECTEUR_PDP,
 } from "./memoireFiches.server.ts";
 
 const JOUR = 24 * 60 * 60 * 1000;
@@ -122,6 +124,7 @@ describe("mémoire des fiches : ce qui se garde", () => {
       lat: null,
       lon: null,
       lue: true,
+      lueV: VERSION_LECTEUR_PDP,
       dates: {},
     });
     assert.equal(m.lire("Airbnb:20000", T0 + DUREE_MEMOIRE_MS + 1), null);
@@ -377,5 +380,99 @@ describe("mémoire des fiches : la fiche enrichie", () => {
     m.noter([{ cle: "Airbnb:45", fiche: { ...fiche, html: "<html>…</html>", cookie: "x" } as never }]);
     const brut = JSON.stringify(JSON.parse(readFileSync(m.chemin, "utf8")));
     assert.ok(!brut.includes("<html>") && !brut.includes("cookie"), brut);
+  });
+});
+
+describe("mémoire des fiches : la version du lecteur de fiche PDP", () => {
+  const T1 = Date.parse("2026-10-01T09:00:00Z");
+  const T15 = Date.parse("2026-10-15T09:00:00Z");
+  const fiche = {
+    description: "Appartement rénové au pied des pistes.",
+    equipements: [{ id: "wifi", libelle: "Wifi", present: true }],
+    avis: null,
+    conditions: null,
+    sourceFiche: "airbnb" as const,
+  };
+
+  /** Le fichier tel que l'écrivait l'application d'avant : les mêmes entrées, sans version. */
+  function sansVersion(m: MemoireFiches): MemoireFiches {
+    const lu = JSON.parse(readFileSync(m.chemin, "utf8"));
+    for (const e of Object.values(lu.fiches) as Record<string, unknown>[]) delete e.lueV;
+    writeFileSync(m.chemin, JSON.stringify(lu), "utf8");
+    return new MemoireFiches(m.chemin);
+  }
+
+  it("chaque lecture se note avec la version du lecteur, gardée dans le fichier et relue ailleurs", () => {
+    const m = neuve("version");
+    m.noter([{ cle: "Airbnb:70001", capacity: 4, capacitySource: "structured", lue: true }], T1);
+    assert.equal(JSON.parse(readFileSync(m.chemin, "utf8")).fiches["Airbnb:70001"].lueV, VERSION_LECTEUR_PDP);
+    const relue = new MemoireFiches(m.chemin).lire("Airbnb:70001", T15);
+    assert.deepEqual([relue?.lue, relue?.lueV], [true, VERSION_LECTEUR_PDP]);
+    assert.equal(pdpDejaLue(relue), true);
+    // Une valeur vue dans un relevé n'est pas une lecture : pas de version.
+    m.noter([{ cle: "Airbnb:70002", capacity: 4, lueV: 1 }], T1);
+    assert.equal(m.lire("Airbnb:70002", T1)?.lueV, undefined);
+    // La version passe avec la lecture, à trente jours.
+    m.noter([{ cle: "Airbnb:70001", capacity: 4, capacitySource: "structured" }], T1 + 20 * JOUR);
+    const tard = m.lire("Airbnb:70001", T1 + DUREE_MEMOIRE_MS + 1);
+    assert.deepEqual([tard?.capacity, tard?.lue, tard?.lueV], [4, undefined, undefined]);
+  });
+
+  it("lue sans fiche par le lecteur d'avant (1er octobre) : relue une fois, puis plus de trente jours", () => {
+    const m = neuve("avant");
+    // Ce que notait la complétion Prix avant le lecteur de fiche : l'occupation, `lue`, pas de fiche.
+    m.noter(
+      [
+        { cle: "Airbnb:70010", capacity: 6, capacitySource: "structured", bedrooms: 2, bedroomsSource: "structured", lue: true },
+        { cle: "Airbnb:70011", lue: true },
+        { cle: "Airbnb:70012", capacity: 2, capacitySource: "structured", ecartee: true, lue: true },
+        { cle: "Airbnb:70013", capacity: 4, capacitySource: "structured", lue: true, fiche },
+        { cle: "Airbnb:70014", capacity: 4, capacitySource: "structured", page: true },
+      ],
+      T1,
+    );
+    const ancienne = sansVersion(m);
+    const a = ancienne.lire("Airbnb:70010", T15);
+    // Pour Prix rien ne change : lue, sa capacité tient.
+    assert.deepEqual([a?.lue, a?.lueV, a?.capacity], [true, undefined, 6]);
+    assert.equal(pdpDejaLue(a), false, "occupation lue avant le lecteur de fiche : à relire");
+    assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70011", T15)), false, "vide d'avant : à relire");
+    assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70012", T15)), true, "écartée : jamais enrichie");
+    assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70013", T15)), true, "sa fiche est là");
+    assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70014", T15)), false, "une page rooms/ n'est pas la fiche PDP");
+    assert.equal(pdpDejaLue(ancienne.lire("Airbnb:79999", T15)), false);
+
+    // Relues le 15 : l'une rend sa fiche, l'autre reste vide. Ni l'une ni l'autre ne se redemande.
+    assert.equal(
+      ancienne.noter(
+        [
+          { cle: "Airbnb:70010", capacity: 6, capacitySource: "structured", lue: true, fiche },
+          { cle: "Airbnb:70011", lue: true },
+        ],
+        T15,
+      ),
+      2,
+      "une version qui change s'écrit le jour même",
+    );
+    const apres = new MemoireFiches(m.chemin);
+    const pleine = apres.lire("Airbnb:70010", T15 + JOUR);
+    assert.equal(pleine?.fiche?.description, "Appartement rénové au pied des pistes.");
+    assert.equal(pdpDejaLue(pleine), true);
+    const vide = apres.lire("Airbnb:70011", T15 + JOUR);
+    assert.deepEqual([vide?.lueV, pdpDejaLue(vide)], [VERSION_LECTEUR_PDP, true]);
+    // La relecture date la lecture du 15 : trente jours de plus, pas un de moins.
+    assert.equal(pdpDejaLue(apres.lire("Airbnb:70011", T15 + DUREE_MEMOIRE_MS)), true);
+    assert.equal(apres.lire("Airbnb:70011", T15 + DUREE_MEMOIRE_MS + 1), null);
+  });
+
+  it("la même version revue le même jour ne réécrit rien ; une autre version s'écrit tout de suite", () => {
+    const m = neuve("version-change");
+    assert.equal(m.noter([{ cle: "Airbnb:70020", lue: true }], T1), 1);
+    assert.equal(m.noter([{ cle: "Airbnb:70020", lue: true }], T1 + 1000), 0);
+    assert.equal(m.noter([{ cle: "Airbnb:70020", lue: true, lueV: VERSION_LECTEUR_PDP + 1 }], T1 + 2000), 1);
+    assert.equal(m.lire("Airbnb:70020", T1 + 3000)?.lueV, VERSION_LECTEUR_PDP + 1);
+    // La lecture la plus récente fixe la version, même plus basse.
+    assert.equal(m.noter([{ cle: "Airbnb:70020", lue: true }], T1 + 4000), 1);
+    assert.equal(m.lire("Airbnb:70020", T1 + 5000)?.lueV, VERSION_LECTEUR_PDP);
   });
 });

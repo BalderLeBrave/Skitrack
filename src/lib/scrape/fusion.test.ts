@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Listing } from "@/lib/listings";
+import { equipements } from "../stay/equipements.ts";
 import { clePlateforme, fusionner } from "./fusion.ts";
 
 function annonce(p: Partial<Listing> & Pick<Listing, "id" | "source">): Listing {
@@ -117,6 +118,58 @@ test("un bien des deux côtés : une seule fiche, celle de Cozy, comblée par le
   assert.equal(l.bedrooms, 2);
   assert.match(l.proven, /complété par le relevé direct/);
   assert.equal(cozy.lat, null, "l'annonce d'origine n'est pas mutée");
+});
+
+test("le contenu du direct (description, équipements, note, fiche) comble une fiche Cozy qui le tait", () => {
+  const inconnus = equipements({})!;
+  const lus = equipements({ wifi: "oui", parking: "oui" })!;
+  const fiche = { description: "Chalet", equipements: [{ id: "wifi", libelle: "Wifi", present: true }], avis: null, conditions: null, sourceFiche: "booking" as const };
+  const cozy = annonce({ id: "bk-c", source: "Booking", platformId: "7", description: "  ", amenities: inconnus, reviewCount: 0 });
+  const direct = annonce({
+    id: "bk-7",
+    source: "Booking",
+    platformId: "7",
+    description: "Au pied des pistes",
+    amenities: lus,
+    rating: 9.1,
+    reviewCount: 37,
+    fiche,
+  });
+  const [l] = fusionner([cozy], [direct]).listings;
+  assert.equal(l.description, "Au pied des pistes", "une description blanche ne masque pas celle du direct");
+  assert.deepEqual(l.amenities, lus, "des équipements tous « inconnu » ne masquent pas ceux du direct");
+  assert.equal(l.fiche, fiche);
+  // Cozy publie un nombre d'avis (0) : la paire du direct n'est pas reprise à moitié.
+  assert.equal(l.rating, undefined);
+  assert.equal(l.reviewCount, 0);
+
+  const [m] = fusionner([{ ...cozy, reviewCount: undefined }], [direct]).listings;
+  assert.equal(m.rating, 9.1);
+  assert.equal(m.reviewCount, 37);
+});
+
+test("ce que Cozy publie de son contenu reste le sien", () => {
+  const sienne = { description: null, equipements: [], avis: null, conditions: null, sourceFiche: "booking" as const, indisponible: false };
+  const cozy = annonce({ id: "bk-c", source: "Booking", platformId: "8", description: "Vue Cozy", amenities: equipements({ balcon: "oui" })!, rating: 8, reviewCount: 3, fiche: sienne });
+  const direct = annonce({
+    id: "bk-8",
+    source: "Booking",
+    platformId: "8",
+    description: "Vue directe",
+    amenities: equipements({ wifi: "oui" })!,
+    rating: 9.5,
+    reviewCount: 40,
+    fiche: { ...sienne, description: "autre" },
+  });
+  const [l] = fusionner([cozy], [direct]).listings;
+  assert.equal(l.description, "Vue Cozy");
+  assert.equal(l.amenities?.find((e) => e.cle === "balcon")?.valeur, "oui");
+  assert.equal(l.rating, 8);
+  assert.equal(l.reviewCount, 3);
+  assert.equal(l.fiche, sienne);
+  // Une fiche indisponible côté Cozy ne dit rien : celle du direct la remplace.
+  const [m] = fusionner([{ ...cozy, fiche: { ...sienne, indisponible: true } }], [direct]).listings;
+  assert.equal(m.fiche?.description, "autre");
 });
 
 test("un prix non publié par Cozy est repris du direct, avec sa devise", () => {

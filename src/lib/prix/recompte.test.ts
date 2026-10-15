@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { champsDuVerdict, domainFit } from "../domainFit.ts";
 import { GRANDS_DOMAINES } from "../grandsDomaines.ts";
 import type { Listing } from "../listings.ts";
@@ -235,6 +236,131 @@ describe("un même bien collecté deux fois ne fait qu'un logement", () => {
     const c1 = situee({ id: "dw-a-42", source: "Centrale", platformId: "42", url: null });
     const c2 = situee({ id: "dw-b-42", source: "Centrale", platformId: "42", url: null });
     assert.equal(dedoublonnerParBien([c1, c2]).length, 2);
+  });
+
+  /* Le contenu du bien : la copie Cozy d'un Airbnb, gardée parce que moins
+   * chère, ne publie ni description, ni équipements, ni note ; la tuile
+   * directe, si. */
+  type Equipement = NonNullable<Listing["amenities"]>[number];
+  type Fiche = NonNullable<Listing["fiche"]>;
+  const eq = (cle: Equipement["cle"], valeur: Equipement["valeur"]): Equipement => ({ cle, libelle: cle, valeur });
+  const fiche = (over: Partial<Fiche> = {}): Fiche => ({
+    equipements: [{ id: "wifi", libelle: "Wifi", present: true }],
+    avis: null,
+    conditions: null,
+    sourceFiche: "airbnb",
+    ...over,
+  });
+  const URL_BIEN = "https://www.airbnb.fr/rooms/40088811";
+  const cozyDe = (over: Partial<Listing> = {}) => situee({ id: "abnb-cozy-998", url: URL_BIEN, total: 1700, ...over });
+  const directDe = (over: Partial<Listing> = {}) =>
+    situee({
+      id: "40088811",
+      url: URL_BIEN,
+      total: 1900,
+      description: "Au pied des pistes, casier à skis chauffé.",
+      amenities: [eq("wifi", "oui"), eq("casierSkis", "oui")],
+      rating: 4.9,
+      reviewCount: 37,
+      ...over,
+    });
+
+  it("la copie gardée reprend la description, les équipements et la note de l'autre copie", () => {
+    const [l] = dedoublonnerParBien([cozyDe(), directDe()]);
+    assert.deepEqual([l.id, l.total], ["abnb-cozy-998", 1700], "la moins chère reste gardée");
+    assert.equal(l.description, "Au pied des pistes, casier à skis chauffé.");
+    assert.deepEqual(
+      l.amenities?.map((e) => e.cle),
+      ["wifi", "casierSkis"],
+    );
+    assert.deepEqual([l.rating, l.reviewCount], [4.9, 37]);
+  });
+
+  it("ce que la copie gardée publie reste le sien", () => {
+    const [l] = dedoublonnerParBien([
+      cozyDe({ description: "Texte Cozy.", amenities: [eq("parking", "oui")], rating: 4.5, reviewCount: 10 }),
+      directDe(),
+    ]);
+    assert.equal(l.description, "Texte Cozy.");
+    assert.deepEqual(
+      l.amenities?.map((e) => e.cle),
+      ["parking"],
+    );
+    assert.deepEqual([l.rating, l.reviewCount], [4.5, 10]);
+  });
+
+  it("une description vide, des équipements tous inconnus ne masquent pas ceux de l'autre copie", () => {
+    const [l] = dedoublonnerParBien([
+      cozyDe({ description: "  ", amenities: [eq("wifi", "inconnu"), eq("balcon", "inconnu")] }),
+      directDe(),
+    ]);
+    assert.equal(l.description, "Au pied des pistes, casier à skis chauffé.");
+    assert.deepEqual(
+      l.amenities?.map((e) => [e.cle, e.valeur]),
+      [
+        ["wifi", "oui"],
+        ["casierSkis", "oui"],
+      ],
+    );
+    const [vide] = dedoublonnerParBien([cozyDe({ amenities: [] }), directDe()]);
+    assert.equal(vide.amenities?.length, 2);
+  });
+
+  it("la note vient avec son nombre d'avis, d'une seule copie", () => {
+    // Zéro avis sur la gardée annulait la note reprise ailleurs (`avisDe`).
+    const [l] = dedoublonnerParBien([cozyDe({ rating: null, reviewCount: 0 }), directDe()]);
+    assert.deepEqual([l.rating, l.reviewCount], [4.9, 37]);
+    // Une copie qui ne publie que le nombre d'avis ne donne pas la paire.
+    const avisSeuls = situee({ id: "abnb-autre", url: URL_BIEN, total: 2100, rating: null, reviewCount: 12 });
+    const [m] = dedoublonnerParBien([cozyDe(), avisSeuls, directDe()]);
+    assert.deepEqual([m.rating, m.reviewCount], [4.9, 37]);
+  });
+
+  it("une fiche lue d'une autre copie remplace une fiche absente ou indisponible", () => {
+    const lue = fiche();
+    const [l] = dedoublonnerParBien([cozyDe(), directDe({ fiche: lue })]);
+    assert.equal(l.fiche, lue);
+    const [m] = dedoublonnerParBien([cozyDe({ fiche: fiche({ indisponible: true, equipements: [] }) }), directDe({ fiche: lue })]);
+    assert.equal(m.fiche, lue);
+    // La fiche lue de la gardée reste la sienne ; une fiche indisponible
+    // ailleurs ne se reprend pas.
+    const sienne = fiche({ description: "Fiche Cozy." });
+    const [n] = dedoublonnerParBien([cozyDe({ fiche: sienne }), directDe({ fiche: lue })]);
+    assert.equal(n.fiche, sienne);
+    const [o] = dedoublonnerParBien([cozyDe(), directDe({ fiche: fiche({ indisponible: true }) })]);
+    assert.equal(o.fiche, undefined);
+  });
+
+  it("les libellés publiés sans fiche viennent de l'autre copie quand la gardée n'en porte pas", () => {
+    // La fiche Orchestra de La Plagne : ses « Caractéristiques », telles que la centrale les publie.
+    const page = readFileSync(
+      new URL("../scrape/centrales/moteurs/fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url),
+      "utf8",
+    );
+    const publies = /Caract(?:é|&eacute;)ristiques\s*<\/h3>\s*<div class="txt-content">([\s\S]*?)<\/div>/
+      .exec(page)![1]
+      .split(/<br\s*\/?>/)
+      .map((l) => l.replace(/\s+/g, " ").trim().replace(/^-\s*/, ""))
+      .filter(Boolean)
+      .map((libelle) => ({ libelle }));
+    assert.ok(publies.some((p) => p.libelle === "Télévision"));
+    const bien = { source: "Centrale" as const, id: "or-laplagne-chardonnet", url: null };
+    const recherche = situee({ ...bien, total: 1500, amenities: [eq("wifi", "oui")] });
+    const lue = situee({ ...bien, total: 1600, amenities: [eq("balcon", "oui")], equipementsPublies: publies });
+    const [l] = dedoublonnerParBien([recherche, lue]);
+    assert.equal(l.total, 1500, "la moins chère reste gardée");
+    assert.deepEqual(l.equipementsPublies, publies);
+    assert.deepEqual(
+      l.amenities?.map((e) => e.cle),
+      ["wifi"],
+      "ses douze clés restent les siennes",
+    );
+    // Les siens restent ; une liste vide ne masque pas celle de l'autre copie.
+    const siens = [{ libelle: "Sauna" }];
+    const [m] = dedoublonnerParBien([{ ...recherche, equipementsPublies: siens }, lue]);
+    assert.deepEqual(m.equipementsPublies, siens);
+    const [n] = dedoublonnerParBien([{ ...recherche, equipementsPublies: [] }, lue]);
+    assert.deepEqual(n.equipementsPublies, publies);
   });
 });
 

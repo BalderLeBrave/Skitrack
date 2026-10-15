@@ -19,7 +19,7 @@ import { stationsReliees } from "./domaine";
 import type { LiveSearchInput } from "./types";
 import { prixHorsSejour } from "./airbnbDates";
 import { annoncer, occupancyFromRecord, type OccupancyAnnoncee } from "@/lib/stay/occupancy";
-import { depuisListe, equipements } from "@/lib/stay/equipements";
+import { depuisListe, equipements, equipementsPubliesRelus } from "@/lib/stay/equipements";
 import { assurerCles } from "../cles/store.server";
 import {
   dossierScrape,
@@ -493,6 +493,11 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
     const image = typeof row.image === "string" ? row.image : null;
     const description = typeof row.description === "string" && row.description.trim() ? row.description.trim() : null;
     const amenities = amenitiesDeTitres(row.amenityTitles);
+    // Les titres tels quels aussi : TV, sèche-cheveux, ski aux pieds n'ont pas
+    // de place parmi les douze clés. Le worker a déjà ôté « Non inclus ».
+    const equipementsPublies = equipementsPubliesRelus(
+      Array.isArray(row.amenityTitles) ? row.amenityTitles.map((libelle: unknown) => ({ libelle })) : [],
+    );
     out.push({
       id: `abnb-${id}`,
       stationId: input.stationId,
@@ -521,6 +526,7 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
           : null,
       ...(description ? { description } : {}),
       ...(amenities ? { amenities } : {}),
+      ...(equipementsPublies.length ? { equipementsPublies } : {}),
       url:
         typeof row.url === "string"
           ? row.url

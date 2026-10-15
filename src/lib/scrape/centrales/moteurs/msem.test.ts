@@ -5,6 +5,7 @@ import {
   corpsOffresMsem,
   estLocationMsem,
   horsLocationMsem,
+  equipementsPubliesMsem,
   joindreMsem,
   motifHorsLocationMsem,
   urlCatalogueMsem,
@@ -544,5 +545,22 @@ describe("MSEM : description et équipements, sur un relevé réel de l'Alpe d'H
   it("sans option, la description seule : casier à skis, parking, et « Linge de lit… non inclus » vaut non", () => {
     const e = par("224074").equipements!;
     assert.deepEqual(e, { laveVaisselle: "oui", laveLinge: "oui", linge: "non", parking: "oui", casierSkis: "oui" });
+  });
+
+  it("« Placards à Skis n°C3 » : un local à skis", () => {
+    assert.equal(par("192154").equipements!.casierSkis, "oui");
+  });
+
+  it("les libellés des options, tels que le catalogue les publie ; ni langues, ni code inconnu, ni doublon", () => {
+    assert.deepEqual(par("192154").equipementsPublies, [{ libelle: "Lave-vaisselle" }, { libelle: "Balcon / Terrasse" }]);
+    assert.deepEqual(par("192180").equipementsPublies, [{ libelle: "Lave-vaisselle" }]);
+    assert.equal("equipementsPublies" in par("224074"), false);
+    assert.deepEqual(
+      equipementsPubliesMsem({ options: ["16", "4", 32, "99", "4"] }, fx.catalogue.options).map((p) => p.libelle),
+      ["Pied des pistes", "Jardin privatif"],
+    );
+    assert.deepEqual(equipementsPubliesMsem({ options: null }, fx.catalogue.options), []);
+    const langue = (fx.catalogue.options as { code: unknown; kind?: string }[]).find((o) => o.kind === "spokenLanguages");
+    if (langue) assert.deepEqual(equipementsPubliesMsem({ options: [langue.code as string] }, fx.catalogue.options), []);
   });
 });

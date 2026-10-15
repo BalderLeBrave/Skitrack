@@ -365,6 +365,8 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "{n} salles de bain": "{n} bathrooms",
   // Fiche enrichie : description, équipements, avis, conditions (`stay/ficheEnrichie.ts`)
   "Non publié par {source}": "Not published by {source}",
+  "Équipements non lus": "Amenities not read",
+  "Équipements non publiés par {source}": "Amenities not published by {source}",
   "Voir sur {source}": "See on {source}",
   "Description": "Description",
   "Avis": "Reviews",
@@ -393,6 +395,9 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Bien-être": "Wellness",
   "Jacuzzi": "Hot tub",
   "Sauna": "Sauna",
+  "Spa": "Spa",
+  "Hammam": "Hammam",
+  "Bain nordique": "Nordic bath",
   "Climatisation": "Air conditioning",
   "Chauffage et climatisation": "Heating and cooling",
   "Chauffage": "Heating",

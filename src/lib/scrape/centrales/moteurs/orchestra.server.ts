@@ -31,9 +31,15 @@
  * huit secondes au plus par fiche, dans un budget de quinze secondes, et jamais
  * passé trente secondes de recherche : la part des centrales est coupée à
  * quarante-huit (`run.server.ts`), et une fiche ne doit pas emporter les
- * offres déjà lues. Ce qui n'a pas été lu le sera à la recherche suivante, et
- * reste en attendant « non annoncé ». Après un 403, un 429 ou un 503 sur une
- * fiche, plus aucune fiche n'est demandée à cette centrale pendant une heure.
+ * offres déjà lues. Ce qui n'a pas été lu dans ce budget se lit ensuite en
+ * tâche de fond, comme les fiches Airbnb (`lancerSuiteFiches`) : une fiche à la
+ * fois, douze secondes d'écart, cent fiches ou trente minutes au plus, et elle
+ * cède à toute nouvelle recherche vers la centrale. Ce qu'une fiche publie de
+ * contenu (description, équipements, « Caractéristiques ») se garde trente
+ * jours (`garderLectures`) et se repose sans réseau (`reposerGardees`) ; la
+ * capacité et le point restent en mémoire vive. Après un 403, un 429 ou un
+ * 503 sur une fiche, plus aucune fiche n'est demandée à cette centrale pendant
+ * une heure.
  *
  * **Les logements hors de la règle du propriétaire sont écartés sur le type de
  * leur carte**, avant tout appel de calendrier (`regleTypes.ts`). Un type
@@ -41,7 +47,9 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { dejaGardee, garderLectures, reposerGardees, type LectureAGarder } from "@/lib/stay/contenuFiches.server";
 import { equipements } from "@/lib/stay/equipements";
+import { cleListing } from "@/lib/stay/poserReleve";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
@@ -57,6 +65,7 @@ import {
   ficheOrchestra,
   horsRegleOrchestra,
   lienSuiteSerp,
+  lireSuiteOrchestra,
   nuitsOrchestra,
   prixOrchestra,
   refOrchestra,
@@ -88,6 +97,11 @@ const FICHE_TIMEOUT_MS = 8_000;
 const FICHES_AVANT_MS = 30_000;
 /** Après un refus (403, 429, 503), les fiches de la centrale attendent. */
 const FICHE_PAUSE_MS = 60 * 60 * 1000;
+/** La suite de fond : l'écart des fiches lentes Airbnb, au-dessus de celui de l'hôte. */
+const SUITE_ECART_MS = 12_000;
+/** Fiches lues au plus par une suite : La Plagne en compte quatre-vingt-quinze. */
+const SUITE_FICHES_MAX = 100;
+const SUITE_MAX_MS = 30 * 60_000;
 
 export type ReglageOrchestra = {
   host: string;
@@ -116,6 +130,15 @@ const calendriers = new Map<string, { at: number; valeur: unknown }>();
 const fiches = new Map<string, { at: number; valeur: FicheOrchestra }>();
 /** L'heure du dernier refus d'une fiche, par centrale. */
 const refusFiches = new Map<string, number>();
+/** La génération des recherches par centrale : une neuve fait céder la suite de la précédente. */
+const generations = new Map<string, number>();
+const suitesEnCours = new Set<string>();
+
+/** Une pause de refus en cours pour cette centrale, ou `null`. */
+function pauseRefus(base: string): string | null {
+  const refus = refusFiches.get(base);
+  return refus != null && Date.now() - refus < FICHE_PAUSE_MS ? "pause d'une heure après un refus" : null;
+}
 async function json(url: string, texte = false, delai = TIMEOUT_MS): Promise<unknown> {
   // Un refus récent de l'hôte (429, 403, 503) ferme la porte le temps de sa
   // pause : on n'insiste pas. Hors refus, l'appel part comme sur master.
@@ -203,14 +226,13 @@ async function lireFiches(
   base: string,
   cartes: readonly CarteOrchestra[],
   echeance: number,
-): Promise<Map<string, FicheOrchestra>> {
+): Promise<{ fiches: Map<string, FicheOrchestra>; nouvelles: Set<string>; budget: boolean }> {
   const out = new Map<string, FicheOrchestra>();
+  const nouvelles = new Set<string>();
   const fin = Math.min(Date.now() + FICHE_BUDGET_MS, echeance);
-  const refus = refusFiches.get(base);
-  let arret: string | null =
-    refus != null && Date.now() - refus < FICHE_PAUSE_MS
-      ? "pause d'une heure après un refus"
-      : null;
+  let arret: string | null = pauseRefus(base);
+  /** Le seul arrêt qui laisse partir une suite : le temps, pas un refus ni une panne. */
+  let budget = false;
   const origine = new URL(`${base}/`).origin;
   for (const c of cartes) {
     const cle = `${base}|${c.id}`;
@@ -225,6 +247,7 @@ async function lireFiches(
     // L'écart d'une seconde se compte dans le budget.
     if (fin - Date.now() < 1_000 + ECART_HOTE_MS) {
       arret = "budget de la recherche épuisé";
+      budget = true;
       continue;
     }
     try {
@@ -236,25 +259,113 @@ async function lireFiches(
       });
       if (page == null) {
         arret = "budget de la recherche épuisé";
+        budget = true;
         continue;
       }
       const valeur = ficheOrchestra(page);
       fiches.set(cle, { at: Date.now(), valeur });
       out.set(c.id, valeur);
+      nouvelles.add(c.id);
     } catch (err) {
       const quoi = err instanceof Error ? err.message : String(err);
       if (/répondu (?:403|429|503)\b/.test(quoi)) refusFiches.set(base, Date.now());
       arret = `fiche ${c.id} : ${quoi}`;
+      budget = false;
     }
   }
   const restent = cartes.filter((c) => !out.has(c.id)).length;
   if (arret || restent > 0) {
     console.info(
-      `[centrale] ${base} : ${out.size} fiche(s) lue(s) ou en cache, ${restent} à lire à la prochaine recherche` +
+      `[centrale] ${base} : ${out.size} fiche(s) lue(s) ou en cache, ${restent} à lire` +
+        (budget ? " en tâche de fond" : " à la prochaine recherche") +
         (arret ? ` — arrêt : ${arret}` : ""),
     );
   }
-  return out;
+  return { fiches: out, nouvelles, budget: budget && arret === "budget de la recherche épuisé" };
+}
+
+/** Ce que la fiche publie de contenu, à garder trente jours. */
+function contenuDeFiche(f: FicheOrchestra): LectureAGarder["contenu"] {
+  return {
+    description: f.description ?? null,
+    amenities: f.equipements ? equipements(f.equipements) : null,
+    ...(f.equipementsPublies?.length ? { equipementsPublies: f.equipementsPublies } : {}),
+  };
+}
+
+/**
+ * Les fiches que le budget de la recherche n'a pas lues, en tâche de fond, sur
+ * le modèle des fiches lentes Airbnb : une à la fois, douze secondes après la
+ * requête précédente vers la centrale (`aTourDeRole`), au plus
+ * `SUITE_FICHES_MAX` fiches ou `SUITE_MAX_MS`. Elle cède dès qu'une nouvelle
+ * recherche part vers la centrale, et s'arrête sans nouvel essai sur la
+ * première erreur : un 403, un 429 ou un 503 pose la pause d'une heure. Une
+ * page qui ne dit rien d'une fiche n'est pas gardée. Les fiches lues restent
+ * en mémoire vive (capacité, point) et leur contenu se garde trente jours, par
+ * paquets de cinq ; l'écran le pose par sa relecture, sans réseau.
+ */
+function lancerSuiteFiches(
+  base: string,
+  host: string,
+  gen: number,
+  restantes: { carte: CarteOrchestra; cle: string }[],
+): void {
+  if (suitesEnCours.has(base) || restantes.length === 0) return;
+  suitesEnCours.add(base);
+  const cles = new Map(restantes.map((x) => [x.carte.id, x.cle] as const));
+  const origine = new URL(`${base}/`).origin;
+  const debut = Date.now();
+  const cede = () => generations.get(base) !== gen;
+  const aGarder: LectureAGarder[] = [];
+  const vider = () => {
+    if (aGarder.length) garderLectures(aGarder.splice(0));
+  };
+  const adresse = (c: CarteOrchestra): string | null => {
+    if (!c.chemin) return null;
+    const url = new URL(c.chemin, `${base}/`);
+    return url.origin === origine ? url.toString() : null;
+  };
+  void lireSuiteOrchestra(
+    restantes.map((x) => x.carte),
+    {
+      dejaLue: (c) => {
+        const hit = fiches.get(`${base}|${c.id}`);
+        return (hit != null && Date.now() - hit.at < FICHE_TTL_MS) || !adresse(c) || dejaGardee(cles.get(c.id));
+      },
+      arret: () =>
+        cede()
+          ? "une nouvelle recherche est partie"
+          : (pauseRefus(base) ?? (Date.now() - debut > SUITE_MAX_MS ? `${SUITE_MAX_MS / 60_000} min atteintes` : null)),
+      lire: (c) => {
+        const url = adresse(c)!;
+        return aTourDeRole(
+          url,
+          async () => (cede() || pauseRefus(base) ? null : ((await json(url, true, FICHE_TIMEOUT_MS)) as string)),
+          SUITE_ECART_MS,
+        );
+      },
+      garder: (c, f) => {
+        fiches.set(`${base}|${c.id}`, { at: Date.now(), valeur: f });
+        aGarder.push({ cle: cles.get(c.id), contenu: contenuDeFiche(f) });
+        if (aGarder.length >= 5) vider();
+      },
+    },
+    SUITE_FICHES_MAX,
+  )
+    .then(({ lues, demandes, arret, erreur }) => {
+      if (erreur && /répondu (?:403|429|503)\b/.test(erreur)) refusFiches.set(base, Date.now());
+      console.info(
+        `[centrale] ${host} : suite de fond, ${lues} fiche(s) lue(s) sur ${demandes} demandée(s)` +
+          `${arret ? `, arrêtée : ${arret}` : ""}`,
+      );
+    })
+    .catch((e: unknown) => {
+      console.warn(`[centrale] ${host} : suite de fond, ${e instanceof Error ? e.message : String(e)}`);
+    })
+    .finally(() => {
+      vider();
+      suitesEnCours.delete(base);
+    });
 }
 
 /** « N personnes », avec le pluriel qu'il faut. */
@@ -333,6 +444,7 @@ function enListing(
     placeName: fiche?.adresse ?? null,
     ...(fiche?.description ? { description: fiche.description } : {}),
     ...(fiche?.equipements ? { amenities: equipements(fiche.equipements) } : {}),
+    ...(fiche?.equipementsPublies?.length ? { equipementsPublies: fiche.equipementsPublies } : {}),
     priceLabel: libellePrix(o),
     // Un prix par personne n'est pas un total de séjour, et ne se compare pas à
     // un total. Le drapeau le dit à l'écran plutôt que de le laisser croire.
@@ -360,6 +472,9 @@ function enListing(
 export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchestra): Promise<Listing[]> {
   const t0 = Date.now();
   const base = ctx.base.replace(/\/+$/, "");
+  // Une recherche neuve : la suite de fond de la précédente cède.
+  const gen = (generations.get(base) ?? 0) + 1;
+  generations.set(base, gen);
   const destinations = r.cartes ? [] : (r.destinations[ctx.stationId] ?? r.parDefaut);
   const refus: string[] = [];
   let coupe = false;
@@ -427,16 +542,39 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
   });
 
   // Seuls les logements qui ont une offre à ces dates ouvrent leur fiche.
-  const fichesLues = await lireFiches(
+  const { fiches: fichesLues, nouvelles, budget } = await lireFiches(
     base,
     cartes.filter((_, i) => offres[i]),
     t0 + FICHES_AVANT_MS,
   );
 
   const listings: Listing[] = [];
+  const parCarte = new Map<string, { carte: CarteOrchestra; listing: Listing }>();
   for (const [i, c] of cartes.entries()) {
     const o = offres[i];
-    if (o) listings.push(enListing(c, o, fichesLues.get(c.id) ?? null, base, r, ctx));
+    if (!o) continue;
+    const l = enListing(c, o, fichesLues.get(c.id) ?? null, base, r, ctx);
+    listings.push(l);
+    parCarte.set(c.id, { carte: c, listing: l });
+  }
+  // Une écriture : le contenu des fiches lues au réseau par cette recherche.
+  // Puis, sans réseau, ce qui a été gardé pour celles qui ne l'ont pas été
+  // (jamais capacité ni point : seule la fiche en mémoire vive les donne).
+  garderLectures(
+    [...nouvelles].flatMap((id) => {
+      const x = parCarte.get(id);
+      const f = fichesLues.get(id);
+      return x && f ? [{ cle: cleListing(x.listing), contenu: contenuDeFiche(f) }] : [];
+    }),
+  );
+  reposerGardees(listings);
+  // Le budget n'a pas suffi : le reste en tâche de fond, à son rythme.
+  if (budget) {
+    const restantes = [...parCarte.values()].flatMap(({ carte, listing }) => {
+      const cle = cleListing(listing);
+      return !fichesLues.has(carte.id) && carte.chemin && cle && !dejaGardee(cle) ? [{ carte, cle }] : [];
+    });
+    lancerSuiteFiches(base, r.host, gen, restantes);
   }
   console.info(
     `[centrale] ${r.host} : ${listings.length} offres sur ${cartes.length} au catalogue` +

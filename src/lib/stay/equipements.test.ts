@@ -26,6 +26,61 @@ describe("depuisTexte", () => {
     assert.deepEqual(depuisTexte(""), {});
     assert.deepEqual(depuisTexte(null), {});
   });
+  it("des animaux « de compagnie » admis : oui ; « chiens » seulement avec son verbe", () => {
+    for (const t of [
+      "Animaux de compagnie admis",
+      "Animaux de compagnie acceptés",
+      "Chiens admis",
+    ])
+      assert.deepEqual(depuisTexte(t), { animaux: "oui" }, t);
+    for (const t of [
+      "Pas d'animaux de compagnie",
+      "Animaux de compagnie non admis",
+      "Animaux domestiques non admis",
+    ])
+      assert.deepEqual(depuisTexte(t), { animaux: "non" }, t);
+    // Une interdiction des chiens ne dit rien des autres animaux.
+    assert.deepEqual(depuisTexte("Chiens non admis"), {});
+  });
+  it("services réels Travelski (Atria-Crozats, Avoriaz) : « Animaux domestiques admis » vaut oui", () => {
+    assert.deepEqual(depuisTexte("Animaux domestiques admis"), { animaux: "oui" });
+    const html = fx("agences/fixtures/travelski-fiche-8493-contenu.html");
+    assert.equal(depuisTexte(html.replace(/<[^>]+>/g, " ")).animaux, "oui");
+  });
+  it("un local à skis se dit aussi placard, cave ou locaux ; « locals ski » anglais n'en est pas un", () => {
+    // Description réelle MSEM, HORIZON 192154, Alpe d'Huez.
+    assert.deepEqual(depuisTexte("Placards à Skis n°C3 + 1 EMPLACEMENT DE PARKING N°C3"), {
+      casierSkis: "oui",
+      parking: "oui",
+    });
+    for (const t of [
+      "une cave à skis ou vélos",
+      "cave à vélos et skis",
+      "Locaux à skis",
+      "Local à vélos et skis",
+    ])
+      assert.deepEqual(depuisTexte(t), { casierSkis: "oui" }, t);
+    assert.deepEqual(depuisTexte("popular with locals ski touring"), {});
+  });
+  it("un billard n'est pas une piscine", () => {
+    assert.deepEqual(depuisTexte("Pool table"), {});
+    assert.deepEqual(depuisTexte("Games room with pool tables"), {});
+    assert.deepEqual(depuisTexte("Heated pool"), { piscine: "oui" });
+  });
+  it("du linge en supplément ou en option est une absence ; un autre supplément ne l'est pas", () => {
+    // Description réelle iResa, Les Arcs (Le Ruitor, Les Belles Challes).
+    assert.deepEqual(depuisTexte("Linge de lit et de toilette en supplément."), { linge: "non" });
+    assert.deepEqual(depuisTexte("Draps en supplément"), { linge: "non" });
+    assert.deepEqual(depuisTexte("Linge en option"), { linge: "non" });
+    for (const t of [
+      "Linge de lit fourni, linge de toilette en supplément.",
+      "Linge de lit fourni, ménage en supplément.",
+      "Draps fournis, linge de toilette non fourni.",
+      "Linge inclus.",
+    ])
+      assert.deepEqual(depuisTexte(t), { linge: "oui" }, t);
+    assert.deepEqual(depuisTexte("Location de linge incluse."), {}, "pas une absence");
+  });
 });
 
 describe("depuisListe", () => {
@@ -43,6 +98,10 @@ describe("depuisListe", () => {
   });
   it("présent l'emporte sur absent du même nom", () => {
     assert.deepEqual(depuisListe([{ texte: "Parking payant", disponible: false }, { texte: "Parking gratuit" }]), { parking: "oui" });
+  });
+  it("« Animaux de compagnie admis », « Placards à skis » listés", () => {
+    const lus = depuisListe([{ texte: "Animaux de compagnie admis" }, { texte: "Placards à skis" }]);
+    assert.deepEqual(lus, { casierSkis: "oui", animaux: "oui" });
   });
 });
 

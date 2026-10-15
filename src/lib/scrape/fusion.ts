@@ -54,10 +54,25 @@ const COMBLABLES = [
   "photos",
   "locality",
   "placeName",
+  // Ce que le bien publie de son contenu : Cozy ne porte ni description ni
+  // équipements, le direct si (titres de la tuile Airbnb, fiche Booking).
+  "description",
+  "amenities",
+  "equipementsPublies",
 ] as const satisfies readonly (keyof Listing)[];
 
+/** Vide : rien, une liste vide, un texte blanc, ou des équipements tous
+ *  « inconnu » — une liste qui ne dit rien ne masque pas celle qui dit. */
 function vide(v: unknown): boolean {
-  return v == null || (Array.isArray(v) && v.length === 0) || v === "";
+  if (v == null) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (!Array.isArray(v)) return false;
+  return v.every((x) => x != null && typeof x === "object" && (x as { valeur?: unknown }).valeur === "inconnu");
+}
+
+/** Une fiche enrichie qui dit quelque chose (ni absente, ni indisponible). */
+function ficheLue(l: Listing): boolean {
+  return l.fiche != null && l.fiche.indisponible !== true;
 }
 
 function combler(cozy: Listing, direct: Listing): Listing {
@@ -69,6 +84,15 @@ function combler(cozy: Listing, direct: Listing): Listing {
   for (const k of COMBLABLES) {
     if (vide(cozy[k]) && !vide(direct[k])) set(k, direct[k]);
   }
+  // La note va avec son nombre d'avis : jamais l'une d'un relevé avec l'autre
+  // de l'autre (`avisDe` lit les deux sur la même annonce).
+  if (cozy.rating == null && cozy.reviewCount == null && direct.rating != null) {
+    set("rating", direct.rating);
+    set("reviewCount", direct.reviewCount ?? null);
+  }
+  // La fiche lue du direct (Booking : page établissement) ; celle de Cozy, si
+  // elle en a une lue, reste la sienne.
+  if (!ficheLue(cozy) && ficheLue(direct)) set("fiche", direct.fiche);
   // Un total à zéro veut dire « non publié » : le prix du direct le remplace
   // alors, avec sa devise et son statut, jamais un prix publié par Cozy.
   if (!(cozy.total > 0) && direct.total > 0) {

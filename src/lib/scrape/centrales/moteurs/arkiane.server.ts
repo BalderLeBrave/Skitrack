@@ -14,13 +14,18 @@
  * position et les chambres, et il s'ouvre par le formulaire de la carte
  * (`POST /fr-FR/Lot/Detail`), seulement vers l'origine du marchand, sans suivre
  * de redirection : le formulaire et les cookies ne partent pas ailleurs. Il ne
- * dépend pas des dates : il est gardé trente jours par lot. Chaque recherche
- * lui donne quinze secondes au plus, un lot à la fois, chacun une seconde au
- * moins après la requête précédente vers l'hôte, dernière page de résultats
- * comprise (`cadence.ts`) ; ce qui n'a pas été lu attend la recherche
- * suivante. Un refus (403, 429, 503) arrête les détails vers cet hôte jusqu'au
- * redémarrage du serveur, sans reprise ; une autre panne arrête ceux de la
- * recherche. Les annonces partent quand même, sans point.
+ * dépend pas des dates : il est gardé en mémoire vive par lot, et ce qu'il
+ * publie de contenu (description, équipements, pictogrammes) trente jours sur
+ * disque (`garderLectures`), reposé sans réseau sur un lot non relu
+ * (`reposerGardees`). Chaque recherche lui donne quinze secondes au plus, un
+ * lot à la fois, chacun une seconde au moins après la requête précédente vers
+ * l'hôte, dernière page de résultats comprise (`cadence.ts`). Ce qui n'a pas
+ * été lu dans ce budget se lit ensuite en tâche de fond, comme les fiches
+ * Airbnb (`lancerSuiteArkiane`) : un lot à la fois, douze secondes d'écart,
+ * cinquante lots ou dix minutes au plus, cède à toute nouvelle recherche vers
+ * ce marchand. Un refus (403, 429, 503) arrête les détails vers cet hôte
+ * jusqu'au redémarrage du serveur, sans reprise ; une autre panne arrête ceux
+ * de la recherche. Les annonces partent quand même, sans point.
  *
  * **Seule la rubrique des locations est demandée** (`lot_type_to|801`), et
  * la règle du propriétaire (`regleTypes.ts`) s'applique à la lecture, sur le
@@ -30,7 +35,9 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { dejaGardee, garderLectures, reposerGardees, type LectureAGarder } from "@/lib/stay/contenuFiches.server";
 import { equipements } from "@/lib/stay/equipements";
+import { cleListing } from "@/lib/stay/poserReleve";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { porteFermee, poserRefus } from "../../gardeHote";
@@ -47,6 +54,7 @@ import {
   horsRegleArkiane,
   lireArkiane,
   lireDetailArkiane,
+  lireSuiteArkiane,
   suiteArkiane,
   type DetailArkiane,
   type FicheArkiane,
@@ -72,6 +80,18 @@ const DETAIL_TTL_MS = 30 * 24 * 3600 * 1000;
 const DETAIL_BUDGET_MS = 15_000;
 /** Délai d'un détail : plus court que celui d'une page, pour tenir le budget. */
 const DETAIL_TIMEOUT_MS = 10_000;
+/** La suite de fond : l'écart des fiches lentes Airbnb, au-dessus de celui de l'hôte. */
+const SUITE_ECART_MS = 12_000;
+/** Lots lus au plus par une suite : une page de résultats pleine. */
+const SUITE_LOTS_MAX = ARKIANE_PAR_PAGE;
+const SUITE_MAX_MS = 10 * 60_000;
+
+/**
+ * La génération des recherches par marchand : une recherche neuve la change,
+ * et la suite de fond de la précédente cède. Une seule suite par marchand.
+ */
+const generations = new Map<string, number>();
+const suitesEnCours = new Set<string>();
 
 /** Détails déjà lus, par hôte marchand et numéro de lot. */
 const detailsLus = new Map<string, { at: number; lecture: DetailArkiane }>();
@@ -234,12 +254,18 @@ async function lireDetails(
   fiches: FicheArkiane[],
 ): Promise<{
   lus: Map<string, DetailArkiane>;
+  /** Les détails lus au réseau par cet appel, à garder. */
+  nouveaux: Map<string, DetailArkiane>;
   demandes: number;
   enMemoire: number;
   horsOrigine: number;
   arret: string | null;
+  /** Pourquoi la lecture s'est arrêtée : seul le budget laisse une suite partir. */
+  motif: "budget" | "refus" | "page" | "panne" | null;
 }> {
   const lus = new Map<string, DetailArkiane>();
+  const nouveaux = new Map<string, DetailArkiane>();
+  let motif: "budget" | "refus" | "page" | "panne" | null = null;
   const debut = Date.now();
   let demandes = 0;
   let enMemoire = 0;
@@ -256,10 +282,12 @@ async function lireDetails(
     if (arret || !f.detail) continue;
     if (detailsRefuses.has(marchand)) {
       arret = "l'hôte a refusé un détail plus tôt, aucun n'est redemandé";
+      motif = "refus";
       continue;
     }
     if (Date.now() - debut > DETAIL_BUDGET_MS) {
       arret = `budget de ${DETAIL_BUDGET_MS / 1000} s atteint`;
+      motif = "budget";
       continue;
     }
     const url = adresseDetailArkiane(marchand, f.detail.action);
@@ -280,26 +308,112 @@ async function lireDetails(
       if (statut === 403 || statut === 429 || statut === 503) {
         detailsRefuses.add(marchand);
         arret = `refus ${statut}, plus aucun détail demandé à cet hôte`;
+        motif = "refus";
         continue;
       }
       if (page == null) {
         arret = `la centrale a répondu ${statut}`;
+        motif = "panne";
         continue;
       }
       // Une autre page qu'un détail (session perdue, accueil) : les lots
       // suivants la recevraient aussi. On s'arrête là pour cette recherche.
       if (!estDetailArkiane(page)) {
         arret = "la centrale a rendu autre chose qu'un détail";
+        motif = "page";
         continue;
       }
       const lecture = lireDetailArkiane(page);
       detailsLus.set(cle, { at: Date.now(), lecture });
       lus.set(f.lot, lecture);
+      nouveaux.set(f.lot, lecture);
     } catch (e) {
       arret = e instanceof Error ? e.message : String(e);
+      motif = detailsRefuses.has(marchand) ? "refus" : "panne";
     }
   }
-  return { lus, demandes, enMemoire, horsOrigine, arret };
+  return { lus, nouveaux, demandes, enMemoire, horsOrigine, arret, motif };
+}
+
+/** Ce que le détail publie de contenu, à garder trente jours. */
+function contenuDuDetail(d: DetailArkiane): LectureAGarder["contenu"] {
+  return {
+    description: d.description ?? null,
+    amenities: d.equipements ? equipements(d.equipements) : null,
+    ...(d.equipementsPublies?.length ? { equipementsPublies: d.equipementsPublies } : {}),
+  };
+}
+
+/**
+ * Les détails que le budget de la recherche n'a pas lus, en tâche de fond,
+ * sur le modèle des fiches lentes Airbnb : un lot à la fois, douze secondes
+ * après la requête précédente vers l'hôte (`aTourDeRole`), au plus
+ * `SUITE_LOTS_MAX` lots ou `SUITE_MAX_MS`. Elle cède dès qu'une nouvelle
+ * recherche part vers ce marchand, et s'arrête sans nouvel essai sur un refus
+ * (403, 429, 503 : plus aucun détail jusqu'au redémarrage), sur une page qui
+ * n'est pas un détail (session perdue : rien n'est gardé) ou sur toute autre
+ * panne. Chaque détail lu reste en mémoire vive (point, chambres) et son
+ * contenu se garde trente jours ; l'écran le pose par sa relecture, sans réseau.
+ */
+function lancerSuiteArkiane(
+  marchand: string,
+  langue: string,
+  cookies: string,
+  gen: number,
+  restants: { fiche: FicheArkiane; cle: string }[],
+  host: string,
+): void {
+  if (suitesEnCours.has(marchand) || restants.length === 0) return;
+  suitesEnCours.add(marchand);
+  const cles = new Map(restants.map((x) => [x.fiche.lot, x.cle] as const));
+  const debut = Date.now();
+  const cede = () => generations.get(marchand) !== gen;
+  void lireSuiteArkiane(
+    restants.map((x) => x.fiche),
+    {
+      dejaLu: (f) => {
+        const garde = detailsLus.get(`${marchand}|${f.lot}`);
+        if (garde && Date.now() - garde.at < DETAIL_TTL_MS) return true;
+        return !f.detail || !adresseDetailArkiane(marchand, f.detail.action) || dejaGardee(cles.get(f.lot));
+      },
+      arret: () =>
+        cede()
+          ? "une nouvelle recherche est partie"
+          : detailsRefuses.has(marchand)
+            ? "l'hôte a refusé un détail"
+            : Date.now() - debut > SUITE_MAX_MS
+              ? `${SUITE_MAX_MS / 60_000} min atteintes`
+              : null,
+      lire: (f) => {
+        const url = adresseDetailArkiane(marchand, f.detail!.action)!;
+        return aTourDeRole(
+          url,
+          async () => {
+            // Une recherche plus récente, ou un refus, pendant l'attente : rien ne part.
+            if (cede() || detailsRefuses.has(marchand)) return { statut: 0, page: null };
+            return detailLot(url, marchand, langue, cookies, f.detail!);
+          },
+          SUITE_ECART_MS,
+        );
+      },
+      garder: (f, d) => {
+        detailsLus.set(`${marchand}|${f.lot}`, { at: Date.now(), lecture: d });
+        garderLectures([{ cle: cles.get(f.lot), contenu: contenuDuDetail(d) }]);
+      },
+    },
+    SUITE_LOTS_MAX,
+  )
+    .then(({ lus, demandes, arret, refus }) => {
+      if (refus != null) detailsRefuses.add(marchand);
+      console.info(
+        `[centrale] ${host} : suite de fond, ${lus} détail(s) lu(s) sur ${demandes} demandé(s)` +
+          `${arret ? `, arrêtée : ${arret}` : ""}`,
+      );
+    })
+    .catch((e: unknown) => {
+      console.warn(`[centrale] ${host} : suite de fond, ${e instanceof Error ? e.message : String(e)}`);
+    })
+    .finally(() => suitesEnCours.delete(marchand));
 }
 
 function enListing(
@@ -358,6 +472,7 @@ function enListing(
     placeName: d?.quartier ?? null,
     ...(d?.description ? { description: d.description } : {}),
     ...(d?.equipements ? { amenities: equipements(d.equipements) } : {}),
+    ...(d?.equipementsPublies?.length ? { equipementsPublies: d.equipementsPublies } : {}),
     proven: `${r.nom} (Arkiane, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.reference ? ` — référence ${f.reference}` : ""
     }${barre ? ` — ${barre}` : ""}${
@@ -386,6 +501,9 @@ function enListing(
  */
 export async function chercherArkiane(ctx: ContexteCentrale, r: ReglageArkiane): Promise<Listing[]> {
   const marchand = r.marchand.replace(/\/+$/, "");
+  // Une recherche neuve : la suite de fond de la précédente cède.
+  const gen = (generations.get(marchand) ?? 0) + 1;
+  generations.set(marchand, gen);
   const cookies = await ouvrir(marchand, r.langue);
   const fiches: FicheArkiane[] = [];
   const vus = new Set<string>();
@@ -436,7 +554,7 @@ export async function chercherArkiane(ctx: ContexteCentrale, r: ReglageArkiane):
   if (tronque) {
     console.warn(`[centrale] ${r.host} : relevé arrêté à la borne de ${PAGES_MAX} pages, il en reste peut-être.`);
   }
-  const { lus, demandes, enMemoire, horsOrigine, arret } = await lireDetails(
+  const { lus, nouveaux, demandes, enMemoire, horsOrigine, arret, motif } = await lireDetails(
     marchand,
     r.langue,
     cookies,
@@ -451,5 +569,22 @@ export async function chercherArkiane(ctx: ContexteCentrale, r: ReglageArkiane):
       `[centrale] ${r.host} : ${horsOrigine} formulaire(s) de détail hors de ${marchand}, non envoyé(s)`,
     );
   }
-  return gardes.map((f) => enListing(f, r, ctx, lus.get(f.lot)));
+  const rows = gardes.map((f) => enListing(f, r, ctx, lus.get(f.lot)));
+  // Une écriture par recherche : le contenu des détails lus au réseau. Puis,
+  // sans réseau, ce qui a été gardé pour les lots non relus (jamais capacité,
+  // chambres ni point : seul le détail en mémoire vive les donne).
+  const lots = new Map(gardes.map((f, i) => [f.lot, rows[i]!] as const));
+  garderLectures(
+    [...nouveaux].map(([lot, d]) => ({ cle: cleListing(lots.get(lot)!), contenu: contenuDuDetail(d) })),
+  );
+  reposerGardees(rows);
+  // Le budget n'a pas suffi : le reste en tâche de fond, à son rythme.
+  if (motif === "budget") {
+    const restants = gardes.flatMap((f) => {
+      const cle = cleListing(lots.get(f.lot)!);
+      return f.detail && cle && !lus.has(f.lot) && !dejaGardee(cle) ? [{ fiche: f, cle }] : [];
+    });
+    lancerSuiteArkiane(marchand, r.langue, cookies, gen, restants, r.host);
+  }
+  return rows;
 }

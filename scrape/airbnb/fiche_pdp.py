@@ -28,11 +28,16 @@ celle que lit `pyairbnb/standardize.py`) les portent à des endroits différents
 Ce qui n'y est pas reste absent : `None` ou liste vide, jamais un défaut. Les
 libellés sont rendus tels quels ; la normalisation (clés, groupes) et la note
 sur 5 se font côté Node (`stay/equipements.ts`, `note.ts`), une seule fois.
+
+Un bloc de plus lu ici : augmenter `VERSION_LECTEUR_PDP`
+(`src/lib/stay/memoireFiches.server.ts`), pour que les pages lues sans fiche
+par le lecteur d'avant se relisent une fois.
 """
 
 from __future__ import annotations
 
 import html
+import math
 import re
 from typing import Any, Iterator
 
@@ -87,6 +92,11 @@ def _cles(raw: Any, nom: str, profondeur: int = 0) -> Iterator[Any]:
             yield from _cles(v, nom, profondeur + 1)
 
 
+def _liste(v: Any) -> list[Any]:
+    """Une liste publiée, sinon rien : un autre type ne se parcourt pas."""
+    return v if isinstance(v, list) else []
+
+
 def _chaine(v: Any) -> str | None:
     return v.strip() if isinstance(v, str) and v.strip() else None
 
@@ -121,7 +131,7 @@ def description_de(raw: Any) -> str | None:
         if "DESCRIPTION" not in type_.upper() or s.get("__typename") != "GeneralListContentSection":
             continue
         parties: list[str] = []
-        for it in s.get("items") or []:
+        for it in _liste(s.get("items")):
             if not isinstance(it, dict):
                 continue
             corps = it.get("html")
@@ -143,12 +153,16 @@ def equipements_de(raw: Any) -> list[dict[str, Any]]:
     (`False` seulement quand Airbnb le marque indisponible). Dédoublonné par
     libellé ; la clé normalisée se pose côté Node. Un groupe sans titre (l'aperçu)
     ne donne pas de groupe."""
+    # La liste entière d'abord ; l'aperçu (six à dix équipements) quand elle
+    # ne donne aucun équipement lisible (groupes vides, titres absents).
+    toutes = [g for g in _cles(raw, "seeAllAmenitiesGroups") if isinstance(g, list) and g]
+    return _equipements(toutes) or _equipements(list(_cles(raw, "previewAmenitiesGroups")))
+
+
+def _equipements(listes: list[Any]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     vus: set[str] = set()
-    # La liste entière d'abord ; l'aperçu (six à dix équipements) seulement
-    # quand elle manque.
-    toutes = [g for g in _cles(raw, "seeAllAmenitiesGroups") if isinstance(g, list) and g]
-    for groupes in toutes or list(_cles(raw, "previewAmenitiesGroups")):
+    for groupes in listes:
         if not isinstance(groupes, list):
             continue
         for g in groupes:
@@ -156,7 +170,7 @@ def equipements_de(raw: Any) -> list[dict[str, Any]]:
                 continue
             titre_groupe = _chaine(g.get("title"))
             groupe_absent = bool(titre_groupe and NON_INCLUS_RE.match(titre_groupe))
-            for a in g.get("amenities") or []:
+            for a in _liste(g.get("amenities")):
                 if not isinstance(a, dict):
                     continue
                 libelle = _chaine(a.get("title"))
@@ -216,9 +230,9 @@ def conditions_de(raw: Any) -> dict[str, Any] | None:
             continue
         if nom != "PoliciesSection":
             continue
-        sections = [x for x in s.get("houseRulesSections") or [] if isinstance(x, dict)]
+        sections = [x for x in _liste(s.get("houseRulesSections")) if isinstance(x, dict)]
         for sec in sections:
-            for it in sec.get("items") or []:
+            for it in _liste(sec.get("items")):
                 if not isinstance(it, dict):
                     continue
                 corps = it.get("html")
@@ -226,7 +240,7 @@ def conditions_de(raw: Any) -> dict[str, Any] | None:
                 regle(texte_de_html(corps.get("htmlText") if isinstance(corps, dict) else None, 2000))
         if not sections:
             # L'aperçu du règlement (« Arrivée après 16:00 », « Non-fumeur »…).
-            for it in s.get("houseRules") or []:
+            for it in _liste(s.get("houseRules")):
                 if isinstance(it, dict):
                     regle(_chaine(it.get("title")))
         for k, v in s.items():
@@ -297,7 +311,7 @@ def _nombre(v: Any) -> float | None:
 
 def _entier(v: Any) -> int | None:
     n = _nombre(v)
-    return int(n) if n is not None and n >= 0 and n == int(n) else None
+    return int(n) if n is not None and math.isfinite(n) and n >= 0 and n == int(n) else None
 
 
 NOTE_LIBELLE_RE = re.compile(r"(\d(?:[.,]\d+)?)\s*(?:sur|out of|/)\s*5\b", re.I)

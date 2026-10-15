@@ -63,7 +63,12 @@ export function plierEquipement(s: string): string {
 
 /**
  * Ce qui désigne chaque équipement, en français et en anglais, sur un texte
- * plié. « Lift » n'est pas un ascenseur : c'est une remontée.
+ * plié. « Lift » n'est pas un ascenseur : c'est une remontée ; « pool table »
+ * n'est pas une piscine : c'est un billard. Un local à skis se dit aussi
+ * placard, cave ou locaux (« Placards à Skis n°C3 », MSEM) ; « locals ski »
+ * anglais (« popular with locals ski touring ») n'en est pas un. Les animaux
+ * admis peuvent être « domestiques » (services Travelski, fiches Booking) ou
+ * « de compagnie » ; « chiens » ne passe qu'avec son verbe.
  */
 const OUI: Record<CleEquipement, RegExp> = {
   balcon: /\b(balcons?|terrasses?|balcony|balconies|terrace|patio)\b/,
@@ -73,10 +78,10 @@ const OUI: Record<CleEquipement, RegExp> = {
   laveLinge: /\b(lave[- ]?linge|machine a laver|washing machine|washer)\b/,
   linge: /\b(linge (de maison|de lit|fourni|inclus|de toilette)|draps|serviettes|bed linens?|linens|towels|essentials)\b/,
   parking: /\b(parking|garage|stationnement|place de parc|car park)\b/,
-  casierSkis: /\b(casiers? a skis?|locals? a skis?|local skis?|casiers? skis?|ski ?rooms?|skiroom|ski lockers?|ski storage)\b/,
+  casierSkis: /\b(casiers? a skis?|placards? (a )?skis?|(caves?|locals?|locaux) a (velos (et|ou) )?skis?|local skis?|casiers? skis?|ski ?rooms?|skiroom|ski lockers?|ski storage)\b/,
   saunaSpa: /\b(sauna|spa|hammam|jacuzzi|bain a remous|bain nordique|hot tub)\b/,
-  piscine: /\b(piscine|swimming pool|pool)\b/,
-  animaux: /\b(animaux (acceptes|admis|bienvenus|autorises|avec supplement)|animal (accepte|admis)|pets? (allowed|welcome)|pet friendly)\b/,
+  piscine: /\b(piscine|swimming pool|pool(?! table))\b/,
+  animaux: /\b(animaux( domestiques| de compagnie)? (acceptes|admis|bienvenus|autorises|avec supplement)|chiens? (acceptes|admis|autorises|bienvenus)|animal (accepte|admis)|pets? (allowed|welcome)|pet friendly)\b/,
   ascenseur: /\b(ascenseur|elevator)\b/,
 };
 
@@ -91,7 +96,10 @@ const NON: Partial<Record<CleEquipement, RegExp>> = {
   // ses mentions sont ôtées avant (`SANS_TOILETTE`).
   // « La location de linge de maison est incluse » (Morzine, GreenGo) dit le
   // contraire : une location suivie de « inclus » ou « compris » n'est pas une absence.
-  linge: /\b((linge|draps)[^.\n]{0,60}\bnon (fourni|fournis|inclus|compris)|linge (de lit )?en option|location de linge(?![^.\n]{0,40}\b(inclus|incluse|compris|comprise|offert|offerte)\b)|linge a louer)\b/,
+  // « Linge de lit et de toilette en supplément » (Les Arcs, iResa) dit une
+  // absence ; « draps fournis, ménage en supplément » non : le supplément se
+  // lit dans la même proposition que le linge de lit, sans « fourni » entre eux.
+  linge: /\b((linge|draps)[^.\n]{0,60}\bnon (fourni|fournis|inclus|compris)|linge (de lit )?en option|location de linge(?![^.\n]{0,40}\b(inclus|incluse|compris|comprise|offert|offerte)\b)|linge a louer|(linge de (lit|maison)|draps)\b(?:(?!\b(fourni|inclus|compris|offert))[^.,;\n]){0,40}\ben (supplement|option))\b/,
 };
 
 /** « Linge de toilette non fourni », « serviettes non incluses » : rien ne s'en
@@ -181,7 +189,7 @@ type DefEquipement = { libelle: string; groupe: string; motif: RegExp };
  */
 const TABLE: readonly [string, DefEquipement][] = [
   ["seche_cheveux", { libelle: aTraduire("Sèche-cheveux"), groupe: aTraduire("Salle de bain"), motif: /^(hair ?dryer|seche[- ]?cheveux)\b/ }],
-  ["television", { libelle: aTraduire("Télévision"), groupe: aTraduire("Divertissement"), motif: /^((\d+\s*(?:"|''|pouces|inch(?:es)?)\s+)?(hd ?tv|smart ?tv|tv|television|televiseur))\b/ }],
+  ["television", { libelle: aTraduire("Télévision"), groupe: aTraduire("Divertissement"), motif: /^((\d+\s*(?:"|''|pouces|inch(?:es)?)\s+)?(flat[- ]?screen )?(hd ?tv|smart ?tv|tv|television|televiseur))\b/ }],
   ["wifi", { libelle: aTraduire("Wi-Fi"), groupe: aTraduire("Internet"), motif: /^((connexion|acces) )?((free|fast|gratuit|rapide) )?(wi[- ]?fi|wireless internet|internet)\b/ }],
   ["lave_vaisselle", { libelle: aTraduire("Lave-vaisselle"), groupe: aTraduire("Cuisine"), motif: /^(dishwasher|lave[- ]?vaisselle)\b/ }],
   ["seche_linge", { libelle: aTraduire("Sèche-linge"), groupe: aTraduire("Buanderie"), motif: /^((free |paid )?(tumble )?dryer|seche[- ]?linge)\b/ }],
@@ -192,12 +200,20 @@ const TABLE: readonly [string, DefEquipement][] = [
   ["piscine", { libelle: aTraduire("Piscine"), groupe: aTraduire("Bien-être"), motif: /^((private|shared|indoor|outdoor|heated|privee?|partagee?|interieure?|exterieure?|chauffee?) )?(swimming )?(pool|piscine)\b(?! table)/ }],
   ["jacuzzi", { libelle: aTraduire("Jacuzzi"), groupe: aTraduire("Bien-être"), motif: /^((private|shared|prive|partage) )?(hot tub|jacuzzi|bain a remous|spa bath)\b/ }],
   ["sauna", { libelle: aTraduire("Sauna"), groupe: aTraduire("Bien-être"), motif: /^((private|shared|prive|partage) )?sauna\b/ }],
+  // Un spa, un hammam, un bain nordique (codes GreenGo SPA, HAMMAM,
+  // NORDIC_BATH) : chacun sa clé, sans les fondre dans « Sauna ou spa ». Le
+  // libellé entier : « Spa bath » est un jacuzzi, « Spa nearby » reste hors table.
+  ["spa", { libelle: aTraduire("Spa"), groupe: aTraduire("Bien-être"), motif: /^((private|shared|prive|partage) )?spa( (prive|privatif|partage))?$/ }],
+  ["hammam", { libelle: aTraduire("Hammam"), groupe: aTraduire("Bien-être"), motif: /^(hammam|bain turc|turkish bath|steam room)( (prive|privatif|partage))?$/ }],
+  ["bain_nordique", { libelle: aTraduire("Bain nordique"), groupe: aTraduire("Bien-être"), motif: /^(nordic bath|bain nordique)$/ }],
   ["climatisation", { libelle: aTraduire("Climatisation"), groupe: aTraduire("Chauffage et climatisation"), motif: /^((central |portable )?(air conditioning|ac unit|a\/c)|climatisation|clim)\b/ }],
   ["chauffage", { libelle: aTraduire("Chauffage"), groupe: aTraduire("Chauffage et climatisation"), motif: /^((central |radiant |electric |gas )?heating|chauffage)\b/ }],
   ["cheminee", { libelle: aTraduire("Cheminée"), groupe: aTraduire("Chauffage et climatisation"), motif: /^((indoor )?fireplace|chimney|cheminee|poele a bois|wood ?(burning )?stove)\b/ }],
   ["ski_aux_pieds", { libelle: aTraduire("Ski aux pieds"), groupe: aTraduire("Ski"), motif: /^(ski[- ]?in ?\/? ?ski[- ]?out|ski[- ]?in|skis? aux pieds|acces (direct )?aux pistes skis? aux pieds)\b/ }],
-  ["casier_skis", { libelle: aTraduire("Local ou casier à skis"), groupe: aTraduire("Ski"), motif: /^(ski (storage|room|lockers?)|skiroom|casiers? a skis?|locals? a skis?)\b/ }],
-  ["animaux", { libelle: aTraduire("Animaux acceptés"), groupe: aTraduire("Règles"), motif: /^(pets?|animaux)( (allowed|welcome|acceptes|admis|autorises|bienvenus))?$/ }],
+  ["casier_skis", { libelle: aTraduire("Local ou casier à skis"), groupe: aTraduire("Ski"), motif: /^(ski (storage|room|lockers?)|skiroom|casiers? a skis?|placards? (a )?skis?|(caves?|locals?|locaux) a (velos (et|ou) )?skis?)\b/ }],
+  // « Chiens » sans verbe ne dit rien des animaux : « Chiens non admis » ne
+  // rend pas tous les animaux absents.
+  ["animaux", { libelle: aTraduire("Animaux acceptés"), groupe: aTraduire("Règles"), motif: /^(pets?|animaux( domestiques| de compagnie)?)( (allowed|welcome|acceptes|admis|autorises|bienvenus))?$|^chiens? (acceptes|admis|autorises|bienvenus)$/ }],
   ["barbecue", { libelle: aTraduire("Barbecue"), groupe: aTraduire("Extérieur"), motif: /^(bbq( grill)?|barbecue)\b/ }],
   ["balcon", { libelle: aTraduire("Balcon ou terrasse"), groupe: aTraduire("Extérieur"), motif: /^((private |prive )?(patio or balcony|balcony|balcon|terrace|terrasse|patio))\b/ }],
   ["vue", { libelle: aTraduire("Vue"), groupe: aTraduire("Extérieur"), motif: /^((mountains?|ski slopes?|valley|lake|lac|montagne)\s+view|vue\b)/ }],
@@ -266,8 +282,38 @@ export function normaliserEquipements(
   return [...out.values()];
 }
 
+/**
+ * Un équipement tel qu'une source structurée le publie quand elle ne pose pas
+ * de fiche (`Listing.equipementsPublies`) : le libellé tel quel, présent ou
+ * absent quand elle le dit, son groupe quand elle en a. Jamais tiré d'une
+ * description.
+ */
+export type EquipementPublie = { libelle: string; present?: boolean | null; groupe?: string | null };
+
+/**
+ * Une liste publiée relue (annonce, contenu gardé) : des libellés non vides,
+ * `present` booléen ou rien, `groupe` texte ou rien. Le reste ne passe pas.
+ */
+export function equipementsPubliesRelus(v: unknown): EquipementPublie[] {
+  if (!Array.isArray(v)) return [];
+  const out: EquipementPublie[] = [];
+  for (const x of v) {
+    if (x == null || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    const libelle = typeof o.libelle === "string" ? o.libelle.trim() : "";
+    if (!libelle) continue;
+    const groupe = typeof o.groupe === "string" ? o.groupe.trim() : "";
+    out.push({
+      libelle,
+      ...(typeof o.present === "boolean" ? { present: o.present } : {}),
+      ...(groupe ? { groupe } : {}),
+    });
+  }
+  return out;
+}
+
 /** Les douze clés des collecteurs existants, vers la table ouverte. */
-const DEPUIS_CLE: Record<CleEquipement, string> = {
+export const DEPUIS_CLE: Readonly<Record<CleEquipement, string>> = {
   balcon: "balcon",
   cheminee: "cheminee",
   wifi: "wifi",

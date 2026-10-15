@@ -13,7 +13,7 @@ import type { SourceAgence } from "./scrape/agences/couverture";
 import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
 import type { SourceCapacite, SourceValeur, TypeLogement } from "./stay/logement";
-import type { Equipement } from "./stay/equipements";
+import type { Equipement, EquipementPublie } from "./stay/equipements";
 import type { FicheEnrichie } from "./stay/ficheEnrichie.ts";
 import type { SourceGps } from "./stay/repliGps";
 import type { AccesAPied, AccesEnVoiture } from "./stay/aPied.ts";
@@ -99,6 +99,15 @@ export type Listing = {
    * annonce, ce qui ne veut pas dire qu'elle n'en a pas.
    */
   amenities?: Equipement[] | null;
+  /**
+   * Les libellés tels qu'une source structurée les publie quand elle ne pose
+   * pas de fiche : pictos ou options d'une centrale, services d'une agence,
+   * titres d'une tuile. Jamais la description. `equipementsDe`
+   * (`stay/ficheEnrichie.ts`) les réunit aux douze clés de `amenities`, que
+   * le collecteur garde telles quelles ; une fiche lue décide seule. Absent :
+   * la source n'en publie pas, ou on ne les a pas lus.
+   */
+  equipementsPublies?: EquipementPublie[] | null;
   available: true;
   photo: string | null;
   url: string | null;

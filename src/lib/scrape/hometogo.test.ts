@@ -23,6 +23,7 @@ import {
   LOT_DETAILS,
 } from "./hometogo.ts";
 import type { LiveSearchInput } from "./types.ts";
+import { equipementsDe } from "../stay/ficheEnrichie.ts";
 
 /**
  * Champs repris d'une réponse HomeToGo réelle (Les Deux Alpes, 9 octobre 2026) :
@@ -170,6 +171,12 @@ describe("offre", () => {
     assert.equal(row.amenities?.find((a) => a.cle === "wifi")?.valeur, "oui");
     assert.equal(row.amenities?.find((a) => a.cle === "animaux")?.valeur, "oui");
     assert.equal(row.amenities?.find((a) => a.cle === "piscine")?.valeur, "inconnu");
+    // Les libellés publiés restent, en plus des douze clés : l'écran montre
+    // « Accès internet » et non le libellé générique.
+    assert.deepEqual(row.equipementsPublies, [{ libelle: "Cheminée" }, { libelle: "Accès internet" }]);
+    const vus = equipementsDe(row) ?? [];
+    assert.equal(vus.find((e) => e.id === "wifi")?.libelle, "Accès internet");
+    assert.equal(vus.find((e) => e.id === "cheminee")?.libelle, "Cheminée");
   });
 
   it("laisse de côté un squelette sans titre", () => {
@@ -230,6 +237,7 @@ describe("offre", () => {
     assert.equal(sans?.total, 0);
     assert.equal(sans?.pricedCheckIn, undefined);
     assert.equal(sans?.scannedAt, undefined);
+    assert.equal(sans?.equipementsPublies, null);
   });
 });
 

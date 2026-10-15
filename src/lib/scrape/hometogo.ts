@@ -15,6 +15,7 @@ import { depuisListe, equipements } from "../stay/equipements.ts";
 import { annoncer } from "../stay/occupancy.ts";
 import { texteDeHtml } from "../stay/texteHtml.ts";
 import { eurosPublie } from "../stay/tarif.ts";
+import type { LiveSearchInput } from "./types";
 
 export const ORIGINE_HOMETOGO = "https://www.hometogo.fr";
 
@@ -424,6 +425,9 @@ export function offreEnListing(
     propertyType: typePublie && typePublie.toLowerCase() !== title.toLowerCase() ? typePublie : null,
     description,
     amenities: equip,
+    // Les libellés tels que HomeToGo les publie (icons, common, fishing), en
+    // plus des douze clés ; jamais la description.
+    equipementsPublies: libs.length ? [...new Set(libs)].map((libelle) => ({ libelle })) : null,
     available: true,
     photo: gallery[0] ?? null,
     photos: gallery.length > 0 ? gallery : null,

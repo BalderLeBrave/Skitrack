@@ -54,7 +54,13 @@
  */
 
 import { jugerLogement, motifTypeHorsRegle } from "../regleTypes.ts";
-import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
+import {
+  depuisListe,
+  depuisTexte,
+  fusionner,
+  type EquipementPublie,
+  type EquipementsLus,
+} from "../../../stay/equipements.ts";
 
 /** Une carte telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheArkiane = {
@@ -115,6 +121,9 @@ export type DetailArkiane = {
   /** Les pictogrammes « Equipements : » (« Lave-vaisselle », « Animaux
    *  refusés »), puis ce que la description nomme ; `null` sans l'un ni l'autre. */
   equipements?: EquipementsLus | null;
+  /** Les mêmes pictogrammes, leur `alt` tel quel (« Télévision » n'a pas de
+   *  place parmi les douze clés) ; jamais la description. */
+  equipementsPublies?: EquipementPublie[] | null;
 };
 
 /**
@@ -426,6 +435,7 @@ export function lireDetailArkiane(page: string): DetailArkiane {
   const ems = STATION_QUARTIER.exec(page);
   const description = descriptionArkiane(page);
   const equipements = equipementsArkiane(page, description);
+  const publies = pictosArkiane(page);
   return {
     lat,
     lon,
@@ -435,7 +445,55 @@ export function lireDetailArkiane(page: string): DetailArkiane {
     quartier: ems ? texteArkiane(ems[2] ?? "") || null : null,
     ...(description ? { description } : {}),
     ...(equipements ? { equipements } : {}),
+    ...(publies.length ? { equipementsPublies: publies } : {}),
   };
+}
+
+/** Ce que la suite de fond des détails demande au réseau et à la mémoire. */
+export type PorteSuiteArkiane = {
+  /** Le détail du lot ; `statut` 0 : rien n'est parti (la suite a cédé). */
+  lire: (f: FicheArkiane) => Promise<{ statut: number; page: string | null }>;
+  /** Déjà lu, gardé, ou sans formulaire envoyable : on passe. */
+  dejaLu: (f: FicheArkiane) => boolean;
+  /** Une raison de s'arrêter avant le lot suivant (nouvelle recherche, durée, refus ailleurs). */
+  arret: () => string | null;
+  /** Ce qu'un détail lu publie, à garder. */
+  garder: (f: FicheArkiane, d: DetailArkiane) => void;
+};
+
+/**
+ * La suite de fond des détails, un lot à la fois, sans nouvel essai : elle
+ * s'arrête sur la première raison que donne `arret`, sur un refus (403, 429,
+ * 503, rendu dans `refus`), sur une réponse sans page, ou sur une page qui
+ * n'est pas un détail (session perdue : rien n'est gardé). Au plus `max`
+ * détails demandés. Le rythme est celui de `lire`.
+ */
+export async function lireSuiteArkiane(
+  fiches: readonly FicheArkiane[],
+  porte: PorteSuiteArkiane,
+  max: number,
+): Promise<{ lus: number; demandes: number; arret: string | null; refus: number | null }> {
+  let lus = 0;
+  let demandes = 0;
+  for (const f of fiches) {
+    if (demandes >= max) return { lus, demandes, arret: `${max} détails demandés`, refus: null };
+    const raison = porte.arret();
+    if (raison) return { lus, demandes, arret: raison, refus: null };
+    if (porte.dejaLu(f)) continue;
+    demandes += 1;
+    const { statut, page } = await porte.lire(f);
+    if (statut === 0) return { lus, demandes, arret: porte.arret() ?? "la suite a cédé", refus: null };
+    if (statut === 403 || statut === 429 || statut === 503) {
+      return { lus, demandes, arret: `refus ${statut}`, refus: statut };
+    }
+    if (page == null) return { lus, demandes, arret: `la centrale a répondu ${statut}`, refus: null };
+    if (!estDetailArkiane(page)) {
+      return { lus, demandes, arret: "la centrale a rendu autre chose qu'un détail", refus: null };
+    }
+    porte.garder(f, lireDetailArkiane(page));
+    lus += 1;
+  }
+  return { lus, demandes, arret: null, refus: null };
 }
 
 /** La description du lot, `div.lot-desc`, en texte : un paragraphe ou un
@@ -451,12 +509,34 @@ export function descriptionArkiane(page: string): string | null {
   return lignes.length ? lignes.join("\n") : null;
 }
 
+/** La zone « Equipements : » du détail, ou `null`. */
+function zonePictosArkiane(page: string): string | null {
+  return /Equipements\s*:\s*<\/div>([\s\S]*?)<\/div>/.exec(page)?.[1] ?? null;
+}
+
+/**
+ * Les pictogrammes « Equipements : » du détail, leur `alt` en texte, dans
+ * l'ordre, sans doublon ; `[]` sans zone. Sans `present` : le libellé seul
+ * décide (« Animaux refusés » se lit absent), la classe `lot_animaux_non`
+ * n'étant vue que sur une fixture.
+ */
+export function pictosArkiane(page: string): EquipementPublie[] {
+  const zone = zonePictosArkiane(page);
+  if (zone == null) return [];
+  const vus = new Set<string>();
+  const out: EquipementPublie[] = [];
+  for (const m of zone.matchAll(/<img[^>]+class="picto[^"]*"[^>]+alt="([^"]+)"/g)) {
+    const libelle = texteArkiane(m[1] ?? "");
+    if (!libelle || vus.has(libelle)) continue;
+    vus.add(libelle);
+    out.push({ libelle });
+  }
+  return out;
+}
+
 /** Les pictogrammes d'équipements du détail, puis la description. */
 export function equipementsArkiane(page: string, description: string | null): EquipementsLus | null {
-  const zone = /Equipements\s*:\s*<\/div>([\s\S]*?)<\/div>/.exec(page)?.[1];
-  const pictos = zone
-    ? [...zone.matchAll(/<img[^>]+class="picto[^"]*"[^>]+alt="([^"]+)"/g)].map((m) => ({ texte: texteArkiane(m[1] ?? "") }))
-    : null;
+  const pictos = zonePictosArkiane(page) == null ? null : pictosArkiane(page).map((p) => ({ texte: p.libelle }));
   if (pictos == null && description == null) return null;
   return fusionner(depuisListe(pictos ?? []), description ? depuisTexte(description) : null);
 }

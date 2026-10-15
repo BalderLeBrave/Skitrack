@@ -49,7 +49,13 @@
  */
 
 import { jugerLogement, typeInconnu } from "../regleTypes.ts";
-import { depuisListe, depuisTexte, fusionner, type EquipementsLus } from "../../../stay/equipements.ts";
+import {
+  depuisListe,
+  depuisTexte,
+  fusionner,
+  type EquipementPublie,
+  type EquipementsLus,
+} from "../../../stay/equipements.ts";
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheOpenSystem = {
@@ -118,6 +124,9 @@ export type FicheOpenSystem = {
   /** Les pictogrammes `ul.list-services` (« Linge de lit inclus »,
    *  « Lave-vaisselle »), puis ce que l'extrait nomme. */
   equipements?: EquipementsLus | null;
+  /** Les mêmes pictogrammes, leur `alt` tel quel (« Télévision » n'a pas de
+   *  place parmi les douze clés) ; jamais la description. */
+  equipementsPublies?: EquipementPublie[] | null;
 };
 
 /** L'extrait de description d'un bloc de résultat, en texte. */
@@ -127,19 +136,43 @@ export function descriptionOpenSystem(fragment: string): string | null {
   return texteOpenSystem(bloc.replace(/<p>\s*<a[\s\S]*?<\/a>\s*<\/p>/gi, " ")) || null;
 }
 
+/**
+ * Les pictogrammes `ul.list-services` du bloc, leur `alt` en texte, dans
+ * l'ordre de la page, sans libellé vide ni doublon. `null` sans liste.
+ */
+export function pictosOpenSystem(fragment: string): EquipementPublie[] | null {
+  const liste = /<ul class="list-services[^"]*">([\s\S]*?)<\/ul>/.exec(fragment)?.[1];
+  if (liste == null) return null;
+  const vus = new Set<string>();
+  const out: EquipementPublie[] = [];
+  for (const m of liste.matchAll(/<img[^>]+alt="([^"]+)"/g)) {
+    const libelle = texteOpenSystem(m[1] ?? "");
+    if (!libelle || vus.has(libelle)) continue;
+    vus.add(libelle);
+    out.push({ libelle });
+  }
+  return out;
+}
+
 /** Les pictogrammes du bloc, puis l'extrait de description. */
 export function equipementsOpenSystem(fragment: string, description: string | null): EquipementsLus | null {
-  const liste = /<ul class="list-services[^"]*">([\s\S]*?)<\/ul>/.exec(fragment)?.[1];
-  const pictos = liste ? [...liste.matchAll(/<img[^>]+alt="([^"]+)"/g)].map((m) => ({ texte: texteOpenSystem(m[1] ?? "") })) : null;
+  const pictos = pictosOpenSystem(fragment);
   if (pictos == null && description == null) return null;
-  return fusionner(depuisListe(pictos ?? []), description ? depuisTexte(description) : null);
+  return fusionner(depuisListe((pictos ?? []).map((p) => ({ texte: p.libelle }))), description ? depuisTexte(description) : null);
 }
 
 /** Description et équipements d'un bloc, seulement quand le bloc en porte. */
-function annonceOpenSystem(fragment: string): Pick<FicheOpenSystem, "description" | "equipements"> {
+function annonceOpenSystem(
+  fragment: string,
+): Pick<FicheOpenSystem, "description" | "equipements" | "equipementsPublies"> {
   const description = descriptionOpenSystem(fragment);
   const equipements = equipementsOpenSystem(fragment, description);
-  return { ...(description ? { description } : {}), ...(equipements ? { equipements } : {}) };
+  const publies = pictosOpenSystem(fragment);
+  return {
+    ...(description ? { description } : {}),
+    ...(equipements ? { equipements } : {}),
+    ...(publies?.length ? { equipementsPublies: publies } : {}),
+  };
 }
 
 export type DemandeOpenSystem = {

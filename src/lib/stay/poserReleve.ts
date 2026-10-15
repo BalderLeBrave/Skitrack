@@ -180,12 +180,35 @@ const CHAMPS_DE_POSITION = [
 
 /** Ce que le bien publie de lui-même, chaque valeur avec sa source : la
  *  capacité et les chambres sont celles du logement, quelle que soit la copie
- *  qui les porte. */
+ *  qui les porte. Son contenu aussi : description, équipements (les douze
+ *  clés, et les libellés publiés sans fiche, que `equipementsDe` réunit par
+ *  clé), et la note avec son nombre d'avis, jamais l'une d'une copie et
+ *  l'autre d'une autre (`avisDe` les lit ensemble, et zéro avis y annule la
+ *  note). */
 const CHAMPS_DU_BIEN = [
   ["capacity", "capacitySource"],
   ["bedrooms", "bedroomsSource"],
   ["rooms"],
+  ["description"],
+  ["amenities"],
+  ["equipementsPublies"],
+  ["rating", "reviewCount"],
 ] as const;
+
+/** Une valeur qui ne dit rien du bien : absente, un texte vide, une liste
+ *  vide, des équipements tous `inconnu` (ce que `depuisAmenities` ne lit
+ *  pas). Une liste pauvre ne masque pas une liste riche. */
+function muette(v: unknown): boolean {
+  if (v == null) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (Array.isArray(v)) return !v.some((e) => (e as { valeur?: unknown } | null)?.valeur !== "inconnu");
+  return false;
+}
+
+/** Une fiche lue : présente, et pas `indisponible` (403, 429, page retirée). */
+function ficheLue(f: unknown): boolean {
+  return f != null && typeof f === "object" && (f as { indisponible?: boolean }).indisponible !== true;
+}
 
 /**
  * Un bien relevé deux fois (même plateforme, même identifiant) n'est gardé
@@ -197,7 +220,14 @@ const CHAMPS_DU_BIEN = [
  *   verdict de domaine) ;
  * - la capacité, les chambres, les pièces, chacune avec sa source. La copie
  *   Cozy d'un Airbnb, moins chère mais muette sur sa capacité, rendait sinon
- *   « muet » un logement que sa copie directe faisait compter.
+ *   « muet » un logement que sa copie directe faisait compter ;
+ * - la description et les équipements (douze clés, libellés publiés), la
+ *   note avec son nombre d'avis (une paire, d'une même copie). La copie Cozy
+ *   ne les publie pas, la tuile directe si : gardée seule, elle les faisait
+ *   disparaître de l'écran ;
+ * - une fiche lue, quand la gardée n'en a pas ou n'a pu lire la sienne. Elle
+ *   décide alors seule des équipements (`equipementsDe`), comme une fiche
+ *   reposée depuis la mémoire : c'est le même bien, sur la même source.
  *
  * Ce n'est pas `regrouper` (`regroupement.ts`), qui réunit les offres d'un
  * même logement **sur plusieurs plateformes** : ici, c'est la même offre.
@@ -212,11 +242,15 @@ export function dedoublonnerParBien<T extends CopieDeBien>(listings: readonly T[
       if (situee) for (const k of CHAMPS_DE_POSITION) if (k in de(situee)) out[k] = de(situee)[k];
     }
     for (const [valeur, ...source] of CHAMPS_DU_BIEN) {
-      if (out[valeur] != null) continue;
-      const donneur = copies.find((c) => de(c)[valeur] != null);
+      if (!muette(out[valeur])) continue;
+      const donneur = copies.find((c) => !muette(de(c)[valeur]));
       if (!donneur) continue;
       out[valeur] = de(donneur)[valeur];
       for (const k of source) out[k] = de(donneur)[k];
+    }
+    if (!ficheLue(out.fiche)) {
+      const lue = copies.find((c) => ficheLue(de(c).fiche));
+      if (lue) out.fiche = de(lue).fiche;
     }
     return out as T;
   });

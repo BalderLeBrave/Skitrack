@@ -39,6 +39,8 @@ import { annoncer, champsLogement } from "../stay/occupancy.ts";
 import { depuisTexte, equipements, fusionner, type CleEquipement, type EquipementsLus } from "../stay/equipements.ts";
 import { texteDeHtml } from "../stay/texteHtml.ts";
 import { ficheDepuisBrut, type FicheEnrichie } from "../stay/ficheEnrichie.ts";
+import { cleListing } from "../stay/poserReleve.ts";
+import type { LectureAGarder } from "../stay/contenuFiches.server.ts";
 
 export const GREENGO_SITE = "https://www.greengo.voyage";
 export const GREENGO_API = "https://operations.greengo.voyage/graphql";
@@ -592,4 +594,32 @@ export function greengoListings(
         platformId: u.id,
       };
     });
+}
+
+/**
+ * Ce que le relevé garde trente jours du détail d'un hôte à logement unique
+ * (`garderLectures`, `stay/contenuFiches.server.ts`) : la fiche de son annonce
+ * (codes d'équipement passés par la table, description, avis) et son contenu
+ * (description, douze clés), sous la clé de l'annonce **sans détail** du même
+ * hôte (`cleListing` : son `platformId` est l'hôte, celui de l'annonce
+ * détaillée est le logement). Un relevé qui ne lit pas ce détail (échéance,
+ * refus, hôte au-delà des plus proches, autres dates) les y repose sans
+ * requête (`reposerGardees`, à la seconde passe).
+ *
+ * Rien pour un établissement, même « pur » : son annonce sans détail vaut
+ * pour tous ses logements, et la fiche de l'un n'est pas celle de l'hôte.
+ * Rien non plus pour un hôte sans annonce sans détail (`hotePur`), ni pour
+ * une annonce sans fiche.
+ */
+export function lecturesAGarder(
+  hote: HoteGreenGo,
+  annonces: readonly Listing[],
+  input: LiveSearchInput,
+): LectureAGarder[] {
+  const [a] = annonces;
+  if (!hote.unique || annonces.length !== 1 || !a?.fiche) return [];
+  const [sans] = greengoListings(hote, null, input);
+  const cle = sans ? cleListing(sans) : null;
+  if (!cle) return [];
+  return [{ cle, fiche: a.fiche, contenu: { description: a.description ?? null, amenities: a.amenities ?? null } }];
 }

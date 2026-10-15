@@ -10,7 +10,8 @@
  *
  * - la description (`Listing.description`) ;
  * - les équipements des collecteurs existants (`Listing.amenities`, douze
- *   clés), sur la table ouverte (`depuisAmenities`) ;
+ *   clés), sur la table ouverte (`depuisAmenities`), avec les libellés qu'une
+ *   source structurée publie sans fiche (`Listing.equipementsPublies`) ;
  * - la note et le nombre d'avis (`Listing.rating`, `reviewCount`), **seulement
  *   quand l'échelle de la source est établie** (`ECHELLE_RELEVEE`) : une note
  *   dont on ignore l'échelle ne s'affiche pas, ne se filtre pas, ne se trie
@@ -23,7 +24,19 @@
 
 import type { Listing } from "../listings.ts";
 import { echelleNote, noterSur5, type EchelleNote } from "../note.ts";
-import { depuisAmenities, normaliserEquipements, type EquipementFiche } from "./equipements.ts";
+import {
+  DEPUIS_CLE,
+  depuisAmenities,
+  depuisListe,
+  equipements,
+  equipementsPubliesRelus,
+  fusionner,
+  normaliserEquipements,
+  type CleEquipement,
+  type EquipementFiche,
+  type EquipementPublie,
+  type EquipementsLus,
+} from "./equipements.ts";
 
 export type { EquipementFiche } from "./equipements.ts";
 
@@ -205,19 +218,136 @@ export function descriptionDe(l: Listing): string | null {
   return texte(l.fiche?.description) ?? texte(l.description);
 }
 
+/** Une fiche lue décide seule des équipements ; une fiche indisponible ne
+ *  dit rien, l'annonce garde ceux des collecteurs. */
+export function ficheDecideEquipements(l: Listing): boolean {
+  return !!l.fiche && !l.fiche.indisponible;
+}
+
 /**
  * Les équipements de l'annonce : ceux de sa fiche, sinon ceux des collecteurs
- * existants. `null` quand aucune liste n'a été lue — ce qui ne dit pas que le
- * logement n'a rien.
+ * existants avec ce que la source publie sans fiche (`equipementsSansFiche`).
+ * `null` quand aucune liste n'a été lue — ce qui ne dit pas que le logement
+ * n'a rien.
  */
 export function equipementsDe(l: Listing): EquipementFiche[] | null {
   // Une fiche lue décide seule : sans liste publiée, rien — pas les
-  // équipements qu'un collecteur aurait déduits d'un texte.
-  if (l.fiche && !l.fiche.indisponible) {
-    const es = normaliserEquipements(l.fiche.equipements ?? []);
+  // équipements qu'un collecteur aurait déduits d'un texte, ni ceux que la
+  // source publie ailleurs (`equipementsPublies`).
+  if (ficheDecideEquipements(l)) {
+    const es = normaliserEquipements(l.fiche!.equipements ?? []);
     return es.length ? es : null;
   }
-  return depuisAmenities(l.amenities);
+  return equipementsSansFiche(l);
+}
+
+/**
+ * Sans fiche lue : les douze clés des collecteurs (`amenities`) et la liste
+ * que la source publie sans poser de fiche (`equipementsPublies` : pictos ou
+ * options d'une centrale, services d'une agence, titres d'une tuile), réunies
+ * par clé.
+ *
+ * - Un libellé que la liste fermée lit (« Connexion WIFI », « Espace SPA »,
+ *   « Linge inclus », « Animaux refusés ») est déjà dans les douze clés : le
+ *   collecteur les en a tirées. Il ne comble que celles qu'elles taisent, lu
+ *   comme le collecteur l'aurait lu (`depuisListe` : « en supplément »,
+ *   « refusés »), et donne son texte à la clé qu'il nomme seul, quand il en
+ *   dit la même chose.
+ * - Les autres passent par la table ouverte : « Télévision », et sous
+ *   « autre: » ce qu'elle ne connaît pas (« Orienté Sud »). Sur une clé déjà
+ *   là, un présent l'emporte, et le libellé de la source reste.
+ *
+ * Les douze clés ne repassent jamais par `normaliserEquipements` : relues sur
+ * leur libellé français, elles changeraient de clé (« Linge fourni » n'est pas
+ * `linge_fourni` pour la table, « Sauna ou spa » serait un sauna).
+ */
+function equipementsSansFiche(l: Listing): EquipementFiche[] | null {
+  const publies = equipementsPubliesRelus(l.equipementsPublies);
+  if (!publies.length) return depuisAmenities(l.amenities);
+  const lectures = publies.map((p) => ({ p, ...lirePublie(p) }));
+  // Les douze clés relevées d'abord ; la liste fermée, lue sur la liste
+  // publiée, ne comble que ce qu'elles taisent. Entre libellés, un présent
+  // l'emporte sur un absent de même clé, comme dans `depuisListe`.
+  const relevees: EquipementsLus = {};
+  for (const e of l.amenities ?? []) if (e.valeur !== "inconnu" && relevees[e.cle] == null) relevees[e.cle] = e.valeur;
+  const liste: EquipementsLus = {};
+  for (const { lu } of lectures)
+    for (const c of Object.keys(lu) as CleEquipement[]) if (lu[c] === "oui" || liste[c] !== "oui") liste[c] = lu[c];
+  const parId = new Map((depuisAmenities(equipements(fusionner(relevees, liste))) ?? []).map((e) => [e.id, e]));
+  /** Les clés qui portent déjà le libellé de la source : le premier reste. */
+  const libellesSource = new Set<string>();
+  for (const { p, lu, n } of lectures) {
+    const cles = Object.keys(lu) as CleEquipement[];
+    if (cles.length) {
+      if (cles.length !== 1) continue;
+      const e = parId.get(DEPUIS_CLE[cles[0]]);
+      if (!e || libellesSource.has(e.id) || e.present !== (lu[cles[0]] === "oui")) continue;
+      parId.set(e.id, { ...e, libelle: p.libelle });
+      libellesSource.add(e.id);
+      continue;
+    }
+    if (!n) continue;
+    const e = parId.get(n.id);
+    parId.set(
+      n.id,
+      e
+        ? { ...e, present: e.present || n.present, libelle: libellesSource.has(n.id) ? e.libelle : n.libelle }
+        : { ...n },
+    );
+    libellesSource.add(n.id);
+  }
+  return parId.size ? [...parId.values()] : null;
+}
+
+/**
+ * La lecture d'un libellé publié : ce qu'en lit la liste fermée (`depuisListe`)
+ * et sa clé dans la table (`normaliserEquipements`). Gardée par libellé : une
+ * centrale publie les mêmes pictos sur toutes ses annonces, et les filtres
+ * relisent chaque annonce pour chaque équipement (500 annonces de dix libellés,
+ * tous les équipements de la table : 1,3 s sans elle, 0,2 s avec). Bornée ;
+ * ce qu'elle rend ne se modifie pas.
+ */
+const LECTURES_PUBLIEES = new Map<string, { lu: EquipementsLus; n: EquipementFiche | null }>();
+const LECTURES_PUBLIEES_MAX = 5000;
+
+function lirePublie(p: EquipementPublie): { lu: EquipementsLus; n: EquipementFiche | null } {
+  const cle = `${p.present ?? ""}\u0000${p.groupe ?? ""}\u0000${p.libelle}`;
+  let lecture = LECTURES_PUBLIEES.get(cle);
+  if (!lecture) {
+    if (LECTURES_PUBLIEES.size >= LECTURES_PUBLIEES_MAX) LECTURES_PUBLIEES.clear();
+    lecture = {
+      lu: depuisListe([{ texte: p.libelle, disponible: p.present }]),
+      n: normaliserEquipements([p])[0] ?? null,
+    };
+    LECTURES_PUBLIEES.set(cle, lecture);
+  }
+  return lecture;
+}
+
+/** Les équipements ont-ils été lus : une fiche qui décide, les douze clés des
+ *  collecteurs, ou une liste publiée sans fiche ? Sinon l'écran dit
+ *  « Équipements non lus », pas « Non publié » : la source n'a rien tu, on
+ *  n'a rien lu. */
+export function equipementsLus(l: Listing): boolean {
+  return (
+    ficheDecideEquipements(l) ||
+    (l.amenities?.length ?? 0) > 0 ||
+    equipementsPubliesRelus(l.equipementsPublies).length > 0
+  );
+}
+
+/**
+ * Les clés que les collecteurs ont relevées sans les trouver (`inconnu`), pour
+ * les dire « non indiqué » — sauf celles que la liste publiée dit
+ * (`equipementsDe`). Rien quand une fiche lue décide : elle ne dit rien de ce
+ * qu'un texte tait, pas plus qu'elle ne reprend ce qu'il nomme.
+ */
+export function equipementsTus(l: Listing): CleEquipement[] {
+  if (ficheDecideEquipements(l)) return [];
+  const dits = new Set((equipementsDe(l) ?? []).map((e) => e.id));
+  return (l.amenities ?? [])
+    .filter((e) => e.valeur === "inconnu" && !dits.has(DEPUIS_CLE[e.cle]))
+    .map((e) => e.cle);
 }
 
 /** Les conditions publiées, ou `null` quand la fiche n'en dit rien. */
@@ -249,6 +379,18 @@ export function conditionsRelues(brut: unknown): ConditionsSejour | null {
   return Object.keys(out).length ? out : null;
 }
 
+/**
+ * Les animaux : ce qu'en dit la liste d'équipements, sinon le règlement de la
+ * fiche lue (« Animaux acceptés » d'Airbnb, « Animaux domestiques » de
+ * Booking). La liste l'emporte : « Pets not allowed » listé dit non, quoi que
+ * dise le règlement. `null` quand ni l'une ni l'autre n'en parle.
+ */
+export function animauxDe(l: Listing): "oui" | "non" | "sur_demande" | null {
+  const e = equipementsDe(l)?.find((x) => x.id === "animaux");
+  if (e) return e.present ? "oui" : "non";
+  return ficheDecideEquipements(l) ? (conditionsDe(l)?.animaux ?? null) : null;
+}
+
 /* ---------- Filtres ---------- */
 
 /**
@@ -258,6 +400,31 @@ export function conditionsRelues(brut: unknown): ConditionsSejour | null {
  */
 export function aEquipement(l: Listing, id: string): boolean {
   return equipementsDe(l)?.some((e) => e.id === id && e.present) === true;
+}
+
+/**
+ * Ce que couvre un équipement demandé, en plus de sa clé. « Sauna ou spa »,
+ * la clé fermée des collecteurs (centrales, agences), ne distingue pas sauna,
+ * spa, hammam, bain nordique et jacuzzi. Demander « Sauna » la retient, comme
+ * la catégorie du bandeau l'a toujours fait ; demander « Sauna ou spa »
+ * retient, à l'inverse, tout ce qu'une fiche lue nomme à part. « Spa »,
+ * « Hammam », « Bain nordique » : leur clé seule.
+ */
+const EQUIVALENTS_EQUIPEMENT: Readonly<Record<string, readonly string[]>> = {
+  sauna: ["sauna", "sauna_spa"],
+  sauna_spa: ["sauna_spa", "sauna", "spa", "hammam", "bain_nordique", "jacuzzi"],
+};
+
+/**
+ * Un équipement **demandé**, une seule règle pour la catégorie du bandeau et
+ * la puce de la fenêtre Filtres : la clé ou ce qu'elle couvre
+ * (`EQUIVALENTS_EQUIPEMENT`), listé comme présent. Les animaux se lisent
+ * aussi au règlement de la fiche (`animauxDe`) ; « sur demande » ne passe
+ * pas : l'inconnu n'est pas un oui.
+ */
+export function aEquipementDemande(l: Listing, id: string): boolean {
+  if (id === "animaux") return animauxDe(l) === "oui";
+  return (EQUIVALENTS_EQUIPEMENT[id] ?? [id]).some((x) => aEquipement(l, x));
 }
 
 /** Une note sur 5 au moins égale au seuil. Une annonce sans note ne passe pas,

@@ -1,7 +1,8 @@
 /**
  * Échantillon réel des logements : par source, la part des annonces dont la
- * capacité et les chambres sont renseignées, et la liste de celles qui ne le
- * sont pas, avec leur lien.
+ * description, les équipements, les chambres, la capacité, le GPS, la photo et
+ * le prix sont renseignés — tels que l'écran les lit (`stay/manques.ts`) —, et
+ * la liste de celles qui ne le sont pas, avec leur lien et ce qui leur manque.
  *
  * À lancer sur une machine qui a accès aux plateformes, depuis la racine du
  * dépôt. Le relevé passe par les collecteurs de l'application, avec leur
@@ -21,6 +22,13 @@
  *   --sources <a,b>          seulement ces sources (« Airbnb », « Ingénie »,
  *                            « Alpissime »…) ;
  *   --sans-fiches            sans la seconde passe ;
+ *   --echelonnement <min>    relève comme l'écran Logements (domaine, suite
+ *                            de pages, fiches lues en tâche de fond par chaque
+ *                            source, à son rythme), attend <min> minutes, puis
+ *                            repose sans réseau ce que les mémoires ont gardé
+ *                            (fiches, contenu) avant de compter. Sans cette
+ *                            option, le relevé est celui des échantillons
+ *                            d'avant : comparable avec eux ;
  *   --fiches-airbnb [N]      lit aussi les fiches Airbnb des annonces sans
  *                            capacité ou sans chambres, N par station au plus
  *                            (60 par défaut), comme la complétion de l'écran
@@ -50,6 +58,12 @@ type Cible = {
 
 type Compte = {
   annonces: number;
+  /** Absents des échantillons d'avant le 15 octobre 2026 : « - » à la comparaison. */
+  sansDescription?: number;
+  sansEquipements?: number;
+  sansGps?: number;
+  sansPhoto?: number;
+  sansPrix?: number;
   sansChambres: number;
   sansCapacite: number;
   sansLesDeux: number;
@@ -66,6 +80,8 @@ type Nul = {
   url: string | null;
   chambres: number | null;
   capacite: number | null;
+  /** Ce qui manque à l'annonce, parmi `CHAMPS`. */
+  manque?: string[];
 };
 
 type Echantillon = {
@@ -107,6 +123,11 @@ function sourceCapacite(l: Annonce): string {
 function vide(): Compte {
   return {
     annonces: 0,
+    sansDescription: 0,
+    sansEquipements: 0,
+    sansGps: 0,
+    sansPhoto: 0,
+    sansPrix: 0,
     sansChambres: 0,
     sansCapacite: 0,
     sansLesDeux: 0,
@@ -116,11 +137,22 @@ function vide(): Compte {
   };
 }
 
+/** Ce qui manque à une annonce, lu comme l'écran le lit (`stay/manques.ts`). */
+function manquesDe(l: Annonce): string[] {
+  return manquesListing({ ...(l as never), capacity: capaciteDe(l) });
+}
+
 function compter(parSource: Record<string, Compte>, nom: string, l: Annonce): void {
   const c = (parSource[nom] ??= vide());
   const chambres = l.bedrooms;
   const capacite = capaciteDe(l);
+  const manque = manquesDe(l);
   c.annonces += 1;
+  if (manque.includes("description")) c.sansDescription = (c.sansDescription ?? 0) + 1;
+  if (manque.includes("equipements")) c.sansEquipements = (c.sansEquipements ?? 0) + 1;
+  if (manque.includes("gps")) c.sansGps = (c.sansGps ?? 0) + 1;
+  if (manque.includes("photo")) c.sansPhoto = (c.sansPhoto ?? 0) + 1;
+  if (manque.includes("prix")) c.sansPrix = (c.sansPrix ?? 0) + 1;
   if (chambres == null) c.sansChambres += 1;
   else c.sourcesChambres[sourceChambres(l)] = (c.sourcesChambres[sourceChambres(l)] ?? 0) + 1;
   if (capacite == null) c.sansCapacite += 1;
@@ -132,14 +164,29 @@ function compter(parSource: Record<string, Compte>, nom: string, l: Annonce): vo
 const pct = (n: number, sur: number): string =>
   sur > 0 ? `${Math.round((100 * n) / sur)} %` : "-";
 
+/** Les colonnes : le nom affiché, et le compte des annonces où le champ manque. */
+const COLONNES: Array<[string, (c: Compte) => number | undefined]> = [
+  ["Description", (c) => c.sansDescription],
+  ["Équipements", (c) => c.sansEquipements],
+  ["Chambres", (c) => c.sansChambres],
+  ["Capacité", (c) => c.sansCapacite],
+  ["GPS", (c) => c.sansGps],
+  ["Photo", (c) => c.sansPhoto],
+  ["Prix", (c) => c.sansPrix],
+];
+
+/** La part renseignée ; « - » quand l'échantillon ne l'a pas mesurée. */
+const part = (c: Compte, manque: number | undefined): string =>
+  manque == null ? "-" : pct(c.annonces - manque, c.annonces);
+
 function tableau(final: Record<string, Compte>): string {
   const lignes = [
-    "| Source | Annonces | Chambres renseignées | Capacité renseignée | Studios |",
-    "|---|---|---|---|---|",
+    `| Source | Annonces | ${COLONNES.map(([n]) => n).join(" | ")} | Studios |`,
+    `|---|---|${COLONNES.map(() => "---").join("|")}|---|`,
   ];
   for (const [s, c] of Object.entries(final).sort()) {
     lignes.push(
-      `| ${s} | ${c.annonces} | ${pct(c.annonces - c.sansChambres, c.annonces)} | ${pct(c.annonces - c.sansCapacite, c.annonces)} | ${c.studios} |`,
+      `| ${s} | ${c.annonces} | ${COLONNES.map(([, f]) => part(c, f(c))).join(" | ")} | ${c.studios} |`,
     );
   }
   return lignes.join("\n");
@@ -161,14 +208,21 @@ if (args.includes("--comparer")) {
   const lignes = [
     `Avant : ${a.etiquette} (${a.date}) ; après : ${b.etiquette} (${b.date})`,
     "",
-    "| Source | Annonces | Chambres renseignées | Capacité renseignée |",
-    "|---|---|---|---|",
+    `| Source | Annonces | ${COLONNES.map(([n]) => n).join(" | ")} |`,
+    `|---|---|${COLONNES.map(() => "---").join("|")}|`,
   ];
   for (const s of [...new Set([...Object.keys(a.final), ...Object.keys(b.final)])].sort()) {
-    const x = a.final[s] ?? vide();
+    const x = a.final[s] ?? {
+      ...vide(),
+      sansDescription: undefined,
+      sansEquipements: undefined,
+      sansGps: undefined,
+      sansPhoto: undefined,
+      sansPrix: undefined,
+    };
     const y = b.final[s] ?? vide();
     lignes.push(
-      `| ${s} | ${x.annonces} → ${y.annonces} | ${pct(x.annonces - x.sansChambres, x.annonces)} → ${pct(y.annonces - y.sansChambres, y.annonces)} | ${pct(x.annonces - x.sansCapacite, x.annonces)} → ${pct(y.annonces - y.sansCapacite, y.annonces)} |`,
+      `| ${s} | ${x.annonces} → ${y.annonces} | ${COLONNES.map(([, f]) => `${part(x, f(x))} → ${part(y, f(y))}`).join(" | ")} |`,
     );
   }
   console.log(lignes.join("\n"));
@@ -185,6 +239,10 @@ const filtre = option("sources")
   .map((s) => s.trim())
   .filter(Boolean);
 const avecFiches = !args.includes("--sans-fiches");
+/** Minutes laissées aux lectures de fond avant de compter ; 0 : relevé d'avant. */
+const echelonnement = args.includes("--echelonnement")
+  ? Math.max(1, Number(option("echelonnement")) || 20)
+  : 0;
 /** Fiches Airbnb lues au plus par station ; 0 : aucune. */
 const fichesAirbnb = args.includes("--fiches-airbnb")
   ? Math.max(1, Number(option("fiches-airbnb")) || 60)
@@ -197,7 +255,10 @@ const { ficheCentrale } = await import("../../src/lib/scrape/centrales/registre.
 const { SOURCES_AGENCES, stationsDe } = await import("../../src/lib/scrape/agences/couverture.ts");
 const { runLiveSearch } = await import("../../src/lib/scrape/run.server.ts");
 const { airbnbIdOf, enrichirListing } = await import("../../src/lib/stay/enrichir.ts");
-const { fillFiches } = await import("../../src/lib/stay/completerFiche.server.ts");
+const { fillFiches, poserMemoire } = await import("../../src/lib/stay/completerFiche.server.ts");
+const { manquesDe: manquesListing } = await import("../../src/lib/stay/manques.ts");
+const { reposerGardees } = await import("../../src/lib/stay/contenuFiches.server.ts");
+const { lireCacheAirbnb, lireCacheBooking } = await import("../../src/lib/scrape/run.server.ts");
 
 /** Une tranche de fiches Airbnb : soixante au plus, à 5 ou 6 s l'une. */
 const TRANCHE_AIRBNB_MS = 6 * 60_000;
@@ -319,6 +380,13 @@ const echantillon: Echantillon = {
 console.log(
   `${cibles.length} relevés : ${cibles.map((c) => `${c.stationId}/${c.part}`).join(", ")}`,
 );
+/** Chaque relevé, gardé pour le compte final (après l'échelonnement s'il est demandé). */
+const releves: Array<{
+  stationId: string;
+  part: Cible["part"];
+  input: Record<string, unknown>;
+  rows: Annonce[];
+}> = [];
 for (const c of cibles) {
   const st = stationById(c.stationId);
   if (!st) continue;
@@ -331,6 +399,9 @@ for (const c of cibles) {
     checkOut: au,
     guests: voyageurs,
     bedrooms: 0,
+    // Comme l'écran Logements (`searchStay`) : le domaine, et les suites de
+    // pages et de fiches qui en partent.
+    ...(echelonnement > 0 ? { domaine: true } : {}),
   };
   console.log(`\n[echantillon] ${st.id} / ${c.part}`);
   let res: {
@@ -374,18 +445,49 @@ for (const c of cibles) {
       console.warn(`[echantillon] fiches Airbnb : ${(err as Error).message}`);
     }
   }
+  releves.push({ stationId: st.id, part: c.part, input, rows });
+}
+
+if (echelonnement > 0) {
+  console.log(
+    `\n[echantillon] lectures de fond : ${echelonnement} min d'attente, sans requête de plus d'ici`,
+  );
+  await new Promise((r) => setTimeout(r, echelonnement * 60_000));
+}
+
+for (const { stationId, part, input, rows } of releves) {
+  if (echelonnement > 0) {
+    // Ce que les suites ont ajouté au cache de cette recherche, puis ce que
+    // les mémoires ont gardé : sans réseau, comme la relecture de l'écran.
+    const vus = new Set(rows.map((l) => l.id));
+    const suite =
+      part === "airbnb"
+        ? lireCacheAirbnb(input as never)
+        : part === "cozy"
+          ? lireCacheBooking(input as never)
+          : [];
+    for (const l of suite as unknown as Annonce[]) {
+      if (vus.has(l.id)) continue;
+      vus.add(l.id);
+      rows.push({ ...enrichirListing(l as never) } as unknown as Annonce);
+    }
+    reposerGardees(rows as never);
+    poserMemoire(rows as never);
+  }
   for (const l of rows) {
-    const nom = nomSource(l, st.id);
+    const nom = nomSource(l, stationId);
     compter(echantillon.final, nom, l);
-    if (l.bedrooms == null || capaciteDe(l) == null) {
+    const manque = manquesDe(l);
+    if (manque.length > 0) {
       echantillon.nuls.push({
         source: nom,
-        station: st.id,
+        station: stationId,
         id: l.id,
         titre: l.title,
         url: l.url,
         chambres: l.bedrooms,
         capacite: capaciteDe(l),
+        manque,
       });
     }
   }
@@ -394,7 +496,7 @@ for (const c of cibles) {
 const fichier = option("sortie") ?? `echantillon-logements-${etiquette}.json`;
 writeFileSync(fichier, JSON.stringify(echantillon, null, 2));
 const csv = [
-  "source;station;id;titre;url;chambres;capacite",
+  "source;station;id;titre;url;chambres;capacite;manque",
   ...echantillon.nuls.map((n) =>
     [
       n.source,
@@ -405,13 +507,14 @@ const csv = [
       n.url ?? "",
       n.chambres ?? "",
       n.capacite ?? "",
+      (n.manque ?? []).join(","),
     ].join(";"),
   ),
 ].join("\n");
 writeFileSync(fichier.replace(/\.json$/, "-nuls.csv"), csv);
 console.log(`\n${tableau(echantillon.final)}\n`);
 console.log(
-  `${echantillon.nuls.length} annonces sans chambres ou sans capacité : ${fichier.replace(/\.json$/, "-nuls.csv")}`,
+  `${echantillon.nuls.length} annonces incomplètes (description, équipements, chambres, capacité, GPS, photo, prix ou lien) : ${fichier.replace(/\.json$/, "-nuls.csv")}`,
 );
 console.log(`Échantillon complet : ${fichier}`);
 // Les collecteurs gardent des minuteries (cache, limiteurs) : on sort.

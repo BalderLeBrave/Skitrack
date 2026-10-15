@@ -9,13 +9,17 @@
  * la part le permet. Un refus (429, 503, 403) arrête le
  * relevé et pose une pause de 45 s au moins ; ce qui est lu reste, et rien
  * n'est repris. Un détail lu sert 15 min aux stations voisines (mêmes hôtes,
- * mêmes dates, même groupe). L'en-tête est celui d'un navigateur, comme tout
- * le relevé (`navigateur.ts`).
+ * mêmes dates, même groupe). Ce qu'il publie d'un hôte à logement unique
+ * (fiche, équipements, description) se garde trente jours, et se repose sans
+ * requête sur son annonce quand un relevé ne lit pas son détail
+ * (`lecturesAGarder`). L'en-tête est celui d'un navigateur, comme tout le
+ * relevé (`navigateur.ts`).
  */
 
 import type { Listing } from "@/lib/listings";
 import { CIRCUIT_COOLDOWN_MS, PAUSE_MAX_MS, estStatutRalenti, retryAfterMs } from "@/lib/stay/http429";
 import { noterBlocage, paceTaux, pauseTauxMs } from "@/lib/stay/taux.server";
+import { garderLectures, type LectureAGarder } from "@/lib/stay/contenuFiches.server";
 import { UA_NAVIGATEUR } from "./navigateur";
 import { allowsPath } from "./robots";
 import { stationsDuReleve } from "./domaine";
@@ -29,6 +33,7 @@ import {
   detaillerMalgre,
   greengoListings,
   hoteGarde,
+  lecturesAGarder,
   lireDetail,
   lireRecherche,
   requeteDetail,
@@ -159,13 +164,20 @@ export async function releverGreenGo(input: LiveSearchInput, opts: { echeance: n
   raison ??= suite.raison;
   if (!raison && gardes.length > MAX_DETAILS) raison = `${gardes.length - MAX_DETAILS} hôtes au-delà des ${MAX_DETAILS} lus en détail`;
   if (!raison && suite.echecs > 0) raison = `${suite.echecs} détail${suite.echecs > 1 ? "s" : ""} illisible${suite.echecs > 1 ? "s" : ""}`;
+  /** Ce que les détails lus publient, à garder trente jours (`lecturesAGarder`). */
+  const aGarder: LectureAGarder[] = [];
   const listings = gardes.flatMap((h) => {
-    const annonces = greengoListings(h, suite.details.get(h.id) ?? null, input);
+    const logements = suite.details.get(h.id) ?? null;
+    const annonces = greengoListings(h, logements, input);
+    if (logements) aGarder.push(...lecturesAGarder(h, annonces, input));
     const lu = lus.get(h.id);
     // Daté de la lecture du détail : `daterReleve` (run.server.ts) ne
     // retamponne pas une annonce qui porte déjà son heure.
     return lu == null ? annonces : annonces.map((l) => (l.total > 0 ? { ...l, scannedAt: lu } : l));
   });
+  // Une écriture par relevé au plus, sans requête ; un disque refusé ne
+  // coupe pas le relevé (`garderLectures`).
+  if (aGarder.length) garderLectures(aGarder);
   console.info(
     `[greengo] ${hotes.length} hôtes${publie != null ? ` sur ${publie} publiés` : ""}, ${ecartes} écartés (type), ${suite.details.size} lus en détail, ${listings.length} annonces${raison ? ` — ${raison}` : ""}`,
   );

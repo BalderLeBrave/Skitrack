@@ -1,7 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import type { Listing } from "../listings.ts";
 import { contenuDeFiche } from "./contenuFiche.ts";
+import { aEquipement, equipementsDe } from "./ficheEnrichie.ts";
 
 const fx = (p: string) => readFileSync(new URL(`./fixtures/${p}`, import.meta.url), "utf8");
 const valeurs = (c: ReturnType<typeof contenuDeFiche>) =>
@@ -27,6 +29,91 @@ describe("contenuDeFiche : Cimalpes, extraits réels", () => {
     const seul = fx("cimalpes-fiche-chalet-delta-36.html").replace(/<p>Linge de[^<]*<\/p>/g, "");
     assert.equal(valeurs(contenuDeFiche("https://cimalpes.com/fr/x/", seul)).linge, undefined);
   });
+
+  it("chaque libellé des listes, tel quel et une fois, sous sa rubrique : les douze clés n'en gardaient que cinq", () => {
+    assert.deepEqual(c?.equipementsPublies, [
+      { libelle: "Casier à ski", groupe: "Généraux" },
+      { libelle: "Lit bébé", groupe: "Généraux" },
+      { libelle: "TV", groupe: "Multimédia" },
+      { libelle: "Wifi", groupe: "Multimédia" },
+      { libelle: "Appareil à fondue", groupe: "Electroménager" },
+      { libelle: "Appareil à raclette", groupe: "Electroménager" },
+      { libelle: "Aspirateur", groupe: "Electroménager" },
+      { libelle: "Bouilloire", groupe: "Electroménager" },
+      { libelle: "Combinaison four & micro-onde", groupe: "Electroménager" },
+      { libelle: "Lave-vaisselle", groupe: "Electroménager" },
+      { libelle: "Machine à café Nespresso", groupe: "Electroménager" },
+      { libelle: "Plaques de cuisson à induction", groupe: "Electroménager" },
+      { libelle: "Réfrigérateur", groupe: "Electroménager" },
+      { libelle: "Accueil en agence", groupe: "Accueil" },
+      { libelle: "Produits de salle de bains", groupe: "Accueil" },
+      { libelle: "Linge de bain supplémentaire durant le séjour sur demande", groupe: "Ménage & Linge" },
+      { libelle: "Linge de lit supplémentaire durant le séjour sur demande", groupe: "Ménage & Linge" },
+      { libelle: "Linge de maison et de bain", groupe: "Ménage & Linge" },
+      { libelle: "Lits faits à l'arrivée", groupe: "Ménage & Linge" },
+      { libelle: "Ménage de fin de séjour (hors cuisine)", groupe: "Ménage & Linge" },
+      { libelle: "Ménage supplémentaire durant le séjour sur demande", groupe: "Ménage & Linge" },
+      // Les points forts : « Terrasse » n'est que là ; « Casier à skis »
+      // n'est pas « Casier à ski », il reste.
+      { libelle: "Terrasse" },
+      { libelle: "Balcon" },
+      { libelle: "Casier à skis" },
+    ]);
+    // Posés sur une annonce Cimalpes (jamais de fiche enrichie) : les cinq
+    // clés, sous le libellé de la source, et tout le reste.
+    const l = { id: "cim-1", source: "Cimalpes", amenities: c?.amenities, equipementsPublies: c?.equipementsPublies } as Listing;
+    assert.deepEqual(
+      equipementsDe(l)?.map((e) => [e.id, e.libelle]),
+      [
+        ["balcon", "Terrasse"],
+        ["wifi", "Wifi"],
+        ["lave_vaisselle", "Lave-vaisselle"],
+        ["linge_fourni", "Linge de lit supplémentaire durant le séjour sur demande"],
+        ["casier_skis", "Casier à ski"],
+        ["autre:lit bebe", "Lit bébé"],
+        ["television", "TV"],
+        ["autre:appareil a fondue", "Appareil à fondue"],
+        ["autre:appareil a raclette", "Appareil à raclette"],
+        ["autre:aspirateur", "Aspirateur"],
+        ["autre:bouilloire", "Bouilloire"],
+        ["autre:combinaison four & micro-onde", "Combinaison four & micro-onde"],
+        ["autre:machine a cafe nespresso", "Machine à café Nespresso"],
+        ["autre:plaques de cuisson a induction", "Plaques de cuisson à induction"],
+        ["autre:refrigerateur", "Réfrigérateur"],
+        ["autre:accueil en agence", "Accueil en agence"],
+        ["autre:produits de salle de bains", "Produits de salle de bains"],
+        ["autre:linge de bain supplementaire durant le sejour sur demande", "Linge de bain supplémentaire durant le séjour sur demande"],
+        ["autre:lits faits a l'arrivee", "Lits faits à l'arrivée"],
+        ["autre:menage de fin de sejour (hors cuisine)", "Ménage de fin de séjour (hors cuisine)"],
+        ["autre:menage supplementaire durant le sejour sur demande", "Ménage supplémentaire durant le séjour sur demande"],
+      ],
+    );
+    assert.ok(equipementsDe(l)?.every((e) => e.present));
+    assert.equal(aEquipement(l, "television"), true);
+    // Sans la liste, la télévision n'était qu'un « TV » perdu.
+    assert.equal(aEquipement({ ...l, equipementsPublies: undefined }, "television"), false);
+  });
+
+  it("ni les distances qui suivent le panneau, ni un service à la carte ; sans titre « Services Inclus », aucun service", () => {
+    const tous = (h: string) => contenuDeFiche("https://cimalpes.com/fr/x/", h)?.equipementsPublies?.map((e) => e.libelle) ?? [];
+    const page = fx("cimalpes-fiche-chalet-delta-36.html");
+    assert.ok(page.includes("<p>Distance du centre : 700 m</p>"));
+    assert.deepEqual(tous(page).filter((t) => /Distance|Piste|Remontée/.test(t)), []);
+    // Un service sous « Personnels », avant les services inclus : pas publié.
+    const personnel = page.replace(
+      /(>Personnels<\/p>)/,
+      '$1<h3 class="font15"><b>Chef</b></h3><p>Chef à domicile</p>',
+    );
+    assert.notEqual(personnel, page);
+    assert.equal(tous(personnel).includes("Chef à domicile"), false);
+    assert.equal(tous(personnel).includes("Lits faits à l'arrivée"), true);
+    const sansTitre = page.replace(">Services Inclus</p>", ">Nos services</p>");
+    assert.notEqual(sansTitre, page);
+    assert.equal(tous(sansTitre).includes("Lits faits à l'arrivée"), false);
+    assert.equal(tous(sansTitre).includes("Réfrigérateur"), true);
+    // Les douze clés lisent toujours tout le panneau des services.
+    assert.equal(valeurs(contenuDeFiche("https://cimalpes.com/fr/x/", sansTitre)).linge, "oui");
+  });
 });
 
 describe("contenuDeFiche : Abritel, extrait réel", () => {
@@ -35,6 +122,31 @@ describe("contenuDeFiche : Abritel, extrait réel", () => {
     assert.equal(c?.description, null);
     // Cuisine, Barbecue, Mobilier d'extérieur, Accès Internet, Réfrigérateur.
     assert.deepEqual(valeurs(c), { wifi: "oui" });
+  });
+
+  it("chaque libellé de la liste, tel quel et une fois : les douze clés n'en gardaient que le Wi-Fi", () => {
+    const c = contenuDeFiche("https://www.abritel.fr/location-vacances/p5392632vb?startDate=2027-02-06", fx("abritel-fiche-p5392632vb.html"));
+    // « Barbecue » revient en sixième élément ; rien n'y dit une absence.
+    assert.deepEqual(c?.equipementsPublies, [
+      { libelle: "Cuisine" },
+      { libelle: "Barbecue" },
+      { libelle: "Mobilier d’extérieur" },
+      { libelle: "Accès Internet" },
+      { libelle: "Réfrigérateur" },
+    ]);
+    // Posés sur une annonce Abritel (jamais de fiche enrichie) : tous à l'écran.
+    const l = { id: "abr-1", source: "Abritel", amenities: c?.amenities, equipementsPublies: c?.equipementsPublies } as Listing;
+    assert.deepEqual(
+      equipementsDe(l)?.map((e) => [e.id, e.libelle, e.present]),
+      [
+        ["wifi", "Accès Internet", true],
+        ["autre:cuisine", "Cuisine", true],
+        ["barbecue", "Barbecue", true],
+        ["autre:mobilier d'exterieur", "Mobilier d’extérieur", true],
+        ["autre:refrigerateur", "Réfrigérateur", true],
+      ],
+    );
+    assert.equal(aEquipement(l, "barbecue"), true);
   });
 
   it("une page sans la rubrique : rien", () => {

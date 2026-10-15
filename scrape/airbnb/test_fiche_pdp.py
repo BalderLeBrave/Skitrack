@@ -273,6 +273,41 @@ def test_l_apercu_des_equipements_seulement_sans_la_liste_entiere():
     assert "Jacuzzi" not in [e["libelle"] for e in fiche_enrichie_de_pdp(p)["equipements"]]
 
 
+
+def test_l_apercu_quand_la_liste_entiere_ne_donne_rien_de_lisible():
+    # Une liste entière publiée mais vide (groupes sans équipements, ou titres
+    # absents) ne masque pas l'aperçu.
+    for vide in ([], None, [{"title": ""}]):
+        section = {
+            "__typename": "AmenitiesSection",
+            "previewAmenitiesGroups": [
+                {"title": "", "amenities": [{"title": "Wifi"}, {"title": "Parking gratuit sur place"}]}
+            ],
+            "seeAllAmenitiesGroups": [{"title": "Salle de bain", "amenities": vide}],
+        }
+        fiche = fiche_enrichie_de_pdp(section)
+        assert fiche is not None, vide
+        assert [(e["libelle"], e["present"], e.get("groupe")) for e in fiche["equipements"]] == [
+            ("Wifi", True, None),
+            ("Parking gratuit sur place", True, None),
+        ], vide
+
+
+def test_un_bloc_mal_forme_ne_fait_pas_tomber_les_equipements():
+    # Un type inattendu dans un bloc voisin (liste attendue, nombre infini) ne
+    # coûte plus toute la fiche : les équipements restent.
+    p = _pdp()
+    sections = p["data"]["presentation"]["stayProductDetailPage"]["sections"]["sections"]
+    for ajout in (
+        {"sectionComponentType": "DESCRIPTION_MODAL", "section": {"__typename": "GeneralListContentSection", "items": 1}},
+        {"section": {"__typename": "PoliciesSection", "houseRulesSections": 3, "houseRules": 3}},
+        {"section": {"__typename": "StayPdpReviewsSection", "overallCount": "1e999"}},
+    ):
+        sections.append(ajout)
+        fiche = fiche_enrichie_de_pdp(p)
+        assert fiche is not None, ajout
+        assert "Wifi" in [e["libelle"] for e in fiche["equipements"]], ajout
+
 def test_annulation_en_section_a_part_et_apercu_du_reglement():
     brut = {
         "sections": [

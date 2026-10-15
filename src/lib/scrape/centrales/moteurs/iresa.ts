@@ -50,7 +50,13 @@
  */
 
 import { jugerLogement } from "../regleTypes.ts";
-import { depuisTexte, fusionner, type CleEquipement, type EquipementsLus } from "../../../stay/equipements.ts";
+import {
+  depuisTexte,
+  fusionner,
+  type CleEquipement,
+  type EquipementPublie,
+  type EquipementsLus,
+} from "../../../stay/equipements.ts";
 
 /** Une fiche telle que le moteur l'écrit, avant traduction en `Listing`. */
 export type FicheIresa = {
@@ -85,6 +91,11 @@ export type FicheIresa = {
    * wifi », « un lave-vaisselle »). `null` sans l'un ni l'autre.
    */
   equipements: EquipementsLus | null;
+  /**
+   * Les cases à « 1 » qui n'ont pas de place parmi les douze clés, sous le
+   * libellé de la table `LIBELLES_IRESA` ; jamais la description.
+   */
+  equipementsPublies: EquipementPublie[];
 };
 
 export type DemandeIresa = {
@@ -181,6 +192,27 @@ const CASES_IRESA: Record<string, CleEquipement> = {
   rub_animaux_hbgt: "animaux",
   rub_casier_skis_hbgt: "casierSkis",
 };
+
+/**
+ * Les cases que les douze clés ne connaissent pas, et leur libellé. La
+ * télévision seulement : `rub_fumeur_hbgt` contredit sa propre description au
+ * relevé du 6 octobre 2026 (« Appartement non fumeur » sous une case à « 1 »),
+ * et dvd, pmr ou fitness n'ont pas d'équipement dans la table.
+ */
+const LIBELLES_IRESA: Record<string, string> = {
+  rub_tv_hbgt: "Télévision",
+};
+
+/** Les libellés des cases à « 1 » de `LIBELLES_IRESA` ; une case à « 0 » ne dit rien. */
+export function libellesIresa(filters: unknown): EquipementPublie[] {
+  if (!filters || typeof filters !== "object") return [];
+  const out: EquipementPublie[] = [];
+  for (const [k, v] of Object.entries(filters as Record<string, unknown>)) {
+    const libelle = LIBELLES_IRESA[k];
+    if (libelle && (v === "1" || v === 1)) out.push({ libelle });
+  }
+  return out;
+}
 
 /** La description publiée en texte : balises ôtées, `<br>` en sauts de ligne. */
 export function descriptionIresa(v: unknown): string | null {
@@ -352,6 +384,7 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
       categorie,
       description,
       equipements: equipementsIresa(x.filters, description),
+      equipementsPublies: libellesIresa(x.filters),
     });
   }
   return [...par.values()];

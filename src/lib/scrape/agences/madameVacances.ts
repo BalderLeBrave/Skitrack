@@ -28,7 +28,7 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
-import { depuisListe, equipements, type EquipementsLus } from "../../stay/equipements.ts";
+import { depuisListe, equipements, type EquipementPublie, type EquipementsLus } from "../../stay/equipements.ts";
 
 export const MV_SITE = "https://www.madamevacances.com";
 
@@ -294,6 +294,10 @@ export type LogementMV = {
   /** Les équipements que la composition du type nomme (« 1 Terrasse »),
    *  lus par `stay/equipements.ts` ; `null` sans composition. */
   equipements: EquipementsLus | null;
+  /** Les éléments de cette composition qui ne sont ni des chambres ni des
+   *  salles d'eau, sans leur nombre (« Terrasse », « Cuisine ») ; jamais la
+   *  description. Vide sans composition. */
+  equipementsPublies: EquipementPublie[];
 };
 
 export type FicheMV = {
@@ -318,6 +322,23 @@ function piecesDe(libelle: string): number | null {
   const p = /(\d+)\s*pi[eè]ces?\b/i.exec(libelle);
   if (p) return Number(p[1]);
   return /\bstudio\b/i.test(libelle) ? 1 : null;
+}
+
+/** Ce que la composition publie en plus des chambres et des salles d'eau, que
+ *  `chambresDe` et `sdb` comptent déjà : « 1 Terrasse, 1 Cuisine » → Terrasse, Cuisine. */
+function publiesDe(detail: string | null): EquipementPublie[] {
+  if (!detail) return [];
+  const vus = new Set<string>();
+  const out: EquipementPublie[] = [];
+  for (const brut of detail.split(",")) {
+    const x = brut.trim();
+    if (!x || /^\d+\s*Chambres?(?:\(s\))?(?:\s+cabines?)?$/i.test(x) || /^\d+\s*Salles?\s+de\s+(?:bains?|douches?)$/i.test(x)) continue;
+    const libelle = x.replace(/^\d+\s+/, "").trim();
+    if (!libelle || vus.has(libelle.toLowerCase())) continue;
+    vus.add(libelle.toLowerCase());
+    out.push({ libelle });
+  }
+  return out;
 }
 
 function chambresDe(detail: string | null, libelle: string, pieces: number | null): number | null {
@@ -392,6 +413,7 @@ export function lireFiche(reponse: unknown): FicheMV {
       // La composition publiée, élément par élément : « 2 Chambre(s), 1 Salle
       // de douche, 1 Terrasse, 1 Cuisine ».
       equipements: detail ? depuisListe(detail.split(",").map((x) => ({ texte: x }))) : null,
+      equipementsPublies: publiesDe(detail),
     });
   }
   return {
@@ -474,6 +496,7 @@ export function madameVacancesListings(e: EtablissementMV, fiche: FicheMV, input
         ),
         baths: l.sdb,
         ...(l.equipements ? { amenities: equipements(l.equipements) } : {}),
+        ...(l.equipementsPublies.length ? { equipementsPublies: l.equipementsPublies } : {}),
         propertyType: typePublie(l.libelle, e.type),
         available: true as const,
         photo: photos[0] ?? null,

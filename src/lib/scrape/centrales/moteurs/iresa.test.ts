@@ -6,6 +6,7 @@ import {
   dateIresa,
   horsRegleIresa,
   jetonIresa,
+  libellesIresa,
   lireIresa,
   nuitsIresa,
   prestationsIresa,
@@ -303,5 +304,19 @@ describe("iResa : description et équipements, sur un relevé réel des Arcs", (
     const e = par("n°317").equipements!;
     assert.equal(e.balcon, "oui");
     assert.equal(e.ascenseur, "oui");
+  });
+
+  it("« Linge … en supplément » : le linge n'est pas fourni ; « linge de lit inclus », si", () => {
+    assert.equal(par("n°317").equipements!.linge, "non");
+    assert.equal(par("n° 1120").equipements!.linge, "non");
+    assert.equal(par("n° 742").equipements!.linge, "oui");
+  });
+
+  it("la télévision, case hors des douze clés, publiée sous son libellé ; une case à « 0 » ne dit rien", () => {
+    assert.deepEqual(par("n° 742").equipementsPublies, [{ libelle: "Télévision" }]);
+    assert.deepEqual(par("n° 1120").equipementsPublies, [{ libelle: "Télévision" }]);
+    assert.deepEqual(par("n°317").equipementsPublies, []);
+    assert.deepEqual(libellesIresa({ rub_tv_hbgt: "0", rub_fumeur_hbgt: "1" }), []);
+    assert.deepEqual(libellesIresa(null), []);
   });
 });

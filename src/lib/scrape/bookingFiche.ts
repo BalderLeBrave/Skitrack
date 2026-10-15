@@ -1,7 +1,9 @@
 /**
- * La fiche d'un établissement Booking, lue dans le HTML de sa page **déjà
- * chargée** pour le GPS (`bookingGps.server.ts`, `booking.server.ts`) : aucune
- * requête de plus. Module pur, testé sur une page réduite.
+ * La fiche d'un établissement Booking, lue dans le HTML de sa page : celle que
+ * le relevé ouvre pour un GPS manquant (`bookingGps.server.ts`,
+ * `booking.server.ts`), ou celle que la lecture de fond ouvre, une à une,
+ * après la suite de pages (`lireFicheBooking`, `stay/fichesBooking.server.ts`).
+ * Aucune requête ici. Module pur, testé sur une page réduite.
  *
  * Ce qu'elle lit, et seulement là où la page le publie :
  *
@@ -452,7 +454,7 @@ export function extraitsBooking(
 }
 
 /**
- * La fiche que la page déjà chargée donne à cette annonce, ou `undefined`
+ * La fiche que la page chargée donne à cette annonce, ou `undefined`
  * quand elle n'en donne pas. Un hôtel ou une chambre ne s'enrichit pas : seul
  * un logement entier retenu par le relevé passe. Une page refusée (202, 403,
  * 429) marque la fiche indisponible, sans rien en tirer. Le 202 est le défi

@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -14,6 +15,7 @@ import {
   greengoListings,
   hoteGarde,
   hotePur,
+  lecturesAGarder,
   lienHote,
   ficheGreenGo,
   lireDetail,
@@ -25,8 +27,17 @@ import {
   type LogementGreenGo,
 } from "./greengo.ts";
 import type { LiveSearchInput } from "./types.ts";
+import type { Listing } from "../listings.ts";
+import { garderLectures, reposerGardees } from "../stay/contenuFiches.server.ts";
+import { DEPUIS_CLE, type CleEquipement } from "../stay/equipements.ts";
+import { aEquipement, aEquipementDemande, equipementsDe } from "../stay/ficheEnrichie.ts";
+import { cleListing } from "../stay/poserReleve.ts";
 
 const dir = dirname(fileURLToPath(import.meta.url));
+// Les mémoires du processus (`memoireFiches`, `contenuFiches`) : jamais
+// celles de l'application.
+process.env.SKITRACK_CONFIG_DIR = mkdtempSync(join(tmpdir(), "skitrack-greengo-"));
+
 /**
  * Réponses réelles du 24 septembre 2026, réduites aux champs que nos requêtes
  * demandent (photos : la première) : recherche datée 6→13/02/2027, 2 adultes,
@@ -612,5 +623,81 @@ describe("GreenGo : la fiche enrichie, depuis le détail déjà lu", () => {
       ],
     );
     assert.deepEqual([f.avis!.noteSur5, f.avis!.noteSource, f.avis!.nombre], [null, 4.8, 6]);
+  });
+
+  it("chaque code rangé dans une des douze clés tombe sur une clé de la table, que son filtre retient", () => {
+    // Les codes de `CODES_EQUIPEMENT`, un à un, sur le détail réel. TOWELS n'y
+    // est pas : « Towels » reste hors table (`autre:towels`), le linge fourni
+    // de la table est le linge de lit (SHEETS).
+    const [u] = lireDetail(DETAIL);
+    const [annonce] = greengoListings(lireRecherche(RECHERCHE).hotes[0], [u], AVORIAZ);
+    const fiche = (code: string) => ficheGreenGo({ ...u, description: null, codesEquipement: { possedes: [code], absents: [] } }, URL_HOTE)!;
+    const codes = ["BALCONY", "TERRACE", "PATIO", "CHIMNEY", "WOOD_STOVE", "WIFI", "DISHWASHER", "WASHING_MACHINE", "SHEETS"];
+    codes.push("FREE_PARKING", "TOLL_PARKING", "SKI_ROOM", "SPA", "SAUNA", "JACUZZI", "HAMMAM", "NORDIC_BATH", "SWIMMING_POOL", "ELEVATOR");
+    for (const code of codes) {
+      const lus = equipementsGreenGo({ possessedEquipmentsGroupedBySortedCategories: [{ sortedEquipments: [code] }] });
+      const [cle] = Object.keys(lus ?? {}) as CleEquipement[];
+      assert.ok(cle, code);
+      assert.doesNotMatch(fiche(code).equipements[0].id, /^autre:/, code);
+      assert.ok(aEquipementDemande({ ...annonce, fiche: fiche(code) }, DEPUIS_CLE[cle]), `${code} → ${DEPUIS_CLE[cle]}`);
+    }
+    // Spa, hammam, bain nordique : chacun sa clé, sans se fondre dans « Sauna ou spa ».
+    assert.deepEqual(
+      ["SPA", "HAMMAM", "NORDIC_BATH"].map((c) => fiche(c).equipements[0].id),
+      ["spa", "hammam", "bain_nordique"],
+    );
+  });
+});
+
+describe("GreenGo : le détail lu, gardé trente jours, reposé sans requête", () => {
+  // La recherche réelle publie Balcons des Trois Cîmes (Morzine), hôte à
+  // logement unique ; son détail réel du 6 octobre 2026 publie ses codes.
+  const DETAIL = JSON.parse(readFileSync(join(dir, "fixtures/greengo-detail-equipements.json"), "utf8"));
+  const hotes = lireRecherche(RECHERCHE_REELLE).hotes;
+  const balcons = hotes.find((h) => h.slug === "balcons-des-trois-cimes")!;
+  const MARS: LiveSearchInput = { ...AVORIAZ, checkIn: "2027-03-06", checkOut: "2027-03-13" };
+  const JOUR = 86_400_000;
+
+  it("un hôte à logement unique : sa fiche et son contenu, sous la clé de son annonce sans détail", () => {
+    const avec = greengoListings(balcons, lireDetail(DETAIL), AVORIAZ);
+    const [sans] = greengoListings(balcons, null, AVORIAZ);
+    const lectures = lecturesAGarder(balcons, avec, AVORIAZ);
+    assert.equal(lectures.length, 1);
+    const [g] = lectures;
+    assert.equal(g.cle, "GreenGo:b5c749ba-02b2-4c18-9027-7163f19994ae");
+    assert.equal(g.cle, cleListing(sans));
+    // L'annonce détaillée porte le logement : sa clé n'est pas celle de l'hôte.
+    assert.equal(cleListing(avec[0]), "GreenGo:906a6d32-c71a-43f3-b36d-e06dec84f9e1");
+    assert.equal(g.fiche, avec[0].fiche);
+    assert.deepEqual(g.contenu, { description: avec[0].description, amenities: avec[0].amenities });
+  });
+
+  it("un établissement, même pur, ne garde rien : son annonce sans détail vaut pour tous ses logements", () => {
+    const beauregard = { ...hotes.find((h) => h.slug === "chalet-d-alpage-de-beauregard-1")!, tags: ["GITE_FR"] };
+    const annonces = greengoListings(beauregard, lireDetail(DETAIL_BEAUREGARD), AVORIAZ);
+    assert.equal(annonces.length, 1, "le chalet de 12");
+    assert.equal(greengoListings(beauregard, null, AVORIAZ).length, 1, "pur : une annonce sans détail");
+    assert.deepEqual(lecturesAGarder(beauregard, annonces, AVORIAZ), []);
+  });
+
+  it("gardé, puis reposé sans requête sur l'annonce sans détail d'un relevé suivant, trente jours", () => {
+    const avec = greengoListings(balcons, lireDetail(DETAIL), AVORIAZ);
+    const lu = Date.UTC(2026, 9, 6);
+    assert.equal(garderLectures(lecturesAGarder(balcons, avec, AVORIAZ), lu), 1);
+    // Neuf jours plus tard, autres dates, détail non lu (échéance, refus) :
+    // rien que la recherche.
+    const [sans] = greengoListings(balcons, null, MARS);
+    assert.equal(equipementsDe(sans), null);
+    assert.equal(reposerGardees([sans], lu + 9 * JOUR), 1);
+    const ids = (l: Listing) => (equipementsDe(l) ?? []).filter((e) => e.present).map((e) => e.id).sort();
+    assert.equal(ids(sans).length, 35);
+    assert.deepEqual(ids(sans), ids(avec[0]));
+    for (const id of ["wifi", "lave_vaisselle", "balcon"]) assert.ok(aEquipement(sans, id), id);
+    assert.match(sans.description ?? "", /^Dans notre appartement cosy de 30 m²/);
+    // Au-delà de trente jours, rien ; et rien pour un autre hôte.
+    const [tard] = greengoListings(balcons, null, MARS);
+    assert.equal(reposerGardees([tard], lu + 31 * JOUR), 0);
+    const [neva] = greengoListings(hotes.find((h) => h.slug === "neva")!, null, MARS);
+    assert.equal(reposerGardees([neva], lu + JOUR), 0);
   });
 });

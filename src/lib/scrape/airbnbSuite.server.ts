@@ -13,7 +13,7 @@ import type { Listing } from "@/lib/listings";
 import { airbnbCircuitOpen } from "@/lib/stay/airbnbCircuit.server";
 import { airbnbIdOf } from "@/lib/stay/airbnbId";
 import { cleListing } from "@/lib/stay/poserReleve";
-import { memoireFiches } from "@/lib/stay/memoireFiches.server";
+import { memoireFiches, pdpDejaLue } from "@/lib/stay/memoireFiches.server";
 import { airbnbListePrioritaire } from "@/lib/stay/completerFiche.server";
 import { lireFichesAirbnb } from "./airbnb.server";
 import type { LiveSearchInput } from "./types";
@@ -45,11 +45,11 @@ async function ceder(stop: () => boolean): Promise<boolean> {
 
 /**
  * Sa fiche est en mémoire, ou sa page PDP a déjà été lue (écartée, vide, sans
- * bloc enrichi) : elle ne se redemande pas avant trente jours.
+ * bloc enrichi) par le lecteur d'aujourd'hui : elle ne se redemande pas avant
+ * trente jours. Lue sans fiche par un lecteur plus ancien : une fois de plus
+ * (`pdpDejaLue`).
  */
-function dejaLue(m: { fiche?: unknown; lue?: boolean } | null): boolean {
-  return Boolean(m?.fiche) || m?.lue === true;
-}
+const dejaLue = pdpDejaLue;
 
 /**
  * Lit les fiches des annonces qui n'en ont pas encore une en mémoire.

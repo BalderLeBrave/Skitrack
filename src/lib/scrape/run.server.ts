@@ -11,7 +11,7 @@ import { communeGites } from "./gitesCommunes";
 import { scrapeAirbnbDetailed, scrapeAirbnbSuite, type SuiteReste } from "./airbnb.server";
 import { lireFichesLentes } from "./airbnbSuite.server";
 import { scrapeBookingPage, scrapeBookingPlaywright, scrapeBookingPythonDetaille } from "./booking.server";
-import { fillBookingGps } from "./bookingGps.server";
+import { fillBookingGps, hotelPageUrl, lireFicheBooking } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
 import { collecterCozy, cozyListings, type CollecteCozy } from "./cozy.server";
 import { fusionner } from "./fusion";
@@ -32,6 +32,9 @@ import {
   tenirPagesAirbnb,
   tenirPdpAirbnb,
 } from "@/lib/stay/completerFiche.server";
+import { reposerGardees } from "@/lib/stay/contenuFiches.server";
+import { airbnbCircuitOpen } from "@/lib/stay/airbnbCircuit.server";
+import { fichesALire, lireFichesBookingLentes } from "@/lib/stay/fichesBooking.server";
 
 export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "hometogo" | "agences" | "browser" | "all";
 
@@ -304,6 +307,9 @@ async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], li
  * Booking peut commencer par un défi. Il part après, une page à la fois
  * (`poursuivreBooking`), et seulement quand Cozy a déjà rendu des annonces —
  * un zéro a déjà eu son repli ici. Un refus arrête la suite, sans second essai.
+ * Les fiches (équipements, description, avis) se lisent après la suite, une
+ * à une (`lireFichesBooking`) ; ici, seulement celles des pages ouvertes pour
+ * un GPS manquant.
  */
 async function releverCozy(input: LiveSearchInput, reports: SourceReport[], listings: Listing[]) {
   const t0 = Date.now();
@@ -353,9 +359,13 @@ async function releverCozy(input: LiveSearchInput, reports: SourceReport[], list
       }
     }
     if (booking.some((l) => l.lat == null || l.lon == null) && Date.now() < echeance) {
-      await fillBookingGps(await open(), booking).catch((err: unknown) => {
+      const gps = await fillBookingGps(await open(), booking).catch((err: unknown) => {
         console.warn("[booking-gps]", err instanceof Error ? err.message : err);
+        return null;
       });
+      // Un défi ou un refus sur une page établissement vaut pour tout Booking :
+      // la suite et les fiches reculent, comme après leur propre page.
+      if (gps?.arret) reculerSuiteBooking();
     }
     pushReport(reports, listings, "Booking", booking, Date.now() - t0, {
       annoncees: booking === viaCozy ? (annonces.booking ?? null) : null,
@@ -763,6 +773,24 @@ const generationParCle = new Map<string, number>();
 const suitesEnCours = new Set<string>();
 
 /**
+ * Les suites laissées à un autre relevé (autre station, Prix), et où elles en
+ * étaient : `reste` nul, la liste était finie et il restait les fiches.
+ * Revenir sur la recherche les reprend (`reprendreSuite`), sans nouveau
+ * StaysSearch. Jamais après un refus : l'entrée n'est pas posée.
+ */
+const suitesLaissees = new Map<string, { reste: SuiteReste | null }>();
+const SUITES_LAISSEES_MAX = 16;
+
+function laisserSuite(key: string, reste: SuiteReste | null): void {
+  suitesLaissees.delete(key);
+  suitesLaissees.set(key, { reste });
+  for (const k of suitesLaissees.keys()) {
+    if (suitesLaissees.size <= SUITES_LAISSEES_MAX) break;
+    suitesLaissees.delete(k);
+  }
+}
+
+/**
  * La suite finie, arrêtée sur un refus ou laissée à un autre relevé : le
  * relevé et les pages déjà lues restent 15 min, comme un relevé complet. Sur
  * un refus, 90 s faisaient relancer 12 StaysSearch juste après le 429, et
@@ -807,10 +835,16 @@ async function paginerSuite(
   let rythme = 0;
   let surPlace = 0;
   while (curseur && curseur.file.length > 0 && budget < PAGES_SUITE_MAX) {
-    if (generationReleveAirbnb() !== gen) return "laisse";
+    if (generationReleveAirbnb() !== gen) {
+      laisserSuite(key, curseur);
+      return "laisse";
+    }
     while (airbnbListePrioritaire()) {
       await dormir(1_000);
-      if (generationReleveAirbnb() !== gen) return "laisse";
+      if (generationReleveAirbnb() !== gen) {
+        laisserSuite(key, curseur);
+        return "laisse";
+      }
     }
     const tour = await scrapeAirbnbSuite(input, curseur, PAGES_PAR_TOUR, Date.now() + TOUR_SUITE_MS);
     // Les annonces de ce tour sont celles de cette recherche : elles restent,
@@ -818,7 +852,12 @@ async function paginerSuite(
     budget += PAGES_PAR_TOUR;
     const ajout = ajouterAuCache(key, locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now())));
     if (ajout) console.info(`[airbnb] suite +${ajout} annonce(s)`);
-    if (generationReleveAirbnb() !== gen) return "laisse";
+    if (generationReleveAirbnb() !== gen) {
+      // Le tour fait ne se relit pas ; rien ne se note après un refus.
+      const refuse = tour.rateLimited || tour.arret === "refus" || tour.arret === "coupe-circuit";
+      if (!refuse) laisserSuite(key, tour.reste ?? (tour.arret === "rythme" ? curseur : null));
+      return "laisse";
+    }
     if (tour.arret === "rythme") {
       rythme += 1;
       if (rythme > 4) return "ok";
@@ -849,6 +888,8 @@ async function paginerSuite(
 function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: SuiteReste | null, gen: number): void {
   const lacherPages = tenirPagesAirbnb();
   suitesEnCours.add(key);
+  // Un relevé neuf ou une reprise de la même clé remplace ce qui était laissé.
+  suitesLaissees.delete(key);
   poserTtl(key, CACHE_PENDANT_SUITE_MS);
   void (async () => {
     let issue: "ok" | "refus" | "laisse" = "ok";
@@ -875,6 +916,10 @@ function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: Suite
       return;
     }
     if (!lacherPdp) {
+      // Liste finie, mais un autre relevé est parti avant les fiches.
+      if (issue === "ok" && generationReleveAirbnb() !== gen && listingsDuCache(key).some((l) => l.source === "Airbnb")) {
+        laisserSuite(key, null);
+      }
       finirCache(key, gen);
       suitesEnCours.delete(key);
       return;
@@ -882,6 +927,7 @@ function poursuivreApresReleve(key: string, input: LiveSearchInput, reste: Suite
     try {
       const lu = await lireFichesLentes(listingsDuCache(key), input, () => generationReleveAirbnb() !== gen);
       if (lu === "refus") marquerRefusFichesAirbnb();
+      if (lu === "laisse") laisserSuite(key, null);
     } catch (err) {
       console.warn("[airbnb] fiches", err instanceof Error ? err.message : err);
       marquerRefusFichesAirbnb();
@@ -959,14 +1005,24 @@ function reposerBooking(key: string, input: LiveSearchInput, lues: Listing[]): n
 }
 
 /**
+ * `ok` : liste lue jusqu'au bout (ou au plafond) ; `panne` : le worker n'a pas
+ * rendu sa page ; `arret` : défi, refus, recul ; `laisse` : une recherche plus
+ * récente.
+ */
+type IssueSuiteBooking = "ok" | "panne" | "arret" | "laisse";
+
+/**
  * Après la réponse Cozy : les pages Booking que Cozy n'a pas, une à une.
  * La station cherchée d'abord, puis les stations reliées, dans le même budget.
  * Un 429, un 403 ou un défi arrête tout le domaine, et la suite recule
  * (`reculerSuiteBooking`). Une liste épuisée (page sans tuile) passe à la station
  * suivante. Une recherche plus récente ne se fait pas écraser.
+ * La liste lue, la fiche de chaque annonce qui n'en a pas (`lireFichesBooking`) ;
+ * jamais après un défi ou un refus. Une panne du worker n'est pas un refus de
+ * Booking : les fiches passent par le navigateur, elles se lisent.
  */
 function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): void {
-  void (async () => {
+  void (async (): Promise<IssueSuiteBooking> => {
     const maintenant = Date.now();
     const vieux = suitesBooking.get(key);
     const memo: MemoBooking =
@@ -977,10 +1033,10 @@ function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): vo
     // Ce qu'une suite précédente a lu pour cette recherche revient sans requête.
     const repose = reposerBooking(key, input, memo.listings);
     if (repose) console.info(`[booking] suite : ${repose} annonce(s) reprise(s) sans requête`);
-    if (memo.fini) return;
+    if (memo.fini) return "ok";
     if (Date.now() < suiteBookingApres) {
       console.info(`[booking] suite en recul (encore ${Math.ceil((suiteBookingApres - Date.now()) / 1000)} s)`);
-      return;
+      return "arret";
     }
     let premiere = true;
     try {
@@ -992,21 +1048,23 @@ function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): vo
           memo.offset = 0;
           continue;
         }
-        if (generationBooking !== gen) return;
+        if (generationBooking !== gen) return "laisse";
         const ferme = porteFermee("https://www.booking.com/");
         if (ferme) {
           console.info(`[booking] suite arrêtée — ${ferme}`);
-          return;
+          return "arret";
         }
         if (!premiere) await dormir(PAUSE_BOOKING_MS);
         premiere = false;
-        if (Date.now() < suiteBookingApres) return;
-        if (generationBooking !== gen) return;
+        if (Date.now() < suiteBookingApres) return "arret";
+        if (generationBooking !== gen) return "laisse";
         const tour = await scrapeBookingPage(st, memo.offset, PAGE_BOOKING_MS);
         memo.pages += 1;
         memo.at = Date.now();
         if (tour.listings.length > 0) {
           const dates = locate(input, tour.listings).map((l) => daterAnnonce(l, input, Date.now()));
+          // Une fiche déjà gardée arrive avec son annonce, sans requête.
+          reposerGardees(dates);
           memo.listings = fusionner(memo.listings, dates).listings;
           // Les annonces de cette page sont celles de cette recherche : elles
           // restent, même si un relevé plus récent est parti pendant la page.
@@ -1015,7 +1073,7 @@ function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): vo
         }
         if (tour.arret) {
           reculerSuiteBooking();
-          return;
+          return "arret";
         }
         if (tour.listings.length > 0) reculBookingNiveau = 0;
         // Une page sans tuile : la liste de cette station est épuisée. Toute
@@ -1024,7 +1082,7 @@ function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): vo
         const epuisee = tour.raison
           ? tour.listings.length === 0 && /aucune tuile lisible/i.test(tour.raison)
           : tour.offset == null;
-        if (tour.raison && !epuisee) return;
+        if (tour.raison && !epuisee) return "panne";
         // La progression se note avant de rendre la main : la même recherche,
         // reprise, ne relit pas cette page.
         if (epuisee) {
@@ -1033,13 +1091,60 @@ function poursuivreBooking(key: string, input: LiveSearchInput, gen: number): vo
         } else {
           memo.offset = tour.offset;
         }
-        if (generationBooking !== gen) return;
+        if (generationBooking !== gen) return "laisse";
       }
       memo.fini = true;
+      return "ok";
     } catch (err) {
       console.warn("[booking] suite", err instanceof Error ? err.message : err);
+      return "arret";
     }
-  })();
+  })().then((issue) => (issue === "ok" || issue === "panne" ? lireFichesBooking(key, gen) : undefined));
+}
+
+/** La lecture des fiches Booking en cours, s'il y en a une. */
+let fichesBookingEnCours: Promise<void> = Promise.resolve();
+
+/**
+ * Les fiches des annonces Booking de la recherche, une à une, la liste lue
+ * (`stay/fichesBooking.server.ts`) : celles de Cozy et de la suite qui n'en
+ * ont pas encore, gardée ou tentée. Un seul onglet, dans le navigateur
+ * partagé, ouvert seulement s'il y a une page à lire. Une recherche Cozy plus
+ * récente la fait céder ; un défi ou un refus fait reculer la suite. L'écran
+ * les pose par sa relecture, sans réseau.
+ */
+async function lireFichesBooking(key: string, gen: number): Promise<void> {
+  // Une lecture à la fois pour tout Booking : la précédente cède (`stop`) et
+  // finit sa page avant que celle-ci n'en ouvre une.
+  const precedente = fichesBookingEnCours;
+  let finie = () => {};
+  fichesBookingEnCours = new Promise<void>((r) => {
+    finie = r;
+  });
+  try {
+    await precedente;
+    const rows = [...listingsDuCache(key), ...(suitesBooking.get(key)?.listings ?? [])].filter(
+      (l) => l.source === "Booking",
+    );
+    const page = (l: Listing) => hotelPageUrl(l.url);
+    if (generationBooking !== gen || fichesALire(rows, page).length === 0) return;
+    const issue = await withBrowser(async (open) => {
+      let onglet: Page | null = null;
+      return lireFichesBookingLentes(rows, {
+        page,
+        lire: async (l, url) => lireFicheBooking((onglet ??= await open()), l, url),
+        stop: () => generationBooking !== gen,
+        fermee: () =>
+          porteFermee("https://www.booking.com/") ??
+          (Date.now() < suiteBookingApres ? "recul après un défi ou un refus" : null),
+      });
+    });
+    if (issue === "defi" || issue === "refus") reculerSuiteBooking();
+  } catch (err) {
+    console.warn("[booking] fiches", err instanceof Error ? err.message : err);
+  } finally {
+    finie();
+  }
 }
 
 function cacheKey(input: LiveSearchInput, part: SearchPart): string {
@@ -1071,6 +1176,22 @@ export type RunOptions = {
   relance?: boolean;
 };
 
+/**
+ * Revenir sur une recherche Airbnb dont la suite a été laissée à un autre
+ * relevé : elle reprend où elle en était (pages restantes, puis fiches), sans
+ * nouveau StaysSearch. La suite qui tourne ailleurs cède, et se note à son
+ * tour. Jamais pendant le coupe-circuit, ni hors de l'écran Logements.
+ */
+function reprendreSuite(key: string, input: LiveSearchInput, part: SearchPart): void {
+  if (part !== "airbnb" || input.domaine !== true || suitesEnCours.has(key)) return;
+  const laissee = suitesLaissees.get(key);
+  if (!laissee || airbnbCircuitOpen()) return;
+  nouveauReleveAirbnb();
+  const gen = generationReleveAirbnb();
+  generationParCle.set(key, gen);
+  poursuivreApresReleve(key, input, laissee.reste, gen);
+}
+
 export async function runLiveSearch(
   input: LiveSearchInput,
   part: SearchPart = "all",
@@ -1084,10 +1205,15 @@ export async function runLiveSearch(
   // savoir s'il serait gardé, et repassait 12 StaysSearch dans le limiteur.
   const relance = opts.relance === true && !suitesEnCours.has(key);
   const ttl = hit ? (relance ? Math.min(hit.ttl, CACHE_MS) : hit.ttl) : 0;
-  if (hit && Date.now() - hit.at < ttl) return hit.result;
+  if (hit && Date.now() - hit.at < ttl) {
+    reprendreSuite(key, input, part);
+    return hit.result;
+  }
   const pending = inflight.get(key);
   if (pending) return pending;
-  // Seulement un relevé qui part : un coup de cache ne doit pas arrêter les pages et les fiches déjà en cours.
+  // Seulement un relevé qui part : un coup de cache ne doit pas arrêter les
+  // pages et les fiches déjà en cours, sauf la reprise d'une suite laissée
+  // (`reprendreSuite`).
   let gen = generationReleveAirbnb();
   if (part === "airbnb" || part === "all" || part === "browser") {
     nouveauReleveAirbnb();
@@ -1118,7 +1244,11 @@ export async function runLiveSearch(
       }
       const ttl = suitePages ? CACHE_AIRBNB_MS : degrade ? CACHE_MS : CACHE_AIRBNB_MS;
       cache.set(key, { at, ttl, result });
-      for (const [k, v] of cache) if (Date.now() - v.at >= v.ttl) cache.delete(k);
+      for (const [k, v] of cache) {
+        if (Date.now() - v.at < v.ttl) continue;
+        cache.delete(k);
+        suitesLaissees.delete(k);
+      }
       if (suitePages || suiteFiches) poursuivreApresReleve(key, input, suitePages ? reste : null, gen);
       const booking = result.sources.find((s) => s.source === "Booking");
       // Cozy a déjà rendu des annonces : le direct ne double pas un repli qui

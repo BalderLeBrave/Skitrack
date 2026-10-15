@@ -58,6 +58,7 @@ const COMBLABLES = [
   // équipements, le direct si (titres de la tuile Airbnb, fiche Booking).
   "description",
   "amenities",
+  "equipementsPublies",
 ] as const satisfies readonly (keyof Listing)[];
 
 /** Vide : rien, une liste vide, un texte blanc, ou des équipements tous

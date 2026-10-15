@@ -9,6 +9,8 @@ import { cozyListings, cozySearchUrl, rangPrix } from "./cozy.server.ts";
 import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer } from "../stay/occupancy.ts";
+import { garderLectures, type LectureAGarder } from "../stay/contenuFiches.server.ts";
+import { cleListing } from "../stay/poserReleve.ts";
 import { assurerCles } from "../cles/store.server.ts";
 import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server.ts";
 import { ficheDepuisPageBooking } from "./bookingFiche.ts";
@@ -357,6 +359,8 @@ function applyCoords(listings: Listing[], bag: Map<string, { lat: number; lon: n
 
 async function fillGpsFromHotelPages(page: Page, listings: Listing[]): Promise<void> {
   const missing = listings.filter((l) => !plausible(l.lat, l.lon) && l.url);
+  // Les fiches que ces pages donnent se gardent trente jours, en une écriture.
+  const lues: LectureAGarder[] = [];
   for (const row of missing.slice(0, 12)) {
     try {
       const garde = await respecterCadence(row.url!, 5_000);
@@ -374,6 +378,7 @@ async function fillGpsFromHotelPages(page: Page, listings: Listing[]): Promise<v
       // La fiche de la page déjà chargée, sans autre requête (`bookingFiche.ts`).
       const fiche = ficheDepuisPageBooking(row, html, statut);
       if (fiche) row.fiche = fiche;
+      if (statut === 200 && fiche && fiche.indisponible !== true) lues.push({ cle: cleListing(row), fiche });
       if (!html) continue;
       const gps = coordsFromHotelHtml(html);
       if (gps) {
@@ -384,6 +389,7 @@ async function fillGpsFromHotelPages(page: Page, listings: Listing[]): Promise<v
       /* fiche bloquée : on laisse non mesurée */
     }
   }
+  if (lues.length) garderLectures(lues);
 }
 
 export async function scrapeBookingPlaywright(page: Page, input: LiveSearchInput): Promise<Listing[]> {

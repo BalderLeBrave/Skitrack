@@ -953,6 +953,53 @@ describe("ce qu'on garde des fiches hors Airbnb : reposé sans combler l'occupat
   });
 });
 
+describe("Abritel : les équipements populaires, lus en tâche de fond, jusqu'à l'écran", () => {
+  it("chaque libellé de la fiche réelle, gardé, puis posé par la relecture sans réseau", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { aRelire } = await import("./relecture.ts");
+    const { equipementsDe } = await import("./ficheEnrichie.ts");
+    const fiche = readFileSync(new URL("./fixtures/abritel-fiche-p5392632vb.html", import.meta.url), "utf8");
+    mock.timers.tick(10 * 60_000);
+    repondre = (url) => (url.includes("abritel.fr") ? { html: `<html><body>${fiche}</body></html>` } : { html: page() });
+    // Cozy publie capacité et chambres ; le point manque : la fiche s'ouvre
+    // pour lui (`priseFiche.ts`), et l'écran la relit pour son contenu.
+    const abritel = (n: number): Listing =>
+      ligne(n, "www.abritel.fr", {
+        id: `abr-${n}`,
+        source: "Abritel",
+        url: `https://www.abritel.fr/location-vacances/p${n}vb?startDate=2027-02-06&chkin=2027-02-06&endDate=2027-02-13&chkout=2027-02-13`,
+        capacity: 6,
+        capacitySource: "structured",
+        bedrooms: 2,
+        bedroomsSource: "structured",
+      });
+    const rows = [abritel(5392632), abritel(5392633), abritel(5392634)];
+    assert.deepEqual(rows.map(aRelire), [true, true, true]);
+    // Une recherche au budget trop court pour les trois fiches d'un même hôte.
+    await silence(() => jouer(fillFiches(rows, 1_500)));
+    const premierPlan = rows.filter((r) => r.equipementsPublies?.length).length;
+    assert.ok(premierPlan < 3, `${premierPlan} lues pendant la recherche`);
+    await attendreSuiteAutres();
+    assert.equal(departs.filter((d) => d.url.includes("abritel.fr")).length, 3, "chaque fiche demandée une fois");
+    // L'écran relit ce qui lui manque, en pose seule : aucune requête.
+    const ecran = rows.filter(aRelire).map((r) => ({ ...r }));
+    assert.equal(ecran.length, 3 - premierPlan);
+    const n = departs.length;
+    await silence(() => fillFiches(ecran, 0, { relecture: true, poseSeule: true }));
+    assert.equal(departs.length, n, "la relecture ne fait aucune requête");
+    // L'aller-retour serveur → écran (`completerAnnonces`) : du JSON.
+    const recues = JSON.parse(JSON.stringify(ecran)) as Listing[];
+    for (const l of [...rows.filter((r) => r.equipementsPublies?.length), ...recues]) {
+      assert.deepEqual(
+        equipementsDe(l)?.map((e) => e.id),
+        ["wifi", "autre:cuisine", "barbecue", "autre:mobilier d'exterieur", "autre:refrigerateur"],
+        l.id,
+      );
+      assert.equal(aRelire(l), false, `${l.id} n'est plus à relire`);
+    }
+  });
+});
+
 /*
  * En dernier : ces cas laissent des pauses et des pages rooms/ loin dans
  * l'heure simulée, que les essais d'avant, repartis de T0, verraient.

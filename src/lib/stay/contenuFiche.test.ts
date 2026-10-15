@@ -1,7 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import type { Listing } from "../listings.ts";
 import { contenuDeFiche } from "./contenuFiche.ts";
+import { aEquipement, equipementsDe } from "./ficheEnrichie.ts";
 
 const fx = (p: string) => readFileSync(new URL(`./fixtures/${p}`, import.meta.url), "utf8");
 const valeurs = (c: ReturnType<typeof contenuDeFiche>) =>
@@ -35,6 +37,31 @@ describe("contenuDeFiche : Abritel, extrait réel", () => {
     assert.equal(c?.description, null);
     // Cuisine, Barbecue, Mobilier d'extérieur, Accès Internet, Réfrigérateur.
     assert.deepEqual(valeurs(c), { wifi: "oui" });
+  });
+
+  it("chaque libellé de la liste, tel quel et une fois : les douze clés n'en gardaient que le Wi-Fi", () => {
+    const c = contenuDeFiche("https://www.abritel.fr/location-vacances/p5392632vb?startDate=2027-02-06", fx("abritel-fiche-p5392632vb.html"));
+    // « Barbecue » revient en sixième élément ; rien n'y dit une absence.
+    assert.deepEqual(c?.equipementsPublies, [
+      { libelle: "Cuisine" },
+      { libelle: "Barbecue" },
+      { libelle: "Mobilier d’extérieur" },
+      { libelle: "Accès Internet" },
+      { libelle: "Réfrigérateur" },
+    ]);
+    // Posés sur une annonce Abritel (jamais de fiche enrichie) : tous à l'écran.
+    const l = { id: "abr-1", source: "Abritel", amenities: c?.amenities, equipementsPublies: c?.equipementsPublies } as Listing;
+    assert.deepEqual(
+      equipementsDe(l)?.map((e) => [e.id, e.libelle, e.present]),
+      [
+        ["wifi", "Accès Internet", true],
+        ["autre:cuisine", "Cuisine", true],
+        ["barbecue", "Barbecue", true],
+        ["autre:mobilier d'exterieur", "Mobilier d’extérieur", true],
+        ["autre:refrigerateur", "Réfrigérateur", true],
+      ],
+    );
+    assert.equal(aEquipement(l, "barbecue"), true);
   });
 
   it("une page sans la rubrique : rien", () => {

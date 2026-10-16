@@ -159,6 +159,16 @@ function fusionner(ancienne: Listing, neuve: Listing): Listing {
     out.total = ancienne.total;
     out.priceLabel = ancienne.priceLabel;
   }
+  // La note, son nombre d'avis et son échelle viennent d'une même copie
+  // (`CHAMPS_DU_BIEN`, poserReleve.ts) : repris champ par champ, une note du
+  // direct sur 5 gardait l'échelle 100 d'une ancienne note Cozy (0,2 / 5).
+  const note = neuve.rating != null ? neuve : ancienne.rating != null ? ancienne : null;
+  if (note) {
+    out.rating = note.rating;
+    out.reviewCount = note.reviewCount ?? null;
+    if (note.ratingScale == null) delete out.ratingScale;
+    else out.ratingScale = note.ratingScale;
+  }
   // Une position triangulée n'est pas la porte. Elle ne remplace pas le GPS
   // déjà publié du favori, ni les distances mesurées depuis ce point.
   if (neuve.gpsSource === "triangule" && gpsPrecis(ancienne) && ancienne.gpsSource !== "triangule") {

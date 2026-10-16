@@ -17,6 +17,7 @@ import {
   supprimerDossier,
 } from "./modele.ts";
 import { nomStationPropre, sourceEtLieu } from "../rattachement.ts";
+import { noteSur5De } from "../stay/ficheEnrichie.ts";
 
 const T1 = "2026-10-03T10:00:00.000Z";
 const T2 = "2026-10-03T11:00:00.000Z";
@@ -121,6 +122,28 @@ describe("favoris : la copie rafraîchie par un nouveau relevé", () => {
     e = avant;
     assert.equal(rafraichir(e, [contenu(e, "a")[0].annonce]), e);
     assert.equal(rafraichir(e, [annonce("autre")]), e);
+  });
+});
+
+describe("favoris : la note vient avec son nombre d'avis et son échelle, d'une même copie", () => {
+  it("une note du direct sur 5 ne garde pas l'échelle 100 d'une ancienne note Cozy", () => {
+    // « Le Soleil Des Alpages » : Cozy 100 sur 100, 2 avis ; puis la tuile directe, 4,67 sur 5, 3 avis.
+    let e = enregistrer(deuxDossiers(), annonce("1", { source: "Airbnb", rating: 100, reviewCount: 2, ratingScale: 100 }), "a", null, T1);
+    assert.equal(noteSur5De(contenu(e, "a")[0].annonce), 5);
+    e = rafraichir(e, [annonce("1", { source: "Airbnb", rating: 4.67, reviewCount: 3 })]);
+    const a = contenu(e, "a")[0].annonce;
+    assert.deepEqual([a.rating, a.reviewCount, a.ratingScale ?? null, noteSur5De(a)], [4.67, 3, null, 4.7]);
+    // La fusion Cozy/direct écrit `ratingScale: null` : il ne rend pas l'échelle de l'ancienne.
+    e = enregistrer(deuxDossiers(), annonce("2", { source: "Booking", rating: 95, reviewCount: 67, ratingScale: 100 }), "a", null, T1);
+    e = rafraichir(e, [annonce("2", { source: "Booking", rating: 9.3, reviewCount: 70, ratingScale: null })]);
+    assert.equal(noteSur5De(contenu(e, "a")[0].annonce), 4.7);
+  });
+
+  it("une copie sans note garde les trois de l'ancienne", () => {
+    let e = enregistrer(deuxDossiers(), annonce("1", { source: "Airbnb", rating: 98, reviewCount: 125, ratingScale: 100 }), "a", null, T1);
+    e = rafraichir(e, [annonce("1", { source: "Airbnb", total: 1400, rating: null, reviewCount: null })]);
+    const a = contenu(e, "a")[0].annonce;
+    assert.deepEqual([a.total, a.rating, a.reviewCount, a.ratingScale, noteSur5De(a)], [1400, 98, 125, 100, 4.9]);
   });
 });
 

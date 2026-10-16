@@ -573,7 +573,8 @@ describe("relevé CozyCozy : une réponse réelle (La Plagne, 16 octobre 2026)",
     const direct = { ...coches, id: "17451654", rating: 4.93, reviewCount: 126, ratingScale: undefined, proven: "direct" };
     const [garde] = fusionner([coches], [direct]).listings;
     assert.deepEqual([garde.rating, garde.reviewCount, garde.ratingScale], [98, 125, 100]);
-    const sansNote = { ...coches, rating: null, reviewCount: null, ratingScale: null };
+    // Une copie Cozy sans note qui garde l'échelle 100 : la note du direct arrive avec la sienne, jamais avec celle-là.
+    const sansNote = { ...coches, rating: null, reviewCount: null };
     const [comble] = fusionner([sansNote], [direct]).listings;
     assert.deepEqual([comble.rating, comble.reviewCount, comble.ratingScale ?? null, avisDe(comble)?.noteSur5], [4.93, 126, null, 4.9]);
   });

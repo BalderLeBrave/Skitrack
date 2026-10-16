@@ -196,9 +196,10 @@ export type Listing = {
   platformId?: string | null;
   /** Note et nombre d'avis, **seulement quand la source les publie**. Aucun
    *  collecteur ne les fabrique, et aucun défaut optimiste ne les remplace.
-   *  La note est brute, sur l'échelle de la source : l'écran, les filtres et
-   *  le tri ne la lisent que ramenée sur 5 (`avisDe`, `stay/ficheEnrichie.ts`),
-   *  et pas du tout quand cette échelle n'est pas établie. */
+   *  La note est brute, sur l'échelle de la source, ou sur `ratingScale`
+   *  quand l'annonce la porte : l'écran, les filtres et le tri ne la lisent
+   *  que ramenée sur 5 (`avisDe`, `stay/ficheEnrichie.ts`), et pas du tout
+   *  quand cette échelle n'est pas établie. */
   rating?: number | null;
   reviewCount?: number | null;
   /**

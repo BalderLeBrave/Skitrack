@@ -13,9 +13,10 @@
  *   clés), sur la table ouverte (`depuisAmenities`), avec les libellés qu'une
  *   source structurée publie sans fiche (`Listing.equipementsPublies`) ;
  * - la note et le nombre d'avis (`Listing.rating`, `reviewCount`), **seulement
- *   quand l'échelle de la source est établie** (`ECHELLE_RELEVEE`) : une note
- *   dont on ignore l'échelle ne s'affiche pas, ne se filtre pas, ne se trie
- *   pas.
+ *   quand leur échelle est établie** : celle que l'annonce porte
+ *   (`Listing.ratingScale`), sinon celle de la source (`ECHELLE_RELEVEE`).
+ *   Une note dont on ignore l'échelle ne s'affiche pas, ne se filtre pas, ne
+ *   se trie pas.
  *
  * Toutes les notes sont sur 5 (`noterSur5`, `note.ts`).
  *
@@ -193,7 +194,8 @@ export function avisRelu(a: AvisResume | null | undefined): AvisResume | null {
 
 /**
  * Les avis de l'annonce : ceux de sa fiche, sinon sa note et son nombre
- * d'avis d'avant la fiche, quand l'échelle de la source est établie.
+ * d'avis d'avant la fiche, quand leur échelle est établie : `ratingScale`,
+ * sinon celle de la source (`ECHELLE_RELEVEE`).
  */
 export function avisDe(l: Listing): AvisResume | null {
   if (l.fiche?.avis) return avisRelu(l.fiche.avis);

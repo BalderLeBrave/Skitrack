@@ -192,7 +192,8 @@ const CHAMPS_DU_BIEN = [
   ["description"],
   ["amenities"],
   ["equipementsPublies"],
-  ["rating", "reviewCount"],
+  // La note avec son nombre d'avis et son échelle (Cozy : sur 100).
+  ["rating", "reviewCount", "ratingScale"],
   // La galerie : la photo avec ses photos, puis les photos seules. La copie
   // gardée est souvent celle de Cozy, parfois sans vignette.
   ["photo", "photos"],

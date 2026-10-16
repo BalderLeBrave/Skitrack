@@ -117,6 +117,10 @@ export const EXTRAITS_MAX = 5;
  *
  * Les autres (GreenGo `averageGlobalRating`, Maeva `note`) recopient la note
  * sans borne : leur échelle n'est pas établie, leur note n'est pas lue.
+ *
+ * Une annonce qui porte sa propre échelle (`Listing.ratingScale`) passe devant
+ * cette table : CozyCozy note sur 100 toutes les plateformes, Abritel comprise
+ * (`ratingScore`, `scrape/cozy.server.ts`, `avisOf`).
  */
 const ECHELLE_RELEVEE: Partial<Record<Listing["source"], EchelleNote>> = {
   Airbnb: 5,
@@ -193,7 +197,8 @@ export function avisRelu(a: AvisResume | null | undefined): AvisResume | null {
  */
 export function avisDe(l: Listing): AvisResume | null {
   if (l.fiche?.avis) return avisRelu(l.fiche.avis);
-  const echelle = ECHELLE_RELEVEE[l.source] ?? null;
+  // L'échelle que le collecteur a écrite (Cozy : sur 100), sinon celle de la source.
+  const echelle = echelleNote(l.ratingScale) ?? ECHELLE_RELEVEE[l.source] ?? null;
   const nombre = entierPositif(l.reviewCount);
   const noteSur5 =
     echelle != null && l.rating != null && nombre !== 0 ? noterSur5(l.rating, echelle) : null;

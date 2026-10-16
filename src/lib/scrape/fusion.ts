@@ -89,6 +89,8 @@ function combler(cozy: Listing, direct: Listing): Listing {
   if (cozy.rating == null && cozy.reviewCount == null && direct.rating != null) {
     set("rating", direct.rating);
     set("reviewCount", direct.reviewCount ?? null);
+    // Et son échelle : celle de Cozy (sur 100) ne vaut pas pour la note du direct.
+    set("ratingScale", direct.ratingScale ?? null);
   }
   // La fiche lue du direct (Booking : page établissement) ; celle de Cozy, si
   // elle en a une lue, reste la sienne.

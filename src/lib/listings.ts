@@ -202,6 +202,13 @@ export type Listing = {
   rating?: number | null;
   reviewCount?: number | null;
   /**
+   * L'échelle de `rating`, quand le collecteur la connaît et qu'elle n'est
+   * pas celle de la plateforme : CozyCozy publie toutes ses notes sur 100
+   * (`ratingScore`), qu'elles viennent d'Airbnb, de Booking ou d'Abritel.
+   * Absente : l'échelle de la source (`avisDe`). Elle va avec la note.
+   */
+  ratingScale?: 5 | 10 | 100 | null;
+  /**
    * La fiche du logement, lue sur sa page : description, équipements, avis,
    * conditions, tels que la source les publie (`stay/ficheEnrichie.ts`).
    * Absente : la page n'a pas été lue, ce qui ne dit rien du logement. Les

@@ -624,6 +624,20 @@ describe("la description de la fiche lue se lit comme celle de l'annonce", () =>
     assert.deepEqual([q.bedrooms, q.bedroomsSource], [3, "structured"]);
   });
 
+  it("le même texte en description et en fiche ne se compte qu'une fois (GreenGo, Gîtes, Ski-Planet)", () => {
+    // Détail GreenGo « Balcons » (greengo-detail-equipements.json) : la
+    // description et la fiche portent le même texte ; « une chambre » lu deux
+    // fois en faisait deux.
+    const texte = "Rez-de-chaussée : une chambre avec un lit double, un séjour et une cuisine.";
+    for (const source of ["GreenGo", "Gîtes de France", "Ski-Planet"] as const) {
+      const q = qualifierLogement({ source, title: "Gîte", description: texte, capacity: 2, bedrooms: null, fiche: { description: texte } });
+      assert.deepEqual([q.bedrooms, q.bedroomsSource], [1, "text_regex"], source);
+    }
+    // Une description à elle, même courte, reste la seule lue.
+    const q = qualifierLogement({ source: "Booking", title: "x", description: "Au pied des pistes.", capacity: 4, bedrooms: null, fiche: { description: "Il comprend 2 chambres." } });
+    assert.equal(q.bedrooms, null);
+  });
+
   it("Airbnb n'y lit rien : ses chambres ne viennent que de champs structurés", () => {
     const q = qualifierLogement({ source: "Airbnb", title: "Chalet", capacity: 6, bedrooms: null, fiche: { description: "Le chalet comprend 3 chambres." } });
     assert.equal(q.bedrooms, null);

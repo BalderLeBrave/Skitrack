@@ -460,7 +460,10 @@ function textesDe(l: SujetLogement): Array<string | null | undefined> {
     l.description,
     // La description de la fiche lue, rangée à part (Booking : « Il comprend
     // 2 chambres ») : ses chambres écrites valent celles de la description.
-    l.fiche && l.fiche.indisponible !== true ? l.fiche.description : null,
+    // Seulement à une annonce sans description : GreenGo, Gîtes, Ski-Planet
+    // posent le même texte aux deux places, et « une chambre » lu deux fois
+    // en faisait deux (`chambresEnLettres` somme ce qu'il lit).
+    !l.description?.trim() && l.fiche && l.fiche.indisponible !== true ? l.fiche.description : null,
     sansRouteBooking(l.url),
     l.propertyType,
     l.priceLabel,

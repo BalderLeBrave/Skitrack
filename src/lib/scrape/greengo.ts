@@ -597,6 +597,41 @@ export function greengoListings(
 }
 
 /**
+ * Ce que le relevé note trente jours du détail d'un hôte à logement unique
+ * dans la mémoire des fiches : sa capacité et ses chambres, champs de l'API
+ * (`maxNumberOfTravellers`, `numberOfBedrooms`), sous la clé de son annonce
+ * sans détail, comme `lecturesAGarder`. Sans fiche aussi (Néva n'en a pas).
+ * Un relevé qui ne lit pas ce détail (autres dates, échéance) les y repose
+ * sans requête (`reposerGardees` : la page GreenGo, l'écran ne l'ouvre
+ * jamais) ; sans eux, Néva perdait sa chambre et Balcons en gagnait une,
+ * lue deux fois dans son texte (audit du 16 octobre 2026). Jamais le prix,
+ * qui dépend des dates. Rien pour un établissement.
+ */
+export function valeursAGarder(
+  hote: HoteGreenGo,
+  annonces: readonly Listing[],
+  input: LiveSearchInput,
+): { cle: string; capacity: number | null; capacitySource: "structured" | null; bedrooms: number | null; bedroomsSource: "structured" | null }[] {
+  const [a] = annonces;
+  if (!hote.unique || annonces.length !== 1 || !a) return [];
+  const [sans] = greengoListings(hote, null, input);
+  const cle = sans ? cleListing(sans) : null;
+  if (!cle) return [];
+  const capacity = (a.capacitySource ?? "structured") === "structured" ? a.capacity : null;
+  const bedrooms = (a.bedroomsSource ?? "structured") === "structured" ? a.bedrooms : null;
+  if (capacity == null && bedrooms == null) return [];
+  return [
+    {
+      cle,
+      capacity,
+      capacitySource: capacity != null ? "structured" : null,
+      bedrooms,
+      bedroomsSource: bedrooms != null ? "structured" : null,
+    },
+  ];
+}
+
+/**
  * Ce que le relevé garde trente jours du détail d'un hôte à logement unique
  * (`garderLectures`, `stay/contenuFiches.server.ts`) : la fiche de son annonce
  * (codes d'équipement passés par la table, description, avis) et son contenu

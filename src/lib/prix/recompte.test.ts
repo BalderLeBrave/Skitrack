@@ -325,6 +325,10 @@ describe("un même bien collecté deux fois ne fait qu'un logement", () => {
     const avisSeuls = situee({ id: "abnb-autre", url: URL_BIEN, total: 2100, rating: null, reviewCount: 12 });
     const [m] = dedoublonnerParBien([cozyDe(), avisSeuls, directDe()]);
     assert.deepEqual([m.rating, m.reviewCount], [4.9, 37]);
+    // Et son échelle : une note Cozy sur 100 ne se lit pas sur l'échelle d'Airbnb.
+    const surCent = situee({ id: "abnb-cozy-2", url: URL_BIEN, total: 1950, rating: 98, reviewCount: 125, ratingScale: 100 });
+    const [n] = dedoublonnerParBien([cozyDe({ rating: null, reviewCount: 0 }), surCent]);
+    assert.deepEqual([n.rating, n.reviewCount, n.ratingScale], [98, 125, 100]);
   });
 
   it("une fiche lue d'une autre copie remplace une fiche absente ou indisponible", () => {

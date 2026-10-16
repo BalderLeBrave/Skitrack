@@ -660,6 +660,22 @@ export function rangPrix(l: Pick<Listing, "total">): number {
   return l.total > 0 ? l.total : Number.MAX_SAFE_INTEGER;
 }
 
+/**
+ * La note et le nombre d'avis que la liste publie (`ratingScore`,
+ * `ratingCount`) : relevés le 16 octobre 2026 sur toutes les fiches, quelle
+ * que soit la plateforme, et notés sur 100 (de 78 à 100 à La Plagne ; la
+ * fiche de Cozy les affiche sur 10). La note reste brute, avec son échelle
+ * (`ratingScale`) : `note.ts` seul la ramène sur 5. Sans avis, ou sans note
+ * dans l'échelle, rien.
+ */
+function avisOf(e: Record<string, unknown>): Pick<Listing, "rating" | "reviewCount" | "ratingScale"> {
+  const score = typeof e.ratingScore === "number" && Number.isFinite(e.ratingScore) ? e.ratingScore : null;
+  const nombre =
+    typeof e.ratingCount === "number" && Number.isInteger(e.ratingCount) && e.ratingCount >= 0 ? e.ratingCount : null;
+  if (score == null || score <= 0 || score > 100 || !nombre) return {};
+  return { rating: score, reviewCount: nombre, ratingScale: 100 };
+}
+
 /** Un identifiant publié, nombre ou chaîne, ramené au texte. */
 function idText(v: unknown): string | null {
   if (typeof v === "string" && v.trim()) return v.trim();
@@ -749,6 +765,7 @@ export function cozyListings(
         available: true,
         photo: gallery[0] ?? null,
         photos: gallery.length > 0 ? gallery : null,
+        ...avisOf(e),
         priceIndicative: indicative ? true : null,
         platformId,
         url,

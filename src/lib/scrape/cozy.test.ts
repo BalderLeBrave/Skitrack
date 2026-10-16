@@ -12,10 +12,14 @@ import {
   type Tirage,
 } from "./cozy.server.ts";
 import type { LiveSearchInput } from "./types.ts";
+import { readFileSync } from "node:fs";
+import { avisDe } from "../stay/ficheEnrichie.ts";
+import { fusionner } from "./fusion.ts";
 
 /**
- * Le dépôt ne contient aucune charge CozyCozy enregistrée : les fiches
- * ci-dessous sont **construites à partir des clés que le collecteur lit**
+ * Une seule charge CozyCozy réelle est enregistrée, éprouvée à la fin du
+ * fichier (La Plagne, 16 octobre 2026). Les autres fiches ci-dessous sont
+ * **construites à partir des clés que le collecteur lit**
  * (`highlightedResults`, `totalPrice`, `lightThumbnails.firstUrls`,
  * `subTitleDetails`, `accommodationId`), et d'elles seules. Aucun champ n'y est
  * inventé pour faire passer un test : ce qui n'est pas lu ailleurs dans le
@@ -502,5 +506,75 @@ describe("pagination CozyCozy", () => {
     );
     assert.equal(res.annonces, 0);
     assert.equal(res.arret, "page vide");
+  });
+});
+
+/**
+ * Réponse réelle de `/api/getResultList`, copiée par le propriétaire depuis son
+ * navigateur le 16 octobre 2026 : La Plagne, du 26 au 28 octobre 2026,
+ * 2 adultes. Réduite à ses 9 fiches : le résultat et les liens sponsorisés
+ * (trivago, Pierre & Vacances) sont retirés, rien d'autre n'est touché.
+ */
+const LA_PLAGNE: unknown = JSON.parse(
+  readFileSync(new URL("./fixtures/cozy-getresultlist-laplagne-2026-10-26.json", import.meta.url), "utf8"),
+);
+const SEJOUR_LA_PLAGNE: LiveSearchInput = {
+  stationId: "la-plagne",
+  stationName: "La Plagne",
+  lat: 45.5318,
+  lon: 6.6894,
+  checkIn: "2026-10-26",
+  checkOut: "2026-10-28",
+  guests: 2,
+  bedrooms: 0,
+};
+
+describe("relevé CozyCozy : une réponse réelle (La Plagne, 16 octobre 2026)", () => {
+  const airbnbs = cozyListings([LA_PLAGNE], SEJOUR_LA_PLAGNE, "Airbnb");
+  const bookings = cozyListings([LA_PLAGNE], SEJOUR_LA_PLAGNE, "Booking");
+  const abritels = cozyListings([LA_PLAGNE], SEJOUR_LA_PLAGNE, "Abritel");
+
+  it("rend ses 9 fiches, chacune sous sa plateforme, avec ce que la liste publie", () => {
+    assert.deepEqual([airbnbs.length, bookings.length, abritels.length], [7, 1, 1]);
+    const coches = airbnbs.find((l) => l.id === "abnb-45915695")!;
+    assert.equal(coches.title, "Bel Appartement 6/8 P. Les Coches Skis Aux Pieds");
+    assert.deepEqual([coches.capacity, coches.bedrooms, coches.beds, coches.total], [8, 3, 5, 221]);
+    assert.equal(coches.url, "https://www.airbnb.fr/rooms/17451654?check_in=2026-10-26&check_out=2026-10-28&adults=2");
+    assert.deepEqual([coches.lat?.toFixed(4), coches.lon?.toFixed(4)], ["45.5539", "6.7327"]);
+    const [tresallet] = bookings;
+    assert.deepEqual([tresallet.title, tresallet.capacity, tresallet.bedrooms, tresallet.total], ["La Maison Trésallet", 6, 3, 327]);
+    assert.match(tresallet.url ?? "", /^https:\/\/www\.booking\.com\/hotel\/fr\/la-maison-tresallet\.html/);
+  });
+
+  it("lit la note et le nombre d'avis, notés sur 100, avec leur échelle ; note.ts seul les ramène sur 5", () => {
+    const coches = airbnbs.find((l) => l.id === "abnb-45915695")!;
+    assert.deepEqual([coches.rating, coches.reviewCount, coches.ratingScale], [98, 125, 100]);
+    assert.deepEqual([avisDe(coches)?.noteSur5, avisDe(coches)?.nombre], [4.9, 125]);
+    const [tresallet] = bookings;
+    assert.deepEqual([tresallet.rating, tresallet.reviewCount, avisDe(tresallet)?.noteSur5], [95, 67, 4.8]);
+    // Abritel n'a pas d'échelle établie ; celle de Cozy suffit à afficher sa note.
+    const [abr] = abritels;
+    assert.deepEqual([abr.rating, abr.reviewCount, avisDe(abr)?.noteSur5], [78, 9, 3.9]);
+    // Toutes les fiches de cette réponse ont une note et des avis.
+    for (const l of [...airbnbs, ...bookings, ...abritels]) assert.ok(avisDe(l), l.id);
+  });
+
+  it("sans avis, ou sans note dans l'échelle, aucune note", () => {
+    const sans = (extra: Record<string, unknown>) =>
+      cozyListings(charge(entree("Chalet test", airbnb(), extra)), INPUT, "Airbnb")[0];
+    for (const extra of [{}, { ratingScore: 98, ratingCount: 0 }, { ratingScore: 0, ratingCount: 4 }, { ratingScore: 120, ratingCount: 4 }]) {
+      const l = sans(extra);
+      assert.deepEqual([l.rating ?? null, l.reviewCount ?? null, l.ratingScale ?? null], [null, null, null], JSON.stringify(extra));
+    }
+  });
+
+  it("la fusion avec le direct : la note de Cozy reste la sienne ; sans elle, celle du direct vient avec sa propre échelle", () => {
+    const coches = airbnbs.find((l) => l.id === "abnb-45915695")!;
+    const direct = { ...coches, id: "17451654", rating: 4.93, reviewCount: 126, ratingScale: undefined, proven: "direct" };
+    const [garde] = fusionner([coches], [direct]).listings;
+    assert.deepEqual([garde.rating, garde.reviewCount, garde.ratingScale], [98, 125, 100]);
+    const sansNote = { ...coches, rating: null, reviewCount: null, ratingScale: null };
+    const [comble] = fusionner([sansNote], [direct]).listings;
+    assert.deepEqual([comble.rating, comble.reviewCount, comble.ratingScale ?? null, avisDe(comble)?.noteSur5], [4.93, 126, null, 4.9]);
   });
 });

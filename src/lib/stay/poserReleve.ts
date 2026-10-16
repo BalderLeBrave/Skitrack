@@ -182,9 +182,9 @@ const CHAMPS_DE_POSITION = [
  *  capacité et les chambres sont celles du logement, quelle que soit la copie
  *  qui les porte. Son contenu aussi : description, équipements (les douze
  *  clés, et les libellés publiés sans fiche, que `equipementsDe` réunit par
- *  clé), et la note avec son nombre d'avis, jamais l'une d'une copie et
- *  l'autre d'une autre (`avisDe` les lit ensemble, et zéro avis y annule la
- *  note). */
+ *  clé), et la note avec son nombre d'avis et son échelle, jamais l'une d'une
+ *  copie et l'autre d'une autre (`avisDe` les lit ensemble, et zéro avis y
+ *  annule la note). */
 const CHAMPS_DU_BIEN = [
   ["capacity", "capacitySource"],
   ["bedrooms", "bedroomsSource"],
@@ -226,10 +226,12 @@ function ficheLue(f: unknown): boolean {
  * - la capacité, les chambres, les pièces, chacune avec sa source. La copie
  *   Cozy d'un Airbnb, moins chère mais muette sur sa capacité, rendait sinon
  *   « muet » un logement que sa copie directe faisait compter ;
- * - la description et les équipements (douze clés, libellés publiés), la
- *   note avec son nombre d'avis (une paire, d'une même copie). La copie Cozy
- *   ne les publie pas, la tuile directe si : gardée seule, elle les faisait
- *   disparaître de l'écran ;
+ * - la description et les équipements (douze clés, libellés publiés) : la
+ *   copie Cozy ne les publie pas, la tuile directe si ; gardée seule, elle les
+ *   faisait disparaître de l'écran ;
+ * - la note avec son nombre d'avis et son échelle, les trois d'une même
+ *   copie : une copie sans avis les prend d'une autre (Cozy sur 100, la tuile
+ *   directe sur l'échelle de sa source) ;
  * - une fiche lue, quand la gardée n'en a pas ou n'a pu lire la sienne. Elle
  *   décide alors seule des équipements (`equipementsDe`), comme une fiche
  *   reposée depuis la mémoire : c'est le même bien, sur la même source.

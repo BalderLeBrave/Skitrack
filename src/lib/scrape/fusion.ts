@@ -49,6 +49,10 @@ const COMBLABLES = [
   "rooms",
   "beds",
   "baths",
+  // La surface : Cozy ne la publie que pour une partie de ses fiches
+  // (`surfaceText`). Aucun collecteur direct ne la pose encore ; elle est
+  // listée pour qu'un relevé direct qui la lirait comble ce vide.
+  "surface",
   "propertyType",
   "photo",
   "photos",

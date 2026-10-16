@@ -14,6 +14,7 @@ import {
   NON_RENSEIGNE,
   sansDomaineLbl,
   sub,
+  surfaceLbl,
 } from "./v7.ts";
 import type { Listing } from "./listings.ts";
 import { qualifierLogement } from "./stay/logement.ts";
@@ -196,6 +197,15 @@ describe("chambres et capacité affichées", () => {
     assert.equal(capLbl(logement("Appartement 4/6 personnes")), "4/6 pers.");
     assert.equal(capLbl(logement("Appartement 6 personnes")), "6 pers.");
     assert.equal(capLbl(logement("Appartement")), "Non renseigné");
+  });
+
+  it("la surface publiée s'écrit « 80 m² » ; sans elle, rien, ni « 0 m² » ni lecture du titre", () => {
+    // Les deux surfaces de la réponse Cozy de La Plagne (cozy.test.ts).
+    assert.equal(surfaceLbl(logement("La Maison Trésallet", { surface: 80 })), "80\u00a0m²");
+    assert.equal(surfaceLbl(logement("Appartement 7 Personnes", { surface: 40 })), "40\u00a0m²");
+    assert.equal(surfaceLbl(logement("Grand appartement chaleureux Ski aux pieds 8p 63m2")), null);
+    assert.equal(surfaceLbl(logement("Appartement", { surface: null })), null);
+    assert.equal(surfaceLbl(logement("Appartement", { surface: 0 })), null);
   });
 });
 

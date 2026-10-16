@@ -676,6 +676,22 @@ function avisOf(e: Record<string, unknown>): Pick<Listing, "rating" | "reviewCou
   return { rating: score, reviewCount: nombre, ratingScale: 100 };
 }
 
+/**
+ * La surface que la liste publie (`surfaceText`), en mètres carrés entiers.
+ * Relevée le 16 octobre 2026 à La Plagne : « 80 m² » sur la fiche Booking,
+ * « 40 m² » sur la fiche Abritel, une espace fine insécable (U+202F) entre le
+ * nombre et l'unité ; une chaîne vide sur les sept fiches Airbnb. On ne lit
+ * que cette forme-là : une autre, qu'aucune réponse enregistrée ne montre,
+ * rend `null`, comme une chaîne vide. Ni le titre (« 63m2 ») ni la
+ * description ne sont lus. Aucune requête de plus : c'est la même réponse.
+ */
+function surfaceOf(e: Record<string, unknown>): number | null {
+  if (typeof e.surfaceText !== "string") return null;
+  const m = /^(\d{1,4})\s*m²$/u.exec(e.surfaceText.trim());
+  const n = m ? Number(m[1]) : 0;
+  return n > 0 ? n : null;
+}
+
 /** Un identifiant publié, nombre ou chaîne, ramené au texte. */
 function idText(v: unknown): string | null {
   if (typeof v === "string" && v.trim()) return v.trim();
@@ -761,6 +777,7 @@ export function cozyListings(
         isStudio: occ.isStudio,
         beds,
         baths,
+        surface: surfaceOf(e),
         propertyType: typePublie && typePublie.toLowerCase() !== name.toLowerCase() ? typePublie : null,
         available: true,
         photo: gallery[0] ?? null,

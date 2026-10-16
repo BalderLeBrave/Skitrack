@@ -21,6 +21,7 @@ import {
   NON_RENSEIGNE,
   prixLbl,
   prixPersLbl,
+  surfaceLbl,
 } from "@/lib/v7";
 
 export function FicheEpingle({
@@ -40,6 +41,8 @@ export function FicheEpingle({
   const d = distanceOf(l);
   const ferme = firmOf(l, stay);
   const pers = prixPersLbl(l, trav);
+  // La surface ne s'écrit que publiée (`surfaceLbl`).
+  const surface = surfaceLbl(l);
   return (
     <>
       {l.photo ? (
@@ -61,6 +64,7 @@ export function FicheEpingle({
         <span className="fc__ligne">
           <span className={l.capacity == null ? "absent" : undefined}>{capNomme(l)}</span>
           <span className={bedLbl(l) === tr(NON_RENSEIGNE) ? "absent" : undefined}>{bedNomme(l)}</span>
+          {surface ? <span>{surface}</span> : null}
         </span>
         <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>{d.text}</span>
         <span className="fc__prix">

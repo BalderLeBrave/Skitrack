@@ -292,3 +292,40 @@ describe("poserContenu", () => {
     assert.equal(poserContenu(vide, { amenities: equipements({}) }), true);
   });
 });
+
+describe("la fiche Cozy à côté de la page de l'annonce", () => {
+  const ficheCozy = { description: "Studio.", equipements: [], avis: null, conditions: null, sourceFiche: "cozy" as const };
+  const ficheBooking = { description: "Page Booking.", equipements: [], avis: null, conditions: null, sourceFiche: "booking" as const };
+
+  it("deux lectures sous la même clé se complètent : la galerie Cozy et les pictos de la page restent", () => {
+    const f = join(dossier(), "fiches-contenu.json");
+    const m = new ContenuFiches(f);
+    const galerie = ["https://g/1.jpg", "https://g/2.jpg", "https://g/3.jpg"];
+    m.noter([{ cle: "Abritel:9", contenu: { description: null, photos: galerie, amenities: null, baths: 2, origine: "cozy" } }], 1000);
+    m.noter([{ cle: "Abritel:9", contenu: { description: "Page.", photos: ["https://p/1.jpg"], amenities: null, equipementsPublies: [{ libelle: "Wi-Fi" }] } }], 2000);
+    const lu = m.lire("Abritel:9", 3000);
+    assert.deepEqual(lu?.photos, galerie);
+    assert.equal(lu?.description, "Page.");
+    assert.deepEqual(lu?.equipementsPublies, [{ libelle: "Wi-Fi" }]);
+    assert.equal(lu?.baths, 2);
+    assert.equal(lu?.origine, undefined, "mêlé à la page, le contenu n'est plus seulement Cozy");
+  });
+
+  it("une fiche Cozy ne remplace pas la fiche de la page, et ne la fait pas tenir pour lue", () => {
+    garderLectures([{ cle: "Booking:77", fiche: ficheBooking }]);
+    garderLectures([{ cle: "Booking:77", fiche: ficheCozy }]);
+    assert.equal(memoireFiches().lire("Booking:77")?.fiche?.sourceFiche, "booking");
+    garderLectures([{ cle: "Booking:78", fiche: ficheCozy, contenu: { photos: ["https://g/1.jpg", "https://g/2.jpg"], origine: "cozy" } }]);
+    assert.equal(dejaGardee("Booking:78"), false, "la page Booking reste à lire");
+    garderLectures([{ cle: "Booking:78", fiche: ficheBooking }]);
+    assert.equal(memoireFiches().lire("Booking:78")?.fiche?.sourceFiche, "booking", "la page remplace la fiche Cozy");
+    assert.equal(dejaGardee("Booking:78"), true);
+  });
+
+  it("les salles de bain gardées comblent l'annonce ; la vignette d'une tuile ne se mêle pas à la galerie", () => {
+    const row: Parameters<typeof poserContenu>[0] = { photo: "https://bstatic/max500/1.jpg", photos: null, baths: null };
+    const hd = ["https://bstatic/max1440/1.jpg", "https://bstatic/max1440/2.jpg"];
+    assert.equal(poserContenu(row, { photos: hd, baths: 1 }), true);
+    assert.deepEqual([row.photo, row.photos, row.baths], [hd[0], hd, 1]);
+  });
+});

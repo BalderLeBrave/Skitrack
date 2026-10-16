@@ -243,6 +243,14 @@ export function equipementsDe(l: Listing): EquipementFiche[] | null {
   // source publie ailleurs (`equipementsPublies`).
   if (ficheDecideEquipements(l)) {
     const es = normaliserEquipements(l.fiche!.equipements ?? []);
+    // La fiche Cozy ne liste que ce qui est là, jamais ce qui manque, et
+    // souvent moins que la page de l'annonce : elle complète ce que les
+    // collecteurs ont lu, sans l'effacer. Sur une même clé, la fiche l'emporte.
+    if (l.fiche!.sourceFiche === "cozy") {
+      const ids = new Set(es.map((e) => e.id));
+      const tout = [...es, ...(equipementsSansFiche(l) ?? []).filter((e) => !ids.has(e.id))];
+      return tout.length ? tout : null;
+    }
     return es.length ? es : null;
   }
   return equipementsSansFiche(l);

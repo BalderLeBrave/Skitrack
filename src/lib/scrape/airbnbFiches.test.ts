@@ -272,4 +272,22 @@ describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => 
     assert.equal("enrichie" in lu.fiches["1"], false);
     assert.equal("enrichie" in lu.fiches["2"], false);
   });
+
+  it("la visite photo de la page rooms/ : https seules, sans doublon ; rien sur une fiche écartée", () => {
+    const a = "https://a0.muscache.com/im/pictures/a.jpg";
+    const b = "https://a0.muscache.com/im/pictures/b.jpg";
+    const lu = lireSortieFiches(
+      {
+        fiches: {
+          "1": { ...brut, photos: [a, b, a, "http://x/c.jpg", 3] },
+          "2": { ...brut, ecartee: true, photos: [a] },
+          "3": { ...brut, photos: [] },
+        },
+      },
+      ["1", "2", "3"],
+    );
+    assert.deepEqual(lu.fiches["1"].photos, [a, b]);
+    assert.equal("photos" in lu.fiches["2"], false);
+    assert.equal("photos" in lu.fiches["3"], false);
+  });
 });

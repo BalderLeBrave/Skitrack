@@ -126,7 +126,11 @@ def description_de(raw: Any) -> str | None:
         if t:
             return t
     # La fenêtre « Description » : ses rubriques (« Le logement », « Accès
-    # des voyageurs »…), chacune sous son titre.
+    # des voyageurs »…), chacune sous son titre. La page `rooms/` en porte
+    # deux, dont la mention légale de l'hôte (« X est entièrement responsable
+    # de la proposition de ce logement… ») : la plus longue est la
+    # description.
+    candidates: list[str] = []
     for type_, s in _enveloppes(raw):
         if "DESCRIPTION" not in type_.upper() or s.get("__typename") != "GeneralListContentSection":
             continue
@@ -141,8 +145,8 @@ def description_de(raw: Any) -> str | None:
             titre = _chaine(it.get("title"))
             parties.append(f"{titre}\n{t}" if titre else t)
         if parties:
-            return "\n\n".join(parties)[:TEXTE_MAX]
-    return None
+            candidates.append("\n\n".join(parties)[:TEXTE_MAX])
+    return max(candidates, key=len) if candidates else None
 
 
 NON_INCLUS_RE = re.compile(r"^(non inclus|not included|indisponible|unavailable)$", re.I)

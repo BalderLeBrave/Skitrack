@@ -37,6 +37,9 @@ export type FicheAirbnb = {
    *  réponse (`scrape/airbnb/fiche_pdp.py`), normalisés ici. Absente : la
    *  fiche n'en publiait rien. */
   enrichie?: FicheEnrichie;
+  /** La visite photo entière, quand la fiche a été lue sur la page `rooms/`
+   *  (`pdp.galerie_de_pdp`) : la tuile de recherche n'en porte que quelques-unes. */
+  photos?: string[];
 };
 
 export type LectureFichesAirbnb = {
@@ -176,7 +179,14 @@ function fiche(v: unknown): FicheAirbnb | null {
     typeLogement: texte(r.typeLogement),
     ecartee: r.ecartee === true,
     ...enrichieDe(r),
+    ...photosDe(r),
   };
+}
+
+function photosDe(r: Record<string, unknown>): { photos?: string[] } {
+  if (r.ecartee === true || !Array.isArray(r.photos)) return {};
+  const photos = [...new Set(r.photos.filter((u): u is string => typeof u === "string" && /^https:\/\//.test(u)))];
+  return photos.length ? { photos } : {};
 }
 
 function enrichieDe(r: Record<string, unknown>): { enrichie?: FicheEnrichie } {

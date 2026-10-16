@@ -438,8 +438,10 @@ export class MemoireFiches {
         revoir("ecartee", apres.ecartee === v.ecartee);
         apres.ecartee = v.ecartee;
       }
-      if (v.fiche) {
-        // La fiche lue la plus récente remplace l'ancienne, entière.
+      // La fiche lue la plus récente remplace l'ancienne, entière. Sauf une
+      // fiche Cozy, lue sur la liste d'un comparateur : elle ne remplace pas
+      // celle de la page même (Airbnb PDP, Booking), plus riche.
+      if (v.fiche && !(v.fiche.sourceFiche === "cozy" && apres.fiche && apres.fiche.sourceFiche !== "cozy")) {
         revoir("fiche", JSON.stringify(apres.fiche ?? null) === JSON.stringify(v.fiche));
         apres.fiche = v.fiche;
       }
@@ -482,10 +484,11 @@ export class MemoireFiches {
  * Elle ne se redemande pas avant trente jours. Lue sans fiche par un lecteur
  * plus ancien (`VERSION_LECTEUR_PDP`), elle se relit une fois ; écartée
  * (hôtel, chambre), jamais : le lecteur n'enrichit pas une annonce écartée.
- * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue.
+ * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue, ni une fiche
+ * Cozy (`cozyFiches.server.ts`) : la PDP reste à lire, et la remplacera.
  */
 export function pdpDejaLue(m: Pick<ValeursFiche, "fiche" | "lue" | "lueV" | "ecartee"> | null | undefined): boolean {
-  if (m?.fiche) return true;
+  if (m?.fiche && m.fiche.sourceFiche !== "cozy") return true;
   if (m?.lue !== true) return false;
   return m.ecartee === true || (m.lueV ?? 0) >= VERSION_LECTEUR_PDP;
 }

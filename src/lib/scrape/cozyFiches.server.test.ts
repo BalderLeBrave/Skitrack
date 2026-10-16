@@ -105,6 +105,8 @@ describe("lireFicheCozy", () => {
     assert.equal(gardees[0].cle, "Abritel:112915552");
     assert.equal(gardees[0].fiche?.sourceFiche, "cozy");
     assert.equal(gardees[0].contenu?.photos?.length, 9);
+    assert.equal(gardees[0].contenu?.baths, 1);
+    assert.equal(gardees[0].contenu?.origine, "cozy");
   });
 
   it("Booking : les avis aussi ; pas de galerie quand la liste n'annonce pas plus de photos", async () => {
@@ -235,5 +237,70 @@ describe("ficheCozyAPoser (relecture de l'écran)", () => {
     assert.equal(ficheCozyAPoser(lue), false);
     assert.equal(ficheCozyAPoser({ ...lue, fiche: { ...lue.fiche, indisponible: true } }), true);
     assert.equal(ficheCozyAPoser(annonce("gdf-1", "Gîtes de France", "1")), false);
+  });
+});
+
+describe("la file, après relecture", () => {
+  it("un refus ou une recherche expirée ne condamne pas la fiche : elle se redemande ensuite", async () => {
+    noterRefsCozy([page("S1", [{ acc: 1, uid: "1-1" }])]);
+    const refus = porteEssai(() => ({ statut: 429, json: null }));
+    demanderFichesCozy([annonce("abr-1", "Abritel", "1")], { porte: refus.porte });
+    await lectureCozyEnCours();
+    noterRefsCozy([page("S2", [{ acc: 100293015, uid: FX.abritel.uid }, { acc: 1, uid: "1-1" }])]);
+    const ok = porteEssai(reel);
+    assert.equal(demanderFichesCozy([annonce("abr-1", "Abritel", "1")], { porte: ok.porte }), 1);
+    await lectureCozyEnCours();
+  });
+
+  it("un refus sur la galerie garde les détails déjà lus", async () => {
+    const { porte, gardees } = porteEssai((a) => (a.methode === "getPhotos" ? { statut: 429, json: null } : reel(a)));
+    const issue = await lireFicheCozy(
+      annonce("abr-100293015", "Abritel", "112915552"),
+      { accommodationId: "100293015", uid: FX.abritel.uid, searchId: "S1", photos: 9 },
+      porte,
+    );
+    assert.equal(issue, "refus");
+    assert.equal(gardees.length, 1);
+    assert.equal(gardees[0].fiche?.sourceFiche, "cozy");
+  });
+
+  it("la dernière recherche passe devant les précédentes ; la référence la plus récente sert", async () => {
+    noterRefsCozy([page("ANCIENNE", [{ acc: 1, uid: "1-1" }, { acc: 2, uid: "2-1" }])]);
+    noterRefsCozy([page("RECENTE", [{ acc: 3, uid: "3-1" }, { acc: 1, uid: "1-9" }])]);
+    const ordre: string[] = [];
+    let bloque: (() => void) | null = null;
+    const debut = new Promise<void>((r) => (bloque = r));
+    const { porte } = porteEssai((a) => {
+      if (a.methode === "getDetails") ordre.push(`${a.corps.uid}@${a.corps.searchId}`);
+      return { statut: 200, json: { name: "x", description: "Un logement.", amenities: [] } };
+    });
+    const lente: PorteCozy = { ...porte, api: async (m, c) => (ordre.length === 0 ? (await debut, porte.api(m, c)) : porte.api(m, c)) };
+    demanderFichesCozy([annonce("abr-2", "Abritel", "2")], { porte: lente });
+    demanderFichesCozy([annonce("abr-1", "Abritel", "1"), annonce("abr-3", "Abritel", "3")], { porte: lente });
+    bloque!();
+    await lectureCozyEnCours();
+    await lectureCozyEnCours();
+    // abr-2 était déjà partie ; ensuite la recherche récente, avant rien d'autre.
+    assert.deepEqual(ordre, ["2-1@ANCIENNE", "1-9@RECENTE", "3-1@RECENTE"]);
+  });
+
+  it("une fiche gardée entre la demande et la lecture n'est pas relue", async () => {
+    noterRefsCozy([page("S1", [{ acc: 1, uid: "1-1" }, { acc: 2, uid: "2-1" }])]);
+    const deja = new Set<string>();
+    const essai = porteEssai(reel, deja);
+    const porte: PorteCozy = {
+      ...essai.porte,
+      api: async (m, c) => {
+        deja.add("Abritel:2");
+        return reel({ methode: m, corps: c });
+      },
+    };
+    demanderFichesCozy([annonce("abr-1", "Abritel", "1"), annonce("abr-2", "Abritel", "2")], { porte });
+    await lectureCozyEnCours();
+    assert.equal(essai.appels.length, 0);
+    assert.deepEqual(
+      essai.gardees.map((g) => g.cle),
+      ["Abritel:1"],
+    );
   });
 });

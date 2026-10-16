@@ -409,3 +409,67 @@ def test_par_defaut_aucune_page_d_avis():
     finally:
         pdp.lire_page_avis = ancien
     assert appels == []
+
+
+def _page_rooms(sections: list[dict]) -> str:
+    etat = {
+        "niobeClientData": [
+            [
+                'StaysPdpSections:{"id":"U3RheUxpc3Rpbmc6MQ=="}',
+                {"data": {"presentation": {"stayProductDetailPage": {"sections": {"sections": sections}}}}},
+            ]
+        ]
+    }
+    return f'<html><script id="data-deferred-state-0" type="application/json">{json.dumps(etat)}</script></html>'
+
+
+def _modale(texte: str) -> dict:
+    return {
+        "sectionComponentType": "PDP_DESCRIPTION_MODAL",
+        "section": {
+            "__typename": "GeneralListContentSection",
+            "items": [{"__typename": "BasicListItem", "title": None, "html": {"htmlText": texte}}],
+        },
+    }
+
+
+def test_page_rooms_la_plus_longue_description_et_la_visite_photo():
+    mention = "Axel est entièrement responsable de la proposition de ce logement sur Airbnb."
+    vraie = "Bienvenue dans ce très joli studio de 20 m², au pied des pistes. " * 3
+    photos = {
+        "sectionComponentType": "PHOTO_TOUR_SCROLLABLE",
+        "section": {
+            "__typename": "PhotoTourModalSection",
+            "mediaItems": [
+                {"__typename": "Image", "baseUrl": "https://a0.muscache.com/im/pictures/1.jpg"},
+                {"__typename": "Image", "baseUrl": "https://a0.muscache.com/im/pictures/2.jpg"},
+                {"__typename": "Image", "baseUrl": "https://a0.muscache.com/im/pictures/1.jpg"},
+            ],
+        },
+    }
+    occ = pdp.lire_page_rooms(200, {}, _page_rooms([_modale(mention), _modale(vraie), photos]))
+    assert occ is not None
+    assert occ["enrichie"]["description"].startswith("Bienvenue dans ce très joli studio")
+    assert occ["photos"] == ["https://a0.muscache.com/im/pictures/1.jpg", "https://a0.muscache.com/im/pictures/2.jpg"]
+    assert pdp.fiche_de(occ)["photos"] == occ["photos"]
+
+
+def test_page_rooms_sans_etat_ou_refusee():
+    assert pdp.lire_page_rooms(200, {}, "<html><title>Airbnb</title></html>") is None
+    assert pdp.pdp_de_page_rooms('<script id="data-deferred-state-0">pas du json</script>') is None
+    try:
+        pdp.lire_page_rooms(429, {}, "")
+    except RateLimited:
+        pass
+    else:
+        raise AssertionError("un 429 sur la page est un refus")
+
+
+def test_sections_vides_de_l_api_passent_par_la_page():
+    vide = json.dumps({"data": {"merlin": {"pdpSections": {"id": "1", "sections": []}}}})
+    try:
+        pdp.lire_reponse_pdp(200, {}, vide)
+    except pdp.SectionsVides:
+        pass
+    else:
+        raise AssertionError("sections vides : la page rooms/ doit prendre le relais")

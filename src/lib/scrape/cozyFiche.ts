@@ -136,11 +136,27 @@ function dateAvis(v: unknown): string | null {
   return `${a}-${String(m).padStart(2, "0")}-${String(j).padStart(2, "0")}`;
 }
 
-/** Le titre, les points forts puis les points faibles, chacun tel que publié. */
+/**
+ * Le titre et le texte, puis les points forts et les points faibles, chacun
+ * tel que publié et précédé de ce qu'il est : collés sans leur marque, « Les
+ * chambres sont faites trop tard » se lisait comme un éloge.
+ */
 function texteAvis(r: Record<string, unknown>): string | null {
-  const parts = [texte(r.title), texte(r.text), texte(r.pros), texte(r.cons)].filter((x): x is string => x != null);
-  if (!parts.length) return null;
-  return parts.map((p) => (/[.!?…]$/.test(p) ? p : `${p}.`)).join(" ");
+  const phrase = (p: string) => (/[.!?…]$/.test(p) ? p : `${p}.`);
+  const pros = texte(r.pros);
+  const cons = texte(r.cons);
+  const parts = [
+    ...[texte(r.title), texte(r.text)].filter((x): x is string => x != null).map(phrase),
+    ...(pros ? [`Points forts : ${phrase(pros)}`] : []),
+    ...(cons ? [`Points faibles : ${phrase(cons)}`] : []),
+  ];
+  return parts.length ? parts.join(" ") : null;
+}
+
+/** `space.bathRoomCount`, quand Cozy le publie : un entier plausible. */
+function sallesDeBain(v: unknown): number | null {
+  const n = objet(v)?.bathRoomCount;
+  return typeof n === "number" && Number.isInteger(n) && n > 0 && n <= 20 ? n : null;
 }
 
 /** La galerie de `getPhotos` : les grands formats, sinon les vignettes. */
@@ -156,13 +172,14 @@ export function galerieCozy(v: unknown): string[] {
 }
 
 /**
- * La fiche enrichie que publient les trois réponses, et la galerie entière.
- * Une réponse vide (`{}`, la recherche expirée côté Cozy) ne donne rien.
+ * La fiche enrichie que publient les trois réponses, la galerie entière et le
+ * nombre de salles de bain (`space`). Une réponse vide (`{}`, la recherche
+ * expirée côté Cozy) ne donne rien.
  */
 export function ficheCozy(
   r: ReponsesCozy,
   opts: { url?: string | null; recupereLe?: string } = {},
-): { fiche: FicheEnrichie | null; photos: string[] } {
+): { fiche: FicheEnrichie | null; photos: string[]; baths: number | null } {
   const d = objet(r.details) ?? {};
   const equipements = (Array.isArray(d.amenities) ? d.amenities : [])
     .map((a) => objet(a))
@@ -201,5 +218,5 @@ export function ficheCozy(
     "cozy",
     opts,
   );
-  return { fiche, photos: galerieCozy(r.photos) };
+  return { fiche, photos: galerieCozy(r.photos), baths: sallesDeBain(d.space) };
 }

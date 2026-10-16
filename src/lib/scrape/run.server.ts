@@ -1200,6 +1200,18 @@ function reprendreSuite(key: string, input: LiveSearchInput, part: SearchPart): 
   poursuivreApresReleve(key, input, laissee.reste, gen);
 }
 
+/**
+ * Les fiches des annonces Cozy (description, équipements, avis, galerie), une
+ * à une, en tâche de fond ; l'écran Logements les pose par sa relecture. Pour
+ * chaque réponse de Logements, qu'elle vienne d'un relevé, du cache ou d'un
+ * relevé en vol : un coup de cache ne remettait aucune fiche en file. Pas pour
+ * Prix (domaine faux), qui ne les montre pas.
+ */
+function fichesCozyApres(input: LiveSearchInput, part: SearchPart, result: LiveSearchResult): void {
+  if (input.domaine !== true || !(part === "cozy" || part === "airbnb" || part === "all")) return;
+  demanderFichesCozy(result.listings);
+}
+
 export async function runLiveSearch(
   input: LiveSearchInput,
   part: SearchPart = "all",
@@ -1215,10 +1227,13 @@ export async function runLiveSearch(
   const ttl = hit ? (relance ? Math.min(hit.ttl, CACHE_MS) : hit.ttl) : 0;
   if (hit && Date.now() - hit.at < ttl) {
     reprendreSuite(key, input, part);
+    fichesCozyApres(input, part, hit.result);
     return hit.result;
   }
   const pending = inflight.get(key);
-  if (pending) return pending;
+  // Un relevé en vol (celui de Prix, même clé) sert aussi Logements : ses
+  // fiches Cozy partent pour celui qui les montre.
+  if (pending) return pending.then((r) => (fichesCozyApres(input, part, r), r));
   // Seulement un relevé qui part : un coup de cache ne doit pas arrêter les
   // pages et les fiches déjà en cours, sauf la reprise d'une suite laissée
   // (`reprendreSuite`).
@@ -1268,12 +1283,7 @@ export async function runLiveSearch(
         booking.count > 0 &&
         !/repli|défi|HTTP \d{3}/i.test(`${booking.error ?? ""} ${booking.note ?? ""}`);
       if (suiteBooking) poursuivreBooking(key, input, genBooking);
-      // Les fiches des annonces Cozy (description, équipements, avis, galerie),
-      // une à une, en tâche de fond ; l'écran Logements les pose par sa
-      // relecture. Pas pour Prix (domaine faux), qui ne les montre pas.
-      if (input.domaine === true && (part === "cozy" || part === "airbnb" || part === "all")) {
-        demanderFichesCozy(result.listings);
-      }
+      fichesCozyApres(input, part, result);
       return result;
     })
     .finally(() => {

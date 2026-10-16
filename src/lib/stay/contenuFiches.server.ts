@@ -40,6 +40,14 @@ export type ContenuFiche = {
   /** Les libellés que la page publie en liste (`Listing.equipementsPublies`),
    *  quand le collecteur les lit ; absent sinon. */
   equipementsPublies?: EquipementPublie[] | null;
+  /** Le nombre de salles de bain publié (Cozy : `space.bathRoomCount`). */
+  baths?: number | null;
+  /**
+   * `cozy` : tout ce contenu vient de la fiche d'un comparateur
+   * (`cozyFiches.server.ts`), pas de la page de l'annonce. La page reste à
+   * lire pour les lecteurs qui l'ouvrent (`dejaGardee`).
+   */
+  origine?: "cozy";
 };
 
 type Entree = ContenuFiche & { vu: number };
@@ -71,12 +79,37 @@ export function contenuLu(v: unknown): ContenuFiche | null {
       )
     : null;
   const publies = equipementsPubliesRelus(o.equipementsPublies);
-  if (!description && !photos?.length && !amenities?.length && !publies.length) return null;
+  const baths = typeof o.baths === "number" && Number.isInteger(o.baths) && o.baths > 0 && o.baths <= 20 ? o.baths : null;
+  if (!description && !photos?.length && !amenities?.length && !publies.length && baths == null) return null;
   return {
     description,
     photos: photos?.length ? photos : null,
     amenities: amenities?.length ? amenities : null,
     ...(publies.length ? { equipementsPublies: publies } : {}),
+    ...(baths != null ? { baths } : {}),
+    ...(o.origine === "cozy" ? { origine: "cozy" as const } : {}),
+  };
+}
+
+/**
+ * Deux lectures d'une même annonce (la page de l'annonce, la fiche Cozy) se
+ * complètent au lieu de s'effacer : la plus récente donne ce qu'elle publie,
+ * l'ancienne garde le reste, et la galerie la plus longue reste. Le contenu
+ * n'est « cozy » que si les deux le sont.
+ */
+export function fusionnerContenus(avant: ContenuFiche | null, apres: ContenuFiche): ContenuFiche {
+  if (!avant) return apres;
+  const photos =
+    (apres.photos?.length ?? 0) >= (avant.photos?.length ?? 0) ? apres.photos : avant.photos;
+  const publies = apres.equipementsPublies?.length ? apres.equipementsPublies : avant.equipementsPublies;
+  const baths = apres.baths ?? avant.baths ?? null;
+  return {
+    description: apres.description ?? avant.description,
+    photos: photos ?? null,
+    amenities: apres.amenities ?? avant.amenities,
+    ...(publies?.length ? { equipementsPublies: publies } : {}),
+    ...(baths != null ? { baths } : {}),
+    ...(apres.origine === "cozy" && avant.origine === "cozy" ? { origine: "cozy" as const } : {}),
   };
 }
 
@@ -123,22 +156,24 @@ export class ContenuFiches {
     this.charger();
     const e = this.contenus.get(cle);
     if (!e || now - e.vu > this.dureeMs) return null;
-    return {
-      description: e.description,
-      photos: e.photos,
-      amenities: e.amenities,
-      ...(e.equipementsPublies?.length ? { equipementsPublies: e.equipementsPublies } : {}),
-    };
+    const { vu: _vu, ...contenu } = e;
+    return contenu;
   }
 
-  /** Garde le contenu de fiches lues ; une entrée vide n'efface rien. */
+  /**
+   * Garde le contenu de fiches lues ; une entrée vide n'efface rien, et une
+   * lecture complète la précédente encore fraîche (`fusionnerContenus`) : la
+   * page abritel.fr et la fiche Cozy d'une même annonce ne s'effacent plus.
+   */
   noter(entrees: readonly { cle: string | null; contenu: ContenuFiche }[], now: number = Date.now()): void {
     this.charger();
     let change = false;
     for (const { cle, contenu } of entrees) {
       const c = cle ? contenuLu(contenu) : null;
       if (!cle || !c) continue;
-      this.contenus.set(cle, { ...c, vu: now });
+      const avant = this.contenus.get(cle);
+      const frais = avant && now - avant.vu <= this.dureeMs ? avant : null;
+      this.contenus.set(cle, { ...fusionnerContenus(frais, c), vu: now });
       change = true;
     }
     if (change) this.ecrire(now);
@@ -242,7 +277,7 @@ function equipementsMuets(a: readonly Equipement[] | null | undefined): boolean 
  * si quelque chose a été posé.
  */
 export function poserContenu(
-  row: Partial<Pick<Listing, "description" | "amenities" | "equipementsPublies" | "photo" | "photos">>,
+  row: Partial<Pick<Listing, "description" | "amenities" | "equipementsPublies" | "photo" | "photos" | "baths">>,
   c: Partial<ContenuFiche> | null | undefined,
 ): boolean {
   if (!c) return false;
@@ -260,22 +295,27 @@ export function poserContenu(
     row.equipementsPublies = c.equipementsPublies;
     pose = true;
   }
+  if (row.baths == null && c.baths != null) {
+    row.baths = c.baths;
+    pose = true;
+  }
   const galerie = [...new Set([...(row.photo ? [row.photo] : []), ...(row.photos ?? [])])];
-  if (galerie.length <= 1 && c.photos?.length) {
-    const photos = [...new Set([...galerie, ...c.photos])];
+  const gardee = [...new Set(c.photos ?? [])];
+  if (gardee.length > 1 && gardee.length > galerie.length) {
+    // Une galerie gardée plus longue que celle de l'annonce : la galerie
+    // entière de la fiche (Cozy : 26 photos là où la liste en donne 3, ou la
+    // seule vignette d'une tuile Booking). Elle remplace, sans mêler les deux
+    // tailles d'un même cliché.
+    row.photos = gardee;
+    row.photo = gardee[0];
+    pose = true;
+  } else if (galerie.length <= 1 && gardee.length) {
+    const photos = [...new Set([...galerie, ...gardee])];
     if (photos.length > galerie.length) {
       row.photos = photos;
       row.photo = row.photo ?? photos[0] ?? null;
       pose = true;
     }
-  } else if (c.photos && new Set(c.photos).size > galerie.length) {
-    // Une galerie gardée plus longue que celle de la liste : la galerie
-    // entière de la fiche (Cozy : 26 photos là où la liste en donne 3, dont
-    // les mêmes en vignette). Elle remplace, sans mêler les deux tailles.
-    const photos = [...new Set(c.photos)];
-    row.photos = photos;
-    row.photo = photos[0] ?? row.photo ?? null;
-    pose = true;
   }
   return pose;
 }
@@ -337,12 +377,26 @@ export function reposerGardees(rows: readonly Listing[], now: number = Date.now(
 /**
  * La page de cette annonce a été lue il y a moins de trente jours, et on en
  * garde une fiche enrichie ou un contenu : la relire coûterait une requête
- * pour rien. `cle` : celle de `cleListing`.
+ * pour rien. `cle` : celle de `cleListing`. Ce que la fiche Cozy a donné ne
+ * compte pas : la page de l'annonce n'a pas été lue, et elle publie plus.
  */
 export function dejaGardee(cle: string | null | undefined, now: number = Date.now()): boolean {
   if (!cle) return false;
   try {
-    return memoireFiches().lire(cle, now)?.fiche != null || contenuFiches().lire(cle, now) != null;
+    const fiche = memoireFiches().lire(cle, now)?.fiche;
+    if (fiche != null && fiche.sourceFiche !== "cozy") return true;
+    const contenu = contenuFiches().lire(cle, now);
+    return contenu != null && contenu.origine !== "cozy";
+  } catch {
+    return false;
+  }
+}
+
+/** Une fiche enrichie, de quelque source, est gardée pour cette annonce. */
+export function ficheGardee(cle: string | null | undefined, now: number = Date.now()): boolean {
+  if (!cle) return false;
+  try {
+    return memoireFiches().lire(cle, now)?.fiche != null;
   } catch {
     return false;
   }

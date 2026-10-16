@@ -2,3 +2,6 @@
 curl_cffi>=0.7
 beautifulsoup4>=4.12
 requests>=2.31
+# Repli HTTP quand curl_cffi ne joint pas l'hôte (`repli_http.py`). Télécharge
+# sa bibliothèque native depuis GitHub au premier import.
+botasaurus-requests==4.0.38

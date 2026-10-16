@@ -13,8 +13,9 @@
  * ne venait que par Cozy, et Booking pas du tout.
  *
  * Télécharge depuis python.org (une archive d'environ 11 Mo) et PyPI (les
- * roues de curl_cffi, beautifulsoup4, requests et leurs dépendances). Un
- * Python 3 installé sur la machine sert seulement à lancer `pip`.
+ * roues de curl_cffi, beautifulsoup4, requests, botasaurus-requests et leurs
+ * dépendances). Un Python 3 installé sur la machine sert seulement à lancer
+ * `pip`.
  */
 
 import { spawnSync } from "node:child_process";
@@ -78,10 +79,33 @@ function ouvrirSitePackages() {
   writeFileSync(pth, `${lignes.join("\r\n")}\r\n`);
 }
 
+const pip = process.platform === "win32" ? ["py", ["-3"]] : ["python3", []];
+
+/**
+ * Les dépendances que PyPI ne publie qu'en sources, du Python pur : leur roue
+ * `py3-none-any` se construit ici, puisque `--only-binary` refuse les sources.
+ * La version vient des `requirements.txt` des workers.
+ */
+const SOURCES_SEULES = ["botasaurus-requests"];
+const roues = join(cache, "roues");
+
+function construireRouesSources() {
+  const specs = new Set(
+    exigences
+      .flatMap((f) => readFileSync(f, "utf8").split(/\r?\n/))
+      .map((l) => l.replace(/#.*/, "").trim())
+      .filter((l) => SOURCES_SEULES.some((n) => l.toLowerCase().startsWith(n))),
+  );
+  if (!specs.size) return;
+  mkdirSync(roues, { recursive: true });
+  const args = [...pip[1], "-m", "pip", "wheel", "--disable-pip-version-check", "--no-deps", "-w", roues, ...specs];
+  if (!lancer(pip[0], args)) throw new Error(`construction des roues de ${[...specs].join(", ")} impossible`);
+}
+
 /** Les roues pour ce Python et cette machine, installées dans `Lib/site-packages`. */
 function installerDependances() {
   mkdirSync(sitePackages, { recursive: true });
-  const pip = process.platform === "win32" ? ["py", ["-3"]] : ["python3", []];
+  construireRouesSources();
   const args = [
     ...pip[1],
     "-m",
@@ -98,6 +122,8 @@ function installerDependances() {
     "--implementation",
     "cp",
     "--only-binary=:all:",
+    "--find-links",
+    roues,
     ...exigences.flatMap((f) => ["-r", f]),
   ];
   if (!lancer(pip[0], args)) throw new Error("installation des dépendances des workers impossible");

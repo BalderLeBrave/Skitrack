@@ -31,6 +31,7 @@ import time
 from typing import Any, Callable
 from urllib.parse import urlencode
 
+import repli_http
 from fiche_pdp import extraits_avis, fiche_enrichie_de_pdp
 from occupancy import merge_occupancy, occupancy_from_pdp
 from throttle import (
@@ -256,22 +257,20 @@ def fetch_page_rooms(
 
     url = url_page_rooms(listing_id, check_in=check_in, check_out=check_out, adults=adults)
     proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+    entetes = {
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "fr-FR,fr;q=0.9",
+        "User-Agent": entetes_pdp("")["User-Agent"],
+    }
     try:
-        res = requests.get(
-            url,
-            headers={
-                "Accept": "text/html,application/xhtml+xml",
-                "Accept-Language": "fr-FR,fr;q=0.9",
-                "User-Agent": entetes_pdp("")["User-Agent"],
-            },
-            proxies=proxies,
-            timeout=25,
-            impersonate="chrome124",
-        )
+        res = requests.get(url, headers=entetes, proxies=proxies, timeout=25, impersonate="chrome124")
     except RateLimited:
         raise
     except Exception:
-        return None
+        # Une panne de transport seule : la même requête, une fois, par le repli.
+        res = repli_http.get(url, headers=entetes, proxy_url=proxy_url, timeout=25)
+        if res is None:
+            return None
     try:
         text = res.text
     except Exception:
@@ -345,7 +344,9 @@ def fetch_pdp(
     except RateLimited:
         raise
     except Exception:
-        return None
+        res = repli_http.get(url, headers=entetes_pdp(api_key), proxy_url=proxy_url, timeout=20)
+        if res is None:
+            return None
     try:
         text = res.text
     except Exception:

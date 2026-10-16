@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+import repli_http
 from map import listings_from_html
 from urls import PAGE_SIZE, search_url
 
@@ -107,11 +108,19 @@ def fetch_page(url: str, proxy_url: str = "", impersonate: str = "chrome124") ->
         )
 
     try:
-        res = once(impersonate)
+        try:
+            res = once(impersonate)
+        except Exception:
+            if impersonate == "chrome124":
+                raise
+            res = once("chrome124")
     except Exception:
-        if impersonate == "chrome124":
+        # curl_cffi n'a pas joint l'hôte : la même requête, une fois, par le
+        # repli. Un refus (403, 429, défi) est une réponse, il n'arrive pas ici.
+        repli = repli_http.get(url, headers=_headers(), proxy_url=proxy_url, timeout=DEFAULT_TIMEOUT)
+        if repli is None:
             raise
-        res = once("chrome124")
+        return repli.status_code, repli.text
     return res.status_code, res.text or ""
 
 

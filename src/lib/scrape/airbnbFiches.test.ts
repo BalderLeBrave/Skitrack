@@ -127,8 +127,8 @@ describe("airbnbFiches", () => {
     );
     const a = out.fiches[IDS[0]];
     assert.deepEqual(
-      [a.capacity, a.capacitySource, a.bedrooms, a.bedroomsSource],
-      [4, "structured", 2, "text_regex"],
+      [a.capacity, a.capacitySource, a.bedrooms, a.bedroomsSource, a.beds],
+      [4, "structured", 2, "text_regex", 3],
     );
     const b = out.fiches[IDS[1]];
     assert.deepEqual(

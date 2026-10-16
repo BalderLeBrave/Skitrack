@@ -43,11 +43,11 @@ export const DUREE_MEMOIRE_MS = 30 * 24 * 60 * 60 * 1000;
  * notait `lue` sans fiche enrichie : ni description ni équipements, et les
  * fiches lentes de Logements la sautaient trente jours. Une lecture d'un
  * lecteur plus ancien se relit une fois (`pdpDejaLue`), fiche déjà posée
- * comprise. À augmenter quand le lecteur lit un bloc de plus. 2 (16 oct.
- * 2026) : règlement `pdpPresentation.rules`, aperçu `StaysPdpOverview`,
- * description `longDescriptionHtml`, note `overallRatingStats`.
+ * comprise. À augmenter quand le lecteur lit un bloc de plus. 3 (16 oct.
+ * 2026) : les cinq avis récents (id StayListing), les lits et les salles de
+ * bain de l'aperçu. 2 : règlement, aperçu, description longue, note.
  */
-export const VERSION_LECTEUR_PDP = 2;
+export const VERSION_LECTEUR_PDP = 3;
 /** Une valeur revue n'est réécrite, pour sa seule date, qu'une fois par jour. */
 const RAFRAICHIR_MS = 24 * 60 * 60 * 1000;
 
@@ -485,9 +485,9 @@ export class MemoireFiches {
  * par le lecteur d'aujourd'hui (`lueV`), ou sa page PDP a été lue (vide, sans
  * bloc enrichi) par ce même lecteur. Elle ne se redemande pas avant trente
  * jours. Une fiche, même déjà posée, lue par un lecteur plus ancien se relit
- * une fois : le lecteur 2 ajoute le règlement (`pdpPresentation.rules`),
- * l'aperçu `StaysPdpOverview` et la description longue. Écartée (hôtel,
- * chambre), jamais : le lecteur n'enrichit pas une annonce écartée.
+ * une fois : le lecteur 3 ajoute les avis, les lits et les salles de bain.
+ * Écartée (hôtel, chambre), jamais : le lecteur n'enrichit pas une annonce
+ * écartée.
  * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue, ni une fiche
  * Cozy (`cozyFiches.server.ts`) : la PDP reste à lire, et la remplacera.
  */

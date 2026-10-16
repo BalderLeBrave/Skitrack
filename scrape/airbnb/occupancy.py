@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from map import is_dropped_listing, occupancy_from_text, source_de
+from map import is_dropped_listing, baths_from_text, beds_from_text, occupancy_from_text, source_de
 
 # Hébergements « insolites », ni maison ni appartement (consigne du
 # propriétaire, 25 sept. 2026). Même liste que le filtre GreenGo de la
@@ -198,6 +198,8 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         guests = t_guests
     if bedrooms is None:
         bedrooms = t_bedrooms
+    beds = beds_from_text(*textes) if textes else None
+    baths = baths_from_text(*textes) if textes else None
     room_type = None
     for candidate in (log.get("roomType"), share.get("roomType"), prefetch.get("roomType")):
         if isinstance(candidate, str) and candidate.strip():
@@ -213,6 +215,8 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         "bedrooms": bedrooms,
         "bedroomsSource": source_de(bedrooms, s_bedrooms),
         "rooms": rooms,
+        "beds": beds,
+        "baths": baths,
         "textes": textes,
         "lat": lat,
         "lon": lon,

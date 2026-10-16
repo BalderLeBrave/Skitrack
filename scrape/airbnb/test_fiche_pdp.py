@@ -192,7 +192,9 @@ def test_lire_page_avis_une_seule_requete_offset_zero():
         xs = pdp.lire_page_avis("111111", api_key="cle")
     finally:
         reviews.get_from_offset = ancien
-    assert vus == [("cle", 0, "111111", "EUR", "fr")]
+    assert vus == [("cle", 0, pdp.identifiant_avis("111111"), "EUR", "fr")]
+    assert pdp.identifiant_avis("111111") != "111111"
+    assert pdp.identifiant_avis("U3RheUxpc3Rpbmc6MQ==") == "U3RheUxpc3Rpbmc6MQ=="
     assert len(xs) == 5
     assert "dec1c8061483e78373602047450322fd474e79ba9afa8d3dbbc27f504030f91d" in reviews.ep
 

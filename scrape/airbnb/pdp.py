@@ -23,6 +23,7 @@ parti. Un hash périmé arrête le lot : toutes les fiches suivantes
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -533,6 +534,10 @@ def fiche_de(occ: dict[str, Any] | None) -> dict[str, Any] | None:
         "typeLogement": occ.get("type_logement"),
         "ecartee": bool(occ.get("dropped")),
     }
+    if isinstance(occ.get("beds"), int):
+        fiche["beds"] = occ["beds"]
+    if isinstance(occ.get("baths"), int):
+        fiche["baths"] = occ["baths"]
     if occ.get("enrichie") and not fiche["ecartee"]:
         fiche["enrichie"] = occ["enrichie"]
     if occ.get("photos") and not fiche["ecartee"]:
@@ -545,6 +550,16 @@ def fiche_de(occ: dict[str, Any] | None) -> dict[str, Any] | None:
 class AvisIndisponibles(Exception):
     """La page d'avis n'a rien rendu de lisible (requête inconnue, forme
     nouvelle) : on n'en redemande pas d'autre dans la tranche."""
+
+
+def identifiant_avis(listing_id: str) -> str:
+    """L'id de `StaysPdpReviewsQuery`. Un nombre (« 12184533 ») est refusé
+    (422, « stayId must be a global ID of type StayListing ») : c'est
+    `base64("StayListing:{id}")`. Un id déjà global passe tel quel."""
+    s = str(listing_id).strip()
+    if s.isdigit():
+        return base64.b64encode(f"StayListing:{s}".encode()).decode()
+    return s
 
 
 def lire_page_avis(listing_id: str, *, api_key: str, proxy_url: str = "") -> list[dict[str, Any]]:
@@ -560,7 +575,13 @@ def lire_page_avis(listing_id: str, *, api_key: str, proxy_url: str = "") -> lis
 
     try:
         page = reviews.get_from_offset(
-            api_key, 0, str(listing_id), currency="EUR", language="fr", proxy_url=proxy_url or None, timeout=20
+            api_key,
+            0,
+            identifiant_avis(str(listing_id)),
+            currency="EUR",
+            language="fr",
+            proxy_url=proxy_url or None,
+            timeout=20,
         )
     except (RythmeLocal, CoupeCircuit, RateLimited):
         raise

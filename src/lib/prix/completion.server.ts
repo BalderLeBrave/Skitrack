@@ -32,6 +32,7 @@ import {
 } from "../scrape/airbnbFiches.ts";
 import { airbnbIdOf } from "../stay/enrichir.ts";
 import { comblerDepuisMemoire, type ValeursFiche } from "../stay/memoireFiches.server.ts";
+import { garderLectures, poserContenu } from "../stay/contenuFiches.server.ts";
 import { MARQUE_MEMOIRE as MARQUE, qualifierLogement, sourceCapacite, sourceChambres } from "../stay/logement.ts";
 import { cleListing } from "../stay/poserReleve.ts";
 import { airbnbComplet, pointPublie } from "../stay/priseFiche.ts";
@@ -259,6 +260,7 @@ async function trancheAirbnb(
     checkOut: d.checkOut,
     adults: d.voyageurs,
     echeance: until,
+    avis: true,
   });
   bilan.lues += lu.lues;
   bilan.arret = lu.arret;
@@ -277,7 +279,7 @@ async function trancheAirbnb(
       bilan.essayees.push(row.id);
       // La fiche enrichie va dans la mémoire des fiches, sous `fiche` :
       // l'écran Logements la reprend sans relire la page.
-      const { enrichie, ...valeurs } = f;
+      const { enrichie, photos, baths, ...valeurs } = f;
       bilan.lectures.push({ cle: cleDe(row), ...valeurs, ...(enrichie && lue ? { fiche: row.fiche ?? enrichie } : {}), lue });
       if (f.ecartee) {
         bilan.retires.push(row.id);
@@ -286,6 +288,14 @@ async function trancheAirbnb(
       // La page du logement a été lue : ce qui y manque y manque vraiment.
       // Pas une page d'un lot jugé illisible : elle se relira.
       if (lue) row.pdpLue = true;
+      if (lue && !f.ecartee && ((f.photos?.length ?? 0) > 0 || f.baths != null)) {
+        const contenu = {
+          ...(f.photos?.length ? { photos: f.photos } : {}),
+          ...(f.baths != null ? { baths: f.baths } : {}),
+        };
+        poserContenu(row, contenu);
+        garderLectures([{ cle: cleDe(row), contenu }]);
+      }
       // Description, équipements, règlement, avis : ce que la fiche publie,
       // avec la page de l'annonce pour lien vers ses avis.
       if (f.enrichie) {

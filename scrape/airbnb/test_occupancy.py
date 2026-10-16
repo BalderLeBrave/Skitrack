@@ -180,7 +180,14 @@ def test_apercu_stays_pdp_overview_et_point_de_presentation():
         }
     }
     occ = occupancy_from_pdp(brut)
-    assert (occ["capacity"], occ["bedrooms"], occ["lat"], occ["lon"]) == (4, 2, 46.18395, 6.69464)
+    assert (occ["capacity"], occ["bedrooms"], occ["beds"], occ["baths"], occ["lat"], occ["lon"]) == (
+        4,
+        2,
+        4,
+        1,
+        46.18395,
+        6.69464,
+    )
     assert occ["capacitySource"] == "structured"
     assert any("2 chambres" in t for t in occ["textes"])
 

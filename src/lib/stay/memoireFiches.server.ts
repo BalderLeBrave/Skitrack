@@ -43,12 +43,12 @@ export const DUREE_MEMOIRE_MS = 30 * 24 * 60 * 60 * 1000;
  * notait `lue` sans fiche enrichie : ni description ni équipements, et les
  * fiches lentes de Logements la sautaient trente jours. Une lecture d'un
  * lecteur plus ancien se relit une fois (`pdpDejaLue`), fiche déjà posée
- * comprise. À augmenter quand le lecteur lit un bloc de plus. 4 (16 oct.
- * 2026) : la commune, les notes par thème et la sécurité. 3 : les cinq avis
- * récents, les lits et les salles de bain. 2 : règlement, aperçu, description
- * longue, note.
+ * comprise. À augmenter quand le lecteur lit un bloc de plus. 5 (16 oct.
+ * 2026) : « Où vous dormirez », les lits pièce par pièce. 4 : la commune, les
+ * notes par thème et la sécurité. 3 : les cinq avis récents, les lits et les
+ * salles de bain. 2 : règlement, aperçu, description longue, note.
  */
-export const VERSION_LECTEUR_PDP = 4;
+export const VERSION_LECTEUR_PDP = 5;
 /** Une valeur revue n'est réécrite, pour sa seule date, qu'une fois par jour. */
 const RAFRAICHIR_MS = 24 * 60 * 60 * 1000;
 
@@ -486,8 +486,7 @@ export class MemoireFiches {
  * par le lecteur d'aujourd'hui (`lueV`), ou sa page PDP a été lue (vide, sans
  * bloc enrichi) par ce même lecteur. Elle ne se redemande pas avant trente
  * jours. Une fiche, même déjà posée, lue par un lecteur plus ancien se relit
- * une fois : le lecteur 4 ajoute la commune, les notes par thème et la
- * sécurité.
+ * une fois : le lecteur 5 ajoute les couchages, pièce par pièce.
  * Écartée (hôtel, chambre), jamais : le lecteur n'enrichit pas une annonce
  * écartée.
  * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue, ni une fiche

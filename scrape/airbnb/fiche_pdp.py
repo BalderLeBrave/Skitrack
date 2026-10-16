@@ -161,7 +161,39 @@ def description_de(raw: Any) -> str | None:
             t = texte_de_html(bloc)
         if t:
             candidates.append(t[:TEXTE_MAX])
-    return max(candidates, key=len) if candidates else None
+    texte = max(candidates, key=len) if candidates else None
+    lits = couchages_de(raw)
+    if lits and (texte is None or lits not in texte):
+        texte = f"{texte}\n\n{lits}" if texte else lits
+    return texte[:TEXTE_MAX] if texte else None
+
+
+def couchages_de(raw: Any) -> str | None:
+    """« Où vous dormirez » : une ligne par pièce, avec ses lits
+    (« Chambre 1 : 1 lit double, 1 lit simple »). Le compte « 4 lits » de
+    l'aperçu ne dit pas lesquels."""
+    lignes: list[str] = []
+    for tour in _cles(raw, "sleepingArrangements"):
+        if not isinstance(tour, dict):
+            continue
+        for stop in _liste(tour.get("stops")):
+            if not isinstance(stop, dict):
+                continue
+            desc = stop.get("description") if isinstance(stop.get("description"), dict) else {}
+            lits: list[str] = []
+            for d in _liste(desc.get("descriptions")):
+                t = _chaine(d.get("text")) if isinstance(d, dict) else None
+                if t and t not in lits:
+                    lits.append(t)
+            if not lits:
+                continue
+            nom = _chaine(stop.get("name"))
+            ligne = f"{nom} : {', '.join(lits)}" if nom else ", ".join(lits)
+            if ligne not in lignes:
+                lignes.append(ligne)
+    if not lignes:
+        return None
+    return "Où vous dormirez\n" + "\n".join(lignes)
 
 
 NON_INCLUS_RE = re.compile(r"^(non inclus|not included|indisponible|unavailable)$", re.I)

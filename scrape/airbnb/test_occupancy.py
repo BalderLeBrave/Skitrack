@@ -268,3 +268,24 @@ def test_la_source_dit_si_la_valeur_vient_d_un_champ_ou_du_texte():
     assert texte["capacitySource"] == "structured"
     assert texte["bedroomsSource"] == "text_regex", "les chambres du titre de partage"
     assert any("2 chambres" in t for t in texte["textes"]), "Node relit le titre de partage"
+
+
+def test_chambres_depuis_ou_vous_dormirez_quand_l_apercu_se_tait():
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "sleepingArrangements": {
+                        "stops": [
+                            {"name": "Chambre 1", "description": {"descriptions": [{"text": "1 lit double"}]}},
+                            {"name": "Chambre 2", "description": {"descriptions": [{"text": "2 lits simples"}]}},
+                            {"name": "Salon", "description": {"descriptions": [{"text": "1 canapé-lit"}]}},
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    occ = occupancy_from_pdp(brut)
+    assert occ["bedrooms"] == 2
+    assert occ["bedroomsSource"] == "structured"

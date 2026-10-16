@@ -533,6 +533,18 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
                             "body": {"localizedContent": "Boîte à clé sécurisée."},
                         }
                     ],
+                    "sleepingArrangements": {
+                        "stops": [
+                            {
+                                "name": "Chambre 1",
+                                "description": {"descriptions": [{"text": "1 lit double"}, {"text": "1 lit simple"}]},
+                            },
+                            {
+                                "name": "Chambre 2",
+                                "description": {"descriptions": [{"text": "2 lits simples"}]},
+                            },
+                        ]
+                    },
                     "heroMedia": {
                         "edges": [
                             {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/a.jpg"}}},
@@ -557,6 +569,8 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
     f = fiche_enrichie_de_pdp(brut)
     assert f["description"].startswith("Appartement au pied des pistes")
     assert "Cuisine équipée." in f["description"]
+    assert "Chambre 1 : 1 lit double, 1 lit simple" in f["description"]
+    assert "Chambre 2 : 2 lits simples" in f["description"]
     c = f["conditions"]
     assert c["arrivee"] == "Arrivée : entre 17:00 et 22:00"
     assert c["depart"] == "Départ avant 10:00"

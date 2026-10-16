@@ -150,6 +150,21 @@ def type_de_logement(share: Any, titre_apercu: str | None) -> str | None:
     return None
 
 
+def _chambres_arrangees(raw: Any) -> int | None:
+    """Le nombre de pièces nommées chambre dans « Où vous dormirez », quand
+    l'aperçu ne le dit pas."""
+    tour = _nested(raw, "data.node.pdpPresentation.sleepingArrangements")
+    stops = tour.get("stops") if isinstance(tour, dict) else None
+    if not isinstance(stops, list):
+        return None
+    n = 0
+    for stop in stops:
+        nom = stop.get("name") if isinstance(stop, dict) else None
+        if isinstance(nom, str) and re.search(r"\b(chambres?|bedrooms?)\b", nom, re.I):
+            n += 1
+    return n if 0 < n <= 50 else None
+
+
 def _lieu(raw: Any) -> str | None:
     """La commune publiée (« Morzine, Auvergne-Rhône-Alpes, France »)."""
     sub = _nested(raw, "data.node.pdpPresentation.location.subtitle")
@@ -211,6 +226,11 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         guests = t_guests
     if bedrooms is None:
         bedrooms = t_bedrooms
+    if bedrooms is None:
+        arrangees = _chambres_arrangees(raw)
+        if arrangees is not None:
+            bedrooms = arrangees
+            s_bedrooms = arrangees
     beds = beds_from_text(*textes) if textes else None
     baths = baths_from_text(*textes) if textes else None
     locality = _lieu(raw)

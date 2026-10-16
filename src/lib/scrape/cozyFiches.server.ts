@@ -67,7 +67,7 @@ export function noterRefsCozy(payloads: readonly unknown[], now: number = Date.n
 }
 
 /** De quoi demander la fiche de cette annonce, s'il en reste un d'il y a moins d'une heure. */
-export function refCozy(l: Pick<Listing, "id">, now: number = Date.now()): RefCozy | null {
+export function refCozy(l: Pick<Listing, "id" | "proven">, now: number = Date.now()): RefCozy | null {
   const id = hebergementCozy(l);
   const r = id ? refs.get(id) : undefined;
   if (!r || now - r.at > REFS_DUREE_MS) return null;

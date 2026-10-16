@@ -16,8 +16,10 @@
  * de redirection : le formulaire et les cookies ne partent pas ailleurs. Il ne
  * dépend pas des dates : il est gardé en mémoire vive par lot, et ce qu'il
  * publie de contenu (description, équipements, pictogrammes) trente jours sur
- * disque (`garderLectures`), reposé sans réseau sur un lot non relu
- * (`reposerGardees`). Chaque recherche lui donne quinze secondes au plus, un
+ * disque (`garderLectures`), son point, sa capacité, ses chambres et ses
+ * pièces aussi (mémoire des fiches) ; tout se repose sans réseau sur un lot
+ * non relu (`reposerGardees`) : l'écran n'ouvre jamais l'accueil de la
+ * centrale, que porte l'annonce. Chaque recherche lui donne quinze secondes au plus, un
  * lot à la fois, chacun une seconde au moins après la requête précédente vers
  * l'hôte, dernière page de résultats comprise (`cadence.ts`). Ce qui n'a pas
  * été lu dans ce budget se lit ensuite en tâche de fond, comme les fiches
@@ -35,8 +37,9 @@
  */
 
 import type { Listing } from "@/lib/listings";
-import { dejaGardee, garderLectures, reposerGardees, type LectureAGarder } from "@/lib/stay/contenuFiches.server";
+import { garderLectures, reposerGardees, type LectureAGarder } from "@/lib/stay/contenuFiches.server";
 import { equipements } from "@/lib/stay/equipements";
+import { memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { cleListing } from "@/lib/stay/poserReleve";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
@@ -344,6 +347,42 @@ function contenuDuDetail(d: DetailArkiane): LectureAGarder["contenu"] {
   };
 }
 
+/** Ce que le détail publie de nombres et de point, à noter trente jours : les
+ *  pavés, rien du libellé. */
+function valeursDuDetail(cle: string | null | undefined, d: DetailArkiane) {
+  return {
+    cle,
+    lat: d.lat,
+    lon: d.lon,
+    capacity: d.capacite,
+    capacitySource: d.capacite != null ? ("structured" as const) : null,
+    bedrooms: d.chambres,
+    bedroomsSource: d.chambres != null ? ("structured" as const) : null,
+    rooms: d.pieces,
+    lue: true,
+  };
+}
+
+/** Note les valeurs des détails lus ; un disque refusé ne coupe rien. */
+function noterValeurs(valeurs: ReturnType<typeof valeursDuDetail>[]): void {
+  if (!valeurs.length) return;
+  try {
+    memoireFiches().noter(valeurs);
+  } catch (err) {
+    console.warn("[centrale] détails Arkiane non notés :", (err as Error).message);
+  }
+}
+
+/** Un détail lu il y a moins de trente jours (contenu, point, chambres) ne se relit pas. */
+function detailNote(cle: string | null | undefined): boolean {
+  if (!cle) return false;
+  try {
+    return memoireFiches().lire(cle)?.lue === true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Les détails que le budget de la recherche n'a pas lus, en tâche de fond,
  * sur le modèle des fiches lentes Airbnb : un lot à la fois, douze secondes
@@ -352,8 +391,9 @@ function contenuDuDetail(d: DetailArkiane): LectureAGarder["contenu"] {
  * recherche part vers ce marchand, et s'arrête sans nouvel essai sur un refus
  * (403, 429, 503 : plus aucun détail jusqu'au redémarrage), sur une page qui
  * n'est pas un détail (session perdue : rien n'est gardé) ou sur toute autre
- * panne. Chaque détail lu reste en mémoire vive (point, chambres) et son
- * contenu se garde trente jours ; l'écran le pose par sa relecture, sans réseau.
+ * panne. Chaque détail lu reste en mémoire vive ; son contenu, son point et ses
+ * nombres se gardent trente jours, et l'écran les pose par sa relecture, sans
+ * réseau.
  */
 function lancerSuiteArkiane(
   marchand: string,
@@ -374,7 +414,7 @@ function lancerSuiteArkiane(
       dejaLu: (f) => {
         const garde = detailsLus.get(`${marchand}|${f.lot}`);
         if (garde && Date.now() - garde.at < DETAIL_TTL_MS) return true;
-        return !f.detail || !adresseDetailArkiane(marchand, f.detail.action) || dejaGardee(cles.get(f.lot));
+        return !f.detail || !adresseDetailArkiane(marchand, f.detail.action) || detailNote(cles.get(f.lot));
       },
       arret: () =>
         cede()
@@ -399,6 +439,7 @@ function lancerSuiteArkiane(
       garder: (f, d) => {
         detailsLus.set(`${marchand}|${f.lot}`, { at: Date.now(), lecture: d });
         garderLectures([{ cle: cles.get(f.lot), contenu: contenuDuDetail(d) }]);
+        noterValeurs([valeursDuDetail(cles.get(f.lot), d)]);
       },
     },
     SUITE_LOTS_MAX,
@@ -570,19 +611,21 @@ export async function chercherArkiane(ctx: ContexteCentrale, r: ReglageArkiane):
     );
   }
   const rows = gardes.map((f) => enListing(f, r, ctx, lus.get(f.lot)));
-  // Une écriture par recherche : le contenu des détails lus au réseau. Puis,
-  // sans réseau, ce qui a été gardé pour les lots non relus (jamais capacité,
-  // chambres ni point : seul le détail en mémoire vive les donne).
+  // Une écriture par recherche : le contenu, le point et les nombres des
+  // détails lus au réseau. Puis, sans réseau, ce qui a été gardé pour les lots
+  // non relus.
   const lots = new Map(gardes.map((f, i) => [f.lot, rows[i]!] as const));
   garderLectures(
     [...nouveaux].map(([lot, d]) => ({ cle: cleListing(lots.get(lot)!), contenu: contenuDuDetail(d) })),
   );
+  noterValeurs([...nouveaux].map(([lot, d]) => valeursDuDetail(cleListing(lots.get(lot)!), d)));
   reposerGardees(rows);
   // Le budget n'a pas suffi : le reste en tâche de fond, à son rythme.
   if (motif === "budget") {
     const restants = gardes.flatMap((f) => {
       const cle = cleListing(lots.get(f.lot)!);
-      return f.detail && cle && !lus.has(f.lot) && !dejaGardee(cle) ? [{ fiche: f, cle }] : [];
+      // Un détail gardé avant qu'on note ses valeurs (contenu sans `lue`) se relit une fois.
+      return f.detail && cle && !lus.has(f.lot) && !detailNote(cle) ? [{ fiche: f, cle }] : [];
     });
     lancerSuiteArkiane(marchand, r.langue, cookies, gen, restants, r.host);
   }

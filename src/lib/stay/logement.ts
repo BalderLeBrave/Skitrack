@@ -435,6 +435,8 @@ export type SujetLogement = {
   platformId?: string | null;
   /** Airbnb : sa page a été lue ; ce qui y manque y manque vraiment. */
   pdpLue?: boolean | null;
+  /** La fiche enrichie lue : sa description se lit comme celle de l'annonce. */
+  fiche?: { description?: string | null; indisponible?: boolean } | null;
 };
 
 /**
@@ -456,6 +458,9 @@ function textesDe(l: SujetLogement): Array<string | null | undefined> {
   return [
     l.title,
     l.description,
+    // La description de la fiche lue, rangée à part (Booking : « Il comprend
+    // 2 chambres ») : ses chambres écrites valent celles de la description.
+    l.fiche && l.fiche.indisponible !== true ? l.fiche.description : null,
     sansRouteBooking(l.url),
     l.propertyType,
     l.priceLabel,

@@ -605,3 +605,27 @@ describe("capacité écrite : un couchage n'est pas le logement ; nombres en let
     assert.equal(lireLogement("deux pièces").pieces, 2);
   });
 });
+
+describe("la description de la fiche lue se lit comme celle de l'annonce", () => {
+  // Booking range la description de sa page établissement dans la fiche
+  // enrichie, pas dans `description` (`bookingFiche.ts`).
+  const booking = (fiche: { description?: string | null; indisponible?: boolean } | null) =>
+    qualifierLogement({ source: "Booking", title: "Résidence Les Mélèzes", capacity: 4, bedrooms: null, fiche });
+
+  it("« Il comprend 2 chambres » donne 2 chambres écrites", () => {
+    const q = booking({ description: "Situé à Mont-de-Lans, cet appartement dispose d'un balcon. Il comprend 2 chambres, un salon et une cuisine équipée." });
+    assert.deepEqual([q.bedrooms, q.bedroomsSource], [2, "text_regex"]);
+  });
+
+  it("une fiche indisponible ne dit rien ; des chambres structurées restent les siennes", () => {
+    assert.equal(booking({ description: "Il comprend 2 chambres.", indisponible: true }).bedrooms, null);
+    assert.equal(booking(null).bedrooms, null);
+    const q = qualifierLogement({ source: "Booking", title: "x", capacity: 4, bedrooms: 3, fiche: { description: "Il comprend 2 chambres." } });
+    assert.deepEqual([q.bedrooms, q.bedroomsSource], [3, "structured"]);
+  });
+
+  it("Airbnb n'y lit rien : ses chambres ne viennent que de champs structurés", () => {
+    const q = qualifierLogement({ source: "Airbnb", title: "Chalet", capacity: 6, bedrooms: null, fiche: { description: "Le chalet comprend 3 chambres." } });
+    assert.equal(q.bedrooms, null);
+  });
+});

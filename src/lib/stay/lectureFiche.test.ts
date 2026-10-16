@@ -429,6 +429,11 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
     assert.equal(live[0].bedrooms, 3);
     assert.equal(live[0].lat, 45.022);
     assert.equal(live[0].lon, 6.1247);
+    // Sans photo à elle, l'annonce prend celle du relevé ; la sienne resterait.
+    assert.equal(live[0].photo, dump[0].photo);
+    const illustree = [{ ...live[0], photo: "https://a0.muscache.com/im/pictures/sienne.jpg", lat: null, lon: null }];
+    poserReleve(illustree, dump);
+    assert.equal(illustree[0].photo, "https://a0.muscache.com/im/pictures/sienne.jpg");
   });
 
   it("recopie le nom véritable à la place d'un alt photo", () => {

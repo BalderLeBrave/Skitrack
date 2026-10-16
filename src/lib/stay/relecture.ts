@@ -86,11 +86,13 @@ export function contenuAPoser(l: Listing): boolean {
  * détails lui-même, un à la fois ; ce qui ne tient pas dans la recherche se
  * lit après, en tâche de fond, et sa description, ses douze clés et ses
  * pictos se gardent trente jours (`garderLectures`, clé `cleListing` :
- * `Centrale:ark-…`). La relecture les pose sans réseau (`reposerGardees`).
- * Une annonce qui porte l'un ou l'autre n'attend plus rien.
+ * `Centrale:ark-…`), avec le point et les nombres de ses pavés. La relecture
+ * les pose sans réseau (`reposerGardees`). Une annonce qui porte un contenu
+ * et un point publié n'attend plus rien.
  */
 export function contenuArkianeAPoser(l: Listing): boolean {
-  return l.source === "Centrale" && l.id.startsWith("ark-") && l.amenities == null && !l.description;
+  if (l.source !== "Centrale" || !l.id.startsWith("ark-")) return false;
+  return (l.amenities == null && !l.description) || (!pointPublie(l) && pageJamaisOuverte(l.url));
 }
 
 /**

@@ -118,10 +118,13 @@ const PRISES: ReadonlyArray<{ nom: string; hote: RegExp; prise: ReadonlySet<Trou
 
 /**
  * L'écran n'ouvre jamais cette page, quel que soit le trou : son hôte a une
- * prise vide (Travelski, La Plagne, Booking…). Le collecteur la lit lui-même,
- * ou personne. Combler l'annonce par la mémoire ne coûte alors aucune lecture.
+ * prise vide (Travelski, La Plagne, Booking…), ou c'est l'accueil du site
+ * (`estPageDeSite` : Arkiane, que `raisonDeLaisser` laisse toujours). Le
+ * collecteur la lit lui-même, ou personne. Combler l'annonce par la mémoire
+ * ne coûte alors aucune lecture.
  */
 export function pageJamaisOuverte(url: string | null | undefined): boolean {
+  if (url && estPageDeSite(url)) return true;
   const hote = url ? hoteDe(url) : null;
   const regle = hote ? PRISES.find((r) => r.hote.test(hote)) : undefined;
   return regle != null && regle.prise.size === 0;

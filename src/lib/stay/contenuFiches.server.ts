@@ -309,11 +309,13 @@ export function reposerGardees(rows: readonly Listing[], now: number = Date.now(
       if (row.source !== "Airbnb" && pageJamaisOuverte(row.url)) {
         const m = memoire.lire(cle, now);
         if (m && comblerDepuisMemoire(row, m)) {
-          Object.assign(row, qualifierLogement(row));
           if (!row.proven.includes(MARQUE_MEMOIRE)) row.proven = `${row.proven} · ${MARQUE_MEMOIRE}`;
           pose = true;
         }
       }
+      // Une description arrivée (contenu, fiche) dit peut-être ses chambres :
+      // l'annonce se requalifie, comme après une lecture.
+      if (pose && row.source !== "Airbnb") Object.assign(row, qualifierLogement(row));
       if (pose) n += 1;
     }
   } catch (err) {

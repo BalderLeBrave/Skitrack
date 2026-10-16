@@ -446,8 +446,11 @@ describe("Arkiane : le contenu d'un lot que la tâche de fond garde", () => {
       [aCombler(sans), aRelireEnFile(sans), contenuAPoser(sans), contenuArkianeAPoser(sans), aRelire(sans)],
       [false, false, false, true, true],
     );
-    assert.equal(aRelire(lotArkiane({ amenities: equipements({ wifi: "oui" }) })), false);
-    assert.equal(aRelire(lotArkiane({ description: "APPARTEMENT 2 PIECES" })), false);
+    // L'écran n'ouvre jamais l'accueil de la centrale : sans point publié, la mémoire peut encore le donner.
+    assert.equal(aRelire(lotArkiane({ amenities: equipements({ wifi: "oui" }) })), true);
+    const point = { lat: 45.388971, lon: 6.7187055 };
+    assert.equal(aRelire(lotArkiane({ amenities: equipements({ wifi: "oui" }), ...point })), false);
+    assert.equal(aRelire(lotArkiane({ description: "APPARTEMENT 2 PIECES", ...point })), false);
     // Orchestra (La Plagne) a sa propre règle (`contenuOrchestraAPoser`) :
     // celle d'Arkiane ne la vise pas.
     const orchestra = annonce({
@@ -460,7 +463,7 @@ describe("Arkiane : le contenu d'un lot que la tâche de fond garde", () => {
     assert.equal(aRelire(lotArkiane({ source: "Abritel", url: "https://www.abritel.fr/" })), false);
   });
 
-  it("Pralognan, lot 553 : relu sans rien poser, puis le détail gardé se pose, Télévision comprise, sans capacité, chambres ni point", async () => {
+  it("Pralognan, lot 553 : relu sans rien poser, puis le détail gardé se pose, Télévision, point et chambres compris", async () => {
     const d = lireDetailArkiane(DETAIL_ARKIANE);
     assert.equal(cleListing(lotArkiane()), "Centrale:ark-prl-553");
     // Le serveur : `completerAnnonces` → `fillFiches` → `reposerGardees`, sans réseau.
@@ -488,6 +491,20 @@ describe("Arkiane : le contenu d'un lot que la tâche de fond garde", () => {
         },
       },
     ]);
+    // Et ce qu'elle a noté du détail : point, capacité, chambres, pièces (arkiane.server.ts, lancerSuiteArkiane).
+    memoireFiches().noter([
+      {
+        cle: cleListing(lotArkiane()),
+        lat: d.lat,
+        lon: d.lon,
+        capacity: d.capacite,
+        capacitySource: d.capacite != null ? "structured" : null,
+        bedrooms: d.chambres,
+        bedroomsSource: d.chambres != null ? "structured" : null,
+        rooms: d.pieces,
+        lue: true,
+      },
+    ]);
     await e.avancer(2 * RELECTURE_MS);
     assert.equal(e.appels.length, 2);
     const pose = e.etat.rows[0];
@@ -497,10 +514,14 @@ describe("Arkiane : le contenu d'un lot que la tâche de fond garde", () => {
       ["balcon", "wifi", "lave_vaisselle", "lave_linge", "linge_fourni", "parking", "animaux(non)", "television"],
     );
     assert.equal(aEquipement(pose, "television"), true);
-    // Jamais capacité, chambres ni point : ceux-là viennent du détail lu par la recherche.
-    assert.deepEqual([pose.capacity, pose.bedrooms, pose.rooms, pose.lat, pose.lon], [4, null, 2, null, null]);
+    // Le point et les chambres du détail, que l'écran n'aurait jamais lus : il n'ouvre pas l'accueil.
+    assert.deepEqual(
+      [pose.capacity, pose.bedrooms, pose.bedroomsSource, pose.rooms, pose.lat?.toFixed(6), pose.lon?.toFixed(6)],
+      [4, d.chambres, "structured", 2, d.lat?.toFixed(6), d.lon?.toFixed(6)],
+    );
+    assert.match(pose.proven, /mémoire des fiches/);
     await e.avancer(RELECTURES_PLAFOND_MS);
-    assert.equal(e.appels.length, 2, "le contenu posé, plus rien à relire");
+    assert.equal(e.appels.length, 2, "contenu et point posés, plus rien à relire");
   });
 });
 

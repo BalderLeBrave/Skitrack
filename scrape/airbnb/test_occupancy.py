@@ -162,6 +162,29 @@ def test_des_lits_ne_sont_ni_des_chambres_ni_des_voyageurs():
     assert occ["capacity"] is None
 
 
+def test_apercu_stays_pdp_overview_et_point_de_presentation():
+    """Sans titre de partage ni logging : l'aperçu et le point de la page rooms/."""
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "personCapacity": 4,
+                    "overview": {
+                        "__typename": "StaysPdpOverview",
+                        "title": "Logement entier : appartement en résidence - Morzine, France",
+                        "items": ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"],
+                    },
+                    "location": {"latitude": 46.18395, "longitude": 6.69464},
+                }
+            }
+        }
+    }
+    occ = occupancy_from_pdp(brut)
+    assert (occ["capacity"], occ["bedrooms"], occ["lat"], occ["lon"]) == (4, 2, 46.18395, 6.69464)
+    assert occ["capacitySource"] == "structured"
+    assert any("2 chambres" in t for t in occ["textes"])
+
+
 def test_hotel_et_chambres_sont_ecartes_par_le_type_de_chambre():
     for room_type in ("Hotel room", "Private room", "Shared room"):
         assert occupancy_from_pdp(_pdp_apercu([], log={"roomType": room_type}))["dropped"], room_type

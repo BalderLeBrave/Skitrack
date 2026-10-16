@@ -473,3 +473,78 @@ def test_sections_vides_de_l_api_passent_par_la_page():
         pass
     else:
         raise AssertionError("sections vides : la page rooms/ doit prendre le relais")
+
+
+def test_pdp_presentation_donne_description_reglement_note_et_photos():
+    """La page rooms/ d'octobre 2026 : les sections Policies et Description
+    sont des stubs. La fiche est sous `node.pdpPresentation`."""
+    longue = "Appartement au pied des pistes, avec balcon et local à skis. " * 4
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "descriptions": {
+                        "longDescriptionHtml": {
+                            "localizedStringWithTranslationPreference": longue + "<br/>Cuisine équipée.",
+                        }
+                    },
+                    "rules": {
+                        "__typename": "StaysPdpRuleDetails",
+                        "title": "Règlement intérieur",
+                        "groupItems": [
+                            {
+                                "title": "Arrivée et départ",
+                                "items": [
+                                    {"title": "Arrivée : entre 17:00 et 22:00"},
+                                    {"title": "Départ avant 10:00"},
+                                ],
+                            },
+                            {
+                                "title": "Pendant votre séjour",
+                                "items": [
+                                    {"title": "Pas d'animaux"},
+                                    {"title": "Non fumeur"},
+                                    {"title": "Pas de fête ni de soirée"},
+                                    {
+                                        "title": "Horaires où le calme doit être respecté",
+                                        "description": {"text": "23:00 - 07:00"},
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    "quality": {"listingRatingStats": {"overallRatingStats": {"ratingAverage": 4.86, "ratingCount": "171"}}},
+                    "heroMedia": {
+                        "edges": [
+                            {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/a.jpg"}}},
+                            {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/b.jpg"}}},
+                            {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/a.jpg"}}},
+                        ]
+                    },
+                }
+            },
+            "presentation": {
+                "stayProductDetailPage": {
+                    "sections": {
+                        "sections": [
+                            {"sectionComponentType": "POLICIES_DEFAULT", "sectionContentStatus": "NOT_COMPLETE", "section": {"__typename": "PoliciesSection"}},
+                            {"sectionComponentType": "DESCRIPTION_DEFAULT", "section": {"__typename": "PdpDescriptionSection"}},
+                        ]
+                    }
+                }
+            },
+        }
+    }
+    f = fiche_enrichie_de_pdp(brut)
+    assert f["description"].startswith("Appartement au pied des pistes")
+    assert "Cuisine équipée." in f["description"]
+    c = f["conditions"]
+    assert c["arrivee"] == "Arrivée : entre 17:00 et 22:00"
+    assert c["depart"] == "Départ avant 10:00"
+    assert c["animaux"] == "non" and c["fumeurs"] == "non" and c["fetes"] == "non"
+    assert "23:00 - 07:00" in c["reglement"]
+    assert f["avis"]["noteSource"] == 4.86 and f["avis"]["nombre"] == 171
+    assert pdp.galerie_de_pdp(brut) == [
+        "https://a0.muscache.com/im/pictures/a.jpg",
+        "https://a0.muscache.com/im/pictures/b.jpg",
+    ]

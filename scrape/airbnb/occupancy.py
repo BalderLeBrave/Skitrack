@@ -109,6 +109,15 @@ def apercu_pdp(raw: Any) -> tuple[list[str], str | None]:
             t = value.get("title")
             if titre is None and isinstance(t, str) and t.strip():
                 titre = t.strip()
+        # Page `rooms/` d'octobre 2026 : `pdpPresentation.overview`
+        # (`StaysPdpOverview.items` = « 4 voyageurs », « 2 chambres »…).
+        if value.get("__typename") == "StaysPdpOverview":
+            for t in value.get("items") or []:
+                if isinstance(t, str) and t.strip() and len(t.strip()) <= LIGNE_MAX:
+                    lignes.append(t.strip())
+            t = value.get("title")
+            if titre is None and isinstance(t, str) and t.strip():
+                titre = t.strip()
         for item in value.values():
             walk(item, depth + 1)
 
@@ -168,7 +177,18 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         or _take_coord(share.get("listingLng"))
     )
     if not _plausible(lat, lon):
-        lat = lon = None
+        plat = _take_coord(_nested(raw, "data.node.pdpPresentation.location.latitude"))
+        plon = _take_coord(_nested(raw, "data.node.pdpPresentation.location.longitude"))
+        if not _plausible(plat, plon):
+            plat = _take_coord(_nested(raw, "data.node.location.coordinate.latitude"))
+            plon = _take_coord(_nested(raw, "data.node.location.coordinate.longitude"))
+        if _plausible(plat, plon):
+            lat, lon = plat, plon
+        else:
+            lat = lon = None
+    if guests is None:
+        guests = _take_int(_nested(raw, "data.node.pdpPresentation.personCapacity"))
+        s_guests = guests
     # Les champs chiffrés d'abord ; le titre de partage et l'aperçu ne
     # comblent que ce qu'ils taisent.
     lignes, titre_apercu = apercu_pdp(raw)

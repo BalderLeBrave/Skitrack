@@ -213,6 +213,32 @@ def galerie_de_pdp(raw: Any) -> list[str]:
                 visiter(x, p + 1)
 
     visiter(raw, 0)
+    if out:
+        return out
+    # La visite photo manque : les mêmes clichés sont sous
+    # `pdpPresentation.heroMedia.edges[].node.image.uri`.
+    def heros(v: Any, p: int) -> None:
+        if p > 40:
+            return
+        if isinstance(v, dict):
+            hero = v.get("heroMedia")
+            if isinstance(hero, dict):
+                for edge in hero.get("edges") or []:
+                    node = edge.get("node") if isinstance(edge, dict) else None
+                    image = node.get("image") if isinstance(node, dict) else None
+                    u = image.get("uri") if isinstance(image, dict) else None
+                    if not isinstance(u, str) and isinstance(node, dict):
+                        u = node.get("uri") or node.get("baseUrl")
+                    if isinstance(u, str) and u.startswith("https://") and u not in out:
+                        out.append(u)
+                return
+            for x in v.values():
+                heros(x, p + 1)
+        elif isinstance(v, list):
+            for x in v:
+                heros(x, p + 1)
+
+    heros(raw, 0)
     return out
 
 

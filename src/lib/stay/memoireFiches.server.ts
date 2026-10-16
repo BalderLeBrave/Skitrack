@@ -42,10 +42,12 @@ export const DUREE_MEMOIRE_MS = 30 * 24 * 60 * 60 * 1000;
  * notée avec chaque lecture (`lueV`). Avant le 7 octobre 2026, une fiche se
  * notait `lue` sans fiche enrichie : ni description ni équipements, et les
  * fiches lentes de Logements la sautaient trente jours. Une lecture d'un
- * lecteur plus ancien, sans fiche, se relit une fois (`pdpDejaLue`). À
- * augmenter quand le lecteur lit un bloc de plus.
+ * lecteur plus ancien se relit une fois (`pdpDejaLue`), fiche déjà posée
+ * comprise. À augmenter quand le lecteur lit un bloc de plus. 2 (16 oct.
+ * 2026) : règlement `pdpPresentation.rules`, aperçu `StaysPdpOverview`,
+ * description `longDescriptionHtml`, note `overallRatingStats`.
  */
-export const VERSION_LECTEUR_PDP = 1;
+export const VERSION_LECTEUR_PDP = 2;
 /** Une valeur revue n'est réécrite, pour sa seule date, qu'une fois par jour. */
 const RAFRAICHIR_MS = 24 * 60 * 60 * 1000;
 
@@ -479,16 +481,18 @@ export class MemoireFiches {
 }
 
 /**
- * Airbnb, fiches lentes de Logements : sa fiche enrichie est en mémoire, ou sa
- * page PDP a été lue (vide, sans bloc enrichi) par le lecteur d'aujourd'hui.
- * Elle ne se redemande pas avant trente jours. Lue sans fiche par un lecteur
- * plus ancien (`VERSION_LECTEUR_PDP`), elle se relit une fois ; écartée
- * (hôtel, chambre), jamais : le lecteur n'enrichit pas une annonce écartée.
+ * Airbnb, fiches lentes de Logements : sa fiche enrichie est en mémoire, lue
+ * par le lecteur d'aujourd'hui (`lueV`), ou sa page PDP a été lue (vide, sans
+ * bloc enrichi) par ce même lecteur. Elle ne se redemande pas avant trente
+ * jours. Une fiche, même déjà posée, lue par un lecteur plus ancien se relit
+ * une fois : le lecteur 2 ajoute le règlement (`pdpPresentation.rules`),
+ * l'aperçu `StaysPdpOverview` et la description longue. Écartée (hôtel,
+ * chambre), jamais : le lecteur n'enrichit pas une annonce écartée.
  * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue, ni une fiche
  * Cozy (`cozyFiches.server.ts`) : la PDP reste à lire, et la remplacera.
  */
 export function pdpDejaLue(m: Pick<ValeursFiche, "fiche" | "lue" | "lueV" | "ecartee"> | null | undefined): boolean {
-  if (m?.fiche && m.fiche.sourceFiche !== "cozy") return true;
+  if (m?.fiche && m.fiche.sourceFiche !== "cozy" && (m.lueV ?? 0) >= VERSION_LECTEUR_PDP) return true;
   if (m?.lue !== true) return false;
   return m.ecartee === true || (m.lueV ?? 0) >= VERSION_LECTEUR_PDP;
 }

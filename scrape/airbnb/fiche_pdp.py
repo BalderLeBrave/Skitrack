@@ -116,6 +116,7 @@ def _enveloppes(raw: Any, profondeur: int = 0) -> Iterator[tuple[str, dict[str, 
 
 
 def description_de(raw: Any) -> str | None:
+    candidates: list[str] = []
     for s in _sections(raw):
         if s.get("__typename") != "PdpDescriptionSection":
             continue
@@ -124,28 +125,42 @@ def description_de(raw: Any) -> str | None:
             s.get("description")
         )
         if t:
-            return t
+            candidates.append(t)
+            break
     # La fenêtre « Description » : ses rubriques (« Le logement », « Accès
     # des voyageurs »…), chacune sous son titre. La page `rooms/` en porte
     # deux, dont la mention légale de l'hôte (« X est entièrement responsable
     # de la proposition de ce logement… ») : la plus longue est la
-    # description.
-    candidates: list[str] = []
-    for type_, s in _enveloppes(raw):
-        if "DESCRIPTION" not in type_.upper() or s.get("__typename") != "GeneralListContentSection":
-            continue
-        parties: list[str] = []
-        for it in _liste(s.get("items")):
-            if not isinstance(it, dict):
+    # description. Depuis octobre 2026, `PdpDescriptionSection` est souvent un
+    # stub vide ; le texte tient dans la modale, et en double sous
+    # `pdpPresentation.descriptions.longDescriptionHtml`.
+    if not candidates:
+        for type_, s in _enveloppes(raw):
+            if "DESCRIPTION" not in type_.upper() or s.get("__typename") != "GeneralListContentSection":
                 continue
-            corps = it.get("html")
-            t = texte_de_html(corps.get("htmlText") if isinstance(corps, dict) else None)
-            if not t:
-                continue
-            titre = _chaine(it.get("title"))
-            parties.append(f"{titre}\n{t}" if titre else t)
-        if parties:
-            candidates.append("\n\n".join(parties)[:TEXTE_MAX])
+            parties: list[str] = []
+            for it in _liste(s.get("items")):
+                if not isinstance(it, dict):
+                    continue
+                corps = it.get("html")
+                t = texte_de_html(corps.get("htmlText") if isinstance(corps, dict) else None)
+                if not t:
+                    continue
+                titre = _chaine(it.get("title"))
+                parties.append(f"{titre}\n{t}" if titre else t)
+            if parties:
+                candidates.append("\n\n".join(parties)[:TEXTE_MAX])
+    for bloc in _cles(raw, "longDescriptionHtml"):
+        if isinstance(bloc, dict):
+            t = (
+                texte_de_html(bloc.get("localizedStringWithTranslationPreference"))
+                or texte_de_html(bloc.get("localizedString"))
+                or texte_de_html(bloc.get("htmlText"))
+            )
+        else:
+            t = texte_de_html(bloc)
+        if t:
+            candidates.append(t[:TEXTE_MAX])
     return max(candidates, key=len) if candidates else None
 
 
@@ -250,6 +265,24 @@ def conditions_de(raw: Any) -> dict[str, Any] | None:
         for k, v in s.items():
             if "cancellation" in k.lower():
                 annuler(v)
+    # Octobre 2026 : `PoliciesSection` est `NOT_COMPLETE`. Le règlement est
+    # dans `pdpPresentation.rules` (`StaysPdpRuleDetails`).
+    for rules in _cles(raw, "rules"):
+        if not isinstance(rules, dict) or rules.get("__typename") != "StaysPdpRuleDetails":
+            continue
+        for g in _liste(rules.get("groupItems")):
+            if not isinstance(g, dict):
+                continue
+            for it in _liste(g.get("items")):
+                if not isinstance(it, dict):
+                    continue
+                titre = _chaine(it.get("title"))
+                desc = it.get("description")
+                extra = _chaine(desc.get("text")) if isinstance(desc, dict) else None
+                if titre and extra and extra not in titre:
+                    regle(f"{titre} — {extra}")
+                else:
+                    regle(titre or extra)
     if not regles and not annulation:
         return None
     out: dict[str, Any] = {}
@@ -355,6 +388,13 @@ def note_de(raw: Any) -> dict[str, Any] | None:
             note = _nombre(log.get("guestSatisfactionOverall"))
         if nombre is None:
             nombre = _entier(log.get("visibleReviewCount"))
+    for stats in _cles(raw, "overallRatingStats"):
+        if not isinstance(stats, dict):
+            continue
+        if note is None:
+            note = _nombre(stats.get("ratingAverage"))
+        if nombre is None:
+            nombre = _entier(stats.get("ratingCount"))
     for s in _sections(raw):
         if note is None and "overallRating" in s:
             note = _nombre(s.get("overallRating"))

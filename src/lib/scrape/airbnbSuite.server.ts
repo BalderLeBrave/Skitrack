@@ -116,6 +116,7 @@ export async function lireFichesLentes(
         const cible = parId.get(fid);
         const cleCible = cible ? cleListing(cible) : null;
         if (!cleCible) continue;
+        if (f.locality && cible && !cible.locality) cible.locality = f.locality;
         const { enrichie, ...valeurs } = f;
         notes.push({
           cle: cleCible,

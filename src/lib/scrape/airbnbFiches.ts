@@ -37,6 +37,8 @@ export type FicheAirbnb = {
   beds?: number | null;
   /** Salles de bain de l'aperçu (« 1 salle de bain »). */
   baths?: number | null;
+  /** La commune publiée sur la page (« Morzine »). */
+  locality?: string | null;
   /** Description, équipements, règlement, note et avis lus sur la même
    *  réponse (`scrape/airbnb/fiche_pdp.py`), normalisés ici. Absente : la
    *  fiche n'en publiait rien. */
@@ -201,6 +203,7 @@ function fiche(v: unknown): FicheAirbnb | null {
     ecartee: r.ecartee === true,
     ...(beds != null ? { beds } : {}),
     ...(baths != null ? { baths } : {}),
+    ...(texte(r.locality) ? { locality: texte(r.locality)! } : {}),
     ...enrichieDe(r),
     ...photosDe(r),
   };

@@ -515,7 +515,24 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
                             },
                         ],
                     },
-                    "quality": {"listingRatingStats": {"overallRatingStats": {"ratingAverage": 4.86, "ratingCount": "171"}}},
+                    "quality": {
+                        "listingRatingStats": {"overallRatingStats": {"ratingAverage": 4.86, "ratingCount": "171"}},
+                        "categoryRatings": [
+                            {"label": "Propreté", "localizedRating": "4,8"},
+                            {"label": "Arrivée", "localizedRating": "4,9"},
+                        ],
+                    },
+                    "safetyAndProperty": {
+                        "__typename": "StaysPdpSafetyAndPropertyDetails",
+                        "groupItems": [{"items": [{"title": "Détecteur de fumée"}]}],
+                    },
+                    "highlights": [
+                        {
+                            "type": "LISTING_SELF_CHECKIN",
+                            "headline": {"localizedContent": "Arrivée autonome"},
+                            "body": {"localizedContent": "Boîte à clé sécurisée."},
+                        }
+                    ],
                     "heroMedia": {
                         "edges": [
                             {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/a.jpg"}}},
@@ -545,7 +562,13 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
     assert c["depart"] == "Départ avant 10:00"
     assert c["animaux"] == "non" and c["fumeurs"] == "non" and c["fetes"] == "non"
     assert "23:00 - 07:00" in c["reglement"]
+    assert "Détecteur de fumée" in c["reglement"]
+    assert "Arrivée autonome — Boîte à clé sécurisée." in c["reglement"]
     assert f["avis"]["noteSource"] == 4.86 and f["avis"]["nombre"] == 171
+    assert f["avis"]["categories"] == [
+        {"label": "Propreté", "noteSource": 4.8},
+        {"label": "Arrivée", "noteSource": 4.9},
+    ]
     assert pdp.galerie_de_pdp(brut) == [
         "https://a0.muscache.com/im/pictures/a.jpg",
         "https://a0.muscache.com/im/pictures/b.jpg",

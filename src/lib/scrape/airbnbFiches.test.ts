@@ -228,6 +228,10 @@ describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => 
         noteSource: 4.86,
         echelleSource: 5,
         nombre: 120,
+        categories: [
+          { label: "Propreté", noteSource: 4.8 },
+          { label: "Arrivée", noteSource: 4.9 },
+        ],
         extraits: [
           { auteur: "Marie", date: "2026-03-02", noteSource: 5, texte: "Très bien." },
           { auteur: "Tom", texte: "Bien." },
@@ -260,6 +264,13 @@ describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => 
       [
         ["Marie", 5],
         ["Tom", null],
+      ],
+    );
+    assert.deepEqual(
+      e.avis!.categories?.map((c) => [c.label, c.noteSur5]),
+      [
+        ["Propreté", 4.8],
+        ["Arrivée", 4.9],
       ],
     );
   });

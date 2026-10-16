@@ -283,6 +283,39 @@ def conditions_de(raw: Any) -> dict[str, Any] | None:
                     regle(f"{titre} — {extra}")
                 else:
                     regle(titre or extra)
+    # « Sécurité et logement » : détecteur, caméra, animaux dangereux. Même
+    # forme que le règlement, un autre bloc.
+    for bloc in _cles(raw, "safetyAndProperty"):
+        if not isinstance(bloc, dict) or bloc.get("__typename") != "StaysPdpSafetyAndPropertyDetails":
+            continue
+        for g in _liste(bloc.get("groupItems")):
+            if not isinstance(g, dict):
+                continue
+            for it in _liste(g.get("items")):
+                if not isinstance(it, dict):
+                    continue
+                titre = _chaine(it.get("title"))
+                desc = it.get("description")
+                extra = _chaine(desc.get("text")) if isinstance(desc, dict) else None
+                if titre and extra and extra not in titre:
+                    regle(f"{titre} — {extra}")
+                else:
+                    regle(titre or extra)
+    # L'arrivée autonome (boîte à clé), quand la page la met en avant.
+    for highlights in _cles(raw, "highlights"):
+        if not isinstance(highlights, list):
+            continue
+        for h in highlights:
+            if not isinstance(h, dict) or h.get("type") != "LISTING_SELF_CHECKIN":
+                continue
+            titre_h = h.get("headline")
+            corps_h = h.get("body")
+            titre = _chaine(titre_h.get("localizedContent") if isinstance(titre_h, dict) else None)
+            extra = _chaine(corps_h.get("localizedContent") if isinstance(corps_h, dict) else None)
+            if titre and extra and extra not in titre:
+                regle(f"{titre} — {extra}")
+            else:
+                regle(titre or extra)
     if not regles and not annulation:
         return None
     out: dict[str, Any] = {}
@@ -415,9 +448,34 @@ def note_de(raw: Any) -> dict[str, Any] | None:
                     nombre = _entier(re.sub(r"\D", "", n.group(1)))
     if note is not None and not 0 < note <= ECHELLE_AIRBNB:
         note = None
-    if note is None and nombre is None:
+    categories = _categories(raw)
+    if note is None and nombre is None and not categories:
         return None
-    return {"noteSource": note, "echelleSource": ECHELLE_AIRBNB, "nombre": nombre}
+    out: dict[str, Any] = {"noteSource": note, "echelleSource": ECHELLE_AIRBNB, "nombre": nombre}
+    if categories:
+        out["categories"] = categories
+    return out
+
+
+def _categories(raw: Any) -> list[dict[str, Any]]:
+    """Propreté, précision, arrivée… telles qu'Airbnb les note, sur 5."""
+    out: list[dict[str, Any]] = []
+    vus: set[str] = set()
+    for groupe in _cles(raw, "categoryRatings"):
+        if not isinstance(groupe, list):
+            continue
+        for c in groupe:
+            if not isinstance(c, dict):
+                continue
+            label = _chaine(c.get("label"))
+            note = _nombre(c.get("localizedRating")) or _nombre(c.get("ratingAverage"))
+            if label is None or note is None or not 0 < note <= ECHELLE_AIRBNB or label.lower() in vus:
+                continue
+            vus.add(label.lower())
+            out.append({"label": label, "noteSource": note})
+            if len(out) >= 6:
+                return out
+    return out
 
 
 def extraits_de_pdp(raw: Any) -> list[dict[str, Any]]:

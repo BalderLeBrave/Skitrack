@@ -288,6 +288,7 @@ async function trancheAirbnb(
       // La page du logement a été lue : ce qui y manque y manque vraiment.
       // Pas une page d'un lot jugé illisible : elle se relira.
       if (lue) row.pdpLue = true;
+      if (lue && f.locality && !row.locality) row.locality = f.locality;
       if (lue && !f.ecartee && ((f.photos?.length ?? 0) > 0 || f.baths != null)) {
         const contenu = {
           ...(f.photos?.length ? { photos: f.photos } : {}),

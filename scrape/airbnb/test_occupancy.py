@@ -174,7 +174,7 @@ def test_apercu_stays_pdp_overview_et_point_de_presentation():
                         "title": "Logement entier : appartement en résidence - Morzine, France",
                         "items": ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"],
                     },
-                    "location": {"latitude": 46.18395, "longitude": 6.69464},
+                    "location": {"latitude": 46.18395, "longitude": 6.69464, "subtitle": "Morzine, Auvergne-Rhône-Alpes, France"},
                 }
             }
         }
@@ -189,6 +189,7 @@ def test_apercu_stays_pdp_overview_et_point_de_presentation():
         6.69464,
     )
     assert occ["capacitySource"] == "structured"
+    assert occ["locality"] == "Morzine"
     assert any("2 chambres" in t for t in occ["textes"])
 
 

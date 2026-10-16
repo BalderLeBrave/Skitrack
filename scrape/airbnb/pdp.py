@@ -538,6 +538,9 @@ def fiche_de(occ: dict[str, Any] | None) -> dict[str, Any] | None:
         fiche["beds"] = occ["beds"]
     if isinstance(occ.get("baths"), int):
         fiche["baths"] = occ["baths"]
+    lieu = occ.get("locality")
+    if isinstance(lieu, str) and lieu.strip():
+        fiche["locality"] = lieu.strip()
     if occ.get("enrichie") and not fiche["ecartee"]:
         fiche["enrichie"] = occ["enrichie"]
     if occ.get("photos") and not fiche["ecartee"]:

@@ -150,6 +150,19 @@ def type_de_logement(share: Any, titre_apercu: str | None) -> str | None:
     return None
 
 
+def _lieu(raw: Any) -> str | None:
+    """La commune publiée (« Morzine, Auvergne-Rhône-Alpes, France »)."""
+    sub = _nested(raw, "data.node.pdpPresentation.location.subtitle")
+    if isinstance(sub, str) and sub.strip():
+        tete = sub.split(",")[0].strip()
+        if tete and len(tete) <= 80:
+            return tete
+    loc = _nested(raw, "data.node.pdpPresentation.localizedLocation")
+    if isinstance(loc, str) and loc.strip() and len(loc.strip()) <= 80:
+        return loc.strip()
+    return None
+
+
 def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
     # PdpPlatformSections (`merlin`), ou StaysPdpSections (`presentation`, la
     # forme que lit pyairbnb/standardize.py) : le repli si le hash de la
@@ -200,6 +213,7 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         bedrooms = t_bedrooms
     beds = beds_from_text(*textes) if textes else None
     baths = baths_from_text(*textes) if textes else None
+    locality = _lieu(raw)
     room_type = None
     for candidate in (log.get("roomType"), share.get("roomType"), prefetch.get("roomType")):
         if isinstance(candidate, str) and candidate.strip():
@@ -217,6 +231,7 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         "rooms": rooms,
         "beds": beds,
         "baths": baths,
+        "locality": locality,
         "textes": textes,
         "lat": lat,
         "lon": lon,

@@ -23,6 +23,7 @@ parti. Un hash périmé arrête le lot : toutes les fiches suivantes
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -31,6 +32,7 @@ import time
 from typing import Any, Callable
 from urllib.parse import urlencode
 
+import repli_http
 from fiche_pdp import extraits_avis, fiche_enrichie_de_pdp
 from occupancy import merge_occupancy, occupancy_from_pdp
 from throttle import (
@@ -82,6 +84,23 @@ _dormir: Callable[[float], None] = time.sleep
 
 class HashPerime(Exception):
     """Airbnb ne connaît plus la requête persistée `PDP_HASH` : aucune fiche ne passera."""
+
+
+class SectionsVides(Exception):
+    """PdpPlatformSections répond 200 avec `sections: []` : la requête passe,
+    mais n'apporte plus rien (vu le 16 octobre 2026 sur toutes les fiches,
+    avec l'identifiant nu comme en base64). La page `rooms/` porte encore
+    toute la fiche (`pdp_de_page_rooms`)."""
+
+
+# La page `rooms/` d'une annonce : son état (`data-deferred-state-0`) porte la
+# réponse StaysPdpSections entière, sous la forme `presentation` que lisent
+# `occupancy_from_pdp` et `fiche_pdp`. Même hôte que les liens de l'écran.
+ORIGINE_PAGE = "https://www.airbnb.fr"
+ETAT_PAGE_RE = re.compile(r'<script[^>]*id="data-deferred-state-0"[^>]*>(.*?)</script>', re.S)
+# Une fois l'API vide constatée, les fiches suivantes du processus passent
+# directement par la page : une requête par fiche, pas deux.
+_page_rooms_seule = False
 
 
 def _api_key(proxy_url: str = "", fin: float | None = None) -> str:
@@ -138,6 +157,9 @@ def lire_reponse_pdp(status: int, headers: Any, text: str) -> dict[str, Any] | N
             return None
     if status != 200 or not isinstance(raw, dict):
         return None
+    sections = (((raw.get("data") or {}).get("merlin") or {}).get("pdpSections") or {}).get("sections")
+    if isinstance(sections, list) and not sections:
+        raise SectionsVides()
     occ = occupancy_from_pdp(raw)
     # Description, équipements, règlement, note : sur la même réponse, sans
     # second appel (`fiche_pdp.py`). Une forme inattendue ne donne rien.
@@ -145,6 +167,142 @@ def lire_reponse_pdp(status: int, headers: Any, text: str) -> dict[str, Any] | N
     if enrichie:
         occ["enrichie"] = enrichie
     return occ
+
+
+def pdp_de_page_rooms(html: str) -> dict[str, Any] | None:
+    """La réponse StaysPdpSections que la page `rooms/` embarque, ou None."""
+    m = ETAT_PAGE_RE.search(html or "")
+    if not m:
+        return None
+    try:
+        etat = json.loads(m.group(1))
+    except ValueError:
+        return None
+    if not isinstance(etat, dict):
+        return None
+    for entree in etat.get("niobeClientData") or etat.get("niobeMinimalClientData") or []:
+        if (
+            isinstance(entree, list)
+            and len(entree) == 2
+            and isinstance(entree[0], str)
+            and entree[0].startswith("StaysPdpSections")
+            and isinstance(entree[1], dict)
+        ):
+            return entree[1]
+    return None
+
+
+def galerie_de_pdp(raw: Any) -> list[str]:
+    """Les photos de la visite photo (`PhotoTourModalSection.mediaItems`), dans
+    l'ordre, sans doublon. Les portraits d'hôte et les icônes n'y sont pas."""
+    out: list[str] = []
+
+    def visiter(v: Any, p: int) -> None:
+        if p > 40:
+            return
+        if isinstance(v, dict):
+            if v.get("__typename") == "PhotoTourModalSection":
+                for it in v.get("mediaItems") or []:
+                    u = it.get("baseUrl") if isinstance(it, dict) else None
+                    if isinstance(u, str) and u.startswith("https://") and u not in out:
+                        out.append(u)
+                return
+            for x in v.values():
+                visiter(x, p + 1)
+        elif isinstance(v, list):
+            for x in v:
+                visiter(x, p + 1)
+
+    visiter(raw, 0)
+    if out:
+        return out
+    # La visite photo manque : les mêmes clichés sont sous
+    # `pdpPresentation.heroMedia.edges[].node.image.uri`.
+    def heros(v: Any, p: int) -> None:
+        if p > 40:
+            return
+        if isinstance(v, dict):
+            hero = v.get("heroMedia")
+            if isinstance(hero, dict):
+                for edge in hero.get("edges") or []:
+                    node = edge.get("node") if isinstance(edge, dict) else None
+                    image = node.get("image") if isinstance(node, dict) else None
+                    u = image.get("uri") if isinstance(image, dict) else None
+                    if not isinstance(u, str) and isinstance(node, dict):
+                        u = node.get("uri") or node.get("baseUrl")
+                    if isinstance(u, str) and u.startswith("https://") and u not in out:
+                        out.append(u)
+                return
+            for x in v.values():
+                heros(x, p + 1)
+        elif isinstance(v, list):
+            for x in v:
+                heros(x, p + 1)
+
+    heros(raw, 0)
+    return out
+
+
+def lire_page_rooms(status: int, headers: Any, text: str) -> dict[str, Any] | None:
+    """Ce que la page `rooms/` dit : comme une réponse PDP, galerie en plus.
+    Les mêmes refus que `lire_reponse_pdp`. Aucune requête."""
+    if status in (429, 503, 403):
+        raise RateLimited(status, retry_after_s(headers, cap=PAUSE_MAX_S))
+    corps = text or ""
+    if status == 200 and "data-deferred-state-0" not in corps and BLOCAGE_RE.search(corps[:4000]):
+        raise RateLimited(429, retry_after_s(headers, cap=PAUSE_MAX_S))
+    if status != 200:
+        return None
+    raw = pdp_de_page_rooms(corps)
+    if raw is None:
+        return None
+    occ = occupancy_from_pdp(raw)
+    enrichie = fiche_enrichie_de_pdp(raw)
+    if enrichie:
+        occ["enrichie"] = enrichie
+    photos = galerie_de_pdp(raw)
+    if photos:
+        occ["photos"] = photos
+    return occ
+
+
+def url_page_rooms(listing_id: str, *, check_in: str | None, check_out: str | None, adults: int | None) -> str:
+    query = {k: v for k, v in (("check_in", check_in), ("check_out", check_out), ("adults", adults)) if v}
+    return f"{ORIGINE_PAGE}/rooms/{listing_id}" + (f"?{urlencode(query)}" if query else "")
+
+
+def fetch_page_rooms(
+    listing_id: str,
+    *,
+    check_in: str | None,
+    check_out: str | None,
+    adults: int | None,
+    proxy_url: str = "",
+) -> dict[str, Any] | None:
+    """La fiche lue sur la page `rooms/` : une requête, comme `fetch_pdp`."""
+    from curl_cffi import requests
+
+    url = url_page_rooms(listing_id, check_in=check_in, check_out=check_out, adults=adults)
+    proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+    entetes = {
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "fr-FR,fr;q=0.9",
+        "User-Agent": entetes_pdp("")["User-Agent"],
+    }
+    try:
+        res = requests.get(url, headers=entetes, proxies=proxies, timeout=25, impersonate="chrome124")
+    except RateLimited:
+        raise
+    except Exception:
+        # Une panne de transport seule : la même requête, une fois, par le repli.
+        res = repli_http.get(url, headers=entetes, proxy_url=proxy_url, timeout=25)
+        if res is None:
+            return None
+    try:
+        text = res.text
+    except Exception:
+        text = ""
+    return lire_page_rooms(res.status_code, res.headers, text)
 
 
 def url_pdp(listing_id: str, *, check_in: str | None, check_out: str | None, adults: int | None) -> str:
@@ -197,6 +355,9 @@ def fetch_pdp(
 ) -> dict[str, Any] | None:
     from curl_cffi import requests
 
+    global _page_rooms_seule
+    if _page_rooms_seule:
+        return fetch_page_rooms(listing_id, check_in=check_in, check_out=check_out, adults=adults, proxy_url=proxy_url)
     url = url_pdp(listing_id, check_in=check_in, check_out=check_out, adults=adults)
     proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
     try:
@@ -210,12 +371,19 @@ def fetch_pdp(
     except RateLimited:
         raise
     except Exception:
-        return None
+        res = repli_http.get(url, headers=entetes_pdp(api_key), proxy_url=proxy_url, timeout=20)
+        if res is None:
+            return None
     try:
         text = res.text
     except Exception:
         text = ""
-    return lire_reponse_pdp(res.status_code, res.headers, text)
+    try:
+        return lire_reponse_pdp(res.status_code, res.headers, text)
+    except SectionsVides:
+        print("[airbnb] PdpPlatformSections : sections vides, fiches lues sur la page rooms/", file=sys.stderr)
+        _page_rooms_seule = True
+        return fetch_page_rooms(listing_id, check_in=check_in, check_out=check_out, adults=adults, proxy_url=proxy_url)
 
 
 def _fetch_pdp_polite(
@@ -366,8 +534,17 @@ def fiche_de(occ: dict[str, Any] | None) -> dict[str, Any] | None:
         "typeLogement": occ.get("type_logement"),
         "ecartee": bool(occ.get("dropped")),
     }
+    if isinstance(occ.get("beds"), int):
+        fiche["beds"] = occ["beds"]
+    if isinstance(occ.get("baths"), int):
+        fiche["baths"] = occ["baths"]
+    lieu = occ.get("locality")
+    if isinstance(lieu, str) and lieu.strip():
+        fiche["locality"] = lieu.strip()
     if occ.get("enrichie") and not fiche["ecartee"]:
         fiche["enrichie"] = occ["enrichie"]
+    if occ.get("photos") and not fiche["ecartee"]:
+        fiche["photos"] = occ["photos"]
     if fiche["ecartee"] or fiche.get("enrichie") or any(fiche[k] is not None for k in ("capacity", "bedrooms", "rooms", "lat")):
         return fiche
     return None
@@ -376,6 +553,16 @@ def fiche_de(occ: dict[str, Any] | None) -> dict[str, Any] | None:
 class AvisIndisponibles(Exception):
     """La page d'avis n'a rien rendu de lisible (requête inconnue, forme
     nouvelle) : on n'en redemande pas d'autre dans la tranche."""
+
+
+def identifiant_avis(listing_id: str) -> str:
+    """L'id de `StaysPdpReviewsQuery`. Un nombre (« 12184533 ») est refusé
+    (422, « stayId must be a global ID of type StayListing ») : c'est
+    `base64("StayListing:{id}")`. Un id déjà global passe tel quel."""
+    s = str(listing_id).strip()
+    if s.isdigit():
+        return base64.b64encode(f"StayListing:{s}".encode()).decode()
+    return s
 
 
 def lire_page_avis(listing_id: str, *, api_key: str, proxy_url: str = "") -> list[dict[str, Any]]:
@@ -391,7 +578,13 @@ def lire_page_avis(listing_id: str, *, api_key: str, proxy_url: str = "") -> lis
 
     try:
         page = reviews.get_from_offset(
-            api_key, 0, str(listing_id), currency="EUR", language="fr", proxy_url=proxy_url or None, timeout=20
+            api_key,
+            0,
+            identifiant_avis(str(listing_id)),
+            currency="EUR",
+            language="fr",
+            proxy_url=proxy_url or None,
+            timeout=20,
         )
     except (RythmeLocal, CoupeCircuit, RateLimited):
         raise

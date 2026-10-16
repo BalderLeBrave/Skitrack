@@ -116,6 +116,7 @@ def _enveloppes(raw: Any, profondeur: int = 0) -> Iterator[tuple[str, dict[str, 
 
 
 def description_de(raw: Any) -> str | None:
+    candidates: list[str] = []
     for s in _sections(raw):
         if s.get("__typename") != "PdpDescriptionSection":
             continue
@@ -124,25 +125,75 @@ def description_de(raw: Any) -> str | None:
             s.get("description")
         )
         if t:
-            return t
+            candidates.append(t)
+            break
     # La fenêtre « Description » : ses rubriques (« Le logement », « Accès
-    # des voyageurs »…), chacune sous son titre.
-    for type_, s in _enveloppes(raw):
-        if "DESCRIPTION" not in type_.upper() or s.get("__typename") != "GeneralListContentSection":
+    # des voyageurs »…), chacune sous son titre. La page `rooms/` en porte
+    # deux, dont la mention légale de l'hôte (« X est entièrement responsable
+    # de la proposition de ce logement… ») : la plus longue est la
+    # description. Depuis octobre 2026, `PdpDescriptionSection` est souvent un
+    # stub vide ; le texte tient dans la modale, et en double sous
+    # `pdpPresentation.descriptions.longDescriptionHtml`.
+    if not candidates:
+        for type_, s in _enveloppes(raw):
+            if "DESCRIPTION" not in type_.upper() or s.get("__typename") != "GeneralListContentSection":
+                continue
+            parties: list[str] = []
+            for it in _liste(s.get("items")):
+                if not isinstance(it, dict):
+                    continue
+                corps = it.get("html")
+                t = texte_de_html(corps.get("htmlText") if isinstance(corps, dict) else None)
+                if not t:
+                    continue
+                titre = _chaine(it.get("title"))
+                parties.append(f"{titre}\n{t}" if titre else t)
+            if parties:
+                candidates.append("\n\n".join(parties)[:TEXTE_MAX])
+    for bloc in _cles(raw, "longDescriptionHtml"):
+        if isinstance(bloc, dict):
+            t = (
+                texte_de_html(bloc.get("localizedStringWithTranslationPreference"))
+                or texte_de_html(bloc.get("localizedString"))
+                or texte_de_html(bloc.get("htmlText"))
+            )
+        else:
+            t = texte_de_html(bloc)
+        if t:
+            candidates.append(t[:TEXTE_MAX])
+    texte = max(candidates, key=len) if candidates else None
+    lits = couchages_de(raw)
+    if lits and (texte is None or lits not in texte):
+        texte = f"{texte}\n\n{lits}" if texte else lits
+    return texte[:TEXTE_MAX] if texte else None
+
+
+def couchages_de(raw: Any) -> str | None:
+    """« Où vous dormirez » : une ligne par pièce, avec ses lits
+    (« Chambre 1 : 1 lit double, 1 lit simple »). Le compte « 4 lits » de
+    l'aperçu ne dit pas lesquels."""
+    lignes: list[str] = []
+    for tour in _cles(raw, "sleepingArrangements"):
+        if not isinstance(tour, dict):
             continue
-        parties: list[str] = []
-        for it in _liste(s.get("items")):
-            if not isinstance(it, dict):
+        for stop in _liste(tour.get("stops")):
+            if not isinstance(stop, dict):
                 continue
-            corps = it.get("html")
-            t = texte_de_html(corps.get("htmlText") if isinstance(corps, dict) else None)
-            if not t:
+            desc = stop.get("description") if isinstance(stop.get("description"), dict) else {}
+            lits: list[str] = []
+            for d in _liste(desc.get("descriptions")):
+                t = _chaine(d.get("text")) if isinstance(d, dict) else None
+                if t and t not in lits:
+                    lits.append(t)
+            if not lits:
                 continue
-            titre = _chaine(it.get("title"))
-            parties.append(f"{titre}\n{t}" if titre else t)
-        if parties:
-            return "\n\n".join(parties)[:TEXTE_MAX]
-    return None
+            nom = _chaine(stop.get("name"))
+            ligne = f"{nom} : {', '.join(lits)}" if nom else ", ".join(lits)
+            if ligne not in lignes:
+                lignes.append(ligne)
+    if not lignes:
+        return None
+    return "Où vous dormirez\n" + "\n".join(lignes)
 
 
 NON_INCLUS_RE = re.compile(r"^(non inclus|not included|indisponible|unavailable)$", re.I)
@@ -246,6 +297,57 @@ def conditions_de(raw: Any) -> dict[str, Any] | None:
         for k, v in s.items():
             if "cancellation" in k.lower():
                 annuler(v)
+    # Octobre 2026 : `PoliciesSection` est `NOT_COMPLETE`. Le règlement est
+    # dans `pdpPresentation.rules` (`StaysPdpRuleDetails`).
+    for rules in _cles(raw, "rules"):
+        if not isinstance(rules, dict) or rules.get("__typename") != "StaysPdpRuleDetails":
+            continue
+        for g in _liste(rules.get("groupItems")):
+            if not isinstance(g, dict):
+                continue
+            for it in _liste(g.get("items")):
+                if not isinstance(it, dict):
+                    continue
+                titre = _chaine(it.get("title"))
+                desc = it.get("description")
+                extra = _chaine(desc.get("text")) if isinstance(desc, dict) else None
+                if titre and extra and extra not in titre:
+                    regle(f"{titre} — {extra}")
+                else:
+                    regle(titre or extra)
+    # « Sécurité et logement » : détecteur, caméra, animaux dangereux. Même
+    # forme que le règlement, un autre bloc.
+    for bloc in _cles(raw, "safetyAndProperty"):
+        if not isinstance(bloc, dict) or bloc.get("__typename") != "StaysPdpSafetyAndPropertyDetails":
+            continue
+        for g in _liste(bloc.get("groupItems")):
+            if not isinstance(g, dict):
+                continue
+            for it in _liste(g.get("items")):
+                if not isinstance(it, dict):
+                    continue
+                titre = _chaine(it.get("title"))
+                desc = it.get("description")
+                extra = _chaine(desc.get("text")) if isinstance(desc, dict) else None
+                if titre and extra and extra not in titre:
+                    regle(f"{titre} — {extra}")
+                else:
+                    regle(titre or extra)
+    # L'arrivée autonome (boîte à clé), quand la page la met en avant.
+    for highlights in _cles(raw, "highlights"):
+        if not isinstance(highlights, list):
+            continue
+        for h in highlights:
+            if not isinstance(h, dict) or h.get("type") != "LISTING_SELF_CHECKIN":
+                continue
+            titre_h = h.get("headline")
+            corps_h = h.get("body")
+            titre = _chaine(titre_h.get("localizedContent") if isinstance(titre_h, dict) else None)
+            extra = _chaine(corps_h.get("localizedContent") if isinstance(corps_h, dict) else None)
+            if titre and extra and extra not in titre:
+                regle(f"{titre} — {extra}")
+            else:
+                regle(titre or extra)
     if not regles and not annulation:
         return None
     out: dict[str, Any] = {}
@@ -351,6 +453,13 @@ def note_de(raw: Any) -> dict[str, Any] | None:
             note = _nombre(log.get("guestSatisfactionOverall"))
         if nombre is None:
             nombre = _entier(log.get("visibleReviewCount"))
+    for stats in _cles(raw, "overallRatingStats"):
+        if not isinstance(stats, dict):
+            continue
+        if note is None:
+            note = _nombre(stats.get("ratingAverage"))
+        if nombre is None:
+            nombre = _entier(stats.get("ratingCount"))
     for s in _sections(raw):
         if note is None and "overallRating" in s:
             note = _nombre(s.get("overallRating"))
@@ -371,9 +480,34 @@ def note_de(raw: Any) -> dict[str, Any] | None:
                     nombre = _entier(re.sub(r"\D", "", n.group(1)))
     if note is not None and not 0 < note <= ECHELLE_AIRBNB:
         note = None
-    if note is None and nombre is None:
+    categories = _categories(raw)
+    if note is None and nombre is None and not categories:
         return None
-    return {"noteSource": note, "echelleSource": ECHELLE_AIRBNB, "nombre": nombre}
+    out: dict[str, Any] = {"noteSource": note, "echelleSource": ECHELLE_AIRBNB, "nombre": nombre}
+    if categories:
+        out["categories"] = categories
+    return out
+
+
+def _categories(raw: Any) -> list[dict[str, Any]]:
+    """Propreté, précision, arrivée… telles qu'Airbnb les note, sur 5."""
+    out: list[dict[str, Any]] = []
+    vus: set[str] = set()
+    for groupe in _cles(raw, "categoryRatings"):
+        if not isinstance(groupe, list):
+            continue
+        for c in groupe:
+            if not isinstance(c, dict):
+                continue
+            label = _chaine(c.get("label"))
+            note = _nombre(c.get("localizedRating")) or _nombre(c.get("ratingAverage"))
+            if label is None or note is None or not 0 < note <= ECHELLE_AIRBNB or label.lower() in vus:
+                continue
+            vus.add(label.lower())
+            out.append({"label": label, "noteSource": note})
+            if len(out) >= 6:
+                return out
+    return out
 
 
 def extraits_de_pdp(raw: Any) -> list[dict[str, Any]]:

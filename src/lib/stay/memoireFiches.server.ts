@@ -42,10 +42,13 @@ export const DUREE_MEMOIRE_MS = 30 * 24 * 60 * 60 * 1000;
  * notée avec chaque lecture (`lueV`). Avant le 7 octobre 2026, une fiche se
  * notait `lue` sans fiche enrichie : ni description ni équipements, et les
  * fiches lentes de Logements la sautaient trente jours. Une lecture d'un
- * lecteur plus ancien, sans fiche, se relit une fois (`pdpDejaLue`). À
- * augmenter quand le lecteur lit un bloc de plus.
+ * lecteur plus ancien se relit une fois (`pdpDejaLue`), fiche déjà posée
+ * comprise. À augmenter quand le lecteur lit un bloc de plus. 5 (16 oct.
+ * 2026) : « Où vous dormirez », les lits pièce par pièce. 4 : la commune, les
+ * notes par thème et la sécurité. 3 : les cinq avis récents, les lits et les
+ * salles de bain. 2 : règlement, aperçu, description longue, note.
  */
-export const VERSION_LECTEUR_PDP = 1;
+export const VERSION_LECTEUR_PDP = 5;
 /** Une valeur revue n'est réécrite, pour sa seule date, qu'une fois par jour. */
 const RAFRAICHIR_MS = 24 * 60 * 60 * 1000;
 
@@ -438,8 +441,10 @@ export class MemoireFiches {
         revoir("ecartee", apres.ecartee === v.ecartee);
         apres.ecartee = v.ecartee;
       }
-      if (v.fiche) {
-        // La fiche lue la plus récente remplace l'ancienne, entière.
+      // La fiche lue la plus récente remplace l'ancienne, entière. Sauf une
+      // fiche Cozy, lue sur la liste d'un comparateur : elle ne remplace pas
+      // celle de la page même (Airbnb PDP, Booking), plus riche.
+      if (v.fiche && !(v.fiche.sourceFiche === "cozy" && apres.fiche && apres.fiche.sourceFiche !== "cozy")) {
         revoir("fiche", JSON.stringify(apres.fiche ?? null) === JSON.stringify(v.fiche));
         apres.fiche = v.fiche;
       }
@@ -477,15 +482,18 @@ export class MemoireFiches {
 }
 
 /**
- * Airbnb, fiches lentes de Logements : sa fiche enrichie est en mémoire, ou sa
- * page PDP a été lue (vide, sans bloc enrichi) par le lecteur d'aujourd'hui.
- * Elle ne se redemande pas avant trente jours. Lue sans fiche par un lecteur
- * plus ancien (`VERSION_LECTEUR_PDP`), elle se relit une fois ; écartée
- * (hôtel, chambre), jamais : le lecteur n'enrichit pas une annonce écartée.
- * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue.
+ * Airbnb, fiches lentes de Logements : sa fiche enrichie est en mémoire, lue
+ * par le lecteur d'aujourd'hui (`lueV`), ou sa page PDP a été lue (vide, sans
+ * bloc enrichi) par ce même lecteur. Elle ne se redemande pas avant trente
+ * jours. Une fiche, même déjà posée, lue par un lecteur plus ancien se relit
+ * une fois : le lecteur 5 ajoute les couchages, pièce par pièce.
+ * Écartée (hôtel, chambre), jamais : le lecteur n'enrichit pas une annonce
+ * écartée.
+ * Une page `rooms/` seule (`page`) n'est pas une fiche PDP lue, ni une fiche
+ * Cozy (`cozyFiches.server.ts`) : la PDP reste à lire, et la remplacera.
  */
 export function pdpDejaLue(m: Pick<ValeursFiche, "fiche" | "lue" | "lueV" | "ecartee"> | null | undefined): boolean {
-  if (m?.fiche) return true;
+  if (m?.fiche && m.fiche.sourceFiche !== "cozy" && (m.lueV ?? 0) >= VERSION_LECTEUR_PDP) return true;
   if (m?.lue !== true) return false;
   return m.ecartee === true || (m.lueV ?? 0) >= VERSION_LECTEUR_PDP;
 }

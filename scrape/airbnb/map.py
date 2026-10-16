@@ -338,6 +338,22 @@ def beds_from_text(*texts: str | None) -> int | None:
     return n if 0 < n <= 50 else None
 
 
+BATHS_RE = re.compile(r"(\d+)\s+salles?\s+de\s+bains?\b|(\d+)\s+bathrooms?\b", re.I)
+
+
+def baths_from_text(*texts: str | None) -> int | None:
+    """« 1 salle de bain », « 2 salles de bain », « 2 bathrooms ». Pas une
+    « salle d'eau » : la source ne l'a pas comptée comme salle de bain."""
+    blob = " · ".join(t for t in texts if t and t.strip())
+    if not blob:
+        return None
+    m = BATHS_RE.search(blob)
+    if not m:
+        return None
+    n = int(next(g for g in m.groups() if g))
+    return n if 0 < n <= 20 else None
+
+
 def occupancy_structuree(record: dict[str, Any]) -> tuple[int | None, int | None]:
     """(capacité, chambres) des seuls champs structurés de l'enregistrement.
 

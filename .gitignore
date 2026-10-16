@@ -29,7 +29,8 @@ src/routeTree.gen.ts
 # Contrat sandbox, pas le produit
 AGENTS.md
 AGENTS.project.md
-.claude/
+.claude/*
+!.claude/agents/
 .skitrack-url
 openapi.json
 out/

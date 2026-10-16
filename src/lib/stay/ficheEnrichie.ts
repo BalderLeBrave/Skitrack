@@ -53,6 +53,13 @@ export type AvisExtrait = {
   texte: string;
 };
 
+export type NoteCategorie = {
+  /** Le libellé publié (« Propreté », « Arrivée »). */
+  label: string;
+  noteSur5: number | null;
+  noteSource?: number | null;
+};
+
 export type AvisResume = {
   /** La seule note que lisent l'écran, les filtres et le tri. */
   noteSur5: number | null;
@@ -63,6 +70,8 @@ export type AvisResume = {
   nombre: number | null;
   /** Les plus récents, cinq au plus. */
   extraits: AvisExtrait[];
+  /** Propreté, précision, arrivée… quand la source les note à part. */
+  categories?: NoteCategorie[];
   /** La page des avis sur la source. */
   url?: string;
 };
@@ -141,6 +150,21 @@ function entierPositif(v: unknown): number | null {
   return typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null;
 }
 
+function categoriesRelues(v: unknown, echelle: EchelleNote | null): NoteCategorie[] {
+  if (!Array.isArray(v)) return [];
+  const out: NoteCategorie[] = [];
+  for (const x of v) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as { label?: unknown; noteSource?: unknown };
+    const label = texte(o.label);
+    const noteSource = typeof o.noteSource === "number" && o.noteSource > 0 && o.noteSource <= 5 ? o.noteSource : null;
+    if (!label || noteSource == null) continue;
+    out.push({ label, noteSource, noteSur5: noterSur5(noteSource, echelle ?? 5) });
+    if (out.length >= 6) break;
+  }
+  return out;
+}
+
 /** Le prénom seul : la source peut écrire « Marie D. » ou un nom entier. */
 function prenom(v: unknown): string | undefined {
   const t = texte(v);
@@ -181,13 +205,15 @@ export function avisRelu(a: AvisResume | null | undefined): AvisResume | null {
     })
     .filter((x): x is AvisExtrait => x != null)
     .slice(0, EXTRAITS_MAX);
-  if (noteSur5 == null && (nombre == null || nombre === 0) && !extraits.length) return null;
+  const categories = categoriesRelues(a.categories, echelle);
+  if (noteSur5 == null && (nombre == null || nombre === 0) && !extraits.length && !categories.length) return null;
   return {
     noteSur5: nombre === 0 ? null : noteSur5,
     noteSource: typeof a.noteSource === "number" ? a.noteSource : null,
     echelleSource: echelle,
     nombre,
     extraits,
+    ...(categories.length ? { categories } : {}),
     ...(texte(a.url) ? { url: texte(a.url)! } : {}),
   };
 }
@@ -248,6 +274,14 @@ export function equipementsDe(l: Listing): EquipementFiche[] | null {
   // source publie ailleurs (`equipementsPublies`).
   if (ficheDecideEquipements(l)) {
     const es = normaliserEquipements(l.fiche!.equipements ?? []);
+    // La fiche Cozy ne liste que ce qui est là, jamais ce qui manque, et
+    // souvent moins que la page de l'annonce : elle complète ce que les
+    // collecteurs ont lu, sans l'effacer. Sur une même clé, la fiche l'emporte.
+    if (l.fiche!.sourceFiche === "cozy") {
+      const ids = new Set(es.map((e) => e.id));
+      const tout = [...es, ...(equipementsSansFiche(l) ?? []).filter((e) => !ids.has(e.id))];
+      return tout.length ? tout : null;
+    }
     return es.length ? es : null;
   }
   return equipementsSansFiche(l);
@@ -538,6 +572,7 @@ export function ficheDepuisBrut(
       echelleSource: echelle,
       nombre: entierPositif(nombreOuNull(a.nombre)),
       extraits,
+      ...(Array.isArray(a.categories) ? { categories: a.categories as NoteCategorie[] } : {}),
       ...((texte(a.url) ?? opts.url) ? { url: (texte(a.url) ?? opts.url)! } : {}),
     });
   }

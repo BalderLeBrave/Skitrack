@@ -973,3 +973,25 @@ describe("MSEM (Alpe d'Huez) : les options du catalogue réel, jusqu'à l'écran
     }
   });
 });
+
+describe("une fiche Cozy complète les équipements lus sans les effacer", () => {
+  it("les libellés publiés par la page restent, la fiche ajoute les siens", () => {
+    const l = {
+      id: "abr-1",
+      source: "Abritel",
+      equipementsPublies: [{ libelle: "Wi-Fi" }, { libelle: "Barbecue" }],
+      fiche: {
+        description: null,
+        equipements: [{ id: "ascenseur", libelle: "Ascenseur", present: true }],
+        avis: null,
+        conditions: null,
+        sourceFiche: "cozy",
+      },
+    } as unknown as Listing;
+    const ids = (equipementsDe(l) ?? []).map((e) => e.id);
+    for (const id of ["ascenseur", "wifi", "barbecue"]) assert.ok(ids.includes(id), id);
+    // Une fiche d'une autre source décide seule, comme avant.
+    const booking = { ...l, fiche: { ...l.fiche!, sourceFiche: "booking" } } as Listing;
+    assert.deepEqual((equipementsDe(booking) ?? []).map((e) => e.id), ["ascenseur"]);
+  });
+});

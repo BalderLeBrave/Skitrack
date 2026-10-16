@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from map import is_dropped_listing, occupancy_from_text, source_de
+from map import is_dropped_listing, baths_from_text, beds_from_text, occupancy_from_text, source_de
 
 # Hébergements « insolites », ni maison ni appartement (consigne du
 # propriétaire, 25 sept. 2026). Même liste que le filtre GreenGo de la
@@ -109,6 +109,15 @@ def apercu_pdp(raw: Any) -> tuple[list[str], str | None]:
             t = value.get("title")
             if titre is None and isinstance(t, str) and t.strip():
                 titre = t.strip()
+        # Page `rooms/` d'octobre 2026 : `pdpPresentation.overview`
+        # (`StaysPdpOverview.items` = « 4 voyageurs », « 2 chambres »…).
+        if value.get("__typename") == "StaysPdpOverview":
+            for t in value.get("items") or []:
+                if isinstance(t, str) and t.strip() and len(t.strip()) <= LIGNE_MAX:
+                    lignes.append(t.strip())
+            t = value.get("title")
+            if titre is None and isinstance(t, str) and t.strip():
+                titre = t.strip()
         for item in value.values():
             walk(item, depth + 1)
 
@@ -141,6 +150,34 @@ def type_de_logement(share: Any, titre_apercu: str | None) -> str | None:
     return None
 
 
+def _chambres_arrangees(raw: Any) -> int | None:
+    """Le nombre de pièces nommées chambre dans « Où vous dormirez », quand
+    l'aperçu ne le dit pas."""
+    tour = _nested(raw, "data.node.pdpPresentation.sleepingArrangements")
+    stops = tour.get("stops") if isinstance(tour, dict) else None
+    if not isinstance(stops, list):
+        return None
+    n = 0
+    for stop in stops:
+        nom = stop.get("name") if isinstance(stop, dict) else None
+        if isinstance(nom, str) and re.search(r"\b(chambres?|bedrooms?)\b", nom, re.I):
+            n += 1
+    return n if 0 < n <= 50 else None
+
+
+def _lieu(raw: Any) -> str | None:
+    """La commune publiée (« Morzine, Auvergne-Rhône-Alpes, France »)."""
+    sub = _nested(raw, "data.node.pdpPresentation.location.subtitle")
+    if isinstance(sub, str) and sub.strip():
+        tete = sub.split(",")[0].strip()
+        if tete and len(tete) <= 80:
+            return tete
+    loc = _nested(raw, "data.node.pdpPresentation.localizedLocation")
+    if isinstance(loc, str) and loc.strip() and len(loc.strip()) <= 80:
+        return loc.strip()
+    return None
+
+
 def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
     # PdpPlatformSections (`merlin`), ou StaysPdpSections (`presentation`, la
     # forme que lit pyairbnb/standardize.py) : le repli si le hash de la
@@ -168,7 +205,18 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         or _take_coord(share.get("listingLng"))
     )
     if not _plausible(lat, lon):
-        lat = lon = None
+        plat = _take_coord(_nested(raw, "data.node.pdpPresentation.location.latitude"))
+        plon = _take_coord(_nested(raw, "data.node.pdpPresentation.location.longitude"))
+        if not _plausible(plat, plon):
+            plat = _take_coord(_nested(raw, "data.node.location.coordinate.latitude"))
+            plon = _take_coord(_nested(raw, "data.node.location.coordinate.longitude"))
+        if _plausible(plat, plon):
+            lat, lon = plat, plon
+        else:
+            lat = lon = None
+    if guests is None:
+        guests = _take_int(_nested(raw, "data.node.pdpPresentation.personCapacity"))
+        s_guests = guests
     # Les champs chiffrés d'abord ; le titre de partage et l'aperçu ne
     # comblent que ce qu'ils taisent.
     lignes, titre_apercu = apercu_pdp(raw)
@@ -178,6 +226,14 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         guests = t_guests
     if bedrooms is None:
         bedrooms = t_bedrooms
+    if bedrooms is None:
+        arrangees = _chambres_arrangees(raw)
+        if arrangees is not None:
+            bedrooms = arrangees
+            s_bedrooms = arrangees
+    beds = beds_from_text(*textes) if textes else None
+    baths = baths_from_text(*textes) if textes else None
+    locality = _lieu(raw)
     room_type = None
     for candidate in (log.get("roomType"), share.get("roomType"), prefetch.get("roomType")):
         if isinstance(candidate, str) and candidate.strip():
@@ -193,6 +249,9 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
         "bedrooms": bedrooms,
         "bedroomsSource": source_de(bedrooms, s_bedrooms),
         "rooms": rooms,
+        "beds": beds,
+        "baths": baths,
+        "locality": locality,
         "textes": textes,
         "lat": lat,
         "lon": lon,

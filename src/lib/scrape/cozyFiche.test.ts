@@ -65,6 +65,8 @@ describe("ficheCozy, sur les réponses réelles des 2 Alpes", () => {
     assert.deepEqual(fiche.avis?.extraits, []);
     assert.equal(photos.length, 9);
     assert.match(photos[0], /impolicy=ccrop&w=1000/);
+    // space.bathRoomCount
+    assert.equal(ficheCozy({ details: a.getDetails }).baths, 1);
   });
 
   it("Booking : les avis en extraits, notés sur 5, datés, au prénom", () => {
@@ -83,7 +85,7 @@ describe("ficheCozy, sur les réponses réelles des 2 Alpes", () => {
     assert.equal(premier.noteSur5, 4);
     assert.equal(
       premier.texte,
-      "Bon accueil bel hôtel. Service de chambre à améliorer. L’emplacement idéal et la modernité des installations. Les chambres sont faites trop tard.",
+      "Bon accueil bel hôtel. Service de chambre à améliorer. Points forts : L’emplacement idéal et la modernité des installations. Points faibles : Les chambres sont faites trop tard.",
     );
     const ids = fiche.equipements.map((e) => e.id);
     for (const id of ["animaux", "wifi", "parking", "sauna", "spa"]) assert.ok(ids.includes(id), id);
@@ -93,8 +95,8 @@ describe("ficheCozy, sur les réponses réelles des 2 Alpes", () => {
   });
 
   it("une recherche expirée chez Cozy (réponse vide) ne donne rien", () => {
-    assert.deepEqual(ficheCozy({ details: {} }), { fiche: null, photos: [] });
-    assert.deepEqual(ficheCozy({ details: null, photos: "x", avis: 3 }), { fiche: null, photos: [] });
+    assert.deepEqual(ficheCozy({ details: {} }), { fiche: null, photos: [], baths: null });
+    assert.deepEqual(ficheCozy({ details: null, photos: "x", avis: 3 }), { fiche: null, photos: [], baths: null });
   });
 });
 

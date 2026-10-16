@@ -192,7 +192,9 @@ def test_lire_page_avis_une_seule_requete_offset_zero():
         xs = pdp.lire_page_avis("111111", api_key="cle")
     finally:
         reviews.get_from_offset = ancien
-    assert vus == [("cle", 0, "111111", "EUR", "fr")]
+    assert vus == [("cle", 0, pdp.identifiant_avis("111111"), "EUR", "fr")]
+    assert pdp.identifiant_avis("111111") != "111111"
+    assert pdp.identifiant_avis("U3RheUxpc3Rpbmc6MQ==") == "U3RheUxpc3Rpbmc6MQ=="
     assert len(xs) == 5
     assert "dec1c8061483e78373602047450322fd474e79ba9afa8d3dbbc27f504030f91d" in reviews.ep
 
@@ -409,3 +411,179 @@ def test_par_defaut_aucune_page_d_avis():
     finally:
         pdp.lire_page_avis = ancien
     assert appels == []
+
+
+def _page_rooms(sections: list[dict]) -> str:
+    etat = {
+        "niobeClientData": [
+            [
+                'StaysPdpSections:{"id":"U3RheUxpc3Rpbmc6MQ=="}',
+                {"data": {"presentation": {"stayProductDetailPage": {"sections": {"sections": sections}}}}},
+            ]
+        ]
+    }
+    return f'<html><script id="data-deferred-state-0" type="application/json">{json.dumps(etat)}</script></html>'
+
+
+def _modale(texte: str) -> dict:
+    return {
+        "sectionComponentType": "PDP_DESCRIPTION_MODAL",
+        "section": {
+            "__typename": "GeneralListContentSection",
+            "items": [{"__typename": "BasicListItem", "title": None, "html": {"htmlText": texte}}],
+        },
+    }
+
+
+def test_page_rooms_la_plus_longue_description_et_la_visite_photo():
+    mention = "Axel est entièrement responsable de la proposition de ce logement sur Airbnb."
+    vraie = "Bienvenue dans ce très joli studio de 20 m², au pied des pistes. " * 3
+    photos = {
+        "sectionComponentType": "PHOTO_TOUR_SCROLLABLE",
+        "section": {
+            "__typename": "PhotoTourModalSection",
+            "mediaItems": [
+                {"__typename": "Image", "baseUrl": "https://a0.muscache.com/im/pictures/1.jpg"},
+                {"__typename": "Image", "baseUrl": "https://a0.muscache.com/im/pictures/2.jpg"},
+                {"__typename": "Image", "baseUrl": "https://a0.muscache.com/im/pictures/1.jpg"},
+            ],
+        },
+    }
+    occ = pdp.lire_page_rooms(200, {}, _page_rooms([_modale(mention), _modale(vraie), photos]))
+    assert occ is not None
+    assert occ["enrichie"]["description"].startswith("Bienvenue dans ce très joli studio")
+    assert occ["photos"] == ["https://a0.muscache.com/im/pictures/1.jpg", "https://a0.muscache.com/im/pictures/2.jpg"]
+    assert pdp.fiche_de(occ)["photos"] == occ["photos"]
+
+
+def test_page_rooms_sans_etat_ou_refusee():
+    assert pdp.lire_page_rooms(200, {}, "<html><title>Airbnb</title></html>") is None
+    assert pdp.pdp_de_page_rooms('<script id="data-deferred-state-0">pas du json</script>') is None
+    try:
+        pdp.lire_page_rooms(429, {}, "")
+    except RateLimited:
+        pass
+    else:
+        raise AssertionError("un 429 sur la page est un refus")
+
+
+def test_sections_vides_de_l_api_passent_par_la_page():
+    vide = json.dumps({"data": {"merlin": {"pdpSections": {"id": "1", "sections": []}}}})
+    try:
+        pdp.lire_reponse_pdp(200, {}, vide)
+    except pdp.SectionsVides:
+        pass
+    else:
+        raise AssertionError("sections vides : la page rooms/ doit prendre le relais")
+
+
+def test_pdp_presentation_donne_description_reglement_note_et_photos():
+    """La page rooms/ d'octobre 2026 : les sections Policies et Description
+    sont des stubs. La fiche est sous `node.pdpPresentation`."""
+    longue = "Appartement au pied des pistes, avec balcon et local à skis. " * 4
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "descriptions": {
+                        "longDescriptionHtml": {
+                            "localizedStringWithTranslationPreference": longue + "<br/>Cuisine équipée.",
+                        }
+                    },
+                    "rules": {
+                        "__typename": "StaysPdpRuleDetails",
+                        "title": "Règlement intérieur",
+                        "groupItems": [
+                            {
+                                "title": "Arrivée et départ",
+                                "items": [
+                                    {"title": "Arrivée : entre 17:00 et 22:00"},
+                                    {"title": "Départ avant 10:00"},
+                                ],
+                            },
+                            {
+                                "title": "Pendant votre séjour",
+                                "items": [
+                                    {"title": "Pas d'animaux"},
+                                    {"title": "Non fumeur"},
+                                    {"title": "Pas de fête ni de soirée"},
+                                    {
+                                        "title": "Horaires où le calme doit être respecté",
+                                        "description": {"text": "23:00 - 07:00"},
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    "quality": {
+                        "listingRatingStats": {"overallRatingStats": {"ratingAverage": 4.86, "ratingCount": "171"}},
+                        "categoryRatings": [
+                            {"label": "Propreté", "localizedRating": "4,8"},
+                            {"label": "Arrivée", "localizedRating": "4,9"},
+                        ],
+                    },
+                    "safetyAndProperty": {
+                        "__typename": "StaysPdpSafetyAndPropertyDetails",
+                        "groupItems": [{"items": [{"title": "Détecteur de fumée"}]}],
+                    },
+                    "highlights": [
+                        {
+                            "type": "LISTING_SELF_CHECKIN",
+                            "headline": {"localizedContent": "Arrivée autonome"},
+                            "body": {"localizedContent": "Boîte à clé sécurisée."},
+                        }
+                    ],
+                    "sleepingArrangements": {
+                        "stops": [
+                            {
+                                "name": "Chambre 1",
+                                "description": {"descriptions": [{"text": "1 lit double"}, {"text": "1 lit simple"}]},
+                            },
+                            {
+                                "name": "Chambre 2",
+                                "description": {"descriptions": [{"text": "2 lits simples"}]},
+                            },
+                        ]
+                    },
+                    "heroMedia": {
+                        "edges": [
+                            {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/a.jpg"}}},
+                            {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/b.jpg"}}},
+                            {"node": {"image": {"uri": "https://a0.muscache.com/im/pictures/a.jpg"}}},
+                        ]
+                    },
+                }
+            },
+            "presentation": {
+                "stayProductDetailPage": {
+                    "sections": {
+                        "sections": [
+                            {"sectionComponentType": "POLICIES_DEFAULT", "sectionContentStatus": "NOT_COMPLETE", "section": {"__typename": "PoliciesSection"}},
+                            {"sectionComponentType": "DESCRIPTION_DEFAULT", "section": {"__typename": "PdpDescriptionSection"}},
+                        ]
+                    }
+                }
+            },
+        }
+    }
+    f = fiche_enrichie_de_pdp(brut)
+    assert f["description"].startswith("Appartement au pied des pistes")
+    assert "Cuisine équipée." in f["description"]
+    assert "Chambre 1 : 1 lit double, 1 lit simple" in f["description"]
+    assert "Chambre 2 : 2 lits simples" in f["description"]
+    c = f["conditions"]
+    assert c["arrivee"] == "Arrivée : entre 17:00 et 22:00"
+    assert c["depart"] == "Départ avant 10:00"
+    assert c["animaux"] == "non" and c["fumeurs"] == "non" and c["fetes"] == "non"
+    assert "23:00 - 07:00" in c["reglement"]
+    assert "Détecteur de fumée" in c["reglement"]
+    assert "Arrivée autonome — Boîte à clé sécurisée." in c["reglement"]
+    assert f["avis"]["noteSource"] == 4.86 and f["avis"]["nombre"] == 171
+    assert f["avis"]["categories"] == [
+        {"label": "Propreté", "noteSource": 4.8},
+        {"label": "Arrivée", "noteSource": 4.9},
+    ]
+    assert pdp.galerie_de_pdp(brut) == [
+        "https://a0.muscache.com/im/pictures/a.jpg",
+        "https://a0.muscache.com/im/pictures/b.jpg",
+    ]

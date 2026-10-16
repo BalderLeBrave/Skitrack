@@ -12,6 +12,7 @@
 import type { Listing } from "@/lib/listings";
 import { airbnbCircuitOpen } from "@/lib/stay/airbnbCircuit.server";
 import { airbnbIdOf } from "@/lib/stay/airbnbId";
+import { garderLectures } from "@/lib/stay/contenuFiches.server";
 import { cleListing } from "@/lib/stay/poserReleve";
 import { memoireFiches, pdpDejaLue } from "@/lib/stay/memoireFiches.server";
 import { airbnbListePrioritaire } from "@/lib/stay/completerFiche.server";
@@ -100,6 +101,7 @@ export async function lireFichesLentes(
         adults: input.guests,
         echeance: Date.now() + FICHE_MS,
         pauseS: 12,
+        avis: true,
       });
       if (lu.arret === "refus" || lu.arret === "coupe-circuit") return "refus";
       if (lu.arret === "rythme") {
@@ -114,6 +116,7 @@ export async function lireFichesLentes(
         const cible = parId.get(fid);
         const cleCible = cible ? cleListing(cible) : null;
         if (!cleCible) continue;
+        if (f.locality && cible && !cible.locality) cible.locality = f.locality;
         const { enrichie, ...valeurs } = f;
         notes.push({
           cle: cleCible,
@@ -124,6 +127,7 @@ export async function lireFichesLentes(
           lon: valeurs.lon,
           ...(valeurs.capacitySource ? { capacitySource: valeurs.capacitySource } : {}),
           ...(valeurs.bedroomsSource ? { bedroomsSource: valeurs.bedroomsSource } : {}),
+          ...(valeurs.beds != null ? { beds: valeurs.beds } : {}),
           ...(typeof valeurs.ecartee === "boolean" ? { ecartee: valeurs.ecartee } : {}),
           ...(enrichie ? { fiche: { ...enrichie, recupereLe: enrichie.recupereLe ?? new Date().toISOString() } } : {}),
           lue: true,
@@ -145,6 +149,21 @@ export async function lireFichesLentes(
         videsEnAttente.push(...videsLus);
       }
       if (notes.length) memoire.noter(notes);
+      // La visite photo d'une fiche lue sur la page `rooms/` : gardée trente
+      // jours avec le contenu, posée sans réseau (`reposerGardees`).
+      const galeries = Object.entries(lu.fiches)
+        .filter(([, f]) => (f.photos?.length ?? 0) > 0 || f.baths != null)
+        .map(([fid, f]) => {
+          const cible = parId.get(fid);
+          return {
+            cle: cible ? cleListing(cible) : null,
+            contenu: {
+              ...(f.photos?.length ? { photos: f.photos } : {}),
+              ...(f.baths != null ? { baths: f.baths } : {}),
+            },
+          };
+        });
+      if (galeries.length) garderLectures(galeries);
       lues += lu.lues;
       if (videsDeSuite >= VIDES_DE_SUITE_MAX) {
         console.info(`[airbnb] fiches lentes arrêtées (illisible) après ${lues}`);

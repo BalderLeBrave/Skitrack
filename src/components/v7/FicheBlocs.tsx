@@ -589,6 +589,13 @@ export function BlocAvis({ l }: { l: Listing }) {
     .join(" · ");
   return (
     <Repli titre={tr("Avis")} resume={resume || null}>
+      {avis.categories?.length ? (
+        <p className="fl-note">
+          {avis.categories
+            .map((c) => [c.label, noteSur5Lbl(c.noteSur5)].filter(Boolean).join(" "))
+            .join(" · ")}
+        </p>
+      ) : null}
       {avis.extraits.length ? (
         <ul className="fl-avis">
           {avis.extraits.map((x, i) => {

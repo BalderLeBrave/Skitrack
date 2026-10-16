@@ -124,7 +124,7 @@ const OUVERTES_MAX = 3;
  * entre deux (`dansLaFile`), après la fiche en cours de la tâche de fond.
  * Au-delà, la relecture de la fiche ouverte la posera à son tour suivant.
  */
-const OUVERTURE_COZY_MS = 15_000;
+const OUVERTURE_COZY_MS = 12_000;
 
 /**
  * Relit les annonces que l'écran tient déjà, par la seconde passe seule
@@ -139,9 +139,10 @@ const OUVERTURE_COZY_MS = 15_000;
  * `lireMaintenant` : les annonces Airbnb qu'on vient d'ouvrir (trois au plus)
  * passent d'abord en tête de la file de la tâche de fond
  * (`prioriserSuiteAirbnb`), même limiteur, même coupe-circuit ; l'écran les
- * relit ensuite. Une annonce CozyCozy sans fiche passe de même en tête de la
- * file des fiches Cozy (`cozyFiches.server.ts`), et la réponse l'attend
- * `OUVERTURE_COZY_MS` au plus. Les autres sources ne sont pas lues à
+ * relit ensuite. `ficheCozy` : une annonce CozyCozy sans fiche qu'on ouvre
+ * passe en tête de la file des fiches Cozy (`cozyFiches.server.ts`), et la
+ * réponse l'attend `OUVERTURE_COZY_MS` au plus, ou jusqu'à l'ouverture d'une
+ * autre ; même en pose seule, rien d'autre ne part. Les autres sources ne sont pas lues à
  * l'ouverture : seule, hors du relevé entier, une annonce ne dit pas si sa
  * page est commune à plusieurs (`urlsPartagees`), et sa lecture poserait sur
  * elle la page d'une résidence.
@@ -168,12 +169,14 @@ export const completerAnnonces = createServerFn({ method: "POST" })
         .max(ANNONCES_MAX),
       lireMaintenant: z.boolean().optional(),
       poseSeule: z.boolean().optional(),
+      ficheCozy: z.boolean().optional(),
     }),
   )
   .handler(async ({ data }): Promise<Listing[]> => {
     const poseSeule = data.poseSeule === true;
     const lire = data.lireMaintenant === true && !poseSeule;
-    const rows = (data.listings as unknown as Listing[]).slice(0, lire ? OUVERTES_MAX : ANNONCES_MAX);
+    const cozyMaintenant = data.ficheCozy === true;
+    const rows = (data.listings as unknown as Listing[]).slice(0, lire || cozyMaintenant ? OUVERTES_MAX : ANNONCES_MAX);
     if (rows.length === 0) return rows;
     const points = new Map(rows.map((l) => [l.id, `${l.lat},${l.lon}`]));
     try {
@@ -182,8 +185,11 @@ export const completerAnnonces = createServerFn({ method: "POST" })
         // En tête AVANT la relecture : la suite, si elle repart, part sur elle.
         const { airbnbComplet } = await import("./stay/priseFiche");
         prioriserSuiteAirbnb(rows.filter((l) => l.source === "Airbnb" && !airbnbComplet(l)));
+      }
+      if (cozyMaintenant) {
         // La fiche Cozy de l'annonce ouverte, en tête de sa file : on l'attend
         // un moment, puis la relecture ci-dessous la pose (`reposerGardees`).
+        // Indépendant de `poseSeule` : rien d'autre ne part en file.
         const { ficheCozyAPoser } = await import("./stay/relecture");
         const cozy = rows.filter(ficheCozyAPoser);
         if (cozy.length) {

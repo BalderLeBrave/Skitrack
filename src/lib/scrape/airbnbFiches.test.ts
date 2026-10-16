@@ -127,8 +127,8 @@ describe("airbnbFiches", () => {
     );
     const a = out.fiches[IDS[0]];
     assert.deepEqual(
-      [a.capacity, a.capacitySource, a.bedrooms, a.bedroomsSource],
-      [4, "structured", 2, "text_regex"],
+      [a.capacity, a.capacitySource, a.bedrooms, a.bedroomsSource, a.beds],
+      [4, "structured", 2, "text_regex", 3],
     );
     const b = out.fiches[IDS[1]];
     assert.deepEqual(
@@ -228,6 +228,10 @@ describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => 
         noteSource: 4.86,
         echelleSource: 5,
         nombre: 120,
+        categories: [
+          { label: "Propreté", noteSource: 4.8 },
+          { label: "Arrivée", noteSource: 4.9 },
+        ],
         extraits: [
           { auteur: "Marie", date: "2026-03-02", noteSource: 5, texte: "Très bien." },
           { auteur: "Tom", texte: "Bien." },
@@ -262,6 +266,13 @@ describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => 
         ["Tom", null],
       ],
     );
+    assert.deepEqual(
+      e.avis!.categories?.map((c) => [c.label, c.noteSur5]),
+      [
+        ["Propreté", 4.8],
+        ["Arrivée", 4.9],
+      ],
+    );
   });
 
   it("une fiche écartée (hôtel, chambre) n'est pas enrichie ; une fiche sans rien n'a pas de clé", () => {
@@ -271,5 +282,23 @@ describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => 
     );
     assert.equal("enrichie" in lu.fiches["1"], false);
     assert.equal("enrichie" in lu.fiches["2"], false);
+  });
+
+  it("la visite photo de la page rooms/ : https seules, sans doublon ; rien sur une fiche écartée", () => {
+    const a = "https://a0.muscache.com/im/pictures/a.jpg";
+    const b = "https://a0.muscache.com/im/pictures/b.jpg";
+    const lu = lireSortieFiches(
+      {
+        fiches: {
+          "1": { ...brut, photos: [a, b, a, "http://x/c.jpg", 3] },
+          "2": { ...brut, ecartee: true, photos: [a] },
+          "3": { ...brut, photos: [] },
+        },
+      },
+      ["1", "2", "3"],
+    );
+    assert.deepEqual(lu.fiches["1"].photos, [a, b]);
+    assert.equal("photos" in lu.fiches["2"], false);
+    assert.equal("photos" in lu.fiches["3"], false);
   });
 });

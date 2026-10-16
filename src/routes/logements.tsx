@@ -228,6 +228,8 @@ const RELANCE_MS = 800;
 /** L'annonce ouverte se relit plus souvent, sans réseau, deux minutes au plus. */
 const RELECTURE_OUVERTE_MS = 4_000;
 const RELECTURES_OUVERTE_MAX = 30;
+/** Une fiche Cozy attendue à l'ouverture : la première relecture l'attend déjà 12 s. */
+const RELECTURES_COZY_MAX = 4;
 /** La suite de pages ajoute des annonces : on relit le cache, sans réseau. */
 const SUITE_AIRBNB_MS = 8_000;
 const SUITES_AIRBNB_MAX = 150;
@@ -1254,18 +1256,26 @@ function LogementsStation({ s }: { s: Station }) {
       const brute = (useStay.getState().liveListings ?? []).find((l) => l.id === id);
       if (!brute) return;
       const trouee = aCombler(brute);
-      // Une annonce Cozy sans fiche : sa fiche passe en tête, une fois.
-      const lire = (trouee || ficheCozyAPoser(brute)) && !lectureOuverte.current.has(id);
-      if (lire) lectureOuverte.current.add(id);
+      const cozy = ficheCozyAPoser(brute);
+      // La première lecture seule : la page trouée, ou la fiche Cozy, en tête.
+      const premiere = !lectureOuverte.current.has(id);
+      const lire = trouee && premiere;
+      const ficheCozy = cozy && premiere;
+      if (premiere && (trouee || cozy)) lectureOuverte.current.add(id);
       essais += 1;
-      const pose = trouee || lire ? {} : { poseSeule: true };
-      void completerAnnonces({ data: { listings: [brute], lireMaintenant: lire, ...pose } })
+      const pose = trouee ? {} : { poseSeule: true };
+      void completerAnnonces({ data: { listings: [brute], lireMaintenant: lire, ficheCozy, ...pose } })
         .then((rows) => {
           if (fini) return;
           patchLive(rows);
           const r = rows.find((x) => x.id === id);
-          const encore = r != null && (aCombler(r) || ficheCozyAPoser(r));
-          if (encore && essais < RELECTURES_OUVERTE_MAX) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);
+          // Une fiche Cozy qui n'est pas venue pendant l'attente ne vient en
+          // général plus (pas de référence, recherche expirée) : quelques
+          // relectures, pas trente.
+          const encore =
+            r != null &&
+            ((aCombler(r) && essais < RELECTURES_OUVERTE_MAX) || (ficheCozyAPoser(r) && essais < RELECTURES_COZY_MAX));
+          if (encore) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);
         })
         .catch(() => {
           if (!fini && essais < RELECTURES_OUVERTE_MAX) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);

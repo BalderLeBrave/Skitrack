@@ -162,6 +162,37 @@ def test_des_lits_ne_sont_ni_des_chambres_ni_des_voyageurs():
     assert occ["capacity"] is None
 
 
+def test_apercu_stays_pdp_overview_et_point_de_presentation():
+    """Sans titre de partage ni logging : l'aperçu et le point de la page rooms/."""
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "personCapacity": 4,
+                    "overview": {
+                        "__typename": "StaysPdpOverview",
+                        "title": "Logement entier : appartement en résidence - Morzine, France",
+                        "items": ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"],
+                    },
+                    "location": {"latitude": 46.18395, "longitude": 6.69464, "subtitle": "Morzine, Auvergne-Rhône-Alpes, France"},
+                }
+            }
+        }
+    }
+    occ = occupancy_from_pdp(brut)
+    assert (occ["capacity"], occ["bedrooms"], occ["beds"], occ["baths"], occ["lat"], occ["lon"]) == (
+        4,
+        2,
+        4,
+        1,
+        46.18395,
+        6.69464,
+    )
+    assert occ["capacitySource"] == "structured"
+    assert occ["locality"] == "Morzine"
+    assert any("2 chambres" in t for t in occ["textes"])
+
+
 def test_hotel_et_chambres_sont_ecartes_par_le_type_de_chambre():
     for room_type in ("Hotel room", "Private room", "Shared room"):
         assert occupancy_from_pdp(_pdp_apercu([], log={"roomType": room_type}))["dropped"], room_type
@@ -237,3 +268,24 @@ def test_la_source_dit_si_la_valeur_vient_d_un_champ_ou_du_texte():
     assert texte["capacitySource"] == "structured"
     assert texte["bedroomsSource"] == "text_regex", "les chambres du titre de partage"
     assert any("2 chambres" in t for t in texte["textes"]), "Node relit le titre de partage"
+
+
+def test_chambres_depuis_ou_vous_dormirez_quand_l_apercu_se_tait():
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "sleepingArrangements": {
+                        "stops": [
+                            {"name": "Chambre 1", "description": {"descriptions": [{"text": "1 lit double"}]}},
+                            {"name": "Chambre 2", "description": {"descriptions": [{"text": "2 lits simples"}]}},
+                            {"name": "Salon", "description": {"descriptions": [{"text": "1 canapé-lit"}]}},
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    occ = occupancy_from_pdp(brut)
+    assert occ["bedrooms"] == 2
+    assert occ["bedroomsSource"] == "structured"

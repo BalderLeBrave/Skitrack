@@ -33,10 +33,19 @@ export type FicheAirbnb = {
   typeLogement: string | null;
   /** Hôtel, chambre (privée, partagée, d'hôtes) ou hébergement insolite : l'annonce sort. */
   ecartee: boolean;
+  /** Lits de l'aperçu (« 4 lits »). Pas la capacité. */
+  beds?: number | null;
+  /** Salles de bain de l'aperçu (« 1 salle de bain »). */
+  baths?: number | null;
+  /** La commune publiée sur la page (« Morzine »). */
+  locality?: string | null;
   /** Description, équipements, règlement, note et avis lus sur la même
    *  réponse (`scrape/airbnb/fiche_pdp.py`), normalisés ici. Absente : la
    *  fiche n'en publiait rien. */
   enrichie?: FicheEnrichie;
+  /** La visite photo entière, quand la fiche a été lue sur la page `rooms/`
+   *  (`pdp.galerie_de_pdp`) : la tuile de recherche n'en porte que quelques-unes. */
+  photos?: string[];
 };
 
 export type LectureFichesAirbnb = {
@@ -65,6 +74,8 @@ export type DemandeFichesAirbnb = {
   echeance?: number;
   /** Secondes entre deux fiches, en plus de l'écart du limiteur (4 par défaut, 2 au moins). */
   pauseS?: number;
+  /** Une page d'avis (cinq extraits) pour chaque fiche qui en annonce. */
+  avis?: boolean;
 };
 
 export const ID_AIRBNB = /^\d{5,20}$/;
@@ -124,11 +135,24 @@ export function corpsFiches(
     adults: demande.adults,
     deadlineMs: echeance,
     ...(demande.pauseS != null ? { pauseS: demande.pauseS } : {}),
+    ...(demande.avis ? { avis: true } : {}),
   });
 }
 
 function entier(v: unknown, min: number): number | null {
   return typeof v === "number" && Number.isInteger(v) && v >= min && v <= 50 ? v : null;
+}
+
+/** « 3 lits », « 1 salle de bain » : la première ligne de l'aperçu qui le dit. */
+function compte(textes: readonly string[], re: RegExp, max: number): number | null {
+  for (const t of textes) {
+    const m = re.exec(t);
+    re.lastIndex = 0;
+    if (!m) continue;
+    const n = Number(m[1]);
+    if (Number.isInteger(n) && n >= 1 && n <= max) return n;
+  }
+  return null;
 }
 
 function texte(v: unknown): string | null {
@@ -165,6 +189,8 @@ function fiche(v: unknown): FicheAirbnb | null {
     },
     ...textes,
   );
+  const beds = entier(r.beds, 1) ?? compte(textes, /(\d+)\s*lits?\b/i, 50);
+  const baths = entier(r.baths, 1) ?? compte(textes, /(\d+)\s+salles?\s+de\s+bains?\b/i, 20);
   return {
     capacity: occ.capacity,
     capacitySource: occ.capacitySource,
@@ -175,8 +201,18 @@ function fiche(v: unknown): FicheAirbnb | null {
     roomType: texte(r.roomType),
     typeLogement: texte(r.typeLogement),
     ecartee: r.ecartee === true,
+    ...(beds != null ? { beds } : {}),
+    ...(baths != null ? { baths } : {}),
+    ...(texte(r.locality) ? { locality: texte(r.locality)! } : {}),
     ...enrichieDe(r),
+    ...photosDe(r),
   };
+}
+
+function photosDe(r: Record<string, unknown>): { photos?: string[] } {
+  if (r.ecartee === true || !Array.isArray(r.photos)) return {};
+  const photos = [...new Set(r.photos.filter((u): u is string => typeof u === "string" && /^https:\/\//.test(u)))];
+  return photos.length ? { photos } : {};
 }
 
 function enrichieDe(r: Record<string, unknown>): { enrichie?: FicheEnrichie } {

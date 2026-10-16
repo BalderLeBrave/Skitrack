@@ -438,7 +438,7 @@ describe("mémoire des fiches : la version du lecteur de fiche PDP", () => {
     assert.equal(pdpDejaLue(a), false, "occupation lue avant le lecteur de fiche : à relire");
     assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70011", T15)), false, "vide d'avant : à relire");
     assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70012", T15)), true, "écartée : jamais enrichie");
-    assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70013", T15)), true, "sa fiche est là");
+    assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70013", T15)), false, "fiche d'un lecteur d'avant : à relire");
     assert.equal(pdpDejaLue(ancienne.lire("Airbnb:70014", T15)), false, "une page rooms/ n'est pas la fiche PDP");
     assert.equal(pdpDejaLue(ancienne.lire("Airbnb:79999", T15)), false);
 

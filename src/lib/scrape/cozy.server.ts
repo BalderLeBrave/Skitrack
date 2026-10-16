@@ -545,7 +545,9 @@ export type CollecteCozy = {
  * ses pages jusqu'au compteur publié — une requête à la fois.
  *
  * Chaque page rendue porte `fournisseur`, le filtre qu'on a demandé (ajouté
- * ici, ce n'est pas une donnée de la source) : `cozyAnnonces` s'en sert.
+ * ici, ce n'est pas une donnée de la source) : `cozyAnnonces` s'en sert. Elle
+ * porte aussi le `searchId` de la recherche : la fiche de chaque annonce se
+ * demande avec lui (`cozyFiches.server.ts`).
  * `echeance` est un instant absolu (`Date.now()`) ; à l'échéance, l'aller
  * rend ce qu'il a déjà lu.
  */
@@ -622,7 +624,7 @@ export async function collecterCozy(
       try {
         const res = await paginerFournisseur(tirage(code), echeance);
         for (const p of res.pages) {
-          payloads.push(p && typeof p === "object" ? { ...(p as object), fournisseur: code } : p);
+          payloads.push(p && typeof p === "object" ? { ...(p as object), fournisseur: code, searchId: sid } : p);
         }
         annonces[code] = res.annonces;
         arrets[code] = res.arret;

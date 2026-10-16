@@ -77,7 +77,7 @@ import {
   DEVIS_MS,
   TARIF_MS,
 } from "@/lib/searchStay";
-import { aCombler, aRelire, boucleRelecture } from "@/lib/stay/relecture";
+import { aCombler, aRelire, boucleRelecture, ficheCozyAPoser } from "@/lib/stay/relecture";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
@@ -1235,7 +1235,9 @@ function LogementsStation({ s }: { s: Station }) {
   // Trouée (capacité, chambres ou position : `aCombler`), une annonce Airbnb
   // passe en tête de la lecture (`completerAnnonces`, `lireMaintenant`), puis
   // l'écran la relit sans réseau toutes les `RELECTURE_OUVERTE_MS`, tant que
-  // la fiche est ouverte et qu'elle reste trouée. Sinon, sa fiche enrichie ou
+  // la fiche est ouverte et qu'elle reste trouée. Une annonce Cozy sans fiche
+  // (`ficheCozyAPoser`) passe de même en tête de la file des fiches Cozy, et se
+  // relit tant que sa fiche n'est pas posée. Sinon, sa fiche enrichie ou
   // son contenu n'est pas encore posé : une relecture de la mémoire, en pose
   // seule, sans rien remettre en file ; la relecture de la liste suit le reste.
   const patchLive = useStay((x) => x.patchLive);
@@ -1252,16 +1254,18 @@ function LogementsStation({ s }: { s: Station }) {
       const brute = (useStay.getState().liveListings ?? []).find((l) => l.id === id);
       if (!brute) return;
       const trouee = aCombler(brute);
-      const lire = trouee && !lectureOuverte.current.has(id);
+      // Une annonce Cozy sans fiche : sa fiche passe en tête, une fois.
+      const lire = (trouee || ficheCozyAPoser(brute)) && !lectureOuverte.current.has(id);
       if (lire) lectureOuverte.current.add(id);
       essais += 1;
-      const pose = trouee ? {} : { poseSeule: true };
+      const pose = trouee || lire ? {} : { poseSeule: true };
       void completerAnnonces({ data: { listings: [brute], lireMaintenant: lire, ...pose } })
         .then((rows) => {
           if (fini) return;
           patchLive(rows);
           const r = rows.find((x) => x.id === id);
-          if (r && aCombler(r) && essais < RELECTURES_OUVERTE_MAX) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);
+          const encore = r != null && (aCombler(r) || ficheCozyAPoser(r));
+          if (encore && essais < RELECTURES_OUVERTE_MAX) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);
         })
         .catch(() => {
           if (!fini && essais < RELECTURES_OUVERTE_MAX) minuterie = setTimeout(tour, RELECTURE_OUVERTE_MS);

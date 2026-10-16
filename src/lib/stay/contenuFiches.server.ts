@@ -236,7 +236,9 @@ function equipementsMuets(a: readonly Equipement[] | null | undefined): boolean 
  * description si elle n'en a pas ; les équipements si elle n'en a pas, ou si
  * les siens ne disent rien (`equipementsMuets`) et ceux de la fiche, si ; les
  * libellés publiés si elle n'en porte aucun ; la galerie si elle n'a que sa
- * photo principale. Ne remplace rien de ce que le relevé a donné. Rend `true`
+ * photo principale, ou si la galerie gardée est plus longue que la sienne
+ * (elle la remplace alors). Ne remplace rien d'autre de ce que le relevé a
+ * donné. Rend `true`
  * si quelque chose a été posé.
  */
 export function poserContenu(
@@ -266,6 +268,14 @@ export function poserContenu(
       row.photo = row.photo ?? photos[0] ?? null;
       pose = true;
     }
+  } else if (c.photos && new Set(c.photos).size > galerie.length) {
+    // Une galerie gardée plus longue que celle de la liste : la galerie
+    // entière de la fiche (Cozy : 26 photos là où la liste en donne 3, dont
+    // les mêmes en vignette). Elle remplace, sans mêler les deux tailles.
+    const photos = [...new Set(c.photos)];
+    row.photos = photos;
+    row.photo = photos[0] ?? row.photo ?? null;
+    pose = true;
   }
   return pose;
 }

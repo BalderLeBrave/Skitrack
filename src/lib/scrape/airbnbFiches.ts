@@ -63,6 +63,8 @@ export type LectureFichesAirbnb = {
   raison?: string;
   /** Pour `rythme` : l'attente que le limiteur a demandée. */
   attenteMs?: number;
+  /** Le worker a trouvé PdpPlatformSections vide et lu la page `rooms/`. */
+  pageRooms?: boolean;
 };
 
 export type DemandeFichesAirbnb = {
@@ -76,6 +78,8 @@ export type DemandeFichesAirbnb = {
   pauseS?: number;
   /** Une page d'avis (cinq extraits) pour chaque fiche qui en annonce. */
   avis?: boolean;
+  /** PdpPlatformSections est connue vide : lire directement la page `rooms/`. */
+  pageRooms?: boolean;
 };
 
 export const ID_AIRBNB = /^\d{5,20}$/;
@@ -136,6 +140,7 @@ export function corpsFiches(
     deadlineMs: echeance,
     ...(demande.pauseS != null ? { pauseS: demande.pauseS } : {}),
     ...(demande.avis ? { avis: true } : {}),
+    ...(demande.pageRooms ? { pageRooms: true } : {}),
   });
 }
 
@@ -269,6 +274,7 @@ export function lireSortieFiches(
   const arret: ArretFiches | null = brut ?? (tue && restants.length > 0 ? "echeance" : null);
   const lues = typeof p.lues === "number" && Number.isInteger(p.lues) && p.lues >= 0 ? p.lues : 0;
   const out: LectureFichesAirbnb = { fiches, vides, restants, lues, arret };
+  if (p?.pageRooms === true) out.pageRooms = true;
   if (arret)
     out.raison =
       typeof p.erreurArret === "string" && p.erreurArret.trim()

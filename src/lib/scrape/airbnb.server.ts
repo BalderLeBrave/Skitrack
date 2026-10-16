@@ -643,6 +643,14 @@ function lancerWorker(python: Interpreteur, cli: string, body: string, echeance:
  * perdue par tranche). Mémoire du processus : un redémarrage réessaie.
  */
 let hashPdpPerimeJusqua = 0;
+/**
+ * PdpPlatformSections répond vide (sections: []) : jusqu'à cet instant, les
+ * workers vont directement à la page `rooms/`. Chacun est un processus
+ * neuf : sans cela, chaque fiche coûtait deux requêtes, l'API vide puis la
+ * page (« 2 lues »). Six heures, puis l'API se resonde une fois.
+ */
+let pageRoomsJusqua = 0;
+const PAGE_ROOMS_MS = 6 * 60 * 60_000;
 const HASH_PERIME_MS = 12 * 60 * 60 * 1000;
 
 /**
@@ -681,13 +689,15 @@ export async function lireFichesAirbnb(demande: DemandeFichesAirbnb): Promise<Le
   if (!python || pasPython) return sans("worker", pasPython ?? "aucun Python 3 trouvé (npm run scrape:python)");
   await allowsPath("https://www.airbnb.fr", "/api/v3/PdpPlatformSections");
   const echeance = demande.echeance ?? Date.now() + ECHEANCE_FICHES_MS;
-  const raw = await lancerWorker(python, cli, corpsFiches(demande, ids, echeance), echeance);
+  const pageRooms = demande.pageRooms ?? Date.now() < pageRoomsJusqua;
+  const raw = await lancerWorker(python, cli, corpsFiches({ ...demande, pageRooms }, ids, echeance), echeance);
   for (const ligne of raw.err.split(/\r?\n/)) {
     if (/^\[airbnb\]/.test(ligne)) console.info(ligne);
   }
   const lu = lireSortieFiches(raw.out ? lastJsonObject(raw.out) : null, ids, raw.tue);
   if (lu.arret === "worker" && raw.err) console.warn("[airbnb] fiches : stderr", raw.err.slice(0, 500));
   if (lu.arret === "hash") hashPdpPerimeJusqua = Date.now() + HASH_PERIME_MS;
+  if (lu.pageRooms) pageRoomsJusqua = Date.now() + PAGE_ROOMS_MS;
   return lu;
 }
 

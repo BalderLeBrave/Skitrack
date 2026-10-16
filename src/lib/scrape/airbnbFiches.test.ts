@@ -302,3 +302,14 @@ describe("fiche enrichie : ce que la PDP publie, normalisé côté Node", () => 
     assert.equal("photos" in lu.fiches["3"], false);
   });
 });
+
+describe("la page rooms/ retenue d'un worker à l'autre", () => {
+  it("le worker dit qu'il a lu la page ; la demande suivante le lui redit", () => {
+    const lu = lireSortieFiches({ ok: true, fiches: {}, vides: ["1"], restants: [], lues: 1, pageRooms: true }, ["1"], false);
+    assert.equal(lu.pageRooms, true);
+    const corps = JSON.parse(corpsFiches({ ids: ["1"], checkIn: "2027-01-02", checkOut: "2027-01-09", adults: 2, pageRooms: true }, ["1"], 0));
+    assert.equal(corps.pageRooms, true);
+    const sans = JSON.parse(corpsFiches({ ids: ["1"], checkIn: "2027-01-02", checkOut: "2027-01-09", adults: 2 }, ["1"], 0));
+    assert.equal("pageRooms" in sans, false);
+  });
+});

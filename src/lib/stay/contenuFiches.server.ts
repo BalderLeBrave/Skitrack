@@ -305,9 +305,18 @@ export function poserContenu(
     // Une galerie gardée plus longue que celle de l'annonce : la galerie
     // entière de la fiche (Cozy : 26 photos là où la liste en donne 3, ou la
     // seule vignette d'une tuile Booking). Elle remplace, sans mêler les deux
-    // tailles d'un même cliché.
-    row.photos = gardee;
-    row.photo = gardee[0];
+    // tailles d'un même cliché. La photo principale ne change que si elle
+    // est dans la galerie (même adresse, taille mise à part) ou si la galerie
+    // vient de Cozy, dont la liste ne donne que des vignettes de ces mêmes
+    // clichés : ailleurs, celle que le relevé a choisie reste devant.
+    const sansTaille = (u: string) => u.split("?")[0];
+    const meme = row.photo ? gardee.find((u) => sansTaille(u) === sansTaille(row.photo!)) : undefined;
+    if (!row.photo || meme || c.origine === "cozy") {
+      row.photos = gardee;
+      row.photo = meme ?? gardee[0];
+    } else {
+      row.photos = [row.photo, ...gardee];
+    }
     pose = true;
   } else if (galerie.length <= 1 && gardee.length) {
     const photos = [...new Set([...galerie, ...gardee])];

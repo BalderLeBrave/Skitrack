@@ -141,6 +141,21 @@ export function ficheTravelskiAPoser(l: Listing): boolean {
 }
 
 /**
+ * Ski-Planet : le panneau d'un logement (`infos-logement.php`) se lit en
+ * tâche de fond après la réponse, un à la fois (`lancerSuitePanneaux`,
+ * skiPlanet.server.ts), et sa description, ses photos et les équipements
+ * qu'elle nomme se gardent trente jours, sans fiche (`garderLectures`, clé
+ * `cleListing` : `Ski-Planet:` et l'identifiant du logement, la même pour
+ * l'offre seule et l'offre forfaits compris). L'écran n'ouvre jamais une page
+ * de ski-planet.com (`pageJamaisOuverte`) : la relecture pose ce contenu sans
+ * réseau (`reposerGardees`). Le panneau ne publie ni point ni capacité : une
+ * annonce qui porte une description n'attend plus rien.
+ */
+export function panneauSkiPlanetAPoser(l: Listing): boolean {
+  return l.source === "Ski-Planet" && l.amenities == null && !l.description;
+}
+
+/**
  * Ce que relisait la boucle d'avant : des trous de fiche (`aCombler`), ou une
  * annonce Airbnb dont la fiche enrichie n'est pas encore posée. Elle
  * s'arrêtait dès qu'il n'en restait plus. La boucle de la réponse Airbnb ne
@@ -156,8 +171,8 @@ export function aRelireEnFile(l: Listing): boolean {
  * À relire : ce que relisait la boucle d'avant (`aRelireEnFile`), ou un
  * contenu ou une fiche Booking que la tâche de fond lit encore
  * (`contenuAPoser`, `contenuArkianeAPoser`, `ficheBookingAPoser`,
- * `contenuOrchestraAPoser`, `ficheTravelskiAPoser`). La mémoire se pose sans
- * réseau.
+ * `contenuOrchestraAPoser`, `ficheTravelskiAPoser`, `panneauSkiPlanetAPoser`).
+ * La mémoire se pose sans réseau.
  */
 export function aRelire(l: Listing): boolean {
   return (
@@ -166,7 +181,8 @@ export function aRelire(l: Listing): boolean {
     contenuArkianeAPoser(l) ||
     ficheBookingAPoser(l) ||
     contenuOrchestraAPoser(l) ||
-    ficheTravelskiAPoser(l)
+    ficheTravelskiAPoser(l) ||
+    panneauSkiPlanetAPoser(l)
   );
 }
 

@@ -481,7 +481,7 @@ describe("description et conditions : le texte de la source, sinon rien", () => 
 });
 
 describe("équipements à l'écran : lus, tus, non lus", () => {
-  // Gîtes, Ski-Planet : une fiche lue sans liste, et des douze clés tirées de la description.
+  // Gîtes : une fiche lue sans liste, et des douze clés tirées de la description.
   const amenities = equipements({ balcon: "oui", wifi: "oui" });
 
   it("une fiche lue décide seule : ni les oui ni les « non indiqué » des collecteurs", () => {
@@ -503,6 +503,21 @@ describe("équipements à l'écran : lus, tus, non lus", () => {
       assert.ok(tus.includes("parking") && !tus.includes("wifi"));
       assert.equal(equipementsLus(l), true);
     }
+  });
+
+  it("une ancienne fiche Ski-Planet sans liste ne décide plus : les équipements nommés reviennent", () => {
+    // Un favori gardé d'avant le 16 octobre 2026 porte encore la fiche « ski-planet »
+    // que le collecteur posait sur le panneau, sans liste ; le rafraîchissement la recopie.
+    const ancienne = fiche({ sourceFiche: "ski-planet", description: "Appartement avec balcon et lave-vaisselle." });
+    const l = annonce({ source: "Ski-Planet", amenities, fiche: ancienne });
+    assert.equal(ficheDecideEquipements(l), false);
+    assert.deepEqual(
+      equipementsDe(l)!.filter((e) => e.present).map((e) => e.id).sort(),
+      ["balcon", "wifi"],
+    );
+    // Une fiche Ski-Planet qui publierait une liste déciderait, comme les autres.
+    const avecListe = fiche({ sourceFiche: "ski-planet", equipements: [{ id: "parking", libelle: "Parking", present: true }] });
+    assert.equal(ficheDecideEquipements(annonce({ source: "Ski-Planet", amenities, fiche: avecListe })), true);
   });
 
   it("ni fiche ni douze clés : non lus, ce qui n'est pas « non publié »", () => {

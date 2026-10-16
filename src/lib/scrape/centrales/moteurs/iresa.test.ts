@@ -11,7 +11,9 @@ import {
   nuitsIresa,
   prestationsIresa,
   produitsIresa,
+  typeDeCategorie,
 } from "./iresa.ts";
+import { qualifierLogement } from "../../../stay/logement.ts";
 
 /**
  * Relevé du 13 septembre 2026 sur `lesarcs-reservation.com`, sept nuits à huit
@@ -270,6 +272,19 @@ describe("iResa : la catégorie publiée, et la règle du propriétaire", () => 
     assert.equal(horsRegleIresa({ categorie: "Hôtels" }), "hôtel");
     // Une catégorie inconnue est gardée ; le connecteur la nomme au journal.
     assert.equal(horsRegleIresa({ categorie: "Lofts" }), null);
+  });
+
+  it("« Appartments, studios » n'est pas le type du logement : un « 2 pièces cabine » garde sa chambre", () => {
+    // La catégorie de tout le catalogue réunit deux types : posée en
+    // `propertyType`, elle faisait de chaque appartement un studio à 0 chambre.
+    for (const f of lireIresa(PAGE_CATEGORIES, DEMANDE_4)) assert.equal(typeDeCategorie(f.categorie), null);
+    assert.equal(typeDeCategorie("Chalets"), "Chalets");
+    assert.equal(typeDeCategorie(null), null);
+    const annonce = (propertyType: string | null) =>
+      qualifierLogement({ source: "Centrale", title: "appartement 2 pièces cabine", propertyType, capacity: 6, bedrooms: null });
+    assert.deepEqual([annonce("Appartments, studios").bedrooms, annonce("Appartments, studios").isStudio], [0, true], "le défaut");
+    const q = annonce(typeDeCategorie("Appartments, studios"));
+    assert.deepEqual([q.bedrooms, q.bedroomsSource, q.rooms, q.isStudio], [1, "derived_from_type", 2, false]);
   });
 });
 

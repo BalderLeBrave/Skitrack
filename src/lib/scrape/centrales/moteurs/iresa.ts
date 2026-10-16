@@ -293,6 +293,18 @@ export function produitsIresa(page: string): { nom: string | null; categorie: st
 }
 
 /**
+ * Le type que la catégorie publiée dit de ce logement, pour `propertyType`.
+ * Une catégorie qui en réunit plusieurs (« Appartments, studios », celle de
+ * tout le catalogue des Arcs) ne dit rien de lui : lue comme un type, elle
+ * faisait de chaque appartement sans chambres publiées un studio à 0 chambre,
+ * « 3 pièces » compris (audit du 16 octobre 2026). La règle des types
+ * (`horsRegleIresa`) la lit toujours, telle quelle.
+ */
+export function typeDeCategorie(categorie: string | null): string | null {
+  return categorie && !categorie.includes(",") ? categorie : null;
+}
+
+/**
  * La règle du propriétaire (`regleTypes.ts`), sur la catégorie publiée et,
  * pour le seul camping, sur le titre et le chemin. Rend le motif d'écart, ou
  * `null` quand la fiche est gardée, catégorie inconnue comprise.

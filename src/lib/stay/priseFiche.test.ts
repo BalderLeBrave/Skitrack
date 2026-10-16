@@ -10,6 +10,7 @@ import {
   disjoncteur,
   ecrireLaissees,
   estPageDeSite,
+  pageJamaisOuverte,
   raisonDeLaisser,
   trousDe,
   troisChampsAirbnb,
@@ -167,6 +168,16 @@ describe("une URL commune n'est jamais prise pour une fiche", () => {
     assert.equal(estPageDeSite("https://reservation.exemple.fr/fiche/12"), false);
     assert.equal(estPageDeSite("https://www.exemple.fr/hebergements/chalet-des-cimes"), false);
     assert.equal(estPageDeSite(ABRITEL), false);
+  });
+
+  it("l'accueil d'une centrale (Arkiane) n'est jamais ouvert : la mémoire peut combler son annonce", () => {
+    assert.equal(pageJamaisOuverte("https://www.reservationpralognan.fr"), true);
+    assert.equal(pageJamaisOuverte(ACCUEIL), true);
+    assert.equal(pageJamaisOuverte(FERATEL), true);
+    // Une fiche s'ouvre, sauf chez un hôte à prise vide (Travelski, La Plagne, Booking).
+    assert.equal(pageJamaisOuverte(FICHE), false);
+    assert.equal(pageJamaisOuverte("https://www.travelski.com/sejour-ski/x"), true);
+    assert.equal(pageJamaisOuverte(null), false);
   });
 
   it("une URL portée par deux annonces du lot est commune, pas celle d'une seule", () => {

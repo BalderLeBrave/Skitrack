@@ -28,6 +28,7 @@ import {
   jetonIresa,
   lireIresa,
   nuitsIresa,
+  typeDeCategorie,
   type FicheIresa,
 } from "./iresa";
 
@@ -136,7 +137,7 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     capacitySource: occ.capacitySource,
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
-    propertyType: f.categorie,
+    propertyType: typeDeCategorie(f.categorie),
     description: f.description,
     amenities: equipements(f.equipements),
     ...(f.equipementsPublies.length ? { equipementsPublies: f.equipementsPublies } : {}),

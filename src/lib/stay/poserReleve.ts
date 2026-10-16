@@ -1,7 +1,7 @@
 /**
- * Recopie capacité, chambres et GPS d'un relevé déjà lu pour la même annonce.
- * Rien n'est estimé : c'est ce que la source avait publié, ailleurs que sur
- * la tuile du moment. Chaque valeur garde sa source : un champ structuré
+ * Recopie capacité, chambres, GPS et, à une annonce qui n'en a aucune, la
+ * photo d'un relevé déjà lu pour la même annonce. Rien n'est estimé : c'est
+ * ce que la source avait publié, ailleurs que sur la tuile du moment. Chaque valeur garde sa source : un champ structuré
  * passe devant le texte, et une valeur du texte (lue dans le titre du
  * relevé) ne comble qu'un champ vide.
  */
@@ -193,6 +193,10 @@ const CHAMPS_DU_BIEN = [
   ["amenities"],
   ["equipementsPublies"],
   ["rating", "reviewCount"],
+  // La galerie : la photo avec ses photos, puis les photos seules. La copie
+  // gardée est souvent celle de Cozy, parfois sans vignette.
+  ["photo", "photos"],
+  ["photos"],
 ] as const;
 
 /** Une valeur qui ne dit rien du bien : absente, un texte vide, une liste
@@ -282,6 +286,13 @@ export function poserReleve<T extends SujetReleve, D extends SujetReleve>(rows: 
     }
     if (!row.locality && d.locality) {
       row.locality = d.locality;
+      changed = true;
+    }
+    // Sans aucune photo (la copie Cozy d'une annonce Abritel, parfois) : celle
+    // du relevé, comme la galerie d'une autre copie (`dedoublonnerParBien`).
+    if (!row.photo && !row.photos?.length && d.photo) {
+      row.photo = d.photo;
+      row.photos = d.photos?.length ? d.photos : [d.photo];
       changed = true;
     }
     if (d.title && !titreEstFichier(d.title)) {

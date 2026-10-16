@@ -693,7 +693,8 @@ async function fillPool(
           ouverte(row, lect);
           const contenu = contenuDeFiche(url, got.html);
           if (contenu) {
-            poserContenu(row, contenu);
+            // Sa description dit peut-être les chambres (Ingénie) : l'annonce se requalifie.
+            if (poserContenu(row, contenu) && row.source !== "Airbnb") Object.assign(row, qualifierLogement(row));
             contenus.push({ cle: cleListing(row), contenu });
           }
         } else {

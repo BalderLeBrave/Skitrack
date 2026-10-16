@@ -36,8 +36,9 @@
  * fois, douze secondes d'écart, cent fiches ou trente minutes au plus, et elle
  * cède à toute nouvelle recherche vers la centrale. Ce qu'une fiche publie de
  * contenu (description, équipements, « Caractéristiques ») se garde trente
- * jours (`garderLectures`) et se repose sans réseau (`reposerGardees`) ; la
- * capacité et le point restent en mémoire vive. Après un 403, un 429 ou un
+ * jours (`garderLectures`), son point, sa capacité et ses pièces aussi
+ * (mémoire des fiches), et tout se repose sans réseau (`reposerGardees`) : la
+ * page de La Plagne, l'écran ne l'ouvre jamais. Après un 403, un 429 ou un
  * 503 sur une fiche, plus aucune fiche n'est demandée à cette centrale pendant
  * une heure.
  *
@@ -47,8 +48,9 @@
  */
 
 import type { Listing } from "@/lib/listings";
-import { dejaGardee, garderLectures, reposerGardees, type LectureAGarder } from "@/lib/stay/contenuFiches.server";
+import { garderLectures, reposerGardees, type LectureAGarder } from "@/lib/stay/contenuFiches.server";
 import { equipements } from "@/lib/stay/equipements";
+import { memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { cleListing } from "@/lib/stay/poserReleve";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
@@ -284,6 +286,42 @@ async function lireFiches(
   return { fiches: out, nouvelles, budget: budget && arret === "budget de la recherche épuisé" };
 }
 
+/** Ce que la fiche publie de nombres et de point, à noter trente jours. Ni
+ *  chambres inventées : seulement celles que le bloc « Information » écrit. */
+function valeursDeFiche(cle: string | null | undefined, f: FicheOrchestra) {
+  return {
+    cle,
+    lat: f.lat,
+    lon: f.lon,
+    capacity: f.capacite,
+    capacitySource: f.capacite != null ? ("structured" as const) : null,
+    bedrooms: f.chambres,
+    bedroomsSource: f.chambres != null ? ("structured" as const) : null,
+    rooms: f.pieces,
+    lue: true,
+  };
+}
+
+/** Note les valeurs des fiches lues ; un disque refusé ne coupe rien. */
+function noterValeurs(valeurs: ReturnType<typeof valeursDeFiche>[]): void {
+  if (!valeurs.length) return;
+  try {
+    memoireFiches().noter(valeurs);
+  } catch (err) {
+    console.warn("[centrale] fiches Orchestra non notées :", (err as Error).message);
+  }
+}
+
+/** Une fiche lue il y a moins de trente jours (contenu, point, capacité) ne se relit pas. */
+function ficheNotee(cle: string | null | undefined): boolean {
+  if (!cle) return false;
+  try {
+    return memoireFiches().lire(cle)?.lue === true;
+  } catch {
+    return false;
+  }
+}
+
 /** Ce que la fiche publie de contenu, à garder trente jours. */
 function contenuDeFiche(f: FicheOrchestra): LectureAGarder["contenu"] {
   return {
@@ -317,8 +355,10 @@ function lancerSuiteFiches(
   const debut = Date.now();
   const cede = () => generations.get(base) !== gen;
   const aGarder: LectureAGarder[] = [];
+  const aNoter: ReturnType<typeof valeursDeFiche>[] = [];
   const vider = () => {
     if (aGarder.length) garderLectures(aGarder.splice(0));
+    noterValeurs(aNoter.splice(0));
   };
   const adresse = (c: CarteOrchestra): string | null => {
     if (!c.chemin) return null;
@@ -330,7 +370,7 @@ function lancerSuiteFiches(
     {
       dejaLue: (c) => {
         const hit = fiches.get(`${base}|${c.id}`);
-        return (hit != null && Date.now() - hit.at < FICHE_TTL_MS) || !adresse(c) || dejaGardee(cles.get(c.id));
+        return (hit != null && Date.now() - hit.at < FICHE_TTL_MS) || !adresse(c) || ficheNotee(cles.get(c.id));
       },
       arret: () =>
         cede()
@@ -347,6 +387,7 @@ function lancerSuiteFiches(
       garder: (c, f) => {
         fiches.set(`${base}|${c.id}`, { at: Date.now(), valeur: f });
         aGarder.push({ cle: cles.get(c.id), contenu: contenuDeFiche(f) });
+        aNoter.push(valeursDeFiche(cles.get(c.id), f));
         if (aGarder.length >= 5) vider();
       },
     },
@@ -567,12 +608,20 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
       return x && f ? [{ cle: cleListing(x.listing), contenu: contenuDeFiche(f) }] : [];
     }),
   );
+  noterValeurs(
+    [...nouvelles].flatMap((id) => {
+      const x = parCarte.get(id);
+      const f = fichesLues.get(id);
+      return x && f ? [valeursDeFiche(cleListing(x.listing), f)] : [];
+    }),
+  );
   reposerGardees(listings);
   // Le budget n'a pas suffi : le reste en tâche de fond, à son rythme.
   if (budget) {
     const restantes = [...parCarte.values()].flatMap(({ carte, listing }) => {
       const cle = cleListing(listing);
-      return !fichesLues.has(carte.id) && carte.chemin && cle && !dejaGardee(cle) ? [{ carte, cle }] : [];
+      // Une fiche gardée avant qu'on note ses valeurs (contenu sans `lue`) se relit une fois.
+      return !fichesLues.has(carte.id) && carte.chemin && cle && !ficheNotee(cle) ? [{ carte, cle }] : [];
     });
     lancerSuiteFiches(base, r.host, gen, restantes);
   }

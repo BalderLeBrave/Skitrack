@@ -185,8 +185,29 @@ describe("garderLectures, reposerGardees, dejaGardee : l'API des collecteurs", (
     assert.equal(row.amenities?.find((e) => e.cle === "balcon")?.valeur, "oui");
     assert.deepEqual(row.photos, ["https://exemple.fr/tuile.jpg", ...CONTENU.photos]);
     assert.equal(row.photo, "https://exemple.fr/tuile.jpg");
-    // L'annonce reste trouée : sa page s'ouvre encore (taxe de séjour d'une centrale).
-    assert.deepEqual([row.capacity, row.bedrooms, row.lat, row.lon], [null, null, null, null]);
+    // Rien de la mémoire (capacité 4, 1 chambre, point) : l'annonce reste
+    // trouée, sa page s'ouvre encore (taxe de séjour d'une centrale). Seuls
+    // les mots de la fiche posée se lisent : « Studio », 0 chambre.
+    assert.deepEqual([row.capacity, row.lat, row.lon], [null, null, null]);
+    assert.deepEqual([row.bedrooms, row.bedroomsSource], [0, "derived_from_type"]);
+  });
+
+  it("une description reposée dit ses chambres : l'annonce se requalifie (fiche Booking, descriptif Ingénie)", () => {
+    // Booking range la description dans sa fiche : « Il comprend 2 chambres » se lit.
+    garderLectures([{ cle: "Booking:b-40", fiche: { ...FICHE, description: "Cet appartement dispose d'un balcon. Il comprend 2 chambres et une cuisine équipée." } }]);
+    const booking = annonce("Booking", "b-40");
+    assert.equal(reposerGardees([booking]), 1);
+    assert.deepEqual([booking.bedrooms, booking.bedroomsSource], [2, "text_regex"]);
+    // Le descriptif Ingénie gardé (`contenuIngenie`) : « 3 chambres » remplace les chambres déduites des pièces.
+    garderLectures([{ cle: "Centrale:ing-41", contenu: { description: "Maison indépendante. Rez-de-chaussée : séjour-cuisine, 3 chambres, 2 salles d'eau." } }]);
+    const ingenie = annonce("Centrale", "ing-41", { platformId: "ing-41", rooms: 5, bedrooms: 4, bedroomsSource: "derived_from_type" });
+    assert.equal(reposerGardees([ingenie]), 1);
+    assert.deepEqual([ingenie.bedrooms, ingenie.bedroomsSource], [3, "text_regex"]);
+    // Des chambres structurées restent les siennes.
+    garderLectures([{ cle: "Centrale:ing-42", contenu: { description: "2 chambres." } }]);
+    const structuree = annonce("Centrale", "ing-42", { platformId: "ing-42", bedrooms: 3, bedroomsSource: "structured" });
+    reposerGardees([structuree]);
+    assert.deepEqual([structuree.bedrooms, structuree.bedroomsSource], [3, "structured"]);
   });
 
   it("ne remplace rien de ce que l'annonce publie ; une fiche indisponible ou des équipements muets, si", () => {

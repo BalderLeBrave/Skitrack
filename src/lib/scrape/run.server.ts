@@ -139,7 +139,11 @@ function failAll(reports: SourceReport[], sources: readonly SourceReport["source
   }
 }
 
-function applyDump(input: LiveSearchInput, reports: SourceReport[], listings: Listing[], allow: Set<string>) {
+/** Le repli « relevé 3 sept. » : chaque source muette reprend son relevé figé (exportée pour `run.server.test.ts`). */
+export function applyDump(input: LiveSearchInput, reports: SourceReport[], listings: Listing[], allow: Set<string>) {
+  // Les sources servies en direct, une fois pour toutes : une source muette
+  // reprend TOUT son relevé figé. Marquée servie dès sa première ligne, elle
+  // n'en rendait qu'une (3 annonces aux Deux Alpes au lieu de 14).
   const liveSources = new Set(reports.filter((r) => r.ok && r.count > 0).map((r) => r.source));
   for (const row of dumpFallback(input, allow)) {
     if (liveSources.has(row.source)) continue;
@@ -147,7 +151,6 @@ function applyDump(input: LiveSearchInput, reports: SourceReport[], listings: Li
       ...row,
       proven: `${row.proven} — repli relevé 3 sept. (live vide ou non branché)`,
     });
-    liveSources.add(row.source);
   }
 }
 

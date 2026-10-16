@@ -23,6 +23,7 @@ import {
   logementGarde,
   requeteDetail,
   requeteRecherche,
+  valeursAGarder,
   type HoteGreenGo,
   type LogementGreenGo,
 } from "./greengo.ts";
@@ -32,6 +33,7 @@ import { garderLectures, reposerGardees } from "../stay/contenuFiches.server.ts"
 import { DEPUIS_CLE, type CleEquipement } from "../stay/equipements.ts";
 import { aEquipement, aEquipementDemande, equipementsDe } from "../stay/ficheEnrichie.ts";
 import { cleListing } from "../stay/poserReleve.ts";
+import { memoireFiches } from "../stay/memoireFiches.server.ts";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 // Les mémoires du processus (`memoireFiches`, `contenuFiches`) : jamais
@@ -699,5 +701,22 @@ describe("GreenGo : le détail lu, gardé trente jours, reposé sans requête", 
     assert.equal(reposerGardees([tard], lu + 31 * JOUR), 0);
     const [neva] = greengoListings(hotes.find((h) => h.slug === "neva")!, null, MARS);
     assert.equal(reposerGardees([neva], lu + JOUR), 0);
+  });
+
+  it("la capacité et les chambres du détail se notent aussi, et reviennent sans requête au relevé suivant", () => {
+    const avec = greengoListings(balcons, lireDetail(DETAIL), AVORIAZ);
+    assert.deepEqual([avec[0].capacity, avec[0].bedrooms, avec[0].bedroomsSource], [4, 1, "structured"]);
+    const valeurs = valeursAGarder(balcons, avec, AVORIAZ);
+    assert.deepEqual(valeurs, [
+      { cle: "GreenGo:b5c749ba-02b2-4c18-9027-7163f19994ae", capacity: 4, capacitySource: "structured", bedrooms: 1, bedroomsSource: "structured" },
+    ]);
+    memoireFiches().noter(valeurs);
+    // Autres dates, détail non lu : la recherche seule ne publie pas les chambres.
+    const [sans] = greengoListings(balcons, null, MARS);
+    reposerGardees([sans]);
+    assert.deepEqual([sans.capacity, sans.bedrooms, sans.bedroomsSource], [4, 1, "structured"]);
+    // Un établissement ne note rien.
+    const beauregard = { ...hotes.find((h) => h.slug === "chalet-d-alpage-de-beauregard-1")!, tags: ["GITE_FR"] };
+    assert.deepEqual(valeursAGarder(beauregard, greengoListings(beauregard, lireDetail(DETAIL_BEAUREGARD), AVORIAZ), AVORIAZ), []);
   });
 });

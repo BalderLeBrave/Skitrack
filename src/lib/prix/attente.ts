@@ -39,6 +39,12 @@ export const etatAirbnb = createServerFn({ method: "GET" }).handler(
     const refus = Math.max(airbnbCircuitRestantMs(), pauseTauxMs("airbnb"));
     if (refus > 0) return { attenteMs: refus, motif: "refus" };
     const greengo = attentePlacesMs("greengo", PLACES_GREENGO);
+    if (greengo > 0) {
+      // La suite de fond GreenGo de Logements, cinq détails par minute, tenait
+      // la fenêtre occupée jusqu'à sa fin : elle cède, comme à une recherche.
+      const { cederSuiteGreenGo } = await import("../scrape/greengo.server");
+      cederSuiteGreenGo();
+    }
     const rythme = Math.max(
       attentePlacesMs("airbnb", PLACES_PAR_STATION),
       greengo <= ATTENTE_GREENGO_MAX_MS ? greengo : 0,

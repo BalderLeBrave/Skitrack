@@ -4,6 +4,11 @@
  * comptent : la distance à la remontée ou l'altitude, que Skitrack mesure,
  * n'y figurent pas, ni la description : absente, elle ne s'affiche pas.
  *
+ * La surface n'y figure pas non plus : seul le collecteur CozyCozy la pose
+ * sur l'annonce, alors que Cimalpes, Alpissime, OVO, Mountain Collection,
+ * Travelski ou iRésa la publient sans que le leur la pose. Absente, elle dit
+ * ce que le collecteur n'a pas posé, pas ce que la plateforme tait.
+ *
  * Module pur, chargé tel quel par `node --experimental-strip-types`.
  */
 

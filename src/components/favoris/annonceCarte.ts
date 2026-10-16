@@ -1,7 +1,7 @@
 /**
  * Les textes d'une `CarteAnnonce` pour un logement (lCard de la maquette,
  * Skitrack App.dc.html:865-876) : photos, note sur 5, lieu et distance aux
- * remontées, capacité et chambres, prix du séjour. Prix (onglet budget),
+ * remontées, capacité, chambres et surface publiée, prix du séjour. Prix (onglet budget),
  * Favoris et Réservation montrent ainsi la même carte.
  */
 
@@ -18,7 +18,7 @@ import type { Listing } from "@/lib/listings";
 import { nuitsLbl } from "@/lib/parcours";
 import { nomStationPropre } from "@/lib/rattachement";
 import { noteSur5De } from "@/lib/stay/ficheEnrichie";
-import { bedLbl, capLbl, distanceOf, prixLbl } from "@/lib/v7";
+import { bedLbl, capLbl, distanceOf, prixLbl, surfaceLbl } from "@/lib/v7";
 
 /** La photo principale puis les autres de la tuile, sans doublon. */
 export function photosDe(l: Listing): PhotoCarte[] {
@@ -55,6 +55,8 @@ export function textesCarte(
   o: { nights: number; altitude?: Altitude | null; avecAltitude?: boolean },
 ): Pick<CarteAnnonceProps, "photos" | "title" | "note" | "l2" | "l3" | "price" | "priceSub"> {
   const l3 = [capLbl(l), bedLbl(l)];
+  const surface = surfaceLbl(l);
+  if (surface) l3.push(surface);
   if (l.beds != null && l.beds > 0) l3.push(trN(l.beds, "{n} lit", "{n} lits"));
   if (o.avecAltitude && pointAltitude(l)) l3.push(altitudeLbl(o.altitude, positionApprochee(l)));
   return {

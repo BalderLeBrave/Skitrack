@@ -14,6 +14,7 @@ import {
 import type { LiveSearchInput } from "./types.ts";
 import { readFileSync } from "node:fs";
 import { avisDe } from "../stay/ficheEnrichie.ts";
+import { dedoublonnerParBien } from "../stay/poserReleve.ts";
 import { fusionner } from "./fusion.ts";
 
 /**
@@ -577,5 +578,32 @@ describe("relevé CozyCozy : une réponse réelle (La Plagne, 16 octobre 2026)",
     const sansNote = { ...coches, rating: null, reviewCount: null };
     const [comble] = fusionner([sansNote], [direct]).listings;
     assert.deepEqual([comble.rating, comble.reviewCount, comble.ratingScale ?? null, avisDe(comble)?.noteSur5], [4.93, 126, null, 4.9]);
+  });
+
+  it("lit la surface publiée (« 80 m² », « 40 m² ») ; une chaîne vide ou absente n'en donne aucune", () => {
+    const [tresallet] = bookings;
+    const [abr] = abritels;
+    assert.deepEqual([tresallet.surface, abr.surface], [80, 40]);
+    // Les sept Airbnb de la réponse publient `surfaceText: ""`.
+    assert.deepEqual(
+      airbnbs.map((l) => l.surface),
+      [null, null, null, null, null, null, null],
+    );
+    // Une fiche sans la clé, et un titre qui écrit une surface : rien n'est lu.
+    const [sansCle] = cozyListings(charge(entree("Appartement 8p 63m2", airbnb())), INPUT, "Airbnb");
+    assert.equal(sansCle.surface, null);
+  });
+
+  it("la surface voyage avec le bien : la fusion et le dédoublonnage la gardent, et comblent son vide", () => {
+    const [tresallet] = bookings;
+    const direct = { ...tresallet, id: "5925785", surface: null, proven: "direct" };
+    assert.equal(fusionner([tresallet], [direct]).listings[0].surface, 80);
+    // Une copie Cozy muette sur sa surface la prend de la copie directe.
+    const [comblee] = fusionner([{ ...tresallet, surface: null }], [{ ...direct, surface: 80 }]).listings;
+    assert.equal(comblee.surface, 80);
+    // Deux copies du même bien : la moins chère est gardée, la surface vient de l'autre.
+    const moinsChere = { ...tresallet, id: "bk-autre", total: 300, surface: null };
+    const [garde] = dedoublonnerParBien([tresallet, moinsChere]);
+    assert.deepEqual([garde.id, garde.total, garde.surface], ["bk-autre", 300, 80]);
   });
 });

@@ -19,7 +19,7 @@ import { galerieOf } from "@/lib/stay/completude";
 import { noteSur5De } from "@/lib/stay/ficheEnrichie";
 import { trajetVoiture, viaDistance } from "@/lib/stay/aPied";
 import { distRemonteePublieeM } from "@/lib/stay/situer";
-import { bedLbl, capLbl, distanceOf, NON_RENSEIGNE, prixLbl } from "@/lib/v7";
+import { bedLbl, capLbl, distanceOf, NON_RENSEIGNE, prixLbl, surfaceLbl } from "@/lib/v7";
 
 /**
  * Logements par tranche : « Afficher plus » en ajoute autant. La carte ne
@@ -140,12 +140,16 @@ export const CarteLogement = memo(function CarteLogement({
   const inconnu = tr(NON_RENSEIGNE);
   const cap = capLbl(l);
   const ch = bedLbl(l);
+  // La surface, seulement publiée : à côté des chambres, et même quand
+  // capacité et chambres manquent.
+  const surface = surfaceLbl(l);
   const l3 =
     cap === inconnu && ch === inconnu
-      ? tr("Capacité et chambres non renseignées")
+      ? [tr("Capacité et chambres non renseignées"), surface].filter(Boolean).join(" · ")
       : [
           cap === inconnu ? null : cap,
           ch === inconnu ? null : ch,
+          surface,
           l.beds != null && l.beds > 0 ? tr("{n} lits", { n: l.beds }) : null,
         ]
           .filter(Boolean)

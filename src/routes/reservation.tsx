@@ -37,7 +37,16 @@ import {
 import { stationById } from "@/lib/stations";
 import { useAPied } from "@/lib/geo/useReseauPieton";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { bedLbl, capLbl, distanceOf, firmOf, persLbl, prixLbl, prixPersLbl } from "@/lib/v7";
+import {
+  bedLbl,
+  capLbl,
+  distanceOf,
+  firmOf,
+  persLbl,
+  prixLbl,
+  prixPersLbl,
+  surfaceLbl,
+} from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
 
@@ -207,7 +216,9 @@ function EcranReservation() {
                 {s.name}
               </Link>
               {" · "}
-              {[capLbl(l), bedLbl(l), distanceOf(l).text].join(" · ")}
+              {[capLbl(l), bedLbl(l), surfaceLbl(l), distanceOf(l).text]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
             <div className="fv-resa__puces">
               <span className="fv-resa__offre">

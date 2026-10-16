@@ -32,8 +32,8 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
-import { depuisTexte, equipements } from "../../stay/equipements.ts";
-import { ficheDepuisBrut, type FicheBrute } from "../../stay/ficheEnrichie.ts";
+import { depuisTexte, equipements, type Equipement } from "../../stay/equipements.ts";
+import type { FicheBrute } from "../../stay/ficheEnrichie.ts";
 
 export const SKIPLANET_SITE = "https://www.ski-planet.com";
 export const SKIPLANET_AJAX = `${SKIPLANET_SITE}/fr/ajax`;
@@ -190,6 +190,138 @@ export function lireDescriptionLogement(html: string): string | null {
     .replace(/\s+/g, " ")
     .trim();
   return texte || null;
+}
+
+/** Ce que le panneau d'un logement publie : ses photos, sa description. */
+export type PanneauLogement = { photos: string[]; description: string | null };
+
+/**
+ * Le panneau d'un logement, ou `null` quand la réponse n'en est pas un. Le
+ * panneau relevé (76147) s'ouvre sur sa croix de fermeture
+ * (`afficheLogement(0)`), avant la description et le diaporama. Une réponse
+ * sans elle (un défi anti-robot servi en 200, une page d'erreur, un site qui
+ * a changé) ne se lit pas, et ne se note pas comme un panneau vide.
+ */
+export function lirePanneau(html: string): PanneauLogement | null {
+  if (!/onclick="afficheLogement\(0\);/.test(html)) return null;
+  return { photos: lirePhotosLogement(html), description: lireDescriptionLogement(html) };
+}
+
+/**
+ * Une page de défi anti-robot de Cloudflare, aux marques que les autres
+ * collecteurs lisent déjà (`hometogo.ts`, `gites.server.ts`) : le titre
+ * « Just a moment... » ou « Attention Required! », le script de
+ * `challenges.cloudflare.com` (Turnstile compris). Skitrack ne la franchit
+ * pas : elle arrête la lecture du site.
+ */
+export function defiAntiRobot(html: string): boolean {
+  return /<title>\s*(?:just a moment|attention required)/i.test(html) || html.includes("challenges.cloudflare.com");
+}
+
+/**
+ * Les équipements que nomme la description du panneau (`depuisTexte`) : un
+ * « oui » pour ce qu'elle nomme, jamais un « non » pour ce qu'elle tait (les
+ * autres clés restent « inconnu », « non indiqué » à l'écran).
+ *
+ * Pas de fiche enrichie : le panneau ne publie ni liste d'équipements ni
+ * note, rien qu'une fiche porterait de plus que la description. Et une fiche
+ * lue décide seule des équipements (`ficheDecideEquipements`) : sans liste,
+ * elle tairait ceux-ci, et l'écran dirait « Équipements non publiés par
+ * Ski-Planet » sous un texte qui nomme le balcon et le lave-vaisselle.
+ */
+function equipementsNommes(description: string): Equipement[] | null {
+  return equipements(depuisTexte(description));
+}
+
+/** Ce qu'un panneau lu laisse à garder trente jours : son contenu, sans fiche (`equipementsNommes`). */
+export type LecturePanneau = {
+  contenu: { description: string | null; photos: string[] | null; amenities: Equipement[] | null };
+};
+
+/**
+ * Ce qu'un panneau lu publie, à garder trente jours (`garderLectures`, clé
+ * `cleListing` : `Ski-Planet:` et l'identifiant du logement), tel que
+ * l'annonce le porte quand le panneau est lu dans le processus
+ * (`skiPlanetListings`) : la description, les équipements qu'elle nomme, les
+ * photos du logement.
+ */
+export function lectureDuPanneau(p: PanneauLogement): LecturePanneau {
+  return {
+    contenu: {
+      description: p.description,
+      photos: p.photos.length > 0 ? p.photos : null,
+      amenities: p.description != null ? equipementsNommes(p.description) : null,
+    },
+  };
+}
+
+/** Un logement dont le panneau reste à lire : son identifiant. */
+export type PanneauALire = { id: string };
+
+/** Ce que la lecture de fond des panneaux demande au réseau et aux mémoires. */
+export type PorteSuitePanneaux = {
+  /** La réponse du panneau ; `null` : rien n'est parti (la suite a cédé). Lève sur un refus ou une panne. */
+  lire: (l: PanneauALire) => Promise<string | null>;
+  /** Déjà lu, ou gardé : on passe. */
+  dejaLu: (l: PanneauALire) => boolean;
+  /** Une raison de s'arrêter avant le panneau suivant (nouvelle recherche, durée, pause de refus). */
+  arret: () => string | null;
+  /** Ce qu'un panneau lu publie, à garder. */
+  garder: (l: PanneauALire, p: PanneauLogement) => void;
+};
+
+export type BilanSuitePanneaux = {
+  lus: number;
+  demandes: number;
+  arret: string | null;
+  /** L'erreur qui a arrêté la suite (un refus : 403, 429, 503, défi compris). */
+  erreur: string | null;
+  /** Une page de défi servie en 200 (`defiAntiRobot`) a arrêté la suite. */
+  defi: boolean;
+};
+
+/**
+ * La lecture de fond des panneaux, un à la fois, sans nouvel essai : elle
+ * s'arrête sur la première raison que donne `arret`, sur la première erreur
+ * (rendue : un refus, défi anti-robot compris), et sur une réponse qui n'est
+ * pas un panneau (`lirePanneau`) : un défi servi en 200 (`defi`), une page
+ * d'erreur. Rien n'en est gardé. Au plus `max` panneaux demandés.
+ */
+export async function lireSuitePanneaux(
+  logements: readonly PanneauALire[],
+  porte: PorteSuitePanneaux,
+  max: number,
+): Promise<BilanSuitePanneaux> {
+  let lus = 0;
+  let demandes = 0;
+  const fin = (arret: string | null, erreur: string | null = null, defi = false): BilanSuitePanneaux => ({ lus, demandes, arret, erreur, defi });
+  for (const l of logements) {
+    if (demandes >= max) return fin(`${max} panneaux demandés`);
+    const raison = porte.arret();
+    if (raison) return fin(raison);
+    if (porte.dejaLu(l)) continue;
+    demandes += 1;
+    let html: string | null;
+    try {
+      html = await porte.lire(l);
+    } catch (err) {
+      const erreur = err instanceof Error ? err.message : String(err);
+      return fin(`panneau ${l.id} : ${erreur}`, erreur);
+    }
+    if (html == null) {
+      // Rien n'est parti : il ne compte pas.
+      demandes -= 1;
+      return fin(porte.arret() ?? "la suite a cédé");
+    }
+    const p = lirePanneau(html);
+    if (!p) {
+      const defi = defiAntiRobot(html);
+      return fin(`panneau ${l.id} : ${defi ? "défi anti-robot" : "la réponse n'est pas un panneau"}`, null, defi);
+    }
+    porte.garder(l, p);
+    lus += 1;
+  }
+  return fin(null);
 }
 
 /** L'adresse d'une photo de la table (chemin sous `SKIPLANET_PHOTOS`), ou `null`. */
@@ -616,10 +748,9 @@ export function skiPlanetListings(
         ),
       ),
       propertyType: lib.type,
-      ...(description != null ? { description, amenities: equipements(depuisTexte(description)) } : {}),
-      // La fiche : la description du panneau, telle quelle. Pas d'équipement
-      // tiré de sa prose, pas de note : le panneau n'en publie pas.
-      ...(description != null ? { fiche: ficheDepuisBrut({ description }, "ski-planet", { url: l.url }) ?? undefined } : {}),
+      // Pas de fiche : le panneau n'en publie pas de plus que sa description,
+      // et une fiche sans liste tairait ces équipements (`equipementsNommes`).
+      ...(description != null ? { description, amenities: equipementsNommes(description) } : {}),
       available: true,
       photo: photos[0] ?? null,
       photos: photos.length > 0 ? photos : null,

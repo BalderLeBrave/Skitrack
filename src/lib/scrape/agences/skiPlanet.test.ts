@@ -7,12 +7,16 @@ import { agencesDe, lieuxDe, stationsDe } from "./couverture.ts";
 import {
   adressePhoto,
   calendrierIllisible,
+  defiAntiRobot,
+  lectureDuPanneau,
   lireAutocompletion,
   lireCalendrier,
   lireFicheArchivee,
   lireLibelle,
   lireDescriptionLogement,
+  lirePanneau,
   lirePhotosLogement,
+  lireSuitePanneaux,
   logementGarde,
   nuitsEntre,
   ordonnerResidences,
@@ -22,11 +26,20 @@ import {
   urlAutocompletion,
   urlCalendrier,
   urlInfosLogement,
+  type PanneauALire,
+  type PorteSuitePanneaux,
   type ResidenceSkiPlanet,
   type TableSkiPlanet,
 } from "./skiPlanet.ts";
 import type { LiveSearchInput } from "../types.ts";
-import { equipementsDe, ficheDepuisBrut } from "../../stay/ficheEnrichie.ts";
+import {
+  aEquipement,
+  descriptionDe,
+  equipementsDe,
+  equipementsLus,
+  equipementsTus,
+  ficheDepuisBrut,
+} from "../../stay/ficheEnrichie.ts";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 /**
@@ -207,15 +220,26 @@ describe("Ski-Planet : fiche archivée", () => {
   });
 });
 
-describe("Ski-Planet : la fiche d'un logement, depuis son panneau déjà lu", () => {
-  it("la description telle quelle ; pas d'équipement tiré de sa prose, pas de note", () => {
+describe("Ski-Planet : les équipements d'un logement, depuis son panneau déjà lu", () => {
+  it("pas de fiche : ceux que nomme la description, présents ; les autres « non indiqué », jamais absents", () => {
     const description = lireDescriptionLogement(fx("sp-infos-logement-76147.html"));
     const [l] = skiPlanetListings(SNOW, SEUL, AVORIAZ, null, undefined, () => description);
-    assert.equal(l.fiche!.sourceFiche, "ski-planet");
-    assert.equal(l.fiche!.description, description);
-    assert.deepEqual(l.fiche!.equipements, []);
-    assert.equal(l.fiche!.avis, null);
-    assert.equal(equipementsDe(l), null, "« Non publié par Ski-Planet », pas des équipements déduits");
+    // Le panneau ne publie ni liste ni note : une fiche sans liste déciderait
+    // seule, et l'écran dirait « Équipements non publiés » sous un texte qui
+    // nomme le balcon et le lave-vaisselle.
+    assert.equal(l.fiche, undefined);
+    assert.equal(descriptionDe(l), description);
+    const lus = equipementsDe(l) ?? [];
+    assert.deepEqual(
+      lus.map((e) => [e.id, e.present]),
+      [
+        ["balcon", true],
+        ["lave_vaisselle", true],
+      ],
+    );
+    assert.equal(equipementsLus(l), true);
+    assert.equal(equipementsTus(l).length, 10, "les dix autres clés : « non indiqué »");
+    assert.deepEqual([aEquipement(l, "balcon"), aEquipement(l, "lave_vaisselle"), aEquipement(l, "parking")], [true, true, false]);
   });
 });
 
@@ -419,5 +443,116 @@ describe("Ski-Planet : le panneau d'un logement, pour une résidence sans photo"
     assert.equal(l.amenities?.some((e) => e.valeur === "non"), false);
     const [sans] = skiPlanetListings(SNOW, SEUL, AVORIAZ);
     assert.deepEqual([sans.description, sans.amenities], [undefined, undefined]);
+  });
+});
+
+describe("Ski-Planet : le panneau des logements, lu en tâche de fond", () => {
+  // Réponse réelle du 3 octobre 2026 : logement 76147, Résidence le Cervin (La Plagne).
+  const PANNEAU = fx("sp-infos-logement-76147.html");
+  // Une page de défi, aux marques que les autres collecteurs lisent (`hometogo.ts`, `gites.server.ts`).
+  const DEFI = "<!DOCTYPE html><html><head><title>Just a moment...</title></head><body>challenges.cloudflare.com</body></html>";
+
+  it("un panneau se reconnaît à sa croix de fermeture ; un défi, une page d'erreur n'en sont pas", () => {
+    const p = lirePanneau(PANNEAU);
+    assert.ok(p, "le panneau relevé");
+    assert.deepEqual(p.photos, lirePhotosLogement(PANNEAU));
+    assert.equal(p.description, lireDescriptionLogement(PANNEAU));
+    assert.equal(lirePanneau(DEFI), null);
+    assert.equal(lirePanneau("<html><title>Erreur</title><p>rien</p></html>"), null);
+    assert.equal(defiAntiRobot(DEFI), true);
+    assert.equal(defiAntiRobot("<title>Attention Required! | Cloudflare</title>"), true);
+    // Turnstile seul, sans le titre du défi : son script vient de `challenges.cloudflare.com`.
+    assert.equal(defiAntiRobot('<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async></script>'), true);
+    assert.equal(defiAntiRobot(PANNEAU), false);
+  });
+
+  it("ce qui se garde trente jours est ce que l'annonce porte quand le panneau est lu : description, équipements, sans fiche ; et ses photos", () => {
+    const p = lirePanneau(PANNEAU)!;
+    const [l] = skiPlanetListings(SNOW, SEUL, AVORIAZ, null, undefined, () => p.description);
+    const lu = lectureDuPanneau(p);
+    assert.equal(lu.contenu.description, l.description);
+    assert.deepEqual(lu.contenu.amenities, l.amenities);
+    assert.deepEqual(lu.contenu.photos, p.photos);
+    // Pas de fiche, ni gardée ni sur l'annonce : une fiche sans liste tairait
+    // les équipements que la description nomme.
+    assert.equal("fiche" in lu, false);
+    assert.equal("fiche" in l, false);
+    // Un panneau sans description ni photo ne laisse rien à garder.
+    assert.deepEqual(lectureDuPanneau({ photos: [], description: null }), {
+      contenu: { description: null, photos: null, amenities: null },
+    });
+  });
+
+  const logements: PanneauALire[] = ["1", "2", "3", "4"].map((id) => ({ id }));
+  /** Une porte qui répond `reponses` dans l'ordre (une `Error` lève) et note ce qui part et ce qui se garde. */
+  function porte(reponses: (string | null | Error)[], p: Partial<PorteSuitePanneaux> = {}) {
+    const partis: string[] = [];
+    const gardes: string[] = [];
+    const porte: PorteSuitePanneaux = {
+      lire: async (l) => {
+        partis.push(l.id);
+        const r = reponses.length ? reponses.shift()! : PANNEAU;
+        if (r instanceof Error) throw r;
+        return r;
+      },
+      dejaLu: () => false,
+      arret: () => null,
+      garder: (l, lu) => {
+        assert.match(lu.description ?? "", /^Superficie/);
+        gardes.push(l.id);
+      },
+      ...p,
+    };
+    return { porte, partis, gardes };
+  }
+
+  it("un panneau à la fois, gardé, au plus `max` par recherche", async () => {
+    const { porte: p, partis, gardes } = porte([]);
+    const r = await lireSuitePanneaux(logements, p, 2);
+    assert.deepEqual(partis, ["1", "2"]);
+    assert.deepEqual(gardes, ["1", "2"]);
+    assert.match(r.arret ?? "", /2 panneaux demandés/);
+  });
+
+  it("un refus (403 du défi, 429) arrête tout, sans nouvel essai, et se rend", async () => {
+    const { porte: p, partis, gardes } = porte([PANNEAU, new Error("HTTP 403 (défi anti-robot) — pause 45 s")]);
+    const r = await lireSuitePanneaux(logements, p, 50);
+    assert.deepEqual(partis, ["1", "2"]);
+    assert.deepEqual(gardes, ["1"]);
+    assert.equal(r.erreur, "HTTP 403 (défi anti-robot) — pause 45 s");
+    assert.equal(r.defi, false);
+  });
+
+  it("un défi servi en 200 est reconnu et arrête la passe, sans rien garder", async () => {
+    const { porte: p, partis, gardes } = porte([DEFI]);
+    const r = await lireSuitePanneaux(logements, p, 50);
+    assert.deepEqual([partis, gardes], [["1"], []]);
+    assert.equal(r.defi, true);
+    assert.equal(r.arret, "panneau 1 : défi anti-robot");
+  });
+
+  it("une réponse qui n'est pas un panneau arrête aussi, sans se noter comme un panneau vide", async () => {
+    const { porte: p, gardes } = porte(["<html><p>Maintenance</p></html>"]);
+    const r = await lireSuitePanneaux(logements, p, 50);
+    assert.deepEqual(gardes, []);
+    assert.equal(r.defi, false);
+    assert.match(r.arret ?? "", /n'est pas un panneau/);
+  });
+
+  it("cède à une nouvelle recherche, avant un panneau ou pendant l'attente de son tour", async () => {
+    let tours = 0;
+    const avant = porte([], { arret: () => (++tours > 1 ? "une nouvelle recherche est partie" : null) });
+    assert.equal((await lireSuitePanneaux(logements, avant.porte, 50)).arret, "une nouvelle recherche est partie");
+    assert.deepEqual(avant.partis, ["1"]);
+    const pendant = porte([null]);
+    const r = await lireSuitePanneaux(logements, pendant.porte, 50);
+    assert.deepEqual([r.lus, r.demandes, r.arret], [0, 0, "la suite a cédé"]);
+  });
+
+  it("un panneau déjà lu ou gardé ne part pas", async () => {
+    const { porte: p, partis } = porte([], { dejaLu: (l) => l.id !== "3" });
+    const r = await lireSuitePanneaux(logements, p, 50);
+    assert.deepEqual(partis, ["3"]);
+    assert.deepEqual([r.lus, r.demandes, r.arret], [1, 1, null]);
   });
 });

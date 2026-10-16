@@ -111,6 +111,21 @@ export function ficheBookingAPoser(l: Listing): boolean {
 }
 
 /**
+ * CozyCozy (Abritel, Booking, Airbnb vus par Cozy : `abr-`, `bk-`, `abnb-`,
+ * provenance « CozyCozy … ») : la liste ne porte ni description, ni
+ * équipements, ni avis, et trois photos. Le serveur lit la fiche de chacune en
+ * tâche de fond après la réponse (`scrape/cozyFiches.server.ts`) et la garde
+ * trente jours ; la relecture la pose sans réseau (`reposerGardees`,
+ * `poserMemoire`). Une annonce qui porte une fiche lue n'attend plus rien. Le
+ * préfixe seul ne suffit pas : les relevés directs numérotent aussi `abnb-`
+ * et `bk-`.
+ */
+export function ficheCozyAPoser(l: Listing): boolean {
+  if (!/^CozyCozy /.test(l.proven ?? "") || !/^(?:abr|bk|abnb)-\d+$/.test(l.id)) return false;
+  return l.fiche == null || l.fiche.indisponible === true;
+}
+
+/**
  * Orchestra (La Plagne, Combloux, Praz-sur-Arly, Chamonix) : le relevé lit
  * lui-même la fiche `/location/…` de chaque logement, une à une ; ce qui ne
  * tient pas dans la recherche se lit après, en tâche de fond, et sa
@@ -187,10 +202,11 @@ export function aRelireEnFile(l: Listing): boolean {
 
 /**
  * À relire : ce que relisait la boucle d'avant (`aRelireEnFile`), ou un
- * contenu ou une fiche Booking que la tâche de fond lit encore
+ * contenu ou une fiche Booking ou Cozy que la tâche de fond lit encore
  * (`contenuAPoser`, `contenuArkianeAPoser`, `ficheBookingAPoser`,
- * `contenuOrchestraAPoser`, `ficheTravelskiAPoser`, `panneauSkiPlanetAPoser`,
- * `detailGreenGoAPoser`). La mémoire se pose sans réseau.
+ * `ficheCozyAPoser`, `contenuOrchestraAPoser`, `ficheTravelskiAPoser`,
+ * `panneauSkiPlanetAPoser`, `detailGreenGoAPoser`). La mémoire se pose sans
+ * réseau.
  */
 export function aRelire(l: Listing): boolean {
   return (
@@ -198,6 +214,7 @@ export function aRelire(l: Listing): boolean {
     contenuAPoser(l) ||
     contenuArkianeAPoser(l) ||
     ficheBookingAPoser(l) ||
+    ficheCozyAPoser(l) ||
     contenuOrchestraAPoser(l) ||
     ficheTravelskiAPoser(l) ||
     panneauSkiPlanetAPoser(l) ||
@@ -223,6 +240,7 @@ export function empreinte(rows: readonly Listing[]): string {
         l.fiche != null && l.fiche.indisponible !== true,
         l.amenities != null,
         Boolean(l.description),
+        l.photos?.length ?? 0,
       ].join(":"),
     )
     .join("|");

@@ -238,6 +238,18 @@ export function formatKm(km: number | null): string {
 }
 
 /** Recherche sans accents ni casse : « megeve » trouve « Megève ». */
+const CHIFFRES_EN_LETTRES: Record<string, string> = {
+  "2": "deux",
+  "3": "trois",
+  "4": "quatre",
+  "5": "cinq",
+  "6": "six",
+  "7": "sept",
+  "8": "huit",
+  "9": "neuf",
+  "10": "dix",
+};
+
 /**
  * Le nom d'une station réduit à ce qui compte pour une recherche : sans
  * accents, sans casse, et sans les traits d'union ni les apostrophes qui
@@ -246,6 +258,11 @@ export function formatKm(km: number | null): string {
  * Ces séparateurs se tapent rarement. Depuis que les noms portent leur
  * typographie — « Saint-Martin-de-Belleville », « L'Alpe d'Huez » —, les
  * chercher avec des espaces ne rendait plus rien.
+ *
+ * Un chiffre isolé s'écrit en toutes lettres : « Les 2 Alpes », « Les 7 Laux »
+ * ou « Les 3 Vallées » se trouvent en tapant « deux », « sept » ou « trois »
+ * comme en chiffres, et une saisie en cours (« les deu ») trouve déjà la
+ * station. Les altitudes (« Arc 1800 ») ne bougent pas.
  */
 export function foldName(s: string): string {
   return s
@@ -253,6 +270,7 @@ export function foldName(s: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[-'’]/g, " ")
+    .replace(/\b(?:[2-9]|10)\b/g, (n) => CHIFFRES_EN_LETTRES[n])
     .replace(/\s+/g, " ")
     .trim();
 }

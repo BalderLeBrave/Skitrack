@@ -119,6 +119,12 @@ export const searchStay = createServerFn({ method: "POST" })
 const ANNONCES_MAX = 2_000;
 /** Les annonces qu'on met en tête d'un coup : celle qu'on ouvre, pas une liste. */
 const OUVERTES_MAX = 3;
+/**
+ * L'attente de la fiche Cozy d'une annonce qu'on ouvre : trois requêtes, 2 s
+ * entre deux (`dansLaFile`), après la fiche en cours de la tâche de fond.
+ * Au-delà, la relecture de la fiche ouverte la posera à son tour suivant.
+ */
+const OUVERTURE_COZY_MS = 15_000;
 
 /**
  * Relit les annonces que l'écran tient déjà, par la seconde passe seule
@@ -133,10 +139,12 @@ const OUVERTES_MAX = 3;
  * `lireMaintenant` : les annonces Airbnb qu'on vient d'ouvrir (trois au plus)
  * passent d'abord en tête de la file de la tâche de fond
  * (`prioriserSuiteAirbnb`), même limiteur, même coupe-circuit ; l'écran les
- * relit ensuite. Les autres sources ne sont pas lues à l'ouverture : seule,
- * hors du relevé entier, une annonce ne dit pas si sa page est commune à
- * plusieurs (`urlsPartagees`), et sa lecture poserait sur elle la page d'une
- * résidence.
+ * relit ensuite. Une annonce CozyCozy sans fiche passe de même en tête de la
+ * file des fiches Cozy (`cozyFiches.server.ts`), et la réponse l'attend
+ * `OUVERTURE_COZY_MS` au plus. Les autres sources ne sont pas lues à
+ * l'ouverture : seule, hors du relevé entier, une annonce ne dit pas si sa
+ * page est commune à plusieurs (`urlsPartagees`), et sa lecture poserait sur
+ * elle la page d'une résidence.
  *
  * `poseSeule` : rien ne part en file, ni page ni demande à Apify ; seuls le
  * cache et les mémoires se posent (`fillFiches`). Il vaut pour toute la
@@ -174,6 +182,14 @@ export const completerAnnonces = createServerFn({ method: "POST" })
         // En tête AVANT la relecture : la suite, si elle repart, part sur elle.
         const { airbnbComplet } = await import("./stay/priseFiche");
         prioriserSuiteAirbnb(rows.filter((l) => l.source === "Airbnb" && !airbnbComplet(l)));
+        // La fiche Cozy de l'annonce ouverte, en tête de sa file : on l'attend
+        // un moment, puis la relecture ci-dessous la pose (`reposerGardees`).
+        const { ficheCozyAPoser } = await import("./stay/relecture");
+        const cozy = rows.filter(ficheCozyAPoser);
+        if (cozy.length) {
+          const { lireFichesCozyMaintenant } = await import("./scrape/cozyFiches.server");
+          await lireFichesCozyMaintenant(cozy, OUVERTURE_COZY_MS);
+        }
       }
       // Ce que le cache et la mémoire savent, sans réseau. Un catalogue arrêté
       // sur un refus n'est pas relancé ; l'annonce ouverte, si, toute seule.

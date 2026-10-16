@@ -86,6 +86,17 @@ test("foldName retire accents, casse, traits d'union et apostrophes", () => {
   assert.equal(foldName("Saint-Martin-de-Belleville"), "saint martin de belleville");
 });
 
+test("foldName : un chiffre isolé vaut son nom en lettres, pas une altitude", () => {
+  assert.equal(foldName("Les 2 Alpes"), foldName("les deux alpes"));
+  assert.equal(foldName("Les 7 Laux"), foldName("Les Sept Laux"));
+  assert.ok(foldName("Les 2 Alpes").includes(foldName("les deu")));
+  assert.equal(foldName("Arc 1800"), "arc 1800");
+  assert.deepEqual(
+    searchStations(ROWS, "les deux alpes").map((s) => s.id),
+    ["2alpes"],
+  );
+});
+
 test("searchStations ignore les accents et rend tout sur requête vide", () => {
   assert.deepEqual(
     searchStations(ROWS, "megeve").map((s) => s.id),

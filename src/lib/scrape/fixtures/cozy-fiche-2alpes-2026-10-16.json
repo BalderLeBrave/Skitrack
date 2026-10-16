@@ -1,0 +1,87 @@
+{
+  "_source": "CozyCozy, Les Deux Alpes, 19 au 26 décembre 2026, 2 personnes. Réponses relevées le 16 octobre 2026 (getDetails, getPhotos, getReviews), offres retirées, description Booking et galerie raccourcies.",
+  "abritel": {
+    "uid": "100293015-849",
+    "getDetails": {
+      "name": "Refuge Aux Deux Alpes",
+      "stars": 0,
+      "description": "Situé à 300 mètres du domaine skiable et à seulement 500 mètres du supermarché le plus proche, cet appartement au cinquième étage, rue des Sagnes – Entrée B, offre un havre de paix confortable et bien équipé pour les couples ou les petites familles. Avec son ascenseur et son balcon privé, il est idéal pour les personnes recherchant confort et commodité au cœur des Deux Alpes.\n\nLe salon dispose d'un canapé-lit double et d'une télévision.",
+      "amenities": [
+        { "code": "CHILDFRIENDLY", "name": "Adapté aux familles", "sortKey": 4 },
+        { "code": "ELEVATOR", "name": "Ascenseur", "sortKey": 6 },
+        { "code": "KITCHEN", "name": "Cuisine", "sortKey": 3 },
+        { "code": "SMOKEDETECT", "name": "Détecteur de fumée", "sortKey": 1000, "hiddenInFilters": true },
+        { "code": "CARBONDETECT", "name": "Détecteur monoxyde", "sortKey": 1000, "hiddenInFilters": true },
+        { "code": "FRIDGE", "name": "Frigo", "sortKey": 1000 },
+        { "code": "DISHWASHER", "name": "Lave-vaisselle", "sortKey": 1000 },
+        { "code": "MICROWAVE", "name": "Micro-ondes", "sortKey": 1000 },
+        { "code": "TERRACE", "name": "Terrasse / Balcon", "sortKey": 1000 },
+        { "code": "TV", "name": "TV", "sortKey": 8 }
+      ],
+      "offers": [],
+      "alternativeOffers": [],
+      "ratingCount": 82,
+      "ratingScore": 96,
+      "ratingDetails": [],
+      "coordinates": { "latitude": 45.00898361206055, "longitude": 6.125047206878662 },
+      "address": null,
+      "space": {
+        "surface": 14,
+        "bedCount": 1,
+        "bedRoomCount": 1,
+        "bathRoomCount": 1,
+        "guestCapacity": { "adults": 2, "children": 0, "minChildAge": 0, "maxChildAge": 0 }
+      },
+      "goodToKnow": { "checkInTime": "15:00", "checkOutTime": "10:00", "petsAllowed": false, "smokingAllowed": false, "partyAllowed": true }
+    },
+    "getPhotos": [
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/0fd4d3a8.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/0fd4d3a8.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/10e2eb24.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/10e2eb24.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/6f98b960.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/6f98b960.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/e13d7d62.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/e13d7d62.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/23e7890b.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/23e7890b.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/4df27ed4.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/4df27ed4.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/e36b6940.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/e36b6940.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/afd06707.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/afd06707.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
+      { "url": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/e57045f9.jpg?impolicy=ccrop&w=1000&h=666&q=medium", "thumbnailUrl": "https://media.vrbo.com/lodging/113000000/112920000/112915600/112915552/e57045f9.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" }
+    ],
+    "getReviews": { "reviews": [] }
+  },
+  "booking": {
+    "uid": "52576209-1272",
+    "getDetails": {
+      "name": "Hotel Base Camp Lodge - Les 2 Alpes",
+      "stars": 3,
+      "description": "Situé à Les Deux Alpes, l’établissement 3 étoiles Hotel Base Camp Lodge - Les 2 Alpes comprend une terrasse, un restaurant et un bar. Cet hôtel non-fumeurs possède une connexion Wi-Fi gratuite dans l’ensemble de ses locaux et un sauna.\n",
+      "amenities": [
+        { "code": "PETSFRIENDLY", "name": "Animaux acceptés", "sortKey": 5 },
+        { "code": "ELEVATOR", "name": "Ascenseur", "sortKey": 6 },
+        { "code": "HEATING", "name": "Chauffage", "sortKey": 1000, "hiddenInFilters": true },
+        { "code": "INTERNET", "name": "Internet", "sortKey": 9 },
+        { "code": "FREEPARK", "name": "Parking", "sortKey": 1 },
+        { "code": "SAUNA", "name": "Sauna", "sortKey": 1000 },
+        { "code": "SPA", "name": "Spa", "sortKey": 1000 },
+        { "code": "TERRACE", "name": "Terrasse / Balcon", "sortKey": 1000 },
+        { "code": "TV", "name": "TV", "sortKey": 8 }
+      ],
+      "offers": [],
+      "alternativeOffers": [],
+      "ratingCount": 875,
+      "ratingScore": 88,
+      "ratingDetails": [],
+      "goodToKnow": { "checkInTime": "17:00", "checkOutTime": "10:00", "petsAllowed": true, "smokingAllowed": false }
+    },
+    "getPhotos": [
+      { "url": "https://q-xx.bstatic.com/xdata/images/hotel/max1440/504959256.jpg?k=20860fccc1d84706e9589b747479f8f56588a8583ff06c0e4cee02a86d84cf7b", "thumbnailUrl": "https://q-xx.bstatic.com/xdata/images/hotel/max600/504959256.jpg?k=20860fccc1d84706e9589b747479f8f56588a8583ff06c0e4cee02a86d84cf7b" },
+      { "url": "https://q-xx.bstatic.com/xdata/images/hotel/max1440/763409700.jpg?k=5fc080841ac906faf4b277895ae3c9a395b727d7fe57e3ba3836502b59e6b3ff", "thumbnailUrl": "https://q-xx.bstatic.com/xdata/images/hotel/max600/763409700.jpg?k=5fc080841ac906faf4b277895ae3c9a395b727d7fe57e3ba3836502b59e6b3ff" },
+      { "url": "https://q-xx.bstatic.com/xdata/images/hotel/max1440/763409703.jpg?k=f8d2d40e9aaf6bfda5ce7e0bf8e578ed15adfdf70dc9503ca66fceca3ded1d1b", "thumbnailUrl": "https://q-xx.bstatic.com/xdata/images/hotel/max600/763409703.jpg?k=f8d2d40e9aaf6bfda5ce7e0bf8e578ed15adfdf70dc9503ca66fceca3ded1d1b" },
+      { "url": "https://q-xx.bstatic.com/xdata/images/hotel/max1440/763409708.jpg?k=5a6b3aa4c345979da6ae0665da30079904f8ab95e35f74ac40b861d59a47e503", "thumbnailUrl": "https://q-xx.bstatic.com/xdata/images/hotel/max600/763409708.jpg?k=5a6b3aa4c345979da6ae0665da30079904f8ab95e35f74ac40b861d59a47e503" }
+    ],
+    "getReviews": {
+      "reviews": [
+        { "date": [2026, 8, 19, 0, 0, 0, 0], "providerCode": "booking", "score": 80, "reviewerName": "JONATHAN", "title": "Bon accueil bel hôtel. Service de chambre à améliorer", "text": "", "pros": "L’emplacement idéal et la modernité des installations", "cons": "Les chambres sont faites trop tard", "languageCode": "fr", "url": "https://www.booking.com/hotel/fr/base-camp-lodge-les-2-alpes.html#tab-reviews", "providerName": "booking.com" },
+        { "date": [2026, 8, 13, 0, 0, 0, 0], "providerCode": "booking", "score": 100, "reviewerName": "Justine", "title": "", "text": "", "pros": "Établissement irréprochable ! Je recommande", "cons": "", "languageCode": "fr", "url": "https://www.booking.com/hotel/fr/base-camp-lodge-les-2-alpes.html#tab-reviews", "providerName": "booking.com" }
+      ]
+    }
+  }
+}

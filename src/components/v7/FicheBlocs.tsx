@@ -65,7 +65,7 @@ import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { CHAMP_LIBELLE, champsNonIndiques } from "@/lib/stay/nonIndique";
 import { ecartAvecPrincipale, type Logement } from "@/lib/stay/regroupement";
 import { forfaitsAjoutables } from "@/lib/stay/totalSejour";
-import { bedLbl, capLbl, distanceOf, firmOf, kmLbl, prixLbl } from "@/lib/v7";
+import { bedLbl, capLbl, distanceOf, firmOf, kmLbl, prixLbl, surfaceLbl } from "@/lib/v7";
 
 type Sejour = { checkIn: string; checkOut: string };
 
@@ -127,13 +127,15 @@ export function BlocTitre({
   );
 }
 
-/** Les faits clés sur une ligne : capacité, chambres, lits, remontées, altitude. */
+/** Les faits clés sur une ligne : capacité, chambres, surface, lits, remontées, altitude. */
 export function BlocFaits({ l, altitude }: { l: Listing; altitude: Altitude | null | undefined }) {
   const dist = distanceOf(l);
   const approchee = positionApprochee(l);
+  const surface = surfaceLbl(l);
   const faits: { k: string; v: string; aide?: string }[] = [
     { k: "cap", v: capLbl(l) },
     { k: "ch", v: bedLbl(l) },
+    ...(surface ? [{ k: "surface", v: surface }] : []),
     ...(l.beds != null ? [{ k: "lits", v: trN(l.beds, "{n} lit", "{n} lits") }] : []),
     ...(l.baths != null
       ? [{ k: "sdb", v: trN(l.baths, "{n} salle de bain", "{n} salles de bain") }]

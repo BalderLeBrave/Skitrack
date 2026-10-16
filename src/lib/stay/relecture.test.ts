@@ -11,9 +11,24 @@ import type { Listing } from "../listings.ts";
 import { lireDetailArkiane } from "../scrape/centrales/moteurs/arkiane.ts";
 import { ficheOrchestra, refOrchestra } from "../scrape/centrales/moteurs/orchestra.ts";
 import { contenuTravelski, lireFiche } from "../scrape/agences/travelski.ts";
+import {
+  lectureDuPanneau,
+  lireCalendrier,
+  lirePanneau,
+  skiPlanetListings,
+  type ResidenceSkiPlanet,
+} from "../scrape/agences/skiPlanet.ts";
+import {
+  greengoListings,
+  lecturesAGarder,
+  lireDetail,
+  lireRecherche,
+  notesDuDetail,
+} from "../scrape/greengo.ts";
+import type { LiveSearchInput } from "../scrape/types.ts";
 import { garderLectures, reposerGardees } from "./contenuFiches.server.ts";
 import { equipements, type EquipementPublie } from "./equipements.ts";
-import { aEquipement, equipementsDe } from "./ficheEnrichie.ts";
+import { aEquipement, equipementsDe, equipementsLus, equipementsTus } from "./ficheEnrichie.ts";
 import { memoireFiches } from "./memoireFiches.server.ts";
 import { cleListing } from "./poserReleve.ts";
 import { raisonDeLaisser } from "./priseFiche.ts";
@@ -26,9 +41,11 @@ import {
   contenuAPoser,
   contenuArkianeAPoser,
   contenuOrchestraAPoser,
+  detailGreenGoAPoser,
   empreinte,
   ficheBookingAPoser,
   ficheTravelskiAPoser,
+  panneauSkiPlanetAPoser,
   RELECTURE_MAX_MS,
   RELECTURE_MS,
   RELECTURE_SANS_PROGRES_MS,
@@ -695,5 +712,168 @@ describe("Travelski : la fiche que la tâche de la station lit après la répons
     assert.deepEqual([row.lat, row.lon], [fiche.lat, fiche.lon]);
     assert.match(row.proven, /mémoire des fiches/);
     assert.equal(aRelire(row), false);
+  });
+});
+
+describe("Ski-Planet : le panneau qu'une suite de fond lit après la réponse", () => {
+  // Réponses réelles : le calendrier de Snow (Avoriaz, 6→13/02/2027, 26 septembre
+  // 2026) et le panneau du logement 76147 (Résidence le Cervin, 3 octobre 2026).
+  const fixture = (f: string) =>
+    readFileSync(new URL(`../scrape/agences/fixtures/${f}`, import.meta.url), "utf8");
+  const SEUL = lireCalendrier(fixture("sp-calendrier-33314-seul.html"));
+  const PANNEAU = lirePanneau(fixture("sp-infos-logement-76147.html"))!;
+  const AVORIAZ: LiveSearchInput = {
+    stationId: "avoriaz",
+    stationName: "Avoriaz",
+    lat: 46.1914,
+    lon: 6.7728,
+    checkIn: "2027-02-06",
+    checkOut: "2027-02-13",
+    guests: 2,
+    bedrooms: 0,
+  };
+  const SNOW: ResidenceSkiPlanet = {
+    id: "33314",
+    nom: "Snow",
+    station: "Avoriaz",
+    lat: 46.19047,
+    lon: 6.77798,
+    photo: "https://docs.ski-planet.com/photo/avoriaz/medium/snow-911893.jpg",
+  };
+  const [seul] = skiPlanetListings(SNOW, SEUL, AVORIAZ);
+
+  it("sans description : à relire en pose seule, jamais en file ; une description, ou une autre source, non", () => {
+    // Le serveur n'ouvre jamais une page de ski-planet.com : seule la suite du relevé lit le panneau.
+    assert.equal(raisonDeLaisser(seul, seul.url!), "ski-planet.com");
+    assert.deepEqual(
+      [aCombler(seul), aRelireEnFile(seul), panneauSkiPlanetAPoser(seul), aRelire(seul)],
+      [false, false, true, true],
+    );
+    assert.equal(aRelire({ ...seul, description: "Superficie d'environ 33 m²." }), false);
+    assert.equal(panneauSkiPlanetAPoser({ ...seul, source: "Travelski" }), false);
+  });
+
+  it("relue sans rien poser, puis le panneau gardé se pose, à l'offre seule comme forfaits compris, tel que le relevé le porte", async () => {
+    const forfait: Listing = { ...seul, id: "sp-69622-forfait", skiPassIncluded: true };
+    // Les deux offres du logement partagent sa clé : `Ski-Planet:` et son identifiant.
+    assert.deepEqual(
+      [cleListing(seul), cleListing(forfait)],
+      ["Ski-Planet:69622", "Ski-Planet:69622"],
+    );
+    // Le serveur : `completerAnnonces` → `fillFiches` → `reposerGardees`, sans réseau.
+    const e = ecran([seul, forfait], (rows) => {
+      const copies = rows.map((l) => ({ ...l }));
+      reposerGardees(copies);
+      return copies;
+    });
+    e.boucle.relancer();
+    await e.avancer(RELECTURE_MS);
+    assert.deepEqual(
+      e.appels.map((a) => [a.ids, a.poseSeule]),
+      [[["sp-69622", "sp-69622-forfait"], true]],
+    );
+    assert.equal(e.etat.rows[0].description, undefined, "rien de gardé encore");
+    // La suite lit le panneau et le garde (skiPlanet.server.ts, `garderPanneau`).
+    garderLectures([{ cle: cleListing(seul), ...lectureDuPanneau(PANNEAU) }]);
+    memoireFiches().noter([{ cle: cleListing(seul), lue: true }]);
+    await e.avancer(2 * RELECTURE_MS);
+    assert.equal(e.appels.length, 2);
+    // Ce que le relevé pose quand le panneau est lu dans le processus.
+    const [lu] = skiPlanetListings(SNOW, SEUL, AVORIAZ, null, undefined, () => PANNEAU.description);
+    for (const pose of e.etat.rows) {
+      assert.equal(pose.description, lu.description);
+      assert.deepEqual(pose.amenities, lu.amenities);
+      assert.equal(pose.fiche, undefined, "pas de fiche : le panneau n'en publie pas");
+      // La photo de la résidence reste la première ; celles du logement suivent.
+      assert.equal(pose.photo, SNOW.photo);
+      assert.deepEqual(pose.photos, [SNOW.photo, ...PANNEAU.photos]);
+      // Le panneau ne publie ni capacité ni point : la mémoire n'en comble rien.
+      assert.doesNotMatch(pose.proven, /mémoire des fiches/);
+    }
+    // Sans fiche qui déciderait seule, les équipements que la description
+    // nomme sont présents, les autres « non indiqué » : jamais « Équipements
+    // non publiés » sous un texte qui nomme le balcon et le lave-vaisselle.
+    const [premiere] = e.etat.rows;
+    assert.deepEqual(
+      equipementsDe(premiere)?.map((x) => [x.id, x.present]),
+      [
+        ["balcon", true],
+        ["lave_vaisselle", true],
+      ],
+    );
+    assert.deepEqual(
+      [equipementsLus(premiere), equipementsTus(premiere).length, aEquipement(premiere, "balcon")],
+      [true, 10, true],
+    );
+    await e.avancer(RELECTURES_PLAFOND_MS);
+    assert.equal(e.appels.length, 2, "description posée, plus rien à relire");
+  });
+});
+
+describe("GreenGo : le détail qu'une suite de fond lit après la réponse", () => {
+  // Recherche réelle du 24 septembre 2026 (Portes du Soleil) et détail réel du
+  // 6 octobre 2026 de Balcons des Trois Cîmes (Morzine), hôte à logement unique.
+  const json = (nom: string): unknown =>
+    JSON.parse(readFileSync(new URL(`../scrape/fixtures/${nom}`, import.meta.url), "utf8"));
+  const balcons = lireRecherche(json("greengo-recherche-portes-du-soleil.json")).hotes.find(
+    (h) => h.slug === "balcons-des-trois-cimes",
+  )!;
+  const DETAIL = json("greengo-detail-equipements.json");
+  const SEJOUR: LiveSearchInput = {
+    stationId: "avoriaz",
+    stationName: "Avoriaz",
+    lat: 46.1914,
+    lon: 6.7728,
+    checkIn: "2027-03-06",
+    checkOut: "2027-03-13",
+    guests: 2,
+    bedrooms: 0,
+  };
+  /** L'annonce que la recherche rend quand elle n'a pas lu le détail de l'hôte. */
+  const sansDetail = () => greengoListings(balcons, null, SEJOUR)[0];
+
+  it("sans détail : à relire en pose seule, jamais en file ; détail lu (total publié) ou autre source : non", () => {
+    const sans = sansDetail();
+    // Le serveur n'ouvre jamais la page GreenGo : seul le détail de l'API la complète.
+    assert.equal(raisonDeLaisser(sans, sans.url!), "greengo.voyage");
+    assert.deepEqual(
+      [aCombler(sans), aRelireEnFile(sans), contenuAPoser(sans), detailGreenGoAPoser(sans), aRelire(sans)],
+      [false, false, false, true, true],
+    );
+    const [avec] = greengoListings(balcons, lireDetail(DETAIL), SEJOUR);
+    assert.ok(avec.total > 0);
+    assert.equal(aRelire(avec), false);
+    // Son détail est lu : ce qu'il ne publie pas, aucune suite ne le donnera.
+    assert.equal(aRelire({ ...avec, bedrooms: null, bedroomsSource: null }), false);
+    assert.equal(detailGreenGoAPoser({ ...sans, source: "Abritel" }), false);
+  });
+
+  it("Balcons des Trois Cîmes : relu sans rien poser, puis le détail lu en tâche de fond se pose, chambres et équipements compris ; puis plus rien", async () => {
+    const e = ecran([sansDetail()], (rows) => {
+      const copies = rows.map((l) => ({ ...l }));
+      reposerGardees(copies);
+      return copies;
+    });
+    // La part « greengo » répond : la relecture reprend.
+    e.boucle.relancer();
+    await e.avancer(RELECTURE_MS);
+    assert.deepEqual(
+      e.appels.map((a) => [a.ids, a.poseSeule]),
+      [[[`gg-${balcons.id}`], true]],
+    );
+    assert.equal(e.etat.rows[0].bedrooms, null, "rien de gardé encore");
+    // La suite de fond lit le détail et garde ce qu'il publie (greengo.server.ts, lancerSuiteGreenGo).
+    const annonces = greengoListings(balcons, lireDetail(DETAIL), SEJOUR);
+    garderLectures(lecturesAGarder(balcons, annonces, SEJOUR));
+    memoireFiches().noter(notesDuDetail(balcons, annonces, SEJOUR));
+    await e.avancer(2 * RELECTURE_MS);
+    assert.equal(e.appels.length, 2);
+    const pose = e.etat.rows[0];
+    assert.deepEqual([pose.capacity, pose.bedrooms, pose.bedroomsSource], [4, 1, "structured"]);
+    assert.match(pose.description ?? "", /^Dans notre appartement cosy de 30 m²/);
+    assert.equal(aEquipement(pose, "wifi"), true);
+    assert.equal(pose.total, 0, "le prix dépend des dates : il ne se garde pas");
+    await e.avancer(RELECTURES_PLAFOND_MS);
+    assert.equal(e.appels.length, 2, "détail posé, plus rien à relire");
   });
 });

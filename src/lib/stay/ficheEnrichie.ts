@@ -226,9 +226,14 @@ export function descriptionDe(l: Listing): string | null {
 }
 
 /** Une fiche lue décide seule des équipements ; une fiche indisponible ne
- *  dit rien, l'annonce garde ceux des collecteurs. */
+ *  dit rien, l'annonce garde ceux des collecteurs. Une fiche Ski-Planet sans
+ *  liste non plus : le panneau de Ski-Planet ne publie aucune liste, et le
+ *  collecteur n'en pose plus de fiche (16 octobre 2026) ; celles qu'un favori
+ *  a gardées d'avant affirmaient « non publiés » sous un texte qui nomme le
+ *  balcon et le lave-vaisselle. */
 export function ficheDecideEquipements(l: Listing): boolean {
-  return !!l.fiche && !l.fiche.indisponible;
+  if (!l.fiche || l.fiche.indisponible) return false;
+  return !(l.fiche.sourceFiche === "ski-planet" && !l.fiche.equipements?.length);
 }
 
 /**

@@ -189,6 +189,8 @@ const CHAMPS_DU_BIEN = [
   ["capacity", "capacitySource"],
   ["bedrooms", "bedroomsSource"],
   ["rooms"],
+  // La surface : seule une copie Cozy la publie aujourd'hui (`surfaceText`).
+  ["surface"],
   ["description"],
   ["amenities"],
   ["equipementsPublies"],
@@ -226,6 +228,7 @@ function ficheLue(f: unknown): boolean {
  * - la capacité, les chambres, les pièces, chacune avec sa source. La copie
  *   Cozy d'un Airbnb, moins chère mais muette sur sa capacité, rendait sinon
  *   « muet » un logement que sa copie directe faisait compter ;
+ * - la surface, que seule une copie publie parfois (Cozy, `surfaceText`) ;
  * - la description et les équipements (douze clés, libellés publiés) : la
  *   copie Cozy ne les publie pas, la tuile directe si ; gardée seule, elle les
  *   faisait disparaître de l'écran ;

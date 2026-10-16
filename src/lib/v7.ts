@@ -254,6 +254,15 @@ export function bedLbl(l: Listing): string {
   return `${l.bedrooms === 1 ? tr("1 ch.") : tr("{n} ch.", { n: l.bedrooms })}${cabine}`;
 }
 
+/** « 80 m² », ou `null` quand l'annonce ne porte pas de surface. Comme les
+ *  lits et les salles de bain, elle ne s'écrit que posée. Seul le collecteur
+ *  CozyCozy la pose (pour une partie des Booking et des Abritel) ; d'autres
+ *  sources la publient sans que le leur la pose. Son absence ne se dit donc
+ *  nulle part, ni ici ni dans l'encadré « Non indiqué » (`nonIndique.ts`). */
+export function surfaceLbl(l: Pick<Listing, "surface">): string | null {
+  return l.surface != null && l.surface > 0 ? `${fmt(l.surface)}${INSEC}m²` : null;
+}
+
 /** Hors d'une case titrée (carte, épingle, ligne de fiche), « Non renseigné »
  *  dit de quoi il parle : « Capacité : Non renseigné ». */
 export function capNomme(l: Listing): string {

@@ -269,11 +269,11 @@ describe("poserContenu", () => {
       photos: ["https://v1.jpg", "https://v2.jpg", "https://v3.jpg"],
     };
     const entiere = ["https://g1.jpg", "https://g2.jpg", "https://g3.jpg", "https://g4.jpg"];
-    assert.equal(poserContenu(cozy, { photos: entiere }), true);
+    assert.equal(poserContenu(cozy, { photos: entiere, origine: "cozy" }), true);
     assert.deepEqual([cozy.photo, cozy.photos], ["https://g1.jpg", entiere]);
     // Pas plus longue : rien ne change.
     assert.equal(poserContenu(cozy, { photos: ["https://x.jpg"] }), false);
-    assert.equal(poserContenu(cozy, { photos: entiere }), false);
+    assert.equal(poserContenu(cozy, { photos: entiere, origine: "cozy" }), false);
   });
 
   it("les libellés publiés comblent une annonce qui n'en porte aucun, sans toucher à ses douze clés", () => {
@@ -325,7 +325,18 @@ describe("la fiche Cozy à côté de la page de l'annonce", () => {
   it("les salles de bain gardées comblent l'annonce ; la vignette d'une tuile ne se mêle pas à la galerie", () => {
     const row: Parameters<typeof poserContenu>[0] = { photo: "https://bstatic/max500/1.jpg", photos: null, baths: null };
     const hd = ["https://bstatic/max1440/1.jpg", "https://bstatic/max1440/2.jpg"];
-    assert.equal(poserContenu(row, { photos: hd, baths: 1 }), true);
+    assert.equal(poserContenu(row, { photos: hd, baths: 1, origine: "cozy" }), true);
     assert.deepEqual([row.photo, row.photos, row.baths], [hd[0], hd, 1]);
+  });
+
+  it("hors Cozy, la photo principale choisie par le relevé reste devant la galerie gardée", () => {
+    const row: Parameters<typeof poserContenu>[0] = { photo: "https://a/principale.jpg", photos: null };
+    const g = ["https://a/1.jpg?w=1200", "https://a/2.jpg"];
+    assert.equal(poserContenu(row, { photos: g }), true);
+    assert.deepEqual([row.photo, row.photos], ["https://a/principale.jpg", ["https://a/principale.jpg", ...g]]);
+    // La même photo en grand : elle prend sa place, sans doublon.
+    const meme: Parameters<typeof poserContenu>[0] = { photo: "https://a/1.jpg?w=300", photos: null };
+    poserContenu(meme, { photos: g });
+    assert.deepEqual([meme.photo, meme.photos], [g[0], g]);
   });
 });

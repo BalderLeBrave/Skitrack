@@ -587,3 +587,16 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
         "https://a0.muscache.com/im/pictures/a.jpg",
         "https://a0.muscache.com/im/pictures/b.jpg",
     ]
+
+
+def test_page_rooms_connue_une_seule_requete_par_fiche():
+    appels = []
+    avant = (pdp.fetch_page_rooms, pdp._page_rooms_seule)
+    try:
+        pdp.fetch_page_rooms = lambda lid, **k: appels.append(lid) or {"capacity": 2}
+        pdp._page_rooms_seule = True
+        occ = pdp.fetch_pdp("42", check_in=None, check_out=None, adults=None, api_key="k")
+        assert occ == {"capacity": 2}
+        assert appels == ["42"]
+    finally:
+        pdp.fetch_page_rooms, pdp._page_rooms_seule = avant

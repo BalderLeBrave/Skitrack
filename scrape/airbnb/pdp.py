@@ -631,8 +631,11 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
     import session
     from session import install_shared_http
 
+    global _page_rooms_seule
     install_shared_http()
     debut = time.perf_counter()
+    if params.get("pageRooms") is True:
+        _page_rooms_seule = True
     ids = ids_valides(params.get("ids"))
     check_in = params.get("checkIn") or params.get("checkin")
     check_out = params.get("checkOut") or params.get("checkout")
@@ -664,6 +667,9 @@ def run_fiches(params: dict[str, Any]) -> dict[str, Any]:
             "restants": ids[etat["i"] :],
             "lues": etat["lues"],
             "ms": int((time.perf_counter() - debut) * 1000),
+            # Node le retient et le redit aux workers suivants (`pageRooms`) :
+            # chacun est un processus neuf, qui sinon redemanderait l'API vide.
+            "pageRooms": _page_rooms_seule,
         }
         if arret:
             out["arret"] = arret

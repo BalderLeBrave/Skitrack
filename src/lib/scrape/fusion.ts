@@ -19,7 +19,9 @@ import type { Listing } from "@/lib/listings";
  * Quand un bien est des deux côtés, la fiche Cozy est gardée — elle porte
  * photos, capacité et lien daté — et le direct ne fait que combler ce qu'elle
  * n'a pas publié. Rien n'est écrasé : une valeur publiée par Cozy l'emporte,
- * et un champ vide des deux côtés le reste.
+ * et un champ vide des deux côtés le reste. Seule exception, la galerie : la
+ * liste Cozy n'en porte que trois vignettes, et une galerie directe plus
+ * longue la remplace.
  */
 
 /** L'identifiant de la plateforme, ou `null` quand l'annonce n'en porte aucun de sûr. */
@@ -75,6 +77,11 @@ function ficheLue(l: Listing): boolean {
   return l.fiche != null && l.fiche.indisponible !== true;
 }
 
+/** Le nombre de photos distinctes d'une annonce, photo principale comprise. */
+function galerie(l: Pick<Listing, "photo" | "photos">): number {
+  return new Set([...(l.photo ? [l.photo] : []), ...(l.photos ?? [])]).size;
+}
+
 function combler(cozy: Listing, direct: Listing): Listing {
   let out: Listing | null = null;
   const set = <K extends keyof Listing>(k: K, v: Listing[K]) => {
@@ -83,6 +90,13 @@ function combler(cozy: Listing, direct: Listing): Listing {
   };
   for (const k of COMBLABLES) {
     if (vide(cozy[k]) && !vide(direct[k])) set(k, direct[k]);
+  }
+  // La galerie : la plus longue des deux, photo principale comprise. La liste
+  // Cozy ne porte que trois vignettes ; une tuile directe plus fournie les
+  // remplace, entière, sans mêler les deux.
+  if (galerie(direct) > galerie(out ?? cozy)) {
+    set("photo", direct.photo ?? direct.photos?.[0] ?? null);
+    set("photos", direct.photos ?? null);
   }
   // La note va avec son nombre d'avis : jamais l'une d'un relevé avec l'autre
   // de l'autre (`avisDe` lit les deux sur la même annonce).

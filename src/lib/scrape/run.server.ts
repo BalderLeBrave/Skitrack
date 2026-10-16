@@ -14,6 +14,7 @@ import { scrapeBookingPage, scrapeBookingPlaywright, scrapeBookingPythonDetaille
 import { fillBookingGps, hotelPageUrl, lireFicheBooking } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
 import { collecterCozy, cozyListings, type CollecteCozy } from "./cozy.server";
+import { demanderFichesCozy, noterRefsCozy } from "./cozyFiches.server";
 import { fusionner } from "./fusion";
 import { allowsPath } from "./robots";
 import { chercherCentrale } from "./centrales/chercher.server";
@@ -178,7 +179,11 @@ function collecteCozy(input: LiveSearchInput, echeance: number): Promise<Collect
   const key = [input.stationId, input.checkIn, input.checkOut, input.guests, input.bedrooms].join("|");
   const hit = cozyPartage.get(key);
   if (hit && Date.now() - hit.at < COZY_PARTAGE_MS) return hit.collecte;
-  const collecte = withBrowser(async (open) => collecterCozy(await open(), input, undefined, echeance));
+  const collecte = withBrowser(async (open) => collecterCozy(await open(), input, undefined, echeance)).then((c) => {
+    // De quoi demander ensuite la fiche de chaque annonce (`cozyFiches.server.ts`).
+    noterRefsCozy(c.payloads);
+    return c;
+  });
   cozyPartage.set(key, { at: Date.now(), collecte });
   collecte.catch(() => {
     if (cozyPartage.get(key)?.collecte === collecte) cozyPartage.delete(key);
@@ -1263,6 +1268,12 @@ export async function runLiveSearch(
         booking.count > 0 &&
         !/repli|défi|HTTP \d{3}/i.test(`${booking.error ?? ""} ${booking.note ?? ""}`);
       if (suiteBooking) poursuivreBooking(key, input, genBooking);
+      // Les fiches des annonces Cozy (description, équipements, avis, galerie),
+      // une à une, en tâche de fond ; l'écran Logements les pose par sa
+      // relecture. Pas pour Prix (domaine faux), qui ne les montre pas.
+      if (input.domaine === true && (part === "cozy" || part === "airbnb" || part === "all")) {
+        demanderFichesCozy(result.listings);
+      }
       return result;
     })
     .finally(() => {

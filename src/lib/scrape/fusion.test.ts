@@ -207,3 +207,18 @@ test("sans direct, Cozy passe tel quel ; sans Cozy, le direct aussi", () => {
   assert.deepEqual(fusionner(a, []).listings, a);
   assert.deepEqual(fusionner([], a).listings, a);
 });
+
+test("la galerie la plus longue l'emporte : trois vignettes Cozy contre une tuile directe plus fournie", () => {
+  const vignettes = ["https://cozy/1.jpg", "https://cozy/2.jpg", "https://cozy/3.jpg"];
+  const cozy = annonce({ id: "abnb-1", source: "Airbnb", platformId: "42", photo: vignettes[0], photos: vignettes });
+  const tuile = ["https://abnb/1.jpg", "https://abnb/2.jpg", "https://abnb/3.jpg", "https://abnb/4.jpg", "https://abnb/5.jpg"];
+  const direct = annonce({ id: "42", source: "Airbnb", platformId: "42", photo: tuile[0], photos: tuile });
+  const [l] = fusionner([cozy], [direct]).listings;
+  assert.equal(l.id, "abnb-1");
+  assert.equal(l.photo, tuile[0]);
+  assert.deepEqual(l.photos, tuile);
+  // Une tuile moins fournie ne remplace pas la galerie Cozy.
+  const courte = annonce({ id: "42", source: "Airbnb", platformId: "42", photo: tuile[0], photos: [tuile[0]] });
+  const [m] = fusionner([cozy], [courte]).listings;
+  assert.deepEqual(m.photos, vignettes);
+});

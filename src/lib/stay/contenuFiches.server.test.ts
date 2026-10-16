@@ -263,6 +263,19 @@ describe("poserContenu", () => {
     assert.deepEqual(galerie.photos, ["https://a.jpg", "https://c.jpg"]);
   });
 
+  it("une galerie gardée plus longue remplace les trois vignettes de la liste", () => {
+    const cozy = {
+      photo: "https://v1.jpg",
+      photos: ["https://v1.jpg", "https://v2.jpg", "https://v3.jpg"],
+    };
+    const entiere = ["https://g1.jpg", "https://g2.jpg", "https://g3.jpg", "https://g4.jpg"];
+    assert.equal(poserContenu(cozy, { photos: entiere }), true);
+    assert.deepEqual([cozy.photo, cozy.photos], ["https://g1.jpg", entiere]);
+    // Pas plus longue : rien ne change.
+    assert.equal(poserContenu(cozy, { photos: ["https://x.jpg"] }), false);
+    assert.equal(poserContenu(cozy, { photos: entiere }), false);
+  });
+
   it("les libellés publiés comblent une annonce qui n'en porte aucun, sans toucher à ses douze clés", () => {
     const row: Parameters<typeof poserContenu>[0] = { amenities: equipements({ balcon: "oui" }), equipementsPublies: [] };
     assert.equal(poserContenu(row, { amenities: equipements({ wifi: "oui" }), equipementsPublies: PICTOS_ARKIANE }), true);

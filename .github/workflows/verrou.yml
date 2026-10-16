@@ -3,6 +3,12 @@
 name: verrou
 on:
   pull_request:
+    # `edited` : un titre ou une description modifiés relancent le contrôle.
+    # Sans lui, l'accord ajouté à la description après un push ne se relisait
+    # qu'au push suivant : le contrôle lit le titre et la description de
+    # l'événement, et une relance reprend ceux d'origine (PR #106, 16 octobre
+    # 2026).
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   locked:

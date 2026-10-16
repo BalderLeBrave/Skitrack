@@ -156,6 +156,24 @@ export function panneauSkiPlanetAPoser(l: Listing): boolean {
 }
 
 /**
+ * GreenGo : le relevé lit lui-même, par l'API, le détail des hôtes les plus
+ * proches ; ceux qu'il n'a pas lus (au-delà, échéance) se lisent ensuite en
+ * tâche de fond, un à la fois (`lancerSuiteGreenGo`, greengo.server.ts). Ce que
+ * le détail d'un hôte à logement unique publie — fiche, description, douze
+ * clés, capacité et chambres — se garde trente jours sous la clé de son
+ * annonce sans détail (`lecturesAGarder`, `notesDuDetail`), et l'écran n'ouvre
+ * jamais la page GreenGo (`pageJamaisOuverte`) : la relecture le pose sans
+ * réseau (`reposerGardees`). L'annonce sans détail est celle dont le total
+ * n'est pas publié ; un total publié dit un détail déjà lu. Le détail donne
+ * les chambres en champ de l'API, avec le reste, d'une seule lecture : posées,
+ * l'annonce n'attend plus rien.
+ */
+export function detailGreenGoAPoser(l: Listing): boolean {
+  if (l.source !== "GreenGo" || l.total > 0) return false;
+  return l.capacity == null || l.bedroomsSource !== "structured";
+}
+
+/**
  * Ce que relisait la boucle d'avant : des trous de fiche (`aCombler`), ou une
  * annonce Airbnb dont la fiche enrichie n'est pas encore posée. Elle
  * s'arrêtait dès qu'il n'en restait plus. La boucle de la réponse Airbnb ne
@@ -171,8 +189,8 @@ export function aRelireEnFile(l: Listing): boolean {
  * À relire : ce que relisait la boucle d'avant (`aRelireEnFile`), ou un
  * contenu ou une fiche Booking que la tâche de fond lit encore
  * (`contenuAPoser`, `contenuArkianeAPoser`, `ficheBookingAPoser`,
- * `contenuOrchestraAPoser`, `ficheTravelskiAPoser`, `panneauSkiPlanetAPoser`).
- * La mémoire se pose sans réseau.
+ * `contenuOrchestraAPoser`, `ficheTravelskiAPoser`, `panneauSkiPlanetAPoser`,
+ * `detailGreenGoAPoser`). La mémoire se pose sans réseau.
  */
 export function aRelire(l: Listing): boolean {
   return (
@@ -182,7 +200,8 @@ export function aRelire(l: Listing): boolean {
     ficheBookingAPoser(l) ||
     contenuOrchestraAPoser(l) ||
     ficheTravelskiAPoser(l) ||
-    panneauSkiPlanetAPoser(l)
+    panneauSkiPlanetAPoser(l) ||
+    detailGreenGoAPoser(l)
   );
 }
 

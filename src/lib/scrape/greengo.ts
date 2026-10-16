@@ -465,7 +465,7 @@ export class ArretGreenGo extends Error {}
  */
 export function detaillerMalgre(raison: string | undefined): boolean {
   if (!raison) return true;
-  return !/HTTP (403|429|503)\b|répondu (403|429|503)\b|bloqué \((403|429|503)\)|pause après un refus|limiteur local|échéance/.test(
+  return !/HTTP (403|429|503)\b|défi anti-robot|répondu (403|429|503)\b|bloqué \((403|429|503)\)|pause après un refus|limiteur local|échéance/.test(
     raison,
   );
 }
@@ -506,6 +506,71 @@ export async function detailler(
     }
   }
   return { details, echecs };
+}
+
+/** Ce que la suite de fond des détails demande au réseau, à la mémoire et à l'horloge. */
+export type PorteSuiteGreenGo = {
+  /**
+   * La réponse au détail de l'hôte (`requeteDetail`), au rythme du journal de
+   * taux partagé. Lève sur un refus, la pause qu'il pose, le limiteur, une
+   * nouvelle recherche vue après l'attente du journal, ou une panne.
+   */
+  lire: (h: HoteGreenGo) => Promise<unknown>;
+  /** Lu ou gardé il y a moins de trente jours : on passe, sans requête. */
+  dejaLu: (h: HoteGreenGo) => boolean;
+  /** Une raison de s'arrêter (nouvelle recherche, durée, pause après un refus). */
+  arret: () => string | null;
+  /** Les logements qu'un détail lu publie, à garder. */
+  garder: (h: HoteGreenGo, logements: LogementGreenGo[]) => void;
+  /** La fin de la dernière requête vers GreenGo, recherche comprise, en ms. */
+  derniere: () => number;
+  maintenant: () => number;
+  attendre: (ms: number) => Promise<void>;
+};
+
+/** L'attente de son tour se découpe : une nouvelle recherche y est vue dans la seconde. */
+const PAS_ATTENTE_MS = 1_000;
+
+/**
+ * La suite de fond des détails, un hôte à la fois, sans nouvel essai, sur le
+ * modèle des fiches lentes Airbnb : chaque détail part `ecartMs` au moins après
+ * la fin de la dernière requête vers GreenGo, recherche comprise, et l'arrêt se
+ * relit pendant l'attente. Elle s'arrête sur la première raison que donne
+ * `arret`, sur la première erreur (un refus, la pause, le limiteur : rien
+ * n'est repris), et sur une réponse sans logement, qui n'est pas gardée. Au
+ * plus `max` détails demandés ; un hôte déjà lu ne compte pas.
+ */
+export async function lireSuiteGreenGo(
+  hotes: readonly HoteGreenGo[],
+  porte: PorteSuiteGreenGo,
+  o: { max: number; ecartMs: number },
+): Promise<{ lus: number; demandes: number; arret: string | null }> {
+  let lus = 0;
+  let demandes = 0;
+  const fin = (arret: string | null) => ({ lus, demandes, arret });
+  for (const h of hotes) {
+    if (demandes >= o.max) return fin(`${o.max} détails demandés`);
+    if (porte.dejaLu(h)) continue;
+    for (;;) {
+      const raison = porte.arret();
+      if (raison) return fin(raison);
+      const reste = porte.derniere() + o.ecartMs - porte.maintenant();
+      if (reste <= 0) break;
+      await porte.attendre(Math.min(reste, PAS_ATTENTE_MS));
+    }
+    demandes += 1;
+    let reponse: unknown;
+    try {
+      reponse = await porte.lire(h);
+    } catch (err) {
+      return fin(`${h.slug} : ${err instanceof Error ? err.message : String(err)}`);
+    }
+    const logements = lireDetail(reponse);
+    if (logements.length === 0) return fin(`${h.slug} : la réponse ne publie aucun logement`);
+    porte.garder(h, logements);
+    lus += 1;
+  }
+  return fin(null);
 }
 
 export function lienHote(slug: string, input: LiveSearchInput): string {
@@ -597,6 +662,24 @@ export function greengoListings(
 }
 
 /**
+ * La clé (`cleListing`) de l'annonce sans détail de l'hôte : celle sous
+ * laquelle ce que publie son détail se garde et se repose. `null` s'il n'en a
+ * pas (`hotePur`).
+ */
+export function cleSansDetail(hote: HoteGreenGo, input: LiveSearchInput): string | null {
+  const [sans] = greengoListings(hote, null, input);
+  return sans ? cleListing(sans) : null;
+}
+
+type ValeurAGarder = {
+  cle: string;
+  capacity: number | null;
+  capacitySource: "structured" | null;
+  bedrooms: number | null;
+  bedroomsSource: "structured" | null;
+};
+
+/**
  * Ce que le relevé note trente jours du détail d'un hôte à logement unique
  * dans la mémoire des fiches : sa capacité et ses chambres, champs de l'API
  * (`maxNumberOfTravellers`, `numberOfBedrooms`), sous la clé de son annonce
@@ -611,11 +694,10 @@ export function valeursAGarder(
   hote: HoteGreenGo,
   annonces: readonly Listing[],
   input: LiveSearchInput,
-): { cle: string; capacity: number | null; capacitySource: "structured" | null; bedrooms: number | null; bedroomsSource: "structured" | null }[] {
+): ValeurAGarder[] {
   const [a] = annonces;
   if (!hote.unique || annonces.length !== 1 || !a) return [];
-  const [sans] = greengoListings(hote, null, input);
-  const cle = sans ? cleListing(sans) : null;
+  const cle = cleSansDetail(hote, input);
   if (!cle) return [];
   const capacity = (a.capacitySource ?? "structured") === "structured" ? a.capacity : null;
   const bedrooms = (a.bedroomsSource ?? "structured") === "structured" ? a.bedrooms : null;
@@ -653,8 +735,60 @@ export function lecturesAGarder(
 ): LectureAGarder[] {
   const [a] = annonces;
   if (!hote.unique || annonces.length !== 1 || !a?.fiche) return [];
-  const [sans] = greengoListings(hote, null, input);
-  const cle = sans ? cleListing(sans) : null;
+  const cle = cleSansDetail(hote, input);
   if (!cle) return [];
   return [{ cle, fiche: a.fiche, contenu: { description: a.description ?? null, amenities: a.amenities ?? null } }];
+}
+
+/**
+ * Ce que le relevé et la suite de fond notent dans la mémoire des fiches du
+ * détail lu d'un hôte à logement unique : ses valeurs (`valeursAGarder`), et la
+ * lecture elle-même (`lue`), qu'il ait publié ou non une annonce gardée. La
+ * suite de fond ne relit pas un détail lu il y a moins de trente jours : ce
+ * qu'il publie, hors prix, ne dépend pas des dates. Rien pour un
+ * établissement, ni pour un hôte sans annonce sans détail.
+ */
+export function notesDuDetail(
+  hote: HoteGreenGo,
+  annonces: readonly Listing[],
+  input: LiveSearchInput,
+): (Partial<ValeurAGarder> & { cle: string; lue: true })[] {
+  if (!hote.unique) return [];
+  const cle = cleSansDetail(hote, input);
+  if (!cle) return [];
+  const [v] = valeursAGarder(hote, annonces, input);
+  return [{ ...v, cle, lue: true }];
+}
+
+/**
+ * Les hôtes que la suite de fond peut encore lire, dans l'ordre donné (les
+ * plus proches d'abord) : à logement unique, avec une annonce sans détail où
+ * poser ce que le détail publie (`cleSansDetail`), que la recherche n'a pas lus
+ * et dont le détail n'y a pas échoué (un 500, une réponse illisible : rien
+ * n'est repris). Le détail d'un établissement ne garde rien
+ * (`lecturesAGarder`) : il ne se lit qu'à la recherche, pour ses prix.
+ */
+export function hotesDeSuite(
+  gardes: readonly HoteGreenGo[],
+  lus: { has(id: string): boolean },
+  echoues: { has(id: string): boolean },
+  input: LiveSearchInput,
+): HoteGreenGo[] {
+  return gardes.filter((h) => h.unique && !lus.has(h.id) && !echoues.has(h.id) && cleSansDetail(h, input) != null);
+}
+
+/**
+ * La suite de fond part-elle après cette recherche ? Seulement si la recherche
+ * s'est arrêtée faute de temps : sans raison, sur l'échéance, sur le limiteur
+ * local, ou avec des hôtes au-delà des plus proches lus en détail. Jamais après
+ * un refus ni sa pause, ni après une page de recherche en panne (HTTP 500,
+ * GraphQL, réponse illisible), ni après l'échec d'un seul détail (`echecs`) :
+ * une réponse 2xx qui n'est pas du JSON (un défi AWS WAF servi en 202, une page
+ * HTML) s'y lit comme une panne ordinaire, et une requête de plus partirait
+ * vers l'hôte qui vient de le servir. La suite Arkiane, de même, ne part que
+ * sur le budget épuisé.
+ */
+export function suiteALancer(raison: string | undefined, echecs: number): boolean {
+  if (echecs > 0) return false;
+  return raison == null || /^(?:échéance$|limiteur local \(|\d+ hôtes au-delà des \d+ lus en détail$)/.test(raison);
 }

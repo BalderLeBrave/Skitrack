@@ -18,6 +18,13 @@ import {
   skiPlanetListings,
   type ResidenceSkiPlanet,
 } from "../scrape/agences/skiPlanet.ts";
+import {
+  greengoListings,
+  lecturesAGarder,
+  lireDetail,
+  lireRecherche,
+  notesDuDetail,
+} from "../scrape/greengo.ts";
 import type { LiveSearchInput } from "../scrape/types.ts";
 import { garderLectures, reposerGardees } from "./contenuFiches.server.ts";
 import { equipements, type EquipementPublie } from "./equipements.ts";
@@ -34,6 +41,7 @@ import {
   contenuAPoser,
   contenuArkianeAPoser,
   contenuOrchestraAPoser,
+  detailGreenGoAPoser,
   empreinte,
   ficheBookingAPoser,
   ficheTravelskiAPoser,
@@ -799,5 +807,73 @@ describe("Ski-Planet : le panneau qu'une suite de fond lit après la réponse", 
     );
     await e.avancer(RELECTURES_PLAFOND_MS);
     assert.equal(e.appels.length, 2, "description posée, plus rien à relire");
+  });
+});
+
+describe("GreenGo : le détail qu'une suite de fond lit après la réponse", () => {
+  // Recherche réelle du 24 septembre 2026 (Portes du Soleil) et détail réel du
+  // 6 octobre 2026 de Balcons des Trois Cîmes (Morzine), hôte à logement unique.
+  const json = (nom: string): unknown =>
+    JSON.parse(readFileSync(new URL(`../scrape/fixtures/${nom}`, import.meta.url), "utf8"));
+  const balcons = lireRecherche(json("greengo-recherche-portes-du-soleil.json")).hotes.find(
+    (h) => h.slug === "balcons-des-trois-cimes",
+  )!;
+  const DETAIL = json("greengo-detail-equipements.json");
+  const SEJOUR: LiveSearchInput = {
+    stationId: "avoriaz",
+    stationName: "Avoriaz",
+    lat: 46.1914,
+    lon: 6.7728,
+    checkIn: "2027-03-06",
+    checkOut: "2027-03-13",
+    guests: 2,
+    bedrooms: 0,
+  };
+  /** L'annonce que la recherche rend quand elle n'a pas lu le détail de l'hôte. */
+  const sansDetail = () => greengoListings(balcons, null, SEJOUR)[0];
+
+  it("sans détail : à relire en pose seule, jamais en file ; détail lu (total publié) ou autre source : non", () => {
+    const sans = sansDetail();
+    // Le serveur n'ouvre jamais la page GreenGo : seul le détail de l'API la complète.
+    assert.equal(raisonDeLaisser(sans, sans.url!), "greengo.voyage");
+    assert.deepEqual(
+      [aCombler(sans), aRelireEnFile(sans), contenuAPoser(sans), detailGreenGoAPoser(sans), aRelire(sans)],
+      [false, false, false, true, true],
+    );
+    const [avec] = greengoListings(balcons, lireDetail(DETAIL), SEJOUR);
+    assert.ok(avec.total > 0);
+    assert.equal(aRelire(avec), false);
+    // Son détail est lu : ce qu'il ne publie pas, aucune suite ne le donnera.
+    assert.equal(aRelire({ ...avec, bedrooms: null, bedroomsSource: null }), false);
+    assert.equal(detailGreenGoAPoser({ ...sans, source: "Abritel" }), false);
+  });
+
+  it("Balcons des Trois Cîmes : relu sans rien poser, puis le détail lu en tâche de fond se pose, chambres et équipements compris ; puis plus rien", async () => {
+    const e = ecran([sansDetail()], (rows) => {
+      const copies = rows.map((l) => ({ ...l }));
+      reposerGardees(copies);
+      return copies;
+    });
+    // La part « greengo » répond : la relecture reprend.
+    e.boucle.relancer();
+    await e.avancer(RELECTURE_MS);
+    assert.deepEqual(
+      e.appels.map((a) => [a.ids, a.poseSeule]),
+      [[[`gg-${balcons.id}`], true]],
+    );
+    assert.equal(e.etat.rows[0].bedrooms, null, "rien de gardé encore");
+    // La suite de fond lit le détail et garde ce qu'il publie (greengo.server.ts, lancerSuiteGreenGo).
+    const annonces = greengoListings(balcons, lireDetail(DETAIL), SEJOUR);
+    garderLectures(lecturesAGarder(balcons, annonces, SEJOUR));
+    memoireFiches().noter(notesDuDetail(balcons, annonces, SEJOUR));
+    await e.avancer(2 * RELECTURE_MS);
+    assert.equal(e.appels.length, 2);
+    const pose = e.etat.rows[0];
+    assert.deepEqual([pose.capacity, pose.bedrooms, pose.bedroomsSource], [4, 1, "structured"]);
+    assert.match(pose.description ?? "", /^Dans notre appartement cosy de 30 m²/);
+    assert.equal(aEquipement(pose, "wifi"), true);
+    assert.equal(pose.total, 0, "le prix dépend des dates : il ne se garde pas");
+    await e.avancer(RELECTURES_PLAFOND_MS);
+    assert.equal(e.appels.length, 2, "détail posé, plus rien à relire");
   });
 });

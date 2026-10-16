@@ -8,6 +8,7 @@ import {
   ArretGreenGo,
   OPERATION_DETAIL,
   OPERATION_RECHERCHE,
+  cleSansDetail,
   detailler,
   detaillerMalgre,
   emprise,
@@ -15,17 +16,22 @@ import {
   greengoListings,
   hoteGarde,
   hotePur,
+  hotesDeSuite,
   lecturesAGarder,
   lienHote,
   ficheGreenGo,
   lireDetail,
   lireRecherche,
+  lireSuiteGreenGo,
   logementGarde,
+  notesDuDetail,
   requeteDetail,
   requeteRecherche,
+  suiteALancer,
   valeursAGarder,
   type HoteGreenGo,
   type LogementGreenGo,
+  type PorteSuiteGreenGo,
 } from "./greengo.ts";
 import type { LiveSearchInput } from "./types.ts";
 import type { Listing } from "../listings.ts";
@@ -718,5 +724,235 @@ describe("GreenGo : le détail lu, gardé trente jours, reposé sans requête", 
     // Un établissement ne note rien.
     const beauregard = { ...hotes.find((h) => h.slug === "chalet-d-alpage-de-beauregard-1")!, tags: ["GITE_FR"] };
     assert.deepEqual(valeursAGarder(beauregard, greengoListings(beauregard, lireDetail(DETAIL_BEAUREGARD), AVORIAZ), AVORIAZ), []);
+  });
+});
+
+describe("GreenGo : la suite de fond des détails, un hôte à la fois, sans nouvel essai", () => {
+  // Réponse réelle du 6 octobre 2026 au détail de Balcons des Trois Cîmes, telle quelle.
+  const BALCONS: unknown = JSON.parse(readFileSync(join(dir, "fixtures/greengo-detail-equipements.json"), "utf8"));
+  const gardes = lireRecherche(RECHERCHE_REELLE).hotes.filter(hoteGarde);
+  const parSlug = (slug: string) => gardes.find((h) => h.slug === slug)!;
+  const aucun = new Set<string>();
+  const hotes = hotesDeSuite(gardes, aucun, aucun, AVORIAZ);
+  const SUITE = { max: 24, ecartMs: 12_000 };
+
+  /**
+   * Une porte à l'heure simulée : chaque détail répond, dans l'ordre,
+   * `reponses` puis le détail réel de Balcons, en 800 ms ; une erreur se lève.
+   */
+  function porte(reponses: unknown[] = [], p: Partial<PorteSuiteGreenGo> = {}) {
+    const horloge = { t: 40_000, derniere: 40_000 };
+    const partis: { slug: string; t: number }[] = [];
+    const retenus: string[] = [];
+    const porte: PorteSuiteGreenGo = {
+      lire: async (h) => {
+        partis.push({ slug: h.slug, t: horloge.t });
+        horloge.t += 800;
+        horloge.derniere = horloge.t;
+        const r = reponses.length ? reponses.shift() : BALCONS;
+        if (r instanceof Error) throw r;
+        return r;
+      },
+      dejaLu: () => false,
+      arret: () => null,
+      garder: (h, logements) => {
+        assert.ok(logements.length > 0);
+        retenus.push(h.slug);
+      },
+      derniere: () => horloge.derniere,
+      maintenant: () => horloge.t,
+      attendre: async (ms) => {
+        horloge.t += ms;
+      },
+      ...p,
+    };
+    return { porte, partis, retenus, horloge };
+  }
+
+  it("les hôtes à logement unique que la recherche n'a pas lus ; ni un établissement, ni un insolite, ni un détail échoué", () => {
+    assert.deepEqual(
+      hotes.map((h) => h.slug),
+      [
+        "balcons-des-trois-cimes",
+        "neva",
+        "appartement-dans-chalet",
+        "chalet-la-rocca",
+        "chalet-paradis-blanc-morzine-5",
+        "chalet-la-sonnaille",
+        "ride-breakfast",
+        "chalet-zakopane",
+      ],
+    );
+    // Gardés par la recherche, mais pas par la suite : Beauregard est un
+    // établissement (son détail ne garde rien), Mapellet un « insolite » sans
+    // annonce sans détail où poser quoi que ce soit.
+    assert.equal(cleSansDetail(parSlug("chalet-de-mapellet"), AVORIAZ), null);
+    assert.equal(parSlug("chalet-d-alpage-de-beauregard-1").unique, false);
+    // Même « pur », un établissement n'entre pas dans la suite.
+    const beauregardPur = { ...parSlug("chalet-d-alpage-de-beauregard-1"), tags: ["GITE_FR"] };
+    assert.notEqual(cleSansDetail(beauregardPur, AVORIAZ), null);
+    assert.deepEqual(hotesDeSuite([beauregardPur], aucun, aucun, AVORIAZ), []);
+    const lus = new Map([[parSlug("neva").id, [] as LogementGreenGo[]]]);
+    const echoues = new Set([parSlug("chalet-la-rocca").id]);
+    const reste = hotesDeSuite(gardes, lus, echoues, AVORIAZ).map((h) => h.slug);
+    assert.equal(reste.length, 6);
+    assert.ok(!reste.includes("neva") && !reste.includes("chalet-la-rocca"));
+  });
+
+  it("un détail à la fois, douze secondes au moins après la requête précédente vers GreenGo, recherche comprise ; au plus `max`", async () => {
+    const e = porte();
+    const r = await lireSuiteGreenGo(hotes, e.porte, { ...SUITE, max: 3 });
+    assert.deepEqual(
+      e.partis.map((x) => x.slug),
+      ["balcons-des-trois-cimes", "neva", "appartement-dans-chalet"],
+    );
+    // La dernière requête de la recherche a fini à 40 s.
+    assert.equal(e.partis[0].t, 52_000);
+    for (let k = 1; k < e.partis.length; k++) assert.ok(e.partis[k].t - (e.partis[k - 1].t + 800) >= 12_000);
+    assert.deepEqual(e.retenus, ["balcons-des-trois-cimes", "neva", "appartement-dans-chalet"]);
+    assert.deepEqual([r.lus, r.demandes, r.arret], [3, 3, "3 détails demandés"]);
+  });
+
+  it("un refus arrête tout, sans nouvel essai ; une panne aussi", async () => {
+    const refus = porte([BALCONS, new ArretGreenGo("HTTP 429 — pause 45 s")]);
+    const r = await lireSuiteGreenGo(hotes, refus.porte, SUITE);
+    assert.deepEqual(
+      refus.partis.map((x) => x.slug),
+      ["balcons-des-trois-cimes", "neva"],
+    );
+    assert.deepEqual(refus.retenus, ["balcons-des-trois-cimes"]);
+    assert.equal(r.arret, "neva : HTTP 429 — pause 45 s");
+    const panne = porte([new Error("HTTP 500")]);
+    const r2 = await lireSuiteGreenGo(hotes, panne.porte, SUITE);
+    assert.equal(panne.partis.length, 1);
+    assert.deepEqual(panne.retenus, []);
+    assert.equal(r2.arret, "balcons-des-trois-cimes : HTTP 500");
+  });
+
+  it("cède à une nouvelle recherche pendant l'attente de son tour : rien ne part plus", async () => {
+    let generation = 1;
+    const e = porte([], { arret: () => (generation !== 1 ? "une nouvelle recherche est partie" : null) });
+    e.porte.attendre = async (ms) => {
+      e.horloge.t += ms;
+      // Une recherche part cinq secondes après le premier détail.
+      if (e.partis.length === 1 && e.horloge.t >= e.partis[0].t + 5_000) generation = 2;
+    };
+    const r = await lireSuiteGreenGo(hotes, e.porte, SUITE);
+    assert.deepEqual(
+      e.partis.map((x) => x.slug),
+      ["balcons-des-trois-cimes"],
+    );
+    assert.deepEqual([r.lus, r.demandes, r.arret], [1, 1, "une nouvelle recherche est partie"]);
+    // Cédée dans la seconde : elle ne retient pas l'hôte jusqu'à la fin de son écart.
+    assert.ok(e.horloge.t - e.partis[0].t <= 6_000);
+  });
+
+  it("un hôte déjà lu ou gardé ne part pas, et ne compte pas dans le plafond", async () => {
+    const e = porte([], { dejaLu: (h) => h.slug !== "chalet-la-sonnaille" && h.slug !== "chalet-zakopane" });
+    const r = await lireSuiteGreenGo(hotes, e.porte, { ...SUITE, max: 2 });
+    assert.deepEqual(
+      e.partis.map((x) => x.slug),
+      ["chalet-la-sonnaille", "chalet-zakopane"],
+    );
+    assert.deepEqual([r.lus, r.demandes, r.arret], [2, 2, null]);
+  });
+
+  it("une réponse sans logement n'est pas gardée, et arrête", async () => {
+    const e = porte([{ data: { publicAdverts: { hostingAdvert: null } } }]);
+    const r = await lireSuiteGreenGo(hotes, e.porte, SUITE);
+    assert.deepEqual(e.retenus, []);
+    assert.equal(r.arret, "balcons-des-trois-cimes : la réponse ne publie aucun logement");
+  });
+});
+
+describe("GreenGo : la lecture d'un détail notée trente jours", () => {
+  const neva = lireRecherche(RECHERCHE).hotes[0];
+
+  it("ses valeurs et la lecture, sous la clé de l'annonce sans détail ; la lecture même sans annonce gardée", () => {
+    const avec = greengoListings(neva, lireDetail(NEVA), AVORIAZ);
+    const notes = notesDuDetail(neva, avec, AVORIAZ);
+    const cle = cleSansDetail(neva, AVORIAZ);
+    assert.equal(cle, "GreenGo:e86b77f8-bb8c-4af0-826a-8150eb501d50");
+    assert.deepEqual(notes, [
+      { cle, capacity: 4, capacitySource: "structured", bedrooms: 1, bedroomsSource: "structured", lue: true },
+    ]);
+    // Non réservable à ces dates : pas d'annonce, rien à garder, mais le détail a été lu.
+    const ferme = greengoListings(neva, lireDetail(NEVA).map((u) => ({ ...u, reservable: false })), AVORIAZ);
+    assert.deepEqual(ferme, []);
+    assert.deepEqual(notesDuDetail(neva, ferme, AVORIAZ), [{ cle, lue: true }]);
+    // Noté, il se lit lu : la suite de fond ne le redemande pas.
+    memoireFiches().noter(notes);
+    assert.equal(memoireFiches().lire(cle)?.lue, true);
+  });
+
+  it("rien pour un établissement, ni pour un hôte sans annonce sans détail", () => {
+    const hotes = lireRecherche(RECHERCHE_REELLE).hotes;
+    const beauregard = { ...hotes.find((h) => h.slug === "chalet-d-alpage-de-beauregard-1")!, tags: ["GITE_FR"] };
+    assert.deepEqual(notesDuDetail(beauregard, greengoListings(beauregard, lireDetail(DETAIL_BEAUREGARD), AVORIAZ), AVORIAZ), []);
+    const mapellet = hotes.find((h) => h.slug === "chalet-de-mapellet")!;
+    assert.deepEqual(notesDuDetail(mapellet, [], AVORIAZ), []);
+  });
+});
+
+describe("GreenGo : la suite de fond ne part qu'après une recherche arrêtée faute de temps", () => {
+  const gardes = lireRecherche(RECHERCHE_REELLE).hotes.filter(hoteGarde);
+
+  it("sans raison, sur l'échéance, sur le limiteur local, ou au-delà des plus proches : elle part", () => {
+    assert.equal(suiteALancer(undefined, 0), true);
+    assert.equal(suiteALancer("échéance", 0), true);
+    assert.equal(suiteALancer("limiteur local (2 s à attendre)", 0), true);
+    assert.equal(suiteALancer("4 hôtes au-delà des 60 lus en détail", 0), true);
+  });
+
+  it("jamais après un refus ni pendant sa pause", () => {
+    for (const raison of [
+      "HTTP 429 — pause 45 s",
+      "HTTP 403 — pause 45 s",
+      "HTTP 503 — pause 120 s",
+      "pause après un refus (40 s à attendre)",
+    ]) {
+      assert.equal(suiteALancer(raison, 0), false, raison);
+    }
+  });
+
+  it("jamais après des détails en panne, même servis en 2xx : un défi AWS WAF en 202 s'y lit comme une panne", async () => {
+    // Ce que `graphql` lève sur un défi servi en 202 : la page HTML ne se lit pas en JSON.
+    const defi = await new Response("<html>challenge</html>", {
+      status: 202,
+      headers: { "x-amzn-waf-action": "challenge" },
+    })
+      .json()
+      .then(
+        () => null,
+        (err: unknown) => err,
+      );
+    assert.ok(defi instanceof Error);
+    const enSerie = await detailler(gardes, async () => {
+      throw defi;
+    });
+    assert.match(enSerie.raison ?? "", /is not valid JSON \(2 hôtes de suite\)$/);
+    assert.equal(suiteALancer(enSerie.raison, enSerie.echecs), false);
+    // Un seul détail en panne, puis l'échéance : la suite ne part pas davantage.
+    const reponses: Array<Error | LogementGreenGo[]> = [new Error("HTTP 500"), [], new ArretGreenGo("échéance")];
+    const puisEcheance = await detailler(gardes, async () => {
+      const r = reponses.shift();
+      if (r instanceof Error) throw r;
+      return r ?? [];
+    });
+    assert.deepEqual([puisEcheance.raison, puisEcheance.echecs, puisEcheance.details.size], ["échéance", 1, 1]);
+    assert.equal(suiteALancer(puisEcheance.raison, puisEcheance.echecs), false);
+    // Et le compte des détails illisibles que pose le relevé, sans autre raison.
+    assert.equal(suiteALancer("1 détail illisible", 1), false);
+  });
+
+  it("jamais après une page de recherche en panne", () => {
+    for (const raison of [
+      "HTTP 500",
+      "GraphQL : Cannot query field \"x\" on type \"Query\".",
+      `Unexpected token '<', "<html>chal"... is not valid JSON`,
+      "The operation was aborted due to timeout",
+    ]) {
+      assert.equal(suiteALancer(raison, 0), false, raison);
+    }
   });
 });

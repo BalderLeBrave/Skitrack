@@ -52,9 +52,11 @@ export type Suggestion = {
 /**
  * Les suggestions du champ Destination. Champ vide : les massifs puis les
  * trois plus grands domaines. Champ rempli : trois massifs et six stations
- * au plus dont le nom (ou un village) contient le texte. Une commune, une
- * ville ou un village qui n'est pas une station propose la sienne : Lamoura
- * propose Les Rousses, Paris la station la plus proche.
+ * trois massifs et douze stations au plus dont le nom, un village ou le
+ * domaine contient le texte. Une commune, une ville, un village ou une
+ * station du classeur qui n'est pas écrite comme dans le référentiel
+ * propose la sienne : « Avoriaz 1800 » propose Avoriaz, « Lamoura » Les
+ * Rousses, Paris la station la plus proche.
  */
 export function suggestions(ql: string): Suggestion[] {
   const massif = (x: MassifResume): Suggestion => ({
@@ -85,11 +87,27 @@ export function suggestions(ql: string): Suggestion[] {
         .map((s) => station(s, null, null)),
     ];
   }
-  const parNom = STATIONS.filter((s) => nomCorrespond(s, ql)).slice(0, 6);
+  const parNom = STATIONS.filter(
+    (s) => nomCorrespond(s, ql) || (!!s.domain && foldName(s.domain).includes(ql)),
+  )
+    .sort((a, b) => {
+      const rang = (s: Station) => {
+        const n = foldName(s.name);
+        const d = foldName(s.domain ?? "");
+        if (n === ql) return 0;
+        if (n.startsWith(ql)) return 1;
+        if (d === ql) return 2;
+        if (d.startsWith(ql)) return 3;
+        if (n.includes(ql)) return 4;
+        return 5;
+      };
+      return rang(a) - rang(b) || a.name.localeCompare(b.name, "fr");
+    })
+    .slice(0, 12);
   const deja = new Set(parNom.map((s) => s.id));
   const communes = communesPour(ql)
     .filter((c) => !deja.has(c.stationId))
-    .slice(0, Math.max(0, 6 - parNom.length));
+    .slice(0, Math.max(0, 12 - parNom.length));
   return [
     ...MASSIFS.filter((x) => foldName(x.m).includes(ql)).slice(0, 3).map(massif),
     // Un village ou une commune renvoie à sa station : « Val Claret » propose

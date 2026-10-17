@@ -5,7 +5,10 @@
  * Un lieu dans le polygone d'un domaine (OpenSkiMap) désigne ce domaine :
  * Lamoura est aux Rousses, même si le pin de Monts Jura est plus près.
  * Les villages déjà rattachés à une station (`villages.ts`) gardent cette
- * station. Tous les autres désignent la station la plus proche, sans limite
+ * station. Chaque nom du classeur France Montagnes et chaque station
+ * OpenSkiMap en activité en France y est aussi, même si l'orthographe
+ * n'est pas celle du référentiel (« Avoriaz 1800 », « Gourrette »).
+ * Tous les autres désignent la station la plus proche, sans limite
  * de distance : Paris désigne La Loge des Gardes, à 335 km.
  */
 

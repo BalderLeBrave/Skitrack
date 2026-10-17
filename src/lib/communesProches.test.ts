@@ -2,6 +2,14 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { foldName } from "./carte.ts";
 import { communesPour, stationIdDeLaCommune } from "./communesProches.ts";
+import { FM_STATIONS } from "./franceMontagnes.data.ts";
+import { STATIONS } from "./stations.ts";
+
+/** Le même ordre que la barre : le nom du référentiel, sinon le lieu. */
+function resolu(nom: string): string | null {
+  const q = foldName(nom);
+  return STATIONS.find((s) => foldName(s.name) === q)?.id ?? stationIdDeLaCommune(nom);
+}
 
 describe("communes, villes et villages", () => {
   it("Lamoura est le domaine des Rousses", () => {
@@ -27,6 +35,15 @@ describe("communes, villes et villages", () => {
     const [c] = communesPour(foldName("Paris"));
     assert.equal(c?.domaine, false);
     assert.ok((c?.km ?? 0) > 300);
+  });
+
+  it("chaque station du classeur France Montagnes se trouve, même sous une autre orthographe", () => {
+    assert.equal(resolu("Avoriaz 1800"), "avoriaz");
+    assert.equal(resolu("Gourrette"), "gourette");
+    assert.equal(resolu("Les Arcs Bourg St Maurice"), "les-arcs-bourg-st-maurice");
+    assert.equal(resolu("Autrans Méaudres en Vercors"), "autrans");
+    const manquent = FM_STATIONS.filter((f) => !resolu(f.fmName)).map((f) => f.fmName);
+    assert.deepEqual(manquent, []);
   });
 
   it("une saisie trop courte ne choisit rien", () => {

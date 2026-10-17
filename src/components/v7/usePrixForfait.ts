@@ -9,7 +9,7 @@
  * dix, en décembre comme en février.
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { chargerGrillesForfaits } from "@/lib/forfaits/grillesApp";
 import {
   budgetForfaits,
@@ -28,7 +28,27 @@ import type { Resolution } from "@/lib/forfaits/resolution";
 import type { GrilleTarifaire } from "@/lib/forfaits/tarifsPeriode";
 import { useSejour } from "@/lib/parcours";
 import { todayIso } from "@/lib/stay/calendar";
-import type { Station } from "@/lib/stations";
+import { stationById, type Station } from "@/lib/stations";
+import { budgetEurope } from "@/lib/forfaits/europe";
+import { forfaitDuDomaine, releveVues, type ReleveVues } from "@/lib/monde/vues";
+
+/** Le relevé mondial des forfaits, chargé seulement pour un domaine hors France. */
+function useReleveVues(actif: boolean): ReleveVues | null {
+  const [r, setR] = useState<ReleveVues | null>(null);
+  useEffect(() => {
+    if (!actif || r) return;
+    let vivant = true;
+    releveVues()
+      .then((x) => {
+        if (vivant) setR(x);
+      })
+      .catch(() => {});
+    return () => {
+      vivant = false;
+    };
+  }, [actif, r]);
+  return actif ? r : null;
+}
 
 /** Les grilles, chargées au premier écran qui en a besoin. `null` avant. */
 export function useGrilles(): GrilleTarifaire[] | null {
@@ -76,8 +96,17 @@ export type PrixForfait = {
 export function usePrixForfait(s: Station | undefined): PrixForfait {
   const grilles = useGrilles();
   const { checkIn, checkOut, adultes, enfants } = useSejour();
+  const etranger = s != null && s.country !== "FR";
+  const vues = useReleveVues(etranger);
   return useMemo(() => {
     const jours = joursDuSejour({ arrivee: checkIn, depart: checkOut });
+    // Un domaine européen : les durées que le relevé mondial publie
+    // (`forfaits/europe.ts`), pas les grilles datées des stations françaises.
+    if (etranger) {
+      const budget =
+        vues && s ? budgetEurope(forfaitDuDomaine(vues, s.id), jours, adultes, enfants) : null;
+      return { pret: vues != null, forfaits: null, journee: null, saison: null, budget, jours };
+    }
     if (!grilles || !s)
       return {
         pret: grilles != null,
@@ -99,7 +128,7 @@ export function usePrixForfait(s: Station | undefined): PrixForfait {
       budget: budgetForfaits(forfaits, adultes, enfants),
       jours,
     };
-  }, [grilles, s, checkIn, checkOut, adultes, enfants]);
+  }, [grilles, s, etranger, vues, checkIn, checkOut, adultes, enfants]);
 }
 
 /**
@@ -116,10 +145,22 @@ export function useBudgetForfaits(
   enfants: number,
 ): BudgetForfaits | null | undefined {
   const grilles = useGrilles();
+  const st = stationId ? stationById(stationId) : undefined;
+  const etranger = st != null && st.country !== "FR";
+  const vues = useReleveVues(etranger);
   return useMemo(() => {
+    if (etranger) {
+      if (!vues) return undefined;
+      return budgetEurope(
+        forfaitDuDomaine(vues, stationId!),
+        joursDuSejour({ arrivee, depart }),
+        adultes,
+        enfants,
+      );
+    }
     if (!grilles) return undefined;
     if (!stationId) return null;
     const forfaits = forfaitsStation(stationId, { grilles, arrivee, depart });
     return forfaits ? budgetForfaits(forfaits, adultes, enfants) : null;
-  }, [grilles, stationId, arrivee, depart, adultes, enfants]);
+  }, [grilles, etranger, vues, stationId, arrivee, depart, adultes, enfants]);
 }

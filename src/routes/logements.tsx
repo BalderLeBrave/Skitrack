@@ -93,6 +93,7 @@ import { attachAccess } from "@/lib/access";
 import { useAPied } from "@/lib/geo/useReseauPieton";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import { idEuropeen } from "@/lib/europe";
+import { memeDevise } from "@/lib/devises";
 import { useEurope } from "@/components/recherche/europe";
 import { distanceOf, firmOf, persLbl, prixLbl, prixPin, villageM } from "@/lib/v7";
 
@@ -1189,7 +1190,10 @@ function LogementsStation({ s }: { s: Station }) {
   const pass = prix.budget;
   // Un séjour vendu forfaits compris les porte déjà dans son prix.
   const forfaitsCompris = kept ? forfaitInclus(kept) : false;
-  const passGroupN = forfaitsCompris ? 0 : (pass?.total ?? 0);
+  // Un forfait dans une autre devise que le logement (CHF à Zermatt, logement
+  // en euros) ne s'additionne pas : il reste écrit à part.
+  const passGroupN =
+    forfaitsCompris || !kept || !memeDevise(pass?.devise, kept.currency ?? "EUR") ? 0 : (pass?.total ?? 0);
   const totalN = (kept?.total ?? 0) + passGroupN;
 
   /**

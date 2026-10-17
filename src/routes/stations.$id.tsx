@@ -39,7 +39,7 @@ import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { idEuropeen } from "@/lib/europe";
 import { useEurope } from "@/components/recherche/europe";
-import { ForfaitsEurope, journeeAdulteEurope, useVueEurope } from "@/components/v7/VueEurope";
+import { ForfaitsEurope, useVueEurope } from "@/components/v7/VueEurope";
 import { mentionPhoto } from "@/lib/monde/vues";
 import {
   altLbl,
@@ -756,14 +756,6 @@ function FicheBody({ s }: { s: Station }) {
               </div>
               <div>
                 <dt>{pass?.libelle ?? tr("Forfaits")}</dt>
-                {etranger ? (
-                  <dd>
-                    <b className={journeeAdulteEurope(eu.forfait) ? undefined : "fs-absent"}>
-                      {journeeAdulteEurope(eu.forfait) ?? tr("non relevés")}
-                    </b>
-                    <span>{journeeAdulteEurope(eu.forfait) ? tr("journée adulte") : tr("aucun tarif pour ce domaine")}</span>
-                  </dd>
-                ) : (
                 <dd>
                   <b className={pass?.total == null ? "fs-absent" : undefined}>
                     {pass?.total != null ? montantCents(pass.total, pass.devise) : (pass?.manque ?? tr("non relevés"))}
@@ -778,7 +770,6 @@ function FicheBody({ s }: { s: Station }) {
                   ) : null}
                   {pass?.periode ? <span>{pass.periode}</span> : null}
                 </dd>
-                )}
               </div>
             </dl>
             <button

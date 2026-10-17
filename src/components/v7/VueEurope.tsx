@@ -59,12 +59,6 @@ const LIGNES = [
   { cle: "saison", adulte: "saisonAdulte", enfant: "saisonEnfant" },
 ] as const;
 
-/** Le prix d'une journée adulte, dans sa devise, ou `null`. */
-export function journeeAdulteEurope(f: ForfaitVue | null): string | null {
-  const c = f?.matrice?.jourAdulte;
-  return f && c ? prix(c.prix, f.devise) : null;
-}
-
 /** Les six forfaits d'un domaine européen : journée, six jours, saison, adulte et enfant. */
 export function ForfaitsEurope({ vue }: { vue: VueEurope }) {
   const f = vue.forfait;

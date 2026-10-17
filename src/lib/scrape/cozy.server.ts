@@ -4,9 +4,10 @@ import { sleep } from "./browser.server.ts";
 import { allowsPath } from "./robots.ts";
 import { estMessageRefus, porteFermee, poserRefus } from "./gardeHote.ts";
 import type { LiveSearchInput } from "./types";
+import { paysDeRecherche } from "./pays.ts";
 import { annoncer, occupancyFromRecord } from "../stay/occupancy.ts";
 
-function datedPlace(name: string): string {
+function datedPlace(name: string, pays = "France"): string {
   const n = name
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
@@ -14,12 +15,13 @@ function datedPlace(name: string): string {
   if (n.includes("deux alpes") || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
     return "Les Deux Alpes station de ski, France";
   }
-  return /,\s*france\s*$/i.test(name) ? name.trim() : `${name.trim()}, France`;
+  const fin = new RegExp(`,\\s*${pays}\\s*$`, "i");
+  return fin.test(name) ? name.trim() : `${name.trim()}, ${pays}`;
 }
 
 export function cozySearchUrl(input: LiveSearchInput): string {
   const rooms = Math.max(1, input.bedrooms);
-  const place = encodeURIComponent(datedPlace(input.stationName));
+  const place = encodeURIComponent(datedPlace(input.stationName, paysDeRecherche(input)));
   return `https://www.cozycozy.com/fr/search/${place}/${input.checkIn}/${input.checkOut}/${rooms}-${input.guests}-0/results`;
 }
 

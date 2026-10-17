@@ -4,6 +4,7 @@ import {
   attendreRecherche,
   cozyAnnonces,
   cozyListings,
+  cozySearchUrl,
   idsFiches,
   paginerFournisseur,
   erreurArreteCozy,
@@ -605,5 +606,13 @@ describe("relevé CozyCozy : une réponse réelle (La Plagne, 16 octobre 2026)",
     const moinsChere = { ...tresallet, id: "bk-autre", total: 300, surface: null };
     const [garde] = dedoublonnerParBien([tresallet, moinsChere]);
     assert.deepEqual([garde.id, garde.total, garde.surface], ["bk-autre", 300, 80]);
+  });
+});
+
+describe("cozySearchUrl : le pays de la station", () => {
+  const base: LiveSearchInput = { stationId: "x", stationName: "Ischgl", lat: 47, lon: 10.3, checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 4, bedrooms: 2 };
+  it("une station française finit par France, un domaine autrichien par Autriche", () => {
+    assert.match(cozySearchUrl({ ...base, stationName: "Tignes" }), /Tignes%2C%20France/);
+    assert.match(cozySearchUrl({ ...base, country: "AT" }), /Ischgl%2C%20Autriche/);
   });
 });

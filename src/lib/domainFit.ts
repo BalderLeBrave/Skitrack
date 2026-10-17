@@ -24,6 +24,7 @@ import {
   type ViaRattachement,
 } from "./rattachement.ts";
 import { stationById, type Station } from "./stations.ts";
+import { RATTACHEMENT_MAX_KM } from "./villages.ts";
 import { aStation } from "./v7.ts";
 import { langue } from "./i18n/langue.ts";
 import { tr } from "./i18n/tr.ts";
@@ -89,6 +90,24 @@ export function domainFit(listing: GeoHint, searched: Station): DomainFit {
     listing.lat != null && listing.lon != null
       ? Math.round(metresBetween(listing.lat, listing.lon, searched.lat, searched.lon))
       : null;
+  // Hors de France, la table des stations et des villages ne sait rien : le
+  // logement est au domaine cherché s'il est à moins de 12 km de son repère,
+  // la même borne que le rattachement par coordonnées.
+  if (searched.country !== "FR") {
+    const dedans = pinM != null && pinM <= RATTACHEMENT_MAX_KM * 1000;
+    return {
+      searchedId: searched.id,
+      nearestStationId: dedans ? searched.id : null,
+      nearestStationName: dedans ? searched.name : null,
+      villageId: null,
+      via: dedans ? "coordonnees" : null,
+      motif: dedans ? null : pinM == null ? "sans-lieu" : "trop-loin",
+      distToSearchedPinM: pinM,
+      distToNearestPinM: dedans ? pinM : null,
+      verdict: dedans ? "in" : "unknown",
+      winterBarrier: null,
+    };
+  }
   const r = rattacher(listing);
   const nearest = r.stationId ? stationById(r.stationId) : undefined;
   if (!nearest) {
@@ -125,7 +144,9 @@ export function domainFit(listing: GeoHint, searched: Station): DomainFit {
 }
 
 /** Ce que l'annonce garde du verdict : la station, la preuve, le motif. */
-export function champsDuVerdict(fit: DomainFit): Pick<
+export function champsDuVerdict(
+  fit: DomainFit,
+): Pick<
   Listing,
   | "domainFit"
   | "nearestDomainId"
@@ -201,8 +222,11 @@ export function otherDomainMessage(fit: DomainFit, searchedName: string): string
       { domaine: fit.nearestStationName, lieu, col: fit.winterBarrier },
     );
   }
-  return tr("Autre domaine : {domaine}. Ce logement n’est ni {lieu} ni sur un domaine relié en saison.", {
-    domaine: fit.nearestStationName,
-    lieu,
-  });
+  return tr(
+    "Autre domaine : {domaine}. Ce logement n’est ni {lieu} ni sur un domaine relié en saison.",
+    {
+      domaine: fit.nearestStationName,
+      lieu,
+    },
+  );
 }

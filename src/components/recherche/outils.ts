@@ -7,6 +7,7 @@
 import { ICONES } from "@/components/maquette";
 import { foldName, nomCorrespond, stationProlongee, villageCherche } from "@/lib/carte";
 import { communesPour, stationIdDeLaCommune } from "@/lib/communesProches";
+import { domainesEuropePour, nomPays } from "@/lib/europe";
 import { tr, trN } from "@/lib/i18n";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
@@ -46,7 +47,13 @@ export function stationDuTexte(texte: string): Station | undefined {
   const duDomaine = STATIONS.filter((s) => s.domain && foldName(s.domain) === cible);
   if (duDomaine.length > 1) return undefined;
   if (duDomaine.length === 1) return duDomaine[0];
-  return stationById(stationIdDeLaCommune(cible) ?? "");
+  const commune = stationById(stationIdDeLaCommune(cible) ?? "");
+  if (commune) return commune;
+  // Un domaine européen nommé en toutes lettres (« Ischgl »), une fois les
+  // pays chargés (`europe.ts`).
+  const [europe] = domainesEuropePour(cible, 1);
+  if (!europe) return undefined;
+  return foldName(europe.lieu ?? europe.station.name) === cible ? europe.station : undefined;
 }
 
 export type Suggestion = {
@@ -121,19 +128,48 @@ export function suggestions(ql: string): Suggestion[] {
     .filter((c) => {
       if (deja.has(c.stationId)) return false;
       // « La Grave » nomme déjà La Grave la Meije : pas le hameau homonyme.
-      if (foldName(c.nom) === ql && (plus || parNom.some((s) => foldName(s.name).includes(ql)))) return false;
+      if (foldName(c.nom) === ql && (plus || parNom.some((s) => foldName(s.name).includes(ql))))
+        return false;
       return true;
     })
     .slice(0, Math.max(0, 12 - parNom.length));
+  // Les domaines européens hors France, par leur nom ou une ville proche,
+  // quand les pays sont chargés. Le nom exact ou son début passe devant les
+  // communes françaises ; une ville étrangère, après.
+  const europe = domainesEuropePour(ql, 8);
+  const europeDevant = europe.filter((e) => !e.lieu && foldName(e.station.name).startsWith(ql));
+  const europeReste = europe.filter((e) => !europeDevant.includes(e));
+  const etrangere = (e: (typeof europe)[number]): Suggestion => ({
+    ...station(e.station, e.lieu, null),
+    key: "e:" + e.station.id + (e.lieu ? ":" + foldName(e.lieu) : ""),
+    kind:
+      e.km != null
+        ? tr("Domaine le plus proche · {km} km", { km: e.km })
+        : [
+            nomPays(e.station.country),
+            e.station.massif !== nomPays(e.station.country) ? e.station.massif : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+  });
   return [
-    ...MASSIFS.filter((x) => foldName(x.m).includes(ql)).slice(0, 3).map(massif),
+    ...MASSIFS.filter((x) => foldName(x.m).includes(ql))
+      .slice(0, 3)
+      .map(massif),
     // Un village ou une commune renvoie à sa station : « Val Claret » propose
     // Tignes, « Lamoura » propose Les Rousses, et la suggestion dit pourquoi.
-    ...parNom.map((s) => station(s, foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql), null)),
-    ...communes.flatMap((c) => {
-      const s = stationById(c.stationId);
-      return s ? [station(s, c.nom, c.domaine ? null : c.km)] : [];
-    }),
+    ...parNom.map((s) =>
+      station(s, foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql), null),
+    ),
+    ...europeDevant.map(etrangere),
+    ...communes
+      // Une commune française au nom d'un domaine étranger ne passe pas devant lui.
+      .filter((c) => !(europeDevant.length && foldName(c.nom) === ql))
+      .flatMap((c) => {
+        const s = stationById(c.stationId);
+        return s ? [station(s, c.nom, c.domaine ? null : c.km)] : [];
+      }),
+    ...europeReste.map(etrangere),
   ];
 }
 

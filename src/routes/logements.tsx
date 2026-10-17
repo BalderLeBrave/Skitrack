@@ -92,6 +92,8 @@ import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
 import { useAPied } from "@/lib/geo/useReseauPieton";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
+import { idEuropeen } from "@/lib/europe";
+import { useEurope } from "@/components/recherche/europe";
 import { distanceOf, firmOf, persLbl, prixLbl, prixPin, villageM } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
@@ -282,6 +284,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       // classées « autre domaine ».
       stationId: station.id,
       stationName: station.name,
+      ...(station.country !== "FR" ? { country: station.country } : {}),
       lat: station.lat,
       lon: station.lon,
       checkIn,
@@ -629,6 +632,9 @@ type Pred = {
 function Logements() {
   const go = useGo();
   const P = useParcours();
+  // Un domaine européen retenu (`at-ischgl`) n'est connu qu'une fois les pays
+  // lus : l'écran les demande, et se redessine à leur arrivée.
+  const europe = useEurope(!!P.stationId && idEuropeen(P.stationId));
   const s = P.stationId ? stationById(P.stationId) : undefined;
 
   // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
@@ -643,6 +649,7 @@ function Logements() {
   }, [s?.id]);
 
   if (!s) {
+    void europe;
     return (
       <Coquille>
         <main className="lg-main" id="s-lodging" data-screen-label="2 Logements" />

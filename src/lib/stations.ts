@@ -379,6 +379,10 @@ export const DEPOT_STATIONS: Station[] = STATIONS.filter((s) => s.origin === "de
 
 const BY_ID = new Map(STATIONS.map((s) => [s.id, s]));
 
+/** Les domaines européens hors France (`europe.ts`), branchés à leur arrivée.
+ *  `STATIONS` reste la France du classeur ; seul `stationById` les voit. */
+let etrangeres: ((id: string) => Station | undefined) | null = null;
+
 /**
  * La station de cet identifiant. Un identifiant retiré du référentiel
  * (`IDS_RETIRES` : une ligne du classeur en double, écartée le 26 septembre
@@ -391,7 +395,16 @@ const BY_ID = new Map(STATIONS.map((s) => [s.id, s]));
  * La Plagne, « termignon » Val Cenis.
  */
 export function stationById(id: string): Station | undefined {
-  return BY_ID.get(id) ?? BY_ID.get(IDS_RETIRES[id] ?? "") ?? BY_ID.get(stationDuLieu(id) ?? "");
+  return (
+    BY_ID.get(id) ??
+    BY_ID.get(IDS_RETIRES[id] ?? "") ??
+    BY_ID.get(stationDuLieu(id) ?? "") ??
+    etrangeres?.(id)
+  );
+}
+
+export function brancherStationsEtrangeres(f: (id: string) => Station | undefined): void {
+  etrangeres = f;
 }
 
 /** Les identifiants sous lesquels quelque chose a pu être enregistré pour

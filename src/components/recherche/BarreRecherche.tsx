@@ -26,6 +26,7 @@ import { plageCourte } from "@/lib/plage";
 import type { Station } from "@/lib/stations";
 import { AGE_ENFANT } from "@/lib/stay/party";
 import { useCommunes } from "./communes";
+import { useEurope } from "./europe";
 import { suggestions, voyageursLbl } from "./outils";
 
 export type PanneauRecherche = null | "q" | "alt" | "dates" | "guests";
@@ -83,8 +84,9 @@ export function BarreRecherche({
   // Les communes arrivent quand le champ Destination s'ouvre ; `communes`
   // relance le calcul à leur arrivée.
   const communes = useCommunes(hp === "q");
+  const europe = useEurope(hp === "q");
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const sugg = useMemo(() => (hp === "q" ? suggestions(ql) : []), [ql, hp, communes]);
+  const sugg = useMemo(() => (hp === "q" ? suggestions(ql) : []), [ql, hp, communes, europe]);
 
   // Quitter le calendrier oublie une arrivée posée sans départ.
   const resetPlage = plage.reset;

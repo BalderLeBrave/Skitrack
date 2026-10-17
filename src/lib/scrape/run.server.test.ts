@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import type { Listing } from "../listings.ts";
 import { RELEVE_2A } from "../listings.ts";
 import type { LiveSearchInput, SourceReport } from "./types.ts";
-import { applyDump } from "./run.server.ts";
+import { applyDump, horsFrance, runLiveSearch } from "./run.server.ts";
 
 /** Le séjour du relevé figé des Deux Alpes. */
 const SEJOUR: LiveSearchInput = {
@@ -52,5 +52,23 @@ describe("applyDump : le repli du relevé figé", () => {
     const listings: Listing[] = [];
     applyDump({ ...SEJOUR, checkIn: "2027-02-13", checkOut: "2027-02-20" }, [], listings, new Set(["Airbnb"]));
     assert.equal(listings.length, 0);
+  });
+});
+
+describe("un domaine européen hors France", () => {
+  const ISCHGL: LiveSearchInput = { ...SEJOUR, stationId: "at-silvretta-arena-ischgl-samnaun", stationName: "Ischgl", country: "AT", lat: 47.01, lon: 10.29 };
+
+  it("seul un pays autre que la France est « hors France »", () => {
+    assert.equal(horsFrance(ISCHGL), true);
+    assert.equal(horsFrance(SEJOUR), false);
+    assert.equal(horsFrance({ country: "FR" }), false);
+  });
+
+  it("Gîtes de France, les centrales, HomeToGo et les agences ne demandent rien à leur site", async () => {
+    for (const part of ["gites", "centrales", "hometogo", "agences"] as const) {
+      const r = await runLiveSearch(ISCHGL, part);
+      assert.deepEqual(r.listings, []);
+      assert.ok(r.sources.every((s) => s.ok && s.count === 0 && /hors de France/.test(s.note ?? "")), part);
+    }
   });
 });

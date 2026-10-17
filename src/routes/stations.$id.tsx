@@ -37,6 +37,8 @@ import type { Resolution } from "@/lib/forfaits/resolution";
 import { montantCents } from "@/lib/devises";
 import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
+import { idEuropeen } from "@/lib/europe";
+import { useEurope } from "@/components/recherche/europe";
 import {
   altLbl,
   crumb,
@@ -496,7 +498,16 @@ function FicheInconnue({ id }: { id: string }) {
 
 function Fiche() {
   const { id } = Route.useParams();
+  // Un domaine européen (`at-ischgl`) n'est connu qu'une fois les pays lus.
+  const europe = useEurope(idEuropeen(id));
   const s = stationById(id);
+  if (!s && idEuropeen(id) && !europe) {
+    return (
+      <Coquille>
+        <main className="fs-main" id="s-fiche" data-screen-label="Fiche station" />
+      </Coquille>
+    );
+  }
   if (!s) return <FicheInconnue id={id} />;
   return <FicheBody s={s} />;
 }

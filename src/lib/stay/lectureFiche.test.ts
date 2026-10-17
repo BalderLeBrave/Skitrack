@@ -123,6 +123,27 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
                   quality: { listingRatingStats: { overallRatingStats: { ratingAverage: 4.86, ratingCount: "171" } } },
                   overview: { items: ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"] },
                   location: { subtitle: "Morzine, France" },
+                  rules: {
+                    __typename: "StaysPdpRuleDetails",
+                    groupItems: [
+                      {
+                        title: "Arrivée et départ",
+                        items: [
+                          { title: "Arrivée : entre 17:00 et 22:00" },
+                          { title: "Départ avant 10:00" },
+                        ],
+                      },
+                      {
+                        title: "Pendant votre séjour",
+                        items: [
+                          { title: "4 voyageurs maximum" },
+                          { title: "Pas d'animaux" },
+                          { title: "Pas de fête ni de soirée" },
+                          { title: "Non fumeur" },
+                        ],
+                      },
+                    ],
+                  },
                   sleepingArrangements: {
                     stops: [{ name: "Chambre 1", description: { descriptions: [{ text: "1 lit double" }] } }],
                   },
@@ -149,6 +170,14 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.baths, 1);
     assert.equal(l.beds, 4);
     assert.equal(l.locality, "Morzine");
+    assert.equal(l.capacity, 4);
+    assert.equal(l.capacitySource, "text_regex");
+    assert.equal(l.conditions?.arrivee, "Arrivée : entre 17:00 et 22:00");
+    assert.equal(l.conditions?.depart, "Départ avant 10:00");
+    assert.equal(l.conditions?.animaux, "non");
+    assert.equal(l.conditions?.fumeurs, "non");
+    assert.equal(l.conditions?.fetes, "non");
+    assert.match(l.conditions?.reglement ?? "", /4 voyageurs maximum/);
     assert.deepEqual(l.photos, [
       "https://a0.muscache.com/im/pictures/salon.jpg",
       "https://a0.muscache.com/im/pictures/chambre.jpg",

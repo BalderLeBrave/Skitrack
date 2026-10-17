@@ -906,7 +906,7 @@ async function fillAirbnbSeq(
     cache.set(cacheKey(url), { at: Date.now(), lect, hit: true });
     if (poserLecture(row, lect)) suite.filled += 1;
     const cle = cleListing(row);
-    if (cle && (lect.description || lect.amenityTitles?.length || lect.baths != null || lect.rating != null || lect.photos?.length)) {
+    if (cle && (lect.description || lect.amenityTitles?.length || lect.baths != null || lect.rating != null || lect.photos?.length || lect.conditions)) {
       garderLectures([
         {
           cle,
@@ -918,6 +918,7 @@ async function fillAirbnbSeq(
             ...(lect.baths != null ? { baths: lect.baths } : {}),
             ...(lect.rating != null ? { rating: lect.rating } : {}),
             ...(lect.reviewCount != null ? { reviewCount: lect.reviewCount } : {}),
+            ...(lect.conditions ? { conditions: lect.conditions } : {}),
           },
         },
       ]);

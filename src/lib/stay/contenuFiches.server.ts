@@ -27,7 +27,7 @@ import { dirname, join } from "node:path";
 import type { Listing } from "../listings.ts";
 import type { Equipement, EquipementPublie } from "./equipements.ts";
 import { CLES_EQUIPEMENT, equipementsPubliesRelus } from "./equipements.ts";
-import { ficheRelue, type FicheEnrichie } from "./ficheEnrichie.ts";
+import { ficheRelue, conditionsRelues, type ConditionsSejour, type FicheEnrichie } from "./ficheEnrichie.ts";
 import { MARQUE_MEMOIRE, qualifierLogement } from "./logement.ts";
 import { cheminMemoire, comblerDepuisMemoire, DUREE_MEMOIRE_MS, memoireFiches } from "./memoireFiches.server.ts";
 import { cleListing } from "./poserReleve.ts";
@@ -45,6 +45,8 @@ export type ContenuFiche = {
   /** Note sur 5 publiée par la page, quand la tuile ne l'avait pas. */
   rating?: number | null;
   reviewCount?: number | null;
+  /** Le règlement de la page, quand l'annonce n'a pas encore de fiche. */
+  conditions?: ConditionsSejour | null;
   /**
    * `cozy` : tout ce contenu vient de la fiche d'un comparateur
    * (`cozyFiches.server.ts`), pas de la page de l'annonce. La page reste à
@@ -88,7 +90,17 @@ export function contenuLu(v: unknown): ContenuFiche | null {
     typeof o.reviewCount === "number" && Number.isInteger(o.reviewCount) && o.reviewCount >= 0 && o.reviewCount <= 1_000_000
       ? o.reviewCount
       : null;
-  if (!description && !photos?.length && !amenities?.length && !publies.length && baths == null && rating == null) return null;
+  const conditions = conditionsRelues(o.conditions);
+  if (
+    !description &&
+    !photos?.length &&
+    !amenities?.length &&
+    !publies.length &&
+    baths == null &&
+    rating == null &&
+    !conditions
+  )
+    return null;
   return {
     description,
     photos: photos?.length ? photos : null,
@@ -97,6 +109,7 @@ export function contenuLu(v: unknown): ContenuFiche | null {
     ...(baths != null ? { baths } : {}),
     ...(rating != null ? { rating } : {}),
     ...(reviewCount != null ? { reviewCount } : {}),
+    ...(conditions ? { conditions } : {}),
     ...(o.origine === "cozy" ? { origine: "cozy" as const } : {}),
   };
 }
@@ -115,6 +128,7 @@ export function fusionnerContenus(avant: ContenuFiche | null, apres: ContenuFich
   const baths = apres.baths ?? avant.baths ?? null;
   const rating = apres.rating ?? avant.rating ?? null;
   const reviewCount = apres.reviewCount ?? avant.reviewCount ?? null;
+  const conditions = apres.conditions ?? avant.conditions ?? null;
   return {
     description: apres.description ?? avant.description,
     photos: photos ?? null,
@@ -123,6 +137,7 @@ export function fusionnerContenus(avant: ContenuFiche | null, apres: ContenuFich
     ...(baths != null ? { baths } : {}),
     ...(rating != null ? { rating } : {}),
     ...(reviewCount != null ? { reviewCount } : {}),
+    ...(conditions ? { conditions } : {}),
     ...(apres.origine === "cozy" && avant.origine === "cozy" ? { origine: "cozy" as const } : {}),
   };
 }
@@ -294,7 +309,7 @@ export function poserContenu(
   row: Partial<
     Pick<
       Listing,
-      "description" | "amenities" | "equipementsPublies" | "photo" | "photos" | "baths" | "rating" | "reviewCount" | "ratingScale"
+      "description" | "amenities" | "equipementsPublies" | "photo" | "photos" | "baths" | "rating" | "reviewCount" | "ratingScale" | "fiche"
     >
   >,
   c: Partial<ContenuFiche> | null | undefined,
@@ -325,6 +340,17 @@ export function poserContenu(
   }
   if (row.reviewCount == null && c.reviewCount != null) {
     row.reviewCount = c.reviewCount;
+    pose = true;
+  }
+  if (c.conditions && (row.fiche == null || (row.fiche.sourceFiche === "airbnb" && row.fiche.conditions == null))) {
+    row.fiche = {
+      description: row.fiche?.description ?? null,
+      equipements: row.fiche?.equipements ?? [],
+      avis: row.fiche?.avis ?? null,
+      conditions: c.conditions,
+      sourceFiche: "airbnb",
+      ...(row.fiche?.recupereLe ? { recupereLe: row.fiche.recupereLe } : {}),
+    };
     pose = true;
   }
   const galerie = [...new Set([...(row.photo ? [row.photo] : []), ...(row.photos ?? [])])];

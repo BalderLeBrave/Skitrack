@@ -49,12 +49,24 @@ export type LectureFiche = OccupancyLue & {
   reviewCount?: number | null;
   /** Les photos de la page, dans l'ordre de la visite. */
   photos?: string[];
+  /** Le règlement publié : arrivée, départ, animaux, fumeurs, fêtes. */
+  conditions?: ConditionsPage;
   /** Airbnb : chambre privée ou partagée, chambre d'hôtel ou hébergement insolite (`ecarteeAirbnb`). */
   ecartee?: boolean;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
   taxeSejour: number | null;
   /** La capacité est la somme des couchages décrits (`couchages.ts`), aucune page ne la chiffrant. */
   capaciteCouchages?: boolean;
+};
+
+export type ConditionsPage = {
+  reglement?: string;
+  arrivee?: string;
+  depart?: string;
+  animaux?: "oui" | "non" | "sur_demande";
+  fumeurs?: "oui" | "non";
+  fetes?: "oui" | "non";
+  caution?: string;
 };
 
 const VIDE: LectureFiche = {
@@ -867,6 +879,7 @@ type PageAirbnb = Pick<
   | "reviewCount"
   | "locality"
   | "photos"
+  | "conditions"
 >;
 
 function estPresentation(o: Record<string, unknown>): boolean {
@@ -979,6 +992,74 @@ function publieDeLaPage(html: string): PageAirbnb {
   if (couchages) out.description = out.description ? `${out.description}\n\n${couchages}` : couchages;
   const photos = photosDe(pdp.heroMedia);
   if (photos.length) out.photos = photos;
+  const conditions = conditionsDePage(pdp);
+  if (conditions) out.conditions = conditions;
+  return out;
+}
+
+function voyageursMax(reglement: string | undefined): number | null {
+  const m = /(\d+)\s+voyageurs?\s+maximum/i.exec(reglement ?? "");
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isInteger(n) && n > 0 && n <= 50 ? n : null;
+}
+
+function lignesRegles(bloc: unknown): string[] {
+  if (!bloc || typeof bloc !== "object") return [];
+  const groups = (bloc as Record<string, unknown>).groupItems;
+  if (!Array.isArray(groups)) return [];
+  const out: string[] = [];
+  for (const g of groups) {
+    if (!g || typeof g !== "object") continue;
+    const items = (g as Record<string, unknown>).items;
+    if (!Array.isArray(items)) continue;
+    for (const it of items) {
+      if (!it || typeof it !== "object") continue;
+      const item = it as Record<string, unknown>;
+      const titre = typeof item.title === "string" ? item.title.replace(/\u00a0/g, " ").trim() : "";
+      const desc = item.description as Record<string, unknown> | undefined;
+      const extra = typeof desc?.text === "string" ? desc.text.replace(/\u00a0/g, " ").trim() : "";
+      const ligne = titre && extra && !titre.includes(extra) ? `${titre} — ${extra}` : titre || extra;
+      if (ligne && !out.includes(ligne)) out.push(ligne);
+    }
+  }
+  return out;
+}
+
+function ouiNon(t: string, demande: boolean): "oui" | "non" | "sur_demande" | null {
+  if (demande && /sur demande|on request|upon request/i.test(t)) return "sur_demande";
+  if (/\b(non|pas|interdit\w*|no|not|aucun\w*)\b/i.test(t)) return "non";
+  if (/\b(admis|accept\w*|autoris\w*|allowed|permitted|bienvenus?|welcome)\b/i.test(t)) return "oui";
+  return null;
+}
+
+/** Le règlement de `pdpPresentation.rules`, et la sécurité du logement. */
+function conditionsDePage(pdp: Record<string, unknown>): ConditionsPage | undefined {
+  const regles = [...lignesRegles(pdp.rules), ...lignesRegles(pdp.safetyAndProperty)];
+  if (!regles.length) return undefined;
+  const out: ConditionsPage = { reglement: regles.join("\n").slice(0, 4000) };
+  const heure = /\d{1,2}\s*(:|h)\s*\d{0,2}|\d{1,2}\s*(am|pm)\b/i;
+  for (const cle of ["arrivee", "depart"] as const) {
+    const motif = cle === "arrivee" ? /^(arrivée|arrivee|check[- ]?in)\b/i : /^(départ|depart|check[- ]?out)\b/i;
+    const candidats = regles.filter((r) => motif.test(r));
+    const choisi = candidats.find((r) => heure.test(r)) ?? candidats[0];
+    if (choisi) out[cle] = choisi;
+  }
+  for (const r of regles) {
+    if (/^(arrivée|arrivee|check[- ]?in|départ|depart|check[- ]?out)\b/i.test(r)) continue;
+    if (out.animaux == null && /\b(animaux|animal|pets?)\b/i.test(r)) {
+      const v = ouiNon(r, true);
+      if (v) out.animaux = v;
+    } else if (out.fumeurs == null && /\b(fum\w*|smok\w*)\b/i.test(r)) {
+      const v = ouiNon(r, false);
+      if (v === "oui" || v === "non") out.fumeurs = v;
+    } else if (out.fetes == null && /\b(f[êe]tes?|[ée]v[ée]nements?|part(?:y|ies)|events?)\b/i.test(r)) {
+      const v = ouiNon(r, false);
+      if (v === "oui" || v === "non") out.fetes = v;
+    } else if (out.caution == null && /\b(caution|security deposit|d[ée]p[ôo]t de garantie)\b/i.test(r)) {
+      out.caution = r;
+    }
+  }
   return out;
 }
 
@@ -1074,6 +1155,11 @@ export function lectureAirbnb(html: string): LectureFiche {
   if (page.rating != null) out = { ...out, rating: page.rating };
   if (page.reviewCount != null) out = { ...out, reviewCount: page.reviewCount };
   if (page.photos?.length) out = { ...out, photos: page.photos };
+  if (page.conditions) out = { ...out, conditions: page.conditions };
+  if (out.capacity == null) {
+    const max = voyageursMax(page.conditions?.reglement);
+    if (max != null) out = { ...out, capacity: max, capacitySource: "text_regex" };
+  }
   if (page.locality && !out.locality) out = { ...out, locality: page.locality };
   if (ecarteeAirbnb(html)) out = { ...out, ecartee: true };
   const lat = Number(html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);

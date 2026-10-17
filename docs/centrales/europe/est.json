@@ -1,0 +1,321 @@
+{
+  "releve": "2026-10-17",
+  "groupe": "est",
+  "methode": "Depuis le site officiel de chaque domaine, lecture du lien hébergement/réservation qu'il publie lui-même, puis identification du moteur par empreinte sur la page de réservation (URL, scripts, iframes, pied de page) ; « inconnu » sans preuve. Relevé INCOMPLET : après 3 pages lues, plus aucun outil ne pouvait lire une page (WebFetch en échec DNS, curl bloqué, crédits Firecrawl épuisés).",
+  "domaines": [
+    {
+      "id": "ua-bukowina",
+      "nom": "Буковель, Bukowina",
+      "pays": "ua",
+      "siteOfficiel": "https://bukovel.com/",
+      "centrale": null,
+      "motif": "Page d'accueil bukovel.com lue (2026-10-17) : aucun lien d'hébergement visible dans les liens extraits (rendu côté client) ; bukovel.com/hotels répond 404. La page de réservation des hôtels du courant (Bukovel Hotel, Bukovel Apart, Chalet) n'a pas pu être lue ensuite (outils indisponibles). À reprendre."
+    },
+    {
+      "id": "rs-kopaonik",
+      "nom": "Kopaonik",
+      "pays": "rs",
+      "siteOfficiel": "https://www.skijalistasrbije.rs/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "tr-kayseri-erciyes",
+      "nom": "Kayseri-Erciyes",
+      "pays": "tr",
+      "siteOfficiel": "https://www.kayserierciyes.com.tr/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "sk-jasna-low-tatras",
+      "nom": "Jasna Low Tatras",
+      "pays": "sk",
+      "siteOfficiel": "https://www.jasna.sk/",
+      "centrale": {
+        "nom": "TMR Hotels / Gopass (Tatry Mountain Resorts, exploitant des remontées)",
+        "url": "https://www.tmrhotels.com/sk/aktualne-ponuky/ponuka-pobytov-tmrhotels-leto/",
+        "hote": "www.tmrhotels.com",
+        "moteur": "inconnu",
+        "preuve": "Page d'accueil www.jasna.sk (relevée le 2026-10-17) : liens vers www.tmrhotels.com (offres de séjour) et www.gopass.travel (achat), plus une page interne /ubytovanie non lue. Réservation finale vue en recherche sur booking.tmrhotels.com ; moteur derrière non prouvé."
+      }
+    },
+    {
+      "id": "pl-skiresort-cerna-hora-pec",
+      "nom": "Skiresort Černá Hora-Pec",
+      "pays": "pl",
+      "siteOfficiel": "https://skiresort.cz/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "bg-borovets",
+      "nom": "Borovets",
+      "pays": "bg",
+      "siteOfficiel": "https://www.borovets-bg.com/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "si-smucisca-mariborsko-pohorje",
+      "nom": "Smučišča Mariborsko Pohorje",
+      "pays": "si",
+      "siteOfficiel": "https://www.mariborskopohorje.si/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "ge-gudauri",
+      "nom": "გუდაური, Gudauri, Гудаури",
+      "pays": "ge",
+      "siteOfficiel": "https://mta.ski",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "ba-jahorina-olimpijski-centar-olympic-center-jahorina",
+      "nom": "Jahorina olimpijski centar, Olympic Center Jahorina, Јахорина олимпијски центар",
+      "pays": "ba",
+      "siteOfficiel": "https://www.oc-jahorina.com/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "sk-chopok-jasna",
+      "nom": "Chopok Jasná",
+      "pays": "sk",
+      "siteOfficiel": "https://www.jasna.sk/",
+      "centrale": {
+        "nom": "TMR Hotels / Gopass (Tatry Mountain Resorts, exploitant des remontées)",
+        "url": "https://www.tmrhotels.com/sk/aktualne-ponuky/ponuka-pobytov-tmrhotels-leto/",
+        "hote": "www.tmrhotels.com",
+        "moteur": "inconnu",
+        "preuve": "Page d'accueil www.jasna.sk (relevée le 2026-10-17) : liens vers www.tmrhotels.com (offres de séjour) et www.gopass.travel (achat), plus une page interne /ubytovanie non lue. Réservation finale vue en recherche sur booking.tmrhotels.com ; moteur derrière non prouvé."
+      }
+    },
+    {
+      "id": "bg-bansko",
+      "nom": "Bansko",
+      "pays": "bg",
+      "siteOfficiel": "http://www.banskoski.com",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "tr-palandoken-kayak-merkezi",
+      "nom": "Palandöken Kayak Merkezi",
+      "pays": "tr",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "ro-sinaia",
+      "nom": "Sinaia",
+      "pays": "ro",
+      "siteOfficiel": "https://sinaiago.ro/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "rs-ski-center-kopaonik",
+      "nom": "Ски центар Копаоник, Ski Center Kopaonik",
+      "pays": "rs",
+      "siteOfficiel": "https://www.skijalistasrbije.rs/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "az-sahdag-xiz-k-kompleksi-shahdag-mountain-resort",
+      "nom": "Şahdağ Xizək Kompleksi, قريه شاهداغ الثلجية, Shahdag Mountain Resort, Горнолыжный курорт Шахдаг",
+      "pays": "az",
+      "siteOfficiel": "https://www.shahdag.az/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "bg-pamporovo",
+      "nom": "Pamporovo",
+      "pays": "bg",
+      "siteOfficiel": "https://pamporovo.me/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "am-tsaghkadzor-ski-resort",
+      "nom": "Ծաղկաձոր լեռնադահուկային առողջարան, Tsaghkadzor Ski resort",
+      "pays": "am",
+      "siteOfficiel": "https://ropeway.am/online/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "si-kranjska-gora",
+      "nom": "Kranjska Gora",
+      "pays": "si",
+      "siteOfficiel": "https://ski-kranjska-gora.com",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "tr-konakl-kayak-merkezi",
+      "nom": "Konaklı Kayak Merkezi",
+      "pays": "tr",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "pl-zieleniec-503335m163895",
+      "nom": "Zieleniec",
+      "pays": "pl",
+      "siteOfficiel": "https://zieleniec.pl/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "cz-skiareal-klinovec",
+      "nom": "Skiareál Klínovec",
+      "pays": "cz",
+      "siteOfficiel": "https://klinovec.cz/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "mk-420122m208697",
+      "nom": "Скијачки центар Попова шапка",
+      "pays": "mk",
+      "siteOfficiel": "https://skimacedonia.mk/ski-regions/popova-sapka/?lang=en",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "pl-szczyrk-mountain-resort",
+      "nom": "Szczyrk Mountain Resort",
+      "pays": "pl",
+      "siteOfficiel": "https://www.szczyrkowski.pl/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "me-kolasin-1450-ski-resort-1450",
+      "nom": "Kolašin 1450 ski resort, Колашин 1450 ски резорт",
+      "pays": "me",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "ro-poiana-brasov",
+      "nom": "Poiana Brașov",
+      "pays": "ro",
+      "siteOfficiel": "https://www.schipoianabrasov.ro/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "me-kolasin-1600",
+      "nom": "Kolašin 1600",
+      "pays": "me",
+      "siteOfficiel": "https://www.skijalista.me/ski-centri/kolasin-1600",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "cz-janske-lazne-cerna-hora",
+      "nom": "Janské Lázně - Černá hora",
+      "pays": "cz",
+      "siteOfficiel": "https://skiresort.cz/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "pl-osrodek-narciarski-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-resort",
+      "nom": "Ośrodek Narciarski Kotelnica Białczańska, Kotelnica Białczańska Ski Resort",
+      "pays": "pl",
+      "siteOfficiel": "https://bialkatatrzanska.pl",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "cz-skiareal-spindleruv-mlyn-medvedin",
+      "nom": "Skiareál Špindlerův Mlýn - Medvědín",
+      "pays": "cz",
+      "siteOfficiel": "https://www.skiareal.cz/en/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "gr-parnassos-ski-centre",
+      "nom": "Χιονοδρομικό Κέντρο Παρνασσού, Parnassos Ski Centre",
+      "pays": "gr",
+      "siteOfficiel": "https://parnassos-ski.gr/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "cz-hochficht-bohmerwald",
+      "nom": "Hochficht-Böhmerwald",
+      "pays": "cz",
+      "siteOfficiel": "https://www.hochficht.at/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "sk-chopok-juh",
+      "nom": "Chopok Juh",
+      "pays": "sk",
+      "siteOfficiel": "https://www.jasna.sk/",
+      "centrale": {
+        "nom": "TMR Hotels / Gopass (Tatry Mountain Resorts, exploitant des remontées)",
+        "url": "https://www.tmrhotels.com/sk/aktualne-ponuky/ponuka-pobytov-tmrhotels-leto/",
+        "hote": "www.tmrhotels.com",
+        "moteur": "inconnu",
+        "preuve": "Page d'accueil www.jasna.sk (relevée le 2026-10-17) : liens vers www.tmrhotels.com (offres de séjour) et www.gopass.travel (achat), plus une page interne /ubytovanie non lue. Réservation finale vue en recherche sur booking.tmrhotels.com ; moteur derrière non prouvé."
+      }
+    },
+    {
+      "id": "bg-vitosha",
+      "nom": "Vitosha",
+      "pays": "bg",
+      "siteOfficiel": "https://www.skivitosha.com/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "si-kope",
+      "nom": "Kope",
+      "pays": "si",
+      "siteOfficiel": "https://www.pohorje-slovenija.si/zimske-aktivnosti/smucanje/smucisca/ribnica-na-pohorju",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "ba-oc-bjelasnica-zoi-84",
+      "nom": "OC Bjelašnica ZOI '84",
+      "pays": "ba",
+      "siteOfficiel": "https://ocbjelasnica.com/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "gr-400555m210862",
+      "nom": "Εθνικό χιονοδρομικό κέντρο Βασιλίτσας",
+      "pays": "gr",
+      "siteOfficiel": "https://vasilitsa.com/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    },
+    {
+      "id": "ge-kokhta-mitarbi",
+      "nom": "Kokhta - Mitarbi",
+      "pays": "ge",
+      "siteOfficiel": "https://mta.ski/",
+      "centrale": null,
+      "motif": "Non relevé : les pages n'ont pas pu être lues pendant ce relevé (WebFetch : DNS en échec sur tous les hôtes ; curl refusé par le proxy ; crédits Firecrawl épuisés). Les seuls résultats de recherche web ne montrent pas le lien publié par le site officiel. À reprendre."
+    }
+  ],
+  "moteurs": {
+    "inconnu": 3
+  }
+}

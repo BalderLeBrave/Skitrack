@@ -46,6 +46,16 @@ describe("communes, villes et villages", () => {
     assert.deepEqual(manquent, []);
   });
 
+  it("le référentiel l'emporte sur un pin plus proche", () => {
+    assert.equal(stationIdDeLaCommune("La Norma"), "la-norma");
+    assert.equal(stationIdDeLaCommune("Lanslevillard"), "val-cenis");
+    assert.equal(stationIdDeLaCommune("Le Barioz Alpin"), "les-7-laux");
+    assert.equal(stationIdDeLaCommune("Chantemerle"), "serre-chevalier");
+    const norma = communesPour(foldName("La Norma")).filter((c) => foldName(c.nom) === "la norma");
+    assert.ok(norma.every((c) => c.stationId === "la-norma"));
+    const lans = communesPour(foldName("Lanslevillard")).filter((c) => foldName(c.nom) === "lanslevillard");
+    assert.ok(lans.every((c) => c.stationId === "val-cenis"));
+  });
   it("un homonyme ne vole pas le nom de la station", () => {
     assert.equal(stationIdDeLaCommune("Les Rousses"), "les-rousses");
     assert.equal(stationIdDeLaCommune("La Grave"), "la-grave-la-meije");

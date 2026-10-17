@@ -14,7 +14,8 @@
 
 import { foldName } from "./carte.ts";
 import fichier from "./communesProches.json" with { type: "json" };
-import { stationById } from "./stations.ts";
+import { STATIONS, stationById } from "./stations.ts";
+import { VILLAGES } from "./villages.ts";
 
 type Fichier = { ids: string[]; lieux: [string, number, number, number][] };
 
@@ -61,8 +62,27 @@ function aPartirDe(q: string): Entree[] {
   return out;
 }
 
-/** Le texte est celui de cette station : « Les Rousses » nomme la station des
- *  Rousses, pas un hameau homonyme plus près d'une autre. */
+/** Le nom est celui d'une station du référentiel. */
+function stationDuNom(q: string): string | null {
+  return STATIONS.find((s) => foldName(s.name) === q)?.id ?? null;
+}
+
+/** Le nom est un village déjà rattaché (`villages.ts`), pas le pin le plus proche. */
+function villageImpose(q: string): string | null {
+  for (const v of VILLAGES) {
+    if (foldName(v.nom) === q) return v.station;
+    for (const a of v.alias ?? []) if (foldName(a) === q) return v.station;
+  }
+  return null;
+}
+
+/** Une ligne qui contredit la station ou le village de ce nom. */
+function contredit(e: Entree): boolean {
+  const homonyme = stationDuNom(e.f);
+  if (homonyme && homonyme !== e.stationId) return true;
+  const impose = villageImpose(e.f);
+  return impose != null && impose !== e.stationId;
+}
 function stationNommee(e: Entree, q: string): boolean {
   const s = stationById(e.stationId);
   if (!s) return false;
@@ -90,7 +110,7 @@ export function communesPour(q: string): CommuneTrouvee[] {
   const out: CommuneTrouvee[] = [];
   for (const h of hits) {
     const cle = `${h.stationId}|${h.f}`;
-    if (vus.has(cle) || !h.stationId) continue;
+    if (vus.has(cle) || !h.stationId || contredit(h)) continue;
     vus.add(cle);
     out.push({ nom: h.nom, stationId: h.stationId, km: h.km, domaine: h.domaine });
     if (out.length >= 6) break;
@@ -106,6 +126,12 @@ export function communesPour(q: string): CommuneTrouvee[] {
 export function stationIdDeLaCommune(texte: string): string | null {
   const q = foldName(texte);
   if (q.length < 3) return null;
+  // « La Norma » est la station, même si un relevé l'a posée sur Valfréjus.
+  // « Lanslevillard » reste Val Cenis, pas Bessans dont le pin est plus près.
+  const homonyme = stationDuNom(q);
+  if (homonyme) return homonyme;
+  const impose = villageImpose(q);
+  if (impose) return impose;
   let best: Entree | null = null;
   for (const e of aPartirDe(q)) {
     if (e.f !== q || !e.stationId) continue;

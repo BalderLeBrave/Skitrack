@@ -1,0 +1,429 @@
+{
+  "releve": "2026-10-17",
+  "groupe": "ouest",
+  "methode": "Pour chaque domaine, lien « hébergement / réserver » publié par le site officiel ou l'office de tourisme, moteur nommé seulement sur preuve écrite (pied de page, notice de confidentialité, URL du moteur). Relevé partiel : lecture directe des pages impossible (WebFetch sans DNS, crédits Firecrawl épuisés après deux pages, quota de recherche atteint), d'où beaucoup de « inconnu » et de domaines non relevés.",
+  "domaines": [
+    {
+      "id": "es-estacio-d-esqui-baqueira-beret",
+      "nom": "Estació d'Esquí Baqueira-Beret",
+      "pays": "ES",
+      "siteOfficiel": "https://www.baqueira.es",
+      "centrale": {
+        "nom": "Reservas Baqueira (Baqueira Beret S.A. / Viajes Baqueira Beret)",
+        "url": "https://reservas.baqueira.es/en/alojamientos-en-baqueira",
+        "hote": "reservas.baqueira.es",
+        "moteur": "Baqueira (propre)",
+        "preuve": "Lien « Accommodation » de baqueira.es vers reservas.baqueira.es ; pied de page « © 2026 Baqueira Beret S.A. », contact reservas@baqueira.es, formulaire Alojamiento + Forfait ; aucun éditeur tiers crédité dans le pied de page ni le formulaire (scripts non inspectés)."
+      }
+    },
+    {
+      "id": "ad-grandvalira",
+      "nom": "GrandValira",
+      "pays": "AD",
+      "siteOfficiel": "https://www.grandvalira.com/",
+      "centrale": {
+        "nom": "Hoteles Grandvalira (Grandvalira Resorts)",
+        "url": "https://hoteles.grandvalira.com/es/hotel-forfait.html",
+        "hote": "hoteles.grandvalira.com",
+        "moteur": "Grandvalira Resorts (propre)",
+        "preuve": "grandvalira.com/en/offers/hotel-apartment renvoie à la section « Special Hotels » sur le sous-domaine hoteles.grandvalira.com (fiches /hoteles/es/canillo_8316_1, offres /ofertas/es/…_178647) ; aucun éditeur tiers relevé dans les résultats. Scripts de la page non inspectés."
+      }
+    },
+    {
+      "id": "es-estacion-de-esqui-y-montana-de-sierra-nevada",
+      "nom": "Estación de Esquí y Montaña de Sierra Nevada",
+      "pays": "ES",
+      "siteOfficiel": "https://sierranevada.es",
+      "centrale": {
+        "nom": "Cetursa Sierra Nevada — Accommodations",
+        "url": "https://sierranevada.es/en/accommodations/accommodations-in-sierra-nevada/",
+        "hote": "sierranevada.es",
+        "moteur": "inconnu",
+        "preuve": "Rubrique hébergement du site officiel, avec pages « Booking online » pour les établissements de Cetursa (Hotel Telecabina, Apartahotel Trevenque) ; moteur derrière ces pages non identifié."
+      }
+    },
+    {
+      "id": "es-formigal",
+      "nom": "Formigal",
+      "pays": "ES",
+      "siteOfficiel": "https://www.formigal-panticosa.com/",
+      "centrale": {
+        "nom": "Hotel + Forfait Formigal-Panticosa (Viajes Aramón)",
+        "url": "https://www.formigal-panticosa.com/ofertas-esqui-formigal-panticosa.html",
+        "hote": "www.formigal-panticosa.com",
+        "moteur": "Aramón (Viajes Aramón)",
+        "preuve": "Formulaire Hotel + Forfait sur le site de la station ; sélection d'hébergements « a través de Viajes Aramón », central de reservas 974 498 282 ; fiches hôtel sur le même domaine (hotel-aragon-hills.html…). Centrale partagée avec Panticosa et Cerler."
+      }
+    },
+    {
+      "id": "es-aramon-cerler",
+      "nom": "Aramón Cerler",
+      "pays": "ES",
+      "siteOfficiel": "https://www.cerler.com/",
+      "centrale": {
+        "nom": "Ofertas hotel + forfait Aramón (Viajes Aramón)",
+        "url": "https://www.aramon.com/ofertas-esqui-aramon",
+        "hote": "www.aramon.com",
+        "moteur": "Aramón (Viajes Aramón)",
+        "preuve": "Page d'offres hotel + forfait du groupe Aramón couvrant Cerler et Formigal-Panticosa ; même centrale que Formigal. Page de cerler.com non lue directement."
+      }
+    },
+    {
+      "id": "es-masella",
+      "nom": "Masella",
+      "pays": "ES",
+      "siteOfficiel": "https://www.masella.com",
+      "centrale": null,
+      "motif": "Le site publie un annuaire d'hébergements (hotels, albergs, hostals, allotjament a peu de pista) ; aucune page de réservation d'hébergement en ligne n'a été trouvée — non confirmé par lecture de la page."
+    },
+    {
+      "id": "es-la-molina",
+      "nom": "La Molina",
+      "pays": "ES",
+      "siteOfficiel": "https://www.lamolina.cat",
+      "centrale": {
+        "nom": "Reserves allotjament La Molina (FGC Turisme)",
+        "url": "https://www.lamolina.cat/es/invierno/reservas/allotjament/hotel-muntanya-prullans/",
+        "hote": "www.lamolina.cat",
+        "moteur": "inconnu",
+        "preuve": "Plateforme de réservation FGC Turisme : rubrique « reserves/allotjament » commune à lamolina.cat, espotesqui.cat, portaine.cat, boitaull.cat, avec consultation de réservation par n° de localitzador ; éditeur non identifié. (Le `sites` d'entrée pointait par erreur vers masella.com.)"
+      }
+    },
+    {
+      "id": "ad-pal-arinsal",
+      "nom": "Pal-Arinsal",
+      "pays": "AD",
+      "siteOfficiel": "https://www.palarinsal.com",
+      "centrale": {
+        "nom": "Hotel + Forfait Pal Arinsal (Grandvalira Resorts)",
+        "url": "https://www.palarinsal.com/en/hotel-ski-pass-deals",
+        "hote": "www.palarinsal.com",
+        "moteur": "inconnu",
+        "preuve": "Offres hôtel + forfait sur le site de la station (groupe Grandvalira Resorts), paiement 100 % par carte selon la FAQ ; hôte final de réservation et moteur non vérifiés."
+      }
+    },
+    {
+      "id": "de-skigebiet-garmisch-classic",
+      "nom": "Skigebiet Garmisch-Classic",
+      "pays": "DE",
+      "siteOfficiel": "https://zugspitze.de",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Hébergement probablement vendu par GaPa Tourismus (gapa.de), non vérifié."
+    },
+    {
+      "id": "es-astun",
+      "nom": "Astun",
+      "pays": "ES",
+      "siteOfficiel": "https://www.astun.com/",
+      "centrale": {
+        "nom": "Paquetes alojamiento + forfait Astún",
+        "url": "https://astun.com/",
+        "hote": "astun.com",
+        "moteur": "inconnu",
+        "preuve": "La page d'accueil vend des séjours (Hotel Europa à pied de pistes + forfait Astún-Candanchú) ; moteur non identifié."
+      }
+    },
+    {
+      "id": "es-boi-taull",
+      "nom": "Boí Taüll",
+      "pays": "ES",
+      "siteOfficiel": "https://www.boitaull.cat",
+      "centrale": {
+        "nom": "Allotjament Boí Taüll (FGC Turisme)",
+        "url": "https://www.boitaull.cat/en/winter/serveis/allotjament/apartaments-la-peguera/",
+        "hote": "www.boitaull.cat",
+        "moteur": "inconnu",
+        "preuve": "Plateforme de réservation FGC Turisme : rubrique « reserves/allotjament » commune à lamolina.cat, espotesqui.cat, portaine.cat, boitaull.cat, avec consultation de réservation par n° de localitzador ; éditeur non identifié. Le site d'entrée boitaullresort.es est un site d'hôtel/d'affiliation qui renvoie vers Booking.com, pas le site de l'exploitant FGC."
+      }
+    },
+    {
+      "id": "de-skigebiet-fellhorn-kanzelwand",
+      "nom": "Skigebiet Fellhorn/Kanzelwand",
+      "pays": "DE",
+      "siteOfficiel": "https://www.das-hoechste.de/",
+      "centrale": {
+        "nom": "Online buchbare Gastgeber — Tourismus Oberstdorf",
+        "url": "https://www.oberstdorf.de/urlaubszuhause/gastgebersuche/onlinebuchung.html",
+        "hote": "www.oberstdorf.de",
+        "moteur": "inconnu",
+        "preuve": "Recherche d'hébergeurs et réservation en ligne sur le site de l'office de tourisme d'Oberstdorf ; la notice de confidentialité ne nomme qu'ORESTES (billetterie) et Eventim, pas le moteur d'hébergement."
+      }
+    },
+    {
+      "id": "es-candanchu",
+      "nom": "Candanchu",
+      "pays": "ES",
+      "siteOfficiel": "https://www.candanchu.com/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "es-estacio-d-esqui-port-del-comte",
+      "nom": "Estació d'esquí Port del Comte",
+      "pays": "ES",
+      "siteOfficiel": "https://www.portdelcomte.net/",
+      "centrale": null,
+      "motif": "Le site publie une page « Alojamiento y restauración » (annuaire) ; aucune réservation d'hébergement en ligne trouvée — non confirmé par lecture de la page."
+    },
+    {
+      "id": "de-sudelfeld-bayrischzell",
+      "nom": "Sudelfeld - Bayrischzell",
+      "pays": "DE",
+      "siteOfficiel": "https://www.sudelfeld.de/",
+      "centrale": {
+        "nom": "Gastgeberverzeichnis Bayrischzell (Alpenregion Tegernsee Schliersee)",
+        "url": "https://www.bayrischzell.de/gastgeberverzeichnis/4",
+        "hote": "www.bayrischzell.de",
+        "moteur": "inconnu",
+        "preuve": "Annuaire d'hébergeurs de l'office de Bayrischzell, même gabarit que tegernsee.com/gastgeberverzeichnis ; conditions de réservation communes de la Regionalentwicklung Oberland (REO) ; moteur non identifié."
+      }
+    },
+    {
+      "id": "de-balderschwang-hochschelpen-riedberger-horn",
+      "nom": "Balderschwang – Hochschelpen/​Riedberger Horn",
+      "pays": "DE",
+      "siteOfficiel": "https://www.balderschwang.de/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Indice seulement : schneehoehen.de liste des hébergeurs de Balderschwang sous des identifiants « FERATEL-… », ce qui ne prouve pas la centrale du site officiel."
+    },
+    {
+      "id": "ad-canaro",
+      "nom": "Canaro",
+      "pays": "AD",
+      "siteOfficiel": "https://www.grandvalira.com/",
+      "centrale": {
+        "nom": "Hoteles Grandvalira (Grandvalira Resorts)",
+        "url": "https://hoteles.grandvalira.com/es/hotel-forfait.html",
+        "hote": "hoteles.grandvalira.com",
+        "moteur": "Grandvalira Resorts (propre)",
+        "preuve": "grandvalira.com/en/offers/hotel-apartment renvoie à la section « Special Hotels » sur le sous-domaine hoteles.grandvalira.com (fiches /hoteles/es/canillo_8316_1, offres /ofertas/es/…_178647) ; aucun éditeur tiers relevé dans les résultats. Scripts de la page non inspectés."
+      }
+    },
+    {
+      "id": "ad-ordino-arcalis",
+      "nom": "Ordino-Arcalis",
+      "pays": "AD",
+      "siteOfficiel": "https://www.ordinoarcalis.com",
+      "centrale": {
+        "nom": "Hotel + Forfait Ordino Arcalís (Grandvalira Resorts)",
+        "url": "https://shop.ordinoarcalis.com/es/hotel-forfait.html",
+        "hote": "shop.ordinoarcalis.com",
+        "moteur": "Grandvalira Resorts (propre)",
+        "preuve": "Boutique de la station, même schéma d'URL que hoteles.grandvalira.com (/es/hotel-forfait.html, /es/forfait.html) et mêmes conditions (forfait imprimé à l'hôtel avec 24 h ouvrées de préavis, promo enfant 6-11 ans)."
+      }
+    },
+    {
+      "id": "de-brauneck",
+      "nom": "Brauneck",
+      "pays": "DE",
+      "siteOfficiel": "https://www.brauneck-bergbahn.de/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "gb-glenshee-ski-center",
+      "nom": "Glenshee Ski Center",
+      "pays": "GB",
+      "siteOfficiel": "https://www.ski-glenshee.co.uk/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "de-feldberg",
+      "nom": "Feldberg",
+      "pays": "DE",
+      "siteOfficiel": "https://www.liftverbund-feldberg.de/",
+      "centrale": {
+        "nom": "Unterkünfte — Hochschwarzwald Tourismus",
+        "url": "https://www.hochschwarzwald.de/planen-buchen/unterkuenfte",
+        "hote": "www.hochschwarzwald.de",
+        "moteur": "inconnu",
+        "preuve": "Recherche d'hébergements avec dates, occupants et filtre « online buchbar » sur le site régional Hochschwarzwald ; moteur non identifié."
+      }
+    },
+    {
+      "id": "de-hindelang-oberjoch",
+      "nom": "Hindelang Oberjoch",
+      "pays": "DE",
+      "siteOfficiel": "https://www.bergbahnen-hindelang-oberjoch.de/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "es-estacio-d-esqui-de-port-aine",
+      "nom": "Estació d'esquí de Port-Ainé",
+      "pays": "ES",
+      "siteOfficiel": "https://www.portaine.cat/",
+      "centrale": {
+        "nom": "Reserves Port Ainé (FGC Turisme)",
+        "url": "https://www.portaine.cat/reserves/",
+        "hote": "creserves.portaine.cat",
+        "moteur": "inconnu",
+        "preuve": "Plateforme de réservation FGC Turisme : rubrique « reserves/allotjament » commune à lamolina.cat, espotesqui.cat, portaine.cat, boitaull.cat, avec consultation de réservation par n° de localitzador ; éditeur non identifié. Moteur servi par creserves.portaine.cat/integracion/webapp.aspx?fullintegration=1&channelkey=…&skin=blueport (page titrée « Booking Engine », ASP.NET) ; éditeur non identifié."
+      }
+    },
+    {
+      "id": "de-skigebiet-ifen",
+      "nom": "Skigebiet Ifen",
+      "pays": "DE",
+      "siteOfficiel": "https://www.kleinwalsertal.com",
+      "centrale": {
+        "nom": "Unterkunft buchen — Kleinwalsertal Tourismus",
+        "url": "https://www.kleinwalsertal.com/de/Suchen-Buchen/Unterkunft-buchen/",
+        "hote": "www.kleinwalsertal.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Le guide partenaires de Kleinwalsertal Tourismus (Leitfaden Datenpflege_Schnittstellen.pdf) décrit la « Schnittstelle zu feratel » pour disponibilités, prix et réservations ; fiches au format …/Unterkunftsliste/<nom>_ad-101745. Ifen est dans le Kleinwalsertal (AT)."
+      }
+    },
+    {
+      "id": "de-skiliftkarussell-winterberg",
+      "nom": "Skiliftkarussell Winterberg",
+      "pays": "DE",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "es-estacion-de-esqui-de-valdesqui",
+      "nom": "Estación de esquí de Valdesquí",
+      "pays": "ES",
+      "siteOfficiel": "https://www.valdesqui.es/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "es-espot",
+      "nom": "Espot",
+      "pays": "ES",
+      "siteOfficiel": "https://www.espotesqui.cat/",
+      "centrale": {
+        "nom": "Reserves allotjament Espot (FGC Turisme)",
+        "url": "https://www.espotesqui.cat/hivern/reserves/allotjament/monnatura-pirineus/",
+        "hote": "www.espotesqui.cat",
+        "moteur": "inconnu",
+        "preuve": "Plateforme de réservation FGC Turisme : rubrique « reserves/allotjament » commune à lamolina.cat, espotesqui.cat, portaine.cat, boitaull.cat, avec consultation de réservation par n° de localitzador ; éditeur non identifié."
+      }
+    },
+    {
+      "id": "es-estacion-de-esqui-y-montana-alto-campoo",
+      "nom": "Estación de Esquí y Montaña Alto Campoo",
+      "pays": "ES",
+      "siteOfficiel": "https://altocampoo.com",
+      "centrale": {
+        "nom": "Alojamientos en Alto Campoo (Cantur)",
+        "url": "https://altocampoo.com/alojamientos-en-alto-campoo/",
+        "hote": "altocampoo.com",
+        "moteur": "aucun",
+        "preuve": "Annuaire d'hébergements ; le forfait + séjour à l'Hotel La Corza Blanca se réserve par e-mail (corzabooking@cantur.com) ou téléphone selon une page ancienne ; aucune réservation en ligne relevée."
+      }
+    },
+    {
+      "id": "gb-nevis-range",
+      "nom": "Nevis Range",
+      "pays": "GB",
+      "siteOfficiel": "https://www.nevisrange.co.uk/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "es-panticosa",
+      "nom": "Panticosa",
+      "pays": "ES",
+      "siteOfficiel": "https://www.formigal-panticosa.com/",
+      "centrale": {
+        "nom": "Hotel + Forfait Formigal-Panticosa (Viajes Aramón)",
+        "url": "https://www.formigal-panticosa.com/ofertas-esqui-formigal-panticosa.html",
+        "hote": "www.formigal-panticosa.com",
+        "moteur": "Aramón (Viajes Aramón)",
+        "preuve": "Formulaire Hotel + Forfait sur le site de la station ; sélection d'hébergements « a través de Viajes Aramón », central de reservas 974 498 282 ; fiches hôtel sur le même domaine (hotel-aragon-hills.html…). Centrale partagée avec Panticosa et Cerler. (centrale partagée, non re-relevée)"
+      }
+    },
+    {
+      "id": "de-hinterstaufen",
+      "nom": "Hinterstaufen",
+      "pays": "DE",
+      "siteOfficiel": "http://huendle.eu/",
+      "centrale": {
+        "nom": "Urlaub buchen — Oberstaufen Tourismus Marketing",
+        "url": "https://www.oberstaufen.de/planen-buchen",
+        "hote": "www.oberstaufen.de",
+        "moteur": "Deskline / Feratel",
+        "preuve": "oberstaufen.de/datenschutz nomme feratel media technologies AG (Innsbruck) comme prestataire des réservations et demandes en ligne ; FAQ « Feratel - Reservierungssystem » (oberstaufen.de/feratel) et guide du widget feratel. Centrale partagée avec Steibis."
+      }
+    },
+    {
+      "id": "de-tannheim-zoblen-schattwald",
+      "nom": "Tannheim-Zöblen-Schattwald",
+      "pays": "DE",
+      "siteOfficiel": "https://www.tannheimertal.com/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "de-todtnauberg-478572m79509",
+      "nom": "Todtnauberg",
+      "pays": "DE",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "es-estacion-invernal-y-de-montana-valgrande-pajares-estacion-invernal-y-de-montana-valgrande-payares",
+      "nom": "Estación Invernal y de Montaña Valgrande-Pajares, Estación Invernal y de Montaña Valgrande-Payares",
+      "pays": "ES",
+      "siteOfficiel": "https://www.valgrande-pajares.com/",
+      "centrale": {
+        "nom": "Central de Reservas Valgrande-Pajares",
+        "url": "http://www.valgrande-pajares.com/centraldereservas/alojamientos.php?lugares=piedepista",
+        "hote": "www.valgrande-pajares.com",
+        "moteur": "inconnu",
+        "preuve": "Rubrique « centraldereservas » (scripts PHP) sur le site de la station ; moteur non identifié, peut-être maison."
+      }
+    },
+    {
+      "id": "de-skigebiet-spitzingsee-tegernsee",
+      "nom": "Skigebiet Spitzingsee - Tegernsee",
+      "pays": "DE",
+      "siteOfficiel": "https://www.alpenbahnen-spitzingsee.de/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Le Spitzingsee relève de l'Alpenregion Tegernsee Schliersee (même cadre que Sudelfeld), page de réservation non vérifiée."
+    },
+    {
+      "id": "de-gletscher-skigebiet-zugspitze-ski-resort-zugspitze",
+      "nom": "Gletscher-Skigebiet Zugspitze, Ski resort Zugspitze",
+      "pays": "DE",
+      "siteOfficiel": "https://zugspitze.de",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Même exploitant que Garmisch-Classic (Bayerische Zugspitzbahn)."
+    },
+    {
+      "id": "es-estacion-de-esqui-de-valdezcaray",
+      "nom": "Estación de esquí de Valdezcaray",
+      "pays": "ES",
+      "siteOfficiel": "https://www.valdezcaray.es/",
+      "centrale": null,
+      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+    },
+    {
+      "id": "de-skiarena-steibis",
+      "nom": "Skiarena Steibis",
+      "pays": "DE",
+      "siteOfficiel": "http://www.imbergbahn.de/",
+      "centrale": {
+        "nom": "Urlaub buchen — Oberstaufen Tourismus Marketing",
+        "url": "https://www.oberstaufen.de/planen-buchen",
+        "hote": "www.oberstaufen.de",
+        "moteur": "Deskline / Feratel",
+        "preuve": "oberstaufen.de/datenschutz nomme feratel media technologies AG (Innsbruck) comme prestataire des réservations et demandes en ligne ; FAQ « Feratel - Reservierungssystem » (oberstaufen.de/feratel) et guide du widget feratel. Centrale partagée avec Steibis. (centrale partagée, non re-relevée)"
+      }
+    }
+  ],
+  "moteurs": {
+    "Baqueira (propre)": 1,
+    "Grandvalira Resorts (propre)": 3,
+    "inconnu": 11,
+    "Aramón (Viajes Aramón)": 3,
+    "Deskline / Feratel": 3,
+    "aucun": 1
+  }
+}

@@ -1,0 +1,1162 @@
+{
+  "releve": "2026-10-17",
+  "groupe": "autriche",
+  "methode": "Relevé par recherche web restreinte au site de l'office de tourisme (Tourismusverband) de chaque domaine : URL de la page « Unterkunft suchen/buchen », motifs d'URL (codes Deskline + GUID, /deskline/, /…_booking/) et déclarations de protection des données / mentions légales nommant le sous-traitant de réservation. Les pages elles-mêmes n'ont pas pu être chargées (scripts/iframes non inspectés) : la preuve est textuelle ; sans mention explicite, « inconnu ».",
+  "domaines": [
+    {
+      "id": "at-ski-amade",
+      "nom": "Ski amadé",
+      "pays": "AT",
+      "siteOfficiel": "https://www.skiamade.com/",
+      "centrale": {
+        "nom": "Ski amadé (portail d'hébergement de la région)",
+        "url": "https://www.skiamade.com/de/Unterkuenfte/Unterkunft-finden",
+        "hote": "www.skiamade.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /Unterkuenfte/Unterkunft-finden/..._ad-<n> dont les images portent le suffixe « FERATEL » (ex. familie_4030-ac-FERATEL) ; pages par sous-région (Salzburger-Sportwelt/Unterkuenfte, Schladming-Dachstein/Reiteralm/Unterkuenfte)."
+      }
+    },
+    {
+      "id": "at-ski-arlberg-471830m101884",
+      "nom": "Ski Arlberg",
+      "pays": "AT",
+      "siteOfficiel": "https://www.skiarlberg.at/",
+      "centrale": {
+        "nom": "TVB St. Anton am Arlberg",
+        "url": "https://www.stantonamarlberg.com/de/unterkuenfte",
+        "hote": "www.stantonamarlberg.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Impressum : « Online-Buchung und Listing: FERATEL Media Technologies » ; déclaration d'accessibilité : sous-domaine booking.stantonamarlberg.com lié à l'interface feratel ; fiches /STA/<guid> (code Deskline). Domaine partagé : Lech Zürs Tourismus utilise aussi feratel (booking&more)."
+      }
+    },
+    {
+      "id": "at-skicircus-saalbach-hinterglemm-leogang-fieberbrunn",
+      "nom": "Skicircus Saalbach-Hinterglemm Leogang Fieberbrunn",
+      "pays": "AT",
+      "siteOfficiel": "https://www.saalbach.com/",
+      "centrale": {
+        "nom": "Saalbach Hinterglemm (Saalbach Hinterglemmer Touristik)",
+        "url": "https://www.saalbach.com/saalbach-booking/",
+        "hote": "www.saalbach.com",
+        "moteur": "CapCorn",
+        "preuve": "Fiches /saalbach-booking/Hotel_<nom>_<id>_0 ; Datenschutz : CapCorn Company Software GmbH (Zell am See) exploite le logiciel de réservation (AV art. 28). Leogang et Fieberbrunn (autres TVB) non relevés."
+      }
+    },
+    {
+      "id": "at-skiwelt-wilder-kaiser-brixental",
+      "nom": "SkiWelt Wilder Kaiser - Brixental",
+      "pays": "AT",
+      "siteOfficiel": "https://www.skiwelt.at/",
+      "centrale": {
+        "nom": "TVB Wilder Kaiser",
+        "url": "https://www.wilderkaiser.info/en/accommodation-in-scheffau.html",
+        "hote": "www.wilderkaiser.info",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : réservations en ligne « DESKLINE » traitées par feratel Media Technologies AG. Le TVB Kitzbüheler Alpen–Brixental (autre moitié de la SkiWelt) non relevé."
+      }
+    },
+    {
+      "id": "at-kitzski",
+      "nom": "KitzSki",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kitzski.at/",
+      "centrale": {
+        "nom": "Kitzbühel Tourismus",
+        "url": "https://www.kitzbuehel.com/urlaub/unterkunft-buchen/",
+        "hote": "www.kitzbuehel.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : Feratel Media Technologies AG = « Systemanbieter Backoffice / Gästedatenbank und Buchungstool » ; fiches /urlaub/unterkunft-buchen/details/<nom>/."
+      }
+    },
+    {
+      "id": "at-schladming-dachstein",
+      "nom": "Schladming Dachstein",
+      "pays": "AT",
+      "siteOfficiel": "https://www.schladming-dachstein.at/",
+      "centrale": {
+        "nom": "TVB Schladming-Dachstein",
+        "url": "https://www.schladming-dachstein.at/de/Unterkuenfte/Suchen-Buchen",
+        "hote": "www.schladming-dachstein.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Moteur servi sur booking.schladming-dachstein.at/dachstein/de/accommodation/detail/DAC/<guid> (URL type Deskline Destination Widget, code DAC, AspxAutoDetectCookieSupport) ; Datenschutz cite feratel comme destinataire des demandes."
+      }
+    },
+    {
+      "id": "at-silvretta-arena-ischgl-samnaun",
+      "nom": "Silvretta Arena Ischgl/Samnaun",
+      "pays": "AT",
+      "siteOfficiel": "https://www.ischgl.com/",
+      "centrale": {
+        "nom": "TVB Paznaun – Ischgl (Ischgl, Galtür, Kappl, See)",
+        "url": "https://www.ischgl.com/de/urlaub-buchen/unterkunft-buchen",
+        "hote": "www.ischgl.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /unterkunft-buchen/unterkuenfte/ISC/<guid>/<nom> (code Deskline ISC + GUID) ; presse (vol.at) : le TVB Paznaun a commandé le système Deskline de feratel pour toute la vallée."
+      }
+    },
+    {
+      "id": "at-serfaus-fiss-ladis",
+      "nom": "Serfaus Fiss Ladis",
+      "pays": "AT",
+      "siteOfficiel": "https://www.serfaus-fiss-ladis.at/de/winter",
+      "centrale": {
+        "nom": "TVB Serfaus-Fiss-Ladis",
+        "url": "https://www.serfaus-fiss-ladis.at/de/buchen-und-mehr/unterkunft-buchen",
+        "hote": "www.serfaus-fiss-ladis.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Documents servis sous /deskline/shopItems/ ; Vermieterservice : les hébergeurs gèrent leurs données directement dans Feratel (MeldeClient/feratel). Preuve indirecte (pas de script vu)."
+      }
+    },
+    {
+      "id": "at-lech-zurs",
+      "nom": "Lech/Zürs",
+      "pays": "AT",
+      "siteOfficiel": "https://www.lechzuers.com/",
+      "centrale": {
+        "nom": "Lech Zürs Tourismus",
+        "url": "https://www.lechzuers.com/",
+        "hote": "www.lechzuers.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : la plateforme « booking&more » est un service de Feratel Media Technologies AG. URL exacte de la page de recherche non relevée."
+      }
+    },
+    {
+      "id": "at-zillertal-arena",
+      "nom": "Zillertal Arena",
+      "pays": "AT",
+      "siteOfficiel": "https://www.zillertalarena.com/",
+      "centrale": {
+        "nom": "TVB Zell-Gerlos – Zillertal Arena",
+        "url": "https://www.zillertalarena.com/",
+        "hote": "www.zillertalarena.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : renvoie à la déclaration feratel pour le traitement des réservations ; zillertal.at : réservations transmises au système de gestion de destination feratel. URL exacte de la page de recherche non relevée."
+      }
+    },
+    {
+      "id": "at-mayrhofen-hippach",
+      "nom": "Mayrhofen Hippach",
+      "pays": "AT",
+      "siteOfficiel": "https://www.mayrhofen.at/",
+      "centrale": {
+        "nom": "TVB Mayrhofen-Hippach",
+        "url": "https://www.mayrhofen.at/en/pages/accommodation-search-book",
+        "hote": "www.mayrhofen.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : demandes de réservation transmises à l'établissement et à feratel (sous-traitant) ; contrat avec Zillertal Booking GmbH."
+      }
+    },
+    {
+      "id": "at-kleinwalsertal-oberstdorf",
+      "nom": "Kleinwalsertal-Oberstdorf",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kleinwalsertal.com",
+      "centrale": {
+        "nom": "Kleinwalsertal Tourismus",
+        "url": "https://www.kleinwalsertal.com/de/Suchen-Buchen/Unterkunft-buchen",
+        "hote": "www.kleinwalsertal.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Listes servies sous /de/feratel/<guid> et fiches /KWT/<guid> (code Deskline) ; guide hébergeurs « Schnittstelle zu feratel » / feratel WebClient : disponibilités saisies = réservables en ligne."
+      }
+    },
+    {
+      "id": "at-solden",
+      "nom": "Sölden",
+      "pays": "AT",
+      "siteOfficiel": "https://www.soelden.com/",
+      "centrale": {
+        "nom": "Ötztal Tourismus (Sölden, Oetz, Längenfeld, Umhausen, Sautens, Haiming)",
+        "url": "https://www.soelden.com/de/suchen-buchen/unterkuenfte",
+        "hote": "www.soelden.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /suchen-buchen/unterkuenfte/...a-<guid> affichant la note « feratel » ; Datenschutz (oetztal.com) : feratel Media Technologies AG sous-traitant."
+      }
+    },
+    {
+      "id": "at-silvretta-montafon",
+      "nom": "Silvretta Montafon",
+      "pays": "AT",
+      "siteOfficiel": "https://www.silvretta-montafon.at",
+      "centrale": {
+        "nom": "Montafon Tourismus",
+        "url": "https://www.montafon.at/en/hosts",
+        "hote": "www.montafon.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : demandes et réservations enregistrées dans le système de réservation feratel (+ CRM Wilken) ; cours hébergeurs « Feratel Deskline WebClient »."
+      }
+    },
+    {
+      "id": "at-st-anton-st-christoph-stuben",
+      "nom": "St. Anton/St. Christoph/Stuben",
+      "pays": "AT",
+      "siteOfficiel": "https://www.stantonamarlberg.com/",
+      "centrale": {
+        "nom": "TVB St. Anton am Arlberg",
+        "url": "https://www.stantonamarlberg.com/de/unterkuenfte",
+        "hote": "www.stantonamarlberg.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Impressum : « Online-Buchung und Listing: FERATEL Media Technologies » ; déclaration d'accessibilité : sous-domaine booking.stantonamarlberg.com lié à l'interface feratel ; fiches /STA/<guid> (code Deskline)."
+      }
+    },
+    {
+      "id": "at-skigebiet-damuls-mellau-faschina",
+      "nom": "Skigebiet Damüls-Mellau-Faschina",
+      "pays": "AT",
+      "siteOfficiel": "https://www.damuels-mellau.at/",
+      "centrale": {
+        "nom": "Bregenzerwald Tourismus",
+        "url": "https://www.bregenzerwald.at/",
+        "hote": "www.bregenzerwald.at",
+        "moteur": "inconnu",
+        "preuve": "Datenschutz cite feratel Media Technologies AG et HRS Destination Solutions Austria (demandes) sans dire lequel motorise la réservation en ligne ; non prouvé."
+      }
+    },
+    {
+      "id": "at-stubai",
+      "nom": "Stubai",
+      "pays": "AT",
+      "siteOfficiel": "https://www.stubai.at/",
+      "centrale": {
+        "nom": "TVB Stubai Tirol",
+        "url": "https://www.stubai.at/en/accommodations/book-holiday/",
+        "hote": "www.stubai.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : Feratel Media Technologies AG = « Back-Office-Systemanbieter, Gästedatenbank und Buchungstool »."
+      }
+    },
+    {
+      "id": "at-snow-space-salzburg",
+      "nom": "Snow Space Salzburg",
+      "pays": "AT",
+      "siteOfficiel": "https://www.snow-space.com/",
+      "centrale": {
+        "nom": "Ski amadé (portail d'hébergement de la région)",
+        "url": "https://www.skiamade.com/de/Unterkuenfte/Unterkunft-finden",
+        "hote": "www.skiamade.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /Unterkuenfte/Unterkunft-finden/..._ad-<n> dont les images portent le suffixe « FERATEL » (ex. familie_4030-ac-FERATEL) ; pages par sous-région (Salzburger-Sportwelt/Unterkuenfte, Schladming-Dachstein/Reiteralm/Unterkuenfte). TVB locaux (Flachau, Wagrain-Kleinarl, St. Johann) non relevés ; centrale = page Salzburger Sportwelt de Ski amadé."
+      }
+    },
+    {
+      "id": "at-hochkonig",
+      "nom": "Hochkönig",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hochkoenig.at",
+      "centrale": {
+        "nom": "Hochkönig Tourismus",
+        "url": "https://www.hochkoenig.at/de/hotel-salzburg/unterkunft-suchen/",
+        "hote": "www.hochkoenig.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : système feratel (sous-traitant) pour les réservations ; paiement via « booking & more » de feratel ; fiches /betriebe/<guid>/."
+      }
+    },
+    {
+      "id": "at-skigebiet-damuls-mellau",
+      "nom": "Skigebiet Damüls-Mellau",
+      "pays": "AT",
+      "siteOfficiel": "https://www.damuels-mellau.at/",
+      "centrale": {
+        "nom": "Bregenzerwald Tourismus",
+        "url": "https://www.bregenzerwald.at/",
+        "hote": "www.bregenzerwald.at",
+        "moteur": "inconnu",
+        "preuve": "Datenschutz cite feratel Media Technologies AG et HRS Destination Solutions Austria (demandes) sans dire lequel motorise la réservation en ligne ; non prouvé."
+      }
+    },
+    {
+      "id": "at-hochzillertal-hochfugen",
+      "nom": "Hochzillertal-Hochfügen",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hochzillertal.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-ski-gastein-schlossalm-angertal-stubnerkogel",
+      "nom": "Ski Gastein - Schlossalm/Angertal/Stubnerkogel",
+      "pays": "AT",
+      "siteOfficiel": "https://www.gastein.com/",
+      "centrale": {
+        "nom": "Gasteinertal Tourismus",
+        "url": "https://www.gastein.com/unterkuenfte/suchen-buchen/",
+        "hote": "www.gastein.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : plateforme de réservation et de demande « feratel DESKLINE » (feratel media technologies AG, AV art. 28)."
+      }
+    },
+    {
+      "id": "at-obertauern",
+      "nom": "Obertauern",
+      "pays": "AT",
+      "siteOfficiel": "https://www.obertauern.com/",
+      "centrale": {
+        "nom": "TVB Obertauern",
+        "url": "https://www.obertauern.com/obertauern_booking/ChooseStep",
+        "hote": "www.obertauern.com",
+        "moteur": "CapCorn",
+        "preuve": "Page de résultats titrée « CapCorn Ergebnis » sous /obertauern_booking/ ; CGV : système de réservation de CapCorn Software GmbH mis à disposition par le TVB."
+      }
+    },
+    {
+      "id": "at-nassfeld-mokrine",
+      "nom": "Nassfeld, Mokrine",
+      "pays": "AT",
+      "siteOfficiel": "https://www.nassfeld.at/",
+      "centrale": {
+        "nom": "Nassfeld-Pressegger See Tourismus",
+        "url": "https://www.nassfeld.at/",
+        "hote": "www.nassfeld.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : demandes et réservations traitées via le système « feratel Deskline » ; espace hébergeurs Feratel-WebClient. URL exacte de la page de recherche non relevée."
+      }
+    },
+    {
+      "id": "at-wildkogel",
+      "nom": "Wildkogel",
+      "pays": "AT",
+      "siteOfficiel": "https://www.wildkogel-arena.at/",
+      "centrale": {
+        "nom": "Ferienregion Wildkogel-Arena",
+        "url": "https://urlaub.wildkogel-arena.at/neukirchen/de/accommodation/",
+        "hote": "urlaub.wildkogel-arena.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Moteur sur urlaub.wildkogel-arena.at/.../accommodation/detail/SBG/<guid> (URL type Deskline, code SBG) ; Datenschutz : feratel prestataire des réservations en ligne."
+      }
+    },
+    {
+      "id": "at-bad-kleinkirchheim",
+      "nom": "Bad Kleinkirchheim",
+      "pays": "AT",
+      "siteOfficiel": "https://www.badkleinkirchheim.com/",
+      "centrale": {
+        "nom": "Bad Kleinkirchheim Tourismus",
+        "url": "https://www.badkleinkirchheim.com/unterkuenfte/unterkuenfte-suchen/",
+        "hote": "www.badkleinkirchheim.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz (badkleinkirchheim.at) : « Feratel: platform for online bookings and orders »."
+      }
+    },
+    {
+      "id": "at-ski-juwel-alpbachtal-wildschonau",
+      "nom": "Ski Juwel Alpbachtal-Wildschönau",
+      "pays": "AT",
+      "siteOfficiel": "https://skijuwel.com",
+      "centrale": {
+        "nom": "Alpbachtal Tourismus",
+        "url": "https://www.alpbachtal.at/de/urlaub-planen-und-buchen/unterkunft-buchen",
+        "hote": "www.alpbachtal.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : feratel sous-traitant, données du « feratel-Buchungssystem » ; fiches _ad-<n>. Partagé avec Wildschönau Tourismus (aussi feratel)."
+      }
+    },
+    {
+      "id": "at-planai-hochwurzen",
+      "nom": "Planai & Hochwurzen",
+      "pays": "AT",
+      "siteOfficiel": "https://www.planai.at",
+      "centrale": {
+        "nom": "TVB Schladming-Dachstein",
+        "url": "https://www.schladming-dachstein.at/de/Unterkuenfte/Suchen-Buchen",
+        "hote": "www.schladming-dachstein.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Moteur servi sur booking.schladming-dachstein.at/dachstein/de/accommodation/detail/DAC/<guid> (URL type Deskline Destination Widget, code DAC, AspxAutoDetectCookieSupport) ; Datenschutz cite feratel comme destinataire des demandes."
+      }
+    },
+    {
+      "id": "at-obergurgl-hochgurgl",
+      "nom": "Obergurgl-Hochgurgl",
+      "pays": "AT",
+      "siteOfficiel": "https://www.obergurgl.com/",
+      "centrale": {
+        "nom": "Ötztal Tourismus (Sölden, Oetz, Längenfeld, Umhausen, Sautens, Haiming)",
+        "url": "https://www.soelden.com/de/suchen-buchen/unterkuenfte",
+        "hote": "www.soelden.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /suchen-buchen/unterkuenfte/...a-<guid> affichant la note « feratel » ; Datenschutz (oetztal.com) : feratel Media Technologies AG sous-traitant."
+      }
+    },
+    {
+      "id": "at-damuls",
+      "nom": "Damüls",
+      "pays": "AT",
+      "siteOfficiel": "https://www.damuels-mellau.at/",
+      "centrale": {
+        "nom": "Bregenzerwald Tourismus",
+        "url": "https://www.bregenzerwald.at/",
+        "hote": "www.bregenzerwald.at",
+        "moteur": "inconnu",
+        "preuve": "Datenschutz cite feratel Media Technologies AG et HRS Destination Solutions Austria (demandes) sans dire lequel motorise la réservation en ligne ; non prouvé."
+      }
+    },
+    {
+      "id": "at-schmittenhohe-zell-am-see",
+      "nom": "Schmittenhöhe Zell am See",
+      "pays": "AT",
+      "siteOfficiel": "https://www.schmitten.at",
+      "centrale": {
+        "nom": "Zell am See-Kaprun Tourismus",
+        "url": "https://www.zellamsee-kaprun.com/en/book/request-an-offer",
+        "hote": "www.zellamsee-kaprun.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : réservations, commandes et demandes traitées par feratel (AV art. 28) ; guide « Feratel Deskline WebClient 4.0 ». Page de recherche exacte non relevée (rubrique /en/book/)."
+      }
+    },
+    {
+      "id": "at-katschberg-aineck",
+      "nom": "Katschberg-Aineck",
+      "pays": "AT",
+      "siteOfficiel": "https://www.katschi.at/",
+      "centrale": {
+        "nom": "Ferienregion Katschberg – Lieser-Maltatal",
+        "url": "https://cto.katschberg.at/de/alle-unterkuenfte.html",
+        "hote": "cto.katschberg.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Indirect : l'office de tourisme affiche un poste « Abwicklung Feratel » ; rubrique « Suchen & Buchen ». Pas d'empreinte technique relevée."
+      }
+    },
+    {
+      "id": "at-hochoetz-kuhtai",
+      "nom": "Hochoetz-Kühtai",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kuehtai.info/",
+      "centrale": {
+        "nom": "Ötztal Tourismus (Sölden, Oetz, Längenfeld, Umhausen, Sautens, Haiming)",
+        "url": "https://www.soelden.com/de/suchen-buchen/unterkuenfte",
+        "hote": "www.soelden.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /suchen-buchen/unterkuenfte/...a-<guid> affichant la note « feratel » ; Datenschutz (oetztal.com) : feratel Media Technologies AG sous-traitant. Côté Hochoetz (Oetz, Ötztal Tourismus) ; la centrale de Kühtai n'a pas été relevée."
+      }
+    },
+    {
+      "id": "at-warth-schrocken",
+      "nom": "Warth-Schröcken",
+      "pays": "AT",
+      "siteOfficiel": null,
+      "centrale": {
+        "nom": "Bregenzerwald Tourismus",
+        "url": "https://www.bregenzerwald.at/",
+        "hote": "www.bregenzerwald.at",
+        "moteur": "inconnu",
+        "preuve": "Datenschutz cite feratel Media Technologies AG et HRS Destination Solutions Austria (demandes) sans dire lequel motorise la réservation en ligne ; non prouvé. Warth et Schröcken sont des villages du Bregenzerwald ; site du domaine non relevé."
+      }
+    },
+    {
+      "id": "at-gro-arltal-dorfgastein",
+      "nom": "Großarltal-Dorfgastein",
+      "pays": "AT",
+      "siteOfficiel": "https://www.grossarltal.info/",
+      "centrale": {
+        "nom": "Gasteinertal Tourismus",
+        "url": "https://www.gastein.com/unterkuenfte/suchen-buchen/",
+        "hote": "www.gastein.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : plateforme de réservation et de demande « feratel DESKLINE » (feratel media technologies AG, AV art. 28). Côté Dorfgastein (gastein.com) ; la centrale de Grossarltal (grossarltal.info) n'a pas été relevée."
+      }
+    },
+    {
+      "id": "at-stubaier-gletscher",
+      "nom": "Stubaier Gletscher",
+      "pays": "AT",
+      "siteOfficiel": "https://www.stubaier-gletscher.com/",
+      "centrale": {
+        "nom": "TVB Stubai Tirol",
+        "url": "https://www.stubai.at/en/accommodations/book-holiday/",
+        "hote": "www.stubai.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : Feratel Media Technologies AG = « Back-Office-Systemanbieter, Gästedatenbank und Buchungstool »."
+      }
+    },
+    {
+      "id": "at-hintertuxer-gletscher",
+      "nom": "Hintertuxer Gletscher",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hintertuxergletscher.at",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-brandnertal-brand-burserberg",
+      "nom": "Brandnertal – Brand/​Bürserberg",
+      "pays": "AT",
+      "siteOfficiel": "https://www.vorarlberg-alpenregion.at/brandnertal/en/our-diversity/active/skiing",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-kals-matrei",
+      "nom": "Kals-Matrei",
+      "pays": "AT",
+      "siteOfficiel": "https://www.gg-resort.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-flachau",
+      "nom": "Flachau",
+      "pays": "AT",
+      "siteOfficiel": "https://www.snow-space.com/",
+      "centrale": {
+        "nom": "Ski amadé (portail d'hébergement de la région)",
+        "url": "https://www.skiamade.com/de/Unterkuenfte/Unterkunft-finden",
+        "hote": "www.skiamade.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /Unterkuenfte/Unterkunft-finden/..._ad-<n> dont les images portent le suffixe « FERATEL » (ex. familie_4030-ac-FERATEL) ; pages par sous-région (Salzburger-Sportwelt/Unterkuenfte, Schladming-Dachstein/Reiteralm/Unterkuenfte)."
+      }
+    },
+    {
+      "id": "at-nauders-bergkastel",
+      "nom": "Nauders Bergkastel",
+      "pays": "AT",
+      "siteOfficiel": "https://www.nauders.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-kreischberg",
+      "nom": "Kreischberg",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kreischberg.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-skiregion-dachstein-west",
+      "nom": "Skiregion Dachstein West",
+      "pays": "AT",
+      "siteOfficiel": "https://www.dachstein.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-kaprun-kitzsteinhorn-maiskogel",
+      "nom": "Kaprun - Kitzsteinhorn/Maiskogel",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kitzsteinhorn.at/",
+      "centrale": {
+        "nom": "Zell am See-Kaprun Tourismus",
+        "url": "https://www.zellamsee-kaprun.com/en/book/request-an-offer",
+        "hote": "www.zellamsee-kaprun.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : réservations, commandes et demandes traitées par feratel (AV art. 28) ; guide « Feratel Deskline WebClient 4.0 ». Page de recherche exacte non relevée (rubrique /en/book/)."
+      }
+    },
+    {
+      "id": "at-wagrain",
+      "nom": "Wagrain",
+      "pays": "AT",
+      "siteOfficiel": "http://www.bergbahnen-wagrain.at/",
+      "centrale": {
+        "nom": "Ski amadé (portail d'hébergement de la région)",
+        "url": "https://www.skiamade.com/de/Unterkuenfte/Unterkunft-finden",
+        "hote": "www.skiamade.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /Unterkuenfte/Unterkunft-finden/..._ad-<n> dont les images portent le suffixe « FERATEL » (ex. familie_4030-ac-FERATEL) ; pages par sous-région (Salzburger-Sportwelt/Unterkuenfte, Schladming-Dachstein/Reiteralm/Unterkuenfte)."
+      }
+    },
+    {
+      "id": "at-zauchensee-flachauwinkl",
+      "nom": "Zauchensee-Flachauwinkl",
+      "pays": "AT",
+      "siteOfficiel": "https://www.zauchensee.at/",
+      "centrale": {
+        "nom": "Ski amadé (portail d'hébergement de la région)",
+        "url": "https://www.skiamade.com/de/Unterkuenfte/Unterkunft-finden",
+        "hote": "www.skiamade.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /Unterkuenfte/Unterkunft-finden/..._ad-<n> dont les images portent le suffixe « FERATEL » (ex. familie_4030-ac-FERATEL) ; pages par sous-région (Salzburger-Sportwelt/Unterkuenfte, Schladming-Dachstein/Reiteralm/Unterkuenfte)."
+      }
+    },
+    {
+      "id": "at-gerlitzen-alpe",
+      "nom": "Gerlitzen Alpe",
+      "pays": "AT",
+      "siteOfficiel": "https://www.gerlitzen.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-steinplatte-waidring-tirol",
+      "nom": "Steinplatte Waidring-Tirol",
+      "pays": "AT",
+      "siteOfficiel": "https://www.steinplatte.tirol/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-hinterstoder",
+      "nom": "Hinterstoder",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hiwu.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-skigebiet-diedamskopf",
+      "nom": "Skigebiet Diedamskopf",
+      "pays": "AT",
+      "siteOfficiel": "https://www.diedamskopf.at/",
+      "centrale": {
+        "nom": "Bregenzerwald Tourismus",
+        "url": "https://www.bregenzerwald.at/",
+        "hote": "www.bregenzerwald.at",
+        "moteur": "inconnu",
+        "preuve": "Datenschutz cite feratel Media Technologies AG et HRS Destination Solutions Austria (demandes) sans dire lequel motorise la réservation en ligne ; non prouvé."
+      }
+    },
+    {
+      "id": "at-tauplitz-bad-mitterndorf",
+      "nom": "Tauplitz / Bad Mitterndorf",
+      "pays": "AT",
+      "siteOfficiel": "https://www.dietauplitz.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-hochzeiger",
+      "nom": "Hochzeiger",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hochzeiger.com",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-axamer-lizum-muttereralm",
+      "nom": "Axamer Lizum - Muttereralm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.muttereralm.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-see",
+      "nom": "See",
+      "pays": "AT",
+      "siteOfficiel": "https://www.bergbahn.com/",
+      "centrale": {
+        "nom": "TVB Paznaun – Ischgl (Ischgl, Galtür, Kappl, See)",
+        "url": "https://www.ischgl.com/de/urlaub-buchen/unterkunft-buchen",
+        "hote": "www.ischgl.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /unterkunft-buchen/unterkuenfte/ISC/<guid>/<nom> (code Deskline ISC + GUID) ; presse (vol.at) : le TVB Paznaun a commandé le système Deskline de feratel pour toute la vallée."
+      }
+    },
+    {
+      "id": "at-kuhtai",
+      "nom": "Kühtai",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kuehtai.info/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-turracher-hohe-469281m138726",
+      "nom": "Turracher Höhe",
+      "pays": "AT",
+      "siteOfficiel": "https://www.turracherhoehe.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-pitztaler-gletscher",
+      "nom": "Pitztaler Gletscher",
+      "pays": "AT",
+      "siteOfficiel": "https://www.pitztaler-gletscher.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-st-johann-in-tirol",
+      "nom": "St Johann in Tirol",
+      "pays": "AT",
+      "siteOfficiel": "https://www.bergbahnen-stjohann.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-sonnenkopf",
+      "nom": "Sonnenkopf",
+      "pays": "AT",
+      "siteOfficiel": "https://www.sonnenkopf.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-hauser-kaibling",
+      "nom": "Hauser Kaibling",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hauser-kaibling.at",
+      "centrale": {
+        "nom": "TVB Schladming-Dachstein",
+        "url": "https://www.schladming-dachstein.at/de/Unterkuenfte/Suchen-Buchen",
+        "hote": "www.schladming-dachstein.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Moteur servi sur booking.schladming-dachstein.at/dachstein/de/accommodation/detail/DAC/<guid> (URL type Deskline Destination Widget, code DAC, AspxAutoDetectCookieSupport) ; Datenschutz cite feratel comme destinataire des demandes."
+      }
+    },
+    {
+      "id": "at-skigebiet-heuberg-arena-walmendingerhorn",
+      "nom": "Skigebiet Heuberg Arena/Walmendingerhorn",
+      "pays": "AT",
+      "siteOfficiel": null,
+      "centrale": {
+        "nom": "Kleinwalsertal Tourismus",
+        "url": "https://www.kleinwalsertal.com/de/Suchen-Buchen/Unterkunft-buchen",
+        "hote": "www.kleinwalsertal.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Listes servies sous /de/feratel/<guid> et fiches /KWT/<guid> (code Deskline) ; guide hébergeurs « Schnittstelle zu feratel » / feratel WebClient : disponibilités saisies = réservables en ligne."
+      }
+    },
+    {
+      "id": "at-kappl",
+      "nom": "Kappl",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kappl.com/",
+      "centrale": {
+        "nom": "TVB Paznaun – Ischgl (Ischgl, Galtür, Kappl, See)",
+        "url": "https://www.ischgl.com/de/urlaub-buchen/unterkunft-buchen",
+        "hote": "www.ischgl.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /unterkunft-buchen/unterkuenfte/ISC/<guid>/<nom> (code Deskline ISC + GUID) ; presse (vol.at) : le TVB Paznaun a commandé le système Deskline de feratel pour toute la vallée."
+      }
+    },
+    {
+      "id": "at-berwang",
+      "nom": "Berwang",
+      "pays": "AT",
+      "siteOfficiel": "https://www.berwang.tirol",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-gro-eck-speiereck",
+      "nom": "Großeck-Speiereck",
+      "pays": "AT",
+      "siteOfficiel": "https://www.grosseck-speiereck.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-golm",
+      "nom": "Golm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.golm.at",
+      "centrale": {
+        "nom": "Montafon Tourismus",
+        "url": "https://www.montafon.at/en/hosts",
+        "hote": "www.montafon.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : demandes et réservations enregistrées dans le système de réservation feratel (+ CRM Wilken) ; cours hébergeurs « Feratel Deskline WebClient »."
+      }
+    },
+    {
+      "id": "at-reiteralm",
+      "nom": "Reiteralm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.reiteralm.at/",
+      "centrale": {
+        "nom": "TVB Schladming-Dachstein",
+        "url": "https://www.schladming-dachstein.at/de/Unterkuenfte/Suchen-Buchen",
+        "hote": "www.schladming-dachstein.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Moteur servi sur booking.schladming-dachstein.at/dachstein/de/accommodation/detail/DAC/<guid> (URL type Deskline Destination Widget, code DAC, AspxAutoDetectCookieSupport) ; Datenschutz cite feratel comme destinataire des demandes. Ski amadé publie aussi une page Reiteralm/Unterkuenfte (feratel)."
+      }
+    },
+    {
+      "id": "at-lienzer-bergbahnen",
+      "nom": "Lienzer Bergbahnen",
+      "pays": "AT",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-gargellen",
+      "nom": "Gargellen",
+      "pays": "AT",
+      "siteOfficiel": "https://www.montafon.at/bergbahnen-gargellen",
+      "centrale": {
+        "nom": "Montafon Tourismus",
+        "url": "https://www.montafon.at/en/hosts",
+        "hote": "www.montafon.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : demandes et réservations enregistrées dans le système de réservation feratel (+ CRM Wilken) ; cours hébergeurs « Feratel Deskline WebClient »."
+      }
+    },
+    {
+      "id": "at-riesneralm-donnersbachwald",
+      "nom": "Riesneralm - Donnersbachwald",
+      "pays": "AT",
+      "siteOfficiel": "https://www.riesneralm.at/",
+      "centrale": {
+        "nom": "TVB Schladming-Dachstein",
+        "url": "https://www.schladming-dachstein.at/de/Unterkuenfte/Suchen-Buchen",
+        "hote": "www.schladming-dachstein.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Moteur servi sur booking.schladming-dachstein.at/dachstein/de/accommodation/detail/DAC/<guid> (URL type Deskline Destination Widget, code DAC, AspxAutoDetectCookieSupport) ; Datenschutz cite feratel comme destinataire des demandes. Des fiches de Grimming-Donnersbachtal figurent dans la centrale Schladming-Dachstein."
+      }
+    },
+    {
+      "id": "at-galtur",
+      "nom": "Galtür",
+      "pays": "AT",
+      "siteOfficiel": "https://www.galtuer.com/",
+      "centrale": {
+        "nom": "TVB Paznaun – Ischgl (Ischgl, Galtür, Kappl, See)",
+        "url": "https://www.ischgl.com/de/urlaub-buchen/unterkunft-buchen",
+        "hote": "www.ischgl.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /unterkunft-buchen/unterkuenfte/ISC/<guid>/<nom> (code Deskline ISC + GUID) ; presse (vol.at) : le TVB Paznaun a commandé le système Deskline de feratel pour toute la vallée."
+      }
+    },
+    {
+      "id": "at-shuttleberg-flachauwinkl-kleinarl",
+      "nom": "Shuttleberg Flachauwinkl-Kleinarl",
+      "pays": "AT",
+      "siteOfficiel": "https://www.shuttleberg.com/",
+      "centrale": {
+        "nom": "Ski amadé (portail d'hébergement de la région)",
+        "url": "https://www.skiamade.com/de/Unterkuenfte/Unterkunft-finden",
+        "hote": "www.skiamade.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /Unterkuenfte/Unterkunft-finden/..._ad-<n> dont les images portent le suffixe « FERATEL » (ex. familie_4030-ac-FERATEL) ; pages par sous-région (Salzburger-Sportwelt/Unterkuenfte, Schladming-Dachstein/Reiteralm/Unterkuenfte)."
+      }
+    },
+    {
+      "id": "at-lachtal-472636m143608",
+      "nom": "Lachtal",
+      "pays": "AT",
+      "siteOfficiel": "https://www.lachtal.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-kasberg-grunau-almtal",
+      "nom": "Kasberg Grünau - Almtal",
+      "pays": "AT",
+      "siteOfficiel": "https://www.kasberg.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-gro-glockner-heiligenblut",
+      "nom": "Großglockner Heiligenblut",
+      "pays": "AT",
+      "siteOfficiel": "https://www.heiligenblut.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-goldeck",
+      "nom": "Goldeck",
+      "pays": "AT",
+      "siteOfficiel": "https://sportberg-goldeck.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-skigebiet-almenwelt-lofer",
+      "nom": "Skigebiet Almenwelt Lofer",
+      "pays": "AT",
+      "siteOfficiel": "https://www.skialm-lofer.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-sillian-hochpustertal",
+      "nom": "Sillian - Hochpustertal",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hochpustertal-ski.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-wurzeralm",
+      "nom": "Wurzeralm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hiwu.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-fanningberg",
+      "nom": "Fanningberg",
+      "pays": "AT",
+      "siteOfficiel": "https://www.fanningberg.info/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-lermoos-grubigstein",
+      "nom": "Lermoos Grubigstein",
+      "pays": "AT",
+      "siteOfficiel": "https://www.bergbahnen-langes.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-mellau",
+      "nom": "Mellau",
+      "pays": "AT",
+      "siteOfficiel": null,
+      "centrale": {
+        "nom": "Bregenzerwald Tourismus",
+        "url": "https://www.bregenzerwald.at/",
+        "hote": "www.bregenzerwald.at",
+        "moteur": "inconnu",
+        "preuve": "Datenschutz cite feratel Media Technologies AG et HRS Destination Solutions Austria (demandes) sans dire lequel motorise la réservation en ligne ; non prouvé."
+      }
+    },
+    {
+      "id": "at-brunnalm-st-jakob",
+      "nom": "Brunnalm / St. Jakob",
+      "pays": "AT",
+      "siteOfficiel": "https://www.stjakob-ski.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-laterns-gapfohl",
+      "nom": "Laterns-Gapfohl",
+      "pays": "AT",
+      "siteOfficiel": "https://www.laterns.net/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-hochkeil",
+      "nom": "Hochkeil",
+      "pays": "AT",
+      "siteOfficiel": null,
+      "centrale": {
+        "nom": "Hochkönig Tourismus",
+        "url": "https://www.hochkoenig.at/de/hotel-salzburg/unterkunft-suchen/",
+        "hote": "www.hochkoenig.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : système feratel (sous-traitant) pour les réservations ; paiement via « booking & more » de feratel ; fiches /betriebe/<guid>/. Hochkeil (Mühlbach am Hochkönig) relève de la région Hochkönig."
+      }
+    },
+    {
+      "id": "at-innerkrems",
+      "nom": "Innerkrems",
+      "pays": "AT",
+      "siteOfficiel": "https://www.innerkrems.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-stuhleck-semmering",
+      "nom": "Stuhleck - Semmering",
+      "pays": "AT",
+      "siteOfficiel": "https://www.stuhleck.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-bergbahnen-werfenweng",
+      "nom": "Bergbahnen Werfenweng",
+      "pays": "AT",
+      "siteOfficiel": "https://www.bergbahnen-werfenweng.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-bodele",
+      "nom": "Bödele",
+      "pays": "AT",
+      "siteOfficiel": "https://www.boedele.info/",
+      "centrale": {
+        "nom": "Bregenzerwald Tourismus",
+        "url": "https://www.bregenzerwald.at/",
+        "hote": "www.bregenzerwald.at",
+        "moteur": "inconnu",
+        "preuve": "Datenschutz cite feratel Media Technologies AG et HRS Destination Solutions Austria (demandes) sans dire lequel motorise la réservation en ligne ; non prouvé."
+      }
+    },
+    {
+      "id": "at-molltaler-gletscher",
+      "nom": "Mölltaler Gletscher",
+      "pays": "AT",
+      "siteOfficiel": "https://www.moelltaler-gletscher.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-loser-altaussee",
+      "nom": "Loser-Altaussee",
+      "pays": "AT",
+      "siteOfficiel": "https://www.loser.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-lienz-zettersfeld",
+      "nom": "Lienz - Zettersfeld",
+      "pays": "AT",
+      "siteOfficiel": "https://www.lienzer-bergbahnen.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-ramsau-am-dachstein",
+      "nom": "Ramsau am Dachstein",
+      "pays": "AT",
+      "siteOfficiel": "https://www.ramsau.com",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-hochoetz",
+      "nom": "Hochoetz",
+      "pays": "AT",
+      "siteOfficiel": "https://www.oetz.com/winter/ski-area-hochoetz/ski-area-information.html",
+      "centrale": {
+        "nom": "Ötztal Tourismus (Sölden, Oetz, Längenfeld, Umhausen, Sautens, Haiming)",
+        "url": "https://www.soelden.com/de/suchen-buchen/unterkuenfte",
+        "hote": "www.soelden.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /suchen-buchen/unterkuenfte/...a-<guid> affichant la note « feratel » ; Datenschutz (oetztal.com) : feratel Media Technologies AG sous-traitant."
+      }
+    },
+    {
+      "id": "at-schlick-2000",
+      "nom": "Schlick 2000",
+      "pays": "AT",
+      "siteOfficiel": "http://www.schlick2000.at/",
+      "centrale": {
+        "nom": "TVB Stubai Tirol",
+        "url": "https://www.stubai.at/en/accommodations/book-holiday/",
+        "hote": "www.stubai.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : Feratel Media Technologies AG = « Back-Office-Systemanbieter, Gästedatenbank und Buchungstool »."
+      }
+    },
+    {
+      "id": "at-raurisertal",
+      "nom": "Raurisertal",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hochalmbahnen.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-fageralm",
+      "nom": "Fageralm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.reiteralm.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-hochkar-477171m149185",
+      "nom": "Hochkar",
+      "pays": "AT",
+      "siteOfficiel": "https://www.hochkar.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-niederau-wildschonau",
+      "nom": "Niederau (Wildschönau)",
+      "pays": "AT",
+      "siteOfficiel": "https://www.wildschoenau.com/en/villages/niederau",
+      "centrale": {
+        "nom": "Wildschönau Tourismus",
+        "url": "https://www.wildschoenau.com/de/urlaub-planen-buchen/unterkunft-buchen",
+        "hote": "www.wildschoenau.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : Feratel Media Technologies AG fournit l'outil de réservation, la déclaration et la carte d'hôte ; fiches _ad-<n>."
+      }
+    },
+    {
+      "id": "at-buchensteinwand-pillersee",
+      "nom": "Buchensteinwand (Pillersee)",
+      "pays": "AT",
+      "siteOfficiel": "https://www.bergbahn-pillersee.com/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-aflenzer-burgeralm",
+      "nom": "Aflenzer Bürgeralm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.aflenzer-buergeralm.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-rifflsee",
+      "nom": "Rifflsee",
+      "pays": "AT",
+      "siteOfficiel": "https://www.pitztaler-gletscher.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-venet",
+      "nom": "Venet",
+      "pays": "AT",
+      "siteOfficiel": "https://www.venet.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-ehrwalder-alm",
+      "nom": "Ehrwalder Alm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.almbahn.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-spieljoch-fugen",
+      "nom": "Spieljoch - Fügen",
+      "pays": "AT",
+      "siteOfficiel": "https://www.spieljochbahn.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-bergeralm",
+      "nom": "Bergeralm",
+      "pays": "AT",
+      "siteOfficiel": "https://www.bergeralm.net/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-sportgastein",
+      "nom": "Sportgastein",
+      "pays": "AT",
+      "siteOfficiel": null,
+      "centrale": {
+        "nom": "Gasteinertal Tourismus",
+        "url": "https://www.gastein.com/unterkuenfte/suchen-buchen/",
+        "hote": "www.gastein.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Datenschutz : plateforme de réservation et de demande « feratel DESKLINE » (feratel media technologies AG, AV art. 28)."
+      }
+    },
+    {
+      "id": "at-hochkossen-unterberghorn",
+      "nom": "Hochkössen - Unterberghorn",
+      "pays": "AT",
+      "siteOfficiel": "https://skisport.com/Hochkoessen",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    },
+    {
+      "id": "at-christlum",
+      "nom": "Christlum",
+      "pays": "AT",
+      "siteOfficiel": "https://www.christlum.at/",
+      "centrale": null,
+      "motif": "non recherché : quotas de recherche web (Firecrawl, WebSearch) épuisés pendant le relevé ; aucune page lisible directement depuis le conteneur."
+    }
+  ],
+  "moteurs": {
+    "Deskline / Feratel": 48,
+    "CapCorn": 2,
+    "inconnu": 7,
+    "non recherché": 51
+  }
+}

@@ -32,6 +32,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { surfacePubliee } from "../../nombres.ts";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 import { depuisTexte, equipements, fusionner, type Equipement, type EquipementPublie } from "../../stay/equipements.ts";
@@ -147,6 +148,8 @@ export type OffreTravelski = {
   formule: string;
   nom: string;
   capacite: number | null;
+  /** `surface`, en m². Jamais lue dans le nom. */
+  surface: number | null;
   typeCode: string | null;
   /** `pricePerLogement` : le logement seul en HS, la capacité pleine forfait compris ; hors frais. */
   prixLogement: number | null;
@@ -182,6 +185,7 @@ function lireOffre(v: unknown): OffreTravelski | null {
     formule,
     nom: texte(o.name) ?? "",
     capacite: entier(o.capacity),
+    surface: surfacePubliee(entier(o.surface, 5000)),
     typeCode: texte(o.lodgingType),
     prixLogement: prix(o.pricePerLogement),
     debut: date(o.startDate),
@@ -646,6 +650,7 @@ export function travelskiListings(
           ),
         ),
         propertyType: code ? (LIBELLES_TYPE[code] ?? null) : null,
+        surface: o.surface,
         available: true,
         photo: r.image,
         photos: r.image ? [r.image] : null,

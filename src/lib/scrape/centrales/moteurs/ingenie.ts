@@ -86,6 +86,7 @@ import {
   type EquipementsLus,
 } from "../../../stay/equipements.ts";
 import { texteDeHtml } from "../../../stay/texteHtml.ts";
+import { surfacePubliee } from "../../../nombres.ts";
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheIngenie = {
@@ -127,6 +128,10 @@ export type FicheIngenie = {
   chambres: number | null;
   /** « 4 pièces » affiché comme critère. Le titre en porte souvent aussi. */
   pieces: number | null;
+  /** « 55 m² » affiché comme tel, jamais lu dans un titre. */
+  surface: number | null;
+  /** « 2 étoiles », « 3 épis », lu sur la pastille de classement. */
+  classement: string | null;
   /**
    * Les pictogrammes d'équipements de la fiche (`picto_zone_principale_fiche_presta`,
    * « WiFi », « Lave vaisselle », « Animaux admis »), lus par
@@ -659,6 +664,7 @@ export function lieuIngenie(fragment: string): LieuIngenie {
 const AFFICHE_PERSONNES = />\s*(\d{1,2})\s*(?:<\/span>\s*<span[^>]*>\s*)?personnes?\s*</i;
 const AFFICHE_CHAMBRES = />\s*(\d{1,2})\s*(?:<\/span>\s*<span[^>]*>\s*)?chambres?(?:\(s\))?\s*</i;
 const AFFICHE_PIECES = />\s*(\d{1,2})\s*(?:<\/span>\s*<span[^>]*>\s*)?pi(?:è|&egrave;|&#232;)ces?(?:\(s\))?\s*</i;
+const AFFICHE_SURFACE = />\s*(\d{1,4})\s*(?:<\/span>\s*<span[^>]*>\s*)?m(?:²|2|&#178;|&sup2;)\s*</i;
 
 function affiche(sansScript: string, motif: RegExp, min: number): number | null {
   const m = motif.exec(sansScript);
@@ -671,13 +677,25 @@ export function occupationAfficheeIngenie(fragment: string): {
   capacite: number | null;
   chambres: number | null;
   pieces: number | null;
+  surface: number | null;
 } {
   const sans = fragment.replace(/<script\b[\s\S]*?<\/script>/gi, " ");
   return {
     capacite: affiche(sans, AFFICHE_PERSONNES, 1),
     chambres: affiche(sans, AFFICHE_CHAMBRES, 0),
     pieces: affiche(sans, AFFICHE_PIECES, 1),
+    surface: surfacePubliee(AFFICHE_SURFACE.exec(sans)?.[1]),
   };
+}
+
+function classementIngenie(fragment: string): string | null {
+  const bloc = /class="classement"[^>]*>([\s\S]{0,500}?)<\/div>/.exec(fragment)?.[1] ?? "";
+  const etoiles = /\b(?:CONFORT-)?(\d)ETOILES?\b/i.exec(bloc);
+  const epi = /\bclassement-(epi|etoile)(\d)\b/i.exec(bloc);
+  const n = etoiles ? Number(etoiles[1]) : epi ? Number(epi[2]) : NaN;
+  if (!Number.isInteger(n) || n < 1 || n > 5) return null;
+  const mot = epi && !etoiles && epi[1].toLowerCase() === "epi" ? "épi" : "étoile";
+  return `${n} ${mot}${n > 1 ? "s" : ""}`;
 }
 
 function photoDe(fragment: string): string | null {
@@ -828,6 +846,7 @@ export function lireIngenie(page: string): FicheIngenie[] {
       chemin: lien ? desechapper(lien[1] ?? "") : null,
       ...lieuIngenie(fragment),
       ...occupationAfficheeIngenie(fragment),
+      classement: classementIngenie(fragment),
       equipements: equipementsIngenie(fragment),
       equipementsPublies: equipementsPubliesIngenie(fragment),
       description: descriptionIngenie(fragment),

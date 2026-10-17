@@ -288,4 +288,4 @@ def test_chambres_depuis_ou_vous_dormirez_quand_l_apercu_se_tait():
     }
     occ = occupancy_from_pdp(brut)
     assert occ["bedrooms"] == 2
-    assert occ["bedroomsSource"] == "structured"
+    assert occ["bedroomsSource"] == "text_regex", "compté sur les noms des pièces, pas lu dans un champ"

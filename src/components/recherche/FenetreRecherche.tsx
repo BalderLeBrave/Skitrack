@@ -23,6 +23,7 @@ import { useParcours } from "@/lib/parcours";
 import type { Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { BarreRecherche, type PanneauRecherche } from "./BarreRecherche";
+import { useCommunes } from "./communes";
 import { stationDuTexte } from "./outils";
 
 type Instantane = {
@@ -99,6 +100,9 @@ export function FenetreRecherche({
     return () => document.removeEventListener("keydown", echap);
   }, [setStayOpen]);
 
+  // Une commune tapée en toutes lettres désigne sa station une fois la liste
+  // arrivée ; la fenêtre se redessine alors.
+  useCommunes(texte.trim().length >= 3);
   const r = choisie && choisie.name === texte ? choisie : stationDuTexte(texte);
 
   const rechercher = () => {

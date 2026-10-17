@@ -8,7 +8,7 @@
 import { domaineNomme, sansDomaineAlpin, type ColorShare } from "./classeur.ts";
 import { domainForStation } from "./forfaits/catalog.ts";
 import { dansPlage, type Echelle, type Plage } from "./plage.ts";
-import type { Station } from "./stations.ts";
+import { STATIONS, type Station } from "./stations.ts";
 import { parMesure, parTexte, type Sens } from "./tri.ts";
 import { villagesDe } from "./villages.ts";
 import { langueIntl } from "./i18n/langue.ts";
@@ -262,14 +262,17 @@ const CHIFFRES_EN_LETTRES: Record<string, string> = {
  * Un chiffre isolé s'écrit en toutes lettres : « Les 2 Alpes », « Les 7 Laux »
  * ou « Les 3 Vallées » se trouvent en tapant « deux », « sept » ou « trois »
  * comme en chiffres, et une saisie en cours (« les deu ») trouve déjà la
- * station. Les altitudes (« Arc 1800 ») ne bougent pas.
+ * station. « St » et « Ste » valent Saint et Sainte. Les altitudes
+ * (« Arc 1800 ») ne bougent pas.
  */
 export function foldName(s: string): string {
   return s
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[-'’]/g, " ")
+    .replace(/[-'’.]/g, " ")
+    .replace(/\bst\b/g, "saint")
+    .replace(/\bste\b/g, "sainte")
     .replace(/\b(?:[2-9]|10)\b/g, (n) => CHIFFRES_EN_LETTRES[n])
     .replace(/\s+/g, " ")
     .trim();
@@ -293,6 +296,42 @@ export function villageCherche(stationId: string, q: string): string | null {
  *  nom, ou celui d'un de ses villages. */
 export function nomCorrespond(s: Station, q: string): boolean {
   return foldName(s.name).includes(q) || villageCherche(s.id, q) !== null;
+}
+
+/**
+ * Le texte dépasse le nom, le nom dépasse le texte, un article (« L' »,
+ * « Le ») les sépare, ou c'est un des mots du nom. Une seule station
+ * correspond : « L'Alpe d'Huez » est Alpe d'Huez, « St Gervais » est
+ * Saint-Gervais, « Grand Bornand » est Le Grand-Bornand. Deux stations :
+ * on ne devine pas.
+ */
+export function stationProlongee(q: string): Station | undefined {
+  return uneStation(q) ?? uneStation(sansArticle(q) ?? "");
+}
+
+function sansArticle(q: string): string | null {
+  for (const a of ["les ", "le ", "la ", "l "]) {
+    if (q.startsWith(a) && q.length - a.length >= 5) return q.slice(a.length);
+  }
+  return null;
+}
+
+function uneStation(q: string): Station | undefined {
+  if (q.length < 5) return undefined;
+  const nom = (s: Station) => foldName(s.name);
+  const exact = STATIONS.filter((s) => nom(s) === q);
+  if (exact.length === 1) return exact[0];
+  const prefixe = STATIONS.filter((s) => {
+    const n = nom(s);
+    return n.length >= 5 && q.startsWith(n + " ");
+  });
+  if (prefixe.length === 1) return prefixe[0];
+  const suite = STATIONS.filter((s) => nom(s).startsWith(q + " "));
+  if (suite.length === 1) return suite[0];
+  const mot = STATIONS.filter((s) => nom(s).split(" ").includes(q));
+  if (mot.length === 1) return mot[0];
+  const article = STATIONS.filter((s) => sansArticle(nom(s)) === q);
+  return article.length === 1 ? article[0] : undefined;
 }
 
 export function searchStations(rows: readonly Station[], query: string): Station[] {

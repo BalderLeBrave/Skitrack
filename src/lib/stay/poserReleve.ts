@@ -189,8 +189,9 @@ const CHAMPS_DU_BIEN = [
   ["capacity", "capacitySource"],
   ["bedrooms", "bedroomsSource"],
   ["rooms"],
-  // La surface : seule une copie Cozy la publie aujourd'hui (`surfaceText`).
   ["surface"],
+  ["propertyType"],
+  ["classement"],
   ["description"],
   ["amenities"],
   ["equipementsPublies"],

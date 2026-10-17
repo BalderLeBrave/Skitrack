@@ -354,6 +354,58 @@ def baths_from_text(*texts: str | None) -> int | None:
     return n if 0 < n <= 20 else None
 
 
+def chambres_tuile(record: dict[str, Any]) -> int | None:
+    """« 2 chambres » ou « Studio » sur une ligne BEDINFO de la tuile.
+
+    C'est un champ publié, pas une lecture du titre. Le titre « Chalet 4
+    chambres » ne compte pas : la règle du 1er octobre 2026 le laisse
+    tomber tant que la page n'est pas lue.
+    """
+    for typ, body in _lignes_typees(record):
+        if typ != "BEDINFO":
+            continue
+        if re.fullmatch(r"studio", body, re.I):
+            return 0
+        m = re.fullmatch(r"(\d+)\s+chambres?", body, re.I) or re.fullmatch(r"(\d+)\s+bedrooms?", body, re.I)
+        if not m:
+            continue
+        n = int(m.group(1))
+        if 0 <= n <= 50:
+            return n
+    return None
+
+
+def bains_tuile(record: dict[str, Any]) -> int | None:
+    """« 1 salle de bain », « 2 salles de bain et 1 toilette » : la ligne
+    BATHROOMINFO. Les toilettes ne comptent pas."""
+    for typ, body in _lignes_typees(record):
+        if typ != "BATHROOMINFO":
+            continue
+        m = re.match(r"(\d+)\s+salles?\s+de\s+bains?\b|(\d+)\s+bathrooms?\b", body, re.I)
+        if not m:
+            continue
+        n = int(next(g for g in m.groups() if g))
+        if 0 < n <= 20:
+            return n
+    return None
+
+
+def _lignes_typees(record: dict[str, Any]) -> list[tuple[str, str]]:
+    sc = record.get("structuredContent")
+    if not isinstance(sc, dict):
+        return []
+    out: list[tuple[str, str]] = []
+    for cle in ("primaryLine", "mapPrimaryLine"):
+        lignes = sc.get(cle)
+        if not isinstance(lignes, list):
+            continue
+        for item in lignes:
+            if not isinstance(item, dict) or not isinstance(item.get("body"), str):
+                continue
+            out.append((str(item.get("type") or ""), item["body"].replace("\xa0", " ").strip()))
+    return out
+
+
 def occupancy_structuree(record: dict[str, Any]) -> tuple[int | None, int | None]:
     """(capacité, chambres) des seuls champs structurés de l'enregistrement.
 
@@ -524,14 +576,40 @@ def _nested_name(node: Any) -> str:
     return ""
 
 
+# « Appartement en résidence ⋅ Morzine » : le type et la commune, pas le nom.
+# Le nom est `nameLocalized` (et le sous-titre). « Chalet des neiges » n'a pas
+# cette forme : il reste le titre.
+_TYPE_TITRE_MOT = re.compile(
+    r"^(?:logement|appartement|appart|chalet|maison|villa|studio|cabane|chambre|loft|duplex|g[iî]te|yourte|tente|refuge)\b",
+    re.I,
+)
+
+
+def _est_titre_de_type(title: str) -> bool:
+    if "⋅" not in title:
+        return False
+    gauche = title.split("⋅", 1)[0].strip()
+    return bool(gauche) and bool(_TYPE_TITRE_MOT.match(gauche))
+
+
+def type_de_titre(title: str | None) -> str | None:
+    """« Appartement en résidence », quand `title` est la ligne de type."""
+    if not isinstance(title, str) or not _est_titre_de_type(title):
+        return None
+    gauche = title.split("⋅", 1)[0].strip()
+    return gauche or None
+
+
 def listing_name(record: dict[str, Any]) -> str:
-    for candidate in (
-        record.get("title"),
-        record.get("name"),
-        record.get("nameLocalized"),
-        record.get("subtitle"),
-    ):
-        found = _nested_name(candidate)
+    title = _nested_name(record.get("title"))
+    localized = _nested_name(record.get("nameLocalized"))
+    subtitle = _nested_name(record.get("subtitle"))
+    if _est_titre_de_type(title):
+        for cand in (localized, subtitle):
+            if cand and cand != title:
+                return cand
+    for candidate in (title, record.get("name"), localized, subtitle):
+        found = candidate if isinstance(candidate, str) else _nested_name(candidate)
         if found:
             return found
     demand = record.get("demandStayListing") if isinstance(record.get("demandStayListing"), dict) else {}
@@ -693,6 +771,13 @@ def stay_to_listing(
         bedrooms = extra_b
     if rooms is None:
         rooms = extra_r
+    # « 2 chambres » de la ligne BEDINFO est un champ de la tuile. Il passe
+    # devant un nombre lu dans le titre, et Node le garde (`structured`).
+    chambres = chambres_tuile(record)
+    if chambres is not None:
+        bedrooms = chambres
+        s_bedrooms = chambres
+    baths = bains_tuile(record)
     # Les lignes de `structuredContent` d'abord : c'est là qu'Airbnb compte les
     # lits (« 6 lits »), le titre n'en parle qu'en passant.
     beds = beds_from_text(*lines, name, subtitle)
@@ -732,6 +817,8 @@ def stay_to_listing(
         # Les textes lus, que Node relit avec le module commun.
         "textes": [t for t in (title, subtitle, name, *lines) if t],
         "beds": beds,
+        **({"baths": baths} if baths is not None else {}),
+        **({"propertyType": type_de_titre(title)} if type_de_titre(title) else {}),
         "rating": rating,
         "reviewCount": review_count,
         **({"description": description_tuile(record)} if description_tuile(record) else {}),

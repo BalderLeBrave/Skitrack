@@ -162,10 +162,40 @@ def description_de(raw: Any) -> str | None:
         if t:
             candidates.append(t[:TEXTE_MAX])
     texte = max(candidates, key=len) if candidates else None
-    lits = couchages_de(raw)
-    if lits and (texte is None or lits not in texte):
-        texte = f"{texte}\n\n{lits}" if texte else lits
-    return texte[:TEXTE_MAX] if texte else None
+    # Le quartier et les couchages suivent la description. Leur place est
+    # gardée : une description longue est coupée avant eux, pas sur eux.
+    blocs = [b for b in (quartier_de(raw), couchages_de(raw)) if b and (texte is None or b not in texte)]
+    if not blocs:
+        return texte[:TEXTE_MAX] if texte else None
+    fin = "\n\n".join(blocs)
+    if texte is None:
+        return fin[:TEXTE_MAX]
+    place = TEXTE_MAX - len(fin) - 2
+    if place <= 0:
+        return texte[:TEXTE_MAX]
+    return f"{texte[:place].rstrip()}\n\n{fin}"
+
+
+def quartier_de(raw: Any) -> str | None:
+    """« Points forts du quartier » : le texte de l'hôte sur les pistes, les
+    navettes, les commerces. La carte ne donne qu'un point approximatif."""
+    lignes: list[str] = []
+    for details in _cles(raw, "previewLocationDetails"):
+        if not isinstance(details, list):
+            continue
+        for d in details:
+            if not isinstance(d, dict):
+                continue
+            content = d.get("content") if isinstance(d.get("content"), dict) else {}
+            ugc = content.get("content") if isinstance(content.get("content"), dict) else {}
+            t = _chaine(ugc.get("localizedStringWithTranslationPreference")) or _chaine(ugc.get("localizedString"))
+            if not t or t in lignes:
+                continue
+            titre = _chaine(d.get("title")) or "Le quartier"
+            lignes.append(f"{titre}\n{t}")
+        if lignes:
+            break
+    return "\n\n".join(lignes) if lignes else None
 
 
 def couchages_de(raw: Any) -> str | None:

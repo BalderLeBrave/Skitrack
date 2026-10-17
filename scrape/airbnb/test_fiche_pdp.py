@@ -533,6 +533,18 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
                             "body": {"localizedContent": "Boîte à clé sécurisée."},
                         }
                     ],
+                    "location": {
+                        "previewLocationDetails": [
+                            {
+                                "title": "Points forts du quartier",
+                                "content": {
+                                    "content": {
+                                        "localizedStringWithTranslationPreference": "Appartement situé à 10 minutes à pied des pistes et à 200 mètres des navettes."
+                                    }
+                                },
+                            }
+                        ]
+                    },
                     "sleepingArrangements": {
                         "stops": [
                             {
@@ -569,6 +581,7 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
     f = fiche_enrichie_de_pdp(brut)
     assert f["description"].startswith("Appartement au pied des pistes")
     assert "Cuisine équipée." in f["description"]
+    assert "10 minutes à pied des pistes" in f["description"]
     assert "Chambre 1 : 1 lit double, 1 lit simple" in f["description"]
     assert "Chambre 2 : 2 lits simples" in f["description"]
     c = f["conditions"]
@@ -600,3 +613,24 @@ def test_page_rooms_connue_une_seule_requete_par_fiche():
         assert appels == ["42"]
     finally:
         pdp.fetch_page_rooms, pdp._page_rooms_seule = avant
+
+
+def test_une_description_longue_garde_la_place_des_couchages():
+    from fiche_pdp import TEXTE_MAX, description_de
+
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "descriptions": {"longDescriptionHtml": {"localizedString": "Très long. " * 800}},
+                    "sleepingArrangements": {
+                        "stops": [{"name": "Chambre 1", "description": {"descriptions": [{"text": "1 lit double"}]}}]
+                    },
+                }
+            }
+        }
+    }
+    d = description_de(brut)
+    assert len(d) <= TEXTE_MAX
+    assert d.startswith("Très long.")
+    assert d.endswith("Où vous dormirez\nChambre 1 : 1 lit double")

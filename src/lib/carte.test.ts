@@ -9,6 +9,7 @@ import {
   colorValue,
   filterMassif,
   foldName,
+  stationProlongee,
   formatKm,
   NO_FILTERS,
   orderStations,
@@ -76,6 +77,17 @@ const ROWS = [
   station("alpe", "Alpe d’Huez", 1250, 3330, 250),
 ];
 
+test("un nom plus long, un article ou une abréviation désigne la station", () => {
+  assert.equal(stationProlongee(foldName("Val d'Allos - La Foux"))?.id, "val-dallos-la-foux-le-seignus");
+  assert.equal(stationProlongee(foldName("Méaudre"))?.id, "autrans");
+  assert.equal(stationProlongee(foldName("L'Alpe d'Huez"))?.id, "alpe-d-huez");
+  assert.equal(stationProlongee(foldName("St-Gervais"))?.id, "saint-gervais-mont-blanc");
+  assert.equal(stationProlongee(foldName("Sainte-Foy"))?.id, "sainte-foy-tarentaise");
+  assert.equal(stationProlongee(foldName("Grand Bornand"))?.id, "le-grand-bornand");
+  assert.equal(stationProlongee(foldName("Plagne"))?.id, "la-plagne");
+  assert.equal(foldName("Ste Foy"), "sainte foy");
+  assert.equal(stationProlongee("blanc"), undefined);
+});
 test("foldName retire accents, casse, traits d'union et apostrophes", () => {
   assert.equal(foldName("  Megève "), "megeve");
   // Apostrophe et trait d'union deviennent une espace : on tape « alpe d huez »

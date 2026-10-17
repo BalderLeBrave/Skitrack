@@ -121,6 +121,7 @@ export function BlocTitre({
           {avis?.nombre ? trN(avis.nombre, "{n} avis", "{n} avis") : null}
         </span>
         {l.propertyType?.trim() ? <span>{majuscule(l.propertyType.trim())}</span> : null}
+        {l.classement?.trim() ? <span>{l.classement.trim()}</span> : null}
         {l.priceIndicative ? <span className="fl-puce">{tr("Prix « à partir de »")}</span> : null}
       </div>
     </div>

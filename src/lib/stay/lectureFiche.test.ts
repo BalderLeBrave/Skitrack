@@ -99,6 +99,115 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.bedrooms, 3);
   });
 
+  it("lit description, équipements, note et salles de bain dans la page rooms/", () => {
+    const etat = {
+      niobeClientData: [
+        [
+          {},
+          {
+            data: {
+              node: {
+                pdpPresentation: {
+                  descriptions: {
+                    longDescriptionHtml: {
+                      localizedStringWithTranslationPreference:
+                        "Appartement au pied des pistes, avec balcon et vue sur la station. Cuisine équipée pour six.",
+                    },
+                  },
+                  amenities: {
+                    seeAllAmenitiesGroups: [
+                      { title: "Internet", amenities: [{ title: "Wifi", available: true }] },
+                      { title: "Non inclus", amenities: [{ title: "Lave-linge", available: false }] },
+                    ],
+                  },
+                  quality: {
+                    listingRatingStats: { overallRatingStats: { ratingAverage: 4.86, ratingCount: "171" } },
+                    categoryRatings: [
+                      { label: "Propreté", localizedRating: "4,8" },
+                      { label: "Emplacement", localizedRating: "4,9" },
+                    ],
+                  },
+                  overview: { items: ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"] },
+                  location: {
+                    subtitle: "Morzine, France",
+                    previewLocationDetails: [
+                      {
+                        title: "Points forts du quartier",
+                        content: {
+                          content: {
+                            localizedStringWithTranslationPreference:
+                              "Appartement situé à 10 minutes à pied des pistes et à 200 mètres des navettes.",
+                          },
+                        },
+                      },
+                    ],
+                  },
+                  rules: {
+                    __typename: "StaysPdpRuleDetails",
+                    groupItems: [
+                      {
+                        title: "Arrivée et départ",
+                        items: [
+                          { title: "Arrivée : entre 17:00 et 22:00" },
+                          { title: "Départ avant 10:00" },
+                        ],
+                      },
+                      {
+                        title: "Pendant votre séjour",
+                        items: [
+                          { title: "4 voyageurs maximum" },
+                          { title: "Pas d'animaux" },
+                          { title: "Pas de fête ni de soirée" },
+                          { title: "Non fumeur" },
+                        ],
+                      },
+                    ],
+                  },
+                  sleepingArrangements: {
+                    stops: [{ name: "Chambre 1", description: { descriptions: [{ text: "1 lit double" }] } }],
+                  },
+                  heroMedia: {
+                    edges: [
+                      { node: { image: { uri: "https://a0.muscache.com/im/pictures/salon.jpg" } } },
+                      { node: { image: { uri: "https://a0.muscache.com/im/pictures/chambre.jpg" } } },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        ],
+      ],
+    };
+    const html = `<html><script id="data-deferred-state-0" type="application/json">${JSON.stringify(etat)}</script></html>`;
+    const l = lectureAirbnb(html);
+    assert.match(l.description ?? "", /pied des pistes/);
+    assert.match(l.description ?? "", /10 minutes à pied des pistes/);
+    assert.match(l.description ?? "", /Chambre 1 : 1 lit double/);
+    assert.deepEqual(l.amenityTitles, ["Wifi"]);
+    assert.equal(l.rating, 4.86);
+    assert.equal(l.reviewCount, 171);
+    assert.equal(l.baths, 1);
+    assert.equal(l.beds, 4);
+    assert.equal(l.locality, "Morzine");
+    assert.equal(l.capacity, 4);
+    assert.equal(l.capacitySource, "text_regex");
+    assert.equal(l.conditions?.arrivee, "Arrivée : entre 17:00 et 22:00");
+    assert.equal(l.conditions?.depart, "Départ avant 10:00");
+    assert.equal(l.conditions?.animaux, "non");
+    assert.equal(l.conditions?.fumeurs, "non");
+    assert.equal(l.conditions?.fetes, "non");
+    assert.match(l.conditions?.reglement ?? "", /4 voyageurs maximum/);
+    assert.deepEqual(l.categories, [
+      { label: "Propreté", note: 4.8 },
+      { label: "Emplacement", note: 4.9 },
+    ]);
+    assert.deepEqual(l.photos, [
+      "https://a0.muscache.com/im/pictures/salon.jpg",
+      "https://a0.muscache.com/im/pictures/chambre.jpg",
+    ]);
+  });
+
   it("lit le GPS LocalBusiness d'une fiche de centrale", () => {
     const html = `<script type="application/ld+json">${JSON.stringify({
       "@type": "LocalBusiness",

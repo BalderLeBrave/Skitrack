@@ -123,7 +123,7 @@ describe("Cimalpes : annonces", () => {
     assert.equal(l.source, "Cimalpes");
     assert.equal(l.total, 8100);
     assert.equal(l.priceIndicative, false);
-    assert.deepEqual([l.capacity, l.bedrooms, l.propertyType, l.locality], [12, 2, "Appartement", "Val Thorens - Centre & proche centre"]);
+    assert.deepEqual([l.capacity, l.bedrooms, l.propertyType, l.locality, l.surface], [12, 2, "Appartement", "Val Thorens - Centre & proche centre", 85]);
     assert.deepEqual([l.lat, l.lon], [null, null]);
     assert.equal(l.skiPassIncluded, false);
     assert.equal(l.priceLabel, "8 100 € /semaine");

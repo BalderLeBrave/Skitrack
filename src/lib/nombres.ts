@@ -28,6 +28,20 @@ export function langueNombres(): string {
   return langueIntl();
 }
 
+/** Mètres carrés entiers publiés, de 1 à 5 000. Un zéro, un texte, une fourchette : rien. */
+export function surfacePubliee(v: unknown): number | null {
+  const n =
+    typeof v === "number"
+      ? v
+      : typeof v === "string" && /^\s*\d{1,4}(?:[.,]\d)?\s*$/.test(v)
+        ? Number(v.trim().replace(",", "."))
+        : NaN;
+  if (!Number.isFinite(n)) return null;
+  const i = Math.round(n);
+  if (i < 1 || i > 5000 || Math.abs(n - i) > 0.05) return null;
+  return i;
+}
+
 /** Entier arrondi, séparateur de milliers, espace simple. */
 export function entier(n: number): string {
   return Math.round(n).toLocaleString(langueNombres()).replace(ESPACES_ETROITES, " ");

@@ -136,7 +136,7 @@ describe("Travelski : annonces", () => {
     assert.equal(l.title, "Pierre & Vacances Résidence Atria-Crozats — Appartement 4 personnes - 1 chambre - Balcon");
     assert.equal(l.total, 3111, "3 087 € + 24 € de frais de service");
     assert.equal(l.priceLabel, "Hébergement, 7 nuits, frais de service inclus");
-    assert.deepEqual([l.capacity, l.bedrooms, l.rooms, l.propertyType], [4, 1, 2, "Résidence de Tourisme"]);
+    assert.deepEqual([l.capacity, l.bedrooms, l.rooms, l.propertyType, l.surface], [4, 1, 2, "Résidence de Tourisme", 34]);
     assert.deepEqual([l.lat, l.lon], [46.193199, 6.77615]);
     assert.equal(l.skiPassIncluded, false);
     assert.equal(l.platformId, "80136");

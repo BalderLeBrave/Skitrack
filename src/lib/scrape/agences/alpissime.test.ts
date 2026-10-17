@@ -183,6 +183,7 @@ describe("Alpissime : relevé d'une station", () => {
     assert.equal(l.bedroomsSource, "derived_from_type");
     assert.equal(l.capacitySource, "text_regex");
     assert.equal(l.propertyType, "Appartement");
+    assert.equal(l.surface, 29);
     assert.equal(l.locality, "Valloire");
     assert.equal(l.placeName, "Residence Valoria");
     assert.deepEqual([l.lat, l.lon], [45.165874, 6.434137]);

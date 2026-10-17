@@ -148,6 +148,7 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
     propertyType: f.type,
+    classement: f.classement,
     ...(f.description ? { description: f.description } : {}),
     ...(f.equipements ? { amenities: equipements(f.equipements) } : {}),
     ...(f.equipementsPublies?.length ? { equipementsPublies: f.equipementsPublies } : {}),

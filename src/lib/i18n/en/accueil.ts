@@ -13,6 +13,7 @@ export const EN_ACCUEIL: Record<string, string> = {
   // recherche/outils.ts
   "Massif · {n} station": "Range · {n} resort",
   "Massif · {n} stations": "Range · {n} resorts",
+  "Station la plus proche · {km} km": "Nearest resort · {km} km",
   // routes/index.tsx : textes de la maquette (chat du 12 octobre)
   "La recherche ouvrira la fiche de la station {station}.": "Search will open the {station} resort page.",
   "{n} station sur {total} correspond à vos critères.": "{n} resort out of {total} matches your criteria.",

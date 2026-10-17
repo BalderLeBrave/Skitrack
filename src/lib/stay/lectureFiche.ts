@@ -47,6 +47,8 @@ export type LectureFiche = OccupancyLue & {
   /** Note sur 5 et nombre d'avis, quand la page les publie. */
   rating?: number | null;
   reviewCount?: number | null;
+  /** Les photos de la page, dans l'ordre de la visite. */
+  photos?: string[];
   /** Airbnb : chambre privée ou partagée, chambre d'hôtel ou hébergement insolite (`ecarteeAirbnb`). */
   ecartee?: boolean;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
@@ -864,6 +866,7 @@ type PageAirbnb = Pick<
   | "rating"
   | "reviewCount"
   | "locality"
+  | "photos"
 >;
 
 function estPresentation(o: Record<string, unknown>): boolean {
@@ -974,7 +977,26 @@ function publieDeLaPage(html: string): PageAirbnb {
   }
   const couchages = couchagesDe(pdp.sleepingArrangements);
   if (couchages) out.description = out.description ? `${out.description}\n\n${couchages}` : couchages;
+  const photos = photosDe(pdp.heroMedia);
+  if (photos.length) out.photos = photos;
   return out;
+}
+
+function photosDe(v: unknown): string[] {
+  if (!v || typeof v !== "object") return [];
+  const edges = (v as Record<string, unknown>).edges;
+  if (!Array.isArray(edges)) return [];
+  const out: string[] = [];
+  for (const e of edges) {
+    if (!e || typeof e !== "object") continue;
+    const node = (e as Record<string, unknown>).node;
+    if (!node || typeof node !== "object") continue;
+    const image = (node as Record<string, unknown>).image;
+    const uri =
+      image && typeof image === "object" ? (image as Record<string, unknown>).uri : (node as Record<string, unknown>).uri;
+    if (typeof uri === "string" && uri.startsWith("https://") && !out.includes(uri)) out.push(uri);
+  }
+  return out.slice(0, 80);
 }
 
 function couchagesDe(v: unknown): string | null {
@@ -1051,6 +1073,7 @@ export function lectureAirbnb(html: string): LectureFiche {
   if (page.amenityTitles?.length) out = { ...out, amenityTitles: page.amenityTitles };
   if (page.rating != null) out = { ...out, rating: page.rating };
   if (page.reviewCount != null) out = { ...out, reviewCount: page.reviewCount };
+  if (page.photos?.length) out = { ...out, photos: page.photos };
   if (page.locality && !out.locality) out = { ...out, locality: page.locality };
   if (ecarteeAirbnb(html)) out = { ...out, ecartee: true };
   const lat = Number(html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);

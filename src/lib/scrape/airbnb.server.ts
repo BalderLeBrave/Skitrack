@@ -123,14 +123,67 @@ function structuredLines(record: Record<string, unknown>): string[] {
   return lines;
 }
 
+/** « Appartement en résidence ⋅ Morzine » : le type, pas le nom du bien. */
+function titreDeType(title: string): string | null {
+  const i = title.indexOf("⋅");
+  if (i < 0) return null;
+  const gauche = title.slice(0, i).trim();
+  if (!/^(logement|appartement|appart|chalet|maison|villa|studio|cabane|chambre|loft|duplex|g[iî]te|yourte|tente|refuge)\b/i.test(gauche)) {
+    return null;
+  }
+  return gauche || null;
+}
+
+function lignesTypees(record: Record<string, unknown>, type: string): string[] {
+  const sc = record.structuredContent;
+  if (sc == null || typeof sc !== "object") return [];
+  const out: string[] = [];
+  for (const cle of ["primaryLine", "mapPrimaryLine"]) {
+    const lignes = (sc as Record<string, unknown>)[cle];
+    if (!Array.isArray(lignes)) continue;
+    for (const item of lignes) {
+      if (item == null || typeof item !== "object") continue;
+      const row = item as Record<string, unknown>;
+      if (row.type !== type || typeof row.body !== "string") continue;
+      out.push(row.body.replace(/\u00a0/g, " ").trim());
+    }
+  }
+  return out;
+}
+
+/** « 2 chambres » sur une ligne BEDINFO : un champ de la tuile. */
+function chambresTuile(record: Record<string, unknown>): number | null {
+  for (const body of lignesTypees(record, "BEDINFO")) {
+    if (/^studio$/i.test(body)) return 0;
+    const m = /^(\d+)\s+chambres?$/i.exec(body) ?? /^(\d+)\s+bedrooms?$/i.exec(body);
+    if (!m) continue;
+    const n = Number(m[1]);
+    if (Number.isInteger(n) && n >= 0 && n <= 50) return n;
+  }
+  return null;
+}
+
+function bainsTuile(record: Record<string, unknown>): number | null {
+  for (const body of lignesTypees(record, "BATHROOMINFO")) {
+    const m = /^(\d+)\s+salles?\s+de\s+bains?\b/i.exec(body) ?? /^(\d+)\s+bathrooms?\b/i.exec(body);
+    if (!m) continue;
+    const n = Number(m[1]);
+    if (Number.isInteger(n) && n > 0 && n <= 20) return n;
+  }
+  return null;
+}
+
 /** Le nom localisé se lit aussi : la forme 2026 de l'API n'a plus ni titre
  *  ni sous-titre (« Appartement : 8 couchages face aux pistes »), et le
  *  worker Python le lisait déjà. */
 function occupancy(record: Record<string, unknown>): OccupancyAnnoncee {
   const title = typeof record.title === "string" ? record.title : "";
   const sub = typeof record.subtitle === "string" ? record.subtitle : "";
+  const connu = occupancyFromRecord(record);
+  const chambres = chambresTuile(record);
+  if (chambres != null) connu.bedrooms = chambres;
   return annoncer(
-    occupancyFromRecord(record),
+    { ...connu, source: chambres != null ? { bedrooms: "structured" } : "structured" },
     title,
     sub,
     nestedName(record.nameLocalized),
@@ -291,7 +344,9 @@ function extract(root: unknown, input: LiveSearchInput): Listing[] {
       const id = numericId(demand.id) || numericId(record.propertyId);
       const title = typeof record.title === "string" ? record.title.trim() : "";
       const sub = typeof record.subtitle === "string" ? record.subtitle.trim() : "";
-      const name = title || nestedName(record.nameLocalized) || sub;
+      const localized = nestedName(record.nameLocalized);
+      const typeTitre = titreDeType(title);
+      const name = (typeTitre && localized && localized !== title ? localized : "") || (typeTitre && sub && sub !== title ? sub : "") || title || localized || sub;
       if (id && name && !isDropped(sub) && !isDropped(title) && !seen.has(id)) {
         seen.add(id);
         const label = publishedPriceLabel(record.structuredDisplayPrice);
@@ -324,6 +379,8 @@ function extract(root: unknown, input: LiveSearchInput): Listing[] {
             bedroomsSource: occ.bedroomsSource,
             isStudio: occ.isStudio,
             beds: bedsFromText(...structuredLines(record), name, sub),
+            ...(bainsTuile(record) != null ? { baths: bainsTuile(record)! } : {}),
+            ...(typeTitre ? { propertyType: typeTitre } : {}),
             available: true,
             photo: photos[0] ?? null,
             photos: photos.length > 0 ? photos : null,
@@ -523,6 +580,7 @@ export function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): L
       ...(typeof row.baths === "number" && Number.isInteger(row.baths) && row.baths > 0 && row.baths <= 20
         ? { baths: row.baths }
         : {}),
+      ...(typeof row.propertyType === "string" && row.propertyType.trim() ? { propertyType: row.propertyType.trim() } : {}),
       available: true,
       photo: image ?? photos[0] ?? null,
       photos: photos.length > 0 ? photos : null,

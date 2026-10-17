@@ -126,6 +126,12 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
                   sleepingArrangements: {
                     stops: [{ name: "Chambre 1", description: { descriptions: [{ text: "1 lit double" }] } }],
                   },
+                  heroMedia: {
+                    edges: [
+                      { node: { image: { uri: "https://a0.muscache.com/im/pictures/salon.jpg" } } },
+                      { node: { image: { uri: "https://a0.muscache.com/im/pictures/chambre.jpg" } } },
+                    ],
+                  },
                 },
               },
             },
@@ -143,6 +149,10 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.baths, 1);
     assert.equal(l.beds, 4);
     assert.equal(l.locality, "Morzine");
+    assert.deepEqual(l.photos, [
+      "https://a0.muscache.com/im/pictures/salon.jpg",
+      "https://a0.muscache.com/im/pictures/chambre.jpg",
+    ]);
   });
 
   it("lit le GPS LocalBusiness d'une fiche de centrale", () => {

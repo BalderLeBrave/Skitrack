@@ -906,13 +906,13 @@ async function fillAirbnbSeq(
     cache.set(cacheKey(url), { at: Date.now(), lect, hit: true });
     if (poserLecture(row, lect)) suite.filled += 1;
     const cle = cleListing(row);
-    if (cle && (lect.description || lect.amenityTitles?.length || lect.baths != null || lect.rating != null)) {
+    if (cle && (lect.description || lect.amenityTitles?.length || lect.baths != null || lect.rating != null || lect.photos?.length)) {
       garderLectures([
         {
           cle,
           contenu: {
             description: lect.description ?? null,
-            photos: null,
+            photos: lect.photos?.length ? lect.photos : null,
             amenities: row.amenities ?? null,
             ...(row.equipementsPublies?.length ? { equipementsPublies: row.equipementsPublies } : {}),
             ...(lect.baths != null ? { baths: lect.baths } : {}),

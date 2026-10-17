@@ -295,6 +295,25 @@ def test_stay_to_listing_forme_api_2026():
     assert "3 chambres" in row["textes"] and row["name"] in row["textes"]
 
 
+def test_titre_de_type_nest_pas_le_nom():
+    """Tuile 2026 : `title` est « Appartement en résidence ⋅ Morzine ».
+    Le nom est `nameLocalized`."""
+    rec = _stay(
+        title="Appartement en résidence ⋅ Morzine",
+        subtitle="Appartement au centre du village - Morzine",
+        nameLocalized={"localizedStringWithTranslationPreference": "Appartement au centre du village - Morzine"},
+    )
+    row = stay_to_listing(rec, check_in="2026-12-19", check_out="2026-12-26", adults=4)
+    assert row is not None
+    assert row["name"] == "Appartement au centre du village - Morzine"
+    assert row["propertyType"] == "Appartement en résidence"
+    # Un vrai titre, sans cette forme, ne cède pas la place au sous-titre.
+    ancien = stay_to_listing(_stay(), check_in=None, check_out=None, adults=None)
+    assert ancien is not None
+    assert ancien["name"] == "Chalet des neiges"
+    assert "propertyType" not in ancien
+
+
 if __name__ == "__main__":
     tests = [fn for name, fn in list(globals().items()) if name.startswith("test_")]
     failed = 0

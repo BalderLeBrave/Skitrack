@@ -576,14 +576,40 @@ def _nested_name(node: Any) -> str:
     return ""
 
 
+# « Appartement en résidence ⋅ Morzine » : le type et la commune, pas le nom.
+# Le nom est `nameLocalized` (et le sous-titre). « Chalet des neiges » n'a pas
+# cette forme : il reste le titre.
+_TYPE_TITRE_MOT = re.compile(
+    r"^(?:logement|appartement|appart|chalet|maison|villa|studio|cabane|chambre|loft|duplex|g[iî]te|yourte|tente|refuge)\b",
+    re.I,
+)
+
+
+def _est_titre_de_type(title: str) -> bool:
+    if "⋅" not in title:
+        return False
+    gauche = title.split("⋅", 1)[0].strip()
+    return bool(gauche) and bool(_TYPE_TITRE_MOT.match(gauche))
+
+
+def type_de_titre(title: str | None) -> str | None:
+    """« Appartement en résidence », quand `title` est la ligne de type."""
+    if not isinstance(title, str) or not _est_titre_de_type(title):
+        return None
+    gauche = title.split("⋅", 1)[0].strip()
+    return gauche or None
+
+
 def listing_name(record: dict[str, Any]) -> str:
-    for candidate in (
-        record.get("title"),
-        record.get("name"),
-        record.get("nameLocalized"),
-        record.get("subtitle"),
-    ):
-        found = _nested_name(candidate)
+    title = _nested_name(record.get("title"))
+    localized = _nested_name(record.get("nameLocalized"))
+    subtitle = _nested_name(record.get("subtitle"))
+    if _est_titre_de_type(title):
+        for cand in (localized, subtitle):
+            if cand and cand != title:
+                return cand
+    for candidate in (title, record.get("name"), localized, subtitle):
+        found = candidate if isinstance(candidate, str) else _nested_name(candidate)
         if found:
             return found
     demand = record.get("demandStayListing") if isinstance(record.get("demandStayListing"), dict) else {}
@@ -792,6 +818,7 @@ def stay_to_listing(
         "textes": [t for t in (title, subtitle, name, *lines) if t],
         "beds": beds,
         **({"baths": baths} if baths is not None else {}),
+        **({"propertyType": type_de_titre(title)} if type_de_titre(title) else {}),
         "rating": rating,
         "reviewCount": review_count,
         **({"description": description_tuile(record)} if description_tuile(record) else {}),

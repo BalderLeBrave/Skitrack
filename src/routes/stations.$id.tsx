@@ -39,6 +39,8 @@ import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { idEuropeen } from "@/lib/europe";
 import { useEurope } from "@/components/recherche/europe";
+import { ForfaitsEurope, journeeAdulteEurope, useVueEurope } from "@/components/v7/VueEurope";
+import { mentionPhoto } from "@/lib/monde/vues";
 import {
   altLbl,
   crumb,
@@ -524,12 +526,17 @@ function FicheBody({ s }: { s: Station }) {
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
 
   const inCmp = cmp.includes(s.id);
-  const photo = stationPhoto(s);
+  // Un domaine européen hors France : photo et forfaits du relevé mondial.
+  const eu = useVueEurope(s);
+  const etranger = s.country !== "FR";
+  const photo = stationPhoto(s) ?? eu.photo?.src ?? null;
   const pret = resolveStationPhoto(s.id);
   // L'emprunt se dit — c'est une information sur la photo affichée. Le
   // « crédit à relever » ne disait rien au lecteur : il notait un travail qui
   // reste à faire côté dépôt.
-  const photoNote = photo
+  const photoNote = eu.photo
+    ? mentionPhoto(eu.photo.source)
+    : photo
     ? pret?.fromName
       ? tr("Photo Skiinfo de la station {station}, même domaine", { station: pret.fromName })
       : tr("Photo Skiinfo")
@@ -611,7 +618,9 @@ function FicheBody({ s }: { s: Station }) {
                 {tr("Forfaits")}
                 {adulte ? ` · ${adulte.perimetre.nom}` : ""}
               </h2>
-              {adulte && lib ? (
+              {etranger ? (
+                <ForfaitsEurope vue={eu} />
+              ) : adulte && lib ? (
                 <>
                   <div className="fs-forfaits">
                     <div>
@@ -747,6 +756,14 @@ function FicheBody({ s }: { s: Station }) {
               </div>
               <div>
                 <dt>{pass?.libelle ?? tr("Forfaits")}</dt>
+                {etranger ? (
+                  <dd>
+                    <b className={journeeAdulteEurope(eu.forfait) ? undefined : "fs-absent"}>
+                      {journeeAdulteEurope(eu.forfait) ?? tr("non relevés")}
+                    </b>
+                    <span>{journeeAdulteEurope(eu.forfait) ? tr("journée adulte") : tr("aucun tarif pour ce domaine")}</span>
+                  </dd>
+                ) : (
                 <dd>
                   <b className={pass?.total == null ? "fs-absent" : undefined}>
                     {pass?.total != null ? montantCents(pass.total, pass.devise) : (pass?.manque ?? tr("non relevés"))}
@@ -761,6 +778,7 @@ function FicheBody({ s }: { s: Station }) {
                   ) : null}
                   {pass?.periode ? <span>{pass.periode}</span> : null}
                 </dd>
+                )}
               </div>
             </dl>
             <button

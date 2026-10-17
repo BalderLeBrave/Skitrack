@@ -10,6 +10,10 @@ export const EN_COQUILLE: Record<string, string> = {
   "Médiane d’un séjour par station, et logements dans votre budget":
     "Median stay price by resort, and places to stay within your budget",
   "Thème sombre : passer au clair": "Dark theme: switch to light",
+  "Devise des prix": "Price currency",
+  "Devise d’origine": "Original currency",
+  "Devise": "Currency",
+  "Prix convertis au taux de référence BCE du {date}": "Prices converted at the ECB reference rate of {date}",
   "Thème clair : passer au sombre": "Light theme: switch to dark",
   "Thème": "Theme",
   "Langue": "Language",

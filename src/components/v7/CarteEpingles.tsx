@@ -88,6 +88,7 @@ export function CarteEpingles({
   actif = null,
   surActif,
   surFixe,
+  boutonsZoom = false,
 }: {
   marqueurs: readonly Marqueur[];
   /** Change quand il faut recadrer : la liste des identifiants, en pratique. */
@@ -119,6 +120,9 @@ export function CarteEpingles({
   surActif?: (id: string | null) => void;
   /** Remonte l'épingle dont la fiche est épinglée : l'écran la garde posée. */
   surFixe?: (id: string | null) => void;
+  /** Les boutons + et − aussi à la souris : l'écran Logements les demande,
+   *  la molette ne se devine pas. Au doigt, ils sont toujours là. */
+  boutonsZoom?: boolean;
 }) {
   const hote = useRef<HTMLDivElement>(null);
   const lib = useRef<typeof Leaflet | null>(null);
@@ -212,7 +216,7 @@ export function CarteEpingles({
         // molette et le double clic zooment. Au doigt, où le geste est coupé,
         // les boutons restent : sans eux, la carte ne zoomerait plus.
         m.attributionControl.setPrefix(false);
-        if (doigt) Lf.control.zoom({ position: "bottomright" }).addTo(m);
+        if (doigt || boutonsZoom) Lf.control.zoom({ position: "bottomright" }).addTo(m);
         couche.current = Lf.layerGroup().addTo(m);
         // Les bornes ne sortent qu'à la fin du geste. Pendant, elles changeraient
         // à chaque image et la liste clignoterait sous les doigts. Un dernier

@@ -260,7 +260,7 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Logement précédent": "Previous place to stay",
   "Logement suivant": "Next place to stay",
 
-  // Blocs de la fiche d'annonce (FicheBlocs.tsx, stay/nonIndique.ts)
+  // Blocs de la fiche d'annonce (FicheBlocs.tsx)
   "Accès aux pistes": "Access to the slopes",
   "altitudes de la remontée en cours de lecture": "lift altitudes being read",
   "altitudes de la remontée non mesurées": "lift altitudes not measured",
@@ -287,17 +287,6 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "Position approchée publiée par {source}.": "Approximate location published by {source}.",
   "Position triangulée : {source} n'a pas publié de GPS. Ce n'est pas la porte.":
     "Triangulated position: {source} did not publish a GPS fix. This is not the door.",
-  "prix du séjour": "stay price",
-  "capacité": "capacity",
-  "chambres": "bedrooms",
-  "lits": "beds",
-  "salles de bain": "bathrooms",
-  "type de logement": "type of place",
-  "note": "rating",
-  "nombre d’avis": "number of reviews",
-  "position": "location",
-  "photos": "photos",
-  "lien de l’annonce": "listing link",
 
   // Équipements (stay/equipements.ts, FicheBlocs.tsx)
   "Équipements": "Amenities",

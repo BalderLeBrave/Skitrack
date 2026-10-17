@@ -18,10 +18,11 @@
 
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import Pbf from "pbf";
 
 const MAX_KM = 40;
-const racine = new URL("..", import.meta.url).pathname;
+const racine = fileURLToPath(new URL("..", import.meta.url));
 const pbfPath = process.argv[2];
 if (!pbfPath) {
   console.error("usage : node scripts/build-lieux-europe.mjs <cities.pbf>");

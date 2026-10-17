@@ -110,3 +110,19 @@ Un fichier par groupe de pays, de même forme : `autriche.json`, `italie.json`, 
 - `siteOfficiel` ;
 - `centrale` : `nom`, `url`, `hote`, `moteur`, `preuve` ;
 - ou `motif` quand il n'y en a pas.
+
+## Faire le tour de tous les domaines : `scripts/sonder-centrales-europe.mjs`
+
+La recherche web ne passe pas à l'échelle des 2 510 domaines. Le script de sondage fait la même lecture que ce relevé, sans moteur de recherche : le site officiel de chaque domaine, les liens d'hébergement qu'il publie, et l'empreinte du moteur dans la page de réservation (`scripts/centrales-empreintes.mjs`, une trentaine de moteurs), citée comme preuve.
+
+- **Poli** : `robots.txt` lu et respecté, une requête à la fois par site, deux secondes entre deux, quatre sites au plus en même temps. Lecture seule.
+- **Reprenable** : il écrit `docs/centrales/europe/sondage.json` au fil de l'eau ; relancé, il ne redemande que ce qui n'a pas abouti.
+- **Limite** : 1 634 domaines sur 2 510 ont un site officiel connu du référentiel ; les 876 autres sortent « site officiel inconnu ». Une page construite en JavaScript ne montre pas ses liens : elle sort « aucun lien », à relire à la main.
+
+Il se lance depuis un poste qui atteint ces sites (environ deux heures pour tout) :
+
+```
+node scripts/sonder-centrales-europe.mjs              # tout
+node scripts/sonder-centrales-europe.mjs --pays AT,CH # quelques pays
+node scripts/sonder-centrales-europe.mjs --max 50     # un essai
+```

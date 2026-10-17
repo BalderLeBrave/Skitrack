@@ -42,6 +42,9 @@ export type ContenuFiche = {
   equipementsPublies?: EquipementPublie[] | null;
   /** Le nombre de salles de bain publié (Cozy : `space.bathRoomCount`). */
   baths?: number | null;
+  /** Note sur 5 publiée par la page, quand la tuile ne l'avait pas. */
+  rating?: number | null;
+  reviewCount?: number | null;
   /**
    * `cozy` : tout ce contenu vient de la fiche d'un comparateur
    * (`cozyFiches.server.ts`), pas de la page de l'annonce. La page reste à
@@ -80,13 +83,20 @@ export function contenuLu(v: unknown): ContenuFiche | null {
     : null;
   const publies = equipementsPubliesRelus(o.equipementsPublies);
   const baths = typeof o.baths === "number" && Number.isInteger(o.baths) && o.baths > 0 && o.baths <= 20 ? o.baths : null;
-  if (!description && !photos?.length && !amenities?.length && !publies.length && baths == null) return null;
+  const rating = typeof o.rating === "number" && o.rating > 0 && o.rating <= 5 ? Math.round(o.rating * 100) / 100 : null;
+  const reviewCount =
+    typeof o.reviewCount === "number" && Number.isInteger(o.reviewCount) && o.reviewCount >= 0 && o.reviewCount <= 1_000_000
+      ? o.reviewCount
+      : null;
+  if (!description && !photos?.length && !amenities?.length && !publies.length && baths == null && rating == null) return null;
   return {
     description,
     photos: photos?.length ? photos : null,
     amenities: amenities?.length ? amenities : null,
     ...(publies.length ? { equipementsPublies: publies } : {}),
     ...(baths != null ? { baths } : {}),
+    ...(rating != null ? { rating } : {}),
+    ...(reviewCount != null ? { reviewCount } : {}),
     ...(o.origine === "cozy" ? { origine: "cozy" as const } : {}),
   };
 }
@@ -103,12 +113,16 @@ export function fusionnerContenus(avant: ContenuFiche | null, apres: ContenuFich
     (apres.photos?.length ?? 0) >= (avant.photos?.length ?? 0) ? apres.photos : avant.photos;
   const publies = apres.equipementsPublies?.length ? apres.equipementsPublies : avant.equipementsPublies;
   const baths = apres.baths ?? avant.baths ?? null;
+  const rating = apres.rating ?? avant.rating ?? null;
+  const reviewCount = apres.reviewCount ?? avant.reviewCount ?? null;
   return {
     description: apres.description ?? avant.description,
     photos: photos ?? null,
     amenities: apres.amenities ?? avant.amenities,
     ...(publies?.length ? { equipementsPublies: publies } : {}),
     ...(baths != null ? { baths } : {}),
+    ...(rating != null ? { rating } : {}),
+    ...(reviewCount != null ? { reviewCount } : {}),
     ...(apres.origine === "cozy" && avant.origine === "cozy" ? { origine: "cozy" as const } : {}),
   };
 }
@@ -277,7 +291,12 @@ function equipementsMuets(a: readonly Equipement[] | null | undefined): boolean 
  * si quelque chose a été posé.
  */
 export function poserContenu(
-  row: Partial<Pick<Listing, "description" | "amenities" | "equipementsPublies" | "photo" | "photos" | "baths">>,
+  row: Partial<
+    Pick<
+      Listing,
+      "description" | "amenities" | "equipementsPublies" | "photo" | "photos" | "baths" | "rating" | "reviewCount" | "ratingScale"
+    >
+  >,
   c: Partial<ContenuFiche> | null | undefined,
 ): boolean {
   if (!c) return false;
@@ -297,6 +316,15 @@ export function poserContenu(
   }
   if (row.baths == null && c.baths != null) {
     row.baths = c.baths;
+    pose = true;
+  }
+  if (row.rating == null && c.rating != null) {
+    row.rating = c.rating;
+    row.ratingScale = 5;
+    pose = true;
+  }
+  if (row.reviewCount == null && c.reviewCount != null) {
+    row.reviewCount = c.reviewCount;
     pose = true;
   }
   const galerie = [...new Set([...(row.photo ? [row.photo] : []), ...(row.photos ?? [])])];

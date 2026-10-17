@@ -520,6 +520,9 @@ export function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): L
       bedroomsSource: occ.bedroomsSource,
       isStudio: occ.isStudio,
       beds: typeof row.beds === "number" && row.beds > 0 ? Math.trunc(row.beds) : bedsFromText(name, sub),
+      ...(typeof row.baths === "number" && Number.isInteger(row.baths) && row.baths > 0 && row.baths <= 20
+        ? { baths: row.baths }
+        : {}),
       available: true,
       photo: image ?? photos[0] ?? null,
       photos: photos.length > 0 ? photos : null,

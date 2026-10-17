@@ -20,6 +20,7 @@ import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
 import { CIRCUIT_COOLDOWN_MS, PAUSE_MAX_MS, estHoteAirbnb, estRefus, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureAirbnb, lectureFiche, pageAirbnbLisible, type LectureFiche } from "./lectureFiche.ts";
+import { depuisListe, equipements, equipementsPubliesRelus } from "./equipements.ts";
 import { contenuDeFiche, type ContenuDeFiche } from "./contenuFiche.ts";
 import { garderLectures, poserContenu, reposerGardees } from "./contenuFiches.server.ts";
 import { adressePourBan, BAN_URL, pointBan, requeteBan, type FeatureBan, type SourceGps } from "./repliGps.ts";
@@ -238,6 +239,35 @@ export function poserLecture(
   if (row.beds == null && lect.beds != null) {
     row.beds = lect.beds;
     changed = true;
+  }
+  if (row.baths == null && lect.baths != null) {
+    row.baths = lect.baths;
+    changed = true;
+  }
+  if (!row.description?.trim() && lect.description) {
+    row.description = lect.description;
+    changed = true;
+  }
+  if (row.rating == null && lect.rating != null) {
+    row.rating = lect.rating;
+    row.ratingScale = 5;
+    changed = true;
+  }
+  if (row.reviewCount == null && lect.reviewCount != null) {
+    row.reviewCount = lect.reviewCount;
+    changed = true;
+  }
+  if (lect.amenityTitles?.length && row.amenities == null) {
+    const lus = depuisListe(lect.amenityTitles.map((texte) => ({ texte })));
+    if (Object.values(lus).some((v) => v === "oui" || v === "non")) {
+      row.amenities = equipements(lus);
+      changed = true;
+    }
+    const publies = equipementsPubliesRelus(lect.amenityTitles.map((libelle) => ({ libelle })));
+    if (publies.length && !row.equipementsPublies?.length) {
+      row.equipementsPublies = publies;
+      changed = true;
+    }
   }
   if (lect.title && !titreEstFichier(lect.title)) {
     const slug = titreDepuisUrl(row.url);
@@ -875,6 +905,23 @@ async function fillAirbnbSeq(
     // Lue : ce qu'elle publie, ou ne publie pas, vaut pour la journée.
     cache.set(cacheKey(url), { at: Date.now(), lect, hit: true });
     if (poserLecture(row, lect)) suite.filled += 1;
+    const cle = cleListing(row);
+    if (cle && (lect.description || lect.amenityTitles?.length || lect.baths != null || lect.rating != null)) {
+      garderLectures([
+        {
+          cle,
+          contenu: {
+            description: lect.description ?? null,
+            photos: null,
+            amenities: row.amenities ?? null,
+            ...(row.equipementsPublies?.length ? { equipementsPublies: row.equipementsPublies } : {}),
+            ...(lect.baths != null ? { baths: lect.baths } : {}),
+            ...(lect.rating != null ? { rating: lect.rating } : {}),
+            ...(lect.reviewCount != null ? { reviewCount: lect.reviewCount } : {}),
+          },
+        },
+      ]);
+    }
     suite.ouvertes.push({ row, lect });
   }
   return suite;

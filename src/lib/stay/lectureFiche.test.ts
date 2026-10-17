@@ -99,6 +99,52 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.bedrooms, 3);
   });
 
+  it("lit description, équipements, note et salles de bain dans la page rooms/", () => {
+    const etat = {
+      niobeClientData: [
+        [
+          {},
+          {
+            data: {
+              node: {
+                pdpPresentation: {
+                  descriptions: {
+                    longDescriptionHtml: {
+                      localizedStringWithTranslationPreference:
+                        "Appartement au pied des pistes, avec balcon et vue sur la station. Cuisine équipée pour six.",
+                    },
+                  },
+                  amenities: {
+                    seeAllAmenitiesGroups: [
+                      { title: "Internet", amenities: [{ title: "Wifi", available: true }] },
+                      { title: "Non inclus", amenities: [{ title: "Lave-linge", available: false }] },
+                    ],
+                  },
+                  quality: { listingRatingStats: { overallRatingStats: { ratingAverage: 4.86, ratingCount: "171" } } },
+                  overview: { items: ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"] },
+                  location: { subtitle: "Morzine, France" },
+                  sleepingArrangements: {
+                    stops: [{ name: "Chambre 1", description: { descriptions: [{ text: "1 lit double" }] } }],
+                  },
+                },
+              },
+            },
+          },
+        ],
+      ],
+    };
+    const html = `<html><script id="data-deferred-state-0" type="application/json">${JSON.stringify(etat)}</script></html>`;
+    const l = lectureAirbnb(html);
+    assert.match(l.description ?? "", /pied des pistes/);
+    assert.match(l.description ?? "", /Chambre 1 : 1 lit double/);
+    assert.deepEqual(l.amenityTitles, ["Wifi"]);
+    assert.equal(l.rating, 4.86);
+    assert.equal(l.reviewCount, 171);
+    assert.equal(l.baths, 1);
+    assert.equal(l.beds, 4);
+    assert.equal(l.locality, "Morzine");
+  });
+
   it("lit le GPS LocalBusiness d'une fiche de centrale", () => {
     const html = `<script type="application/ld+json">${JSON.stringify({
       "@type": "LocalBusiness",

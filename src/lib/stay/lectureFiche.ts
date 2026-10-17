@@ -38,6 +38,15 @@ export type LectureFiche = OccupancyLue & {
   title: string | null;
   /** Lits annoncés par la page (« 4 lits », aperçu Airbnb), à part de la capacité. */
   beds?: number | null;
+  /** Salles de bain annoncées (« 1 salle de bain »). */
+  baths?: number | null;
+  /** La description publiée, quand la page la porte. */
+  description?: string | null;
+  /** Les titres d'équipements publiés, présents seulement. */
+  amenityTitles?: string[];
+  /** Note sur 5 et nombre d'avis, quand la page les publie. */
+  rating?: number | null;
+  reviewCount?: number | null;
   /** Airbnb : chambre privée ou partagée, chambre d'hôtel ou hébergement insolite (`ecarteeAirbnb`). */
   ecartee?: boolean;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
@@ -843,6 +852,152 @@ function litsDe(lignes: readonly string[]): number | null {
   return null;
 }
 
+type PageAirbnb = Pick<
+  LectureFiche,
+  | "capacity"
+  | "bedrooms"
+  | "bedroomsSource"
+  | "beds"
+  | "baths"
+  | "description"
+  | "amenityTitles"
+  | "rating"
+  | "reviewCount"
+  | "locality"
+>;
+
+function estPresentation(o: Record<string, unknown>): boolean {
+  const desc = o.descriptions;
+  const am = o.amenities;
+  return (
+    !!desc &&
+    typeof desc === "object" &&
+    !!am &&
+    typeof am === "object" &&
+    "seeAllAmenitiesGroups" in (am as object)
+  );
+}
+
+function trouverPresentation(v: unknown, d = 0): Record<string, unknown> | null {
+  if (d > 8 || v == null || typeof v !== "object") return null;
+  if (!Array.isArray(v) && estPresentation(v as Record<string, unknown>)) return v as Record<string, unknown>;
+  const vals = Array.isArray(v) ? v.slice(0, 8) : Object.values(v as object);
+  for (const x of vals) {
+    const t = trouverPresentation(x, d + 1);
+    if (t) return t;
+  }
+  return null;
+}
+
+function texteHtml(v: unknown): string | null {
+  const brut = typeof v === "string" ? v : null;
+  if (!brut) return null;
+  const t = brut
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+  return t.length >= 40 ? t.slice(0, 6000) : null;
+}
+
+/** Description, équipements, note et salles de bain du JSON de la page
+ *  `rooms/` (`pdpPresentation`). Rien quand la page ne les porte pas. */
+function publieDeLaPage(html: string): PageAirbnb {
+  const vide: PageAirbnb = {};
+  const m = html.match(/<script[^>]*id=["']data-deferred-state-0["'][^>]*>([\s\S]*?)<\/script>/);
+  if (!m) return vide;
+  let raw: unknown;
+  try {
+    raw = JSON.parse(m[1]);
+  } catch {
+    return vide;
+  }
+  const pdp = trouverPresentation(raw);
+  if (!pdp) return vide;
+  const out: PageAirbnb = {};
+  const descriptions = pdp.descriptions as Record<string, unknown> | undefined;
+  const long = descriptions?.longDescriptionHtml as Record<string, unknown> | undefined;
+  const description = texteHtml(long?.localizedStringWithTranslationPreference) ?? texteHtml(long?.localizedString);
+  if (description) out.description = description;
+  const amenities = pdp.amenities as Record<string, unknown> | undefined;
+  const groupes = amenities?.seeAllAmenitiesGroups;
+  if (Array.isArray(groupes)) {
+    const titres: string[] = [];
+    for (const g of groupes) {
+      if (!g || typeof g !== "object") continue;
+      const groupe = g as Record<string, unknown>;
+      const nom = typeof groupe.title === "string" ? groupe.title.trim() : "";
+      if (/^(non inclus|not included|indisponible|unavailable)$/i.test(nom)) continue;
+      if (!Array.isArray(groupe.amenities)) continue;
+      for (const a of groupe.amenities) {
+        if (!a || typeof a !== "object") continue;
+        const item = a as Record<string, unknown>;
+        if (item.available === false) continue;
+        if (typeof item.title === "string" && item.title.trim() && !titres.includes(item.title.trim())) {
+          titres.push(item.title.trim());
+        }
+      }
+    }
+    if (titres.length) out.amenityTitles = titres.slice(0, 80);
+  }
+  const quality = pdp.quality as Record<string, unknown> | undefined;
+  const stats = (quality?.listingRatingStats as Record<string, unknown> | undefined)?.overallRatingStats as
+    | Record<string, unknown>
+    | undefined;
+  const note = typeof stats?.ratingAverage === "number" ? stats.ratingAverage : null;
+  if (note != null && note > 0 && note <= 5) out.rating = Math.round(note * 100) / 100;
+  const compte = typeof stats?.ratingCount === "string" ? Number(stats.ratingCount.replace(/\D/g, "")) : stats?.ratingCount;
+  if (typeof compte === "number" && Number.isInteger(compte) && compte >= 0 && compte <= 1_000_000) out.reviewCount = compte;
+  const overview = pdp.overview as Record<string, unknown> | undefined;
+  const items = Array.isArray(overview?.items) ? (overview.items as unknown[]) : [];
+  for (const it of items) {
+    if (typeof it !== "string") continue;
+    const ligne = it.replace(/\u00a0/g, " ");
+    const bains = /^(\d+)\s+salles?\s+de\s+bains?\b/i.exec(ligne);
+    if (bains && out.baths == null) {
+      const n = Number(bains[1]);
+      if (n > 0 && n <= 20) out.baths = n;
+    }
+    const lits = /^(\d+)\s+lits?\b/i.exec(ligne);
+    if (lits && out.beds == null) {
+      const n = Number(lits[1]);
+      if (n > 0 && n <= 50) out.beds = n;
+    }
+  }
+  const loc = pdp.location as Record<string, unknown> | undefined;
+  if (typeof loc?.subtitle === "string" && loc.subtitle.trim()) {
+    out.locality = loc.subtitle.split(",")[0].trim().slice(0, 80);
+  }
+  const couchages = couchagesDe(pdp.sleepingArrangements);
+  if (couchages) out.description = out.description ? `${out.description}\n\n${couchages}` : couchages;
+  return out;
+}
+
+function couchagesDe(v: unknown): string | null {
+  if (!v || typeof v !== "object") return null;
+  const stops = (v as Record<string, unknown>).stops;
+  if (!Array.isArray(stops)) return null;
+  const lignes: string[] = [];
+  for (const s of stops) {
+    if (!s || typeof s !== "object") continue;
+    const stop = s as Record<string, unknown>;
+    const desc = stop.description as Record<string, unknown> | undefined;
+    const parts = Array.isArray(desc?.descriptions) ? desc.descriptions : [];
+    const lits = parts
+      .map((d) => (d && typeof d === "object" ? (d as Record<string, unknown>).text : null))
+      .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+      .map((t) => t.trim());
+    if (!lits.length) continue;
+    const nom = typeof stop.name === "string" ? stop.name.trim() : "";
+    lignes.push(nom ? `${nom} : ${lits.join(", ")}` : lits.join(", "));
+  }
+  return lignes.length ? `Où vous dormirez\n${lignes.join("\n")}` : null;
+}
+
 /**
  * La page d'un logement Airbnb (PDP, `rooms/`) : ce qu'elle publie, et elle
  * seule. Règle du propriétaire (1er octobre 2026) : pour Airbnb, c'est la
@@ -883,6 +1038,20 @@ export function lectureAirbnb(html: string): LectureFiche {
   }
   const lits = apercu ? litsDe(apercu) : null;
   if (lits != null) out = { ...out, beds: lits };
+  const page = publieDeLaPage(html);
+  if (out.capacity == null && page.capacity != null) {
+    out = { ...out, capacity: page.capacity, capacitySource: "structured" };
+  }
+  if (out.bedrooms == null && page.bedrooms != null) {
+    out = { ...out, bedrooms: page.bedrooms, bedroomsSource: page.bedroomsSource ?? "structured" };
+  }
+  if (out.beds == null && page.beds != null) out = { ...out, beds: page.beds };
+  if (page.baths != null) out = { ...out, baths: page.baths };
+  if (page.description) out = { ...out, description: page.description };
+  if (page.amenityTitles?.length) out = { ...out, amenityTitles: page.amenityTitles };
+  if (page.rating != null) out = { ...out, rating: page.rating };
+  if (page.reviewCount != null) out = { ...out, reviewCount: page.reviewCount };
+  if (page.locality && !out.locality) out = { ...out, locality: page.locality };
   if (ecarteeAirbnb(html)) out = { ...out, ecartee: true };
   const lat = Number(html.match(/"listingLat"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);
   const lon = Number(html.match(/"listingLng"\s*:\s*(-?\d+(?:\.\d+)?)/)?.[1] ?? NaN);

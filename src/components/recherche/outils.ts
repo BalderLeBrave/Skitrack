@@ -5,7 +5,7 @@
  */
 
 import { ICONES } from "@/components/maquette";
-import { foldName, nomCorrespond, villageCherche } from "@/lib/carte";
+import { foldName, nomCorrespond, stationProlongee, villageCherche } from "@/lib/carte";
 import { communesPour, stationIdDeLaCommune } from "@/lib/communesProches";
 import { tr, trN } from "@/lib/i18n";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
@@ -26,8 +26,9 @@ export const MASSIFS: readonly MassifResume[] = resumerMassifs(STATIONS);
 
 /**
  * La station qu'un texte nomme en toutes lettres : son nom, le nom d'un de
- * ses villages (« Plagne Centre » désigne La Plagne), ou une commune
- * (« Lamoura » désigne Les Rousses, son domaine, pas le pin le plus proche).
+ * ses villages (« Plagne Centre » désigne La Plagne), un nom plus long
+ * (« Val d'Allos - La Foux » désigne Val d'Allos), ou une commune
+ * (« Lamoura » désigne Les Rousses).
  */
 export function stationDuTexte(texte: string): Station | undefined {
   const cible = foldName(texte);
@@ -38,6 +39,7 @@ export function stationDuTexte(texte: string): Station | undefined {
       const v = villageCherche(s.id, cible);
       return v !== null && foldName(v) === cible;
     }) ??
+    stationProlongee(cible) ??
     stationById(stationIdDeLaCommune(cible) ?? "")
   );
 }
@@ -88,7 +90,10 @@ export function suggestions(ql: string): Suggestion[] {
     ];
   }
   const parNom = STATIONS.filter(
-    (s) => nomCorrespond(s, ql) || (!!s.domain && foldName(s.domain).includes(ql)),
+    (s) =>
+      nomCorrespond(s, ql) ||
+      (!!s.domain && foldName(s.domain).includes(ql)) ||
+      (foldName(s.name).length >= 5 && ql.startsWith(foldName(s.name) + " ")),
   )
     .sort((a, b) => {
       const rang = (s: Station) => {
@@ -109,7 +114,14 @@ export function suggestions(ql: string): Suggestion[] {
     .filter((c) => {
       if (deja.has(c.stationId)) return false;
       // « La Grave » nomme déjà La Grave la Meije : pas le hameau homonyme.
-      if (foldName(c.nom) === ql && parNom.some((s) => foldName(s.name).includes(ql))) return false;
+      if (
+        foldName(c.nom) === ql &&
+        parNom.some((s) => {
+          const n = foldName(s.name);
+          return n.includes(ql) || (n.length >= 5 && ql.startsWith(n + " "));
+        })
+      )
+        return false;
       return true;
     })
     .slice(0, Math.max(0, 12 - parNom.length));

@@ -8,7 +8,7 @@
 import { domaineNomme, sansDomaineAlpin, type ColorShare } from "./classeur.ts";
 import { domainForStation } from "./forfaits/catalog.ts";
 import { dansPlage, type Echelle, type Plage } from "./plage.ts";
-import type { Station } from "./stations.ts";
+import { STATIONS, type Station } from "./stations.ts";
 import { parMesure, parTexte, type Sens } from "./tri.ts";
 import { villagesDe } from "./villages.ts";
 import { langueIntl } from "./i18n/langue.ts";
@@ -293,6 +293,22 @@ export function villageCherche(stationId: string, q: string): string | null {
  *  nom, ou celui d'un de ses villages. */
 export function nomCorrespond(s: Station, q: string): boolean {
   return foldName(s.name).includes(q) || villageCherche(s.id, q) !== null;
+}
+
+/**
+ * Le texte dépasse le nom, ou c'est un de ses mots, et une seule station
+ * correspond. « Val d'Allos - La Foux » est Val d'Allos, « Méaudre » est
+ * Autrans Méaudre. Deux stations : on ne devine pas.
+ */
+export function stationProlongee(q: string): Station | undefined {
+  if (q.length < 5) return undefined;
+  const prefixe = STATIONS.filter((s) => {
+    const n = foldName(s.name);
+    return n.length >= 5 && q.startsWith(n + " ");
+  });
+  if (prefixe.length === 1) return prefixe[0];
+  const mot = STATIONS.filter((s) => foldName(s.name).split(" ").includes(q));
+  return mot.length === 1 ? mot[0] : undefined;
 }
 
 export function searchStations(rows: readonly Station[], query: string): Station[] {

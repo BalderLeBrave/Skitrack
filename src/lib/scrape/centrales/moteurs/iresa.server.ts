@@ -15,15 +15,19 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { reposerGardees } from "@/lib/stay/contenuFiches.server";
 import { equipements } from "@/lib/stay/equipements";
 import { annoncer } from "@/lib/stay/occupancy";
+import { cleListing } from "@/lib/stay/poserReleve";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { porteFermee, poserRefus } from "../../gardeHote";
 import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
+import { galerieGardee, lancerSuiteGaleries } from "./galeries.server";
 import {
   corpsIresa,
+  galerieIresa,
   horsRegleIresa,
   jetonIresa,
   lireIresa,
@@ -31,6 +35,9 @@ import {
   typeDeCategorie,
   type FicheIresa,
 } from "./iresa";
+
+/** Chaque recherche vers une centrale prend un numéro : une suite de galeries plus ancienne cède. */
+const generations = new Map<string, number>();
 
 // L'en-tête d'un navigateur, comme tout le relevé (`navigateur.ts`). Les règles
 // de robots.txt se lisent toujours sous `AGENT_CENTRALES` (`../robots.server`).
@@ -145,6 +152,9 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     ...(f.equipementsPublies.length ? { equipementsPublies: f.equipementsPublies } : {}),
     available: true,
     photo: f.photo ? new URL(f.photo, `${base}/`).toString() : null,
+    // Les vignettes de la liste ; la galerie Full HD de la fiche, lue en tâche
+    // de fond (`galeries.server.ts`), les remplace par la relecture.
+    ...(f.photos.length > 1 ? { photos: f.photos.map((u) => new URL(u, `${base}/`).toString()) } : {}),
     // Le gabarit porte l'adresse de la fiche ; à défaut, la page de recherche.
     url: f.chemin ? new URL(f.chemin, `${base}/`).toString() : `${base}${r.chemin}`,
     // Aucune coordonnée dans le flux de résultats, ni sur la fiche : son
@@ -190,5 +200,29 @@ export async function chercherIresa(ctx: ContexteCentrale, r: ReglageIresa): Pro
   for (const phrase of phrasesRegle(ecartes, inconnus)) {
     console.info(`[centrale] ${r.host} : ${phrase}`);
   }
-  return fiches.map((f) => enListing(f, r, ctx));
+  const listings = fiches.map((f) => enListing(f, r, ctx));
+  // Les galeries gardées, sans réseau ; celles qui manquent, en tâche de fond.
+  reposerGardees(listings);
+  const base = r.reservation.replace(/\/+$/, "");
+  const origine = new URL(`${base}/`).origin;
+  const gen = (generations.get(base) ?? 0) + 1;
+  generations.set(base, gen);
+  lancerSuiteGaleries({
+    base,
+    host: r.host,
+    restantes: listings.flatMap((l, i) => {
+      const f = fiches[i];
+      const cle = cleListing(l);
+      return f && cle && !galerieGardee(cle) ? [{ fiche: f, cle }] : [];
+    }),
+    adresse: (f) => {
+      if (!f.chemin) return null;
+      const u = new URL(f.chemin, `${base}/`);
+      return u.origin === origine ? u.toString() : null;
+    },
+    galerie: (page) => galerieIresa(page).map((u) => new URL(u, `${base}/`).toString()),
+    nom: (f) => f.id,
+    cede: () => generations.get(base) !== gen,
+  });
+  return listings;
 }

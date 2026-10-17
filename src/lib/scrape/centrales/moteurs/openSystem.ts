@@ -49,6 +49,7 @@
  */
 
 import { jugerLogement, typeInconnu } from "../regleTypes.ts";
+import { lireGaleries, type PorteGaleries } from "./galeries.ts";
 import {
   depuisListe,
   depuisTexte,
@@ -467,6 +468,39 @@ export function appliquerRegleOpenSystem(
     }
   }
   return { gardees, ecartees, inconnus };
+}
+
+/**
+ * La galerie d'une fiche (`/dp…/OSMB-<n°>-<lot>`) : les liens pleine taille de
+ * sa visionneuse (`<a rel="prettyPhoto[…]" href="https://img.for-system.com/
+ * grandes/push/OP/<n°>/Hebergement/<lot>/OP_….jpg">`), dans l'ordre, chacun
+ * une fois. Relevé du 17 octobre 2026 sur Haute Maurienne Vanoise : quinze
+ * photos pour « Le Bois Joli », là où la liste n'en donne qu'une. Seules
+ * celles du lot de l'identité sont gardées, pas celles d'un logement voisin
+ * que la page montrerait aussi. Pictogrammes et tuiles de carte n'en sont pas.
+ */
+export function galerieOpenSystem(page: string, identite: string): string[] {
+  const lot = /OSMB-(\d+)-(\d+)$/.exec(identite);
+  const out: string[] = [];
+  for (const m of page.matchAll(
+    /href="(https?:\/\/img\.for-system\.com\/grandes\/push\/OP\/(\d+)\/Hebergement\/(\d+)\/OP_[A-Za-z0-9]+\.(?:jpe?g|png|webp))"/g,
+  )) {
+    if (lot && (m[2] !== lot[1] || m[3] !== lot[2])) continue;
+    const u = (m[1] ?? "").replace(/^http:/, "https:");
+    if (u && !out.includes(u)) out.push(u);
+  }
+  return out;
+}
+
+/** La suite de fond des galeries d'Open System (`galeries.ts`). */
+export type PorteGaleriesOpenSystem = PorteGaleries<FicheOpenSystem>;
+
+export function lireGaleriesOpenSystem(
+  fiches: readonly FicheOpenSystem[],
+  porte: PorteGaleriesOpenSystem,
+  max: number,
+): ReturnType<typeof lireGaleries<FicheOpenSystem>> {
+  return lireGaleries(fiches, porte, (page, f) => galerieOpenSystem(page, f.identite), (f) => f.identite, max);
 }
 
 /**

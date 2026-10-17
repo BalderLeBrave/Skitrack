@@ -3,22 +3,30 @@ import assert from "node:assert/strict";
 import { foldName } from "./carte.ts";
 import { communesPour, stationIdDeLaCommune } from "./communesProches.ts";
 
-describe("une commune propose son domaine, sinon la station la plus proche", () => {
-  it("Lamoura est le domaine des Rousses, pas Monts Jura dont le pin est plus près", () => {
+describe("communes, villes et villages", () => {
+  it("Lamoura est le domaine des Rousses", () => {
     assert.equal(stationIdDeLaCommune("Lamoura"), "les-rousses");
-    assert.equal(stationIdDeLaCommune("lamoura"), "les-rousses");
     const [c] = communesPour(foldName("Lamoura"));
     assert.equal(c?.nom, "Lamoura");
     assert.equal(c?.stationId, "les-rousses");
+    assert.equal(c?.domaine, true);
   });
 
-  it("Prémanon et Bois-d'Amont skient aussi aux Rousses", () => {
+  it("Prémanon est aux Rousses, Lélex à Monts Jura", () => {
     assert.equal(stationIdDeLaCommune("Prémanon"), "les-rousses");
-    assert.equal(stationIdDeLaCommune("Bois-d'Amont"), "les-rousses");
+    assert.equal(stationIdDeLaCommune("Lélex"), "monts-jura");
   });
 
-  it("Lélex n'a pas d'autre domaine : Monts Jura, la plus proche", () => {
-    assert.equal(stationIdDeLaCommune("Lélex"), "monts-jura");
+  it("Val Claret et Plagne Centre gardent leur station, pas le pin voisin", () => {
+    assert.equal(stationIdDeLaCommune("Val Claret"), "tignes");
+    assert.equal(stationIdDeLaCommune("Plagne Centre"), "la-plagne");
+  });
+
+  it("une ville loin de tout domaine propose la station la plus proche, avec la distance", () => {
+    assert.equal(stationIdDeLaCommune("Paris"), "la-loge-des-gardes");
+    const [c] = communesPour(foldName("Paris"));
+    assert.equal(c?.domaine, false);
+    assert.ok((c?.km ?? 0) > 300);
   });
 
   it("une saisie trop courte ne choisit rien", () => {

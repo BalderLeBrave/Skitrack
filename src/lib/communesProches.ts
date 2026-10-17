@@ -1,68 +1,96 @@
 /**
- * Un village qui n'est pas une station : la commune, et la station de ski
- * la plus proche (repère à 25 km au plus, communes geo.api.gouv.fr).
+ * Communes, communes déléguées, villes et villages (GeoNames) de France,
+ * et la station qu'ils désignent.
  *
- * Le domaine l'emporte sur le pin le plus proche. Lamoura est à 5 km du pin
- * de Monts Jura et à 7 km de celui des Rousses, mais elle fait le domaine
- * des Rousses, comme Prémanon et Bois-d'Amont.
+ * Un lieu dans le polygone d'un domaine (OpenSkiMap) désigne ce domaine :
+ * Lamoura est aux Rousses, même si le pin de Monts Jura est plus près.
+ * Les villages déjà rattachés à une station (`villages.ts`) gardent cette
+ * station. Tous les autres désignent la station la plus proche, sans limite
+ * de distance : Paris désigne La Loge des Gardes, à 335 km.
  */
 
 import { foldName } from "./carte.ts";
-import lignes from "./communesProches.json" with { type: "json" };
+import fichier from "./communesProches.json" with { type: "json" };
 
-type Ligne = [string, string, number];
+type Fichier = { ids: string[]; lieux: [string, number, number, number][] };
 
-const LIGNES = lignes as Ligne[];
+const FICHIER = fichier as Fichier;
 
-const DOMAINE = new Map<string, string>(
-  (
-    [
-      ["Lamoura", "les-rousses"],
-      ["Prémanon", "les-rousses"],
-      ["Bois-d'Amont", "les-rousses"],
-    ] as const
-  ).map(([nom, id]) => [foldName(nom), id]),
-);
+export type CommuneTrouvee = {
+  nom: string;
+  stationId: string;
+  /** Distance au repère de la station, en kilomètres. */
+  km: number;
+  /** Vrai quand le lieu est dans le domaine, pas seulement le plus proche. */
+  domaine: boolean;
+};
 
-export type CommuneTrouvee = { nom: string; stationId: string };
+type Entree = CommuneTrouvee & { f: string };
 
-function stationDe(nom: string, id: string): string {
-  return DOMAINE.get(foldName(nom)) ?? id;
+let trie: Entree[] | null = null;
+
+function index(): Entree[] {
+  if (trie) return trie;
+  trie = FICHIER.lieux.map(([nom, i, km, domaine]) => ({
+    f: foldName(nom),
+    nom,
+    stationId: FICHIER.ids[i] ?? "",
+    km,
+    domaine: domaine === 1,
+  }));
+  trie.sort((a, b) => (a.f < b.f ? -1 : a.f > b.f ? 1 : 0));
+  return trie;
 }
 
-/** Communes dont le nom commence par la saisie déjà repliée. */
+/** Les lieux dont le nom replié commence par `q`, déjà triés. */
+function aPartirDe(q: string): Entree[] {
+  const t = index();
+  let lo = 0;
+  let hi = t.length;
+  while (lo < hi) {
+    const m = (lo + hi) >> 1;
+    if (t[m].f < q) lo = m + 1;
+    else hi = m;
+  }
+  const out: Entree[] = [];
+  for (let i = lo; i < t.length && t[i].f.startsWith(q); i++) out.push(t[i]);
+  return out;
+}
+
+/** Lieux dont le nom commence par la saisie déjà repliée. Six au plus. */
 export function communesPour(q: string): CommuneTrouvee[] {
   if (q.length < 3) return [];
-  const hits: { nom: string; stationId: string; exact: number; km: number }[] = [];
-  for (const [nom, id, km] of LIGNES) {
-    const f = foldName(nom);
-    if (f !== q && !f.startsWith(q)) continue;
-    const force = DOMAINE.has(f);
-    hits.push({ nom, stationId: stationDe(nom, id), exact: f === q ? 0 : 1, km: force ? 0 : km });
-  }
-  hits.sort((a, b) => a.exact - b.exact || a.km - b.km || a.nom.localeCompare(b.nom, "fr"));
+  const hits = aPartirDe(q).slice();
+  hits.sort((a, b) => {
+    const ae = a.f === q ? 0 : 1;
+    const be = b.f === q ? 0 : 1;
+    if (ae !== be) return ae - be;
+    if (a.domaine !== b.domaine) return a.domaine ? -1 : 1;
+    return a.km - b.km || a.nom.localeCompare(b.nom, "fr");
+  });
   const vus = new Set<string>();
   const out: CommuneTrouvee[] = [];
   for (const h of hits) {
-    const cle = `${h.stationId}|${foldName(h.nom)}`;
-    if (vus.has(cle)) continue;
+    const cle = `${h.stationId}|${h.f}`;
+    if (vus.has(cle) || !h.stationId) continue;
     vus.add(cle);
-    out.push({ nom: h.nom, stationId: h.stationId });
+    out.push({ nom: h.nom, stationId: h.stationId, km: h.km, domaine: h.domaine });
     if (out.length >= 6) break;
   }
   return out;
 }
 
-/** La station d'une commune nommée en toutes lettres, ou `null`. */
+/**
+ * La station d'un lieu nommé en toutes lettres, ou `null`.
+ * Plusieurs homonymes : le plus proche d'une station.
+ */
 export function stationIdDeLaCommune(texte: string): string | null {
   const q = foldName(texte);
   if (q.length < 3) return null;
-  let best: { id: string; km: number } | null = null;
-  for (const [nom, id, km] of LIGNES) {
-    if (foldName(nom) !== q) continue;
-    const force = DOMAINE.has(q);
-    const d = force ? -1 : km;
-    if (!best || d < best.km) best = { id: stationDe(nom, id), km: d };
+  let best: Entree | null = null;
+  for (const e of aPartirDe(q)) {
+    if (e.f !== q || !e.stationId) continue;
+    if (!best || e.km < best.km) best = e;
   }
-  return best?.id ?? null;
+  return best?.stationId ?? null;
 }

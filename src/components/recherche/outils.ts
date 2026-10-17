@@ -52,8 +52,9 @@ export type Suggestion = {
 /**
  * Les suggestions du champ Destination. Champ vide : les massifs puis les
  * trois plus grands domaines. Champ rempli : trois massifs et six stations
- * au plus dont le nom (ou un village) contient le texte. Une commune qui
- * n'est pas une station propose la sienne : « Lamoura » propose Les Rousses.
+ * au plus dont le nom (ou un village) contient le texte. Une commune, une
+ * ville ou un village qui n'est pas une station propose la sienne : Lamoura
+ * propose Les Rousses, Paris la station la plus proche.
  */
 export function suggestions(ql: string): Suggestion[] {
   const massif = (x: MassifResume): Suggestion => ({
@@ -64,12 +65,15 @@ export function suggestions(ql: string): Suggestion[] {
     kind: trN(x.n, "Massif · {n} station", "Massif · {n} stations"),
     icone: ICONES.mount,
   });
-  const station = (s: Station, village: string | null): Suggestion => ({
+  const station = (s: Station, village: string | null, procheKm: number | null): Suggestion => ({
     key: "s:" + s.id + (village ? ":" + foldName(village) : ""),
     type: "station",
     station: s,
     label: village ? tr("{village} ({station})", { village, station: s.name }) : s.name,
-    kind: s.domain ?? s.massif,
+    kind:
+      procheKm != null
+        ? tr("Station la plus proche · {km} km", { km: procheKm })
+        : (s.domain ?? s.massif),
     icone: ICONES.pin,
   });
   if (!ql) {
@@ -78,7 +82,7 @@ export function suggestions(ql: string): Suggestion[] {
       ...[...STATIONS]
         .sort((a, b) => (b.pistesKm ?? 0) - (a.pistesKm ?? 0))
         .slice(0, 3)
-        .map((s) => station(s, null)),
+        .map((s) => station(s, null, null)),
     ];
   }
   const parNom = STATIONS.filter((s) => nomCorrespond(s, ql)).slice(0, 6);
@@ -90,10 +94,10 @@ export function suggestions(ql: string): Suggestion[] {
     ...MASSIFS.filter((x) => foldName(x.m).includes(ql)).slice(0, 3).map(massif),
     // Un village ou une commune renvoie à sa station : « Val Claret » propose
     // Tignes, « Lamoura » propose Les Rousses, et la suggestion dit pourquoi.
-    ...parNom.map((s) => station(s, foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql))),
+    ...parNom.map((s) => station(s, foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql), null)),
     ...communes.flatMap((c) => {
       const s = stationById(c.stationId);
-      return s ? [station(s, c.nom)] : [];
+      return s ? [station(s, c.nom, c.domaine ? null : c.km)] : [];
     }),
   ];
 }

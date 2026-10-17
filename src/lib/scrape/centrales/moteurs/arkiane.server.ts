@@ -497,6 +497,7 @@ function enListing(
     capacitySource: occ.capacitySource,
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
+    surface: d?.surface ?? null,
     available: true,
     photo: f.photo,
     // Le type commercial publié : « 3 pièces », « Studio », « Chalet ».
@@ -517,9 +518,8 @@ function enListing(
     proven: `${r.nom} (Arkiane, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.reference ? ` — référence ${f.reference}` : ""
     }${barre ? ` — ${barre}` : ""}${
-      // La centrale tronque ses longs libellés et le titre en perd la fin :
-      // surface et classement y sont écrits, et le modèle n'a pas de champ pour
-      // les porter. La preuve de l'annonce garde donc sa phrase entière.
+      // La centrale tronque ses longs libellés. Le classement reste dans la
+      // phrase ; la surface, elle, vient du pavé du détail.
       f.libelle && f.libelle !== f.titre ? ` — libellé publié : « ${f.libelle} »` : ""
     }`,
   };

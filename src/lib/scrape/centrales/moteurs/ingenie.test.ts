@@ -406,6 +406,7 @@ describe("Ingénie : le lieu, la capacité et les chambres que la liste publie d
   it("lit la capacité et les chambres affichées sous le titre", () => {
     assert.equal(par("-59")?.capacite, 10);
     assert.equal(par("-59")?.chambres, 3);
+    assert.equal(par("-59")?.surface, 55);
     assert.equal(par("-ADRIEN3")?.capacite, 8);
   });
 
@@ -469,6 +470,7 @@ b","location":{"geo":{"latitude":"45.1","longitude":"6.2"}}}</script>`;
       capacite: null,
       chambres: null,
       pieces: null,
+      surface: null,
     });
     // Un point hors de France est rejeté, comme pour les autres moteurs.
     const loin = `<script type="application/ld+json">{"location":{"geo":{"latitude":"4.5","longitude":"6.1"}}}</script>`;

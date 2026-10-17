@@ -50,6 +50,7 @@
  */
 
 import { jugerLogement } from "../regleTypes.ts";
+import { surfacePubliee } from "../../../nombres.ts";
 import {
   depuisTexte,
   fusionner,
@@ -69,6 +70,8 @@ export type FicheIresa = {
    */
   total: number;
   capacite: number | null;
+  /** `surface`, en m², quand le moteur la publie. */
+  surface: number | null;
   /** Lieu tel que le moteur l'écrit : commune, hameau. */
   lieu: string | null;
   photo: string | null;
@@ -389,6 +392,7 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
       titre,
       total,
       capacite: nombre(x.cap_max),
+      surface: surfacePubliee(x.surface),
       lieu: typeof x.lieu === "string" && x.lieu ? x.lieu : null,
       photo: vignette(template),
       chemin: cheminDe(template),

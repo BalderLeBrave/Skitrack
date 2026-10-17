@@ -293,6 +293,7 @@ describe("Arkiane : le détail d'un lot porte la position et les chambres", () =
       chambres: 1,
       pieces: 2,
       capacite: 4,
+      surface: 35,
       quartier: "Le Plan",
     });
   });
@@ -327,6 +328,7 @@ describe("Arkiane : le détail d'un lot porte la position et les chambres", () =
       chambres: null,
       pieces: null,
       capacite: null,
+      surface: null,
       quartier: null,
     });
   });

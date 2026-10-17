@@ -42,6 +42,7 @@ const PAGE = `
    "prix_brut": 1911,
    "montant_valeur_promo": 0,
    "cap_max": "8",
+   "surface": 45,
    "duree": 7,
    "date_debut": "2027-02-06",
    "lieu": "Montrigon"
@@ -102,6 +103,7 @@ describe("iResa : ne garder que ce qui répond à la question posée", () => {
     assert.equal(prestationsIresa(PAGE).length, 4);
     const fiches = lireIresa(PAGE, DEMANDE);
     assert.equal(fiches.length, 3);
+    assert.equal(fiches.find((f) => f.id === "1059")?.surface, 45);
     assert.ok(!fiches.some((f) => f.total === 39), "la nuitée de dortoir ne doit pas passer");
   });
 
@@ -112,6 +114,7 @@ describe("iResa : ne garder que ce qui répond à la question posée", () => {
     const f = lireIresa(PAGE, DEMANDE).find((x) => x.id === "9002");
     assert.equal(f?.total, 0);
     assert.equal(f?.capacite, 8);
+    assert.equal(f?.surface, null);
     assert.equal(f?.nuits, 7);
   });
 

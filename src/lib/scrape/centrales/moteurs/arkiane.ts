@@ -54,6 +54,7 @@
  */
 
 import { jugerLogement, motifTypeHorsRegle } from "../regleTypes.ts";
+import { surfacePubliee } from "../../../nombres.ts";
 import {
   depuisListe,
   depuisTexte,
@@ -76,8 +77,8 @@ export type FicheArkiane = {
    * la centrale tronque elle-même ses longs libellés — « … - 4* 57… » — et le
    * bout de nombre orphelin est retiré du titre parce qu'il s'y lit comme une
    * erreur d'affichage. Ce qu'elle a écrit est gardé ici, entier : c'est là que
-   * vivent la surface et le classement, que le modèle n'a pas de champ pour
-   * porter, et c'est aussi ce qu'on donne à lire à la lecture d'occupation.
+   * vivent la surface et le classement. La surface se lit sur le pavé
+   * `fa-ruler-triangle`, pas dans ce libellé tronqué.
    */
   libelle: string;
   /**
@@ -113,6 +114,8 @@ export type DetailArkiane = {
   chambres: number | null;
   pieces: number | null;
   capacite: number | null;
+  /** « 36 m² » du pavé `fa-ruler-triangle`. */
+  surface: number | null;
   /** Le quartier sous le titre : « Le Plan », « Centre - Pralognan La Vanoise ». */
   quartier: string | null;
   /** La description publiée (`div.lot-desc`), en texte, sauts de ligne gardés.
@@ -422,6 +425,7 @@ export function lireDetailArkiane(page: string): DetailArkiane {
   };
   const pieces = nombre("home", /pi[eè]ces?/);
   const capacite = nombre("users", /personnes?/);
+  const surface = surfacePubliee(/^(\d{1,4})/.exec((paves.get("ruler-triangle") ?? "").replace(/\s*m²$/i, ""))?.[1]);
 
   const lieu = /id="location"[^>]*>([\s\S]{0,800}?)<\/div>/.exec(page)?.[1] ?? "";
   const q = LIEN_CARTE.exec(lieu);
@@ -442,6 +446,7 @@ export function lireDetailArkiane(page: string): DetailArkiane {
     chambres: nombre("bed", /chambres?/),
     pieces: pieces != null && pieces > 0 ? pieces : null,
     capacite: capacite != null && capacite > 0 ? capacite : null,
+    surface,
     quartier: ems ? texteArkiane(ems[2] ?? "") || null : null,
     ...(description ? { description } : {}),
     ...(equipements ? { equipements } : {}),

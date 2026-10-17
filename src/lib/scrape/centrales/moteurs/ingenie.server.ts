@@ -130,6 +130,7 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     capacitySource: occ.capacitySource,
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
+    surface: f.surface,
     available: true,
     photo: f.photo,
     priceLabel: f.libelle,

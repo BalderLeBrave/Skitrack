@@ -37,10 +37,8 @@ describe("champsNonIndiques", () => {
     const sansDescription = { ...PLEINE, description: "  " };
     assert.deepEqual(champsNonIndiques(sansDescription), []);
   });
-  it("la surface n'est pas listée : l'annonce ne la porte que si son collecteur la pose", () => {
-    // Réponse réelle de Cimalpes (Val Thorens, 26 septembre 2026) : ses cartes
-    // publient 85, 34 et 28 m², que le collecteur lit sans les poser sur
-    // l'annonce. « Non indiqué par Cimalpes : surface » serait faux.
+  it("la surface n'est pas listée comme manquante : l'aperçu l'écrit quand elle est posée", () => {
+    // Réponse réelle de Cimalpes (Val Thorens, 26 septembre 2026) : 85, 34 et 28 m².
     const recherche = readFileSync(
       new URL("../scrape/agences/fixtures/cimalpes-recherche-val-thorens.json", import.meta.url),
       "utf8",
@@ -61,6 +59,10 @@ describe("champsNonIndiques", () => {
       bedrooms: 0,
     });
     assert.equal(annonces.length, 3);
+    assert.deepEqual(
+      annonces.map((l) => l.surface),
+      [85, 34, 28],
+    );
     const ditesMuettes = annonces.filter((l) => {
       const champs: string[] = champsNonIndiques(l);
       return champs.includes("surface");

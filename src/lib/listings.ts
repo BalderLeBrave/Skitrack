@@ -76,10 +76,11 @@ export type Listing = {
   baths?: number | null;
   /**
    * La surface publiée, en mètres carrés entiers, jamais 0, et jamais lue dans
-   * un titre (« 63m2 »). Seul le collecteur CozyCozy la pose aujourd'hui, depuis
-   * sa liste (`surfaceText`, « 80 m² »), pour une partie des fiches Booking et
-   * Abritel. `null` ou absente : le collecteur ne l'a pas posée, ce qui ne dit
-   * pas que la source la taise (Cimalpes, Alpissime, OVO… la publient).
+   * un titre (« 63m2 »). Posée quand la source la publie à part : Cozy
+   * (`surfaceText`), Cimalpes et Alpissime (la ligne de la carte), Travelski
+   * (`surface`), iResa (`surface`), Ingénie (« N m² » affiché), Arkiane (le
+   * pavé `fa-ruler-triangle`). Absente : le collecteur ne l'a pas lue, ce qui
+   * ne dit pas que la source la taise.
    */
   surface?: number | null;
   /** Type publié par la source : « Appartement », « Chalet », « Gîte »… Jamais

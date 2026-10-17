@@ -28,6 +28,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { surfacePubliee } from "../../nombres.ts";
 import type { LiveSearchInput } from "../types";
 import { annoncer, champsLogement } from "../../stay/occupancy.ts";
 
@@ -309,6 +310,7 @@ export function cimalpesListings(cartes: readonly CarteCimalpes[], input: LiveSe
         ),
       ),
       propertyType: c.type,
+      surface: surfacePubliee(c.surface),
       available: true,
       photo: c.photos[0] ?? null,
       photos: c.photos.length ? c.photos : null,

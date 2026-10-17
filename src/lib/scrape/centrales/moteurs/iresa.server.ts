@@ -137,6 +137,7 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     capacitySource: occ.capacitySource,
     bedroomsSource: occ.bedroomsSource,
     isStudio: occ.isStudio,
+    surface: f.surface,
     propertyType: typeDeCategorie(f.categorie),
     description: f.description,
     amenities: equipements(f.equipements),

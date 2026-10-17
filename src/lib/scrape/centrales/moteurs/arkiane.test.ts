@@ -401,6 +401,15 @@ describe("Arkiane : description et équipements du détail, sur un relevé réel
   const page = readFileSync(new URL("./fixtures/arkiane-pralognan-detail-colliouroe.html", import.meta.url), "utf8");
   const d = lireDetailArkiane(page);
 
+  it("la galerie pleine taille : les neuf photos du lot, puis les cinq de l'immeuble, sans pictogramme", () => {
+    const p = d.photos ?? [];
+    assert.equal(p.length, 14);
+    assert.match(p[0] ?? "", /\/lv\/images\/lot\/0000000553_01\.jpg/);
+    assert.match(p[8] ?? "", /\/lv\/images\/lot\/0000000553_09\.jpg/);
+    assert.match(p[9] ?? "", /\/lv\/images\/imme\/0000000323_01\.jpg/);
+    assert.ok(p.every((u) => !/\/Images\/picto\/|logo/i.test(u)));
+  });
+
   it("la description du lot, un paragraphe par ligne", () => {
     assert.match(d.description ?? "", /^APPARTEMENT 2 PIECES - Capacité 4 personnes- 3\*\n36m2, rez de chaussée, terrasse de 16m2/);
   });

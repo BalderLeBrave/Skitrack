@@ -281,7 +281,6 @@ export const EN_LOGEMENTS: Record<string, string> = {
   "{distance}, {minutes} min à pied": "{distance}, {minutes} min on foot",
   "Position approchée : les distances peuvent s’écarter de quelques dizaines de mètres.":
     "Approximate location: distances may be off by a few dozen metres.",
-  "Non indiqué par {source}": "Not stated by {source}",
   "Emplacement": "Location",
   "Remontée": "Lift",
   "Position non publiée par {source}.": "Location not published by {source}.",

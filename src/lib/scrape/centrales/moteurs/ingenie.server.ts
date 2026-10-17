@@ -134,6 +134,7 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     classement: f.classement,
     available: true,
     photo: f.photo,
+    photos: f.photos.length ? f.photos : null,
     priceLabel: f.libelle,
     priceIndicative: annoncePartirDe(f.etiquette) ? true : null,
     url: f.chemin ? new URL(f.chemin, `${base}/`).toString() : base,

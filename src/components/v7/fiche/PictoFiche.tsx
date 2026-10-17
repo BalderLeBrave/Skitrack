@@ -94,6 +94,7 @@ const UI = {
   },
   croix: { d: "M18 6 6 18M6 6l12 12", taille: 14, ep: 2.4 },
   croixPlein: { d: "M18 6 6 18M6 6l12 12", taille: 16, ep: 2.4 },
+  agrandir: { d: "M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7", taille: 14, ep: 2.2 },
   precedent: { d: "m15 18-6-6 6-6", taille: 14, ep: 2.4 },
   suivant: { d: "m9 18 6-6-6-6", taille: 14, ep: 2.4 },
   flechePrec: { d: "m15 18-6-6 6-6", taille: 18, ep: 2.4 },

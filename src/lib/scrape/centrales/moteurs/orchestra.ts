@@ -100,6 +100,8 @@ export type FicheOrchestra = {
   /** Les lignes « Caractéristiques » telles quelles (« Télévision », « Proche
    *  des pistes ») ; jamais la description. */
   equipementsPublies?: EquipementPublie[] | null;
+  /** La galerie de la fiche (`cpt-product-header`), dans l'ordre publié. */
+  photos?: string[];
 };
 
 export type DemandeOrchestra = {
@@ -576,7 +578,8 @@ export async function lireSuiteOrchestra(
  * égale la bande.
  */
 export function ficheOrchestra(page: string): FicheOrchestra {
-  const lieu = { ...lieuOrchestra(page), ...annonceOrchestra(page) };
+  const photos = galerieOrchestra(page);
+  const lieu = { ...lieuOrchestra(page), ...annonceOrchestra(page), ...(photos.length ? { photos } : {}) };
   const bloc = BLOC_INFORMATION.exec(page);
   if (!bloc) return { capacite: null, typeDeBien: null, pieces: null, chambres: null, village: null, ...lieu };
   const champs = new Map<string, string>();
@@ -604,6 +607,25 @@ export function ficheOrchestra(page: string): FicheOrchestra {
     village: champs.get("village") ?? null,
     ...lieu,
   };
+}
+
+/**
+ * Les photos de l'en-tête de la fiche : chaque `<figure class="elem-image">`
+ * du diaporama, image chargée à la demande (`data-src`). Le diaporama paraît
+ * deux fois (mobile, bureau) : chaque photo une fois. Les logos du pied de
+ * page n'en sont pas.
+ */
+export function galerieOrchestra(page: string): string[] {
+  const debut = page.indexOf('class="cpt-product-header"');
+  if (debut < 0) return [];
+  const fin = page.indexOf("</section>", debut);
+  const entete = page.slice(debut, fin < 0 ? undefined : fin);
+  const out: string[] = [];
+  for (const m of entete.matchAll(/<figure class="elem-image[^"]*"[^>]*>\s*<img[^>]+?data-src="(https?:\/\/[^"]+)"/g)) {
+    const u = m[1] ?? "";
+    if (u && !out.includes(u)) out.push(u);
+  }
+  return out;
 }
 
 type Categorie = {

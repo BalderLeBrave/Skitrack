@@ -127,6 +127,9 @@ export type DetailArkiane = {
   /** Les mêmes pictogrammes, leur `alt` tel quel (« Télévision » n'a pas de
    *  place parmi les douze clés) ; jamais la description. */
   equipementsPublies?: EquipementPublie[] | null;
+  /** La galerie du détail : les photos du lot, puis celles de l'immeuble
+   *  (`/lv/images/lot/`, `/lv/images/imme/`), dans l'ordre publié. */
+  photos?: string[];
 };
 
 /**
@@ -440,6 +443,7 @@ export function lireDetailArkiane(page: string): DetailArkiane {
   const description = descriptionArkiane(page);
   const equipements = equipementsArkiane(page, description);
   const publies = pictosArkiane(page);
+  const photos = galerieArkiane(page);
   return {
     lat,
     lon,
@@ -451,7 +455,23 @@ export function lireDetailArkiane(page: string): DetailArkiane {
     ...(description ? { description } : {}),
     ...(equipements ? { equipements } : {}),
     ...(publies.length ? { equipementsPublies: publies } : {}),
+    ...(photos.length ? { photos } : {}),
   };
+}
+
+/**
+ * Les photos du détail, pleine taille : celles du lot d'abord, puis celles de
+ * l'immeuble. Les pictogrammes (`/Images/picto/`) et le logo n'en sont pas.
+ */
+export function galerieArkiane(page: string): string[] {
+  const lot: string[] = [];
+  const imme: string[] = [];
+  for (const m of page.matchAll(/href="(https?:\/\/[^"]*\/lv\/images\/(lot|imme)\/[^"]+)"/g)) {
+    const u = m[1] ?? "";
+    const liste = m[2] === "lot" ? lot : imme;
+    if (u && !liste.includes(u)) liste.push(u);
+  }
+  return [...lot, ...imme];
 }
 
 /** Ce que la suite de fond des détails demande au réseau et à la mémoire. */

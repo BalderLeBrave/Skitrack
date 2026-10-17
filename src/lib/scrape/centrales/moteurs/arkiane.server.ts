@@ -344,6 +344,7 @@ function contenuDuDetail(d: DetailArkiane): LectureAGarder["contenu"] {
     description: d.description ?? null,
     amenities: d.equipements ? equipements(d.equipements) : null,
     ...(d.equipementsPublies?.length ? { equipementsPublies: d.equipementsPublies } : {}),
+    ...(d.photos?.length ? { photos: d.photos } : {}),
   };
 }
 
@@ -499,7 +500,9 @@ function enListing(
     isStudio: occ.isStudio,
     surface: d?.surface ?? null,
     available: true,
-    photo: f.photo,
+    photo: f.photo ?? d?.photos?.[0] ?? null,
+    // La galerie du détail, quand il a été lu ; sinon la vignette seule.
+    ...(d?.photos?.length ? { photos: d.photos } : {}),
     // Le type commercial publié : « 3 pièces », « Studio », « Chalet ».
     propertyType: f.typeCommercial,
     priceLabel: barre,

@@ -10,7 +10,7 @@
  * `ecartAvecPrincipale`, `totalSejour`).
  */
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Carte, type Epingle, type Segment } from "@/components/Carte";
 import { PictoEquipement, PictoUi } from "@/components/v7/fiche/PictoFiche";
 import { resumePrix } from "@/components/v7/fiche/resumePrix";
@@ -62,7 +62,6 @@ import {
   type ConditionsSejour,
 } from "@/lib/stay/ficheEnrichie";
 import { forfaitInclus } from "@/lib/stay/forfaitInclus";
-import { CHAMP_LIBELLE, champsNonIndiques } from "@/lib/stay/nonIndique";
 import { ecartAvecPrincipale, type Logement } from "@/lib/stay/regroupement";
 import { forfaitsAjoutables } from "@/lib/stay/totalSejour";
 import { bedLbl, capLbl, distanceOf, firmOf, kmLbl, prixLbl, surfaceLbl } from "@/lib/v7";
@@ -668,24 +667,8 @@ export function BlocConditions({ l }: { l: Listing }) {
   );
 }
 
-/** Les champs vides de l'annonce, sur une ligne. */
-export function BlocNonIndique({ l }: { l: Listing }) {
-  const champs = champsNonIndiques(l).map((c) => tr(CHAMP_LIBELLE[c]));
-  // Les équipements que l'annonce tait, quand les collecteurs les ont relevés
-  // et qu'aucune fiche lue ne décide à leur place.
-  const taits = equipementsTus(l).map((cle) => tr(LIBELLE_EQUIPEMENT[cle]));
-  const tout = [...champs, ...taits];
-  if (!tout.length) return null;
-  return (
-    <section className="fl-manques" title={tr("Non indiqué par {source}", { source: l.source })}>
-      <PictoUi nom="alerte" />
-      <span>{tr("Non indiqué : {liste}", { liste: tout.join(", ") })}</span>
-    </section>
-  );
-}
-
 /** Le logement et sa remontée sur la carte, reliés par le trajet. */
-export function BlocEmplacement({ l }: { l: Listing }) {
+function useEmplacement(l: Listing) {
   // Le trajet jusqu'à la remontée : par la route quand la marche est longue,
   // à pied sinon ; à défaut de réseau, le trait droit d'avant.
   const chemin = useCheminAPied(l);
@@ -729,7 +712,15 @@ export function BlocEmplacement({ l }: { l: Listing }) {
     lift.liftOtherLon,
     lift.liftName,
   ]);
-  const trace = chemin?.points ?? traitDroit;
+  return { epingles, segments, trace: chemin?.points ?? traitDroit };
+}
+
+/**
+ * La vignette de situation, figée ; « Agrandir » ouvre la même carte en
+ * grand, où elle se manipule (`CarteEmplacementPleine`).
+ */
+export function BlocEmplacement({ l, agrandir }: { l: Listing; agrandir?: () => void }) {
+  const { epingles, segments, trace } = useEmplacement(l);
   if (!epingles.length) {
     return (
       <section className="fl-carte fl-plan fl-plan--vide">
@@ -750,6 +741,17 @@ export function BlocEmplacement({ l }: { l: Listing }) {
         zoom={15}
         centre={[l.lat as number, l.lon as number]}
       />
+      {agrandir ? (
+        <button
+          type="button"
+          className="fl-plan__agrandir"
+          onClick={agrandir}
+          title={tr("Agrandir la carte")}
+        >
+          <PictoUi nom="agrandir" />
+          <span>{tr("Agrandir")}</span>
+        </button>
+      ) : null}
       {triangulee ? (
         <span
           className="fl-plan__note"
@@ -769,6 +771,50 @@ export function BlocEmplacement({ l }: { l: Listing }) {
         </span>
       ) : null}
     </section>
+  );
+}
+
+/**
+ * La carte de l'emplacement en grand, par-dessus la fenêtre : on y glisse,
+ * on zoome à la molette, au double clic ou aux boutons, et on change de fond.
+ */
+export function CarteEmplacementPleine({ l, fermer }: { l: Listing; fermer: () => void }) {
+  const { epingles, segments, trace } = useEmplacement(l);
+  const croix = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    croix.current?.focus({ preventScroll: true });
+  }, []);
+  return (
+    <div
+      className="fl-plein fl-plein--carte"
+      role="dialog"
+      aria-modal="true"
+      aria-label={tr("Carte de l’emplacement")}
+    >
+      <div className="fl-plein__tete">
+        <b>{l.title}</b>
+        <button
+          ref={croix}
+          type="button"
+          className="fl-plein__fermer"
+          aria-label={tr("Fermer la carte")}
+          title={tr("Fermer la carte")}
+          onClick={fermer}
+        >
+          <PictoUi nom="croixPlein" />
+        </button>
+      </div>
+      <div className="fl-plein__carte">
+        <Carte
+          epingles={epingles}
+          segments={segments}
+          trace={trace}
+          ajuster
+          zoom={15}
+          centre={l.lat != null && l.lon != null ? [l.lat, l.lon] : undefined}
+        />
+      </div>
+    </div>
   );
 }
 

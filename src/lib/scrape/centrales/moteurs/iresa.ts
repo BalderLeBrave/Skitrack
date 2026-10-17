@@ -72,6 +72,8 @@ export type FicheIresa = {
   capacite: number | null;
   /** `surface`, en m², quand le moteur la publie. */
   surface: number | null;
+  /** « 3 étoiles », quand `stars` vaut 1 à 5. 0 n'est pas un classement. */
+  classement: string | null;
   /** Lieu tel que le moteur l'écrit : commune, hameau. */
   lieu: string | null;
   photo: string | null;
@@ -217,7 +219,20 @@ export function libellesIresa(filters: unknown): EquipementPublie[] {
   return out;
 }
 
-/** La description publiée en texte : balises ôtées, `<br>` en sauts de ligne. */
+/** « N étoiles » publié (`stars` de 1 à 5). 0, ou rien, n'est pas un classement. */
+function classementIresa(v: unknown): string | null {
+  const n = typeof v === "number" ? v : typeof v === "string" && /^\d$/.test(v.trim()) ? Number(v) : NaN;
+  if (!Number.isInteger(n) || n < 1 || n > 5) return null;
+  return `${n} étoile${n > 1 ? "s" : ""}`;
+}
+
+/** La description, puis les couchages (`detailLits`) s'ils n'y sont pas déjà. */
+function texteIresa(description: unknown, lits: unknown): string | null {
+  const d = descriptionIresa(description);
+  const c = descriptionIresa(lits);
+  if (d && c && !d.includes(c)) return `${d}\n\n${c}`;
+  return d ?? c;
+}
 export function descriptionIresa(v: unknown): string | null {
   if (typeof v !== "string") return null;
   const t = v
@@ -387,18 +402,20 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
     const produit = produits[i];
     const categorie = produit && produit.nom?.trim() === titre ? produit.categorie : null;
     const description = descriptionIresa(x.description);
+    const texte = texteIresa(x.description, x.detailLits);
     par.set(id, {
       id,
       titre,
       total,
       capacite: nombre(x.cap_max),
       surface: surfacePubliee(x.surface),
+      classement: classementIresa(x.stars),
       lieu: typeof x.lieu === "string" && x.lieu ? x.lieu : null,
       photo: vignette(template),
       chemin: cheminDe(template),
       nuits,
       categorie,
-      description,
+      description: texte,
       equipements: equipementsIresa(x.filters, description),
       equipementsPublies: libellesIresa(x.filters),
     });

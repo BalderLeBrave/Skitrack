@@ -43,6 +43,8 @@ const PAGE = `
    "montant_valeur_promo": 0,
    "cap_max": "8",
    "surface": 45,
+   "stars": 3,
+   "detailLits": "Séjour : 1 canapé convertible<br />Chambre : 2 lits simples",
    "duree": 7,
    "date_debut": "2027-02-06",
    "lieu": "Montrigon"
@@ -104,6 +106,8 @@ describe("iResa : ne garder que ce qui répond à la question posée", () => {
     const fiches = lireIresa(PAGE, DEMANDE);
     assert.equal(fiches.length, 3);
     assert.equal(fiches.find((f) => f.id === "1059")?.surface, 45);
+    assert.equal(fiches.find((f) => f.id === "1059")?.classement, "3 étoiles");
+    assert.match(fiches.find((f) => f.id === "1059")?.description ?? "", /2 lits simples/);
     assert.ok(!fiches.some((f) => f.total === 39), "la nuitée de dortoir ne doit pas passer");
   });
 

@@ -55,6 +55,7 @@ const COMBLABLES = [
   // Travelski, iResa, Ingénie, Arkiane) et que l'autre la tait.
   "surface",
   "propertyType",
+  "classement",
   "photo",
   "photos",
   "locality",

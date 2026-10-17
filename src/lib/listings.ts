@@ -86,6 +86,8 @@ export type Listing = {
   /** Type publié par la source : « Appartement », « Chalet », « Gîte »… Jamais
    *  déduit d'un titre. */
   propertyType?: string | null;
+  /** Classement publié : « 3 épis », « 2 étoiles ». Jamais déduit d'un titre. */
+  classement?: string | null;
   /**
    * Le type de logement, ramené à sept : studio, appartement, chalet, maison,
    * chambre, hôtel, autre. Publié (`propertyType`), sinon lu dans le titre

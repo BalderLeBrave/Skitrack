@@ -189,8 +189,9 @@ const CHAMPS_DU_BIEN = [
   ["capacity", "capacitySource"],
   ["bedrooms", "bedroomsSource"],
   ["rooms"],
-  // La surface, quand une des copies la publie.
   ["surface"],
+  ["propertyType"],
+  ["classement"],
   ["description"],
   ["amenities"],
   ["equipementsPublies"],

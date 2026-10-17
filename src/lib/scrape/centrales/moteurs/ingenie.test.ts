@@ -828,6 +828,8 @@ describe("Ingénie : deux gabarits relevés le 25 septembre 2026", () => {
     assert.deepEqual([f?.lat, f?.lon], [45.165445, 6.430143]);
     assert.equal(f?.adresse, "121 RUE DES GRANDES ALPES");
     assert.equal(f?.capacite, 4);
+    assert.equal(f?.classement, "2 étoiles");
+    assert.equal(f?.surface, 28);
     assert.equal(f?.chambres, null);
     assert.equal(f?.total, 1100);
   });

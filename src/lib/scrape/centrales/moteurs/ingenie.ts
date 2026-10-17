@@ -130,6 +130,8 @@ export type FicheIngenie = {
   pieces: number | null;
   /** « 55 m² » affiché comme tel, jamais lu dans un titre. */
   surface: number | null;
+  /** « 2 étoiles », « 3 épis », lu sur la pastille de classement. */
+  classement: string | null;
   /**
    * Les pictogrammes d'équipements de la fiche (`picto_zone_principale_fiche_presta`,
    * « WiFi », « Lave vaisselle », « Animaux admis »), lus par
@@ -686,6 +688,16 @@ export function occupationAfficheeIngenie(fragment: string): {
   };
 }
 
+function classementIngenie(fragment: string): string | null {
+  const bloc = /class="classement"[^>]*>([\s\S]{0,500}?)<\/div>/.exec(fragment)?.[1] ?? "";
+  const etoiles = /\b(?:CONFORT-)?(\d)ETOILES?\b/i.exec(bloc);
+  const epi = /\bclassement-(epi|etoile)(\d)\b/i.exec(bloc);
+  const n = etoiles ? Number(etoiles[1]) : epi ? Number(epi[2]) : NaN;
+  if (!Number.isInteger(n) || n < 1 || n > 5) return null;
+  const mot = epi && !etoiles && epi[1].toLowerCase() === "epi" ? "épi" : "étoile";
+  return `${n} ${mot}${n > 1 ? "s" : ""}`;
+}
+
 function photoDe(fragment: string): string | null {
   const m = /<img[^>]+(?:src|data-src)="(https?:\/\/[^"]+)"/.exec(fragment);
   return m?.[1] ?? null;
@@ -834,6 +846,7 @@ export function lireIngenie(page: string): FicheIngenie[] {
       chemin: lien ? desechapper(lien[1] ?? "") : null,
       ...lieuIngenie(fragment),
       ...occupationAfficheeIngenie(fragment),
+      classement: classementIngenie(fragment),
       equipements: equipementsIngenie(fragment),
       equipementsPublies: equipementsPubliesIngenie(fragment),
       description: descriptionIngenie(fragment),

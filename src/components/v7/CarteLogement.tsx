@@ -150,6 +150,7 @@ export const CarteLogement = memo(function CarteLogement({
           cap === inconnu ? null : cap,
           ch === inconnu ? null : ch,
           surface,
+          l.classement?.trim() || null,
           l.beds != null && l.beds > 0 ? tr("{n} lits", { n: l.beds }) : null,
         ]
           .filter(Boolean)

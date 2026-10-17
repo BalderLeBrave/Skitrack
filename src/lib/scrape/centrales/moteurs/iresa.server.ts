@@ -139,6 +139,7 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     isStudio: occ.isStudio,
     surface: f.surface,
     propertyType: typeDeCategorie(f.categorie),
+    classement: f.classement,
     description: f.description,
     amenities: equipements(f.equipements),
     ...(f.equipementsPublies.length ? { equipementsPublies: f.equipementsPublies } : {}),

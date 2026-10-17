@@ -14,6 +14,7 @@
 
 import { foldName } from "./carte.ts";
 import fichier from "./communesProches.json" with { type: "json" };
+import { stationById } from "./stations.ts";
 
 type Fichier = { ids: string[]; lieux: [string, number, number, number][] };
 
@@ -60,17 +61,31 @@ function aPartirDe(q: string): Entree[] {
   return out;
 }
 
-/** Lieux dont le nom commence par la saisie déjà repliée. Six au plus. */
+/** Le texte est celui de cette station : « Les Rousses » nomme la station des
+ *  Rousses, pas un hameau homonyme plus près d'une autre. */
+function stationNommee(e: Entree, q: string): boolean {
+  const s = stationById(e.stationId);
+  if (!s) return false;
+  const n = foldName(s.name);
+  const d = foldName(s.domain ?? "");
+  return n.includes(q) || d.includes(q) || (n.length >= 5 && q.includes(n));
+}
+
+function comparer(a: Entree, b: Entree, q: string): number {
+  const ae = a.f === q ? 0 : 1;
+  const be = b.f === q ? 0 : 1;
+  if (ae !== be) return ae - be;
+  if (a.f === q) {
+    const an = stationNommee(a, q) ? 0 : 1;
+    const bn = stationNommee(b, q) ? 0 : 1;
+    if (an !== bn) return an - bn;
+  }
+  if (a.domaine !== b.domaine) return a.domaine ? -1 : 1;
+  return a.km - b.km || a.nom.localeCompare(b.nom, "fr");
+}
 export function communesPour(q: string): CommuneTrouvee[] {
   if (q.length < 3) return [];
-  const hits = aPartirDe(q).slice();
-  hits.sort((a, b) => {
-    const ae = a.f === q ? 0 : 1;
-    const be = b.f === q ? 0 : 1;
-    if (ae !== be) return ae - be;
-    if (a.domaine !== b.domaine) return a.domaine ? -1 : 1;
-    return a.km - b.km || a.nom.localeCompare(b.nom, "fr");
-  });
+  const hits = aPartirDe(q).slice().sort((a, b) => comparer(a, b, q));
   const vus = new Set<string>();
   const out: CommuneTrouvee[] = [];
   for (const h of hits) {
@@ -85,7 +100,8 @@ export function communesPour(q: string): CommuneTrouvee[] {
 
 /**
  * La station d'un lieu nommé en toutes lettres, ou `null`.
- * Plusieurs homonymes : le plus proche d'une station.
+ * Plusieurs homonymes : celui dont la station porte ce nom, sinon le plus
+ * proche d'une station.
  */
 export function stationIdDeLaCommune(texte: string): string | null {
   const q = foldName(texte);
@@ -93,7 +109,7 @@ export function stationIdDeLaCommune(texte: string): string | null {
   let best: Entree | null = null;
   for (const e of aPartirDe(q)) {
     if (e.f !== q || !e.stationId) continue;
-    if (!best || e.km < best.km) best = e;
+    if (!best || comparer(e, best, q) < 0) best = e;
   }
   return best?.stationId ?? null;
 }

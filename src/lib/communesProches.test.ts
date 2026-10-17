@@ -46,6 +46,11 @@ describe("communes, villes et villages", () => {
     assert.deepEqual(manquent, []);
   });
 
+  it("un homonyme ne vole pas le nom de la station", () => {
+    assert.equal(stationIdDeLaCommune("Les Rousses"), "les-rousses");
+    assert.equal(stationIdDeLaCommune("La Grave"), "la-grave-la-meije");
+    assert.equal(communesPour(foldName("La Grave"))[0]?.stationId, "la-grave-la-meije");
+  });
   it("une saisie trop courte ne choisit rien", () => {
     assert.equal(stationIdDeLaCommune("la"), null);
     assert.deepEqual(communesPour("la"), []);

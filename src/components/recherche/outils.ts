@@ -51,12 +51,12 @@ export type Suggestion = {
 
 /**
  * Les suggestions du champ Destination. Champ vide : les massifs puis les
- * trois plus grands domaines. Champ rempli : trois massifs et six stations
- * trois massifs et douze stations au plus dont le nom, un village ou le
- * domaine contient le texte. Une commune, une ville, un village ou une
- * station du classeur qui n'est pas écrite comme dans le référentiel
- * propose la sienne : « Avoriaz 1800 » propose Avoriaz, « Lamoura » Les
- * Rousses, Paris la station la plus proche.
+ * trois plus grands domaines. Champ rempli : trois massifs et douze stations
+ * au plus dont le nom, un village ou le domaine contient le texte. Une
+ * commune, une ville, un village ou une station du classeur qui n'est pas
+ * écrite comme dans le référentiel propose la sienne : « Avoriaz 1800 »
+ * propose Avoriaz, « Lamoura » Les Rousses. Un homonyme ne prend pas la
+ * place de la station que le texte nomme.
  */
 export function suggestions(ql: string): Suggestion[] {
   const massif = (x: MassifResume): Suggestion => ({
@@ -106,7 +106,12 @@ export function suggestions(ql: string): Suggestion[] {
     .slice(0, 12);
   const deja = new Set(parNom.map((s) => s.id));
   const communes = communesPour(ql)
-    .filter((c) => !deja.has(c.stationId))
+    .filter((c) => {
+      if (deja.has(c.stationId)) return false;
+      // « La Grave » nomme déjà La Grave la Meije : pas le hameau homonyme.
+      if (foldName(c.nom) === ql && parNom.some((s) => foldName(s.name).includes(ql))) return false;
+      return true;
+    })
     .slice(0, Math.max(0, 12 - parNom.length));
   return [
     ...MASSIFS.filter((x) => foldName(x.m).includes(ql)).slice(0, 3).map(massif),

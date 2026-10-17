@@ -53,6 +53,29 @@ function pgliteBootstrapPlugin(): Plugin {
 }
 
 /**
+ * En dev, Vite sert un `.json` comme un module JavaScript, mais garde
+ * l'attribut d'un `import("….json", { with: { type: "json" } })` : le
+ * navigateur refuse alors le module (« Expected a JSON module script ») et
+ * la liste des communes, les couleurs ou le relief n'arrivent jamais. Le
+ * build, lui, l'enlève. L'attribut reste dans le source pour Node (tests).
+ */
+function jsonDynamiqueDevPlugin(): Plugin {
+  const re =
+    /import\((\s*[`"'][^`"']+\.json[`"']\s*),\s*\{\s*with:\s*\{\s*type:\s*["']json["']\s*\}\s*\}\s*\)/g;
+  return {
+    name: "skitrack:json-dynamique-dev",
+    apply: "serve",
+    enforce: "pre",
+    transform(code, id) {
+      if (id.includes("/node_modules/") || !/\/src\/.*\.tsx?$/.test(id.split("?")[0])) return;
+      if (!code.includes("json")) return;
+      const out = code.replace(re, "import($1)");
+      return out === code ? undefined : { code: out, map: null };
+    },
+  };
+}
+
+/**
  * Live-preview OAuth popup — handled HERE so the agent never has to create a
  * `/auth/popup` route (and cannot break it by scaffolding a React page that
  * paints the full app shell in the popup).
@@ -166,6 +189,7 @@ export default defineConfig(({ command, isPreview }) => ({
   },
   plugins: [
     pgliteBootstrapPlugin(),
+    jsonDynamiqueDevPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.
     authPopupPlugin(),
     // Dev-only /__app-env, read by scripts/check-auth-invariant.mjs.

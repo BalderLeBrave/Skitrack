@@ -1776,6 +1776,7 @@ function LogementsStation({ s }: { s: Station }) {
               cadrerSur={pointsResultat}
               surFixe={setEpinglee}
               maxZoom={14}
+              boutonsZoom
               surBornes={setBornes}
               actif={actifCarte}
               surActif={setActifCarte}

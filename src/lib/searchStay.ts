@@ -15,6 +15,8 @@ import { dedoublonnerParBien } from "./stay/poserReleve";
 const Input = z.object({
   stationId: z.string().min(1),
   stationName: z.string().min(1),
+  /** Le pays du domaine (`europe.ts`) ; absent pour une station française. */
+  country: z.string().regex(/^[A-Z]{2}$/).optional(),
   lat: z.number(),
   lon: z.number(),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -77,6 +79,8 @@ export const searchStay = createServerFn({ method: "POST" })
     // L'écran Logements relève tout le grand domaine relié (`scrape/domaine.ts`) ;
     // l'écran Prix compare des stations, chacune pour elle-même.
     const input: LiveSearchInput = { ...data, domaine: data.pour !== "prix" };
+    // Un domaine européen : `stationById` le connaît dès que les pays sont lus.
+    if (data.country && data.country !== "FR") await (await import("./europe")).chargerEurope();
     const t0 = Date.now();
     const [{ runLiveSearch }, { pendantReleveAirbnb, noterVue }] = await Promise.all([
       import("./scrape/run.server"),

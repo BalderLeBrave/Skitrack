@@ -23,6 +23,8 @@ export type SourceReport = {
 export type LiveSearchInput = {
   stationId: string;
   stationName: string;
+  /** Le pays de la station, ISO 3166-1 alpha-2. Absent : la France. */
+  country?: string;
   lat: number;
   lon: number;
   checkIn: string;

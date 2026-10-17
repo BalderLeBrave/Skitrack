@@ -40,6 +40,7 @@ import { decoderPlage, encoderPlage, type Plage } from "./plage.ts";
 import type { Sens } from "./tri.ts";
 import { CHIPS } from "./v7.ts";
 import { stationById } from "./stations.ts";
+import { idEuropeen } from "./europe.ts";
 import { useStay } from "./stay.ts";
 
 /** L'état lisible depuis l'adresse. Tout est facultatif : ce qui manque garde
@@ -121,6 +122,9 @@ export function decoderCriteres(search: string): Criteres {
   const station = p.get("station");
   const st = station ? stationById(station) : undefined;
   if (st) out.station = st.id;
+  // Un domaine européen (`at-ischgl`) se garde tel quel : ses pays ne sont
+  // pas encore lus, l'écran qui l'affiche les demande (`europe.ts`).
+  else if (station && idEuropeen(station)) out.station = station;
   const q = p.get("q");
   if (q) out.q = q;
   else if (out.station) out.q = stationById(out.station)?.name;

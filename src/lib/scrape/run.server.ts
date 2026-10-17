@@ -24,7 +24,7 @@ import { releverHomeToGo } from "./hometogo.server";
 import { porteFermee } from "./gardeHote";
 import { collecteurDe } from "./agences/index.server";
 import { agencesDuReleve, parPaquets, sansDoublons, stationsDuReleve } from "./domaine";
-import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
+import type { LiveSearchInput, LiveSearchResult, SourceName, SourceReport } from "./types";
 import {
   airbnbListePrioritaire,
   generationReleveAirbnb,
@@ -646,7 +646,41 @@ function borne(run: Promise<LiveSearchResult>, sources: readonly SourceReport["s
   return Promise.race([run, delai]).finally(() => clearTimeout(timer));
 }
 
+/** Vrai pour un domaine européen hors de France (`europe.ts`). */
+export function horsFrance(input: Pick<LiveSearchInput, "country">): boolean {
+  return input.country != null && input.country !== "FR";
+}
+
+/**
+ * Gîtes de France, les centrales, HomeToGo (amorcé sur la France) et les
+ * agences ne servent que des stations françaises : hors de France, leur part
+ * rend un rapport vide qui le dit, sans rien demander à leur site.
+ */
+function partFrancaise(sources: readonly SourceName[]): LiveSearchResult {
+  return {
+    listings: [],
+    sources: sources.map((source) => ({ source, ok: true, count: 0, ms: 0, note: "source française : rien hors de France" })),
+  };
+}
+
 async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<LiveSearchResult> {
+  if (horsFrance(input)) {
+    if (part === "gites") return partFrancaise(GITES_SOURCES);
+    if (part === "centrales") return partFrancaise(CENTRALE_SOURCES);
+    if (part === "hometogo") return partFrancaise(HOMETOGO_SOURCES);
+    if (part === "agences") return partFrancaise([]);
+    if (part === "all") {
+      const parts = await Promise.all([
+        borne(runAirbnb(input), AIRBNB_SOURCES),
+        borne(runCozy(input), COZY_SOURCES),
+        borne(runGreenGo(input), GREENGO_SOURCES),
+      ]);
+      return {
+        listings: locate(input, parts.flatMap((p) => p.listings)),
+        sources: [...parts.flatMap((p) => p.sources), ...partFrancaise([...GITES_SOURCES, ...CENTRALE_SOURCES, ...HOMETOGO_SOURCES]).sources],
+      };
+    }
+  }
   if (part === "airbnb") return runAirbnb(input);
   if (part === "gites") return runGites(input);
   if (part === "cozy") return runCozy(input);

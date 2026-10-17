@@ -1,0 +1,552 @@
+{
+  "releve": "2026-10-17",
+  "groupe": "nordiques",
+  "methode": "Pour chaque domaine, lien « boka boende / bestill overnatting / majoitus » publié par le site officiel (liens relevés par Firecrawl, puis recherche web ciblée sur l'hôte quand la lecture directe était bloquée) ; moteur retenu seulement sur empreinte (pied de page Citybreak, hôte *.citybreak.com / *.cloudbooking.no, schéma d'URL du module Citybreak), sinon « inconnu ». SkiStar est sa propre centrale. Deuxième passe le 2026-10-17 (recherche web seule, sans lecture de page : WebFetch, curl et Firecrawl indisponibles) sur les domaines restés « non recherché » : un moteur n'est nommé que si un extrait de recherche le prouve ; les entrées de cette passe sont préfixées « 2e passe ».",
+  "domaines": [
+    {
+      "id": "se-are",
+      "nom": "Åre",
+      "pays": "SE",
+      "siteOfficiel": "https://www.skistar.com/en/ski-destinations/are/",
+      "centrale": {
+        "nom": "SkiStar Åre",
+        "url": "https://www.skistar.com/en/ski-destinations/are/",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison."
+      }
+    },
+    {
+      "id": "no-trysil",
+      "nom": "Trysil",
+      "pays": "NO",
+      "siteOfficiel": "https://www.skistar.com/no/vare-skisteder/trysil/vinter-i-trysil/",
+      "centrale": {
+        "nom": "SkiStar Trysil",
+        "url": "https://www.skistar.com/no/vare-skisteder/trysil/vinter-i-trysil/",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison."
+      }
+    },
+    {
+      "id": "se-salen",
+      "nom": "Sälen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.skistar.com/en/ski-destinations/salen",
+      "centrale": {
+        "nom": "SkiStar Sälen",
+        "url": "https://www.skistar.com/en/online-booking/Catalog/Package/?r=1&an=2&sc=p",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison. Lien relevé sur la page Sälen le 17/10/2026."
+      }
+    },
+    {
+      "id": "fi-levin-hiihtokeskus-levi-ski-resort",
+      "nom": "Levin hiihtokeskus, Levi Ski Resort",
+      "pays": "FI",
+      "siteOfficiel": "https://www.levi.fi/",
+      "centrale": {
+        "nom": "Visit Levi (majoitushaku)",
+        "url": "https://www.levi.fi/majoitu/majoitushaku/",
+        "hote": "www.levi.fi",
+        "moteur": "inconnu",
+        "preuve": "Menu « Majoitu » → « majoitushaku » du site officiel ; ventes Visit Levi (sales@visitlevi.fi). Recherche rendue en JavaScript (site Gatsby), aucune empreinte de moteur lisible dans le HTML relevé."
+      }
+    },
+    {
+      "id": "no-hemsedal-skisenter",
+      "nom": "Hemsedal skisenter",
+      "pays": "NO",
+      "siteOfficiel": "http://www.skistar.com/hemsedal",
+      "centrale": {
+        "nom": "SkiStar Hemsedal",
+        "url": "https://www.skistar.com/hemsedal",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison."
+      }
+    },
+    {
+      "id": "se-bydalsfjallen",
+      "nom": "Bydalsfjällen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.bydalsfjallen.se/",
+      "centrale": {
+        "nom": "Bydalsfjällen – Sök & boka",
+        "url": "https://www2.bydalsfjallen.se/sv/boende",
+        "hote": "www2.bydalsfjallen.se",
+        "moteur": "Citybreak",
+        "preuve": "Boutons « BOKA » de bydalsfjallen.se vers www2.bydalsfjallen.se ; pages /sv/boende/1985638/<slug>/detaljer et /bilder, titres « … - Varukorg » : schéma d'URL du module en ligne Citybreak (identifiant produit numérique + /detaljer)."
+      }
+    },
+    {
+      "id": "no-oppdal-skisenter",
+      "nom": "Oppdal Skisenter",
+      "pays": "NO",
+      "siteOfficiel": "https://www.oppdalskisenter.no/",
+      "centrale": {
+        "nom": "Alpinco (Oppdal)",
+        "url": "https://www.alpinco.com/no/oppdal/overnatting",
+        "hote": "www.alpinco.com",
+        "moteur": "Citybreak",
+        "preuve": "Hôte alpinco.com : fichiers servis sous /sites/cb_alpincoweb/ et recherche /stays?…&gc-0-adults=…&geo=…, même empreinte que boka.hemavan.nu dont le pied de page affiche « Citybreak™ Information & Reservation System » (Visit Group, WebX CMS). Le site du domaine redirige vers alpinco.com."
+      }
+    },
+    {
+      "id": "no-hafjell",
+      "nom": "Hafjell",
+      "pays": "NO",
+      "siteOfficiel": "https://www.hafjell.no/",
+      "centrale": {
+        "nom": "Alpinco (Hafjell)",
+        "url": "https://www.alpinco.com/no/stays?geo=105260&geos=105260",
+        "hote": "www.alpinco.com",
+        "moteur": "Citybreak",
+        "preuve": "Hôte alpinco.com : fichiers servis sous /sites/cb_alpincoweb/ et recherche /stays?…&gc-0-adults=…&geo=…, même empreinte que boka.hemavan.nu dont le pied de page affiche « Citybreak™ Information & Reservation System » (Visit Group, WebX CMS). Le site du domaine redirige vers alpinco.com."
+      }
+    },
+    {
+      "id": "se-hemavan",
+      "nom": "Hemavan",
+      "pays": "SE",
+      "siteOfficiel": "https://hemavan.nu",
+      "centrale": {
+        "nom": "Hemavan Tärnaby – boka.hemavan.nu",
+        "url": "https://boka.hemavan.nu/en/book/accommodation",
+        "hote": "boka.hemavan.nu",
+        "moteur": "Citybreak",
+        "preuve": "Pied de page de boka.hemavan.nu : « Site produced by Visit Group with Citybreak™ Information & Reservation System » + « WEBX CMS » ; fichiers sous /sites/cb_hemavan/."
+      }
+    },
+    {
+      "id": "no-kvitfjell",
+      "nom": "Kvitfjell",
+      "pays": "NO",
+      "siteOfficiel": "https://www.kvitfjell.no/",
+      "centrale": {
+        "nom": "Alpinco (Kvitfjell Booking)",
+        "url": "https://www.alpinco.com/no/kvitfjell",
+        "hote": "www.alpinco.com",
+        "moteur": "Citybreak",
+        "preuve": "Hôte alpinco.com : fichiers servis sous /sites/cb_alpincoweb/ et recherche /stays?…&gc-0-adults=…&geo=…, même empreinte que boka.hemavan.nu dont le pied de page affiche « Citybreak™ Information & Reservation System » (Visit Group, WebX CMS). Le site du domaine redirige vers alpinco.com. Même centrale qu'Oppdal et Hafjell (lien alpinco.com/no/kvitfjell depuis le site Hafjell)."
+      }
+    },
+    {
+      "id": "se-stoten-i-salen",
+      "nom": "Stöten i Sälen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.stoten.se/",
+      "centrale": {
+        "nom": "Stöten (réservation intégrée)",
+        "url": "https://www.stoten.se/boende/boendeomraden/stotentorget/",
+        "hote": "www.stoten.se",
+        "moteur": "inconnu",
+        "preuve": "Le site officiel vend son hébergement (calendrier de réservation sur chaque page de logement) ; moteur non identifiable sans lecture du HTML."
+      }
+    },
+    {
+      "id": "no-ski-geilo",
+      "nom": "Ski Geilo",
+      "pays": "NO",
+      "siteOfficiel": "https://www.skigeilo.no/",
+      "centrale": {
+        "nom": "SkiGeilo – Book accommodation",
+        "url": "https://www.skigeilo.no/en/book/accommodation",
+        "hote": "www.skigeilo.no",
+        "moteur": "Citybreak",
+        "preuve": "Chemin /en/book/accommodation et titre « Accommodations, Hol » : même gabarit que boka.hemavan.nu (« Accommodations, Hemavan Tärnaby »), page Citybreak WebX signée Visit Group."
+      }
+    },
+    {
+      "id": "se-idre-fjall",
+      "nom": "Idre Fjäll",
+      "pays": "SE",
+      "siteOfficiel": "https://www.idrefjall.se/en/skiing/",
+      "centrale": {
+        "nom": "Idre Fjäll (vente directe)",
+        "url": "https://www.idrefjall.se/vart-boende/",
+        "hote": "www.idrefjall.se",
+        "moteur": "inconnu",
+        "preuve": "Le site officiel vend ses stugor, lägenheter et l'hôtel Pernilla Wiberg via « Läs mer och boka » ; moteur non relevé."
+      }
+    },
+    {
+      "id": "se-branas",
+      "nom": "Branäs",
+      "pays": "SE",
+      "siteOfficiel": "https://www.branas.se/?nr=1",
+      "centrale": {
+        "nom": "Branäs – Boka online",
+        "url": "https://www.branas.se/en/bokning/",
+        "hote": "www.branas.se",
+        "moteur": "inconnu",
+        "preuve": "Page « Boka online här » du site officiel ; même structure (/bokning/, /omraden/) et même téléphone de réservation (054-13 26 00) que Kungsberget (groupe Branäs). Moteur non relevé."
+      }
+    },
+    {
+      "id": "se-lindvallen",
+      "nom": "Lindvallen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.skistar.com/en/ski-destinations/salen",
+      "centrale": {
+        "nom": "SkiStar Sälen",
+        "url": "https://www.skistar.com/en/ski-destinations/salen/winter-in-salen/lodging/",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison. Lindvallen est une zone de SkiStar Sälen : même centrale que se-salen."
+      }
+    },
+    {
+      "id": "no-hovden-alpinsenter",
+      "nom": "Hovden Alpinsenter",
+      "pays": "NO",
+      "siteOfficiel": "https://hovden.com/",
+      "centrale": {
+        "nom": "Hovden – book.hovden.com",
+        "url": "https://book.hovden.com/no/overnatting",
+        "hote": "book.hovden.com",
+        "moteur": "Citybreak",
+        "preuve": "Pages /no/overnatting/547301/<slug>/detaljer (et identifiants « a1406519 ») + titre « Search & book your accommodation », identique à boka.hemavan.nu (Citybreak)."
+      }
+    },
+    {
+      "id": "se-romme-alpin",
+      "nom": "Romme Alpin",
+      "pays": "SE",
+      "siteOfficiel": "https://www.rommealpin.se",
+      "centrale": {
+        "nom": "Mitt Romme – booking",
+        "url": "https://mittromme.rommealpin.se/booking/rooms",
+        "hote": "mittromme.rommealpin.se",
+        "moteur": "inconnu",
+        "preuve": "Bouton « Boka boende / Boka direkt » de rommealpin.se vers mittromme.rommealpin.se/booking/rooms ; moteur non identifié."
+      }
+    },
+    {
+      "id": "se-klappen",
+      "nom": "Kläppen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.klappen.se/",
+      "centrale": {
+        "nom": "Kläppen Ski Resort (vente directe)",
+        "url": "https://www.klappen.se/en/lodging/",
+        "hote": "www.klappen.se",
+        "moteur": "inconnu",
+        "preuve": "Le site officiel vend stugor, lägenheter et hôtel (bokning@klappen.se) ; page de réservation et moteur non relevés."
+      }
+    },
+    {
+      "id": "se-lofsdalen",
+      "nom": "Lofsdalen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.lofsdalen.com/de",
+      "centrale": {
+        "nom": "Lofsdalen – bokning",
+        "url": "https://www.lofsdalen.com/boka/boende",
+        "hote": "www.lofsdalen.com",
+        "moteur": "Citybreak",
+        "preuve": "URLs /boka/boende/2026972/lofsdalens-fjällhotell/boka, /boka/boende/compareaccommodations, /boka/stugor/simplelist et sous-domaine bokning.lofsdalen.com : schéma du module en ligne Citybreak."
+      }
+    },
+    {
+      "id": "se-idre-himmelfjall",
+      "nom": "Idre Himmelfjäll",
+      "pays": "SE",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Ni site officiel ni page de réservation trouvés : seulement Hemnet, Stugknuten, Expedia."
+    },
+    {
+      "id": "no-norefjell",
+      "nom": "Norefjell",
+      "pays": "NO",
+      "siteOfficiel": "https://www.norefjell.com/",
+      "centrale": {
+        "nom": "Norefjell – quickbook",
+        "url": "https://quickbook.norefjell.com/no/norefjell-ski-spanorefjellstua",
+        "hote": "quickbook.norefjell.com",
+        "moteur": "Citybreak",
+        "preuve": "Sous-domaine quickbook.* (comme quickbook.hemavan.nu, Citybreak) ; page « Overnattinger … – 0 treff. Ditt søk: Du har ikke valgt datoer eller antall rom ennå », libellés du module Citybreak."
+      }
+    },
+    {
+      "id": "no-gausta-skisenter",
+      "nom": "Gausta skisenter",
+      "pays": "NO",
+      "siteOfficiel": "https://www.gausta.com/en-US/gausta-skisenter/",
+      "centrale": {
+        "nom": "Gausta – book.gausta.com",
+        "url": "https://book.gausta.com/no/bestill/overnatting",
+        "hote": "book.gausta.com",
+        "moteur": "Citybreak",
+        "preuve": "Chemins /no/bestill/overnatting et /no/overnatting/2209004/panoramatun/showdetailsbook ; environnement de test « cbtest.gausta.com » (cb = Citybreak)."
+      }
+    },
+    {
+      "id": "fi-rukatunturi-ruka",
+      "nom": "Rukatunturi, Ruka",
+      "pays": "FI",
+      "siteOfficiel": "https://www.ruka.fi",
+      "centrale": {
+        "nom": "RukaBooking (Rukakeskus Oy) – Accommodation Search",
+        "url": "https://www.ruka.fi/en/accommodation/accommodation-search",
+        "hote": "www.ruka.fi",
+        "moteur": "inconnu",
+        "preuve": "Le site officiel publie sa recherche d'hébergement et renvoie aux centrales RukaBooking (Rukakeskus Oy) et ProHolidays ; moteur non relevé."
+      }
+    },
+    {
+      "id": "se-tanndalen",
+      "nom": "Tänndalen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.tanndalen.com/",
+      "centrale": {
+        "nom": "Tänndalen – boende",
+        "url": "https://www.tanndalen.com/boende",
+        "hote": "www.tanndalen.com",
+        "moteur": "inconnu",
+        "preuve": "Le site officiel vend son hébergement (« sök och boka ditt boende online », bokning@tanndalen.com) ; moteur non relevé."
+      }
+    },
+    {
+      "id": "no-myrkdalen",
+      "nom": "Myrkdalen",
+      "pays": "NO",
+      "siteOfficiel": "https://www.myrkdalen.no/",
+      "centrale": {
+        "nom": "Myrkdalen – booking",
+        "url": "https://www.myrkdalen.no/no/bestill/overnatting",
+        "hote": "www.myrkdalen.no",
+        "moteur": "Citybreak",
+        "preuve": "Pages /no/bestill/overnatting/1832037/<slug>/detaljer, …/supplierpackagedetails/…, sous-domaine booking.myrkdalen.no titré « Search & book your accommodation » : empreinte Citybreak."
+      }
+    },
+    {
+      "id": "se-vemdalsskalet",
+      "nom": "Vemdalsskalet",
+      "pays": "SE",
+      "siteOfficiel": "https://www.skistar.com/",
+      "centrale": {
+        "nom": "SkiStar Vemdalen",
+        "url": "https://www.skistar.com/sv/boka-online/boende/vemdalen/",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison. Chemin relevé : /sv/boka-online/boende/vemdalen/vemdalsskalet/hovde-hotell/."
+      }
+    },
+    {
+      "id": "no-voss-resort-fjellheisar",
+      "nom": "Voss Resort Fjellheisar",
+      "pays": "NO",
+      "siteOfficiel": "https://vossresort.no/no/vinter/",
+      "centrale": {
+        "nom": "Voss Resort – booking",
+        "url": "https://vossresort.no/en/accommodation",
+        "hote": "vossresort.no",
+        "moteur": "Citybreak",
+        "preuve": "Fiches d'hébergement servies par voss.online.citybreak.com (ex. /en/accommodation/2207714/bavallstunet-35/map)."
+      }
+    },
+    {
+      "id": "se-bjornrike",
+      "nom": "Björnrike",
+      "pays": "SE",
+      "siteOfficiel": null,
+      "centrale": {
+        "nom": "SkiStar Vemdalen",
+        "url": "https://www.skistar.com/sv/boka-online/boende/vemdalen/",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison. Björnrike fait partie de SkiStar Vemdalen : même centrale que se-vemdalsskalet."
+      }
+    },
+    {
+      "id": "fi-yllas-ski-resort-yllasjarvi",
+      "nom": "Ylläs Ski Resort, Ylläsjärvi",
+      "pays": "FI",
+      "siteOfficiel": "https://ski.yllas.fi/",
+      "centrale": {
+        "nom": "Ylläs – majoitus (yllas.fi)",
+        "url": "https://yllas.fi/en/accommodation/",
+        "hote": "yllas.fi",
+        "moteur": "inconnu",
+        "preuve": "ski.yllas.fi/palvelut/majoitus-ja-mokit/ renvoie à la recherche d'hébergement du portail yllas.fi (boutons « Book Accommodation », centrale Yllakselle.com) ; moteur non relevé. Même centrale que fi-yllas."
+      }
+    },
+    {
+      "id": "se-hundfjallet",
+      "nom": "Hundfjället",
+      "pays": "SE",
+      "siteOfficiel": "https://www.skistar.com/en/ski-destinations/salen",
+      "centrale": {
+        "nom": "SkiStar Sälen",
+        "url": "https://www.skistar.com/en/ski-destinations/salen/winter-in-salen/lodging/",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison. Hundfjället est une zone de SkiStar Sälen : même centrale que se-salen."
+      }
+    },
+    {
+      "id": "no-strandafjellet-skisenter",
+      "nom": "Strandafjellet skisenter",
+      "pays": "NO",
+      "siteOfficiel": "https://strandafjellet.no/",
+      "centrale": null,
+      "motif": "Pas de centrale : la page « overnatting » de strandafjellet.no renvoie vers plusieurs loueurs tiers (mivo.no, alpehytter.no, visitstranda.com, koiestay.no) et un hôtel ; aucun lien de réservation propre."
+    },
+    {
+      "id": "se-ramundberget",
+      "nom": "Ramundberget",
+      "pays": "SE",
+      "siteOfficiel": "https://www.ramundberget.se/",
+      "centrale": {
+        "nom": "Ramundberget – Book",
+        "url": "https://www.ramundberget.se/en/book/",
+        "hote": "www.ramundberget.se",
+        "moteur": "inconnu",
+        "preuve": "Le site officiel ramundberget.se vend hôtel, appartements et chalets (« Book your vacation in Ramundberget ») ; moteur non relevé."
+      }
+    },
+    {
+      "id": "se-tandadalen",
+      "nom": "Tandådalen",
+      "pays": "SE",
+      "siteOfficiel": "https://www.skistar.com/en/ski-destinations/salen",
+      "centrale": {
+        "nom": "SkiStar Sälen",
+        "url": "https://www.skistar.com/en/ski-destinations/salen/winter-in-salen/lodging/",
+        "hote": "www.skistar.com",
+        "moteur": "SkiStar",
+        "preuve": "Lien « online-booking » publié par la page destination skistar.com (ex. /en/online-booking/Catalog/Package/?r=1…) ; SkiStar vend lui-même son hébergement, moteur maison. Tandådalen est une zone de SkiStar Sälen : même centrale que se-salen."
+      }
+    },
+    {
+      "id": "se-klovsjo-storhogna",
+      "nom": "Klövsjö / Storhogna",
+      "pays": "SE",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Ni site officiel ni page de réservation trouvés : seulement Stugknuten et Hemnet."
+    },
+    {
+      "id": "fi-tahko",
+      "nom": "Tahko",
+      "pays": "FI",
+      "siteOfficiel": "https://www.tahko.com/en/",
+      "centrale": {
+        "nom": "TAHKOcom – shop.tahko.com",
+        "url": "https://shop.tahko.com/",
+        "hote": "shop.tahko.com",
+        "moteur": "inconnu",
+        "preuve": "Centrale officielle TAHKOcom (booking@tahko.com) ; boutique shop.tahko.com et interface api.tahko.com/visittahkoInterface, plateforme apparemment maison, aucun éditeur identifié."
+      }
+    },
+    {
+      "id": "fi-yllas",
+      "nom": "Ylläs",
+      "pays": "FI",
+      "siteOfficiel": "https://yllas.fi/",
+      "centrale": {
+        "nom": "Ylläs – majoitus (yllas.fi)",
+        "url": "https://yllas.fi/en/accommodation/",
+        "hote": "yllas.fi",
+        "moteur": "inconnu",
+        "preuve": "Page hébergement du portail officiel (boutons « Book Accommodation », centrale Yllakselle.com) ; moteur non relevé."
+      }
+    },
+    {
+      "id": "no-uvdal-alpinsenter-senteret",
+      "nom": "Uvdal alpinsenter (Senteret)",
+      "pays": "NO",
+      "siteOfficiel": "https://uvdal.no/aktivitet/uvdalskisenter/",
+      "centrale": {
+        "nom": "Uvdal Booking",
+        "url": "https://uvdalbooking.cloudbooking.no/no?productTypeAsString=g_lodging_lodging",
+        "hote": "uvdalbooking.cloudbooking.no",
+        "moteur": "Cloudbooking",
+        "preuve": "uvdal.no publie une page « Booking » pointant vers uvdalbooking.cloudbooking.no (hôte du moteur norvégien Cloudbooking). Le skisenter lui-même loue par e-mail (booking@uvdalskisenter.no)."
+      }
+    },
+    {
+      "id": "se-kungsberget",
+      "nom": "Kungsberget",
+      "pays": "SE",
+      "siteOfficiel": "https://www.kungsberget.se/en/?nr=1",
+      "centrale": {
+        "nom": "Kungsberget – bokning",
+        "url": "https://www.kungsberget.se/bokning/",
+        "hote": "www.kungsberget.se",
+        "moteur": "inconnu",
+        "preuve": "Page « bokning » du site officiel (boende, skidhyra, skidskola, liftkort) ; même groupe et même téléphone de réservation que Branäs. Moteur non relevé."
+      }
+    },
+    {
+      "id": "no-grong-skisenter",
+      "nom": "Grong skisenter",
+      "pays": "NO",
+      "siteOfficiel": "https://www.grongfri.no/",
+      "centrale": null,
+      "motif": "Aucune page d'hébergement trouvée pour grongfri.no ; seuls des hôtels tiers (Grong Hotell, forfait « Ski and sleep ») apparaissent."
+    },
+    {
+      "id": "se-trillevallen",
+      "nom": "Trillevallen",
+      "pays": "SE",
+      "siteOfficiel": "https://trillevallen.se/",
+      "centrale": {
+        "nom": "Trillevallens Högfjällshotell",
+        "url": "https://trillevallen.se/",
+        "hote": "trillevallen.se",
+        "moteur": "inconnu",
+        "preuve": "La FAQ du site officiel indique « boende bokas enkelt via vår hemsida » ; page de réservation exacte et moteur non relevés."
+      }
+    },
+    {
+      "id": "se-tarmaby",
+      "nom": "Tärmaby",
+      "pays": "SE",
+      "siteOfficiel": "https://tarnabyalpint.se/",
+      "centrale": {
+        "nom": "Hemavan Tärnaby – boka.hemavan.nu",
+        "url": "https://boka.hemavan.nu/en/book/accommodation",
+        "hote": "boka.hemavan.nu",
+        "moteur": "Citybreak",
+        "preuve": "Pied de page de boka.hemavan.nu : « Site produced by Visit Group with Citybreak™ Information & Reservation System » + « WEBX CMS » ; fichiers sous /sites/cb_hemavan/. L'hébergement de Tärnaby (Tärnaby Fjällhotell…) est vendu sur boka.hemavan.nu : même centrale que se-hemavan."
+      }
+    },
+    {
+      "id": "fi-pyhatunturi-luosto",
+      "nom": "Pyhätunturi - Luosto",
+      "pays": "FI",
+      "siteOfficiel": "https://www.luosto.fi/",
+      "centrale": {
+        "nom": "Pyhä – accommodation (superhaku)",
+        "url": "https://www.pyha.fi/en/accommodation",
+        "hote": "www.pyha.fi",
+        "moteur": "inconnu",
+        "preuve": "pyha.fi publie une recherche agrégée (« superhaku ») renvoyant au moteur de chaque loueur ; Luosto (luosto.fi/en/accommodation) passe par PL Travel. Pas de moteur unique identifié."
+      }
+    },
+    {
+      "id": "no-skeikampen-alpinsenter",
+      "nom": "Skeikampen Alpinsenter",
+      "pays": "NO",
+      "siteOfficiel": "https://skeikampen.no/",
+      "centrale": {
+        "nom": "Skeikampen – accommodation",
+        "url": "https://skeikampen.no/en/accommodation/",
+        "hote": "skeikampen.no",
+        "moteur": "inconnu",
+        "preuve": "La page hébergement renvoie vers Thon Hotel Skeikampen (thonhotels.no) et Skeikampen Servicesenter (« Book an apartment ») ; pas de centrale unique, moteur non relevé."
+      }
+    }
+  ],
+  "moteurs": {
+    "inconnu": 16,
+    "Citybreak": 13,
+    "SkiStar": 9,
+    "Cloudbooking": 1
+  }
+}

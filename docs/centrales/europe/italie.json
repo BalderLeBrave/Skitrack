@@ -1,0 +1,914 @@
+{
+  "releve": "2026-10-17",
+  "groupe": "italie",
+  "methode": "Recherche web (WebSearch étendu : pages officielles, conditions générales, pieds de page) depuis le site officiel de chaque domaine vers la centrale de son office/APT/Tourismusverein ; aucun moteur n'est attribué sans preuve lue (« inconnu » sinon). Le relevé a été interrompu par l'épuisement des outils (Firecrawl sans crédits, WebFetch en échec DNS, quota WebSearch atteint) : les empreintes HTML (scripts, iframes) n'ont pas pu être lues, et les domaines non traités sont marqués « non recherché ». Deuxième passe le 2026-10-17 (recherche web seule, sans lecture de page : WebFetch, curl et Firecrawl indisponibles) sur les domaines restés « non recherché » : un moteur n'est nommé que si un extrait de recherche le prouve ; les entrées de cette passe sont préfixées « 2e passe ».",
+  "domaines": [
+    {
+      "id": "it-dolomiti-superski",
+      "nom": "Dolomiti Superski",
+      "pays": "IT",
+      "siteOfficiel": "https://www.dolomitisuperski.com",
+      "centrale": null,
+      "motif": "Domaine fédérant 12 vallées : pas de centrale propre, la réservation est vendue par les associations touristiques de chaque vallée (voir Alta Badia, Val di Fassa, Kronplatz, Drei Zinnen, Cortina…)."
+    },
+    {
+      "id": "it-alta-badia",
+      "nom": "Alta Badia",
+      "pays": "IT",
+      "siteOfficiel": "https://www.altabadia.org/",
+      "centrale": {
+        "nom": "Associazione Turistica Alta Badia",
+        "url": "https://www.altabadia.org/en/accommodations-alta-badia/hotels-bed-and-breakfast-apartments/all-accommodations",
+        "hote": "www.altabadia.org",
+        "moteur": "inconnu",
+        "preuve": "Fiches avec mentions « Online booking » / « Book » / « Enquire » ; images servies depuis fileadmin/api_images/accommodation (TYPO3) ; moteur non prouvé. Ne pas confondre avec alta-badia.org, portail privé (Peer S.r.l.)"
+      }
+    },
+    {
+      "id": "it-cortina-d-ampezzo",
+      "nom": "Cortina d'Ampezzo",
+      "pays": "IT",
+      "siteOfficiel": "https://www.dolomiti.org/en/cortina/",
+      "centrale": null,
+      "motif": "Aucune page de réservation d'hébergement confirmée sur le site officiel (Cortina Marketing) pendant le relevé."
+    },
+    {
+      "id": "it-drei-zinnen-tre-cime-drei-zinnen-tre-cime",
+      "nom": "Drei Zinnen - Tre Cime, Drei Zinnen, Tre Cime",
+      "pays": "IT",
+      "siteOfficiel": "https://www.dreizinnen.com/",
+      "centrale": {
+        "nom": "Drei Zinnen Dolomites (Tourismusverbände Hochpustertal)",
+        "url": "https://www.dreizinnen.com/en/booking/accommodation",
+        "hote": "www.dreizinnen.com",
+        "moteur": "inconnu",
+        "preuve": "Section « Unterkünfte buchen » / « Online shop – Book a room » du site officiel ; aucune empreinte de moteur relevée"
+      }
+    },
+    {
+      "id": "it-livigno",
+      "nom": "Livigno",
+      "pays": "IT",
+      "siteOfficiel": "https://www.livigno.eu/",
+      "centrale": {
+        "nom": "APT Livigno – Booking Livigno (site officiel)",
+        "url": "https://booking.livigno.eu/en/",
+        "hote": "booking.livigno.eu",
+        "moteur": "inconnu",
+        "preuve": "Sous-domaine booking. lié depuis le menu E-shop de livigno.eu ; pied de page : APT Livigno, « Digital Agency: alea.pro » ; aucun éditeur de moteur nommé"
+      }
+    },
+    {
+      "id": "it-la-thuile-ski",
+      "nom": "La Thuile ski",
+      "pays": "IT",
+      "siteOfficiel": "https://www.lathuile.it/",
+      "centrale": null,
+      "motif": "Aucune page de réservation d'hébergement trouvée pour l'office de La Thuile pendant le relevé."
+    },
+    {
+      "id": "it-kronplatz-plan-de-corones-kronplatz-plan-de-corones",
+      "nom": "Kronplatz - Plan de Corones, Kronplatz, Plan de Corones",
+      "pays": "IT",
+      "siteOfficiel": "https://www.kronplatz.com/",
+      "centrale": {
+        "nom": "Kronplatz Dolomites Region (Tourismusverband)",
+        "url": "https://www.kronplatz.com/en/planning-booking/book-a-vacation",
+        "hote": "www.kronplatz.com",
+        "moteur": "inconnu",
+        "preuve": "Le site annonce une base d'hébergements avec disponibilité et réservation en ligne ; moteur non prouvé"
+      }
+    },
+    {
+      "id": "it-monterosa-ski",
+      "nom": "Monterosa Ski",
+      "pays": "IT",
+      "siteOfficiel": "https://monterosaski.eu/en",
+      "centrale": {
+        "nom": "Monterosa Ski – Accomodation",
+        "url": "https://monterosaski.eu/en/accomodation",
+        "hote": "monterosaski.eu",
+        "moteur": "inconnu",
+        "preuve": "Page « REQUEST A QUOTATION or BOOKING ONLINE » avec boutons « Book now » par établissement ; moteur non prouvé"
+      }
+    },
+    {
+      "id": "it-val-di-fassa",
+      "nom": "Val di Fassa",
+      "pays": "IT",
+      "siteOfficiel": "https://www.fassa.com/",
+      "centrale": {
+        "nom": "ApT Val di Fassa",
+        "url": "https://www.fassa.com/it/pianifica/hotel-e-alloggi/tutti-gli-alloggi",
+        "hote": "www.fassa.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Pied de page « Powered by Feratel » sur la liste des hébergements ; les conditions générales (fassa.com/it/condizioni-generali-di-contratto/condizioni-generali-di-contratto-alloggi) nomment la plateforme Feratel-Deskline (Feratel AG)"
+      }
+    },
+    {
+      "id": "it-roccaraso-rivisondoli",
+      "nom": "Roccaraso - Rivisondoli",
+      "pays": "IT",
+      "siteOfficiel": "https://roccaraso.net/",
+      "centrale": {
+        "nom": "RoccarasoTurismo – Booking",
+        "url": "https://www.roccarasoturismo.it/booking/?cat=hotel",
+        "hote": "www.roccarasoturismo.it",
+        "moteur": "inconnu",
+        "preuve": "Page « Booking RoccarasoTurismo » (26 hôtels) ; statut officiel et moteur non prouvés"
+      }
+    },
+    {
+      "id": "it-klausberg-skiarena",
+      "nom": "Klausberg Skiarena",
+      "pays": "IT",
+      "siteOfficiel": "https://www.kronplatz.com/de/klausberg",
+      "centrale": {
+        "nom": "Tourismusverein Ahrntal",
+        "url": "https://www.ahrntal.com/en/offer-request-booking/accomodations-directbooking.html",
+        "hote": "www.ahrntal.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Find and book your ideal accommodation » : réservation directe en ligne ou demande sans engagement (offer-request-booking/get-an-offer.html) ; aucun éditeur nommé dans les extraits. Klausberg et Speikboden sont dans l'Ahrntal (Tauferer Ahrntal), pas sous la centrale de kronplatz.com."
+      }
+    },
+    {
+      "id": "it-seiser-alm-mont-de-seuc-alpe-di-siusi-seiser-alm-alpe-di-siusi-mont-de-seuc",
+      "nom": "Seiser Alm - Mont de Sëuc - Alpe di Siusi, Seiser Alm, Alpe di Siusi, Mont de Sëuc",
+      "pays": "IT",
+      "siteOfficiel": "https://www.seiseralm.it/",
+      "centrale": null,
+      "motif": "Aucune page de réservation du Tourismusverein Seiser Alm trouvée pendant le relevé (les hébergements réservables apparaissent sur suedtirol.info, portail IDM)."
+    },
+    {
+      "id": "it-sestriere",
+      "nom": "Sestriere",
+      "pays": "IT",
+      "siteOfficiel": "https://www.vialattea.it",
+      "centrale": null,
+      "motif": "Aucune centrale officielle trouvée (Consorzio Turismo Sestriere / Via Lattea) pendant le relevé."
+    },
+    {
+      "id": "it-sauze-d-oulx",
+      "nom": "Sauze D'Oulx",
+      "pays": "IT",
+      "siteOfficiel": "https://www.vialattea.it",
+      "centrale": null,
+      "motif": "Aucune centrale officielle trouvée pour Sauze d'Oulx pendant le relevé."
+    },
+    {
+      "id": "it-ponte-di-legno-passo-tonale",
+      "nom": "Ponte di Legno - Passo Tonale",
+      "pays": "IT",
+      "siteOfficiel": "https://www.pontedilegnotonale.com/",
+      "centrale": {
+        "nom": "Consorzio Adamello Ski Pontedilegno-Tonale",
+        "url": "https://www.pontedilegnotonale.com/en/pontedilegno-tonale-booking/",
+        "hote": "www.pontedilegnotonale.com",
+        "moteur": "inconnu",
+        "preuve": "Service de réservation en ligne et demandes de devis multiples (4 établissements max) ; moteur non nommé"
+      }
+    },
+    {
+      "id": "it-campiglio-dolomiti-di-brenta",
+      "nom": "Campiglio Dolomiti di Brenta",
+      "pays": "IT",
+      "siteOfficiel": "https://www.campigliodolomiti.it/",
+      "centrale": {
+        "nom": "ApT Madonna di Campiglio Pinzolo Val Rendena",
+        "url": "https://www.campigliodolomiti.it/",
+        "hote": "www.campigliodolomiti.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin ; l'ApT documente son usage de Feratel (campigliodolomiti.it/it/area-operatori/servizi-apt-per-i-partner/digital/feratel). URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-pila-ski",
+      "nom": "Pila ski",
+      "pays": "IT",
+      "siteOfficiel": "https://www.pila.it/",
+      "centrale": {
+        "nom": "Consorzio Pila Turismo",
+        "url": "https://pila.it/en/hotel-category/where-to-sleep/",
+        "hote": "pila.it",
+        "moteur": "aucun",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : pila.it publie un annuaire « Where to sleep » ; les offres séjour + forfait (4x3, Ski Free) passent par un formulaire, l'établissement recontacte le client, demandes à info@pilaturismo.it et paiement par virement au Consortium : pas de réservation instantanée en ligne."
+      }
+    },
+    {
+      "id": "it-ski-civetta",
+      "nom": "Ski Civetta",
+      "pays": "IT",
+      "siteOfficiel": "https://www.skicivetta.com/",
+      "centrale": null,
+      "motif": "Aucune centrale du consortium Civetta / Val di Zoldo / Alleghe trouvée ; seuls des portails privés (dolomiti.it) et Booking.com apparaissent."
+    },
+    {
+      "id": "it-ski-area-san-pellegrino-falcade",
+      "nom": "Ski Area San Pellegrino - Falcade",
+      "pays": "IT",
+      "siteOfficiel": "https://www.skiareasanpellegrino.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Office : Consorzio Turistico Val Biois (info@falcadedolomiti.it) ; aucune page de réservation d'hébergement trouvée."
+    },
+    {
+      "id": "it-3-zinnen-dolomites-dobbiaco-san-candido-braies-sesto-alta-pusteria",
+      "nom": "3 Zinnen Dolomites (Dobbiaco - San Candido - Braies - Sesto - Alta Pusteria)",
+      "pays": "IT",
+      "siteOfficiel": "https://www.dreizinnen.com/",
+      "centrale": {
+        "nom": "Drei Zinnen Dolomites (Tourismusverbände Hochpustertal)",
+        "url": "https://www.dreizinnen.com/en/booking/accommodation",
+        "hote": "www.dreizinnen.com",
+        "moteur": "inconnu",
+        "preuve": "Section « Unterkünfte buchen » / « Online shop – Book a room » du site officiel ; aucune empreinte de moteur relevée"
+      }
+    },
+    {
+      "id": "it-folgaria-area-sciistica-folgaria",
+      "nom": "Folgaria, Area sciistica Folgaria",
+      "pays": "IT",
+      "siteOfficiel": "https://www.alpecimbra.it/",
+      "centrale": {
+        "nom": "ApT Alpe Cimbra",
+        "url": "https://www.alpecimbra.it/",
+        "hote": "www.alpecimbra.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin. URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-riserva-bianca",
+      "nom": "Riserva Bianca",
+      "pays": "IT",
+      "siteOfficiel": "https://www.riservabianca.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Limone Piemonte : office Limone Turismo cité, aucune centrale ni page de réservation trouvée."
+    },
+    {
+      "id": "it-san-martino-di-castrozza-passo-rolle",
+      "nom": "San Martino di Castrozza - Passo Rolle",
+      "pays": "IT",
+      "siteOfficiel": "https://www.sanmartino.com/",
+      "centrale": {
+        "nom": "ApT San Martino di Castrozza, Primiero e Vanoi",
+        "url": "https://www.sanmartino.com/",
+        "hote": "www.sanmartino.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin. URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-latemar-dolomites",
+      "nom": "Latemar Dolomites",
+      "pays": "IT",
+      "siteOfficiel": "https://www.latemar.it/",
+      "centrale": {
+        "nom": "Eggental Tourismus",
+        "url": "https://eggental.com/en/info_service/accommodation/search-and-book",
+        "hote": "eggental.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Suchen & buchen : Unterkünfte im Südtiroler Eggental » (plus de 200 hébergements filtrables) ; aucun éditeur nommé. Côté Obereggen (Haut-Adige) ; le versant Pampeago/Predazzo relève de l'ApT Val di Fiemme (système provincial Feratel du Trentin), non retenu ici."
+      }
+    },
+    {
+      "id": "it-courmayeur",
+      "nom": "Courmayeur",
+      "pays": "IT",
+      "siteOfficiel": "https://www.courmayeurmontblanc.it/",
+      "centrale": {
+        "nom": "Consorzio Courmayeur Mont Blanc",
+        "url": "https://www.courmayeurmontblanc.it/dove-dormire/",
+        "hote": "www.courmayeurmontblanc.it",
+        "moteur": "inconnu",
+        "preuve": "Page « dove dormire » : réservation directe et formule hôtel + forfait ; moteur non prouvé"
+      }
+    },
+    {
+      "id": "it-folgarida-marilleva",
+      "nom": "Folgarida-Marilleva",
+      "pays": "IT",
+      "siteOfficiel": "https://www.visitvaldisole.it/",
+      "centrale": {
+        "nom": "ApT Val di Sole",
+        "url": "https://www.visitvaldisole.it/",
+        "hote": "www.visitvaldisole.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin ; l'ApT documente « Feratel Deskline » (dmo.visitvaldisole.it/it/progetti/feratel-deskline). URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-cortina-tofane",
+      "nom": "Cortina Tofane",
+      "pays": "IT",
+      "siteOfficiel": "https://www.dolomiti.org/en/cortina/",
+      "centrale": null,
+      "motif": "Même centrale que Cortina d'Ampezzo : aucune page de réservation confirmée."
+    },
+    {
+      "id": "it-area-sciistica-abetone",
+      "nom": "Area Sciistica Abetone",
+      "pays": "IT",
+      "siteOfficiel": "https://multipassabetone.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Seul l'IAT Abetone-Cutigliano (pistoia.turismo.toscana.it) a été trouvé ; aucune centrale d'hébergement."
+    },
+    {
+      "id": "it-aprica",
+      "nom": "Aprica",
+      "pays": "IT",
+      "siteOfficiel": "https://www.apricaonline.com/",
+      "centrale": {
+        "nom": "Pro Loco Aprica – Prenotazione alberghiera",
+        "url": "https://www.apricaonline.com/it/richiedi-la-disponibilita",
+        "hote": "www.apricaonline.com",
+        "moteur": "aucun",
+        "preuve": "Formulaire de demande de disponibilité transmis aux établissements, pas de réservation instantanée"
+      }
+    },
+    {
+      "id": "it-bardonecchia",
+      "nom": "Bardonecchia",
+      "pays": "IT",
+      "siteOfficiel": "https://www.bardonecchiaski.com",
+      "centrale": {
+        "nom": "Bardonecchia Booking (bardonecchiaski.com)",
+        "url": "https://www.bardonecchiaski.com/it/soggiorno/dove-dormire-a-bardonecchia-hotel-strutture",
+        "hote": "www.bardonecchiaski.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Dove dormire a Bardonecchia » : le site dit qu'on peut réserver directement en ligne ; contact info@bardonecchiabooking.com ; aucun éditeur de moteur nommé. Statut exact (exploitant ou consortium) non prouvé."
+      }
+    },
+    {
+      "id": "it-cimone-area-sciistica-monte-cimone",
+      "nom": "Cimone, Area sciistica Monte Cimone",
+      "pays": "IT",
+      "siteOfficiel": "https://cimonesci.it",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucun portail de réservation officiel (Sestola, Fanano, consortium) trouvé ; seulement des agrégateurs."
+    },
+    {
+      "id": "it-artesina",
+      "nom": "Artesina",
+      "pays": "IT",
+      "siteOfficiel": "https://www.artesina.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Mondolè Ski : le portail BookingPratoNevoso appartient à Prato Nevoso, aucun lien prouvé depuis artesina.it."
+    },
+    {
+      "id": "it-paganella-area-sciistica-andalo-fai-della-paganella",
+      "nom": "Paganella, Area sciistica Andalo Fai della Paganella",
+      "pays": "IT",
+      "siteOfficiel": "https://www.paganella.net/",
+      "centrale": {
+        "nom": "ApT Dolomiti Paganella",
+        "url": "https://www.visitdolomitipaganella.it/",
+        "hote": "www.visitdolomitipaganella.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin. URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-sansicario",
+      "nom": "Sansicario",
+      "pays": "IT",
+      "siteOfficiel": "https://www.vialattea.it",
+      "centrale": null,
+      "motif": "Aucune centrale officielle trouvée pour Sansicario pendant le relevé."
+    },
+    {
+      "id": "it-arabba",
+      "nom": "Arabba",
+      "pays": "IT",
+      "siteOfficiel": "http://www.arabba.it",
+      "centrale": {
+        "nom": "Arabba Fodom Turismo",
+        "url": "https://www.arabba.it/en/holiday-apartments-arabba/52-0.html",
+        "hote": "www.arabba.it",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : fiches d'hébergement /38-<id>.html avec boutons « Richiedi » et « Prenota » ; aucun éditeur nommé."
+      }
+    },
+    {
+      "id": "it-belvedere-col-rodella-passo-pordoi",
+      "nom": "Belvedere - Col Rodella - Passo Pordoi",
+      "pays": "IT",
+      "siteOfficiel": "https://www.fassa.com/",
+      "centrale": {
+        "nom": "ApT Val di Fassa",
+        "url": "https://www.fassa.com/it/pianifica/hotel-e-alloggi/tutti-gli-alloggi",
+        "hote": "www.fassa.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Pied de page « Powered by Feratel » sur la liste des hébergements ; les conditions générales (fassa.com/it/condizioni-generali-di-contratto/condizioni-generali-di-contratto-alloggi) nomment la plateforme Feratel-Deskline (Feratel AG)"
+      }
+    },
+    {
+      "id": "it-schnalstal",
+      "nom": "Schnalstal",
+      "pays": "IT",
+      "siteOfficiel": "https://www.schnalstal.com/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Seule une page liste « Unterkünfte & Hotels im Schnalstal » (schnalstal.com/de/hotels-schnalstal) a été trouvée ; réservation en ligne non confirmée."
+    },
+    {
+      "id": "it-skiarea-valchiavenna-madesimo-campodolcino",
+      "nom": "Skiarea Valchiavenna Madesimo/Campodolcino",
+      "pays": "IT",
+      "siteOfficiel": "https://www.madesimo.eu/",
+      "centrale": {
+        "nom": "Consorzio Turistico Madesimo",
+        "url": "https://www.madesimo.eu/en/accommodations/",
+        "hote": "www.madesimo.eu",
+        "moteur": "aucun",
+        "preuve": "La page hébergements renvoie à une demande par e-mail (booking@madesimo.eu) ; pas de réservation en ligne"
+      }
+    },
+    {
+      "id": "it-sulden",
+      "nom": "Sulden",
+      "pays": "IT",
+      "siteOfficiel": "https://www.ortlerskiarena.com/",
+      "centrale": {
+        "nom": "Vinschgau Marketing / Ferienregion Ortlergebiet",
+        "url": "https://www.vinschgau.net/en/ortles-holiday-area/service-info/vacation-planning/accommodation-search.html",
+        "hote": "www.vinschgau.net",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Find the best Hotels, B&B, Apartments in the Ortles Region » (recherche et réservation) ; fiches vinschgau.net avec reg=<32 hex> et detailid=<32 hex>, identifiant 32 hex au format des RID LTS/TIC-Web (base de données des associations touristiques du Haut-Adige ; LTS se déclare sous-traitant de TIC-Web et propose un « LTS Booking Widget », cf. lts.it/download/lts_gdpr_de.pdf) : cela prouve la source des données, pas le moteur de réservation."
+      }
+    },
+    {
+      "id": "it-speikboden",
+      "nom": "Speikboden",
+      "pays": "IT",
+      "siteOfficiel": "https://www.skiworldahrntal.it/",
+      "centrale": {
+        "nom": "Tourismusverein Ahrntal",
+        "url": "https://www.ahrntal.com/en/offer-request-booking/accomodations-directbooking.html",
+        "hote": "www.ahrntal.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Find and book your ideal accommodation » : réservation directe en ligne ou demande sans engagement (offer-request-booking/get-an-offer.html) ; aucun éditeur nommé dans les extraits. Klausberg et Speikboden sont dans l'Ahrntal (Tauferer Ahrntal), pas sous la centrale de kronplatz.com."
+      }
+    },
+    {
+      "id": "it-gitschberg-jochtal-rio-pusteria",
+      "nom": "Gitschberg Jochtal, Rio Pusteria",
+      "pays": "IT",
+      "siteOfficiel": "https://www.gitschberg-jochtal.com",
+      "centrale": {
+        "nom": "Tourismusverein Gitschberg Jochtal",
+        "url": "https://www.gitschberg-jochtal.com/urlaubsplanung/unterkunft-buchen",
+        "hote": "www.gitschberg-jochtal.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Unterkunft buchen » (paramètre ?propertyId=12915) ; aucun éditeur nommé."
+      }
+    },
+    {
+      "id": "it-ski-area-alpe-lusia",
+      "nom": "Ski Area Alpe Lusia",
+      "pays": "IT",
+      "siteOfficiel": "http://www.skiareaalpelusia.it/",
+      "centrale": {
+        "nom": "ApT Val di Fassa",
+        "url": "https://www.fassa.com/it/pianifica/hotel-e-alloggi/tutti-gli-alloggi",
+        "hote": "www.fassa.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Pied de page « Powered by Feratel » sur la liste des hébergements ; les conditions générales (fassa.com/it/condizioni-generali-di-contratto/condizioni-generali-di-contratto-alloggi) nomment la plateforme Feratel-Deskline (Feratel AG)"
+      }
+    },
+    {
+      "id": "it-bormio-ski",
+      "nom": "Bormio Ski",
+      "pays": "IT",
+      "siteOfficiel": "https://www.bormioski.eu/",
+      "centrale": {
+        "nom": "Visit Bormio",
+        "url": "https://www.visitbormio.eu/it-it/sleep.aspx",
+        "hote": "www.visitbormio.eu",
+        "moteur": "inconnu",
+        "preuve": "Le site indique que les forfaits passent par le système de réservation d'ActivityBreaks.com et l'hébergement par un « booking » de bureau ; statut officiel et moteur hébergement non prouvés"
+      }
+    },
+    {
+      "id": "it-kaunertaler-gletscher",
+      "nom": "Kaunertaler Gletscher",
+      "pays": "IT",
+      "siteOfficiel": "https://www.kaunertaler-gletscher.at",
+      "centrale": {
+        "nom": "TVB Tiroler Oberland – Kaunertal",
+        "url": "https://www.kaunertal.com/en/Accommodation",
+        "hote": "booking.tiroler-oberland.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : kaunertal.com « Hotels/Unterkünfte Buchen » ; moteur servi sur booking.tiroler-oberland.com (/at/reiseziele/<ort>/hotel-unterkuenfte, fiches /unterkuenfte/AT3/<guid>/<nom>), sans frais de réservation, demande sans engagement. La forme code + GUID rappelle Deskline mais « AT3 » n'est pas un code Deskline connu : non prouvé. Domaine autrichien (Tyrol), mal rangé en Italie."
+      }
+    },
+    {
+      "id": "it-san-martino-di-castrozza",
+      "nom": "San Martino di Castrozza",
+      "pays": "IT",
+      "siteOfficiel": "https://www.sanmartino.com",
+      "centrale": {
+        "nom": "ApT San Martino di Castrozza, Primiero e Vanoi",
+        "url": "https://www.sanmartino.com/",
+        "hote": "www.sanmartino.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin. URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-lagazuoi-5-torri",
+      "nom": "Lagazuoi - 5 Torri",
+      "pays": "IT",
+      "siteOfficiel": "https://www.dolomiti.org/en/cortina/",
+      "centrale": null,
+      "motif": "Même centrale que Cortina d'Ampezzo : aucune page de réservation confirmée."
+    },
+    {
+      "id": "it-carezza",
+      "nom": "Carezza",
+      "pays": "IT",
+      "siteOfficiel": "https://carezza.it/",
+      "centrale": {
+        "nom": "Eggental Tourismus",
+        "url": "https://eggental.com/en/info_service/accommodation/search-and-book",
+        "hote": "eggental.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Suchen & buchen : Unterkünfte im Südtiroler Eggental » (plus de 200 hébergements filtrables) ; aucun éditeur nommé. Carezza/Karersee fait partie de l'Eggental."
+      }
+    },
+    {
+      "id": "it-valtournenche",
+      "nom": "Valtournenche",
+      "pays": "IT",
+      "siteOfficiel": "https://www.cervinia.it/",
+      "centrale": null,
+      "motif": "cervinia.it publie un annuaire (téléphones et liens vers les sites des établissements) ; aucune réservation en ligne trouvée."
+    },
+    {
+      "id": "it-tarvisio-tarvis",
+      "nom": "Tarvisio, Tarvis",
+      "pays": "IT",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "turismofvg.it (PromoTurismoFVG) : aucune réservation d'hébergement pour les voyageurs trouvée ; plateforme DMS réservée aux opérateurs."
+    },
+    {
+      "id": "it-zoncolan-concolan",
+      "nom": "Zoncolan, Çoncolan",
+      "pays": "IT",
+      "siteOfficiel": "https://www.turismofvg.it/en/mountain365/ski-area-ravascletto-zoncolan",
+      "centrale": null,
+      "motif": "turismofvg.it (PromoTurismoFVG) : aucune réservation d'hébergement pour les voyageurs trouvée."
+    },
+    {
+      "id": "it-klausberg-monte-chiusetta-klausberg-monte-chiusetta",
+      "nom": "Klausberg - Monte Chiusetta, Klausberg, Monte Chiusetta",
+      "pays": "IT",
+      "siteOfficiel": null,
+      "centrale": {
+        "nom": "Tourismusverein Ahrntal",
+        "url": "https://www.ahrntal.com/en/offer-request-booking/accomodations-directbooking.html",
+        "hote": "www.ahrntal.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Find and book your ideal accommodation » : réservation directe en ligne ou demande sans engagement (offer-request-booking/get-an-offer.html) ; aucun éditeur nommé dans les extraits. Klausberg et Speikboden sont dans l'Ahrntal (Tauferer Ahrntal), pas sous la centrale de kronplatz.com."
+      }
+    },
+    {
+      "id": "it-schoneben-belpiano-schoneben",
+      "nom": "Schöneben - Belpiano, Schöneben",
+      "pays": "IT",
+      "siteOfficiel": "https://www.schoeneben.it/",
+      "centrale": {
+        "nom": "Vinschgau Marketing / Ferienregion Reschenpass",
+        "url": "https://www.vinschgau.net/de/reschenpass/service-info/urlaubsplanung/unterkunft-suchen-buchen/",
+        "hote": "www.vinschgau.net",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Unterkunft suchen & buchen » du Reschenpass, avec aussi une demande sans engagement ; fiches vinschgau.net avec reg=<32 hex> et detailid=<32 hex>, identifiant 32 hex au format des RID LTS/TIC-Web (base de données des associations touristiques du Haut-Adige ; LTS se déclare sous-traitant de TIC-Web et propose un « LTS Booking Widget », cf. lts.it/download/lts_gdpr_de.pdf) : cela prouve la source des données, pas le moteur de réservation."
+      }
+    },
+    {
+      "id": "it-buffaure-ciampac",
+      "nom": "Buffaure - Ciampac",
+      "pays": "IT",
+      "siteOfficiel": "https://www.fassa.com/",
+      "centrale": {
+        "nom": "ApT Val di Fassa",
+        "url": "https://www.fassa.com/it/pianifica/hotel-e-alloggi/tutti-gli-alloggi",
+        "hote": "www.fassa.com",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Pied de page « Powered by Feratel » sur la liste des hébergements ; les conditions générales (fassa.com/it/condizioni-generali-di-contratto/condizioni-generali-di-contratto-alloggi) nomment la plateforme Feratel-Deskline (Feratel AG)"
+      }
+    },
+    {
+      "id": "it-santa-caterina",
+      "nom": "Santa Caterina",
+      "pays": "IT",
+      "siteOfficiel": "https://www.santacaterinaimpianti.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. santacaterina.it/dove-dormire liste des établissements avec contacts directs ; le portail régional booking.valtellina.it existe, mais aucun lien depuis le site officiel n'a été prouvé."
+    },
+    {
+      "id": "it-ratschings-jaufen",
+      "nom": "Ratschings-Jaufen",
+      "pays": "IT",
+      "siteOfficiel": "https://www.ratschings-jaufen.it/",
+      "centrale": {
+        "nom": "Tourismusverein Ratschings",
+        "url": "https://www.ratschings.info/en/holiday-planning/discover-book-your-accommodation.html",
+        "hote": "www.ratschings.info",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Unterkunft in Ratschings suchen und buchen » : prix et disponibilités par dates, demande sans engagement ; fiches /all-accommodations/rid-<32 hex>-<nom>.html, identifiant 32 hex au format des RID LTS/TIC-Web (base de données des associations touristiques du Haut-Adige ; LTS se déclare sous-traitant de TIC-Web et propose un « LTS Booking Widget », cf. lts.it/download/lts_gdpr_de.pdf) : cela prouve la source des données, pas le moteur de réservation."
+      }
+    },
+    {
+      "id": "it-crevacol",
+      "nom": "Crévacol",
+      "pays": "IT",
+      "siteOfficiel": "https://www.crevacol.it",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Seul le service régional « Booking Valle d'Aosta » de lovevda.it (réservation en ligne des établissements à confirmation immédiate) a été trouvé ; aucun lien prouvé depuis crevacol.it, moteur inconnu."
+    },
+    {
+      "id": "it-alpe-cermis",
+      "nom": "Alpe Cermis",
+      "pays": "IT",
+      "siteOfficiel": "https://www.alpecermis.it/",
+      "centrale": {
+        "nom": "ApT Val di Fiemme",
+        "url": "https://www.visitfiemme.it/",
+        "hote": "www.visitfiemme.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin. URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-cima-piazzi-san-colombano",
+      "nom": "Cima Piazzi – San Colombano",
+      "pays": "IT",
+      "siteOfficiel": "https://www.cimapiazzi.eu/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Le portail régional booking.valtellina.it a des pages Valdidentro, mais aucun lien depuis cimapiazzi.eu n'a été prouvé ; moteur de booking.valtellina.it non identifié."
+    },
+    {
+      "id": "it-valmalenco-bernina",
+      "nom": "Valmalenco Bernina",
+      "pays": "IT",
+      "siteOfficiel": "https://www.sondrioevalmalenco.it/",
+      "centrale": {
+        "nom": "Consorzio Turistico Sondrio e Valmalenco",
+        "url": "https://booking.sondrioevalmalenco.it/",
+        "hote": "booking.sondrioevalmalenco.it",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : sous-domaine booking. du site officiel sondrioevalmalenco.it, déclinaison du portail « Booking Valtellina » (booking.valtellina.it/it/sondrio-e-valmalenco/...) ; une recherche ciblée n'a trouvé aucun éditeur."
+      }
+    },
+    {
+      "id": "it-brixen-plose-plose-di-bressanone-brixen-plose-plose-di-bressanone",
+      "nom": "Brixen Plose - Plose di Bressanone, Brixen Plose, Plose di Bressanone",
+      "pays": "IT",
+      "siteOfficiel": "https://www.plose.org/",
+      "centrale": {
+        "nom": "Brixen Tourismus",
+        "url": "https://www.brixen.org/en/my-holiday/holidaying-in-brixen/accomodation-brixen-south-tyrol",
+        "hote": "www.brixen.org",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : « Unterkunftssuche von Brixen Tourismus » (dates, personnes, filtres) ; fiches ?component=DetailView&detailid=<32 hex>, identifiant 32 hex au format des RID LTS/TIC-Web (base de données des associations touristiques du Haut-Adige ; LTS se déclare sous-traitant de TIC-Web et propose un « LTS Booking Widget », cf. lts.it/download/lts_gdpr_de.pdf) : cela prouve la source des données, pas le moteur de réservation."
+      }
+    },
+    {
+      "id": "it-brentonico",
+      "nom": "Brentonico",
+      "pays": "IT",
+      "siteOfficiel": "https://www.brentonicoski.com",
+      "centrale": {
+        "nom": "ApT Rovereto, Vallagarina e Monte Baldo",
+        "url": "https://www.visitrovereto.it/",
+        "hote": "www.visitrovereto.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin. URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-prato-nevoso",
+      "nom": "Prato Nevoso",
+      "pays": "IT",
+      "siteOfficiel": "https://pratonevoso.com/",
+      "centrale": {
+        "nom": "BookingPratoNevoso",
+        "url": "https://booking.pratonevoso.com/",
+        "hote": "booking.pratonevoso.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : pratonevoso.com/appartamenti renvoie au « portale di prenotazione ufficiale BookingPratoNevoso » ; fiches booking.pratonevoso.com/laghetto-tripla?r=1, /bilo-standard-deluxe ; aucun éditeur nommé."
+      }
+    },
+    {
+      "id": "it-campo-felice",
+      "nom": "Campo Felice",
+      "pays": "IT",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucun site ni portail officiel de réservation trouvé (Rocca di Mezzo, Rocca di Cambio) ; seulement des locations privées."
+    },
+    {
+      "id": "it-bielmonte",
+      "nom": "Bielmonte",
+      "pays": "IT",
+      "siteOfficiel": "https://www.bielmonteneve.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Recherche limitée aux sites bielmonteneve.it et atlbiella.it : aucune page de réservation."
+    },
+    {
+      "id": "it-val-comelico-padola",
+      "nom": "Val Comelico - Padola",
+      "pays": "IT",
+      "siteOfficiel": "https://www.valcomelicodolomiti.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune page du Consorzio Turistico Val Comelico trouvée ; seulement des agrégateurs."
+    },
+    {
+      "id": "it-montecampione",
+      "nom": "Montecampione",
+      "pays": "IT",
+      "siteOfficiel": "https://www.consorziomontecampione.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune centrale trouvée (recherche groupée Bergamasque/Brescia)."
+    },
+    {
+      "id": "it-frabosa-soprana",
+      "nom": "Frabosa Soprana",
+      "pays": "IT",
+      "siteOfficiel": "https://www.pratonevoso.com/",
+      "centrale": {
+        "nom": "BookingPratoNevoso",
+        "url": "https://booking.pratonevoso.com/",
+        "hote": "booking.pratonevoso.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : pratonevoso.com/appartamenti renvoie au « portale di prenotazione ufficiale BookingPratoNevoso » ; fiches booking.pratonevoso.com/laghetto-tripla?r=1, /bilo-standard-deluxe ; aucun éditeur nommé. Le site officiel du domaine est pratonevoso.com."
+      }
+    },
+    {
+      "id": "it-pinzolo",
+      "nom": "Pinzolo",
+      "pays": "IT",
+      "siteOfficiel": "https://www.pinzolo.it/",
+      "centrale": {
+        "nom": "ApT Madonna di Campiglio Pinzolo Val Rendena",
+        "url": "https://www.campigliodolomiti.it/",
+        "hote": "www.campigliodolomiti.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin ; l'ApT documente son usage de Feratel (campigliodolomiti.it/it/area-operatori/servizi-apt-per-i-partner/digital/feratel). URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-bardonecchia-jafferau",
+      "nom": "Bardonecchia - Jafferau",
+      "pays": "IT",
+      "siteOfficiel": "https://www.bardonecchiaski.com/",
+      "centrale": {
+        "nom": "Bardonecchia Booking (bardonecchiaski.com)",
+        "url": "https://www.bardonecchiaski.com/it/soggiorno/dove-dormire-a-bardonecchia-hotel-strutture",
+        "hote": "www.bardonecchiaski.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Dove dormire a Bardonecchia » : le site dit qu'on peut réserver directement en ligne ; contact info@bardonecchiabooking.com ; aucun éditeur de moteur nommé. Statut exact (exploitant ou consortium) non prouvé."
+      }
+    },
+    {
+      "id": "it-skiarea-san-domenico",
+      "nom": "Skiarea San Domenico",
+      "pays": "IT",
+      "siteOfficiel": "https://www.san-domenico.com/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Le portail de l'ATL Distretto Turistico dei Laghi (distrettolaghi.it) liste des établissements de l'Ossola avec un bouton « Prenota la struttura » qui renvoie à l'établissement ; aucun lien depuis san-domenico.com prouvé."
+    },
+    {
+      "id": "it-sangiacomo-cardini",
+      "nom": "Sangiacomo Cardini",
+      "pays": "IT",
+      "siteOfficiel": "https://www.sangiacomocardiniski.com",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. visitcuneese.it a une rubrique « Dove dormire » sans résultat exploitable."
+    },
+    {
+      "id": "it-schwemmalm",
+      "nom": "Schwemmalm",
+      "pays": "IT",
+      "siteOfficiel": "https://www.merano-suedtirol.it/de/schwemmalm.html",
+      "centrale": {
+        "nom": "Tourismusverband Meraner Land",
+        "url": "https://www.merano-suedtirol.it/en/vacation-planning/search-for-and-book-accommodation/all-accommodations",
+        "hote": "www.merano-suedtirol.it",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : le site officiel de Schwemmalm est une page de merano-suedtirol.it ; pages « search-book » par village (Passeiertal : demande sans engagement), fiches /all-accommodations/rid-<32 hex>-<nom>.html, identifiant 32 hex au format des RID LTS/TIC-Web (base de données des associations touristiques du Haut-Adige ; LTS se déclare sous-traitant de TIC-Web et propose un « LTS Booking Widget », cf. lts.it/download/lts_gdpr_de.pdf) : cela prouve la source des données, pas le moteur de réservation."
+      }
+    },
+    {
+      "id": "it-cristallo-faloria",
+      "nom": "Cristallo - Faloria",
+      "pays": "IT",
+      "siteOfficiel": "https://www.dolomiti.org/en/cortina/",
+      "centrale": null,
+      "motif": "Même centrale que Cortina d'Ampezzo : aucune page de réservation confirmée."
+    },
+    {
+      "id": "it-ovindoli",
+      "nom": "Ovindoli",
+      "pays": "IT",
+      "siteOfficiel": "https://www.ovindolimagnola.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucun site ni portail officiel de réservation trouvé ; seulement des locations privées."
+    },
+    {
+      "id": "it-piani-di-bobbio-valtorta-skiarea",
+      "nom": "Piani di Bobbio - Valtorta Skiarea",
+      "pays": "IT",
+      "siteOfficiel": "https://www.pianidibobbio.com/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune centrale trouvée (Valsassina) ; seulement des agrégateurs."
+    },
+    {
+      "id": "it-passo-stelvio-stilfserjoch",
+      "nom": "Passo Stelvio - Stilfserjoch",
+      "pays": "IT",
+      "siteOfficiel": "http://www.passostelvio.com/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune page d'hébergement liée à passostelvio.com trouvée ; versant Sud-Tyrol couvert par vinschgau.net (Ortlergebiet), versant Bormio par visitbormio.eu, sans lien prouvé."
+    },
+    {
+      "id": "it-area-sciistica-ussita-frontignano",
+      "nom": "Area Sciistica Ussita Frontignano",
+      "pays": "IT",
+      "siteOfficiel": "https://www.frontignano360.it/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Recherche limitée à frontignano360.it : aucune page de réservation."
+    },
+    {
+      "id": "it-monte-pora",
+      "nom": "Monte Pora",
+      "pays": "IT",
+      "siteOfficiel": "https://www.montepora.com/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune centrale trouvée."
+    },
+    {
+      "id": "it-pejo-3000",
+      "nom": "Pejo 3000",
+      "pays": "IT",
+      "siteOfficiel": "https://www.skipejo.it/",
+      "centrale": {
+        "nom": "ApT Val di Sole",
+        "url": "https://www.visitvaldisole.it/",
+        "hote": "www.visitvaldisole.it",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Système provincial : trentinomarketing.org (« Sistema booking del Trentino ») indique que Feratel est le système de réservation adopté par la Province et utilisé par toutes les ApT du Trentin ; l'ApT documente « Feratel Deskline » (dmo.visitvaldisole.it/it/progetti/feratel-deskline). URL exacte de la page de réservation non relevée (preuve indirecte, pas d'empreinte lue dans la page)."
+      }
+    },
+    {
+      "id": "it-foppolo-carona",
+      "nom": "Foppolo-Carona",
+      "pays": "IT",
+      "siteOfficiel": "https://www.foppolo.ski/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Site touristique cité : altobrembo.it, réservation en ligne non confirmée."
+    },
+    {
+      "id": "it-meran-2000",
+      "nom": "Meran 2000",
+      "pays": "IT",
+      "siteOfficiel": "https://www.meran2000.com/",
+      "centrale": {
+        "nom": "Meran 2000 (exploitant)",
+        "url": "https://www.meran2000.com/en/info/accomodation/",
+        "hote": "www.meran2000.com",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Hotels & Unterkünfte » avec « Book now » ; aucun éditeur nommé. Hafling et Meran relèvent aussi du Tourismusverband Meraner Land (merano-suedtirol.it)."
+      }
+    },
+    {
+      "id": "it-champorcher",
+      "nom": "Champorcher",
+      "pays": "IT",
+      "siteOfficiel": "http://www.monterosa-ski.com/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Seul le service régional « Booking Valle d'Aosta » de lovevda.it a été trouvé ; aucun lien prouvé depuis le site officiel (monterosa-ski.com), moteur inconnu."
+    },
+    {
+      "id": "it-lurisia-monte-pigna",
+      "nom": "Lurisia Monte Pigna",
+      "pays": "IT",
+      "siteOfficiel": "https://www.lurisiamontepigna.com/",
+      "centrale": null,
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Recherche limitée à lurisiamontepigna.com et visitcuneese.it : aucune page de réservation."
+    },
+    {
+      "id": "it-piancavallo",
+      "nom": "Piancavallo",
+      "pays": "IT",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "turismofvg.it (PromoTurismoFVG) : aucune réservation d'hébergement pour les voyageurs trouvée."
+    }
+  ],
+  "moteurs": {
+    "inconnu": 29,
+    "Deskline / Feratel": 14,
+    "aucun": 3
+  }
+}

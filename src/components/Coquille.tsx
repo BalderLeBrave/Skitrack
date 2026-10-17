@@ -26,7 +26,9 @@ import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
 import { Toast } from "./v6/Toast";
 import { useFermeture } from "./v7/fermeture";
 import { useCriteresUrl } from "@/lib/criteres";
-import { tr, trN, useLocale, useT, type MsgId } from "@/lib/i18n";
+import { langueIntl, tr, trN, useLocale, useT, type MsgId } from "@/lib/i18n";
+import { useDevise } from "@/lib/change/DeviseApp";
+import { DEVISES_PROPOSEES, tauxAffichage } from "@/lib/change/affichage";
 import { dm, useParcours, useSejour } from "@/lib/parcours";
 import { voyageursLbl } from "./recherche/outils";
 import { stationsVoisines } from "@/lib/domaineStations";
@@ -338,6 +340,7 @@ function Barre({ pilule }: { pilule: boolean }) {
             <Trace d={GLOBE} taille={15} epaisseur={1.7} />
             {locale === "fr" ? "FR" : "EN"}
           </button>
+          <ChoixDevise />
           {/* L'icône dit le thème qu'on obtiendra : le soleil en sombre, la
               lune en clair. */}
           <button
@@ -355,6 +358,50 @@ function Barre({ pilule }: { pilule: boolean }) {
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * La devise dans laquelle les prix s'écrivent. « Devise d'origine » : chaque
+ * prix dans celle de sa source. Une autre : converti au taux BCE du jour,
+ * précédé de « ≈ » (`change/affichage.ts`).
+ */
+/** « EUR · euro », « GBP · livre sterling » : le code, puis le nom que l'ICU
+ *  donne dans la langue de l'interface (infobulle de l'option). */
+function nomDevise(code: string): string {
+  try {
+    const nom = new Intl.DisplayNames(langueIntl(), { type: "currency" }).of(code);
+    return nom && nom !== code ? `${code} · ${nom}` : code;
+  } catch {
+    return code;
+  }
+}
+
+function ChoixDevise() {
+  const devise = useDevise((s) => s.devise);
+  const setDevise = useDevise((s) => s.setDevise);
+  const taux = tauxAffichage();
+  return (
+    <select
+      className="sh-util sh-devise"
+      aria-label={tr("Devise des prix")}
+      title={
+        devise && taux
+          ? tr("Prix convertis au taux de référence BCE du {date}", { date: taux.date })
+          : tr("Devise des prix")
+      }
+      value={devise ?? ""}
+      onChange={(e) => setDevise(e.target.value || null)}
+    >
+      <option value="" title={tr("Devise d’origine")}>
+        {tr("Devise")}
+      </option>
+      {DEVISES_PROPOSEES.map((d) => (
+        <option key={d} value={d} title={nomDevise(d)}>
+          {d}
+        </option>
+      ))}
+    </select>
   );
 }
 

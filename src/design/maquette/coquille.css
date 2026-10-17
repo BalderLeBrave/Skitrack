@@ -241,6 +241,11 @@
   text-decoration: none;
   cursor: pointer;
 }
+.sh-devise {
+  appearance: none;
+  max-width: 150px;
+  text-overflow: ellipsis;
+}
 .sh-util:hover {
   background: var(--color-bleu-clair);
   text-decoration: none;

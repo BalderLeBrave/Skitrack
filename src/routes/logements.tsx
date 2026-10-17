@@ -92,6 +92,9 @@ import { useAltitudes } from "@/lib/altitude/store";
 import { attachAccess } from "@/lib/access";
 import { useAPied } from "@/lib/geo/useReseauPieton";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
+import { idEuropeen } from "@/lib/europe";
+import { memeDevise } from "@/lib/devises";
+import { useEurope } from "@/components/recherche/europe";
 import { distanceOf, firmOf, persLbl, prixLbl, prixPin, villageM } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
@@ -282,6 +285,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       // classées « autre domaine ».
       stationId: station.id,
       stationName: station.name,
+      ...(station.country !== "FR" ? { country: station.country } : {}),
       lat: station.lat,
       lon: station.lon,
       checkIn,
@@ -629,6 +633,9 @@ type Pred = {
 function Logements() {
   const go = useGo();
   const P = useParcours();
+  // Un domaine européen retenu (`at-ischgl`) n'est connu qu'une fois les pays
+  // lus : l'écran les demande, et se redessine à leur arrivée.
+  const europe = useEurope(!!P.stationId && idEuropeen(P.stationId));
   const s = P.stationId ? stationById(P.stationId) : undefined;
 
   // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
@@ -643,6 +650,7 @@ function Logements() {
   }, [s?.id]);
 
   if (!s) {
+    void europe;
     return (
       <Coquille>
         <main className="lg-main" id="s-lodging" data-screen-label="2 Logements" />
@@ -1182,7 +1190,10 @@ function LogementsStation({ s }: { s: Station }) {
   const pass = prix.budget;
   // Un séjour vendu forfaits compris les porte déjà dans son prix.
   const forfaitsCompris = kept ? forfaitInclus(kept) : false;
-  const passGroupN = forfaitsCompris ? 0 : (pass?.total ?? 0);
+  // Un forfait dans une autre devise que le logement (CHF à Zermatt, logement
+  // en euros) ne s'additionne pas : il reste écrit à part.
+  const passGroupN =
+    forfaitsCompris || !kept || !memeDevise(pass?.devise, kept.currency ?? "EUR") ? 0 : (pass?.total ?? 0);
   const totalN = (kept?.total ?? 0) + passGroupN;
 
   /**

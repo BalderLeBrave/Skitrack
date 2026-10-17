@@ -1,0 +1,393 @@
+{
+  "releve": "2026-10-17",
+  "groupe": "est",
+  "methode": "Depuis le site officiel de chaque domaine, lecture du lien hébergement/réservation qu'il publie lui-même, puis identification du moteur par empreinte sur la page de réservation (URL, scripts, iframes, pied de page) ; « inconnu » sans preuve. Relevé INCOMPLET : après 3 pages lues, plus aucun outil ne pouvait lire une page (WebFetch en échec DNS, curl bloqué, crédits Firecrawl épuisés). 2e passage le 2026-10-17 (recherche web seule, environ 60 requêtes, aucune page lue) pour les domaines restés « non recherchés » : moteur retenu sur empreinte d'URL visible dans les résultats (/<mandant>/ukv/…TDS… = TOMAS ; <code>/<guid> ou …/accommodation/list?AspxAutoDetectCookieSupport = Deskline ; poitype openbookingaccommodation = OpenBooking) ou sur CGV citées ; sinon « inconnu », « aucun » si la page ne propose que téléphone/e-mail, centrale null si rien trouvé.",
+  "domaines": [
+    {
+      "id": "ua-bukowina",
+      "nom": "Буковель, Bukowina",
+      "pays": "ua",
+      "siteOfficiel": "https://bukovel.com/",
+      "centrale": {
+        "nom": "Bukovel (exploitant du domaine)",
+        "url": "https://bukovel.com/en/b24/hotels",
+        "hote": "bukovel.com",
+        "moteur": "inconnu",
+        "preuve": "Rubrique de réservation bukovel.com/<lang>/b24/hotels/<hôtel>?arrival_date=…&departure_date=… (hôtels du domaine : Bukovel Hotel, Apart, Chalet, Glamping, et hôtels tiers : Milana, Edelweiss) ; conditions /en/umovi-broniuvannia ; moteur non nommé. 1er passage : bukovel.com/hotels en 404."
+      }
+    },
+    {
+      "id": "rs-kopaonik",
+      "nom": "Kopaonik",
+      "pays": "rs",
+      "siteOfficiel": "https://www.skijalistasrbije.rs/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune centrale officielle trouvée : la TO Raška (TIC Kopaonik) informe seulement ; les offres passent par des portails commerciaux (infokop.net) ou les hôtels."
+    },
+    {
+      "id": "tr-kayseri-erciyes",
+      "nom": "Kayseri-Erciyes",
+      "pays": "tr",
+      "siteOfficiel": "https://www.kayserierciyes.com.tr/",
+      "centrale": {
+        "nom": "Kayseri Erciyes A.Ş. (Belediye)",
+        "url": "https://www.kayserierciyes.com.tr/dag-otelleri",
+        "hote": "www.kayserierciyes.com.tr",
+        "moteur": "aucun",
+        "preuve": "Pages /dag-otelleri et /TravelPlain/Konaklama : annuaire informatif des hôtels de montagne et de ville ; réservation auprès des hôtels, aucune réservation en ligne relevée."
+      }
+    },
+    {
+      "id": "sk-jasna-low-tatras",
+      "nom": "Jasna Low Tatras",
+      "pays": "sk",
+      "siteOfficiel": "https://www.jasna.sk/",
+      "centrale": {
+        "nom": "TMR Hotels / Gopass (Tatry Mountain Resorts, exploitant des remontées)",
+        "url": "https://www.tmrhotels.com/sk/aktualne-ponuky/ponuka-pobytov-tmrhotels-leto/",
+        "hote": "www.tmrhotels.com",
+        "moteur": "inconnu",
+        "preuve": "Page d'accueil www.jasna.sk (relevée le 2026-10-17) : liens vers www.tmrhotels.com (offres de séjour) et www.gopass.travel (achat), plus une page interne /ubytovanie non lue. Réservation finale vue en recherche sur booking.tmrhotels.com ; moteur derrière non prouvé."
+      }
+    },
+    {
+      "id": "pl-skiresort-cerna-hora-pec",
+      "nom": "Skiresort Černá Hora-Pec",
+      "pays": "pl",
+      "siteOfficiel": "https://skiresort.cz/",
+      "centrale": {
+        "nom": "SkiResort ČERNÁ HORA – PEC (et Infocentrum Janské Lázně)",
+        "url": "https://skiresort.cz/hledat-ubytovani/",
+        "hote": "skiresort.cz",
+        "moteur": "inconnu",
+        "preuve": "Page « Hledat ubytování » et fiches /sluzby/ubytovani/<type>/<hotel>/ ; l'infocentre de Janské Lázně réserve plus de 80 objets (téléphone, e-mail) ; moteur non visible."
+      }
+    },
+    {
+      "id": "bg-borovets",
+      "nom": "Borovets",
+      "pays": "bg",
+      "siteOfficiel": "https://www.borovets-bg.com/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : borovets-bg.com liste les hôtels et renvoie à leurs propres contacts ; aucune centrale trouvée."
+    },
+    {
+      "id": "si-smucisca-mariborsko-pohorje",
+      "nom": "Smučišča Mariborsko Pohorje",
+      "pays": "si",
+      "siteOfficiel": "https://www.mariborskopohorje.si/",
+      "centrale": {
+        "nom": "Visit Maribor (TIC Maribor)",
+        "url": "https://www.visitmaribor.si/en/accommodation-and-offer/all-accommodation/",
+        "hote": "www.visitmaribor.si",
+        "moteur": "aucun",
+        "preuve": "La page « All accommodation » demande d'adresser demandes et réservations à tic@maribor.si, le personnel préparant une offre ; seules quelques fiches renvoient au site de l'hébergeur."
+      }
+    },
+    {
+      "id": "ge-gudauri",
+      "nom": "გუდაური, Gudauri, Гудаури",
+      "pays": "ge",
+      "siteOfficiel": "https://mta.ski",
+      "centrale": {
+        "nom": "gudauri.travel",
+        "url": "https://gudauri.travel/en/searchhotels/",
+        "hote": "gudauri.travel",
+        "moteur": "inconnu",
+        "preuve": "Preuve faible : le site se présente comme « official booking website in Gudauri resort » ; aucun lien depuis mta.ski vu. Moteur non visible."
+      }
+    },
+    {
+      "id": "ba-jahorina-olimpijski-centar-olympic-center-jahorina",
+      "nom": "Jahorina olimpijski centar, Olympic Center Jahorina, Јахорина олимпијски центар",
+      "pays": "ba",
+      "siteOfficiel": "https://www.oc-jahorina.com/",
+      "centrale": {
+        "nom": "OC Jahorina (exploitant)",
+        "url": "https://www.oc-jahorina.com/en/smjestaj-oc/",
+        "hote": "www.oc-jahorina.com",
+        "moteur": "inconnu",
+        "preuve": "Chambres et appartements du Centre olympique réservables par e-mail, téléphone ou site de réservation ; moteur non visible."
+      }
+    },
+    {
+      "id": "sk-chopok-jasna",
+      "nom": "Chopok Jasná",
+      "pays": "sk",
+      "siteOfficiel": "https://www.jasna.sk/",
+      "centrale": {
+        "nom": "TMR Hotels / Gopass (Tatry Mountain Resorts, exploitant des remontées)",
+        "url": "https://www.tmrhotels.com/sk/aktualne-ponuky/ponuka-pobytov-tmrhotels-leto/",
+        "hote": "www.tmrhotels.com",
+        "moteur": "inconnu",
+        "preuve": "Page d'accueil www.jasna.sk (relevée le 2026-10-17) : liens vers www.tmrhotels.com (offres de séjour) et www.gopass.travel (achat), plus une page interne /ubytovanie non lue. Réservation finale vue en recherche sur booking.tmrhotels.com ; moteur derrière non prouvé."
+      }
+    },
+    {
+      "id": "bg-bansko",
+      "nom": "Bansko",
+      "pays": "bg",
+      "siteOfficiel": "http://www.banskoski.com",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : banskoski.com/public/en/hotels est un annuaire (Kempinski, Pirin, Mura…) ; réservation en ligne non relevée."
+    },
+    {
+      "id": "tr-palandoken-kayak-merkezi",
+      "nom": "Palandöken Kayak Merkezi",
+      "pays": "tr",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : seules des pages institutionnelles (Erzurum İl Kültür ve Turizm, Kaymakamlık) ; aucune centrale."
+    },
+    {
+      "id": "ro-sinaia",
+      "nom": "Sinaia",
+      "pays": "ro",
+      "siteOfficiel": "https://sinaiago.ro/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune page d'hébergement trouvée sur sinaiago.ro."
+    },
+    {
+      "id": "rs-ski-center-kopaonik",
+      "nom": "Ски центар Копаоник, Ski Center Kopaonik",
+      "pays": "rs",
+      "siteOfficiel": "https://www.skijalistasrbije.rs/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune centrale officielle trouvée : la TO Raška (TIC Kopaonik) informe seulement ; les offres passent par des portails commerciaux (infokop.net) ou les hôtels."
+    },
+    {
+      "id": "az-sahdag-xiz-k-kompleksi-shahdag-mountain-resort",
+      "nom": "Şahdağ Xizək Kompleksi, قريه شاهداغ الثلجية, Shahdag Mountain Resort, Горнолыжный курорт Шахдаг",
+      "pays": "az",
+      "siteOfficiel": "https://www.shahdag.az/",
+      "centrale": {
+        "nom": "Shahdag Mountain Resort",
+        "url": "https://www.shahdag.az/en/accommodation",
+        "hote": "www.shahdag.az",
+        "moteur": "inconnu",
+        "preuve": "Fiches /en/hotel/<hôtel> (Shahdag Hotel & Spa, Pik Palace, Park Chalet, Zirve, LakeSide) avec formulaire dates/personnes (« request for booking » traité par l'hôtel), paiement Birbank ; moteur non nommé."
+      }
+    },
+    {
+      "id": "bg-pamporovo",
+      "nom": "Pamporovo",
+      "pays": "bg",
+      "siteOfficiel": "https://pamporovo.me/",
+      "centrale": {
+        "nom": "Pamporovo AD",
+        "url": "https://pamporovo.me/en/winter/accommodation/orlovetz",
+        "hote": "pamporovo.me",
+        "moteur": "inconnu",
+        "preuve": "Fiches « Резервации » des hôtels 5* (Orlovetz, Perelik, Villa Arfa) gérés par un service central de réservation ; moteur non visible."
+      }
+    },
+    {
+      "id": "am-tsaghkadzor-ski-resort",
+      "nom": "Ծաղկաձոր լեռնադահուկային առողջարան, Tsaghkadzor Ski resort",
+      "pays": "am",
+      "siteOfficiel": "https://ropeway.am/online/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : ropeway.am ne donne qu'un téléphone de réservation pour un hôtel (Multi Rest House) ; aucune centrale."
+    },
+    {
+      "id": "si-kranjska-gora",
+      "nom": "Kranjska Gora",
+      "pays": "si",
+      "siteOfficiel": "https://ski-kranjska-gora.com",
+      "centrale": {
+        "nom": "Turizem Kranjska Gora",
+        "url": "https://kranjska-gora.si/en/accommodation",
+        "hote": "kranjska-gora.si",
+        "moteur": "inconnu",
+        "preuve": "Rubrique « Rezerviraj nastanitev v Kranjski Gori » avec fiches /en/accommodation/<objet> ; moteur non visible."
+      }
+    },
+    {
+      "id": "tr-konakl-kayak-merkezi",
+      "nom": "Konaklı Kayak Merkezi",
+      "pays": "tr",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune page d'hébergement ; Konaklı n'apparaît que dans les pages institutionnelles d'Erzurum."
+    },
+    {
+      "id": "pl-zieleniec-503335m163895",
+      "nom": "Zieleniec",
+      "pays": "pl",
+      "siteOfficiel": "https://zieleniec.pl/",
+      "centrale": {
+        "nom": "Zieleniec Ski Arena",
+        "url": "https://zieleniec.pl/en/noclegi",
+        "hote": "zieleniec.pl",
+        "moteur": "aucun",
+        "preuve": "La page hébergement demande de contacter la pension choisie pour réserver ; pas de réservation en ligne."
+      }
+    },
+    {
+      "id": "cz-skiareal-klinovec",
+      "nom": "Skiareál Klínovec",
+      "pays": "cz",
+      "siteOfficiel": "https://klinovec.cz/",
+      "centrale": {
+        "nom": "Skiareál Klínovec",
+        "url": "https://klinovec.cz/rezervacni-system-ubytovani/",
+        "hote": "klinovec.cz",
+        "moteur": "inconnu",
+        "preuve": "Page « Rezervační systém ubytování » de l'exploitant ; moteur non visible."
+      }
+    },
+    {
+      "id": "mk-420122m208697",
+      "nom": "Скијачки центар Попова шапка",
+      "pays": "mk",
+      "siteOfficiel": "https://skimacedonia.mk/ski-regions/popova-sapka/?lang=en",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : skimacedonia.mk liste les hôtels de Popova Šapka (Scardus…) sans réservation ; aucune centrale."
+    },
+    {
+      "id": "pl-szczyrk-mountain-resort",
+      "nom": "Szczyrk Mountain Resort",
+      "pays": "pl",
+      "siteOfficiel": "https://www.szczyrkowski.pl/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : seule une liste d'hôtels de la mairie (szczyrk.pl) ; aucune centrale."
+    },
+    {
+      "id": "me-kolasin-1450-ski-resort-1450",
+      "nom": "Kolašin 1450 ski resort, Колашин 1450 ски резорт",
+      "pays": "me",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : kolasin1450.com/en/accomodations présente les hôtels du projet sans réservation vue."
+    },
+    {
+      "id": "ro-poiana-brasov",
+      "nom": "Poiana Brașov",
+      "pays": "ro",
+      "siteOfficiel": "https://www.schipoianabrasov.ro/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : schipoianabrasov.ro cite un classement Booking des hôtels ; aucune centrale."
+    },
+    {
+      "id": "me-kolasin-1600",
+      "nom": "Kolašin 1600",
+      "pays": "me",
+      "siteOfficiel": "https://www.skijalista.me/ski-centri/kolasin-1600",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : skijalista.me et montenegro.travel ne donnent que des contacts d'hôtels (Swissôtel…) ; aucune centrale."
+    },
+    {
+      "id": "cz-janske-lazne-cerna-hora",
+      "nom": "Janské Lázně - Černá hora",
+      "pays": "cz",
+      "siteOfficiel": "https://skiresort.cz/",
+      "centrale": {
+        "nom": "SkiResort ČERNÁ HORA – PEC (et Infocentrum Janské Lázně)",
+        "url": "https://skiresort.cz/hledat-ubytovani/",
+        "hote": "skiresort.cz",
+        "moteur": "inconnu",
+        "preuve": "Page « Hledat ubytování » et fiches /sluzby/ubytovani/<type>/<hotel>/ ; l'infocentre de Janské Lázně réserve plus de 80 objets (téléphone, e-mail) ; moteur non visible."
+      }
+    },
+    {
+      "id": "pl-osrodek-narciarski-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-resort",
+      "nom": "Ośrodek Narciarski Kotelnica Białczańska, Kotelnica Białczańska Ski Resort",
+      "pays": "pl",
+      "siteOfficiel": "https://bialkatatrzanska.pl",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : bialkatatrzanska.pl liste des partenaires (Hotel Bania, Terma Bania) sans réservation ; aucune centrale."
+    },
+    {
+      "id": "cz-skiareal-spindleruv-mlyn-medvedin",
+      "nom": "Skiareál Špindlerův Mlýn - Medvědín",
+      "pays": "cz",
+      "siteOfficiel": "https://www.skiareal.cz/en/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : seuls un annuaire municipal (mestospindleruvmlyn.cz) et un portail commercial (spindleruv-mlyn.com) ; rien depuis skiareal.cz."
+    },
+    {
+      "id": "gr-parnassos-ski-centre",
+      "nom": "Χιονοδρομικό Κέντρο Παρνασσού, Parnassos Ski Centre",
+      "pays": "gr",
+      "siteOfficiel": "https://parnassos-ski.gr/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : parnassos-ski.gr ne traite pas l'hébergement (mention générale d'Arachova / Polydrosos)."
+    },
+    {
+      "id": "cz-hochficht-bohmerwald",
+      "nom": "Hochficht-Böhmerwald",
+      "pays": "cz",
+      "siteOfficiel": "https://www.hochficht.at/",
+      "centrale": {
+        "nom": "Ferienregion Böhmerwald (Oberösterreich)",
+        "url": "http://booking.boehmerwald.at/boehmer/de/accommodation/list",
+        "hote": "booking.boehmerwald.at",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Liste servie sur booking.boehmerwald.at/(X(1)A(…))/boehmer/de/accommodation/list?AspxAutoDetectCookieSupport=1 (Destination Widget Deskline, code boehmer) ; fiches boehmerwald.at/oesterreich-unterkunft/detail/<n>/. NB : le Hochficht est en Autriche (Mühlviertel), pas en Tchéquie."
+      }
+    },
+    {
+      "id": "sk-chopok-juh",
+      "nom": "Chopok Juh",
+      "pays": "sk",
+      "siteOfficiel": "https://www.jasna.sk/",
+      "centrale": {
+        "nom": "TMR Hotels / Gopass (Tatry Mountain Resorts, exploitant des remontées)",
+        "url": "https://www.tmrhotels.com/sk/aktualne-ponuky/ponuka-pobytov-tmrhotels-leto/",
+        "hote": "www.tmrhotels.com",
+        "moteur": "inconnu",
+        "preuve": "Page d'accueil www.jasna.sk (relevée le 2026-10-17) : liens vers www.tmrhotels.com (offres de séjour) et www.gopass.travel (achat), plus une page interne /ubytovanie non lue. Réservation finale vue en recherche sur booking.tmrhotels.com ; moteur derrière non prouvé."
+      }
+    },
+    {
+      "id": "bg-vitosha",
+      "nom": "Vitosha",
+      "pays": "bg",
+      "siteOfficiel": "https://www.skivitosha.com/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune page d'hébergement trouvée pour Vitosha."
+    },
+    {
+      "id": "si-kope",
+      "nom": "Kope",
+      "pays": "si",
+      "siteOfficiel": "https://www.pohorje-slovenija.si/zimske-aktivnosti/smucanje/smucisca/ribnica-na-pohorju",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucun résultat pour Kope / pohorje-slovenija.si."
+    },
+    {
+      "id": "ba-oc-bjelasnica-zoi-84",
+      "nom": "OC Bjelašnica ZOI '84",
+      "pays": "ba",
+      "siteOfficiel": "https://ocbjelasnica.com/",
+      "centrale": {
+        "nom": "OC Bjelašnica ZOI '84 (exploitant)",
+        "url": "https://ocbjelasnica.com/en/lifestyle/accommodation/",
+        "hote": "ocbjelasnica.com",
+        "moteur": "aucun",
+        "preuve": "La page hébergement liste les hôtels (Monti, Bjelašnica, Han…) avec leur seul numéro de téléphone (page ancienne) ; pas de réservation en ligne."
+      }
+    },
+    {
+      "id": "gr-400555m210862",
+      "nom": "Εθνικό χιονοδρομικό κέντρο Βασιλίτσας",
+      "pays": "gr",
+      "siteOfficiel": "https://vasilitsa.com/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucun résultat d'hébergement sur vasilitsa.com."
+    },
+    {
+      "id": "ge-kokhta-mitarbi",
+      "nom": "Kokhta - Mitarbi",
+      "pays": "ge",
+      "siteOfficiel": "https://mta.ski/",
+      "centrale": null,
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucun résultat d'hébergement pour Kokhta-Mitarbi (mta.ski)."
+    }
+  ],
+  "moteurs": {
+    "inconnu": 12,
+    "aucun": 4,
+    "Deskline / Feratel": 1
+  }
+}

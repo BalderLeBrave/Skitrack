@@ -25,6 +25,7 @@
 import { paysByCode } from "./geo/pays.ts";
 import { decimal, entier, langueNombres } from "./nombres.ts";
 import { langue } from "./i18n/langue.ts";
+import { convertir, deviseAffichage } from "./change/affichage.ts";
 
 /** Le formatage des nombres a déménagé dans `nombres.ts` : `unites.ts` en a
  *  besoin aussi, et trois copies de la même règle auraient fini par diverger
@@ -59,7 +60,16 @@ export function symboleDevise(devise: string): string {
 
 /** `montant(1234)` → « 1 234 € ». `montant(1234, "CHF")` → « 1 234 CHF ». */
 export function montant(n: number | null | undefined, devise = "EUR"): string {
-  return n == null ? "–" : avecSymbole(entier(n), devise);
+  if (n == null) return "–";
+  const c = convertir(n, devise);
+  if (c != null) return converti(entier(c));
+  return avecSymbole(entier(n), devise);
+}
+
+/** Un montant converti dans la devise choisie par le lecteur
+ *  (`change/affichage.ts`) : « ≈ », parce que ce n'est pas le prix publié. */
+function converti(nombre: string): string {
+  return `≈ ${avecSymbole(nombre, deviseAffichage() ?? "EUR")}`;
 }
 
 /** « 1 234 € » en français ; « €1,234 » en anglais, où un symbole se met
@@ -79,6 +89,10 @@ export function montantN(n: number | null | undefined, devise = "EUR"): string |
 /** Les centimes seulement quand il y en a. */
 export function montantCents(n: number | null | undefined, devise = "EUR"): string | null {
   if (n == null) return null;
+  // Converti, le montant s'arrondit à l'unité : des centimes calculés au
+  // taux du jour prétendraient une précision qu'il n'a pas.
+  const c = convertir(n, devise);
+  if (c != null) return converti(entier(c));
   // Les centimes ne s'écrivent que s'il y en a : « 12 € », mais « 12,50 € ».
   const nombre = n % 1 ? decimal(n, 2).replace(/([,.])(\d)$/, "$1$20") : entier(n);
   return avecSymbole(nombre, devise);
@@ -99,9 +113,10 @@ export function deviseDuPays(code: string | null | undefined): string | null {
 /**
  * Deux sommes s'additionnent-elles ?
  *
- * Un total qui mêle des euros et des francs suisses ne veut rien dire, et
- * aucun taux de change ne vit dans ce dépôt — la devise est d'affichage, elle
- * n'est jamais convertie. La question se pose donc avant chaque somme.
+ * Un total qui mêle des euros et des francs suisses ne veut rien dire. Les
+ * sommes se font dans la devise de la source ; seul l'affichage convertit,
+ * dans la devise que le lecteur a choisie (`change/affichage.ts`). La
+ * question se pose donc avant chaque somme.
  */
 export function memeDevise(a: string | null | undefined, b: string | null | undefined): boolean {
   if (!a || !b) return false;

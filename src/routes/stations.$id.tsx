@@ -37,6 +37,10 @@ import type { Resolution } from "@/lib/forfaits/resolution";
 import { montantCents } from "@/lib/devises";
 import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
+import { idEuropeen } from "@/lib/europe";
+import { useEurope } from "@/components/recherche/europe";
+import { ForfaitsEurope, useVueEurope } from "@/components/v7/VueEurope";
+import { mentionPhoto } from "@/lib/monde/vues";
 import {
   altLbl,
   crumb,
@@ -496,7 +500,16 @@ function FicheInconnue({ id }: { id: string }) {
 
 function Fiche() {
   const { id } = Route.useParams();
+  // Un domaine européen (`at-ischgl`) n'est connu qu'une fois les pays lus.
+  const europe = useEurope(idEuropeen(id));
   const s = stationById(id);
+  if (!s && idEuropeen(id) && !europe) {
+    return (
+      <Coquille>
+        <main className="fs-main" id="s-fiche" data-screen-label="Fiche station" />
+      </Coquille>
+    );
+  }
   if (!s) return <FicheInconnue id={id} />;
   return <FicheBody s={s} />;
 }
@@ -513,12 +526,17 @@ function FicheBody({ s }: { s: Station }) {
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
 
   const inCmp = cmp.includes(s.id);
-  const photo = stationPhoto(s);
+  // Un domaine européen hors France : photo et forfaits du relevé mondial.
+  const eu = useVueEurope(s);
+  const etranger = s.country !== "FR";
+  const photo = stationPhoto(s) ?? eu.photo?.src ?? null;
   const pret = resolveStationPhoto(s.id);
   // L'emprunt se dit — c'est une information sur la photo affichée. Le
   // « crédit à relever » ne disait rien au lecteur : il notait un travail qui
   // reste à faire côté dépôt.
-  const photoNote = photo
+  const photoNote = eu.photo
+    ? mentionPhoto(eu.photo.source)
+    : photo
     ? pret?.fromName
       ? tr("Photo Skiinfo de la station {station}, même domaine", { station: pret.fromName })
       : tr("Photo Skiinfo")
@@ -600,7 +618,9 @@ function FicheBody({ s }: { s: Station }) {
                 {tr("Forfaits")}
                 {adulte ? ` · ${adulte.perimetre.nom}` : ""}
               </h2>
-              {adulte && lib ? (
+              {etranger ? (
+                <ForfaitsEurope vue={eu} />
+              ) : adulte && lib ? (
                 <>
                   <div className="fs-forfaits">
                     <div>

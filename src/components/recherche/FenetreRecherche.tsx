@@ -24,6 +24,7 @@ import type { Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { BarreRecherche, type PanneauRecherche } from "./BarreRecherche";
 import { useCommunes } from "./communes";
+import { useEurope } from "./europe";
 import { stationDuTexte } from "./outils";
 
 type Instantane = {
@@ -103,6 +104,7 @@ export function FenetreRecherche({
   // Une commune tapée en toutes lettres désigne sa station une fois la liste
   // arrivée ; la fenêtre se redessine alors.
   useCommunes(texte.trim().length >= 3);
+  useEurope(texte.trim().length >= 3);
   const r = choisie && choisie.name === texte ? choisie : stationDuTexte(texte);
 
   const rechercher = () => {

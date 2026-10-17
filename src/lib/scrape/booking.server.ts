@@ -8,6 +8,7 @@ import { sleep } from "./browser.server.ts";
 import { cozyListings, cozySearchUrl, rangPrix } from "./cozy.server.ts";
 import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
+import { paysDeRecherche } from "./pays.ts";
 import { annoncer } from "../stay/occupancy.ts";
 import { garderLectures, type LectureAGarder } from "../stay/contenuFiches.server.ts";
 import { cleListing } from "../stay/poserReleve.ts";
@@ -44,7 +45,7 @@ function lastJsonObject(raw: string): unknown {
 
 function searchUrl(input: LiveSearchInput): string {
   const u = new URL("https://www.booking.com/searchresults.fr.html");
-  u.searchParams.set("ss", `${input.stationName}, France`);
+  u.searchParams.set("ss", `${input.stationName}, ${paysDeRecherche(input)}`);
   u.searchParams.set("lang", "fr");
   u.searchParams.set("selected_currency", "EUR");
   u.searchParams.set("sb_price_type", "total");
@@ -252,7 +253,7 @@ async function spawnBooking(body: unknown, timeoutMs: number, input: LiveSearchI
 
 function pythonBody(input: LiveSearchInput, extra: Record<string, unknown> = {}) {
   return {
-    destination: `${input.stationName}, France`,
+    destination: `${input.stationName}, ${paysDeRecherche(input)}`,
     city: input.stationName,
     checkIn: input.checkIn,
     checkOut: input.checkOut,

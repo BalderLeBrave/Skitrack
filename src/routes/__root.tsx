@@ -4,6 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ThemeSync } from "@/lib/theme";
 import { AppNotFoundComponent } from "@/lib/error-component";
 import { Langue } from "@/lib/i18n/LangueApp";
+import { DeviseApp } from "@/lib/change/DeviseApp";
 import { tr } from "@/lib/i18n";
 import appCss from "../styles.css?url";
 import v6Css from "../design/v6.css?url";
@@ -69,7 +70,9 @@ export const Route = createRootRoute({
         <ThemeSync />
         <AuthProvider>
           <Langue>
-            <Outlet />
+            <DeviseApp>
+              <Outlet />
+            </DeviseApp>
           </Langue>
         </AuthProvider>
         <Scripts />

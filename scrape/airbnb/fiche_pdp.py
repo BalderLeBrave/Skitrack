@@ -162,13 +162,18 @@ def description_de(raw: Any) -> str | None:
         if t:
             candidates.append(t[:TEXTE_MAX])
     texte = max(candidates, key=len) if candidates else None
-    quartier = quartier_de(raw)
-    if quartier and (texte is None or quartier not in texte):
-        texte = f"{texte}\n\n{quartier}" if texte else quartier
-    lits = couchages_de(raw)
-    if lits and (texte is None or lits not in texte):
-        texte = f"{texte}\n\n{lits}" if texte else lits
-    return texte[:TEXTE_MAX] if texte else None
+    # Le quartier et les couchages suivent la description. Leur place est
+    # gardée : une description longue est coupée avant eux, pas sur eux.
+    blocs = [b for b in (quartier_de(raw), couchages_de(raw)) if b and (texte is None or b not in texte)]
+    if not blocs:
+        return texte[:TEXTE_MAX] if texte else None
+    fin = "\n\n".join(blocs)
+    if texte is None:
+        return fin[:TEXTE_MAX]
+    place = TEXTE_MAX - len(fin) - 2
+    if place <= 0:
+        return texte[:TEXTE_MAX]
+    return f"{texte[:place].rstrip()}\n\n{fin}"
 
 
 def quartier_de(raw: Any) -> str | None:

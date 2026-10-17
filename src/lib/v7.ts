@@ -255,10 +255,9 @@ export function bedLbl(l: Listing): string {
 }
 
 /** « 80 m² », ou `null` quand l'annonce ne porte pas de surface. Comme les
- *  lits et les salles de bain, elle ne s'écrit que posée. Seul le collecteur
- *  CozyCozy la pose (pour une partie des Booking et des Abritel) ; d'autres
- *  sources la publient sans que le leur la pose. Son absence ne se dit donc
- *  nulle part, ni ici ni dans l'encadré « Non indiqué » (`nonIndique.ts`). */
+ *  lits et les salles de bain, elle ne s'écrit que posée. Son absence ne se
+ *  dit nulle part : une source peut la publier sans que son collecteur la
+ *  lise. */
 export function surfaceLbl(l: Pick<Listing, "surface">): string | null {
   return l.surface != null && l.surface > 0 ? `${fmt(l.surface)}${INSEC}m²` : null;
 }

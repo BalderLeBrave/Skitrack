@@ -33,15 +33,20 @@ export const MASSIFS: readonly MassifResume[] = resumerMassifs(STATIONS);
 export function stationDuTexte(texte: string): Station | undefined {
   const cible = foldName(texte);
   if (!cible) return undefined;
-  return (
+  const parNom =
     STATIONS.find((s) => foldName(s.name) === cible) ??
     STATIONS.find((s) => {
       const v = villageCherche(s.id, cible);
       return v !== null && foldName(v) === cible;
     }) ??
-    stationProlongee(cible) ??
-    stationById(stationIdDeLaCommune(cible) ?? "")
-  );
+    stationProlongee(cible);
+  if (parNom) return parNom;
+  // « Les Sybelles », « Les 3 Vallées » désignent le domaine, pas une de ses
+  // stations prise au hasard.
+  const duDomaine = STATIONS.filter((s) => s.domain && foldName(s.domain) === cible);
+  if (duDomaine.length > 1) return undefined;
+  if (duDomaine.length === 1) return duDomaine[0];
+  return stationById(stationIdDeLaCommune(cible) ?? "");
 }
 
 export type Suggestion = {
@@ -109,19 +114,14 @@ export function suggestions(ql: string): Suggestion[] {
       return rang(a) - rang(b) || a.name.localeCompare(b.name, "fr");
     })
     .slice(0, 12);
+  const plus = stationProlongee(ql);
+  if (plus && !parNom.some((s) => s.id === plus.id)) parNom.unshift(plus);
   const deja = new Set(parNom.map((s) => s.id));
   const communes = communesPour(ql)
     .filter((c) => {
       if (deja.has(c.stationId)) return false;
       // « La Grave » nomme déjà La Grave la Meije : pas le hameau homonyme.
-      if (
-        foldName(c.nom) === ql &&
-        parNom.some((s) => {
-          const n = foldName(s.name);
-          return n.includes(ql) || (n.length >= 5 && ql.startsWith(n + " "));
-        })
-      )
-        return false;
+      if (foldName(c.nom) === ql && (plus || parNom.some((s) => foldName(s.name).includes(ql)))) return false;
       return true;
     })
     .slice(0, Math.max(0, 12 - parNom.length));

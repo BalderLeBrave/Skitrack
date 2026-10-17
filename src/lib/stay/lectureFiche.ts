@@ -868,21 +868,23 @@ function litsDe(lignes: readonly string[]): number | null {
   return null;
 }
 
-type PageAirbnb = Pick<
-  LectureFiche,
-  | "capacity"
-  | "bedrooms"
-  | "bedroomsSource"
-  | "beds"
-  | "baths"
-  | "description"
-  | "amenityTitles"
-  | "rating"
-  | "reviewCount"
-  | "locality"
-  | "photos"
-  | "conditions"
-  | "categories"
+type PageAirbnb = Partial<
+  Pick<
+    LectureFiche,
+    | "capacity"
+    | "bedrooms"
+    | "bedroomsSource"
+    | "beds"
+    | "baths"
+    | "description"
+    | "amenityTitles"
+    | "rating"
+    | "reviewCount"
+    | "locality"
+    | "photos"
+    | "conditions"
+    | "categories"
+  >
 >;
 
 function estPresentation(o: Record<string, unknown>): boolean {

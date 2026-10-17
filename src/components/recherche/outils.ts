@@ -6,8 +6,9 @@
 
 import { ICONES } from "@/components/maquette";
 import { foldName, nomCorrespond, villageCherche } from "@/lib/carte";
+import { communesPour, stationIdDeLaCommune } from "@/lib/communesProches";
 import { tr, trN } from "@/lib/i18n";
-import { STATIONS, type Station } from "@/lib/stations";
+import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
 
 export type MassifResume = { m: string; n: number; hi: number };
@@ -24,9 +25,9 @@ export function resumerMassifs(all: readonly Station[]): MassifResume[] {
 export const MASSIFS: readonly MassifResume[] = resumerMassifs(STATIONS);
 
 /**
- * La station qu'un texte nomme en toutes lettres : son nom, ou le nom d'un de
- * ses villages (« Plagne Centre » désigne La Plagne). Comparaison sur le nom
- * replié : « megeve » trouve Megève.
+ * La station qu'un texte nomme en toutes lettres : son nom, le nom d'un de
+ * ses villages (« Plagne Centre » désigne La Plagne), ou une commune
+ * (« Lamoura » désigne Les Rousses, son domaine, pas le pin le plus proche).
  */
 export function stationDuTexte(texte: string): Station | undefined {
   const cible = foldName(texte);
@@ -36,7 +37,8 @@ export function stationDuTexte(texte: string): Station | undefined {
     STATIONS.find((s) => {
       const v = villageCherche(s.id, cible);
       return v !== null && foldName(v) === cible;
-    })
+    }) ??
+    stationById(stationIdDeLaCommune(cible) ?? "")
   );
 }
 
@@ -50,7 +52,8 @@ export type Suggestion = {
 /**
  * Les suggestions du champ Destination. Champ vide : les massifs puis les
  * trois plus grands domaines. Champ rempli : trois massifs et six stations
- * au plus dont le nom (ou un village) contient le texte.
+ * au plus dont le nom (ou un village) contient le texte. Une commune qui
+ * n'est pas une station propose la sienne : « Lamoura » propose Les Rousses.
  */
 export function suggestions(ql: string): Suggestion[] {
   const massif = (x: MassifResume): Suggestion => ({
@@ -62,7 +65,7 @@ export function suggestions(ql: string): Suggestion[] {
     icone: ICONES.mount,
   });
   const station = (s: Station, village: string | null): Suggestion => ({
-    key: "s:" + s.id,
+    key: "s:" + s.id + (village ? ":" + foldName(village) : ""),
     type: "station",
     station: s,
     label: village ? tr("{village} ({station})", { village, station: s.name }) : s.name,
@@ -78,13 +81,20 @@ export function suggestions(ql: string): Suggestion[] {
         .map((s) => station(s, null)),
     ];
   }
+  const parNom = STATIONS.filter((s) => nomCorrespond(s, ql)).slice(0, 6);
+  const deja = new Set(parNom.map((s) => s.id));
+  const communes = communesPour(ql)
+    .filter((c) => !deja.has(c.stationId))
+    .slice(0, Math.max(0, 6 - parNom.length));
   return [
     ...MASSIFS.filter((x) => foldName(x.m).includes(ql)).slice(0, 3).map(massif),
-    // Un village renvoie à sa station : « Val Claret » propose Tignes, et la
-    // suggestion dit pourquoi.
-    ...STATIONS.filter((s) => nomCorrespond(s, ql))
-      .slice(0, 6)
-      .map((s) => station(s, foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql))),
+    // Un village ou une commune renvoie à sa station : « Val Claret » propose
+    // Tignes, « Lamoura » propose Les Rousses, et la suggestion dit pourquoi.
+    ...parNom.map((s) => station(s, foldName(s.name).includes(ql) ? null : villageCherche(s.id, ql))),
+    ...communes.flatMap((c) => {
+      const s = stationById(c.stationId);
+      return s ? [station(s, c.nom)] : [];
+    }),
   ];
 }
 

@@ -28,15 +28,19 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { reposerGardees } from "@/lib/stay/contenuFiches.server";
 import { equipements } from "@/lib/stay/equipements";
+import { cleListing } from "@/lib/stay/poserReleve";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
 import { estMessageRefus, porteFermee, poserRefus } from "../../gardeHote";
+import { galerieGardee, lancerSuiteGaleries } from "./galeries.server";
 import { phrasesRegle } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   appliquerRegleOpenSystem,
+  galerieOpenSystem,
   lireOpenSystem,
   urlOpenSystem,
   type FicheOpenSystem,
@@ -48,6 +52,8 @@ const UA = UA_NAVIGATEUR;
 const TIMEOUT_MS = 25_000;
 /** Requêtes menées de front sur un même hôte. Trois, c'est une page ordinaire. */
 const FRONT = 3;
+/** Chaque recherche vers une centrale prend un numéro : une suite de galeries plus ancienne cède. */
+const generations = new Map<string, number>();
 
 export type ReglageOpenSystem = {
   /** Hôte, tel que `centrales.data.json` l'écrit. */
@@ -183,6 +189,8 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
  */
 export async function chercherOpenSystem(ctx: ContexteCentrale, r: ReglageOpenSystem): Promise<Listing[]> {
   const base = ctx.base.replace(/\/+$/, "");
+  const gen = (generations.get(base) ?? 0) + 1;
+  generations.set(base, gen);
   const pages = await toutesLesPages(base, ctx, r.rubriques);
   const refus = pages.filter((p) => p.refus != null).map((p) => p.refus as string);
   if (refus.length === pages.length) {
@@ -190,14 +198,38 @@ export async function chercherOpenSystem(ctx: ContexteCentrale, r: ReglageOpenSy
   }
   const { gardees, ecartees, inconnus } = appliquerRegleOpenSystem(pages, r.rubriquesDeLocation);
   const par = new Map<string, Listing>();
+  const fichesPar = new Map<string, FicheOpenSystem>();
   for (const f of gardees) {
     const l = enListing(f, base, r, ctx);
     const deja = par.get(l.id);
     // Le même logement paraît sous plusieurs rubriques : le moins cher
     // l'emporte. Zéro n'est pas moins cher, c'est l'absence de prix, et une
     // rubrique qui en publie un remplace toujours celle qui se tait.
-    if (!deja || (l.total > 0 && (deja.total <= 0 || l.total < deja.total))) par.set(l.id, l);
+    if (!deja || (l.total > 0 && (deja.total <= 0 || l.total < deja.total))) {
+      par.set(l.id, l);
+      fichesPar.set(l.id, f);
+    }
   }
+  const listings = [...par.values()];
+  // Les galeries gardées, sans réseau ; celles qui manquent, en tâche de fond.
+  reposerGardees(listings);
+  const origine = new URL(`${base}/`).origin;
+  lancerSuiteGaleries({
+    base,
+    host: r.host,
+    restantes: listings.flatMap((l) => {
+      const f = fichesPar.get(l.id);
+      const cle = cleListing(l);
+      return f && cle && !galerieGardee(cle) ? [{ fiche: f, cle }] : [];
+    }),
+    adresse: (f) => {
+      const url = new URL(f.chemin, `${base}/`);
+      return url.origin === origine ? url.toString() : null;
+    },
+    galerie: (page, f) => galerieOpenSystem(page, f.identite),
+    nom: (f) => f.identite,
+    cede: () => generations.get(base) !== gen,
+  });
   if (refus.length > 0) {
     console.warn(`[centrale] ${r.host} : ${refus.length} rubrique(s) muette(s) — ${refus.join(" ; ")}`);
   }
@@ -205,5 +237,5 @@ export async function chercherOpenSystem(ctx: ContexteCentrale, r: ReglageOpenSy
   for (const phrase of phrasesRegle(compte(ecartees), compte(inconnus))) {
     console.info(`[centrale] ${r.host} : ${phrase}`);
   }
-  return [...par.values()];
+  return listings;
 }

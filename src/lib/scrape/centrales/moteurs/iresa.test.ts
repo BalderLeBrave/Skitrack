@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   corpsIresa,
   dateIresa,
+  galerieIresa,
   horsRegleIresa,
   jetonIresa,
   libellesIresa,
@@ -301,6 +302,14 @@ describe("iResa : description et équipements, sur un relevé réel des Arcs", (
   const fiches = lireIresa(page, { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 4 });
   const par = (n: string) => fiches.find((f) => f.titre.includes(n))!;
 
+  it("les quatre vignettes signées du gabarit, la première étant la photo", () => {
+    for (const f of fiches) {
+      assert.equal(f.photos.length, 4, f.titre);
+      assert.equal(f.photos[0], f.photo, f.titre);
+      assert.ok(f.photos.every((u) => u.startsWith("/sites/default/files/styles/thumbnail_list/")), f.titre);
+    }
+  });
+
   it("la description publiée, en texte, sauts de ligne gardés", () => {
     const d = par("n°317").description ?? "";
     assert.match(d, /^VOTRE APPARTEMENT\nRéservez ce studio qui dispose d'un balcon exposé ouest/);
@@ -340,5 +349,22 @@ describe("iResa : description et équipements, sur un relevé réel des Arcs", (
     assert.deepEqual(par("n°317").equipementsPublies, []);
     assert.deepEqual(libellesIresa({ rub_tv_hbgt: "0", rub_fumeur_hbgt: "1" }), []);
     assert.deepEqual(libellesIresa(null), []);
+  });
+});
+
+describe("iResa : la galerie d'une fiche, lue en tâche de fond", () => {
+  // Fiche réelle du 17 octobre 2026 aux Arcs (package 934) : le diaporama, réduit.
+  const PAGE = readFileSync(new URL("./fixtures/iresa-lesarcs-fiche-galerie.html", import.meta.url), "utf8");
+
+  it("les douze photos Full HD du diaporama, chacune une fois, sans la suggestion d'un autre logement", () => {
+    const p = galerieIresa(PAGE);
+    assert.equal(p.length, 12);
+    assert.equal(new Set(p).size, 12);
+    assert.ok(p.every((u) => /^\/sites\/default\/files\/styles\/full_hd\/public\/externals\/[0-9a-f]+\.jpg\?itok=/.test(u)));
+    assert.ok(PAGE.includes("thumbnail_list"), "la capture garde une suggestion");
+  });
+
+  it("une page sans diaporama : aucune photo", () => {
+    assert.deepEqual(galerieIresa("<div></div>"), []);
   });
 });

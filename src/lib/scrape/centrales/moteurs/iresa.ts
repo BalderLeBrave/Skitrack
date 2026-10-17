@@ -77,6 +77,9 @@ export type FicheIresa = {
   /** Lieu tel que le moteur l'écrit : commune, hameau. */
   lieu: string | null;
   photo: string | null;
+  /** Les vignettes que le gabarit de la liste porte (quatre au relevé du
+   *  17 octobre 2026), chemins relatifs, dans l'ordre ; la première est `photo`. */
+  photos: string[];
   /** Chemin de la fiche sur le site de la centrale, relatif. */
   chemin: string | null;
   /** Nombre de nuits de cette offre. Sert de garde-fou, pas d'affichage. */
@@ -361,6 +364,36 @@ function vignette(template: string): string | null {
   return m?.[1] ?? null;
 }
 
+/** Toutes les vignettes du gabarit, signées comme la première, chacune une fois. */
+function vignettesIresa(template: string): string[] {
+  const out: string[] = [];
+  for (const m of template.matchAll(/(?:src|data-src)="(\/sites\/default\/files\/styles\/[^"]+)"/g)) {
+    const u = m[1] ?? "";
+    if (u && !out.includes(u)) out.push(u);
+  }
+  return out;
+}
+
+/**
+ * La galerie d'une fiche : le diaporama de l'en-tête
+ * (`<li class="SheetSlider-top--listing" data-src="…/styles/full_hd/…">`), en
+ * Full HD, chacune une fois — le diaporama duplique ses diapositives. Relevé du
+ * 17 octobre 2026 aux Arcs : douze photos, là où la liste en donne quatre en
+ * vignette. Les suggestions d'autres logements, en vignette de liste, n'en
+ * sont pas. Chemins relatifs, signés (`itok`) : ils se lisent, ne se
+ * reconstruisent pas.
+ */
+export function galerieIresa(page: string): string[] {
+  const out: string[] = [];
+  for (const m of page.matchAll(
+    /<li class="SheetSlider-top--listing[^"]*"[^>]*?data-src="(\/sites\/default\/files\/styles\/full_hd\/[^"]+)"/g,
+  )) {
+    const u = (m[1] ?? "").replace(/&amp;/g, "&");
+    if (u && !out.includes(u)) out.push(u);
+  }
+  return out;
+}
+
 /** Le chemin de la fiche, que le gabarit porte en clair. */
 function cheminDe(template: string): string | null {
   const m = /href="(\/[a-z0-9-]{4,120}\?package=\d+)"/.exec(template);
@@ -418,6 +451,7 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
       classement: classementIresa(x.stars),
       lieu: typeof x.lieu === "string" && x.lieu ? x.lieu : null,
       photo: vignette(template),
+      photos: vignettesIresa(template),
       chemin: cheminDe(template),
       nuits,
       categorie,

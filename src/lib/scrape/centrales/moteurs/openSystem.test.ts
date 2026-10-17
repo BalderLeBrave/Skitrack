@@ -13,6 +13,9 @@ import {
   texteOpenSystem,
   urlOpenSystem,
   type FicheOpenSystem,
+  galerieOpenSystem,
+  lireGaleriesOpenSystem,
+  type PorteGaleriesOpenSystem,
 } from "./openSystem.ts";
 
 /**
@@ -817,5 +820,69 @@ describe("Open System : extrait de description et pictogrammes, sur un relevé r
     const annonce = { ...(bois as object), amenities: equipements(bois.equipements!), equipementsPublies: bois.equipementsPublies } as never;
     assert.ok(aEquipement(annonce, "television"));
     assert.ok(!aEquipement({ ...(annonce as object), equipementsPublies: null } as never, "television"));
+  });
+});
+
+describe("Open System : la galerie d'une fiche, en tâche de fond", () => {
+  // Fiche réelle du 17 octobre 2026 : « Le Bois Joli », lot OSMB-69279-3.
+  const PAGE = readFileSync(new URL("./fixtures/opensystem-hautemaurienne-fiche-galerie.html", import.meta.url), "utf8");
+  const ID = "le-bois-joli-4-personnes-bonneval-sur-arc/OSMB-69279-3";
+
+  it("les quinze photos pleine taille du lot, chacune une fois, sans pictogramme ni tuile", () => {
+    const p = galerieOpenSystem(PAGE, ID);
+    assert.equal(p.length, 15);
+    assert.equal(new Set(p).size, 15);
+    assert.ok(p.every((u) => u.startsWith("https://img.for-system.com/grandes/push/OP/69279/Hebergement/3/OP_")));
+  });
+
+  it("une photo d'un autre lot sur la même page n'est pas gardée", () => {
+    const autre = '<a rel="prettyPhoto[9]" href="https://img.for-system.com/grandes/push/OP/12345/Hebergement/1/OP_ABC.jpg"></a>';
+    assert.equal(galerieOpenSystem(PAGE + autre, ID).length, 15);
+  });
+
+  const fiche = (n: number) => ({ identite: `x/OSMB-69279-${n}`, chemin: `/dp1-x/OSMB-69279-${n}` }) as unknown as FicheOpenSystem;
+  function porte(pages: (string | null | Error)[], p: Partial<PorteGaleriesOpenSystem> = {}) {
+    const gardes: [string, number][] = [];
+    const lus: string[] = [];
+    const porte: PorteGaleriesOpenSystem = {
+      lire: async (f) => {
+        lus.push(f.identite);
+        const r = pages.shift() ?? null;
+        if (r instanceof Error) throw r;
+        return r;
+      },
+      dejaLue: () => false,
+      arret: () => null,
+      garder: (f, photos) => gardes.push([f.identite, photos.length]),
+      ...p,
+    };
+    return { porte, gardes, lus };
+  }
+  const galerie = PAGE.replaceAll("Hebergement/3/", "Hebergement/1/");
+
+  it("garde chaque galerie lue, et s'arrête sur la première erreur", async () => {
+    const { porte: p, gardes, lus } = porte([galerie, new Error("la centrale a répondu 429")]);
+    const r = await lireGaleriesOpenSystem([fiche(1), fiche(2), fiche(3)], p, 10);
+    assert.deepEqual(gardes, [["x/OSMB-69279-1", 15]]);
+    assert.deepEqual(lus, ["x/OSMB-69279-1", "x/OSMB-69279-2"]);
+    assert.equal(r.erreur, "la centrale a répondu 429");
+  });
+
+  it("trois pages sans galerie d'affilée arrêtent la suite ; une galerie d'une photo n'est pas gardée", async () => {
+    const une = '<a rel="prettyPhoto[1]" href="https://img.for-system.com/grandes/push/OP/69279/Hebergement/1/OP_A.jpg"></a>';
+    const { porte: p, gardes } = porte([une, "", "", "", galerie]);
+    const r = await lireGaleriesOpenSystem([1, 2, 3, 4, 5].map(fiche), p, 10);
+    assert.deepEqual(gardes, []);
+    assert.match(r.arret ?? "", /3 fiches de suite sans galerie/);
+  });
+
+  it("cède à la raison d'arrêt, saute ce qui est déjà lu, et borne le nombre de fiches", async () => {
+    const a = porte([galerie], { arret: () => "une nouvelle recherche est partie" });
+    assert.equal((await lireGaleriesOpenSystem([fiche(1)], a.porte, 10)).arret, "une nouvelle recherche est partie");
+    const b = porte([galerie, galerie], { dejaLue: (f) => f.identite.endsWith("-1") });
+    await lireGaleriesOpenSystem([fiche(1), fiche(2)], b.porte, 10);
+    assert.deepEqual(b.lus, ["x/OSMB-69279-2"]);
+    const c = porte([galerie, galerie, galerie]);
+    assert.equal((await lireGaleriesOpenSystem([1, 2, 3].map(fiche), c.porte, 2)).demandes, 2);
   });
 });

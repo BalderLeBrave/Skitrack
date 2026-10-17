@@ -517,6 +517,15 @@ describe("Orchestra : description et équipements d'une fiche réelle de La Plag
   // Fiche réelle du 6 octobre 2026 : Le Chardonnet, 2 pièces cabine 6 personnes (Champagny).
   const f = ficheOrchestra(readFileSync(new URL("./fixtures/orchestra-laplagne-fiche-chardonnet.html", import.meta.url), "utf8"));
 
+  it("la galerie de l'en-tête : le lot puis l'immeuble, chaque photo une fois, sans les logos", () => {
+    const p = f.photos ?? [];
+    assert.equal(p.length, 31);
+    assert.equal(p[0], "https://agence-rocblanc.locvacances.com/lv/images/lot/0000000030_01.jpg");
+    assert.equal(p.at(-1), "https://agence-rocblanc.locvacances.com/lv/images/imme/0000002001_15.jpg");
+    assert.equal(new Set(p).size, p.length);
+    assert.ok(p.every((u) => !/documents_footer/.test(u)));
+  });
+
   it("le bloc « Votre hébergement », une ligne par saut", () => {
     assert.match(f.description ?? "", /^Le Chardonnet - 2 pièces cabine 6 personnes\nAppartement de 35 m2 au 5ème étage/);
   });

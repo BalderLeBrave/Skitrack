@@ -860,6 +860,15 @@ describe("Ingénie, fiches sans préfixe PRESTATION- (Le Grand-Bornand)", () => 
     assert.ok(fiches.every((f) => f.lat != null && f.lon != null), "position du JSON-LD de liste");
   });
 
+  it("garde toute la galerie de chaque fiche, sans pictogrammes ni classement", () => {
+    const fiches = lireIngenie(page);
+    assert.deepEqual(fiches.map((f) => f.photos.length), [10, 21]);
+    for (const f of fiches) {
+      assert.ok(f.photos.every((u) => u.includes("/medias/images/prestations/")), f.titre);
+      assert.equal(new Set(f.photos).size, f.photos.length, f.titre);
+    }
+  });
+
   it("prend le lien de la galerie quand le bloc « plus d'infos » manque", () => {
     const [f] = lireIngenie(page);
     assert.match(f!.chemin ?? "", /^chalet-la-favellaz-[^#]*\.html\?&cid=7&action=result/);

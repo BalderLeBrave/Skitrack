@@ -328,6 +328,7 @@ function contenuDeFiche(f: FicheOrchestra): LectureAGarder["contenu"] {
     description: f.description ?? null,
     amenities: f.equipements ? equipements(f.equipements) : null,
     ...(f.equipementsPublies?.length ? { equipementsPublies: f.equipementsPublies } : {}),
+    ...(f.photos?.length ? { photos: f.photos } : {}),
   };
 }
 
@@ -474,7 +475,9 @@ function enListing(
     isStudio: occ.isStudio,
     propertyType: c.type,
     available: true,
-    photo: c.photo,
+    photo: c.photo ?? fiche?.photos?.[0] ?? null,
+    // La galerie de la fiche, quand elle a été lue ; sinon la vignette seule.
+    ...(fiche?.photos?.length ? { photos: fiche.photos } : {}),
     url: c.chemin ? new URL(c.chemin, `${base}/`).toString() : base,
     // Le point et l'adresse du logement viennent du bloc « Localisation » de
     // la fiche ; tant qu'elle n'est pas lue, ils restent vides. L'adresse de

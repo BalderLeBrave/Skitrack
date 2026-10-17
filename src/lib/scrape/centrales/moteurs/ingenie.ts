@@ -113,6 +113,9 @@ export type FicheIngenie = {
    */
   libelle: string | null;
   photo: string | null;
+  /** Toutes les photos de la fiche, dans l'ordre publié (`/medias/images/prestations/`) :
+   *  la liste porte déjà la galerie, chargée à la demande (`data-src`). */
+  photos: string[];
   /** Chemin de la fiche, relatif à la centrale. */
   chemin: string | null;
   /** Point du logement, `location.geo` du JSON-LD de la fiche. */
@@ -698,6 +701,16 @@ function classementIngenie(fragment: string): string | null {
   return `${n} ${mot}${n > 1 ? "s" : ""}`;
 }
 
+/** La galerie de la fiche : ses photos, sans les pictogrammes ni le classement. */
+export function galerieIngenie(fragment: string): string[] {
+  const out: string[] = [];
+  for (const m of fragment.matchAll(/<img[^>]+?(?:data-src|src)="(https?:\/\/[^"]+\/medias\/images\/prestations\/[^"]+)"/g)) {
+    const u = m[1] ?? "";
+    if (u && !out.includes(u)) out.push(u);
+  }
+  return out;
+}
+
 function photoDe(fragment: string): string | null {
   const m = /<img[^>]+(?:src|data-src)="(https?:\/\/[^"]+)"/.exec(fragment);
   return m?.[1] ?? null;
@@ -843,6 +856,7 @@ export function lireIngenie(page: string): FicheIngenie[] {
       // c'est sa phrase, pas la nôtre.
       libelle: [etiquette, tarif.montant, nature].filter(Boolean).join(" ") || null,
       photo: photoDe(fragment),
+      photos: galerieIngenie(fragment),
       chemin: lien ? desechapper(lien[1] ?? "") : null,
       ...lieuIngenie(fragment),
       ...occupationAfficheeIngenie(fragment),

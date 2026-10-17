@@ -61,6 +61,12 @@ describe("communes, villes et villages", () => {
     assert.equal(stationIdDeLaCommune("La Grave"), "la-grave-la-meije");
     assert.equal(communesPour(foldName("La Grave"))[0]?.stationId, "la-grave-la-meije");
   });
+  it("un domaine trop loin ne gagne pas sur la station proche", () => {
+    assert.equal(stationIdDeLaCommune("Névache"), "serre-chevalier");
+    const [c] = communesPour(foldName("Névache")).filter((x) => foldName(x.nom) === "nevache");
+    assert.equal(c?.stationId, "serre-chevalier");
+    assert.equal(c?.domaine, false);
+  });
   it("une saisie trop courte ne choisit rien", () => {
     assert.equal(stationIdDeLaCommune("la"), null);
     assert.deepEqual(communesPour("la"), []);

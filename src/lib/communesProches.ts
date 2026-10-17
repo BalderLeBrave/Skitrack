@@ -91,6 +91,14 @@ function stationNommee(e: Entree, q: string): boolean {
   return n.includes(q) || d.includes(q) || (n.length >= 5 && q.includes(n));
 }
 
+/** Au-delà, le « domaine » est un polygone trop large : Névache n'est pas
+ *  Saint-Colomban-des-Villards, à 44 km. */
+const DOMAINE_KM = 12;
+
+function dansLeDomaine(e: Entree): boolean {
+  return e.domaine && e.km <= DOMAINE_KM;
+}
+
 function comparer(a: Entree, b: Entree, q: string): number {
   const ae = a.f === q ? 0 : 1;
   const be = b.f === q ? 0 : 1;
@@ -100,7 +108,7 @@ function comparer(a: Entree, b: Entree, q: string): number {
     const bn = stationNommee(b, q) ? 0 : 1;
     if (an !== bn) return an - bn;
   }
-  if (a.domaine !== b.domaine) return a.domaine ? -1 : 1;
+  if (dansLeDomaine(a) !== dansLeDomaine(b)) return dansLeDomaine(a) ? -1 : 1;
   return a.km - b.km || a.nom.localeCompare(b.nom, "fr");
 }
 export function communesPour(q: string): CommuneTrouvee[] {
@@ -112,7 +120,7 @@ export function communesPour(q: string): CommuneTrouvee[] {
     const cle = `${h.stationId}|${h.f}`;
     if (vus.has(cle) || !h.stationId || contredit(h)) continue;
     vus.add(cle);
-    out.push({ nom: h.nom, stationId: h.stationId, km: h.km, domaine: h.domaine });
+    out.push({ nom: h.nom, stationId: h.stationId, km: h.km, domaine: dansLeDomaine(h) });
     if (out.length >= 6) break;
   }
   return out;

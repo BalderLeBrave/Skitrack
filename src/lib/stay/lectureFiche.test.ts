@@ -128,7 +128,20 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
                     ],
                   },
                   overview: { items: ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"] },
-                  location: { subtitle: "Morzine, France" },
+                  location: {
+                    subtitle: "Morzine, France",
+                    previewLocationDetails: [
+                      {
+                        title: "Points forts du quartier",
+                        content: {
+                          content: {
+                            localizedStringWithTranslationPreference:
+                              "Appartement situé à 10 minutes à pied des pistes et à 200 mètres des navettes.",
+                          },
+                        },
+                      },
+                    ],
+                  },
                   rules: {
                     __typename: "StaysPdpRuleDetails",
                     groupItems: [
@@ -169,6 +182,7 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     const html = `<html><script id="data-deferred-state-0" type="application/json">${JSON.stringify(etat)}</script></html>`;
     const l = lectureAirbnb(html);
     assert.match(l.description ?? "", /pied des pistes/);
+    assert.match(l.description ?? "", /10 minutes à pied des pistes/);
     assert.match(l.description ?? "", /Chambre 1 : 1 lit double/);
     assert.deepEqual(l.amenityTitles, ["Wifi"]);
     assert.equal(l.rating, 4.86);

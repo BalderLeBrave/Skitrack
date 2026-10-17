@@ -162,10 +162,35 @@ def description_de(raw: Any) -> str | None:
         if t:
             candidates.append(t[:TEXTE_MAX])
     texte = max(candidates, key=len) if candidates else None
+    quartier = quartier_de(raw)
+    if quartier and (texte is None or quartier not in texte):
+        texte = f"{texte}\n\n{quartier}" if texte else quartier
     lits = couchages_de(raw)
     if lits and (texte is None or lits not in texte):
         texte = f"{texte}\n\n{lits}" if texte else lits
     return texte[:TEXTE_MAX] if texte else None
+
+
+def quartier_de(raw: Any) -> str | None:
+    """« Points forts du quartier » : le texte de l'hôte sur les pistes, les
+    navettes, les commerces. La carte ne donne qu'un point approximatif."""
+    lignes: list[str] = []
+    for details in _cles(raw, "previewLocationDetails"):
+        if not isinstance(details, list):
+            continue
+        for d in details:
+            if not isinstance(d, dict):
+                continue
+            content = d.get("content") if isinstance(d.get("content"), dict) else {}
+            ugc = content.get("content") if isinstance(content.get("content"), dict) else {}
+            t = _chaine(ugc.get("localizedStringWithTranslationPreference")) or _chaine(ugc.get("localizedString"))
+            if not t or t in lignes:
+                continue
+            titre = _chaine(d.get("title")) or "Le quartier"
+            lignes.append(f"{titre}\n{t}")
+        if lignes:
+            break
+    return "\n\n".join(lignes) if lignes else None
 
 
 def couchages_de(raw: Any) -> str | None:

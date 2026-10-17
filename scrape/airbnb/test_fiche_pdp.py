@@ -533,6 +533,18 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
                             "body": {"localizedContent": "Boîte à clé sécurisée."},
                         }
                     ],
+                    "location": {
+                        "previewLocationDetails": [
+                            {
+                                "title": "Points forts du quartier",
+                                "content": {
+                                    "content": {
+                                        "localizedStringWithTranslationPreference": "Appartement situé à 10 minutes à pied des pistes et à 200 mètres des navettes."
+                                    }
+                                },
+                            }
+                        ]
+                    },
                     "sleepingArrangements": {
                         "stops": [
                             {
@@ -569,6 +581,7 @@ def test_pdp_presentation_donne_description_reglement_note_et_photos():
     f = fiche_enrichie_de_pdp(brut)
     assert f["description"].startswith("Appartement au pied des pistes")
     assert "Cuisine équipée." in f["description"]
+    assert "10 minutes à pied des pistes" in f["description"]
     assert "Chambre 1 : 1 lit double, 1 lit simple" in f["description"]
     assert "Chambre 2 : 2 lits simples" in f["description"]
     c = f["conditions"]

@@ -991,6 +991,10 @@ function publieDeLaPage(html: string): PageAirbnb {
   if (typeof loc?.subtitle === "string" && loc.subtitle.trim()) {
     out.locality = loc.subtitle.split(",")[0].trim().slice(0, 80);
   }
+  const quartier = quartierDe(pdp.location);
+  if (quartier && !(out.description ?? "").includes(quartier)) {
+    out.description = out.description ? `${out.description}\n\n${quartier}` : quartier;
+  }
   const couchages = couchagesDe(pdp.sleepingArrangements);
   if (couchages) out.description = out.description ? `${out.description}\n\n${couchages}` : couchages;
   const photos = photosDe(pdp.heroMedia);
@@ -1101,6 +1105,30 @@ function photosDe(v: unknown): string[] {
     if (typeof uri === "string" && uri.startsWith("https://") && !out.includes(uri)) out.push(uri);
   }
   return out.slice(0, 80);
+}
+
+function quartierDe(location: unknown): string | null {
+  if (!location || typeof location !== "object") return null;
+  const details = (location as Record<string, unknown>).previewLocationDetails;
+  if (!Array.isArray(details)) return null;
+  const lignes: string[] = [];
+  for (const d of details) {
+    if (!d || typeof d !== "object") continue;
+    const row = d as Record<string, unknown>;
+    const content = row.content as Record<string, unknown> | undefined;
+    const ugc = content?.content as Record<string, unknown> | undefined;
+    const brut =
+      typeof ugc?.localizedStringWithTranslationPreference === "string"
+        ? ugc.localizedStringWithTranslationPreference
+        : typeof ugc?.localizedString === "string"
+          ? ugc.localizedString
+          : "";
+    const t = brut.replace(/\u00a0/g, " ").trim();
+    if (t.length < 40 || lignes.some((l) => l.includes(t))) continue;
+    const titre = typeof row.title === "string" && row.title.trim() ? row.title.trim() : "Le quartier";
+    lignes.push(`${titre}\n${t}`);
+  }
+  return lignes.length ? lignes.join("\n\n") : null;
 }
 
 function couchagesDe(v: unknown): string | null {

@@ -1,0 +1,802 @@
+{
+  "releve": "2026-10-17",
+  "groupe": "suisse",
+  "methode": "Pour chaque domaine, recherche de l'office de tourisme/destination et de la page « Unterkunft buchen / réservation d'hébergement » qu'il publie ; moteur retenu seulement sur preuve écrite (hôte ou chemin d'URL caractéristique, mentions légales, documentation partenaires/loueurs de la destination). Relevé par recherche web uniquement : les pages n'ont pas pu être chargées (WebFetch hors service, crédits Firecrawl épuisés), d'où de nombreux « non recherché ».",
+  "domaines": [
+    {
+      "id": "ch-zermatt-breuil-cervinia-breuil-cervinia-ski-paradise",
+      "nom": "Zermatt - Breuil-Cervinia, Breuil-Cervinia Ski Paradise",
+      "pays": "CH",
+      "siteOfficiel": "https://zermatt.swiss/en",
+      "centrale": {
+        "nom": "Zermatt Tourismus",
+        "url": "https://zermatt.swiss/en/plan-book/accommodations",
+        "hote": "zermatt.swiss",
+        "moteur": "TOMAS",
+        "preuve": "Portail partenaires Zermatt (ztnet.ch/de/Hotel/Open-Booking/Buchungssysteme/TOMAS) : TOMAS (TouristDataShop AG, Aigle) = système de distribution des hébergements, commission 5 % sur les réservations via zermatt.ch. Front de boutique propre (fiches /p/…-01t…, identifiants produit Salesforce, panier zermatt.swiss/en/cart)."
+      }
+    },
+    {
+      "id": "ch-4-vallees-verbier-la-tzoumaz-nendaz-veysonnaz-thyon",
+      "nom": "4 Vallées – Verbier/La Tzoumaz/Nendaz/Veysonnaz/Thyon",
+      "pays": "CH",
+      "siteOfficiel": "https://www.verbier.ch/",
+      "centrale": {
+        "nom": "Verbier – Val de Bagnes Office du Tourisme",
+        "url": "https://www.verbier.ch/pratique/stay-hebergements-et-workation/reservation-en-ligne/",
+        "hote": "www.verbier.ch",
+        "moteur": "OpenBooking",
+        "preuve": "FAQ partenaires verbier.ch (en/partners/faq-digital-tools) : l'OT travaille avec OpenBooking, méta-moteur (AGIV + hôteliers) qui affiche dispo/prix (connexions Seekda, CITI, Avantio…) et renvoie au site de l'hébergeur pour payer. Nendaz, Veysonnaz, Thyon (autres OT) non vérifiés."
+      }
+    },
+    {
+      "id": "ch-arosa-lenzerheide",
+      "nom": "Arosa Lenzerheide",
+      "pays": "CH",
+      "siteOfficiel": "https://arosalenzerheide.swiss/de",
+      "centrale": {
+        "nom": "Arosa Lenzerheide Tourismus",
+        "url": "https://booking.arosalenzerheide.swiss/de/Buchen-Tickets/Unterkuenfte",
+        "hote": "booking.arosalenzerheide.swiss",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Le site officiel publie pour les loueurs la page « Feratel-WebClient4 » (arosalenzerheide.swiss/de/Arosa/Inside/Ferienwohnungen/Feratel-WebClient) ; communiqué presseportal.ch : Lenzerheide a choisi le DMS feratel Deskline. Fiches en …_ad-<id>."
+      }
+    },
+    {
+      "id": "ch-laax",
+      "nom": "Laax",
+      "pays": "CH",
+      "siteOfficiel": "https://www.flimslaax.com/",
+      "centrale": {
+        "nom": "Flims Laax Falera Management (FLFM)",
+        "url": "https://shop.flimslaax.com/FlimsLaax/ukv/",
+        "hote": "shop.flimslaax.com",
+        "moteur": "TOMAS",
+        "preuve": "flimslaax.com/ferien-buchen renvoie au shop ; chemin /<mandant>/ukv/search|result?tt=… identique au TPortal TOMAS (tportal.tomas.travel/<mandant>/ukv/result, aujourd'hui « Holidu Smart Destination ») ; même mandant sous shop.graubuenden.ch/FlimsLaax/ukv."
+      }
+    },
+    {
+      "id": "ch-andermatt-disentis-sedrun",
+      "nom": "Andermatt+Disentis+Sedrun",
+      "pays": "CH",
+      "siteOfficiel": "https://www.andermatt-sedrun-disentis.ch/",
+      "centrale": {
+        "nom": "ANDERMATT+SEDRUN+DISENTIS Marketing AG (Andermatt-Urserntal Tourismus / Sedrun Disentis Tourismus)",
+        "url": "https://www.andermatt-sedrun-disentis.ch/andermatt/de/pages/unterkuenfte",
+        "hote": "www.andermatt-sedrun-disentis.ch",
+        "moteur": "Alturos Destination OS",
+        "preuve": "La page dit « Buche deine Unterkunft direkt über unsere Buchungsplattform » ; alturos.com publie le témoignage client ASD (client depuis 2019/2020, webshop Destination OS incluant les hébergements). Système d'hébergement amont (feratel/TOMAS/autre) non établi."
+      }
+    },
+    {
+      "id": "ch-obersaxen",
+      "nom": "Obersaxen",
+      "pays": "CH",
+      "siteOfficiel": "https://www.obersaxen-mundaun.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-grindelwald-wengen-kleine-scheidegg-mannlichen",
+      "nom": "Grindelwald - Wengen (Kleine Scheidegg - Männlichen)",
+      "pays": "CH",
+      "siteOfficiel": "https://www.jungfrau.ch/de-ch/jungfrau-ski-region/grindelwald-wengen/",
+      "centrale": null,
+      "motif": "Recherche lancée (grindelwald.swiss) sans aboutir : page de réservation non trouvée avant épuisement des outils."
+    },
+    {
+      "id": "ch-aletsch-arena",
+      "nom": "Aletsch Arena",
+      "pays": "CH",
+      "siteOfficiel": "https://www.aletscharena.ch/",
+      "centrale": {
+        "nom": "Aletsch Arena AG",
+        "url": "https://www.aletscharena.ch/planen-buchen/anreise-mobilitaet/unterkuenfte",
+        "hote": "shop.aletscharena.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "partner.aletscharena.ch (academy) : données, prix et dispo saisis dans le « feratel Deskline WebClient », service « Unterkunft – sofort buchbar » (art. 36) vendu dans le shop shop.aletscharena.ch, interfaces e-domizil/Interhome."
+      }
+    },
+    {
+      "id": "ch-adelboden-lenk",
+      "nom": "Adelboden - Lenk",
+      "pays": "CH",
+      "siteOfficiel": "https://www.adelboden.ch/",
+      "centrale": {
+        "nom": "Adelboden-Lenk-Kandersteg Tourismus",
+        "url": null,
+        "hote": "www.adelboden.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Parahotellerie Verein Adelboden (pva-adelboden.ch) : « Mit dem Buchungssystem ‹Deskline› der Destination wird Ihre Unterkunft online buchbar » — page ancienne (~7 ans) ; URL de la page de réservation non relevée."
+      }
+    },
+    {
+      "id": "ch-champery-les-crosets-champoussin-morgins",
+      "nom": "Champéry – Les Crosets – Champoussin – Morgins",
+      "pays": "CH",
+      "siteOfficiel": "https://www.regiondentsdumidi.ch",
+      "centrale": {
+        "nom": "Région Dents du Midi SA (RDDM)",
+        "url": "https://www.regiondentsdumidi.ch/en/staying-here/booking/online-booking-26303/",
+        "hote": "www.regiondentsdumidi.ch",
+        "moteur": "TOMAS",
+        "preuve": "Brochure de la centrale (regiondentsdumidi.ch/files/TOMAS_Centrale-reservation_FR_Finale.pdf) : commercialisation via « le moteur de réservation TOMAS », passerelles Booking/Airbnb/e-domizil, commission 12 % + TVA."
+      }
+    },
+    {
+      "id": "ch-parsenn",
+      "nom": "Parsenn",
+      "pays": "CH",
+      "siteOfficiel": "https://www.davos.ch/",
+      "centrale": {
+        "nom": "Destination Davos Klosters — Ferienshop",
+        "url": "https://ferienshop.davos.ch/de",
+        "hote": "ferienshop.davos.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiche destination pour loueurs (dkinfo.ch/…/Deskline_ZF.pdf) : raccordement au « système de réservation électronique Deskline », commission 12 % ; davos.ch : ~600 FeWo « dans le système de réservation de la destination », réservables dans le shop. Document vieux d'environ 2,5 ans."
+      }
+    },
+    {
+      "id": "ch-avoriaz",
+      "nom": "Avoriaz",
+      "pays": "CH",
+      "siteOfficiel": "https://www.avoriaz.com/en/discover/discover/ski-area-and-maps/",
+      "centrale": null,
+      "motif": "Station française (Portes du Soleil) rattachée par erreur à la Suisse ; relève du groupe France — non recherché ici."
+    },
+    {
+      "id": "ch-crans-montana",
+      "nom": "Crans-Montana",
+      "pays": "CH",
+      "siteOfficiel": "https://www.crans-montana.ch/",
+      "centrale": {
+        "nom": "Crans-Montana Tourisme & Congrès",
+        "url": "https://www.crans-montana.ch/en/accommodation/",
+        "hote": "www.crans-montana.ch",
+        "moteur": "inconnu",
+        "preuve": "Rubrique « Online booking » sur la page hébergement ; aucune empreinte de moteur trouvée dans les sources accessibles."
+      }
+    },
+    {
+      "id": "ch-zinal-grimentz",
+      "nom": "Zinal / Grimentz",
+      "pays": "CH",
+      "siteOfficiel": "https://www.valdanniviers.ch/",
+      "centrale": {
+        "nom": "Sierre-Anniviers Marketing — réservation Val d'Anniviers",
+        "url": "https://reservation.valdanniviers.ch/",
+        "hote": "reservation.valdanniviers.ch",
+        "moteur": "Ingénie",
+        "preuve": "Mentions légales de reservation.valdanniviers.ch : « Développement et Hébergement : Ingénie », « Logiciel de Réservation Ingénie », SIT Apidae."
+      }
+    },
+    {
+      "id": "ch-corviglia",
+      "nom": "Corviglia",
+      "pays": "CH",
+      "siteOfficiel": "https://www.engadin.ch/",
+      "centrale": {
+        "nom": "Engadin St. Moritz Tourismus — Experience Shop",
+        "url": "https://booking.stmoritz.com/de/accommodations",
+        "hote": "booking.stmoritz.com",
+        "moteur": "inconnu",
+        "preuve": "Shops booking.engadin.ch et booking.stmoritz.com (hôtels + FeWo + activités, panier unique). Les FeWo sont onboardées via un compte e-domizil.ch (engadintourismus.ch) ; le manuel partenaires 2022 cite Trekksoft pour les activités. Moteur hébergement non prouvé."
+      }
+    },
+    {
+      "id": "ch-villars-gryon-les-diablerets",
+      "nom": "Villars/Gryon/Les Diablerets",
+      "pays": "CH",
+      "siteOfficiel": "https://www.villars-diablerets.ch/",
+      "centrale": {
+        "nom": "Villars-Gryon-Les Diablerets Tourisme",
+        "url": "https://www.villars-diablerets.ch/fr/Z7747/reservation-d-hebergement",
+        "hote": "www.villars-diablerets.ch",
+        "moteur": "inconnu",
+        "preuve": "Page « Réservation d'hébergements » trouvée ; moteur non identifiable sans lecture de la page (outils indisponibles)."
+      }
+    },
+    {
+      "id": "ch-schonried-saanenmoser-zweisimmen-st-stephan",
+      "nom": "Schönried - Saanenmöser - Zweisimmen - St. Stephan",
+      "pays": "CH",
+      "siteOfficiel": "https://www.gstaad.ch/",
+      "centrale": {
+        "nom": "Gstaad Saanenland Tourismus (GST)",
+        "url": "https://www.gstaad.ch/planen-buchen/buchen/unterkuenfte-buchen",
+        "hote": "www.gstaad.ch",
+        "moteur": "inconnu",
+        "preuve": "GST forme ses loueurs au « WebClient » (système central, interfaces e-domizil, Interhome, MySwitzerland) — vocabulaire feratel, mais l'éditeur n'est pas nommé dans les sources lues."
+      }
+    },
+    {
+      "id": "ch-saint-luc-chandolin",
+      "nom": "Saint-Luc - Chandolin",
+      "pays": "CH",
+      "siteOfficiel": "https://www.valdanniviers.ch/",
+      "centrale": {
+        "nom": "Sierre-Anniviers Marketing — réservation Val d'Anniviers",
+        "url": "https://reservation.valdanniviers.ch/",
+        "hote": "reservation.valdanniviers.ch",
+        "moteur": "Ingénie",
+        "preuve": "Mentions légales de reservation.valdanniviers.ch : « Développement et Hébergement : Ingénie », « Logiciel de Réservation Ingénie », SIT Apidae."
+      }
+    },
+    {
+      "id": "ch-flumserberg",
+      "nom": "Flumserberg",
+      "pays": "CH",
+      "siteOfficiel": "https://www.flumserberg.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-meiringen-hasliberg",
+      "nom": "Meiringen - Hasliberg",
+      "pays": "CH",
+      "siteOfficiel": "https://www.meiringen-hasliberg.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-saas-fee",
+      "nom": "Saas Fee",
+      "pays": "CH",
+      "siteOfficiel": "https://www.saas-fee.ch/",
+      "centrale": {
+        "nom": "Saastal Tourismus AG",
+        "url": "https://www.saas-fee.ch/",
+        "hote": "www.saas-fee.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Le site saas-fee.ch affiche « One-Stop-Shop – Deskline® Online Buchungsstrecke » et « © feratel media technologies AG ». URL exacte de la page de résultats non relevée."
+      }
+    },
+    {
+      "id": "ch-savognin",
+      "nom": "Savognin",
+      "pays": "CH",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-scuol-motta-naluns",
+      "nom": "Scuol Motta Naluns",
+      "pays": "CH",
+      "siteOfficiel": "https://www.engadin.com/",
+      "centrale": {
+        "nom": "Tourismus Engadin Scuol Samnaun Val Müstair",
+        "url": "https://shop.engadin.com/Engadin/ukv/search?lang=en",
+        "hote": "shop.engadin.com",
+        "moteur": "TOMAS",
+        "preuve": "Même shop servi directement par TOMAS : tportal.tomas.travel/Scuol/ukv/search et tportal.tomas.travel/Engadin/experience ; chemin /<mandant>/ukv/search|result?tt=… identique au TPortal TOMAS (tportal.tomas.travel/<mandant>/ukv/result, aujourd'hui « Holidu Smart Destination »)."
+      }
+    },
+    {
+      "id": "ch-skipisten-titlis-bergbahnen",
+      "nom": "Skipisten Titlis Bergbahnen",
+      "pays": "CH",
+      "siteOfficiel": "https://www.engelberg.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-corvatsch-furtschellas",
+      "nom": "Corvatsch-Furtschellas",
+      "pays": "CH",
+      "siteOfficiel": "https://www.engadin.ch/",
+      "centrale": {
+        "nom": "Engadin St. Moritz Tourismus — Experience Shop",
+        "url": "https://booking.stmoritz.com/de/accommodations",
+        "hote": "booking.stmoritz.com",
+        "moteur": "inconnu",
+        "preuve": "Shops booking.engadin.ch et booking.stmoritz.com (hôtels + FeWo + activités, panier unique). Les FeWo sont onboardées via un compte e-domizil.ch (engadintourismus.ch) ; le manuel partenaires 2022 cite Trekksoft pour les activités. Moteur hébergement non prouvé."
+      }
+    },
+    {
+      "id": "ch-belalp",
+      "nom": "Belalp",
+      "pays": "CH",
+      "siteOfficiel": "https://www.belalp.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-murren-schilthorn",
+      "nom": "Mürren/Schilthorn",
+      "pays": "CH",
+      "siteOfficiel": "https://schilthorn.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-gstaad-saanen-rougemont",
+      "nom": "Gstaad - Saanen - Rougemont",
+      "pays": "CH",
+      "siteOfficiel": "https://www.gstaad.ch/",
+      "centrale": {
+        "nom": "Gstaad Saanenland Tourismus (GST)",
+        "url": "https://www.gstaad.ch/planen-buchen/buchen/unterkuenfte-buchen",
+        "hote": "www.gstaad.ch",
+        "moteur": "inconnu",
+        "preuve": "GST forme ses loueurs au « WebClient » (système central, interfaces e-domizil, Interhome, MySwitzerland) — vocabulaire feratel, mais l'éditeur n'est pas nommé dans les sources lues."
+      }
+    },
+    {
+      "id": "ch-sorenberg",
+      "nom": "Sörenberg",
+      "pays": "CH",
+      "siteOfficiel": "https://www.soerenberg.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-unterbach-eischoll",
+      "nom": "Unterbäch - Eischoll",
+      "pays": "CH",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-anzere",
+      "nom": "Anzère",
+      "pays": "CH",
+      "siteOfficiel": "https://www.anzere.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-pizol",
+      "nom": "Pizol",
+      "pays": "CH",
+      "siteOfficiel": "https://pizol.com/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-grindelwald-first",
+      "nom": "Grindelwald First",
+      "pays": "CH",
+      "siteOfficiel": "https://www.jungfrau.ch/de-ch/grindelwaldfirst/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-melchsee-frutt",
+      "nom": "Melchsee-Frutt",
+      "pays": "CH",
+      "siteOfficiel": "https://www.melchsee-frutt.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-chaserrugg-alt-st-johann",
+      "nom": "Chäserrugg-Alt St. Johann",
+      "pays": "CH",
+      "siteOfficiel": "https://www.chaeserrugg.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-les-rousses",
+      "nom": "Les Rousses",
+      "pays": "CH",
+      "siteOfficiel": "https://www.lesrousses.com/",
+      "centrale": {
+        "nom": "Station des Rousses – Jura sur Léman",
+        "url": "https://www.lesrousses.com/",
+        "hote": "www.lesrousses.com",
+        "moteur": "Ingénie",
+        "preuve": "Repris de docs/centrales/audit.md (§4) : www.lesrousses.com = Ingénie (passerelle SIT documentée, ingenie.fr). Domaine franco-suisse (côté suisse : La Dôle)."
+      }
+    },
+    {
+      "id": "ch-brigels-waltensburg-andiast-brigels-waltenburg-andiast-breil-vuorz-andiast",
+      "nom": "Brigels-Waltensburg-Andiast, Brigels-Waltenburg-Andiast, Breil-Vuorz-Andiast",
+      "pays": "CH",
+      "siteOfficiel": "https://www.brigels-bergbahnen.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-jakobshorn",
+      "nom": "Jakobshorn",
+      "pays": "CH",
+      "siteOfficiel": "https://www.davos.ch/",
+      "centrale": {
+        "nom": "Destination Davos Klosters — Ferienshop",
+        "url": "https://ferienshop.davos.ch/de",
+        "hote": "ferienshop.davos.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiche destination pour loueurs (dkinfo.ch/…/Deskline_ZF.pdf) : raccordement au « système de réservation électronique Deskline », commission 12 % ; davos.ch : ~600 FeWo « dans le système de réservation de la destination », réservables dans le shop. Document vieux d'environ 2,5 ans."
+      }
+    },
+    {
+      "id": "ch-elsigenalp",
+      "nom": "Elsigenalp",
+      "pays": "CH",
+      "siteOfficiel": "https://elsigen-metsch.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-brunni-holzegg-rotenflue",
+      "nom": "Brunni-Holzegg-Rotenflue",
+      "pays": "CH",
+      "siteOfficiel": "https://www.brunnialpthal.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-elm",
+      "nom": "Elm",
+      "pays": "CH",
+      "siteOfficiel": "https://www.elm.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-evolene",
+      "nom": "Evolène",
+      "pays": "CH",
+      "siteOfficiel": "https://www.evolene-region.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-disentis-muster",
+      "nom": "Disentis/Mustér",
+      "pays": "CH",
+      "siteOfficiel": "https://www.andermatt-sedrun-disentis.ch/",
+      "centrale": {
+        "nom": "ANDERMATT+SEDRUN+DISENTIS Marketing AG (Andermatt-Urserntal Tourismus / Sedrun Disentis Tourismus)",
+        "url": "https://www.andermatt-sedrun-disentis.ch/andermatt/de/pages/unterkuenfte",
+        "hote": "www.andermatt-sedrun-disentis.ch",
+        "moteur": "Alturos Destination OS",
+        "preuve": "La page dit « Buche deine Unterkunft direkt über unsere Buchungsplattform » ; alturos.com publie le témoignage client ASD (client depuis 2019/2020, webshop Destination OS incluant les hébergements). Système d'hébergement amont (feratel/TOMAS/autre) non établi."
+      }
+    },
+    {
+      "id": "ch-les-mosses",
+      "nom": "Les Mosses",
+      "pays": "CH",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-leysin",
+      "nom": "Leysin",
+      "pays": "CH",
+      "siteOfficiel": "https://leysin.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-madrisa",
+      "nom": "Madrisa",
+      "pays": "CH",
+      "siteOfficiel": "https://www.davos.ch/",
+      "centrale": {
+        "nom": "Destination Davos Klosters — Ferienshop",
+        "url": "https://ferienshop.davos.ch/de",
+        "hote": "ferienshop.davos.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiche destination pour loueurs (dkinfo.ch/…/Deskline_ZF.pdf) : raccordement au « système de réservation électronique Deskline », commission 12 % ; davos.ch : ~600 FeWo « dans le système de réservation de la destination », réservables dans le shop. Document vieux d'environ 2,5 ans."
+      }
+    },
+    {
+      "id": "ch-hoch-ybrig",
+      "nom": "Hoch-Ybrig",
+      "pays": "CH",
+      "siteOfficiel": "https://www.hoch-ybrig.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-leukerbad-torrent",
+      "nom": "Leukerbad (Torrent)",
+      "pays": "CH",
+      "siteOfficiel": "https://www.leukerbad.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-lenk-wallegg",
+      "nom": "Lenk - Wallegg",
+      "pays": "CH",
+      "siteOfficiel": "https://www.lenk-simmental.ch/",
+      "centrale": {
+        "nom": "Adelboden-Lenk-Kandersteg Tourismus",
+        "url": null,
+        "hote": "www.adelboden.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Parahotellerie Verein Adelboden (pva-adelboden.ch) : « Mit dem Buchungssystem ‹Deskline› der Destination wird Ihre Unterkunft online buchbar » — page ancienne (~7 ans) ; URL de la page de réservation non relevée."
+      }
+    },
+    {
+      "id": "ch-rinerhorn",
+      "nom": "Rinerhorn",
+      "pays": "CH",
+      "siteOfficiel": "https://www.davos.ch/",
+      "centrale": {
+        "nom": "Destination Davos Klosters — Ferienshop",
+        "url": "https://ferienshop.davos.ch/de",
+        "hote": "ferienshop.davos.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiche destination pour loueurs (dkinfo.ch/…/Deskline_ZF.pdf) : raccordement au « système de réservation électronique Deskline », commission 12 % ; davos.ch : ~600 FeWo « dans le système de réservation de la destination », réservables dans le shop. Document vieux d'environ 2,5 ans."
+      }
+    },
+    {
+      "id": "ch-glacier-3000",
+      "nom": "Glacier 3000",
+      "pays": "CH",
+      "siteOfficiel": "https://www.glacier3000.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-grusch-danusa",
+      "nom": "Grüsch-Danusa",
+      "pays": "CH",
+      "siteOfficiel": "https://www.gruesch-danusa.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-airolo-pescium",
+      "nom": "Airolo Pesciüm",
+      "pays": "CH",
+      "siteOfficiel": "https://airolo.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-wildhaus",
+      "nom": "Wildhaus",
+      "pays": "CH",
+      "siteOfficiel": "https://www.wildhaus.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-lauchernalp",
+      "nom": "Lauchernalp",
+      "pays": "CH",
+      "siteOfficiel": "https://www.loetschental.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-confin-san-bernardino",
+      "nom": "Confin / San Bernardino",
+      "pays": "CH",
+      "siteOfficiel": "https://sanbernardino-swissalps.com/sportarena",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-tschiertschen",
+      "nom": "Tschiertschen",
+      "pays": "CH",
+      "siteOfficiel": "https://www.bbtschiertschen.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-splugen-tambo",
+      "nom": "Splügen-Tambo",
+      "pays": "CH",
+      "siteOfficiel": "https://viamala.ch/",
+      "centrale": {
+        "nom": "Viamala Tourismus (shop graubuenden.ch)",
+        "url": "https://shop.graubuenden.ch/Viamala/ukv/",
+        "hote": "shop.graubuenden.ch",
+        "moteur": "TOMAS",
+        "preuve": "chemin /<mandant>/ukv/search|result?tt=… identique au TPortal TOMAS (tportal.tomas.travel/<mandant>/ukv/result, aujourd'hui « Holidu Smart Destination »)."
+      }
+    },
+    {
+      "id": "ch-stoos",
+      "nom": "Stoos",
+      "pays": "CH",
+      "siteOfficiel": "http://www.morschach-stoos.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-diavolezza-lagalb",
+      "nom": "Diavolezza-Lagalb",
+      "pays": "CH",
+      "siteOfficiel": "https://www.engadin.ch/",
+      "centrale": {
+        "nom": "Engadin St. Moritz Tourismus — Experience Shop",
+        "url": "https://booking.stmoritz.com/de/accommodations",
+        "hote": "booking.stmoritz.com",
+        "moteur": "inconnu",
+        "preuve": "Shops booking.engadin.ch et booking.stmoritz.com (hôtels + FeWo + activités, panier unique). Les FeWo sont onboardées via un compte e-domizil.ch (engadintourismus.ch) ; le manuel partenaires 2022 cite Trekksoft pour les activités. Moteur hébergement non prouvé."
+      }
+    },
+    {
+      "id": "ch-nax-mont-noble",
+      "nom": "Nax - Mont Noble",
+      "pays": "CH",
+      "siteOfficiel": "https://www.mont-noble-tourisme.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-burchen-torbel",
+      "nom": "Bürchen - Törbel",
+      "pays": "CH",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-saas-grund",
+      "nom": "Saas Grund",
+      "pays": "CH",
+      "siteOfficiel": "https://www.saas-fee.ch/",
+      "centrale": {
+        "nom": "Saastal Tourismus AG",
+        "url": "https://www.saas-fee.ch/",
+        "hote": "www.saas-fee.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Le site saas-fee.ch affiche « One-Stop-Shop – Deskline® Online Buchungsstrecke » et « © feratel media technologies AG ». URL exacte de la page de résultats non relevée."
+      }
+    },
+    {
+      "id": "ch-tschappina-heinzenberg",
+      "nom": "Tschappina Heinzenberg",
+      "pays": "CH",
+      "siteOfficiel": "https://viamala.ch/",
+      "centrale": {
+        "nom": "Viamala Tourismus (shop graubuenden.ch)",
+        "url": "https://shop.graubuenden.ch/Viamala/ukv/",
+        "hote": "shop.graubuenden.ch",
+        "moteur": "TOMAS",
+        "preuve": "chemin /<mandant>/ukv/search|result?tt=… identique au TPortal TOMAS (tportal.tomas.travel/<mandant>/ukv/result, aujourd'hui « Holidu Smart Destination »)."
+      }
+    },
+    {
+      "id": "ch-vercorin",
+      "nom": "Vercorin",
+      "pays": "CH",
+      "siteOfficiel": null,
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-klewenalp-stockhutte",
+      "nom": "Klewenalp - Stockhütte",
+      "pays": "CH",
+      "siteOfficiel": "https://www.klewenalp.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-hochwang",
+      "nom": "Hochwang",
+      "pays": "CH",
+      "siteOfficiel": "https://www.hochwang.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "li-malbun",
+      "nom": "Malbun",
+      "pays": "LI",
+      "siteOfficiel": "https://www.bergbahnen.li/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-bosco-gurin-grossalp",
+      "nom": "Bosco Gurin – Grossalp",
+      "pays": "CH",
+      "siteOfficiel": "https://www.bosco-gurin.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-ovronnaz",
+      "nom": "Ovronnaz",
+      "pays": "CH",
+      "siteOfficiel": "https://www.ovronnaz.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-grachen",
+      "nom": "Grächen",
+      "pays": "CH",
+      "siteOfficiel": "https://www.graechen.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-visperterminen",
+      "nom": "Visperterminen",
+      "pays": "CH",
+      "siteOfficiel": "http://www.visperterminen.ch",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-sarn-heinzenberg",
+      "nom": "Sarn Heinzenberg",
+      "pays": "CH",
+      "siteOfficiel": "https://viamala.ch/",
+      "centrale": {
+        "nom": "Viamala Tourismus (shop graubuenden.ch)",
+        "url": "https://shop.graubuenden.ch/Viamala/ukv/",
+        "hote": "shop.graubuenden.ch",
+        "moteur": "TOMAS",
+        "preuve": "chemin /<mandant>/ukv/search|result?tt=… identique au TPortal TOMAS (tportal.tomas.travel/<mandant>/ukv/result, aujourd'hui « Holidu Smart Destination »)."
+      }
+    },
+    {
+      "id": "ch-bellwald",
+      "nom": "Bellwald",
+      "pays": "CH",
+      "siteOfficiel": "https://www.bellwald.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-bugnenets-savagnieres",
+      "nom": "Bugnenets-Savagnières",
+      "pays": "CH",
+      "siteOfficiel": "https://www.chasseral-snow.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-arolla",
+      "nom": "Arolla",
+      "pays": "CH",
+      "siteOfficiel": "https://www.arolla.com/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-minschuns",
+      "nom": "Minschuns",
+      "pays": "CH",
+      "siteOfficiel": "https://www.val-muestair.ch/",
+      "centrale": {
+        "nom": "Val Müstair (Tourismus Engadin Scuol Samnaun Val Müstair)",
+        "url": "https://shop.engadin.com/ValMuestair/ukv/result",
+        "hote": "shop.engadin.com",
+        "moteur": "TOMAS",
+        "preuve": "Shop shop.engadin.com/ValMuestair/ukv (aussi shop.graubuenden.ch/ValMuestair/ukv) ; chemin /<mandant>/ukv/search|result?tt=… identique au TPortal TOMAS (tportal.tomas.travel/<mandant>/ukv/result, aujourd'hui « Holidu Smart Destination »)."
+      }
+    },
+    {
+      "id": "ch-vals",
+      "nom": "Vals",
+      "pays": "CH",
+      "siteOfficiel": "https://www.vals.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    },
+    {
+      "id": "ch-braunwald",
+      "nom": "Braunwald",
+      "pays": "CH",
+      "siteOfficiel": "https://www.braunwald.ch/",
+      "centrale": null,
+      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+    }
+  ],
+  "moteurs": {
+    "Deskline / Feratel": 10,
+    "TOMAS": 8,
+    "inconnu": 7,
+    "Ingénie": 3,
+    "Alturos Destination OS": 2,
+    "OpenBooking": 1
+  }
+}

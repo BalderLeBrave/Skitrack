@@ -51,6 +51,8 @@ export type LectureFiche = OccupancyLue & {
   photos?: string[];
   /** Le règlement publié : arrivée, départ, animaux, fumeurs, fêtes. */
   conditions?: ConditionsPage;
+  /** Propreté, précision, arrivée… notées à part, sur 5. */
+  categories?: { label: string; note: number }[];
   /** Airbnb : chambre privée ou partagée, chambre d'hôtel ou hébergement insolite (`ecarteeAirbnb`). */
   ecartee?: boolean;
   /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
@@ -880,6 +882,7 @@ type PageAirbnb = Pick<
   | "locality"
   | "photos"
   | "conditions"
+  | "categories"
 >;
 
 function estPresentation(o: Record<string, unknown>): boolean {
@@ -994,6 +997,26 @@ function publieDeLaPage(html: string): PageAirbnb {
   if (photos.length) out.photos = photos;
   const conditions = conditionsDePage(pdp);
   if (conditions) out.conditions = conditions;
+  const categories = notesCategories(pdp.quality);
+  if (categories.length) out.categories = categories;
+  return out;
+}
+
+function notesCategories(quality: unknown): { label: string; note: number }[] {
+  if (!quality || typeof quality !== "object") return [];
+  const cats = (quality as Record<string, unknown>).categoryRatings;
+  if (!Array.isArray(cats)) return [];
+  const out: { label: string; note: number }[] = [];
+  for (const c of cats) {
+    if (!c || typeof c !== "object") continue;
+    const row = c as Record<string, unknown>;
+    const label = typeof row.label === "string" ? row.label.trim() : "";
+    const brut = typeof row.localizedRating === "string" ? row.localizedRating.replace(",", ".") : "";
+    const note = Number(brut);
+    if (!label || !(note > 0 && note <= 5)) continue;
+    out.push({ label, note: Math.round(note * 100) / 100 });
+    if (out.length >= 6) break;
+  }
   return out;
 }
 
@@ -1156,6 +1179,7 @@ export function lectureAirbnb(html: string): LectureFiche {
   if (page.reviewCount != null) out = { ...out, reviewCount: page.reviewCount };
   if (page.photos?.length) out = { ...out, photos: page.photos };
   if (page.conditions) out = { ...out, conditions: page.conditions };
+  if (page.categories?.length) out = { ...out, categories: page.categories };
   if (out.capacity == null) {
     const max = voyageursMax(page.conditions?.reglement);
     if (max != null) out = { ...out, capacity: max, capacitySource: "text_regex" };

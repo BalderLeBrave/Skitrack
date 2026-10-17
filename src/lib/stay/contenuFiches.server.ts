@@ -26,8 +26,8 @@ import { mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSyn
 import { dirname, join } from "node:path";
 import type { Listing } from "../listings.ts";
 import type { Equipement, EquipementPublie } from "./equipements.ts";
-import { CLES_EQUIPEMENT, equipementsPubliesRelus } from "./equipements.ts";
-import { ficheRelue, conditionsRelues, type ConditionsSejour, type FicheEnrichie } from "./ficheEnrichie.ts";
+import { CLES_EQUIPEMENT, equipementsPubliesRelus, normaliserEquipements } from "./equipements.ts";
+import { ficheRelue, conditionsRelues, type AvisResume, type ConditionsSejour, type FicheEnrichie } from "./ficheEnrichie.ts";
 import { MARQUE_MEMOIRE, qualifierLogement } from "./logement.ts";
 import { cheminMemoire, comblerDepuisMemoire, DUREE_MEMOIRE_MS, memoireFiches } from "./memoireFiches.server.ts";
 import { cleListing } from "./poserReleve.ts";
@@ -47,6 +47,8 @@ export type ContenuFiche = {
   reviewCount?: number | null;
   /** Le règlement de la page, quand l'annonce n'a pas encore de fiche. */
   conditions?: ConditionsSejour | null;
+  /** Propreté, arrivée, emplacement… sur 5. */
+  categories?: { label: string; note: number }[] | null;
   /**
    * `cozy` : tout ce contenu vient de la fiche d'un comparateur
    * (`cozyFiches.server.ts`), pas de la page de l'annonce. La page reste à
@@ -61,6 +63,40 @@ type Fichier = { version: 1; contenus: Record<string, Entree> };
 /** Le fichier, à côté de `fiches.json`. */
 export function cheminContenu(): string {
   return join(dirname(cheminMemoire()), "fiches-contenu.json");
+}
+
+function notesRelues(v: unknown): { label: string; note: number }[] {
+  if (!Array.isArray(v)) return [];
+  const out: { label: string; note: number }[] = [];
+  for (const x of v) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as { label?: unknown; note?: unknown };
+    const label = typeof o.label === "string" ? o.label.trim() : "";
+    const note = typeof o.note === "number" && o.note > 0 && o.note <= 5 ? Math.round(o.note * 100) / 100 : null;
+    if (!label || note == null) continue;
+    out.push({ label, note });
+    if (out.length >= 6) break;
+  }
+  return out;
+}
+
+function avisAvecNotes(
+  avant: AvisResume | null,
+  categories: { label: string; note: number }[] | null | undefined,
+  row: { rating?: number | null; reviewCount?: number | null; url?: string | null },
+): AvisResume | null {
+  if (!categories?.length) return avant;
+  if (avant?.categories?.length) return avant;
+  const note = avant?.noteSur5 ?? (row.rating != null && row.rating > 0 && row.rating <= 5 ? row.rating : null);
+  return {
+    noteSur5: note,
+    noteSource: avant?.noteSource ?? note,
+    echelleSource: avant?.echelleSource ?? 5,
+    nombre: avant?.nombre ?? row.reviewCount ?? null,
+    extraits: avant?.extraits ?? [],
+    ...(avant?.url || row.url ? { url: avant?.url ?? row.url ?? undefined } : {}),
+    categories: categories.map((c) => ({ label: c.label, noteSource: c.note, noteSur5: c.note })),
+  };
 }
 
 /** Ce qui se garde d'une entrée relue : des chaînes, des adresses, des clés
@@ -91,6 +127,7 @@ export function contenuLu(v: unknown): ContenuFiche | null {
       ? o.reviewCount
       : null;
   const conditions = conditionsRelues(o.conditions);
+  const categories = notesRelues(o.categories);
   if (
     !description &&
     !photos?.length &&
@@ -98,7 +135,8 @@ export function contenuLu(v: unknown): ContenuFiche | null {
     !publies.length &&
     baths == null &&
     rating == null &&
-    !conditions
+    !conditions &&
+    !categories.length
   )
     return null;
   return {
@@ -110,6 +148,7 @@ export function contenuLu(v: unknown): ContenuFiche | null {
     ...(rating != null ? { rating } : {}),
     ...(reviewCount != null ? { reviewCount } : {}),
     ...(conditions ? { conditions } : {}),
+    ...(categories.length ? { categories } : {}),
     ...(o.origine === "cozy" ? { origine: "cozy" as const } : {}),
   };
 }
@@ -129,6 +168,7 @@ export function fusionnerContenus(avant: ContenuFiche | null, apres: ContenuFich
   const rating = apres.rating ?? avant.rating ?? null;
   const reviewCount = apres.reviewCount ?? avant.reviewCount ?? null;
   const conditions = apres.conditions ?? avant.conditions ?? null;
+  const categories = apres.categories?.length ? apres.categories : avant.categories;
   return {
     description: apres.description ?? avant.description,
     photos: photos ?? null,
@@ -138,6 +178,7 @@ export function fusionnerContenus(avant: ContenuFiche | null, apres: ContenuFich
     ...(rating != null ? { rating } : {}),
     ...(reviewCount != null ? { reviewCount } : {}),
     ...(conditions ? { conditions } : {}),
+    ...(categories?.length ? { categories } : {}),
     ...(apres.origine === "cozy" && avant.origine === "cozy" ? { origine: "cozy" as const } : {}),
   };
 }
@@ -309,7 +350,7 @@ export function poserContenu(
   row: Partial<
     Pick<
       Listing,
-      "description" | "amenities" | "equipementsPublies" | "photo" | "photos" | "baths" | "rating" | "reviewCount" | "ratingScale" | "fiche"
+      "description" | "amenities" | "equipementsPublies" | "photo" | "photos" | "baths" | "rating" | "reviewCount" | "ratingScale" | "fiche" | "url"
     >
   >,
   c: Partial<ContenuFiche> | null | undefined,
@@ -342,16 +383,21 @@ export function poserContenu(
     row.reviewCount = c.reviewCount;
     pose = true;
   }
-  if (c.conditions && (row.fiche == null || (row.fiche.sourceFiche === "airbnb" && row.fiche.conditions == null))) {
-    row.fiche = {
-      description: row.fiche?.description ?? null,
-      equipements: row.fiche?.equipements ?? [],
-      avis: row.fiche?.avis ?? null,
-      conditions: c.conditions,
-      sourceFiche: "airbnb",
-      ...(row.fiche?.recupereLe ? { recupereLe: row.fiche.recupereLe } : {}),
-    };
-    pose = true;
+  if (c.conditions || c.categories?.length) {
+    const avant = row.fiche?.sourceFiche === "airbnb" || row.fiche == null ? row.fiche : null;
+    if (avant || row.fiche == null) {
+      const deja = avant?.equipements ?? [];
+      const equipements = deja.length ? deja : normaliserEquipements(row.equipementsPublies ?? []);
+      row.fiche = {
+        description: avant?.description ?? null,
+        equipements,
+        avis: avisAvecNotes(avant?.avis ?? null, c.categories, row),
+        conditions: c.conditions ?? avant?.conditions ?? null,
+        sourceFiche: "airbnb",
+        ...(avant?.recupereLe ? { recupereLe: avant.recupereLe } : {}),
+      };
+      pose = true;
+    }
   }
   const galerie = [...new Set([...(row.photo ? [row.photo] : []), ...(row.photos ?? [])])];
   const gardee = [...new Set(c.photos ?? [])];

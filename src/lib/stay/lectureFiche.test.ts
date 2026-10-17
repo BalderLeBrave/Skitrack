@@ -120,7 +120,13 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
                       { title: "Non inclus", amenities: [{ title: "Lave-linge", available: false }] },
                     ],
                   },
-                  quality: { listingRatingStats: { overallRatingStats: { ratingAverage: 4.86, ratingCount: "171" } } },
+                  quality: {
+                    listingRatingStats: { overallRatingStats: { ratingAverage: 4.86, ratingCount: "171" } },
+                    categoryRatings: [
+                      { label: "Propreté", localizedRating: "4,8" },
+                      { label: "Emplacement", localizedRating: "4,9" },
+                    ],
+                  },
                   overview: { items: ["4 voyageurs", "2 chambres", "4 lits", "1 salle de bain"] },
                   location: { subtitle: "Morzine, France" },
                   rules: {
@@ -178,6 +184,10 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.conditions?.fumeurs, "non");
     assert.equal(l.conditions?.fetes, "non");
     assert.match(l.conditions?.reglement ?? "", /4 voyageurs maximum/);
+    assert.deepEqual(l.categories, [
+      { label: "Propreté", note: 4.8 },
+      { label: "Emplacement", note: 4.9 },
+    ]);
     assert.deepEqual(l.photos, [
       "https://a0.muscache.com/im/pictures/salon.jpg",
       "https://a0.muscache.com/im/pictures/chambre.jpg",

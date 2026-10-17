@@ -1,6 +1,6 @@
 # Centrales de réservation des domaines européens
 
-Relevé du 17 octobre 2026, sur les **389 domaines européens hors France de plus de 15 km de pistes** (`src/lib/monde`, OpenSkiMap). Les 2 121 domaines plus petits n'ont pas été cherchés. Ce sont surtout des téléskis locaux, dont l'office ne vend pas d'hébergement en ligne.
+Relevé du 17 octobre 2026, sur les **389 domaines européens hors France de plus de 15 km de pistes** (`src/lib/monde`, OpenSkiMap). Les 2 121 domaines plus petits n'ont pas été cherchés par recherche web : ce sont surtout des téléskis locaux, dont l'office ne vend pas d'hébergement en ligne. Le script de sondage (dernière section) les couvre tous.
 
 Même méthode que l'audit français du 13 septembre 2026 (`docs/centrales/audit.md`). Pour chaque domaine :
 1. le lien « réserver un hébergement » que publie son site officiel ;
@@ -9,48 +9,49 @@ Même méthode que l'audit français du 13 septembre 2026 (`docs/centrales/audit
 
 **Aucun connecteur n'a été écrit** : ce relevé rend des données, pas du code. Une centrale ou un moteur qu'on n'a pas pu prouver est écrit « inconnu », jamais deviné.
 
-## Un relevé partiel, et pourquoi
+## Comment les moteurs ont été reconnus
 
-Les pages n'ont presque jamais pu être lues. Dans l'environnement du relevé :
-- la lecture directe échouait au DNS sur tous les hôtes ;
-- le pare-feu refusait les sites des stations ;
-- le compte Firecrawl a épuisé ses crédits après quelques pages ;
-- la recherche web a atteint son quota de 200 requêtes.
+Deux passages le 17 octobre 2026. Les pages n'ont presque jamais pu être lues : dans l'environnement du relevé, la lecture directe échouait au DNS, le pare-feu refusait les sites des stations et le compte Firecrawl a épuisé ses crédits. Seule la recherche web répondait.
 
-Les moteurs ont donc été reconnus surtout par des preuves **textuelles** :
-- des formes d'URL (codes Deskline suivis d'un GUID, `/<mandant>/ukv/result?tt=` de TOMAS, `/stays?…gc-0-adults` de Citybreak) ;
+Les moteurs ont donc été reconnus par des preuves **textuelles** relevées dans les résultats de recherche :
+- des formes d'URL (codes Deskline suivis d'un GUID, `/<mandant>/ukv/…` de TOMAS, `/stays?…gc-0-adults` de Citybreak, `poitype/openbookingaccommodation`) ;
 - les mentions légales et les déclarations de protection des données qui nomment le sous-traitant ;
 - les pieds de page cités par les moteurs de recherche.
 
-Chaque entrée garde sa preuve dans `preuve`. Les preuves faibles le disent.
+Chaque entrée garde sa preuve dans `preuve`. Les preuves faibles le disent. Sans empreinte, le moteur est « inconnu ».
 
 | | Domaines |
 | --- | ---: |
 | Relevés | 389 |
-| Avec une centrale identifiée | 175 |
-| Sans réservation en ligne (« aucun ») | 3 |
-| Cherchés sans résultat | 79 |
-| Non recherchés, faute d'outil | 132 |
+| Avec une centrale identifiée | 289 |
+| dont moteur prouvé | 182 |
+| dont moteur « inconnu » | 107 |
+| Sans réservation en ligne (« aucun ») | 10 |
+| Cherchés sans résultat | 89 |
+| Hors du relevé (Avoriaz, station française) | 1 |
+| Non recherchés | 0 |
 
 ## Les moteurs
 
 | Moteur | Domaines | Où |
 | --- | ---: | --- |
-| **Deskline / Feratel** | **75** | Autriche (48), Trentin (14, système provincial), Suisse (10 : Arosa Lenzerheide, Aletsch, Davos Klosters, Saas-Fee, Adelboden-Lenk), Allgäu et Kleinwalsertal (3) |
-| inconnu | 54 | centrale trouvée, moteur non prouvé (Engadin St. Moritz, Gstaad, Crans-Montana, Livigno, Alta Badia, Kronplatz, Levi, Ruka, Sierra Nevada…) |
-| Citybreak (Visit Group) | 13 | Suède et Norvège ; 3 prouvés par le pied de page, 10 par l'empreinte d'URL, à confirmer |
+| **Deskline / Feratel** | **116** | Autriche (86), Trentin (14, système provincial), Suisse (12 : Arosa Lenzerheide, Aletsch, Davos Klosters, Saas-Fee, Adelboden-Lenk, Engelberg-Titlis, Bellwald), Allgäu et Kleinwalsertal (3), Hochficht |
+| inconnu | 107 | centrale trouvée, moteur non prouvé (Engadin St. Moritz, Gstaad, Crans-Montana, Mürren, Livigno, Alta Badia, Kronplatz, Haut-Adige, Levi, Ruka, Sierra Nevada, Bukovel, Jahorina…) |
+| TOMAS | 19 | Zermatt, Flims Laax, Scuol, Heidiland (Flumserberg, Pizol), Alpes vaudoises, Glacier 3000, Prättigau, Grächen, Braunwald, Dachstein West ; plusieurs par l'URL seule |
+| Citybreak (Visit Group) | 13 | Suède et Norvège ; 3 prouvés par le pied de page, 10 par l'empreinte d'URL |
 | SkiStar (vente en propre) | 9 | Åre, Sälen, Trysil, Hemsedal, Vemdalen… |
-| TOMAS | 8 | Zermatt, Dents du Midi, Flims Laax, Scuol, Val Müstair, Viamala ; 6 par l'URL seule |
-| Ingénie | 3 | Val d'Anniviers (2), Les Rousses (repris de l'audit français) |
+| OpenBooking | 4 | Verbier, Obersaxen, Brigels, Sörenberg |
+| Ingénie | 4 | Val d'Anniviers, Vercorin, Les Rousses |
+| AVISEO | 3 | Kitzbüheler Alpen (St. Johann, Steinplatte, Buchensteinwand) |
 | Grandvalira Resorts (en propre) | 3 | Grandvalira, Canaro, Ordino-Arcalís |
 | Viajes Aramón | 3 | Formigal, Panticosa, Cerler |
 | CapCorn | 2 | Saalbach Hinterglemm, Obertauern |
 | Alturos Destination OS | 2 | Andermatt-Sedrun-Disentis |
+| e-domizil | 2 | Grindelwald (appartements, d'après les CGV de Jungfrau Region) |
 | Baqueira (en propre) | 1 | Baqueira Beret |
-| OpenBooking | 1 | Verbier (méta-moteur, renvoie à l'hébergeur) |
 | Cloudbooking | 1 | Uvdal |
 
-**Deskline / Feratel couvre à lui seul 75 domaines.** Le dépôt a déjà un connecteur Deskline (`src/lib/scrape/centrales/moteurs/feratel.ts`), écrit pour La Clusaz. C'est le premier moteur à brancher. Viennent ensuite Citybreak (13) et TOMAS (8).
+**Deskline / Feratel couvre 116 domaines, soit 40 % du relevé.** Le dépôt a déjà un connecteur Deskline (`src/lib/scrape/centrales/moteurs/feratel.ts`), écrit pour La Clusaz. C'est le premier moteur à brancher. Viennent ensuite TOMAS (19) et Citybreak (13).
 
 ## Centrales régionales partagées
 
@@ -90,18 +91,17 @@ Une centrale vend souvent tout un territoire. Un connecteur par centrale couvre 
 
 - `Avoriaz`, rangé en Suisse, est une station française.
 - `Kaunertaler Gletscher`, rangé en Italie, est en Autriche (Tyrol).
-- `Ifen`, rangé en Allemagne, est côté autrichien (Kleinwalsertal).
+- `Tannheim-Zöblen-Schattwald` et `Ifen`, rangés en Allemagne, sont en Autriche.
+- `Hochficht`, rangé en Tchéquie, est en Autriche (Böhmerwald).
 
 ## À reprendre
 
-132 domaines restent « non recherchés » :
-- la moitié de l'Autriche (Hintertux, Hochzillertal, Pitztal, Osttirol, Lungau, l'est du pays) ;
-- l'essentiel du Haut-Adige ;
-- le Piémont et les Abruzzes ;
-- 46 domaines suisses (Engelberg-Titlis, Flumserberg, Mürren, Leukerbad…) ;
-- l'Europe de l'Est presque entière.
+Aucun des 389 domaines n'est resté sans recherche. Restent à confirmer en lisant les pages (pied de page, scripts, iframes) :
+- les 107 moteurs « inconnu » ;
+- les preuves faibles signalées dans `preuve` (TOMAS par l'URL seule, Citybreak par analogie d'empreinte, Osttirol, Glacier 3000, Prättigau…) ;
+- les 89 domaines cherchés sans résultat, dont une partie publie sans doute une centrale qu'une recherche web ne montre pas.
 
-Les reprendre demande un accès aux pages : des crédits Firecrawl, ou un relevé lancé depuis un poste qui atteint ces sites. Il faudra alors relire le HTML des 54 « inconnu » et des preuves faibles (pied de page, scripts, iframes).
+C'est le rôle du script de sondage ci-dessous, qui lit les pages au lieu de les chercher.
 
 ## Fichiers
 

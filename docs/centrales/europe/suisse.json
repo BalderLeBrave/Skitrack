@@ -1,7 +1,7 @@
 {
   "releve": "2026-10-17",
   "groupe": "suisse",
-  "methode": "Pour chaque domaine, recherche de l'office de tourisme/destination et de la page « Unterkunft buchen / réservation d'hébergement » qu'il publie ; moteur retenu seulement sur preuve écrite (hôte ou chemin d'URL caractéristique, mentions légales, documentation partenaires/loueurs de la destination). Relevé par recherche web uniquement : les pages n'ont pas pu être chargées (WebFetch hors service, crédits Firecrawl épuisés), d'où de nombreux « non recherché ».",
+  "methode": "Pour chaque domaine, recherche de l'office de tourisme/destination et de la page « Unterkunft buchen / réservation d'hébergement » qu'il publie ; moteur retenu seulement sur preuve écrite (hôte ou chemin d'URL caractéristique, mentions légales, documentation partenaires/loueurs de la destination). Relevé par recherche web uniquement : les pages n'ont pas pu être chargées (WebFetch hors service, crédits Firecrawl épuisés), d'où de nombreux « non recherché ». 2e passage le 2026-10-17 (recherche web seule, environ 60 requêtes, aucune page lue) pour les domaines restés « non recherchés » : moteur retenu sur empreinte d'URL visible dans les résultats (/<mandant>/ukv/…TDS… = TOMAS ; <code>/<guid> ou …/accommodation/list?AspxAutoDetectCookieSupport = Deskline ; poitype openbookingaccommodation = OpenBooking) ou sur CGV citées ; sinon « inconnu », « aucun » si la page ne propose que téléphone/e-mail, centrale null si rien trouvé.",
   "domaines": [
     {
       "id": "ch-zermatt-breuil-cervinia-breuil-cervinia-ski-paradise",
@@ -73,16 +73,26 @@
       "nom": "Obersaxen",
       "pays": "CH",
       "siteOfficiel": "https://www.obersaxen-mundaun.ch",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Surselva Tourismus AG",
+        "url": "https://openbooking.ch/",
+        "hote": "openbooking.ch",
+        "moteur": "OpenBooking",
+        "preuve": "Preuve indirecte : fiches openbooking.ch/en/unterkuenfte/<id> d'objets de la région Obersaxen Mundaun, dont certaines portent « nicht über Surselva Tourismus AG buchbar » (donc les autres le sont) ; page de réservation du site officiel non vue."
+      }
     },
     {
       "id": "ch-grindelwald-wengen-kleine-scheidegg-mannlichen",
       "nom": "Grindelwald - Wengen (Kleine Scheidegg - Männlichen)",
       "pays": "CH",
       "siteOfficiel": "https://www.jungfrau.ch/de-ch/jungfrau-ski-region/grindelwald-wengen/",
-      "centrale": null,
-      "motif": "Recherche lancée (grindelwald.swiss) sans aboutir : page de réservation non trouvée avant épuisement des outils."
+      "centrale": {
+        "nom": "Jungfrau Region Tourismus AG (Grindelwald Tourismus)",
+        "url": "https://jungfrauregion.swiss/en/discover/accommodation.html",
+        "hote": "jungfrauregion.swiss",
+        "moteur": "e-domizil",
+        "preuve": "CGV de Jungfrau Region Tourismus AG (jungfrauregion.swiss/en/gtc.html, grindelwald.swiss/fr/conditions-generales-de-vente/cgv/) : JRT met la plateforme à disposition sans être partie au contrat ; les appartements de vacances se réservent sur la plateforme e-domizil, vers laquelle le client est redirigé ; les hôtels appliquent leurs propres conditions (moteur hôtelier non établi)."
+      }
     },
     {
       "id": "ch-aletsch-arena",
@@ -142,7 +152,7 @@
       "pays": "CH",
       "siteOfficiel": "https://www.avoriaz.com/en/discover/discover/ski-area-and-maps/",
       "centrale": null,
-      "motif": "Station française (Portes du Soleil) rattachée par erreur à la Suisse ; relève du groupe France — non recherché ici."
+      "motif": "station française, hors du relevé européen"
     },
     {
       "id": "ch-crans-montana",
@@ -227,16 +237,26 @@
       "nom": "Flumserberg",
       "pays": "CH",
       "siteOfficiel": "https://www.flumserberg.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Heidiland Tourismus AG",
+        "url": "https://heidiland.com/Heidi/ukv/hotelpackage/search?lang=de",
+        "hote": "heidiland.com",
+        "moteur": "TOMAS",
+        "preuve": "Pages servies sous heidiland.com/Heidi/ukv/hotelpackage/search et shop.heidiland.com/Heidi/ukv/house/TDS00020010376228343 : chemin /<mandant>/ukv/ et identifiants produit TDS… (TouristDataShop) = TOMAS. flumserberg.ch/Accommodation renvoie à l'Infostelle Flumserberg de Heidiland."
+      }
     },
     {
       "id": "ch-meiringen-hasliberg",
       "nom": "Meiringen - Hasliberg",
       "pays": "CH",
       "siteOfficiel": "https://www.meiringen-hasliberg.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Haslital Tourismus",
+        "url": "https://haslital.swiss/",
+        "hote": "haslital.swiss",
+        "moteur": "inconnu",
+        "preuve": "Fiches haslital.swiss/de/map/detail/<nom>-<guid>.html menant à un « Buchungsportal » ou à une demande ; même base que jungfrauregion.swiss (fiche Apart Hotel Wetterhorn, même GUID 66aced78…). Les CGV de Jungfrau Region renvoient les appartements vers e-domizil ; non vérifié pour le Haslital."
+      }
     },
     {
       "id": "ch-saas-fee",
@@ -256,8 +276,13 @@
       "nom": "Savognin",
       "pays": "CH",
       "siteOfficiel": null,
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Tourismus Savognin Bivio Albula AG (Val Surses)",
+        "url": "https://www.valsurses.ch/en/buchen/ferienwohnungen",
+        "hote": "www.valsurses.ch",
+        "moteur": "inconnu",
+        "preuve": "Rubrique /buchen/ : « Buchungsportal » de plus de 200 appartements dans les 17 villages ; moteur non visible dans les extraits."
+      }
     },
     {
       "id": "ch-scuol-motta-naluns",
@@ -277,8 +302,13 @@
       "nom": "Skipisten Titlis Bergbahnen",
       "pays": "CH",
       "siteOfficiel": "https://www.engelberg.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Engelberg-Titlis Tourismus",
+        "url": "https://www.engelberg.ch/unterkuenfte-online-buchbar/hotels/",
+        "hote": "reservation.engelberg.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Fiches /unterkuenfte-online-buchbar/…/unterkuenfte/EBG/<guid>/<nom> (code Deskline EBG + GUID) ; liste servie sur reservation.engelberg.ch/engelberg/de/accommodation/list, même forme que le Destination Widget Deskline (booking.schladming-dachstein.at/dachstein/de/accommodation/…)."
+      }
     },
     {
       "id": "ch-corvatsch-furtschellas",
@@ -298,16 +328,26 @@
       "nom": "Belalp",
       "pays": "CH",
       "siteOfficiel": "https://www.belalp.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Blatten-Belalp Tourismus",
+        "url": "https://www.belalp.ch/de/unterkuenfte",
+        "hote": "www.belalp.ch",
+        "moteur": "inconnu",
+        "preuve": "Liste avec fiches /de/hotel/<nom> réservables sur la plateforme ou chez le loueur selon l'objet ; moteur non visible."
+      }
     },
     {
       "id": "ch-murren-schilthorn",
       "nom": "Mürren/Schilthorn",
       "pays": "CH",
       "siteOfficiel": "https://schilthorn.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Lauterbrunnen Tourismus (Mürren, Jungfrau Region)",
+        "url": "https://lauterbrunnen.swiss/en/discover/accommodation.html",
+        "hote": "lauterbrunnen.swiss",
+        "moteur": "inconnu",
+        "preuve": "Le site annonce une réservation « online oder über unsere Reservationszentrale » ; fiches /product/page/<nom>-<n>/ ; CMS partagé avec Jungfrau Region (CGV : appartements via e-domizil), non vérifié pour Lauterbrunnen."
+      }
     },
     {
       "id": "ch-gstaad-saanen-rougemont",
@@ -327,40 +367,65 @@
       "nom": "Sörenberg",
       "pays": "CH",
       "siteOfficiel": "https://www.soerenberg.ch",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Sörenberg Flühli Tourismus",
+        "url": "https://www.soerenberg.ch/de/essen-uebernachten/unterkuenfte/ferienwohnungen-1",
+        "hote": "www.soerenberg.ch",
+        "moteur": "OpenBooking",
+        "preuve": "Fiches /de/detail/poitype/openbookingaccommodation/poi/<objet>/ (type de POI « openbookingaccommodation ») avec « Verfügbarkeit prüfen »."
+      }
     },
     {
       "id": "ch-unterbach-eischoll",
       "nom": "Unterbäch - Eischoll",
       "pays": "CH",
       "siteOfficiel": null,
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Unterbäch Tourismus",
+        "url": "https://unterbaech.ch/planen-buchen/schlafen-geniessen/unterkuenfte/",
+        "hote": "unterbaech.ch",
+        "moteur": "inconnu",
+        "preuve": "Recherche d'hébergements (hôtels, appartements, chalets) combinable avec forfaits et cours ; moteur non visible. Agence privée « Unterbäch Online » à part."
+      }
     },
     {
       "id": "ch-anzere",
       "nom": "Anzère",
       "pays": "CH",
       "siteOfficiel": "https://www.anzere.ch",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Anzère Tourisme",
+        "url": "https://reservation.anzere.ch/",
+        "hote": "reservation.anzere.ch",
+        "moteur": "inconnu",
+        "preuve": "Sous-domaine de réservation (hébergements, activités, spa) aux pages *-1.html ; forme proche des sites Ingénie, mais aucune mention du prestataire relevée."
+      }
     },
     {
       "id": "ch-pizol",
       "nom": "Pizol",
       "pays": "CH",
       "siteOfficiel": "https://pizol.com/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Heidiland Tourismus AG",
+        "url": "https://heidiland.com/Heidi/ukv/hotelpackage/search?lang=de",
+        "hote": "heidiland.com",
+        "moteur": "TOMAS",
+        "preuve": "Pages servies sous heidiland.com/Heidi/ukv/hotelpackage/search et shop.heidiland.com/Heidi/ukv/house/TDS00020010376228343 : chemin /<mandant>/ukv/ et identifiants produit TDS… (TouristDataShop) = TOMAS. Pizol (Bad Ragaz, Wangs, Vilters) fait partie de la région Heidiland ; page de réservation de pizol.com non vue."
+      }
     },
     {
       "id": "ch-grindelwald-first",
       "nom": "Grindelwald First",
       "pays": "CH",
       "siteOfficiel": "https://www.jungfrau.ch/de-ch/grindelwaldfirst/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Jungfrau Region Tourismus AG (Grindelwald Tourismus)",
+        "url": "https://jungfrauregion.swiss/en/discover/accommodation.html",
+        "hote": "jungfrauregion.swiss",
+        "moteur": "e-domizil",
+        "preuve": "CGV de Jungfrau Region Tourismus AG (jungfrauregion.swiss/en/gtc.html, grindelwald.swiss/fr/conditions-generales-de-vente/cgv/) : JRT met la plateforme à disposition sans être partie au contrat ; les appartements de vacances se réservent sur la plateforme e-domizil, vers laquelle le client est redirigé ; les hôtels appliquent leurs propres conditions (moteur hôtelier non établi)."
+      }
     },
     {
       "id": "ch-melchsee-frutt",
@@ -368,15 +433,20 @@
       "pays": "CH",
       "siteOfficiel": "https://www.melchsee-frutt.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : le site de l'exploitant (melchsee-frutt.ch/winter/essen-schlafen/hotels/) liste les hôtels à contacter directement ; appartements sur chalet.myswitzerland.com via e-domizil. Aucune centrale de destination trouvée."
     },
     {
       "id": "ch-chaserrugg-alt-st-johann",
       "nom": "Chäserrugg-Alt St. Johann",
       "pays": "CH",
       "siteOfficiel": "https://www.chaeserrugg.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Toggenburg Tourismus",
+        "url": "https://toggenburg.swiss/de/unterkuenfte.html",
+        "hote": "toggenburg.swiss",
+        "moteur": "inconnu",
+        "preuve": "Annuaire avec fiches /de/map/poi/<nom>-<guid>.html et bouton de réservation ; page partenaires « Ferienwohnung online buchbar machen » (partner.toggenburg.swiss) ; moteur non nommé dans les extraits."
+      }
     },
     {
       "id": "ch-les-rousses",
@@ -396,8 +466,13 @@
       "nom": "Brigels-Waltensburg-Andiast, Brigels-Waltenburg-Andiast, Breil-Vuorz-Andiast",
       "pays": "CH",
       "siteOfficiel": "https://www.brigels-bergbahnen.ch",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Surselva Tourismus AG",
+        "url": "https://openbooking.ch/",
+        "hote": "openbooking.ch",
+        "moteur": "OpenBooking",
+        "preuve": "Preuve indirecte : fiches openbooking.ch/en/unterkuenfte/<id> d'objets de la région Brigels (Gasthof Surselva, contenu fourni « from Surselva ») ; Infopost Brigels de Surselva Tourismus ; page de réservation du site officiel non vue."
+      }
     },
     {
       "id": "ch-jakobshorn",
@@ -418,7 +493,7 @@
       "pays": "CH",
       "siteOfficiel": "https://elsigen-metsch.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : le Tourist Center Frutigen vermittelt hôtels et appartements par téléphone ; elsigen-metsch.ch liste l'hébergement. Aucune réservation en ligne trouvée."
     },
     {
       "id": "ch-brunni-holzegg-rotenflue",
@@ -426,23 +501,33 @@
       "pays": "CH",
       "siteOfficiel": "https://www.brunnialpthal.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : brunnialpthal.ch/hotels.aspx liste hôtels et Berggasthäuser avec téléphone et e-mail ; aucune centrale trouvée."
     },
     {
       "id": "ch-elm",
       "nom": "Elm",
       "pays": "CH",
       "siteOfficiel": "https://www.elm.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "VISIT Glarnerland",
+        "url": "https://glarnerland.ch/en/offers/accomodation/all-accommodations.html",
+        "hote": "glarnerland.ch",
+        "moteur": "inconnu",
+        "preuve": "Annuaire de toutes les offres du Glarnerland (fiches Elm aussi publiées sur braunwald.ch) ; Braunwald vend via TOMAS (braunwald.ch/braunwald/ukv/…), non prouvé pour Elm."
+      }
     },
     {
       "id": "ch-evolene",
       "nom": "Evolène",
       "pays": "CH",
       "siteOfficiel": "https://www.evolene-region.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Evolène-Région / Val d'Hérens",
+        "url": "https://booking.valdherens.ch/",
+        "hote": "booking.valdherens.ch",
+        "moteur": "inconnu",
+        "preuve": "Sous-domaine de réservation booking.valdherens.ch (offres Evolène et Arolla, ex. Hôtel du Pigne) ; fiches valdherens.ch/…-fp<n> ; moteur non visible."
+      }
     },
     {
       "id": "ch-disentis-muster",
@@ -462,16 +547,26 @@
       "nom": "Les Mosses",
       "pays": "CH",
       "siteOfficiel": null,
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Alpes vaudoises – Aigle-Leysin-Les Mosses",
+        "url": "https://shop.alpes.ch/aigle-leysin-lesmosses/ukv/search?lang=fr",
+        "hote": "shop.alpes.ch",
+        "moteur": "TOMAS",
+        "preuve": "Fiches shop.alpes.ch/aigle-leysin-lesmosses/ukv/house/TDS00020010149298044 (Hôtel Le Relais Alpin, Les Mosses), …/TDS00020010000293392 (Alpine Classic Hôtel, Leysin) et …/package/search : chemin /<mandant>/ukv/ + identifiants TDS = TOMAS."
+      }
     },
     {
       "id": "ch-leysin",
       "nom": "Leysin",
       "pays": "CH",
       "siteOfficiel": "https://leysin.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Alpes vaudoises – Aigle-Leysin-Les Mosses",
+        "url": "https://shop.alpes.ch/aigle-leysin-lesmosses/ukv/search?lang=fr",
+        "hote": "shop.alpes.ch",
+        "moteur": "TOMAS",
+        "preuve": "Fiches shop.alpes.ch/aigle-leysin-lesmosses/ukv/house/TDS00020010149298044 (Hôtel Le Relais Alpin, Les Mosses), …/TDS00020010000293392 (Alpine Classic Hôtel, Leysin) et …/package/search : chemin /<mandant>/ukv/ + identifiants TDS = TOMAS."
+      }
     },
     {
       "id": "ch-madrisa",
@@ -492,15 +587,20 @@
       "pays": "CH",
       "siteOfficiel": "https://www.hoch-ybrig.ch",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : Hoch-Ybrig AG loue ses Clubhäuser par téléphone ; renvoi à l'infostelle Ybrig pour les autres hébergements. Aucune centrale trouvée."
     },
     {
       "id": "ch-leukerbad-torrent",
       "nom": "Leukerbad (Torrent)",
       "pays": "CH",
       "siteOfficiel": "https://www.leukerbad.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Leukerbad Tourismus",
+        "url": "https://www.leukerbad.ch/unterkunft/",
+        "hote": "www.leukerbad.ch",
+        "moteur": "inconnu",
+        "preuve": "Page hébergement : « buchen Sie schnell und günstig direkt über uns » (leukerbad.ch/unterkunft-buchen) ; moteur non visible."
+      }
     },
     {
       "id": "ch-lenk-wallegg",
@@ -533,40 +633,65 @@
       "nom": "Glacier 3000",
       "pays": "CH",
       "siteOfficiel": "https://www.glacier3000.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Alpes vaudoises (Villars-Gryon-Les Diablerets)",
+        "url": "https://shop.alpes.ch/",
+        "hote": "shop.alpes.ch",
+        "moteur": "TOMAS",
+        "preuve": "Preuve faible : shop.alpes.ch est un front TOMAS (/<mandant>/ukv/house/TDS…, mandant aigle-leysin-lesmosses) et alpes.ch publie un forfait « Ski & Sleep » Villars-Les Diablerets ; mandant propre aux Diablerets non vu. Côté Gstaad, voir l'entrée Gstaad (inconnu)."
+      }
     },
     {
       "id": "ch-grusch-danusa",
       "nom": "Grüsch-Danusa",
       "pays": "CH",
       "siteOfficiel": "https://www.gruesch-danusa.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Prättigau Tourismus",
+        "url": "https://www.praettigau.info/",
+        "hote": "shop.graubuenden.ch",
+        "moteur": "TOMAS",
+        "preuve": "La fiche praettigau.info du Gasthaus Hochwang (Furna) renvoie à un lien de réservation sur shop.graubuenden.ch ; shop.graubuenden.ch/<mandant>/ukv/search est le TPortal TOMAS (ex. shop.graubuenden.ch/Engadin/ukv/search, …/FlimsLaax/ukv). Mandant Prättigau non vu : preuve indirecte. Le site de Grüsch-Danusa renvoie aux hôtels par téléphone/e-mail."
+      }
     },
     {
       "id": "ch-airolo-pescium",
       "nom": "Airolo Pesciüm",
       "pays": "CH",
       "siteOfficiel": "https://airolo.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Ticino Turismo",
+        "url": "https://www.ticino.ch/en/hotels/details/Hotel-Forni/13616.html",
+        "hote": "www.ticino.ch",
+        "moteur": "inconnu",
+        "preuve": "Fiches ticino.ch/en/hotels/details/<nom>/<id>.html et /houses/details/… avec prix « da CHF » pour Airolo ; moteur non nommé."
+      }
     },
     {
       "id": "ch-wildhaus",
       "nom": "Wildhaus",
       "pays": "CH",
       "siteOfficiel": "https://www.wildhaus.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Toggenburg Tourismus",
+        "url": "https://toggenburg.swiss/de/unterkuenfte.html",
+        "hote": "toggenburg.swiss",
+        "moteur": "inconnu",
+        "preuve": "Annuaire avec fiches /de/map/poi/<nom>-<guid>.html et bouton de réservation ; page partenaires « Ferienwohnung online buchbar machen » (partner.toggenburg.swiss) ; moteur non nommé dans les extraits."
+      }
     },
     {
       "id": "ch-lauchernalp",
       "nom": "Lauchernalp",
       "pays": "CH",
       "siteOfficiel": "https://www.loetschental.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Lötschental Tourismus",
+        "url": "https://www.loetschental.ch/en/accommodation/hotels",
+        "hote": "www.loetschental.ch",
+        "moteur": "TOMAS",
+        "preuve": "Liste des chalets servie avec le paramètre entry_id=TDS00020010592086840 (identifiant produit TouristDataShop = TOMAS) ; fiches « Online buchbar ». Chemin /ukv/ non vu : preuve par l'identifiant seul."
+      }
     },
     {
       "id": "ch-confin-san-bernardino",
@@ -574,7 +699,7 @@
       "pays": "CH",
       "siteOfficiel": "https://sanbernardino-swissalps.com/sportarena",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucun résultat sur visit-moesano / sanbernardino-swissalps.com pour l'hébergement."
     },
     {
       "id": "ch-tschiertschen",
@@ -582,7 +707,7 @@
       "pays": "CH",
       "siteOfficiel": "https://www.bbtschiertschen.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune page d'hébergement trouvée (seulement l'accord tarifaire avec Grüsch-Danusa et Hochwang)."
     },
     {
       "id": "ch-splugen-tambo",
@@ -603,7 +728,7 @@
       "pays": "CH",
       "siteOfficiel": "http://www.morschach-stoos.ch",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : stoos.ch liste les hébergements (Stoos Lodge, Bergsonne…) avec contact direct ; aucune centrale trouvée."
     },
     {
       "id": "ch-diavolezza-lagalb",
@@ -624,7 +749,7 @@
       "pays": "CH",
       "siteOfficiel": "https://www.mont-noble-tourisme.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucun résultat d'hébergement pour Nax / mont-noble-tourisme.ch."
     },
     {
       "id": "ch-burchen-torbel",
@@ -632,7 +757,7 @@
       "pays": "CH",
       "siteOfficiel": null,
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune centrale propre trouvée ; un résumé de recherche situe des appartements de Bürchen sur booking.bellwald.ch (Deskline), non confirmé par une URL."
     },
     {
       "id": "ch-saas-grund",
@@ -665,8 +790,13 @@
       "nom": "Vercorin",
       "pays": "CH",
       "siteOfficiel": null,
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Vercorin / Sierre-Anniviers Marketing",
+        "url": "https://reservation.vercorin.ch/appartements-chalets.html",
+        "hote": "reservation.vercorin.ch",
+        "moteur": "Ingénie",
+        "preuve": "Preuve indirecte : la page est titrée « Réservation en ligne hébergements Anniviers », même forme que reservation.valdanniviers.ch dont les mentions légales nomment Ingénie ; mentions légales de reservation.vercorin.ch non lues."
+      }
     },
     {
       "id": "ch-klewenalp-stockhutte",
@@ -674,15 +804,20 @@
       "pays": "CH",
       "siteOfficiel": "https://www.klewenalp.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : klewenalp.ch : nuits en bulle vendues via Bubbletravel, Berggasthaus Stockhütte par téléphone/e-mail ; aucune centrale d'hébergement trouvée."
     },
     {
       "id": "ch-hochwang",
       "nom": "Hochwang",
       "pays": "CH",
       "siteOfficiel": "https://www.hochwang.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Prättigau Tourismus",
+        "url": "https://www.praettigau.info/",
+        "hote": "shop.graubuenden.ch",
+        "moteur": "TOMAS",
+        "preuve": "La fiche praettigau.info du Gasthaus Hochwang (Furna) renvoie à un lien de réservation sur shop.graubuenden.ch ; shop.graubuenden.ch/<mandant>/ukv/search est le TPortal TOMAS (ex. shop.graubuenden.ch/Engadin/ukv/search, …/FlimsLaax/ukv). Mandant Prättigau non vu : preuve indirecte. Le Gasthaus Hochwang est l'hébergement du domaine."
+      }
     },
     {
       "id": "li-malbun",
@@ -690,15 +825,20 @@
       "pays": "LI",
       "siteOfficiel": "https://www.bergbahnen.li/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : tourismus.li liste les hôtels de Malbun (fiches /map/poi/<nom>-<guid>.html, bouton « Book now » vers l'hôtel) ; aucune centrale prouvée."
     },
     {
       "id": "ch-bosco-gurin-grossalp",
       "nom": "Bosco Gurin – Grossalp",
       "pays": "CH",
       "siteOfficiel": "https://www.bosco-gurin.ch",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Infopoint Bosco Gurin",
+        "url": "https://www.bosco-gurin.ch/de/unterkunft-und-verpflegung",
+        "hote": "www.bosco-gurin.ch",
+        "moteur": "aucun",
+        "preuve": "La page hébergement renvoie les réservations à l'Infopoint par téléphone (+41 91 759 02 02) ou e-mail ; pas de réservation en ligne."
+      }
     },
     {
       "id": "ch-ovronnaz",
@@ -706,15 +846,20 @@
       "pays": "CH",
       "siteOfficiel": "https://www.ovronnaz.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : l'office renvoie aux hôtels (réservation sur leurs sites) et aux agences (Interhome, Mithieux) ; aucune centrale trouvée."
     },
     {
       "id": "ch-grachen",
       "nom": "Grächen",
       "pays": "CH",
       "siteOfficiel": "https://www.graechen.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Grächen Tourismus",
+        "url": "https://graechen.ch/graechen-booking/ukv/house/Graechen-Ferienwohnung-Zur-Heimat-TDS00020010000369103",
+        "hote": "graechen.ch",
+        "moteur": "TOMAS",
+        "preuve": "Fiches graechen.ch/graechen-booking/ukv/house/<nom>-TDS000200… : chemin /<mandant>/ukv/house/ + identifiants TDS = TOMAS (mandant graechen-booking)."
+      }
     },
     {
       "id": "ch-visperterminen",
@@ -722,7 +867,7 @@
       "pays": "CH",
       "siteOfficiel": "http://www.visperterminen.ch",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : aucune page d'hébergement ni centrale trouvée pour Visperterminen."
     },
     {
       "id": "ch-sarn-heinzenberg",
@@ -742,8 +887,13 @@
       "nom": "Bellwald",
       "pays": "CH",
       "siteOfficiel": "https://www.bellwald.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Bellwald Tourismus",
+        "url": "http://booking.bellwald.ch/efs2015/de/accommodation/list",
+        "hote": "booking.bellwald.ch",
+        "moteur": "Deskline / Feratel",
+        "preuve": "Liste servie sur booking.bellwald.ch/(X(1)A(…))/efs2015/de/accommodation/list?AspxAutoDetectCookieSupport=1, même forme que le Destination Widget Deskline (booking.schladming-dachstein.at/dachstein/de/accommodation/…)."
+      }
     },
     {
       "id": "ch-bugnenets-savagnieres",
@@ -751,15 +901,20 @@
       "pays": "CH",
       "siteOfficiel": "https://www.chasseral-snow.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : Jura & Trois-Lacs (j3l.ch) publie un annuaire (hôtels du Grand Chasseral) ; réservation en ligne non relevée."
     },
     {
       "id": "ch-arolla",
       "nom": "Arolla",
       "pays": "CH",
       "siteOfficiel": "https://www.arolla.com/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Evolène-Région / Val d'Hérens",
+        "url": "https://booking.valdherens.ch/",
+        "hote": "booking.valdherens.ch",
+        "moteur": "inconnu",
+        "preuve": "Sous-domaine de réservation booking.valdherens.ch (offres Evolène et Arolla, ex. Hôtel du Pigne) ; fiches valdherens.ch/…-fp<n> ; moteur non visible."
+      }
     },
     {
       "id": "ch-minschuns",
@@ -780,23 +935,30 @@
       "pays": "CH",
       "siteOfficiel": "https://www.vals.ch/",
       "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "motif": "Recherche web du 2026-10-17 (2e passage, recherche seule, pages non lues) : vals.ch liste les hôtels avec leurs coordonnées ; aucun portail de réservation trouvé."
     },
     {
       "id": "ch-braunwald",
       "nom": "Braunwald",
       "pays": "CH",
       "siteOfficiel": "https://www.braunwald.ch/",
-      "centrale": null,
-      "motif": "non recherché : budget de recherche web épuisé, crédits Firecrawl épuisés et WebFetch hors service (DNS) pendant le relevé"
+      "centrale": {
+        "nom": "Braunwald Tourismus / VISIT Glarnerland",
+        "url": "https://braunwald.ch/braunwald/ukv/house/TDS00020010796892714",
+        "hote": "braunwald.ch",
+        "moteur": "TOMAS",
+        "preuve": "Fiches braunwald.ch/braunwald/ukv/house/TDS000200… : chemin /<mandant>/ukv/house/ + identifiants TDS = TOMAS."
+      }
     }
   ],
   "moteurs": {
-    "Deskline / Feratel": 10,
-    "TOMAS": 8,
-    "inconnu": 7,
-    "Ingénie": 3,
+    "inconnu": 20,
+    "TOMAS": 18,
+    "Deskline / Feratel": 12,
+    "OpenBooking": 4,
+    "Ingénie": 4,
     "Alturos Destination OS": 2,
-    "OpenBooking": 1
+    "e-domizil": 2,
+    "aucun": 1
   }
 }

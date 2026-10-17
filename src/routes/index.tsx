@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Coquille } from "@/components/Coquille";
 import { CATEGORIES_STATIONS, PuceCritere, RangeeCategories, Trace } from "@/components/maquette";
 import { BarreRecherche, type PanneauRecherche } from "@/components/recherche/BarreRecherche";
+import { useCommunes } from "@/components/recherche/communes";
 import { MASSIFS, stationDuTexte } from "@/components/recherche/outils";
 import { ModaleFiltresStations } from "@/components/stations/ModaleFiltresStations";
 import { ImageSlot } from "@/components/v6/ImageSlot";
@@ -87,7 +88,8 @@ function Home() {
   const retenueChoisie = P.stationId ? stationById(P.stationId) : undefined;
   const q = P.q || (retenueChoisie?.name ?? "");
   // Un nom de station tapé en toutes lettres désigne cette station, même sans
-  // passer par une suggestion.
+  // passer par une suggestion. Une commune aussi, une fois la liste arrivée.
+  useCommunes(!retenueChoisie && q.trim().length >= 3);
   const retenue = retenueChoisie ?? stationDuTexte(q);
 
   const [hp, setHp] = useState<PanneauRecherche>(null);

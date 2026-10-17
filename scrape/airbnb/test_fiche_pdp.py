@@ -613,3 +613,24 @@ def test_page_rooms_connue_une_seule_requete_par_fiche():
         assert appels == ["42"]
     finally:
         pdp.fetch_page_rooms, pdp._page_rooms_seule = avant
+
+
+def test_une_description_longue_garde_la_place_des_couchages():
+    from fiche_pdp import TEXTE_MAX, description_de
+
+    brut = {
+        "data": {
+            "node": {
+                "pdpPresentation": {
+                    "descriptions": {"longDescriptionHtml": {"localizedString": "Très long. " * 800}},
+                    "sleepingArrangements": {
+                        "stops": [{"name": "Chambre 1", "description": {"descriptions": [{"text": "1 lit double"}]}}]
+                    },
+                }
+            }
+        }
+    }
+    d = description_de(brut)
+    assert len(d) <= TEXTE_MAX
+    assert d.startswith("Très long.")
+    assert d.endswith("Où vous dormirez\nChambre 1 : 1 lit double")

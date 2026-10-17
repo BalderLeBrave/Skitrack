@@ -1,7 +1,7 @@
-import { describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { foldName } from "./carte.ts";
-import { communesPour, stationIdDeLaCommune } from "./communesProches.ts";
+import { chargerCommunes, communesChargees, communesPour, stationIdDeLaCommune } from "./communesProches.ts";
 import { FM_STATIONS } from "./franceMontagnes.data.ts";
 import { STATIONS } from "./stations.ts";
 
@@ -11,7 +11,18 @@ function resolu(nom: string): string | null {
   return STATIONS.find((s) => foldName(s.name) === q)?.id ?? stationIdDeLaCommune(nom);
 }
 
+describe("avant le chargement de la liste", () => {
+  it("aucune commune, mais les stations et les villages rattachés se trouvent", () => {
+    assert.equal(communesChargees(), false);
+    assert.deepEqual(communesPour(foldName("Lamoura")), []);
+    assert.equal(stationIdDeLaCommune("Lamoura"), null);
+    assert.equal(stationIdDeLaCommune("Val Claret"), "tignes");
+  });
+});
+
 describe("communes, villes et villages", () => {
+  before(() => chargerCommunes());
+
   it("Lamoura est le domaine des Rousses", () => {
     assert.equal(stationIdDeLaCommune("Lamoura"), "les-rousses");
     const [c] = communesPour(foldName("Lamoura"));

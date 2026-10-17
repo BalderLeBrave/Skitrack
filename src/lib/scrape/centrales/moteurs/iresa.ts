@@ -178,6 +178,12 @@ type Datas = {
   duree?: unknown;
   date_debut?: unknown;
   lieu?: unknown;
+  /** Les couchages publiés (« 1 lit double, 2 lits simples »). */
+  detailLits?: unknown;
+  /** La surface publiée, en m². */
+  surface?: unknown;
+  /** Le classement publié (1 à 5 étoiles). */
+  stars?: unknown;
   photos?: unknown;
   description?: unknown;
   filters?: unknown;

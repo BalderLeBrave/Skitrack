@@ -13,13 +13,46 @@
  */
 
 import { foldName } from "./carte.ts";
-import fichier from "./communesProches.json" with { type: "json" };
 import { STATIONS, stationById } from "./stations.ts";
 import { VILLAGES } from "./villages.ts";
 
 type Fichier = { ids: string[]; lieux: [string, number, number, number][] };
 
-const FICHIER = fichier as Fichier;
+/**
+ * La liste (2 Mo, 77 000 lieux) n'est pas dans le paquet de départ, que
+ * toutes les pages chargent : elle arrive au premier besoin
+ * (`chargerCommunes`, le champ Destination), et son index se prépare à
+ * l'arrivée, pas à la première frappe. Avant : aucune commune proposée.
+ */
+let fichier: Fichier | null = null;
+let chargement: Promise<void> | null = null;
+const abonnes = new Set<() => void>();
+
+export function chargerCommunes(): Promise<void> {
+  chargement ??= import("./communesProches.json", { with: { type: "json" } }).then(
+    (m) => {
+      fichier = m.default as Fichier;
+      index();
+      for (const f of abonnes) f();
+    },
+    (e: unknown) => {
+      // Un échec de chargement se retente au besoin suivant.
+      chargement = null;
+      throw e;
+    },
+  );
+  return chargement;
+}
+
+export function communesChargees(): boolean {
+  return trie != null;
+}
+
+/** Prévient quand la liste est arrivée ; rend de quoi se désabonner. */
+export function surCommunesChargees(f: () => void): () => void {
+  abonnes.add(f);
+  return () => abonnes.delete(f);
+}
 
 export type CommuneTrouvee = {
   nom: string;
@@ -36,14 +69,17 @@ let trie: Entree[] | null = null;
 
 function index(): Entree[] {
   if (trie) return trie;
-  trie = FICHIER.lieux.map(([nom, i, km, domaine]) => ({
+  if (!fichier) return [];
+  const { ids, lieux } = fichier;
+  const t = lieux.map(([nom, i, km, domaine]) => ({
     f: foldName(nom),
     nom,
-    stationId: FICHIER.ids[i] ?? "",
+    stationId: ids[i] ?? "",
     km,
     domaine: domaine === 1,
   }));
-  trie.sort((a, b) => (a.f < b.f ? -1 : a.f > b.f ? 1 : 0));
+  t.sort((a, b) => (a.f < b.f ? -1 : a.f > b.f ? 1 : 0));
+  trie = t;
   return trie;
 }
 
@@ -129,7 +165,8 @@ export function communesPour(q: string): CommuneTrouvee[] {
 /**
  * La station d'un lieu nommé en toutes lettres, ou `null`.
  * Plusieurs homonymes : celui dont la station porte ce nom, sinon le plus
- * proche d'une station.
+ * proche d'une station. Avant `chargerCommunes` : les seuls noms de station
+ * et de village rattaché.
  */
 export function stationIdDeLaCommune(texte: string): string | null {
   const q = foldName(texte);

@@ -229,8 +229,9 @@ def occupancy_from_pdp(raw: Any) -> dict[str, Any]:
     if bedrooms is None:
         arrangees = _chambres_arrangees(raw)
         if arrangees is not None:
+            # Compté sur les noms des pièces, pas lu dans un champ :
+            # `bedroomsSource` le dit (« text_regex »).
             bedrooms = arrangees
-            s_bedrooms = arrangees
     beds = beds_from_text(*textes) if textes else None
     baths = baths_from_text(*textes) if textes else None
     locality = _lieu(raw)

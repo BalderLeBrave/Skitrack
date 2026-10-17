@@ -568,6 +568,10 @@ a.fl-offre__lien:hover {
 /* ── Carte ─────────────────────────────────────────────────────────────── */
 .fl-plan {
   position: relative;
+  /* Les couches de Leaflet (z-index 400 et plus) et les pastilles posées
+     dessus restent dans la carte : sans cela, elles passaient par-dessus la
+     visionneuse et la carte en grand. */
+  isolation: isolate;
   height: 262px;
   background: none;
   overflow: hidden;
@@ -594,7 +598,9 @@ a.fl-offre__lien:hover {
 }
 /* « © OpenStreetMap » seul, comme la maquette : sans le lien Leaflet. */
 .fl-plan .leaflet-control-attribution a[href*="leafletjs"],
-.fl-plan .leaflet-control-attribution a[href*="leafletjs"] + span {
+.fl-plan .leaflet-control-attribution a[href*="leafletjs"] + span,
+.fl-plein__carte .leaflet-control-attribution a[href*="leafletjs"],
+.fl-plein__carte .leaflet-control-attribution a[href*="leafletjs"] + span {
   display: none;
 }
 .fl-plan--vide {
@@ -603,6 +609,31 @@ a.fl-offre__lien:hover {
   background: var(--color-puce);
   font-size: 14px;
   color: var(--color-muted);
+}
+/* « Agrandir » : la carte en grand, où elle se manipule. */
+.fl .fl-plan__agrandir {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.fl .fl-plan__agrandir:hover {
+  background: var(--color-surface);
 }
 .fl-plan__note {
   position: absolute;
@@ -880,6 +911,25 @@ a.fl-reserver:hover {
   grid-template-rows: 64px minmax(0, 1fr) 96px;
   background: color-mix(in srgb, var(--color-photo-voile) 94%, transparent);
   color: var(--color-photo-texte);
+}
+/* La carte en grand : la tête, puis la carte jusqu'en bas. */
+.fl-plein--carte {
+  grid-template-rows: 64px minmax(0, 1fr);
+}
+.fl-plein__carte {
+  position: relative;
+  isolation: isolate;
+  min-height: 0;
+  /* Les outils de la carte gardent les couleurs de l'application, pas le
+     texte clair de la visionneuse. */
+  color: var(--color-ink);
+  margin: 0 16px 16px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.fl-plein__carte > .carte {
+  position: absolute;
+  inset: 0;
 }
 .fl-plein__tete {
   display: flex;

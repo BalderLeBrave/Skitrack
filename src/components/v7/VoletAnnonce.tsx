@@ -23,8 +23,8 @@ import {
   BlocAvis,
   BlocConditions,
   BlocEmplacement,
+  CarteEmplacementPleine,
   BlocFaits,
-  BlocNonIndique,
   BlocTitre,
   CartePrix,
 } from "@/components/v7/FicheBlocs";
@@ -124,8 +124,23 @@ export function VoletAnnonce({
     // Le focus revient à la photo ou au bouton qui a ouvert la visionneuse.
     requestAnimationFrame(() => ouvreur.current?.focus({ preventScroll: true }));
   }, []);
-  // Une autre annonce ferme la visionneuse.
-  useEffect(() => setPlein(false), [l.id]);
+  // La carte de l'emplacement en grand, comme la visionneuse : par-dessus la
+  // fenêtre, le focus revient au bouton qui l'a ouverte.
+  const [carteGrande, setCarteGrande] = useState(false);
+  const ouvrirCarte = useCallback(() => {
+    ouvreur.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setCarteGrande(true);
+  }, []);
+  const fermerCarte = useCallback(() => {
+    setCarteGrande(false);
+    requestAnimationFrame(() => ouvreur.current?.focus({ preventScroll: true }));
+  }, []);
+  // Une autre annonce ferme la visionneuse et la carte.
+  useEffect(() => {
+    setPlein(false);
+    setCarteGrande(false);
+  }, [l.id]);
 
   const altDe = useAltitudes(useMemo(() => [l], [l]));
   const altitude = altDe(l);
@@ -217,6 +232,8 @@ export function VoletAnnonce({
         return;
       if (!dessus() || (e.target instanceof Element && e.target.closest("input, select, textarea")))
         return;
+      // Sur la carte en grand, les flèches déplacent la carte.
+      if (carteGrande) return;
       const sens = e.key === "ArrowRight" ? 1 : -1;
       if (plein) {
         e.preventDefault();
@@ -228,20 +245,22 @@ export function VoletAnnonce({
     };
     document.addEventListener("keydown", fleches);
     return () => document.removeEventListener("keydown", fleches);
-  }, [aller, dessus, plein, voisin, onPrecedent, onSuivant]);
+  }, [aller, dessus, plein, carteGrande, voisin, onPrecedent, onSuivant]);
 
-  // Dans la visionneuse, Échap ramène à la fenêtre sans la fermer : l'écoute
-  // passe avant celle de la fenêtre (`useEchap`, sur le document) et s'y arrête.
+  // Dans la visionneuse ou la carte en grand, Échap ramène à la fenêtre sans
+  // la fermer : l'écoute passe avant celle de la fenêtre (`useEchap`, sur le
+  // document) et s'y arrête.
   useEffect(() => {
-    if (!plein) return;
+    if (!plein && !carteGrande) return;
     const echap = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.stopPropagation();
-      fermerPlein();
+      if (plein) fermerPlein();
+      else fermerCarte();
     };
     window.addEventListener("keydown", echap, true);
     return () => window.removeEventListener("keydown", echap, true);
-  }, [plein, fermerPlein]);
+  }, [plein, carteGrande, fermerPlein, fermerCarte]);
 
   // « Lien de l'annonce copié » : un message bref, qui s'efface seul.
   const [message, setMessage] = useState<{ texte: string; n: number } | null>(null);
@@ -287,7 +306,7 @@ export function VoletAnnonce({
         aria-modal="true"
         aria-labelledby={titreId}
         tabIndex={-1}
-        inert={plein}
+        inert={plein || carteGrande}
       >
         <header className="fl-tete">
           <button type="button" className="fl-retour" onClick={onFermer} title={tr("Fermer")}>
@@ -365,11 +384,10 @@ export function VoletAnnonce({
                 complements={complementsAcces}
               />
               <BlocAnnonce key={l.id} l={l} />
-              <BlocNonIndique l={l} />
               {groupe && groupe.offres.length > 1 ? (
                 <OffresLogement g={groupe} ici={l.id} voir={onVoirOffre} />
               ) : null}
-              <BlocEmplacement l={l} />
+              <BlocEmplacement l={l} agrandir={ouvrirCarte} />
               <BlocAvis l={l} />
               <BlocConditions l={l} />
             </div>
@@ -414,6 +432,7 @@ export function VoletAnnonce({
       </div>
       {enr.modale}
       {plein ? <PleinEcran g={g} titre={l.title} fermer={fermerPlein} /> : null}
+      {carteGrande ? <CarteEmplacementPleine l={l} fermer={fermerCarte} /> : null}
     </div>
   );
 }

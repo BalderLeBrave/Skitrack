@@ -13,8 +13,10 @@ export const EN_FICHE_LOGEMENT: Record<string, string> = {
   "Afficher les {n} équipements": "Show all {n} amenities",
   "Non indiqué": "Not stated",
   "non indiqué": "not stated",
-  "Non indiqué : {liste}": "Not stated: {liste}",
   // Carte
+  "Agrandir la carte": "Enlarge the map",
+  "Carte de l’emplacement": "Location map",
+  "Fermer la carte": "Close the map",
   "Position triangulée": "Triangulated position",
   "Position approchée": "Approximate position",
   // Plateformes (OffresLogement.tsx)

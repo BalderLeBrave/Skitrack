@@ -1,7 +1,7 @@
 {
   "releve": "2026-10-17",
   "groupe": "nordiques",
-  "methode": "Pour chaque domaine, lien « boka boende / bestill overnatting / majoitus » publié par le site officiel (liens relevés par Firecrawl, puis recherche web ciblée sur l'hôte quand la lecture directe était bloquée) ; moteur retenu seulement sur empreinte (pied de page Citybreak, hôte *.citybreak.com / *.cloudbooking.no, schéma d'URL du module Citybreak), sinon « inconnu ». SkiStar est sa propre centrale.",
+  "methode": "Pour chaque domaine, lien « boka boende / bestill overnatting / majoitus » publié par le site officiel (liens relevés par Firecrawl, puis recherche web ciblée sur l'hôte quand la lecture directe était bloquée) ; moteur retenu seulement sur empreinte (pied de page Citybreak, hôte *.citybreak.com / *.cloudbooking.no, schéma d'URL du module Citybreak), sinon « inconnu ». SkiStar est sa propre centrale. Deuxième passe le 2026-10-17 (recherche web seule, sans lecture de page : WebFetch, curl et Firecrawl indisponibles) sur les domaines restés « non recherché » : un moteur n'est nommé que si un extrait de recherche le prouve ; les entrées de cette passe sont préfixées « 2e passe ».",
   "domaines": [
     {
       "id": "se-are",
@@ -256,7 +256,7 @@
       "pays": "SE",
       "siteOfficiel": null,
       "centrale": null,
-      "motif": "Site officiel et page de réservation non trouvés (seules des annonces Hemnet mentionnent un contrat de location avec Idre Himmelfjäll) ; recherche interrompue, quota de recherche épuisé."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Ni site officiel ni page de réservation trouvés : seulement Hemnet, Stugknuten, Expedia."
     },
     {
       "id": "no-norefjell",
@@ -428,7 +428,7 @@
       "pays": "SE",
       "siteOfficiel": null,
       "centrale": null,
-      "motif": "Site officiel et page de réservation non trouvés (résultats limités à des loueurs tiers) ; recherche interrompue, quota de recherche épuisé."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Ni site officiel ni page de réservation trouvés : seulement Stugknuten et Hemnet."
     },
     {
       "id": "fi-tahko",

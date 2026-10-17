@@ -1,7 +1,7 @@
 {
   "releve": "2026-10-17",
   "groupe": "ouest",
-  "methode": "Pour chaque domaine, lien « hébergement / réserver » publié par le site officiel ou l'office de tourisme, moteur nommé seulement sur preuve écrite (pied de page, notice de confidentialité, URL du moteur). Relevé partiel : lecture directe des pages impossible (WebFetch sans DNS, crédits Firecrawl épuisés après deux pages, quota de recherche atteint), d'où beaucoup de « inconnu » et de domaines non relevés.",
+  "methode": "Pour chaque domaine, lien « hébergement / réserver » publié par le site officiel ou l'office de tourisme, moteur nommé seulement sur preuve écrite (pied de page, notice de confidentialité, URL du moteur). Relevé partiel : lecture directe des pages impossible (WebFetch sans DNS, crédits Firecrawl épuisés après deux pages, quota de recherche atteint), d'où beaucoup de « inconnu » et de domaines non relevés. Deuxième passe le 2026-10-17 (recherche web seule, sans lecture de page : WebFetch, curl et Firecrawl indisponibles) sur les domaines restés « non recherché » : un moteur n'est nommé que si un extrait de recherche le prouve ; les entrées de cette passe sont préfixées « 2e passe ».",
   "domaines": [
     {
       "id": "es-estacio-d-esqui-baqueira-beret",
@@ -108,7 +108,7 @@
       "pays": "DE",
       "siteOfficiel": "https://zugspitze.de",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Hébergement probablement vendu par GaPa Tourismus (gapa.de), non vérifié."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune page de réservation de GaPa Tourismus (gapa.de) trouvée ; des portails tiers reprennent ses photos."
     },
     {
       "id": "es-astun",
@@ -155,7 +155,7 @@
       "pays": "ES",
       "siteOfficiel": "https://www.candanchu.com/",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune page d'hébergement du site officiel trouvée ; seulement des agrégateurs."
     },
     {
       "id": "es-estacio-d-esqui-port-del-comte",
@@ -184,7 +184,7 @@
       "pays": "DE",
       "siteOfficiel": "https://www.balderschwang.de/",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Indice seulement : schneehoehen.de liste des hébergeurs de Balderschwang sous des identifiants « FERATEL-… », ce qui ne prouve pas la centrale du site officiel."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Pas de page de balderschwang.de trouvée. Indice seul : schneehoehen.de et alpen-guide.de listent les hébergeurs sous des identifiants « FERATEL-<guid> », ce qui ne prouve pas la centrale du site officiel."
     },
     {
       "id": "ad-canaro",
@@ -217,16 +217,26 @@
       "nom": "Brauneck",
       "pays": "DE",
       "siteOfficiel": "https://www.brauneck-bergbahn.de/",
-      "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "centrale": {
+        "nom": "Tölzer Land Tourismus",
+        "url": "https://www.toelzer-land.de/reise-planen",
+        "hote": "www.toelzer-land.de",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Reiseplanung » : offre sans engagement ou réservation en ligne directe ; le Landratsamt cite un « landkreisweites Reservierungssystem » sans en nommer l'éditeur. Lien depuis brauneck-bergbahn.de non vérifié."
+      }
     },
     {
       "id": "gb-glenshee-ski-center",
       "nom": "Glenshee Ski Center",
       "pays": "GB",
       "siteOfficiel": "https://www.ski-glenshee.co.uk/",
-      "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "centrale": {
+        "nom": "Glenshee Ski Centre (annuaire)",
+        "url": "https://www.ski-glenshee.co.uk/Accommodation",
+        "hote": "www.ski-glenshee.co.uk",
+        "moteur": "aucun",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : la page Accommodation renvoie aux associations touristiques (Glenshee & Strathardle, Braemar, Blairgowrie) et aux établissements ; seuls les emplacements camping-car se réservent en ligne."
+      }
     },
     {
       "id": "de-feldberg",
@@ -247,7 +257,7 @@
       "pays": "DE",
       "siteOfficiel": "https://www.bergbahnen-hindelang-oberjoch.de/",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Pas de page de hindelang.net trouvée. Indice seul : hébergeurs listés sous « FERATEL-<guid> » sur schneehoehen.de, sans preuve pour le site officiel."
     },
     {
       "id": "es-estacio-d-esqui-de-port-aine",
@@ -280,8 +290,13 @@
       "nom": "Skiliftkarussell Winterberg",
       "pays": "DE",
       "siteOfficiel": null,
-      "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "centrale": {
+        "nom": "Tourist-Information Winterberg",
+        "url": "https://www.winterberg.de/unterkuenfte-angebote/",
+        "hote": "www.winterberg.de",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : page « Unterkünfte und Angebote » : plus de 300 hébergements, sans frais de réservation, processus de réservation en ligne ; aucun éditeur nommé. Pas de site officiel du domaine dans le référentiel."
+      }
     },
     {
       "id": "es-estacion-de-esqui-de-valdesqui",
@@ -289,7 +304,7 @@
       "pays": "ES",
       "siteOfficiel": "https://www.valdesqui.es/",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune page d'hébergement officielle trouvée (Rascafría) ; seulement des agrégateurs."
     },
     {
       "id": "es-espot",
@@ -323,7 +338,7 @@
       "pays": "GB",
       "siteOfficiel": "https://www.nevisrange.co.uk/",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune centrale officielle (Visit Fort William) trouvée ; seul l'hôtel Base Camp est lié au domaine."
     },
     {
       "id": "es-panticosa",
@@ -357,15 +372,20 @@
       "pays": "DE",
       "siteOfficiel": "https://www.tannheimertal.com/",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune page de réservation de tannheimertal.com trouvée (seulement le catalogue des hébergeurs 2024-2026 en PDF). Domaine autrichien (Tyrol)."
     },
     {
       "id": "de-todtnauberg-478572m79509",
       "nom": "Todtnauberg",
       "pays": "DE",
       "siteOfficiel": null,
-      "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "centrale": {
+        "nom": "Hochschwarzwald Tourismus",
+        "url": "https://www.hochschwarzwald.de/planen-buchen/unterkuenfte",
+        "hote": "www.hochschwarzwald.de",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : rubrique « Planen & buchen / Unterkünfte » avec « Jetzt buchen » et pages par village ; aucune notice de confidentialité nommant l'éditeur trouvée. Pas de site officiel du domaine dans le référentiel."
+      }
     },
     {
       "id": "es-estacion-invernal-y-de-montana-valgrande-pajares-estacion-invernal-y-de-montana-valgrande-payares",
@@ -385,8 +405,13 @@
       "nom": "Skigebiet Spitzingsee - Tegernsee",
       "pays": "DE",
       "siteOfficiel": "https://www.alpenbahnen-spitzingsee.de/",
-      "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Le Spitzingsee relève de l'Alpenregion Tegernsee Schliersee (même cadre que Sudelfeld), page de réservation non vérifiée."
+      "centrale": {
+        "nom": "Alpenregion Tegernsee Schliersee",
+        "url": "https://booking.tegernsee-schliersee.de/",
+        "hote": "booking.tegernsee-schliersee.de",
+        "moteur": "inconnu",
+        "preuve": "2e passe 2026-10-17 (recherche web seule) : sous-domaine « Hotels/Unterkünfte Buchen » (dates, adultes, enfants, filtres) ; recherche ciblée feratel/Deskline sans résultat. Lien depuis alpenbahnen-spitzingsee.de non vérifié."
+      }
     },
     {
       "id": "de-gletscher-skigebiet-zugspitze-ski-resort-zugspitze",
@@ -394,7 +419,7 @@
       "pays": "DE",
       "siteOfficiel": "https://zugspitze.de",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée. Même exploitant que Garmisch-Classic (Bayerische Zugspitzbahn)."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Même zone que Garmisch-Classic : aucune page de réservation de GaPa Tourismus trouvée."
     },
     {
       "id": "es-estacion-de-esqui-de-valdezcaray",
@@ -402,7 +427,7 @@
       "pays": "ES",
       "siteOfficiel": "https://www.valdezcaray.es/",
       "centrale": null,
-      "motif": "non relevé : outils web épuisés pendant le relevé (WebFetch sans DNS, crédits Firecrawl à zéro, quota de recherche atteint) ; aucune page de réservation n'a pu être vérifiée."
+      "motif": "2e passe 2026-10-17 (recherche web seule) : cherché sans résultat. Aucune page d'hébergement officielle trouvée (Ezcaray) ; seulement des agrégateurs."
     },
     {
       "id": "de-skiarena-steibis",
@@ -419,11 +444,11 @@
     }
   ],
   "moteurs": {
-    "Baqueira (propre)": 1,
+    "inconnu": 15,
     "Grandvalira Resorts (propre)": 3,
-    "inconnu": 11,
     "Aramón (Viajes Aramón)": 3,
     "Deskline / Feratel": 3,
-    "aucun": 1
+    "aucun": 2,
+    "Baqueira (propre)": 1
   }
 }
